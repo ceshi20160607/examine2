@@ -1,0 +1,777 @@
+{
+  "step": "B09.1b.2",
+  "status": "verified_contribution",
+  "code": "node_submit_7a76d76d39",
+  "fields": {
+    "subject": {
+      "id": 189,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "subject",
+      "name": "事项主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 190,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "score",
+      "name": "优先分值",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 191,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "enabled",
+      "name": "是否紧急",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "occurred": {
+      "id": 192,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "occurred",
+      "name": "发生时间",
+      "fieldType": "DATETIME",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 3,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "day": {
+      "id": 193,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "day",
+      "name": "业务日期",
+      "fieldType": "DATE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 4,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "choices": {
+      "id": 194,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "choices",
+      "name": "事项标签",
+      "fieldType": "MULTI_SELECT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 11,
+      "referenceModuleId": null,
+      "sortOrder": 5,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "credential": {
+      "id": 195,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "credential",
+      "name": "业务密钥",
+      "fieldType": "SECRET",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 6,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "person": {
+      "id": 196,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "person",
+      "name": "关联成员",
+      "fieldType": "MEMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 7,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "department": {
+      "id": 197,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "department",
+      "name": "关联部门",
+      "fieldType": "DEPARTMENT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 8,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "related": {
+      "id": 198,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "related",
+      "name": "关联事项",
+      "fieldType": "REFERENCE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": 52,
+      "sortOrder": 9,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "city": {
+      "id": 199,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "city",
+      "name": "地区",
+      "fieldType": "CASCADE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 12,
+      "referenceModuleId": null,
+      "sortOrder": 10,
+      "status": "ACTIVE",
+      "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "locked": {
+      "id": 200,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "locked",
+      "name": "系统维护内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 11,
+      "status": "ACTIVE",
+      "configJson": "{\"readOnly\":true}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "hidden": {
+      "id": 201,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "hidden",
+      "name": "内部隐藏内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 12,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "flow_denied": {
+      "id": 202,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 53,
+      "code": "flow_denied",
+      "name": "流程渠道禁止内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 13,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "cases": [
+    {
+      "case": "isolated_module_real_options_two_stage_flow_and_ordinary_permissions",
+      "module_id": 53,
+      "records": [
+        173,
+        174,
+        175
+      ],
+      "gui_instance": 89
+    },
+    {
+      "case": "not_current_handler_cannot_read_task_form",
+      "status": 403
+    },
+    {
+      "case": "ordinary_first_node_changes_waiting_second_node_original_and_formal_unchanged",
+      "instance_id": 89,
+      "formal_version": 0
+    },
+    {
+      "case": "ordinary_second_node_final_original_action_executes_once",
+      "instance_id": 89,
+      "formal_version": 1,
+      "business_status": "EXECUTED"
+    },
+    {
+      "case": "hidden_readonly_unknown_required_invalid_date_dictionary_variables_and_reject_patch_atomic",
+      "checks": [
+        {
+          "status": 403,
+          "code": "FLOW_NODE_FIELD_DENIED"
+        },
+        {
+          "status": 403,
+          "code": "FLOW_NODE_FIELD_DENIED"
+        },
+        {
+          "status": 403,
+          "code": "FLOW_NODE_FIELD_DENIED"
+        },
+        {
+          "status": 422,
+          "code": "FLOW_NODE_FIELD_REQUIRED"
+        },
+        {
+          "status": 422,
+          "code": "FIELD_VALIDATION_FAILED"
+        },
+        {
+          "status": 422,
+          "code": "FIELD_VALIDATION_FAILED"
+        },
+        {
+          "status": 422,
+          "code": "FLOW_BUSINESS_VARIABLES_DENIED"
+        },
+        {
+          "status": 422,
+          "code": "FLOW_NODE_FORM_APPROVAL_REQUIRED"
+        }
+      ]
+    },
+    {
+      "case": "typed_secret_protected_independent_snapshot_candidate_final_original_identity_once_and_replay",
+      "instance_id": 90,
+      "formal_version": 1,
+      "idempotency_diff_status": 409
+    },
+    {
+      "case": "later_reject_keeps_approved_node_snapshot_without_any_business_write",
+      "instance_id": 91,
+      "formal_version": 1
+    },
+    {
+      "case": "custom_field_action_only_original_parameters_merged_through_shared_executor",
+      "instance_id": 92,
+      "formal_version": 2
+    },
+    {
+      "case": "current_original_actor_revoked_update_approval_cannot_borrow_handler_identity",
+      "instance_id": 93,
+      "status": "CONFLICT",
+      "error_code": "PERMISSION_DENIED",
+      "formal_version": 0,
+      "verification": "actual persisted terminal + completed flow + formal unchanged; non-owner receipt 404"
+    },
+    {
+      "case": "concurrent_record_version_conflict_retains_normal_action_new_formal_values",
+      "instance_id": 94,
+      "status": "CONFLICT",
+      "error_code": "RECORD_VERSION_CONFLICT",
+      "formal_version": 1
+    },
+    {
+      "case": "integrated_ordinary_gui_dirty_subset_and_unchanged_options_datetime_original_intent_readback",
+      "record_id": 173,
+      "version": 1
+    },
+    {
+      "case": "existing_completed_flow81_original_and_current_safe_projection_unchanged",
+      "instance_id": 81,
+      "record_id": 170
+    },
+    {
+      "case": "ordinary_cached_form_submit_after_update_revocation_403_clears_old_context_no_write",
+      "instance_id": 95,
+      "formal_version": 1
+    },
+    {
+      "case": "isolated_records_archived_templates_bindings_disabled_role_exact_restored_existing_source_formals_unchanged"
+    }
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "checked_time": "2026-09-19T01:52:21.608136+08:00",
+  "target_id": 52,
+  "target_record": 172,
+  "cascade_id": 12,
+  "cascade_parent": 26,
+  "cascade_child": 27,
+  "module_id": 53,
+  "custom": {
+    "id": 570,
+    "systemId": 54,
+    "ownerTenantId": 57,
+    "moduleId": 53,
+    "code": "ACTION_54CBCC476C52",
+    "name": "节点参数业务动作",
+    "actionType": "CUSTOM",
+    "location": "ROW",
+    "sortOrder": 120,
+    "status": "ACTIVE",
+    "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"subject\",\"score\"],\"confirmation\":false,\"confirmationText\":null}",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "records": [
+    173,
+    174,
+    175
+  ],
+  "gui_flow": 30,
+  "api_flow": 31,
+  "gui_action": {
+    "idempotencyRecordId": 335,
+    "outboxId": 242,
+    "idempotencyKey": "node_submit_8abfc12a08d6",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 89
+  },
+  "gui_original_intent": {
+    "actor": {
+      "roleIds": [
+        73
+      ],
+      "memberId": 71,
+      "mfaLevel": "NONE",
+      "systemId": 54,
+      "tenantId": 57,
+      "username": "admin",
+      "accountId": 1,
+      "sessionId": 2176,
+      "dataScopes": {
+        "*:*:*": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                73
+              ],
+              "condition": null
+            }
+          ]
+        }
+      },
+      "platformId": 1,
+      "displayName": "平台超级管理员",
+      "permissions": [
+        {
+          "roleIds": [
+            73
+          ],
+          "actionCode": "*",
+          "resourceCode": "*",
+          "resourceType": "*"
+        }
+      ],
+      "tenantMemberId": 74
+    },
+    "options": {
+      "depth": 0,
+      "channel": "PAGE",
+      "causationId": null,
+      "idempotencyKey": "node_submit_8abfc12a08d6",
+      "applicationCode": "runtime"
+    },
+    "payload": {
+      "title": "普通页面节点写回验收",
+      "fields": {
+        "day": "2026-09-19",
+        "city": [
+          26,
+          27
+        ],
+        "score": 10.0,
+        "person": 101,
+        "choices": [
+          "one"
+        ],
+        "enabled": true,
+        "related": 172,
+        "subject": "原申请待批准内容",
+        "occurred": "2026-09-19T10:00",
+        "department": 75,
+        "flow_denied": "隔离渠道值"
+      },
+      "status": "ACTIVE",
+      "version": 0,
+      "departmentId": 75,
+      "recordNumber": null,
+      "ownerMemberId": 71,
+      "participantMemberIds": []
+    },
+    "traceId": "fff2a91f24794a9fa06eb774b25b2fc1",
+    "moduleId": 53,
+    "recordId": 173,
+    "actionCode": "UPDATE",
+    "moduleCode": "node_submit_7a76d76d39",
+    "dataTenantId": 57,
+    "configVersionId": 96,
+    "expectedVersion": 0
+  },
+  "prepared": true,
+  "api_action": {
+    "idempotencyRecordId": 336,
+    "outboxId": 244,
+    "idempotencyKey": "node_submit_bb2fa16640b3",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 90
+  },
+  "api_original_intent": {
+    "actor": {
+      "roleIds": [
+        73
+      ],
+      "memberId": 71,
+      "mfaLevel": "NONE",
+      "systemId": 54,
+      "tenantId": 57,
+      "username": "admin",
+      "accountId": 1,
+      "sessionId": 2185,
+      "dataScopes": {
+        "*:*:*": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                73
+              ],
+              "condition": null
+            }
+          ]
+        }
+      },
+      "platformId": 1,
+      "displayName": "平台超级管理员",
+      "permissions": [
+        {
+          "roleIds": [
+            73
+          ],
+          "actionCode": "*",
+          "resourceCode": "*",
+          "resourceType": "*"
+        }
+      ],
+      "tenantMemberId": 74
+    },
+    "options": {
+      "depth": 0,
+      "channel": "PAGE",
+      "causationId": null,
+      "idempotencyKey": "node_submit_bb2fa16640b3",
+      "applicationCode": "runtime"
+    },
+    "payload": {
+      "title": "接口节点边界验收",
+      "fields": {
+        "day": "2026-09-19",
+        "city": [
+          26,
+          27
+        ],
+        "score": 10.0,
+        "hidden": "隔离内部值",
+        "person": 101,
+        "choices": [
+          "one"
+        ],
+        "enabled": true,
+        "related": 172,
+        "subject": "接口原待审批内容",
+        "occurred": "2026-09-19T10:00",
+        "department": 75,
+        "flow_denied": "隔离渠道值"
+      },
+      "status": "ACTIVE",
+      "version": 0,
+      "departmentId": 75,
+      "recordNumber": null,
+      "ownerMemberId": 71,
+      "participantMemberIds": []
+    },
+    "traceId": "2ecd02810f3f4a89b85a547f958acdf3",
+    "moduleId": 53,
+    "recordId": 174,
+    "actionCode": "UPDATE",
+    "moduleCode": "node_submit_7a76d76d39",
+    "dataTenantId": 57,
+    "configVersionId": 96,
+    "expectedVersion": 0
+  },
+  "preparation_failures": [
+    "实际前8种无效提交拒绝、原任务同键回放和不同内容409已通过；随后脚本把合法12:00误要求12:00:00。已从实际confirm任务继续，只修正语义日期断言，不重复提交已批准补丁。",
+    "首次准备误把账号数字ID用于account搜索，实际404 ACCOUNT_NOT_FOUND，无原动作创建；收尾SQL误用session.status，实际表使用revoked。按真实接口/字段修正，旧账号81及空系统83准确停用。",
+    "撤权流程实际批准后原动作已经CONFLICT/PERMISSION_DENIED，formal175仍v0。脚本用Root读取别人的回执实际404 ACTION_RESULT_NOT_FOUND；账号82/空系统84已准确收尾，改为持久化终态交叉验证，不重复创建或撤权。后续原账号回执函数支持token参数。",
+    {
+      "chunk": "2eefcd",
+      "cause": "只读组合断言误按 editContext.record 读取 RuntimeBusinessView.current；按真实 RuntimeRecordView.id 修正，未进行业务写入。"
+    },
+    {
+      "chunk": "15a2cf",
+      "cause": "收据误引用不存在的backend-build.log，写出前失败，engineering verify因receipt不存在未通过；根据实际文件改为compile失败日志及成功package工具记录，不补造日志。"
+    }
+  ],
+  "custom_action": {
+    "idempotencyRecordId": 338,
+    "outboxId": 247,
+    "idempotencyKey": "node_custom_e0278ea709",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 92
+  },
+  "custom_original_intent": {
+    "actor": {
+      "roleIds": [
+        73
+      ],
+      "memberId": 71,
+      "mfaLevel": "NONE",
+      "systemId": 54,
+      "tenantId": 57,
+      "username": "admin",
+      "accountId": 1,
+      "sessionId": 2189,
+      "dataScopes": {
+        "*:*:*": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                73
+              ],
+              "condition": null
+            }
+          ]
+        }
+      },
+      "platformId": 1,
+      "displayName": "平台超级管理员",
+      "permissions": [
+        {
+          "roleIds": [
+            73
+          ],
+          "actionCode": "*",
+          "resourceCode": "*",
+          "resourceType": "*"
+        }
+      ],
+      "tenantMemberId": 74
+    },
+    "options": {
+      "depth": 0,
+      "channel": "PAGE",
+      "causationId": null,
+      "idempotencyKey": "node_custom_e0278ea709",
+      "applicationCode": "runtime"
+    },
+    "payload": {
+      "values": {
+        "score": 10,
+        "subject": "原动作参数"
+      },
+      "version": 1
+    },
+    "traceId": "13c7bdc666b449fda234750a9dc58fba",
+    "moduleId": 53,
+    "recordId": 174,
+    "actionCode": "ACTION_54CBCC476C52",
+    "moduleCode": "node_submit_7a76d76d39",
+    "dataTenantId": 57,
+    "configVersionId": 96,
+    "expectedVersion": 1
+  },
+  "api_verified": true,
+  "temporary_identity": {
+    "account_id": 82,
+    "system_id": 84,
+    "username": "node_origin_a08e607ec1"
+  },
+  "closed_preparation_identities": [
+    {
+      "account_id": 81,
+      "system_id": 83
+    }
+  ],
+  "temporary_identity_closed": true,
+  "actor_conflict_action": {
+    "idempotencyRecordId": 339,
+    "outboxId": 249,
+    "idempotencyKey": "node_submit_c24130150b3d",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 93
+  },
+  "record_conflict_action": {
+    "idempotencyRecordId": 340,
+    "outboxId": 250,
+    "idempotencyKey": "node_submit_eb409f52044b",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 94
+  },
+  "conflicts_verified": true,
+  "loss_action": {
+    "idempotencyRecordId": 342,
+    "outboxId": 252,
+    "idempotencyKey": "node_submit_821e3736a56b",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 95
+  },
+  "loss_revoked": true,
+  "ordinary_gui_permission_error": {
+    "actual_ax": "403 task form→旧字段和业务内容清空；准确提示当前记录已清除，请刷新权限后重新进入；没有待办空态不存在。",
+    "modal_dirty_values_cleared": true,
+    "no_approve_expected": true
+  },
+  "original_role_restored": true,
+  "isolated_cleanup_verified": true,
+  "verified_time": "2026-09-19T01:53:47.357549+08:00"
+}

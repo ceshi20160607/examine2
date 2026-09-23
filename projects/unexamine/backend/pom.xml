@@ -20,6 +20,8 @@
     <flyway.version>13.0.0</flyway.version>
     <jsoup.version>1.23.2</jsoup.version>
     <springdoc.version>2.8.17</springdoc.version>
+    <aws-sdk.version>2.55.1</aws-sdk.version>
+    <poi.version>5.5.1</poi.version>
   </properties>
   <dependencies>
     <dependency>
@@ -36,6 +38,10 @@
     <dependency><groupId>org.springdoc</groupId><artifactId>springdoc-openapi-starter-webmvc-ui</artifactId><version>${springdoc.version}</version></dependency>
     <!-- Product support library for HTML5 parsing and explicit rich-text sanitization. -->
     <dependency><groupId>org.jsoup</groupId><artifactId>jsoup</artifactId><version>${jsoup.version}</version></dependency>
+    <!-- S3-compatible object storage uses the maintained AWS SDK v2 client and the same governed file lifecycle. -->
+    <dependency><groupId>software.amazon.awssdk</groupId><artifactId>s3</artifactId><version>${aws-sdk.version}</version></dependency>
+    <!-- Excel import/export is parsed and generated on the server so users never handle JSON or internal files. -->
+    <dependency><groupId>org.apache.poi</groupId><artifactId>poi-ooxml</artifactId><version>${poi.version}</version></dependency>
     <dependency><groupId>com.baomidou</groupId><artifactId>mybatis-plus-spring-boot3-starter</artifactId><version>${mybatis-plus.version}</version></dependency>
     <dependency><groupId>com.baomidou</groupId><artifactId>mybatis-plus-jsqlparser</artifactId><version>${mybatis-plus.version}</version></dependency>
     <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-core</artifactId></dependency>

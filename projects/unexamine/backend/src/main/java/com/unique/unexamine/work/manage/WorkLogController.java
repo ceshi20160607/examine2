@@ -30,10 +30,23 @@ public class WorkLogController {
     @GetMapping
     public ApiResult<List<WorkLogModels.LogView>> list(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate workDate,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long authorTenantMemberId,
             @RequestParam(required = false) Long authorAccountId) {
-        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), workDate,
+        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), workDate, status, projectId, keyword,
                 authorTenantMemberId, authorAccountId));
+    }
+
+    @GetMapping("/materials")
+    public ApiResult<List<WorkLogModels.MaterialCandidate>> materialCandidates() {
+        return ApiResult.ok(service.materialCandidates(AuthenticationContextHolder.require()));
+    }
+
+    @GetMapping("/options")
+    public ApiResult<WorkLogModels.LogOptionsView> options() {
+        return ApiResult.ok(service.options(AuthenticationContextHolder.require()));
     }
 
     @PostMapping
@@ -53,6 +66,38 @@ public class WorkLogController {
             @PathVariable Long logId, @Valid @RequestBody WorkLogModels.UpdateLogRequest body,
             HttpServletRequest request) {
         return ApiResult.ok(service.update(AuthenticationContextHolder.require(), logId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/{logId}/submit")
+    public ApiResult<WorkLogModels.LogView> submit(
+            @PathVariable Long logId, @Valid @RequestBody WorkLogModels.LifecycleRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.submit(AuthenticationContextHolder.require(), logId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/{logId}/withdraw")
+    public ApiResult<WorkLogModels.LogView> withdraw(
+            @PathVariable Long logId, @Valid @RequestBody WorkLogModels.LifecycleRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.withdraw(AuthenticationContextHolder.require(), logId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/{logId}/restore-draft")
+    public ApiResult<WorkLogModels.LogView> restoreDraft(
+            @PathVariable Long logId, @Valid @RequestBody WorkLogModels.LifecycleRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.restoreDraft(AuthenticationContextHolder.require(), logId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/{logId}/comments")
+    public ApiResult<WorkLogModels.LogView> addComment(
+            @PathVariable Long logId, @Valid @RequestBody WorkLogModels.AddCommentRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.addComment(AuthenticationContextHolder.require(), logId, body,
                 TraceIdFilter.current(request)));
     }
 }

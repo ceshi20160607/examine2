@@ -1,0 +1,947 @@
+{
+  "step": "B07.4b.2c.2a",
+  "business_verification": "verified_bounded_api_database_page_contribution",
+  "cases": [
+    {
+      "case": "source_published_form_dictionary_cascade_reference",
+      "configuration": {
+        "moduleId": 41,
+        "versionId": 68,
+        "versionNumber": 1,
+        "publicationVersion": 0,
+        "configuration": {
+          "group": {
+            "id": 35,
+            "code": "group_1e6d578616",
+            "icon": null,
+            "name": "共享来源字典关联验收",
+            "status": "ACTIVE",
+            "version": 0,
+            "systemId": 54,
+            "createdAt": "2026-09-18T14:30:42.788+08:00",
+            "sortOrder": 20,
+            "updatedAt": "2026-09-18T14:30:42.788+08:00",
+            "ownerTenantId": 77,
+            "createdByMemberId": 71
+          },
+          "menus": [
+            {
+              "id": 35,
+              "code": "catalog_accept_887f2b7e92",
+              "icon": null,
+              "name": "来源共享表单",
+              "status": "ACTIVE",
+              "version": 0,
+              "visible": true,
+              "moduleId": 41,
+              "parentId": null,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.8+08:00",
+              "routePath": "/runtime/catalog_accept_887f2b7e92",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T14:30:42.8+08:00",
+              "ownerTenantId": 77
+            }
+          ],
+          "pages": [
+            {
+              "id": 104,
+              "name": "默认列表",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "pageType": "LIST",
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.794+08:00",
+              "updatedAt": "2026-09-18T14:30:42.794+08:00",
+              "layoutJson": "{\"components\": []}",
+              "ownerTenantId": 77
+            },
+            {
+              "id": 105,
+              "name": "默认表单",
+              "status": "ACTIVE",
+              "version": 1,
+              "moduleId": 41,
+              "pageType": "FORM",
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.795+08:00",
+              "updatedAt": "2026-09-18T14:30:42.795+08:00",
+              "layoutJson": "{\"components\": [{\"id\": \"source_form\", \"type\": \"SECTION\", \"title\": \"来源共享表单\", \"columns\": 1, \"fieldCodes\": [\"city\", \"choice\", \"subject\", \"related\", \"hidden\", \"readonly\"]}], \"fieldCodes\": [\"city\", \"choice\", \"subject\", \"related\", \"hidden\", \"readonly\"]}",
+              "ownerTenantId": 77
+            },
+            {
+              "id": 106,
+              "name": "默认详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "pageType": "DETAIL",
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.798+08:00",
+              "updatedAt": "2026-09-18T14:30:42.798+08:00",
+              "layoutJson": "{\"components\": []}",
+              "ownerTenantId": 77
+            }
+          ],
+          "rules": [],
+          "fields": [
+            {
+              "id": 127,
+              "code": "subject",
+              "name": "来源主题",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "required": true,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.857+08:00",
+              "fieldType": "TEXT",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T14:30:42.857+08:00",
+              "configJson": "{\"maxLength\": 60}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "referenceModuleId": null,
+              "access": {
+                "channel": "PAGE",
+                "readable": true,
+                "writable": true,
+                "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+              }
+            },
+            {
+              "id": 128,
+              "code": "choice",
+              "name": "来源选择",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.889+08:00",
+              "fieldType": "SINGLE_SELECT",
+              "sortOrder": 1,
+              "updatedAt": "2026-09-18T14:30:42.889+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 6,
+              "ownerTenantId": 77,
+              "referenceModuleId": null,
+              "access": {
+                "channel": "PAGE",
+                "readable": true,
+                "writable": true,
+                "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+              }
+            },
+            {
+              "id": 129,
+              "code": "city",
+              "name": "来源地区",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.916+08:00",
+              "fieldType": "CASCADE",
+              "sortOrder": 2,
+              "updatedAt": "2026-09-18T14:30:42.916+08:00",
+              "configJson": "{\"maxDepth\": 2, \"saveMode\": \"PATH\", \"allowIntermediate\": false}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 7,
+              "ownerTenantId": 77,
+              "referenceModuleId": null,
+              "access": {
+                "channel": "PAGE",
+                "readable": true,
+                "writable": true,
+                "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+              }
+            },
+            {
+              "id": 130,
+              "code": "related",
+              "name": "来源关联",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.941+08:00",
+              "fieldType": "REFERENCE",
+              "sortOrder": 3,
+              "updatedAt": "2026-09-18T14:30:42.941+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "referenceModuleId": 40,
+              "access": {
+                "channel": "PAGE",
+                "readable": true,
+                "writable": true,
+                "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+              }
+            },
+            {
+              "id": 132,
+              "code": "readonly",
+              "name": "来源只读字段",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 41,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.988+08:00",
+              "fieldType": "TEXT",
+              "sortOrder": 5,
+              "updatedAt": "2026-09-18T14:30:42.988+08:00",
+              "configJson": "{\"readOnly\": true}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "referenceModuleId": null,
+              "access": {
+                "channel": "PAGE",
+                "readable": true,
+                "writable": false,
+                "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+              }
+            }
+          ],
+          "module": {
+            "id": 41,
+            "code": "catalog_accept_887f2b7e92",
+            "name": "来源共享表单",
+            "status": "DRAFT",
+            "groupId": 35,
+            "version": 7,
+            "systemId": 54,
+            "createdAt": "2026-09-18T14:30:42.793+08:00",
+            "updatedAt": "2026-09-18T14:30:42.793+08:00",
+            "description": null,
+            "draftRevision": 8,
+            "ownerTenantId": 77,
+            "titleFieldCode": null,
+            "statusFieldCode": null,
+            "createdByMemberId": 71,
+            "numberSequenceCode": null
+          },
+          "actions": [
+            {
+              "id": 408,
+              "code": "LIST",
+              "name": "列表",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "MODULE_ENTRY",
+              "moduleId": 41,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.802+08:00",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T14:30:42.802+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 77
+            },
+            {
+              "id": 409,
+              "code": "DETAIL",
+              "name": "详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "ROW",
+              "moduleId": 41,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.804+08:00",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T14:30:42.804+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 77
+            },
+            {
+              "id": 411,
+              "code": "UPDATE",
+              "name": "编辑",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_HEADER",
+              "moduleId": 41,
+              "systemId": 54,
+              "createdAt": "2026-09-18T14:30:42.809+08:00",
+              "sortOrder": 30,
+              "updatedAt": "2026-09-18T14:30:42.809+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 77
+            }
+          ],
+          "queryIndexes": [],
+          "draftRevision": 8,
+          "schemaVersion": 3,
+          "versionNumber": 1,
+          "queryIndexFields": []
+        }
+      },
+      "dictionary_id": 6,
+      "root_ids": [
+        14,
+        15
+      ],
+      "child_ids": [
+        16
+      ],
+      "reference_options": [
+        {
+          "value": 144,
+          "label": "可授权来源关联",
+          "description": null
+        }
+      ],
+      "foreign_dictionary": {
+        "status": 404,
+        "code": "DICTIONARY_NOT_FOUND"
+      }
+    },
+    {
+      "case": "restricted_field_options",
+      "field": "hidden",
+      "denial": {
+        "status": 403,
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "case": "restricted_field_options",
+      "field": "readonly",
+      "denial": {
+        "status": 403,
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "case": "unshared_edit_context",
+      "denial": {
+        "status": 404,
+        "code": "RECORD_NOT_FOUND"
+      }
+    },
+    {
+      "case": "readonly",
+      "denial": {
+        "status": 403,
+        "code": "PERMISSION_DENIED"
+      }
+    },
+    {
+      "case": "no_target_detail",
+      "denial": {
+        "status": 403,
+        "code": "PERMISSION_DENIED"
+      },
+      "status": "superseded_behavior_after_target_permission_fix",
+      "note": "Prior API403 blocked unrelated form edit; directed current API returns no choices, preserving original reference and enforcing changed-reference authorization."
+    },
+    {
+      "case": "target_self",
+      "denial": {
+        "no_reference_options": true
+      }
+    },
+    {
+      "case": "update_without_detail",
+      "source_configuration_id": 41,
+      "detail_denied": true
+    },
+    {
+      "case": "recipient_dictionary",
+      "denial": {
+        "status": 422,
+        "code": "FIELD_VALIDATION_FAILED"
+      },
+      "values_unchanged": true
+    },
+    {
+      "case": "recipient_cascade",
+      "denial": {
+        "status": 422,
+        "code": "FIELD_VALIDATION_FAILED"
+      },
+      "values_unchanged": true
+    },
+    {
+      "case": "recipient_reference",
+      "denial": {
+        "status": 422,
+        "code": "FIELD_VALIDATION_FAILED"
+      },
+      "values_unchanged": true
+    },
+    {
+      "case": "unshared_reference",
+      "denial": {
+        "status": 422,
+        "code": "FIELD_VALIDATION_FAILED"
+      },
+      "values_unchanged": true
+    },
+    {
+      "case": "actual_source_edit_persisted",
+      "record": {
+        "id": 147,
+        "recordNumber": null,
+        "title": "来源表单真实验收",
+        "status": "ACTIVE",
+        "ownerMemberId": 71,
+        "departmentId": 98,
+        "createdByMemberId": 71,
+        "updatedByMemberId": 99,
+        "createdConfigVersionId": 68,
+        "updatedConfigVersionId": 68,
+        "participantMemberIds": [],
+        "archived": false,
+        "archivedAt": null,
+        "deleted": false,
+        "deletedAt": null,
+        "version": 1,
+        "createdAt": "2026-09-18T14:30:45.579+08:00",
+        "updatedAt": "2026-09-18T14:30:49.626+08:00",
+        "dataTenantId": 77,
+        "dataTenantName": "来源目录隔离验收",
+        "ownedByCurrentTenant": false,
+        "shared": true,
+        "shareId": 13,
+        "shareStatus": "ACTIVE",
+        "sharedActions": [
+          "LIST",
+          "DETAIL",
+          "UPDATE"
+        ],
+        "shareExpiresAt": null,
+        "organizationLabels": {
+          "members": {
+            "71": "平台超级管理员"
+          },
+          "departments": {
+            "98": "全公司"
+          }
+        },
+        "fields": {
+          "choice": "src_two",
+          "city": [
+            14,
+            16
+          ],
+          "related": 144,
+          "subject": "接口来源目录编辑验收"
+        }
+      },
+      "values": [
+        [
+          "choice",
+          "7372635F74776F"
+        ],
+        [
+          "city",
+          "5B31342C2031365D"
+        ],
+        [
+          "hidden",
+          "E58E9FE5A78BE7A781E69C89E580BCE4BF9DE68C81"
+        ],
+        [
+          "related",
+          "313434"
+        ],
+        [
+          "subject",
+          "E68EA5E58FA3E69DA5E6BA90E79BAEE5BD95E7BC96E8BE91E9AA8CE694B6"
+        ]
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": 38,
+      "tenant": 56,
+      "code": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 39,
+      "tenant": 56,
+      "code": "catalog_accept_887f2b7e92"
+    },
+    {
+      "id": 40,
+      "tenant": 77,
+      "code": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 41,
+      "tenant": 77,
+      "code": "catalog_accept_887f2b7e92"
+    },
+    {
+      "id": 42,
+      "tenant": 57,
+      "code": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 43,
+      "tenant": 57,
+      "code": "catalog_accept_887f2b7e92"
+    }
+  ],
+  "dictionaries": [
+    {
+      "id": 4,
+      "tenant": 56
+    },
+    {
+      "id": 5,
+      "tenant": 56
+    },
+    {
+      "id": 6,
+      "tenant": 77
+    },
+    {
+      "id": 7,
+      "tenant": 77
+    },
+    {
+      "id": 8,
+      "tenant": 57
+    },
+    {
+      "id": 9,
+      "tenant": 57
+    }
+  ],
+  "records": [
+    {
+      "id": 144,
+      "tenant": 77,
+      "module": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 145,
+      "tenant": 77,
+      "module": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 146,
+      "tenant": 57,
+      "module": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 147,
+      "tenant": 77,
+      "module": "catalog_accept_887f2b7e92"
+    },
+    {
+      "id": 148,
+      "tenant": 77,
+      "module": "catalog_accept_887f2b7e92"
+    }
+  ],
+  "shares": [
+    {
+      "id": 12,
+      "record": 144,
+      "module": "catalog_target_887f2b7e92"
+    },
+    {
+      "id": 13,
+      "record": 147,
+      "module": "catalog_accept_887f2b7e92"
+    }
+  ],
+  "roles": [
+    106,
+    107,
+    108,
+    109,
+    110
+  ],
+  "registrations": [
+    {
+      "account_id": 68,
+      "system_id": 70,
+      "username": "shared_catalog_3133b67d9c0d"
+    },
+    {
+      "account_id": 69,
+      "system_id": 71,
+      "username": "shared_catalog_browser_j6ttb1j8r2g",
+      "browser": true
+    },
+    {
+      "account_id": 70,
+      "system_id": 72,
+      "username": "shared_catalog_permission_d8e3ee725d4b"
+    }
+  ],
+  "system_id": 54,
+  "main_tenant_id": 56,
+  "recipient_tenant_id": 57,
+  "module_code": "catalog_accept_887f2b7e92",
+  "target_code": "catalog_target_887f2b7e92",
+  "source_tenant": {
+    "id": 77,
+    "code": "catalog_source_887f2b7e92"
+  },
+  "checked_time": "2026-09-18T14:30:50.113704+08:00",
+  "preparation_failures": [
+    "'draftRevision'"
+  ],
+  "datasets": {
+    "主租户": {
+      "module_id": 39,
+      "target_module_id": 38,
+      "choice_id": 4,
+      "tree_id": 5,
+      "choices": [
+        {
+          "id": 7,
+          "dictionaryId": 4,
+          "parentId": null,
+          "code": "main_one",
+          "label": "主租户选项1",
+          "pathCode": "main_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T14:30:06.179+08:00",
+          "updatedAt": "2026-09-18T14:30:06.179+08:00",
+          "version": 0
+        },
+        {
+          "id": 8,
+          "dictionaryId": 4,
+          "parentId": null,
+          "code": "main_two",
+          "label": "主租户选项2",
+          "pathCode": "main_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T14:30:06.308+08:00",
+          "updatedAt": "2026-09-18T14:30:06.308+08:00",
+          "version": 0
+        }
+      ],
+      "tree": [
+        {
+          "id": 9,
+          "dictionaryId": 5,
+          "parentId": null,
+          "code": "main_one",
+          "label": "主租户省1",
+          "pathCode": "main_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 10,
+          "dictionaryId": 5,
+          "parentId": null,
+          "code": "main_two",
+          "label": "主租户省2",
+          "pathCode": "main_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 11,
+          "dictionaryId": 5,
+          "parentId": 9,
+          "code": "leaf_e4b8bbe7a79fe688b7",
+          "label": "主租户城市",
+          "pathCode": "main_one,leaf_e4b8bbe7a79fe688b7",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        }
+      ]
+    },
+    "来源": {
+      "module_id": 41,
+      "target_module_id": 40,
+      "choice_id": 6,
+      "tree_id": 7,
+      "choices": [
+        {
+          "id": 12,
+          "dictionaryId": 6,
+          "parentId": null,
+          "code": "src_one",
+          "label": "来源选项1",
+          "pathCode": "src_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 13,
+          "dictionaryId": 6,
+          "parentId": null,
+          "code": "src_two",
+          "label": "来源选项2",
+          "pathCode": "src_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        }
+      ],
+      "tree": [
+        {
+          "id": 14,
+          "dictionaryId": 7,
+          "parentId": null,
+          "code": "src_one",
+          "label": "来源省1",
+          "pathCode": "src_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 15,
+          "dictionaryId": 7,
+          "parentId": null,
+          "code": "src_two",
+          "label": "来源省2",
+          "pathCode": "src_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 16,
+          "dictionaryId": 7,
+          "parentId": 14,
+          "code": "leaf_e69da5e6ba90",
+          "label": "来源城市",
+          "pathCode": "src_one,leaf_e69da5e6ba90",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        }
+      ]
+    },
+    "接收方": {
+      "module_id": 43,
+      "target_module_id": 42,
+      "choice_id": 8,
+      "tree_id": 9,
+      "choices": [
+        {
+          "id": 17,
+          "dictionaryId": 8,
+          "parentId": null,
+          "code": "recipient_one",
+          "label": "接收方选项1",
+          "pathCode": "recipient_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 18,
+          "dictionaryId": 8,
+          "parentId": null,
+          "code": "recipient_two",
+          "label": "接收方选项2",
+          "pathCode": "recipient_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        }
+      ],
+      "tree": [
+        {
+          "id": 19,
+          "dictionaryId": 9,
+          "parentId": null,
+          "code": "recipient_one",
+          "label": "接收方省1",
+          "pathCode": "recipient_one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 20,
+          "dictionaryId": 9,
+          "parentId": null,
+          "code": "recipient_two",
+          "label": "接收方省2",
+          "pathCode": "recipient_two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        },
+        {
+          "id": 21,
+          "dictionaryId": 9,
+          "parentId": 19,
+          "code": "leaf_e68ea5e694b6e696b9",
+          "label": "接收方城市",
+          "pathCode": "recipient_one,leaf_e68ea5e694b6e696b9",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": null,
+          "updatedAt": null,
+          "version": 0
+        }
+      ]
+    }
+  },
+  "record_id": 147,
+  "target_record_id": 144,
+  "private_target_record_id": 145,
+  "recipient_target_record_id": 146,
+  "private_record_id": 148,
+  "role_cases": {
+    "full": 106,
+    "readonly": 107,
+    "no_target_detail": 108,
+    "target_self": 109,
+    "update_only": 110
+  },
+  "actor_account_id": 68,
+  "actor_member_id": 99,
+  "actor_source_membership_count": 0,
+  "browser_member": {
+    "tenantMemberId": 108,
+    "systemMemberId": 101,
+    "accountId": 69,
+    "displayName": "来源表单普通页面验收",
+    "employeeNumber": null,
+    "departmentId": 75,
+    "departmentName": "接收租户根部门",
+    "managerTenantMemberId": null,
+    "managerName": null,
+    "positionTitle": null,
+    "tenantAdmin": false,
+    "status": "ACTIVE",
+    "roleIds": [
+      110
+    ],
+    "roleNames": [
+      "来源目录验收·887f2b7e92·只有编辑"
+    ],
+    "version": 1
+  },
+  "target_permission_supplement": {
+    "account_id": 70,
+    "target_choices": [],
+    "changed_private_reference_denial": {
+      "status": 422,
+      "code": "FIELD_VALIDATION_FAILED"
+    },
+    "denied_values_unchanged": true,
+    "parent_unrelated_edit": {
+      "version": 2,
+      "related": 144
+    },
+    "source_memberships": 0
+  },
+  "requirement_limit": "Bounded source edit context/dictionary-cascade-reference contribution on actual existing publications. Discovered same-code physical module shadow is not a legitimate tenant extension: retain whole2c.2 and B04 base/extension safety. No full effective-configuration completion claimed.",
+  "next_common_dependency": "B04.1a",
+  "cleanup": {
+    "time": "2026-09-18T14:58:49.858245+08:00",
+    "records_archived": [
+      [
+        "144",
+        "1",
+        "1"
+      ],
+      [
+        "145",
+        "1",
+        "1"
+      ],
+      [
+        "146",
+        "1",
+        "1"
+      ],
+      [
+        "147",
+        "1",
+        "4"
+      ],
+      [
+        "148",
+        "1",
+        "1"
+      ]
+    ],
+    "shares_revoked": [
+      [
+        "12",
+        "REVOKED"
+      ],
+      [
+        "13",
+        "REVOKED"
+      ]
+    ],
+    "disabled_accounts": [
+      68,
+      70
+    ],
+    "preserved_browser_account": 69,
+    "preserved_configuration": "six legacy duplicate modules retained solely for B04 conflict readback; dictionaries/source77 reused for formal extension prerequisite"
+  }
+}

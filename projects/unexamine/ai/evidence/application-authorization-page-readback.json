@@ -1,0 +1,38 @@
+{
+  "step": "B11.1",
+  "status": "passed",
+  "system_page": {
+    "url": "http://localhost:15173/systems/54/admin?section=applications",
+    "application": "系统模块受控应用验收",
+    "context_label": "系统应用",
+    "scope": "当前系统，只允许当前系统资源",
+    "published_grants": 1,
+    "grant": "当前系统 / 系统内访问 / application_module_0868068a06 / 固定 模块 V1 / 查看详情 / 可返回 subject / SELF",
+    "versions": [
+      "V3 当前运行，内容恢复为 V1 授权快照",
+      "V2 模块 V2 授权",
+      "V1 模块 V1 授权"
+    ],
+    "calls": [
+      "本人记录 BUSINESS_RECORD:243 成功",
+      "他人负责人记录因固定 SELF 范围拒绝"
+    ],
+    "plain_json_editor": false,
+    "client_secret_plaintext": false,
+    "import_readback": "安全导入结果以独立草稿显示，停用后仍保留配置；没有复制调用历史。"
+  },
+  "platform_page": {
+    "url": "http://localhost:15173/platform/applications",
+    "application": "平台受控应用验收",
+    "context_label": "平台应用",
+    "scope": "整个平台，只允许平台资源",
+    "published_grants": 1,
+    "grant": "平台 / 系统内访问 / 固定 Flow V1 / 发起流程",
+    "call_count": 1,
+    "plain_json_editor": false,
+    "client_secret_plaintext": false
+  },
+  "shared_layout": "平台和系统页面复用相同的应用列表、摘要卡、资源授权、版本和调用结构，仅作用域与可选资源不同。",
+  "cleanup_visible": "验收应用均显示已停用，配置、不可变版本和调用历史仍可读。",
+  "checked_time": "2026-09-20T18:08:59.733093+08:00"
+}

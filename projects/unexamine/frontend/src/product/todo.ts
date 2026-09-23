@@ -7,13 +7,13 @@ export function todoTypeLabel(type: string) {
 }
 
 export function todoActionLabel(action: string) {
-  return ({ APPROVE: '同意', REJECT: '拒绝', RETURN: '退回', TRANSFER: '转交' } as Record<string, string>)[action] || action
+  return ({ APPROVE: '同意', REJECT: '拒绝', RETURN: '退回', RESUBMIT: '修正并重新提交', TRANSFER: '转交', DELEGATE: '委托代办', REVOKE_DELEGATION: '撤销委托', CLAIM: '领取', UNCLAIM: '取消领取', ADD_SIGN: '加签', REMOVE_SIGN: '减签' } as Record<string, string>)[action] || '处理'
 }
 
 export function todoNeedsComment(action: string) {
-  return action === 'REJECT' || action === 'RETURN'
+  return action === 'REJECT' || action === 'RETURN' || action === 'DELEGATE'
 }
 
 export function todoNeedsTarget(action: string) {
-  return action === 'TRANSFER'
+  return action === 'TRANSFER' || action === 'DELEGATE'
 }

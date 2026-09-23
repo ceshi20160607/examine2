@@ -40,6 +40,28 @@ public class ModuleImportController {
                 TraceIdFilter.current(request)));
     }
 
+    @GetMapping("/template.xlsx")
+    public ResponseEntity<byte[]> templateWorkbook(
+            @PathVariable String moduleCode, HttpServletRequest request) {
+        byte[] content = service.templateWorkbook(AuthenticationContextHolder.require(), moduleCode,
+                TraceIdFilter.current(request));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename(moduleCode + "-import-template.xlsx", StandardCharsets.UTF_8).build().toString())
+                .contentLength(content.length).body(content);
+    }
+
+    @GetMapping("/sources/{sourceFileId}/headers")
+    public ApiResult<ImportModels.SourceHeadersView> sourceHeaders(
+            @PathVariable String moduleCode,
+            @PathVariable Long sourceFileId,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.sourceHeaders(AuthenticationContextHolder.require(), moduleCode, sourceFileId,
+                TraceIdFilter.current(request)));
+    }
+
     @GetMapping
     public ApiResult<List<ImportModels.ImportBatchView>> list(
             @PathVariable String moduleCode, HttpServletRequest request) {

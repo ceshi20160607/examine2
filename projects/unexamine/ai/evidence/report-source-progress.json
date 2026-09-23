@@ -1,0 +1,31 @@
+{
+  "step": "B15.1",
+  "status": "in_progress_no_completion_credit",
+  "checked_time": "2026-09-22T23:19:15+08:00",
+  "requirement_source": "docs/user_requirement.md",
+  "observed_changes": [
+    "报表元数据排除只有共享记录、没有当前租户发布配置的模块。",
+    "报表 REFERENCE 关联只接受已发布字段指向目标模块记录 ID；普通同值字段不再伪装成业务关系。",
+    "子表关系按父模块已发布 SUBTABLE 声明与明细模块已发布反向 REFERENCE 字段连接，基于父记录 ID 与明细反向关联值执行有界连接。",
+    "编辑器支持最多三个模块、最多十个固定筛选，关系字段从实际发布配置筛选，筛选选项读取当前授权记录的查询目录。",
+    "聚合与明细使用当前权限裁剪的展示名称；缺失组织名称不会退回内部 ID；预览和运行结果展示分组与授权明细。",
+    "模块级联字段抽屉现在从目标模块已发布字段中选择显示、唯一值和自关联父级字段；后端按发布快照约束，发布检查在运行态未接通前明确阻止该字段发布。",
+    "报表每次执行都用实际运行态列表查询目录复核输出、指标、分组与关系字段的当前 LIST 权限；字段撤权且记录数为零也明确失败。",
+    "报表空值分组供仪表盘使用时生成 EMPTY 下钻条件，避免 null 进入不可接受空值的 Map.of 导致整张图失败。"
+  ],
+  "verified_without_containers": [
+    "execution-context --workspace workspace.json: ok, B15.1 admitted",
+    "mvn -q -Dtest=ReportDefinitionContractTest test with JDK 21: passed; includes declared-reference rejection and subtable result count",
+    "npx vitest run src/product/report.test.ts: 4 passed",
+    "npm run build: passed, existing large bundle warning",
+    "git diff --check on B15.1 files: passed",
+    "ModuleCascadeConfigurationTest 与 ReportDefinitionContractTest（JDK 21）：通过；模块配置页前端构建通过",
+    "JDK 21 重新执行 ModuleCascadeConfigurationTest、ReportDefinitionContractTest：通过；新增空记录下自定义字段撤权测试；本次改动 git diff --check 通过，execution-context 仍为 B15.1 且无完成信用"
+  ],
+  "not_verified": [
+    "真实 API、数据库、两个普通成员、撤权、系统配置页、重启和精确清理尚未执行。",
+    "SUBTABLE 子表连接仅通过无容器契约测试；尚未通过真实记录、配置页与权限验收。模块级 CASCADE 已有结构化配置和发布前校验，但 RuntimeDataService 的选项、保存、展示及报表连接仍缺；发布被明确阻止，不能计作功能完成。该上游运行链涉及显示字段、实际值字段、父级字段与权限，不能只存记录 ID 冒充完整实现。",
+    "Docker Desktop 4.80.0 启动时因 dockerInference 临时套接字异常崩溃，现有 MySQL/后端容器不可用；清理临时套接字并重启的操作被自动审批审查拒绝。"
+  ],
+  "next_exact": "继续 B15.1：基于已发布显示/唯一值/父级字段契约实现模块级联当前权限选项、路径保存、展示和报表连接，完成后移除发布阻断；不能把字典级联冒充模块记录关联。Docker 恢复后复用原 MySQL、Redis、后端与一个 Vite，执行 REFERENCE/SUBTABLE/CASCADE 真实记录、双普通成员、页面、撤权、发布版本、重启和清理验收，再运行 execution-verify；当前不得推进 B15.2。"
+}

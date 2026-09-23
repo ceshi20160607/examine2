@@ -1,0 +1,82 @@
+{
+  "step": "B07.4b.2c.2b.5a",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T19:31:52.199246+08:00",
+  "source_rows": [
+    "R0297",
+    "R0631",
+    "R0633",
+    "R0639",
+    "R2886",
+    "R2888",
+    "R2892",
+    "R1172"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListViewService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListView.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListQueryField.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordList.java",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/types.ts"
+  ],
+  "checks_actual_results": [
+    "Current list and query-fields use identical actual RecordAccess source/share/active tenant/lifecycle/original actor LIST/range gates. Descriptors unmasked original LIST/PAGE intersection, no source configs/defaults/dictionary/organization bootstrap; same-code incompatible types quarantined, SECRET excluded. Personal views reuse same descriptor gate and remain recipient/account-owned.",
+    "Real private47 root typed source_note CONTAINS/sort returns154 and safe existing choice src_two label; unfiltered authorized descriptors returned with paged list. Root arbitrary source configuration not introduced; ordinary69 no Source membership/roles/FLOW permission borrowed.",
+    "Real new legitimate Source48 (canonical owner77/private published1) records155/156: numeric GT/sortASC/DESC, booleanEQ, dateGTE, local-minute/UTC-offset datetimeEQ, textual01 distinct1, CASCADE PATH15 actual comparisons. Malformed numeric/bool/date/datetime/path and wrong typed operators all400 with no invalid setting write.",
+    "Real common45 mixed own157/Source151: Source-only EMPTY0/NE151/NOT_EMPTY151 excludes unavailable own fields for every operator; inapplicable own record sorted fixed end in both directions, ID stable. Valid independent recipient57 source_note NUMBER extension publication conflicts Source77 TEXT: descriptor removed/query+sort403; old view queryInvalidtrue. Normal rollback current publication11 + original draft versioned restoration, no Source business writes.",
+    "Actual ordinary69 private47 selects SourceNote by human name, fills ordinary condition, sortsASC, saves default personal view ID10; DB HEX/UTF8 JSON exact original filter/sort/source visible columns/no hidden/currenttenant57/account69. Cold URL without filters restores original SourceNote CONTAINS审批/ASC and154; source configuration not copied.",
+    "Actual ordinary69 current source_note FULL mask: old query rejects, data/list descriptors cleared and exact original conditions retained; cold invalid default view does not broaden, shows normal重新配置 message. After restore normal role policy, own default Source query returns154 again. Root view version0 valid save→1 then stale0 409; foreign personal view namespace cannot be modified by root guessing ordinary code409; typed bad numeric save400 no CoreSetting.",
+    "Actual ordinary69 Source48 hidden searchable fixture phrase produces0; same exact root permitted keyword control produces2. Hidden field no table/query catalog. Actual numeric widget amountEQ10 returns156; actual Source47 dictionary selector shows only human Source option2, selects and returns154 with internal codes only in transport.",
+    "Actual ordinary69 common45 SourceNoteNE andSourceNoteASC returns151, own157 excluded with NO45DETAIL grant. Real share15 revoke: root stale query403/descriptors SourceNote removed/root old view queryInvalid; ordinary old result and Source names/options cleared, old conditions retained. Normal regrant does not restore stale cache automatically: actual defect found and fixed re-read directory/current view before same-page explicit retry; targeted regression revoke→denial→regrant→same-page retry returns151 with exact original filters/sort, own157 still excluded.",
+    "Real private share17 last relation revoke: query-fields/list/view all404; normal regrant restores17ACTIVE. Source154v6 and151v11 exact entire API equality to frozen baseline, no protected field modified. New48DISABLED,155/156&157 archived,18/19REVOKED, root test view9 softDELETED; original114 permission+fieldpolicy exact restored, ordinary101 zeroSource77 membership. User69 legitimate Source personal view10 retained.",
+    "Current session inherited-model agent exclusive frontend files after stable contract; focused noEmit/SFC/source-function controls checks0, no fixture/service/build/status writes. Root final frontend build36138 exit0 after actual recovery fix (existing chunk warning), latest native JDK21 package70405 exit0 and existing backend HTTPUP. Root exact eight-file diffcheck0; no full suites/new containers/migrations/Base/generated entry edits. All16 directed actual API/page/DB groups passed; limited contributions only."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/shared-list-query-facts.json",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "permission_or_failure_result": "Bounded real source-effective typed list queries/ordinary personal views verified, stale source/field/type queries deny and old views explicitly invalid. Saved scope persistence5b and full field/global list/view requirements remain open.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "1e35e1dc0e860fb59fba27e0fc761e17cb786713ff512b99573448c086e60f1b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+      "sha256": "dddf658468fb98f80e3e21190c8d8f2fcf918ddad716260dd82478d82ff6c1c8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListViewService.java",
+      "sha256": "fe4bebe965637189eefaa8d6b9926391c42644e6f33fc6a6ecea2264fb79b312"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListView.java",
+      "sha256": "43a34e53ced1563db485ed8bc1f301ba17f93c44764ed443d23bad16dd4efc77"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListQueryField.java",
+      "sha256": "ad9c56930a8633844c92cfb74bcc7b0849be1e63900f211af75fdea8ff72aebc"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordList.java",
+      "sha256": "2f8bd32b95f98ddd0b81f62c42752b036e06a02f9fc6ef7a76162777fdcf124a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "76a602ced1b879c2d165f6bd394a7c95755fcc4cc7a1ed3b523e8c79c2cfd13f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "54d1be728962e1680b34b0b6ee74749f065b13292ed104d0437b9444b00b12f0"
+    }
+  ],
+  "remaining": [
+    "Saved views still omit lifecycleState and tenantScope; actual shared-only/archived view can cold-restore broader default scope. Declared exact successor5b before awarding any full list/view requirement completion.",
+    "Parent5 full field families, rich/global/attachments/AI/print/import/export and dependent B01/B05/B06/B10/B11/B13/B14 still unverified.",
+    "Existing formal fixture module44/group41 and45/group42 have identical group display names; whole navigation/layout not awarded complete from this query packet."
+  ],
+  "next_step": "B07.4b.2c.2b.5b"
+}

@@ -20,9 +20,34 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/runtime/modules/{moduleCode}/records")
 public class RuntimeDataController {
     private final RuntimeDataService runtimeDataService;
+    private final TenantRangeSharingService rangeSharingService;
 
-    public RuntimeDataController(RuntimeDataService runtimeDataService) {
+    public RuntimeDataController(RuntimeDataService runtimeDataService, TenantRangeSharingService rangeSharingService) {
         this.runtimeDataService = runtimeDataService;
+        this.rangeSharingService = rangeSharingService;
+    }
+
+    /** 来源租户通过结构化字段条件管理动态范围，不开放目标租户重新共享。 */
+    @GetMapping("/range-share-fields")
+    public ApiResult<java.util.List<TenantRangeShareModels.ConditionField>> rangeShareFields(@PathVariable String moduleCode) {
+        return ApiResult.ok(rangeSharingService.conditionFields(AuthenticationContextHolder.require(), moduleCode));
+    }
+
+    @GetMapping("/range-shares")
+    public ApiResult<java.util.List<TenantRangeShareModels.View>> rangeShares(@PathVariable String moduleCode) {
+        return ApiResult.ok(rangeSharingService.list(AuthenticationContextHolder.require(), moduleCode));
+    }
+
+    @PostMapping("/range-shares")
+    public ApiResult<TenantRangeShareModels.View> grantRangeShare(@PathVariable String moduleCode,
+            @Valid @RequestBody TenantRangeShareModels.Grant body, HttpServletRequest request) {
+        return ApiResult.ok(rangeSharingService.grant(AuthenticationContextHolder.require(), moduleCode, body, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/range-shares/{shareId}/revoke")
+    public ApiResult<TenantRangeShareModels.View> revokeRangeShare(@PathVariable String moduleCode, @PathVariable Long shareId,
+            @Valid @RequestBody RevokeTenantShareRequest body, HttpServletRequest request) {
+        return ApiResult.ok(rangeSharingService.revoke(AuthenticationContextHolder.require(), moduleCode, shareId, body, TraceIdFilter.current(request)));
     }
 
     @GetMapping
@@ -40,6 +65,17 @@ public class RuntimeDataController {
         return ApiResult.ok(runtimeDataService.list(
                 AuthenticationContextHolder.require(), moduleCode, lifecycleState, tenantScope,
                 search, filters, sortField, sortDirection, page, pageSize, TraceIdFilter.current(request)));
+    }
+
+    /** 筛选目录只描述当前真实访问关系下的字段，不返回来源配置。 */
+    @GetMapping("/query-fields")
+    public ApiResult<java.util.List<RuntimeListQueryField>> queryFields(
+            @PathVariable String moduleCode,
+            @RequestParam(defaultValue = "ACTIVE") String lifecycleState,
+            @RequestParam(defaultValue = "ALL") String tenantScope,
+            HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.queryFields(AuthenticationContextHolder.require(), moduleCode,
+                lifecycleState, tenantScope, TraceIdFilter.current(request)));
     }
 
     @GetMapping("/share-targets")
@@ -79,6 +115,53 @@ public class RuntimeDataController {
             HttpServletRequest request) {
         return ApiResult.ok(runtimeDataService.detail(
                 AuthenticationContextHolder.require(), moduleCode, recordId, TraceIdFilter.current(request)));
+    }
+
+    /** 记录编辑或转移的来源组织选项；范围与字段写权限由服务端检查。 */
+    @GetMapping("/{recordId}/organization-options")
+    public ApiResult<com.unique.unexamine.authorization.manage.SystemPeopleDirectoryModels.Directory> organizationOptions(
+            @PathVariable String moduleCode, @PathVariable Long recordId,
+            @RequestParam(defaultValue = "UPDATE") String actionCode,
+            @RequestParam(required = false) String fieldCode, HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.organizationOptions(AuthenticationContextHolder.require(), moduleCode,
+                recordId, actionCode, fieldCode, TraceIdFilter.current(request)));
+    }
+
+    /** 编辑入口直接使用 UPDATE 鉴权的最新记录和来源表单，不借用 DETAIL 权限。 */
+    @GetMapping("/{recordId}/edit-context")
+    public ApiResult<RuntimeRecordEditContext> editContext(
+            @PathVariable String moduleCode, @PathVariable Long recordId, HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.editContext(AuthenticationContextHolder.require(), moduleCode,
+                recordId, TraceIdFilter.current(request)));
+    }
+
+    /** 读取实际来源手动动作的可填写参数，不借用接收方动作配置。 */
+    @GetMapping("/{recordId}/actions/{actionCode}/context")
+    public ApiResult<RuntimeManualActionContext> manualActionContext(
+            @PathVariable String moduleCode, @PathVariable Long recordId, @PathVariable String actionCode,
+            HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.manualActionContext(AuthenticationContextHolder.require(), moduleCode,
+                recordId, actionCode, TraceIdFilter.current(request)));
+    }
+
+    /** 字典来自记录字段的来源发布配置，客户端不能指定其他字典或来源租户。 */
+    @GetMapping("/{recordId}/fields/{fieldCode}/dictionary")
+    public ApiResult<com.unique.unexamine.moduleconfig.manage.DictionaryModels.RuntimeDictionary> fieldDictionary(
+            @PathVariable String moduleCode, @PathVariable Long recordId, @PathVariable String fieldCode,
+            @RequestParam(required = false) Long parentId,
+            @RequestParam(defaultValue = "UPDATE") String actionCode, HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.fieldDictionary(AuthenticationContextHolder.require(), moduleCode,
+                recordId, fieldCode, parentId, actionCode, TraceIdFilter.current(request)));
+    }
+
+    /** 关联选择仅返回同时具备目标记录列表和详情权限的来源租户记录。 */
+    @GetMapping("/{recordId}/fields/{fieldCode}/reference-options")
+    public ApiResult<java.util.List<RuntimeReferenceOption>> referenceOptions(
+            @PathVariable String moduleCode, @PathVariable Long recordId, @PathVariable String fieldCode,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "UPDATE") String actionCode, HttpServletRequest request) {
+        return ApiResult.ok(runtimeDataService.referenceOptions(AuthenticationContextHolder.require(), moduleCode,
+                recordId, fieldCode, search, actionCode, TraceIdFilter.current(request)));
     }
 
     @GetMapping("/{recordId}/timeline")

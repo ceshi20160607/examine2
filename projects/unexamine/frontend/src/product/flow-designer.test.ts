@@ -23,17 +23,34 @@ describe('flow designer validation', () => {
   it('requires real recipients and content for notification nodes', () => {
     const nodes = [node('start', 'START'), node('notify', 'NOTIFICATION'), node('end', 'END')]
     expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.code))
-      .toEqual(expect.arrayContaining(['NOTIFICATION_RECIPIENT_MISSING', 'SPECIAL_PROPERTY_MISSING']))
+      .toEqual(expect.arrayContaining(['FLOW_MESSAGE_RECIPIENT_MISSING', 'SPECIAL_PROPERTY_MISSING']))
     nodes[1]!.assigneePolicy = { type: 'PERSON', tenantMemberIds: [7] }
-    nodes[1]!.config = { content: '流程 ${instanceTitle} 已更新' }
+    nodes[1]!.config = { schemaVersion: 1, subject: '流程通知', content: '流程已更新',
+      appendInstanceTitle: true, destinationType: 'FLOW_INSTANCE' }
     expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
   })
 
   it('blocks decorative writeback nodes that have no action or field mapping', () => {
     const nodes = [node('start', 'START'), node('writeback', 'UPDATE_FIELD'), node('end', 'END')]
     expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.location))
-      .toEqual(expect.arrayContaining(['node:writeback.businessAction', 'node:writeback.fieldUpdates']))
-    nodes[1]!.config = { businessAction: 'UPDATE', fieldUpdates: { approval_note: '${comment}' } }
+      .toEqual(expect.arrayContaining(['node:writeback.assignments']))
+    nodes[1]!.config = { schemaVersion: 1, operation: 'UPDATE', targetRecordSource: 'CURRENT_RECORD',
+      assignments: [{ fieldCode: 'approval_note', value: { source: 'FIXED', value: '已通过' } }] }
+    expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
+  })
+
+  it('requires structured wait and timer values instead of raw duration text', () => {
+    const wait = node('wait', 'WAIT'), end = node('end', 'END')
+    let nodes = [node('start', 'START'), wait, end]
+    expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.code)).toContain('FLOW_WAIT_TIMER_CONFIG_INVALID')
+    wait.config = { schemaVersion: 1, waitMode: 'DURATION', durationValue: 2, durationUnit: 'HOUR' }
+    expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
+
+    const timer = node('timer', 'TIMER')
+    nodes = [node('start', 'START'), timer, end]
+    timer.config = { schemaVersion: 1, waitMode: 'ABSOLUTE', resumeTime: '2000-01-01T08:00:00' }
+    expect(localFlowIssues(nodes, sequentialEdges(nodes)).map(issue => issue.code)).toContain('FLOW_WAIT_TIMER_CONFIG_INVALID')
+    timer.config.resumeTime = '2099-01-01T08:00:00'
     expect(localFlowIssues(nodes, sequentialEdges(nodes))).toEqual([])
   })
 })

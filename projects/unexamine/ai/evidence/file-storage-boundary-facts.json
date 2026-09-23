@@ -1,0 +1,16 @@
+{
+  "step": "B13.1",
+  "status": "passed",
+  "cases": [
+    "visible-size-policy-and-cancelled-part-cleanup",
+    "context-quota-rejects-over-reservation-and-releases-cancelled-sessions",
+    "encrypted-s3-compatible-probe-upload-read-delete-and-local-fallback"
+  ],
+  "cleanup": {
+    "quota_sessions_cancelled": true,
+    "fake_object_backend_removed": true,
+    "object_bytes_removed": true,
+    "credentials_not_recorded": true
+  },
+  "checked_time": "2026-09-20T22:50:03.570713+08:00"
+}

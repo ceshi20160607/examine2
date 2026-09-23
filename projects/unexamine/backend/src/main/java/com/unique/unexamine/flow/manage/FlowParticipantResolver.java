@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.OrganizationRelationRepository;
 import com.unique.unexamine.flow.base.entity.FlowInstance;
+import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.entity.PlatformDepartment;
+import com.unique.unexamine.platform.base.entity.PlatformMember;
+import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
+import com.unique.unexamine.platform.base.service.PlatformDepartmentBaseService;
+import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
 import com.unique.unexamine.runtimedata.base.entity.BusinessRecord;
 import com.unique.unexamine.runtimedata.base.service.BusinessRecordBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
@@ -43,6 +49,11 @@ public class FlowParticipantResolver {
     private final SystemDepartmentBaseService departmentService;
     private final BusinessRecordBaseService recordService;
     private final OrganizationRelationRepository relationRepository;
+    /** 平台人员与系统成员分别解析，不借系统成员身份执行平台审批。 */
+    private final PlatformMemberBaseService platformMemberService;
+    private final PlatformAccountBaseService platformAccountService;
+    private final PlatformDepartmentBaseService platformDepartmentService;
+    private final com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService systemDirectoryService;
 
     public FlowParticipantResolver(
             SystemTenantMemberBaseService tenantMemberService,
@@ -51,7 +62,11 @@ public class FlowParticipantResolver {
             SystemRoleBaseService roleService,
             SystemDepartmentBaseService departmentService,
             BusinessRecordBaseService recordService,
-            OrganizationRelationRepository relationRepository) {
+            OrganizationRelationRepository relationRepository,
+            PlatformMemberBaseService platformMemberService,
+            PlatformAccountBaseService platformAccountService,
+            PlatformDepartmentBaseService platformDepartmentService,
+            com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService systemDirectoryService) {
         this.tenantMemberService = tenantMemberService;
         this.memberService = memberService;
         this.memberRoleService = memberRoleService;
@@ -59,6 +74,62 @@ public class FlowParticipantResolver {
         this.departmentService = departmentService;
         this.recordService = recordService;
         this.relationRepository = relationRepository;
+        this.platformMemberService = platformMemberService;
+        this.platformAccountService = platformAccountService;
+        this.platformDepartmentService = platformDepartmentService;
+        this.systemDirectoryService = systemDirectoryService;
+    }
+
+    /** 最小流程目录只提供有效人员身份与名称，不返回账号、联系方式、角色或管理关系。 */
+    public FlowRuntimeModels.ParticipantDirectory directory(AuthenticatedContext context) {
+        // 系统沿用原组织目录的完整有效部门（包括暂时无人部门）及层级名称，避免公共入口迁移缩掉选项。
+        if (context.systemId() != null) {
+            var existing = systemDirectoryService.recordOptions(context, true, true);
+            return new FlowRuntimeModels.ParticipantDirectory(existing.departments(), existing.people().stream()
+                    .map(person -> new FlowRuntimeModels.ParticipantView(person.tenantMemberId(), null, person.displayName(),
+                            person.departmentId(), person.departmentName(), person.positionTitle())).toList(), existing.permissionVersion());
+        }
+        List<ResolvedPerson> people = activePlatformPeople(context);
+        var departments = new LinkedHashMap<Long, com.unique.unexamine.authorization.manage.SystemPeopleDirectoryModels.Department>();
+        for (ResolvedPerson person : people) {
+            if (person.departmentId() != null && person.departmentName() != null) {
+                departments.putIfAbsent(person.departmentId(),
+                        new com.unique.unexamine.authorization.manage.SystemPeopleDirectoryModels.Department(
+                                person.departmentId(), null, person.departmentName(), person.departmentName(), 0));
+            }
+        }
+        return new FlowRuntimeModels.ParticipantDirectory(List.copyOf(departments.values()), people.stream()
+                .map(person -> new FlowRuntimeModels.ParticipantView(person.tenantMemberId(), person.accountId(),
+                        person.displayName(), person.departmentId(), person.departmentName(), person.positionTitle())).toList(), 0);
+    }
+
+    /** 只能选择当前平台内有效成员所关联的有效账号；普通系统账号不自动成为平台人员。 */
+    public ResolvedPerson requirePlatformPerson(AuthenticatedContext context, Long accountId) {
+        if (context.systemId() != null || context.platformId() == null || accountId == null) {
+            throw invalid("FLOW_PARTICIPANT_INVALID", "请选择当前平台中的有效成员");
+        }
+        return activePlatformPeople(context).stream().filter(person -> Objects.equals(person.accountId(), accountId))
+                .findFirst().orElseThrow(() -> invalid("FLOW_PARTICIPANT_INVALID", "所选成员不属于当前平台或已停用"));
+    }
+
+    private List<ResolvedPerson> activePlatformPeople(AuthenticatedContext context) {
+        if (context.platformId() == null) return List.of();
+        List<PlatformMember> members = platformMemberService.selectList(Wrappers.<PlatformMember>lambdaQuery()
+                .eq(PlatformMember::getPlatformId, context.platformId()).eq(PlatformMember::getStatus, "ACTIVE"));
+        if (members.isEmpty()) return List.of();
+        Map<Long, PlatformAccount> accounts = platformAccountService.selectList(Wrappers.<PlatformAccount>lambdaQuery()
+                        .in(PlatformAccount::getId, members.stream().map(PlatformMember::getAccountId).distinct().toList())
+                        .eq(PlatformAccount::getStatus, "ACTIVE")).stream()
+                .collect(java.util.stream.Collectors.toMap(PlatformAccount::getId, value -> value));
+        Map<Long, PlatformDepartment> departments = platformDepartmentService.selectList(
+                        Wrappers.<PlatformDepartment>lambdaQuery().eq(PlatformDepartment::getPlatformId, context.platformId())
+                                .eq(PlatformDepartment::getStatus, "ACTIVE")).stream()
+                .collect(java.util.stream.Collectors.toMap(PlatformDepartment::getId, value -> value));
+        return members.stream().filter(member -> accounts.containsKey(member.getAccountId())).map(member -> {
+            PlatformDepartment department = departments.get(member.getDepartmentId());
+            return new ResolvedPerson(null, null, member.getAccountId(), accounts.get(member.getAccountId()).getDisplayName(),
+                    member.getDepartmentId(), department == null ? null : department.getName(), member.getTitle());
+        }).sorted(Comparator.comparing(ResolvedPerson::displayName)).toList();
     }
 
     public Long currentTenantMemberId(AuthenticatedContext context) {
@@ -100,7 +171,13 @@ public class FlowParticipantResolver {
             FlowInstance instance,
             Map<String, Object> variables,
             Long previousHandlerTenantMemberId) {
-        if (context.systemId() == null) return List.of();
+        if (context.systemId() == null) {
+            if (!"PERSON".equals(string(policy.get("type")).toUpperCase())) return List.of();
+            Set<Long> selected = new LinkedHashSet<>(numbers(policy.get("platformAccountIds")));
+            Map<Long, ResolvedPerson> byAccount = activePlatformPeople(context).stream().collect(
+                    LinkedHashMap::new, (map, person) -> map.put(person.accountId(), person), Map::putAll);
+            return selected.stream().map(byAccount::get).filter(Objects::nonNull).toList();
+        }
         String type = string(policy.get("type")).toUpperCase();
         List<ResolvedPerson> people = activePeople(context);
         Map<Long, ResolvedPerson> byTenantMember = people.stream().collect(
@@ -154,8 +231,9 @@ public class FlowParticipantResolver {
                 resolved.remove(source);
             }
             case "INITIATOR" -> {
-                if (instance != null && instance.getStartedByTenantMemberId() != null) {
-                    resolved.add(instance.getStartedByTenantMemberId());
+                if (instance != null) {
+                    // 外租户发起人没有来源成员时保持未解析，不能改选当前审批人。
+                    if (instance.getStartedByTenantMemberId() != null) resolved.add(instance.getStartedByTenantMemberId());
                 } else {
                     Long current = currentTenantMemberId(context);
                     if (current != null) resolved.add(current);
@@ -184,14 +262,28 @@ public class FlowParticipantResolver {
                 return List.of();
             }
         }
-        return resolved.stream().map(byTenantMember::get).filter(Objects::nonNull)
-                .sorted(Comparator.comparing(ResolvedPerson::displayName)).toList();
+        // 指定人员的配置顺序就是顺序会签执行顺序，目录姓名排序不能改写业务顺序。
+        var result = resolved.stream().map(byTenantMember::get).filter(Objects::nonNull);
+        return ("PERSON".equals(type) ? result : result.sorted(Comparator.comparing(ResolvedPerson::displayName))).toList();
     }
 
     public String validatePolicy(AuthenticatedContext context, Map<String, Object> policy) {
         String type = string(policy.get("type")).toUpperCase();
         if (!POLICY_TYPES.contains(type)) return "审批人来源必须选择人员、角色、部门、记录负责人、上下级或流程上下文";
-        if (context.systemId() == null) return type.equals("PERSON") ? "平台 Flow 人员策略暂不支持系统成员" : null;
+        if (context.systemId() == null) {
+            if (!"PERSON".equals(type)) return "平台当前人员来源尚未接通，请选择指定平台人员；其他来源配置保留但不能发布";
+            if (policy.containsKey("tenantMemberIds")) return "平台审批请选择平台人员，不能使用系统工作空间成员";
+            if (!(policy.get("platformAccountIds") instanceof List<?> raw) || raw.isEmpty()) return "请选择至少一名平台处理人";
+            List<Long> ids = numbers(raw);
+            if (ids.size() != raw.size() || raw.stream().anyMatch(value -> !String.valueOf(value).matches("[1-9][0-9]*"))) {
+                return "平台处理人身份无效或重复，请重新选择有效成员";
+            }
+            Set<Long> active = activePlatformPeople(context).stream().map(ResolvedPerson::accountId)
+                    .collect(java.util.stream.Collectors.toSet());
+            if (!active.containsAll(ids)) return "平台处理人包含其他平台、非平台或已停用的成员";
+            return null;
+        }
+        if (policy.containsKey("platformAccountIds")) return "系统审批请选择当前工作空间成员，不能使用平台人员身份";
         if ("PERSON".equals(type)) {
             List<Long> ids = numbers(policy.get("tenantMemberIds"));
             if (ids.isEmpty()) return "请选择至少一名审批人";
@@ -230,6 +322,12 @@ public class FlowParticipantResolver {
         Map<Long, SystemMember> members = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
                         .eq(SystemMember::getSystemId, context.systemId()).eq(SystemMember::getStatus, "ACTIVE"))
                 .stream().collect(LinkedHashMap::new, (map, member) -> map.put(member.getId(), member), Map::putAll);
+        // 系统成员未停用也可能对应已停用账号；不能继续接收提醒、转交或充当后台作业发起人。
+        Set<Long> activeAccounts = members.isEmpty() ? Set.of() : platformAccountService.selectList(
+                Wrappers.<PlatformAccount>lambdaQuery().in(PlatformAccount::getId,
+                        members.values().stream().map(SystemMember::getAccountId).distinct().toList())
+                        .eq(PlatformAccount::getStatus, "ACTIVE")).stream().map(PlatformAccount::getId)
+                .collect(java.util.stream.Collectors.toSet());
         Map<Long, SystemDepartment> departments = departmentService.selectList(Wrappers.<SystemDepartment>lambdaQuery()
                         .eq(SystemDepartment::getTenantId, context.tenantId()).eq(SystemDepartment::getStatus, "ACTIVE"))
                 .stream().collect(LinkedHashMap::new, (map, department) -> map.put(department.getId(), department), Map::putAll);
@@ -237,7 +335,7 @@ public class FlowParticipantResolver {
         List<ResolvedPerson> result = new ArrayList<>();
         for (SystemTenantMember membership : memberships) {
             SystemMember member = members.get(membership.getSystemMemberId());
-            if (member == null) continue;
+            if (member == null || !activeAccounts.contains(member.getAccountId())) continue;
             SystemDepartment department = departments.get(membership.getDepartmentId());
             OrganizationRelationRepository.MemberRelation relation = relations.get(membership.getId());
             result.add(new ResolvedPerson(membership.getId(), membership.getSystemMemberId(), member.getAccountId(),
@@ -282,7 +380,7 @@ public class FlowParticipantResolver {
         if ("RECORD_OWNER".equals(source)) return recordOwner(context, instance).orElse(null);
         if ("PREVIOUS_HANDLER".equals(source)) return previousHandlerTenantMemberId;
         if ("VARIABLE".equals(source)) return asLong(variables.get(string(policy.get("variableKey"))));
-        if (instance != null && instance.getStartedByTenantMemberId() != null) return instance.getStartedByTenantMemberId();
+        if (instance != null) return instance.getStartedByTenantMemberId();
         return currentTenantMemberId(context);
     }
 

@@ -27,6 +27,8 @@ const token = computed(() => systemTokens.value?.accessToken || '')
 const loading = ref(false)
 const submitting = ref(false)
 const selectedFields = ref<string[]>([])
+const format = ref<'CSV' | 'XLSX'>('XLSX')
+const idempotencyKey = ref(crypto.randomUUID())
 const estimate = ref<ExportEstimateView>()
 const estimateDirty = ref(false)
 const current = ref<ExportBatchView>()
@@ -54,6 +56,8 @@ function payload() {
     sortField: props.sortField,
     sortDirection: props.sortDirection,
     selectedRecordIds: props.selectedRecordIds,
+    format: format.value,
+    idempotencyKey: idempotencyKey.value,
     selectedFields: selectedFields.value,
   }
 }
@@ -63,6 +67,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
+    idempotencyKey.value = crypto.randomUUID()
     history.value = await api<ExportBatchView[]>(`/api/runtime/modules/${props.moduleCode}/exports`, {}, token.value)
     selectedFields.value = [...new Set(props.visibleFieldCodes.length ? props.visibleFieldCodes : ['title'])]
     await refreshEstimate()
@@ -127,7 +132,7 @@ async function download(batch = current.value) {
   if (!batch?.resultFileId || batch.status !== 'COMPLETED') return
   try {
     const blob = await authorizedBlob(`/api/runtime/modules/${props.moduleCode}/exports/${batch.id}/download`, token.value)
-    saveBlob(blob, `${props.moduleCode}-export-${batch.id}.csv`)
+    saveBlob(blob, `${props.moduleCode}-export-${batch.id}.${batch.format === 'XLSX' ? 'xlsx' : 'csv'}`)
   } catch (reason) { message.error(readable(reason, '导出文件下载失败')) }
 }
 
@@ -156,6 +161,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
 
     <a-divider>导出列与数据范围</a-divider>
     <a-alert type="info" show-icon :message="`${exportScopeLabel(scope)} · ${search || '无关键词'} · ${filters.length} 项高级筛选`" description="若已勾选记录，只导出同时满足当前筛选、数据范围和勾选集合的记录。" />
+    <div class="export-estimate-actions"><strong>文件格式</strong><a-radio-group v-model:value="format" button-style="solid" @change="estimateDirty = true"><a-radio-button value="XLSX">Excel</a-radio-button><a-radio-button value="CSV">CSV</a-radio-button></a-radio-group></div>
     <div v-if="estimate" class="export-fields">
       <a-checkbox-group v-model:value="selectedFields" :options="estimate.availableFields.map(field => ({ value: field.code, label: `${field.name}${field.masked ? ` · ${field.maskStrategy || '脱敏'}` : ''}` }))" @change="estimateDirty = true" />
     </div>
@@ -173,14 +179,14 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
         <div><a-tag :color="statusColor(current.status)">{{ exportStatusLabel(current.status) }}</a-tag><span>{{ current.exportedRows }} / {{ current.totalRows }} 行</span><small v-if="current.errorMessage">{{ current.errorMessage }}</small></div>
         <a-progress :percent="progress" :status="current.status === 'FAILED' ? 'exception' : current.status === 'COMPLETED' ? 'success' : 'active'" />
       </div>
-      <div class="drawer-footer export-actions"><a-button :loading="loading" @click="poll"><ReloadOutlined />刷新状态</a-button><a-button v-if="current.status === 'COMPLETED'" type="primary" @click="download()"><DownloadOutlined />下载 CSV</a-button></div>
+      <div class="drawer-footer export-actions"><a-button :loading="loading" @click="poll"><ReloadOutlined />刷新状态</a-button><a-button v-if="current.status === 'COMPLETED'" type="primary" @click="download()"><DownloadOutlined />下载 {{ current.format === 'XLSX' ? 'Excel' : 'CSV' }}</a-button></div>
     </template>
 
     <a-divider v-if="history.length">最近导出</a-divider>
     <div v-if="history.length" class="export-history">
       <button v-for="batch in history" :key="batch.id" type="button" :class="{ active: current?.id === batch.id }" @click="openBatch(batch.id)">
         <span><strong>{{ productDateTime(batch.createdAt) }}</strong><a-tag :color="statusColor(batch.status)">{{ exportStatusLabel(batch.status) }}</a-tag></span>
-        <small>{{ batch.totalRows }} 行 · {{ batch.selectedFields.length }} 列</small>
+        <small>{{ batch.totalRows }} 行 · {{ batch.selectedFields.length }} 列 · {{ batch.format === 'XLSX' ? 'Excel' : 'CSV' }}</small>
         <a-button v-if="batch.status === 'COMPLETED'" type="link" size="small" @click.stop="download(batch)"><DownloadOutlined />下载</a-button>
       </button>
     </div>

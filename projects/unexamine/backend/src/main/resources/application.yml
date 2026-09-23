@@ -31,6 +31,8 @@ app:
     frontend-smoke-url: ${APP_FRONTEND_SMOKE_URL:http://127.0.0.1:15173/}
   file:
     storage-root: ${APP_FILE_STORAGE_ROOT:./data/files}
+    max-size-bytes: ${APP_FILE_MAX_SIZE_BYTES:52428800}
+    context-quota-bytes: ${APP_FILE_CONTEXT_QUOTA_BYTES:5368709120}
   security:
     application-secret-master-key: ${APP_APPLICATION_SECRET_MASTER_KEY:unexamine-local-application-secret-master-key-change-in-production}
   preflight:

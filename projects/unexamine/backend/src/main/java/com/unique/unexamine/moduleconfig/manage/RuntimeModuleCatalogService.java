@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,8 @@ public class RuntimeModuleCatalogService {
     private final PermissionChecker permissionChecker;
     private final ObjectMapper objectMapper;
     private final SystemTenantBaseService tenantService;
+    private final ModuleIdentifierIntegrity identifierIntegrity;
+    private final SharedSourceMetadataService sharedSourceMetadata;
 
     public RuntimeModuleCatalogService(
             ConfiguredModuleGroupBaseService groupService,
@@ -44,7 +47,8 @@ public class RuntimeModuleCatalogService {
             ConfiguredModuleVersionBaseService versionService,
             PermissionChecker permissionChecker,
             ObjectMapper objectMapper,
-            SystemTenantBaseService tenantService) {
+            SystemTenantBaseService tenantService, ModuleIdentifierIntegrity identifierIntegrity,
+            SharedSourceMetadataService sharedSourceMetadata) {
         this.groupService = groupService;
         this.moduleService = moduleService;
         this.publicationService = publicationService;
@@ -52,6 +56,8 @@ public class RuntimeModuleCatalogService {
         this.permissionChecker = permissionChecker;
         this.objectMapper = objectMapper;
         this.tenantService = tenantService;
+        this.identifierIntegrity = identifierIntegrity;
+        this.sharedSourceMetadata = sharedSourceMetadata;
     }
 
     @Transactional(readOnly = true)
@@ -78,20 +84,47 @@ public class RuntimeModuleCatalogService {
                                 .eq(ConfiguredModulePublication::getSystemId, context.systemId())
                                 .in(ConfiguredModulePublication::getOwnerTenantId, visibleTenantIds))
                 .stream().collect(Collectors.toMap(ConfiguredModulePublication::getModuleId, Function.identity()));
-        return moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
+        List<RuntimeModuleCatalogItem> result = new ArrayList<>(moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
                         .eq(ConfiguredModule::getSystemId, context.systemId())
                         .in(ConfiguredModule::getOwnerTenantId, visibleTenantIds)
                         .eq(ConfiguredModule::getStatus, "ACTIVE"))
                 .stream()
                 .filter(module -> publications.containsKey(module.getId()))
                 .filter(module -> permissionChecker.allows(context, "MODULE", module.getCode(), "LIST"))
-                .map(module -> item(module, groups.get(module.getGroupId()), publications.get(module.getId())))
+                .map(module -> {
+                    // 冲突配置明确报错，不能去重后静默选择另一租户的替换配置。
+                    identifierIntegrity.requireUnambiguous(module);
+                    return item(module, groups.get(module.getGroupId()), publications.get(module.getId()));
+                })
                 .filter(java.util.Objects::nonNull)
                 .sorted(Comparator.comparing(RuntimeModuleCatalogItem::groupSortOrder)
                         .thenComparing(RuntimeModuleCatalogItem::groupId)
                         .thenComparing(RuntimeModuleCatalogItem::menuSortOrder)
                         .thenComparing(RuntimeModuleCatalogItem::moduleId))
-                .toList();
+                .toList());
+        Set<Long> currentIds = result.stream().map(RuntimeModuleCatalogItem::moduleId).collect(Collectors.toSet());
+        Map<Long, List<SharedSourceMetadataService.SourcePublication>> sources = sharedSourceMetadata.current(context);
+        for (ConfiguredModule module : sharedSourceMetadata.modules(context, sources.keySet())) {
+            if (visibleTenantIds.contains(module.getOwnerTenantId()) || currentIds.contains(module.getId())
+                    || !permissionChecker.allows(context, "MODULE", module.getCode(), "LIST")) continue;
+            JsonNode snapshot = sources.get(module.getId()).get(0).configuration().configuration();
+            result.add(sharedItem(module, snapshot));
+        }
+        result.sort(Comparator.comparing(RuntimeModuleCatalogItem::groupSortOrder)
+                .thenComparing(RuntimeModuleCatalogItem::groupId)
+                .thenComparing(RuntimeModuleCatalogItem::menuSortOrder).thenComparing(RuntimeModuleCatalogItem::moduleId));
+        return result;
+    }
+
+    /** 共享私有模块仅开放一个记录运行入口，不复制来源菜单、规则或发布快照。 */
+    private RuntimeModuleCatalogItem sharedItem(ConfiguredModule module, JsonNode snapshot) {
+        JsonNode group = snapshot.path("group");
+        JsonNode publishedModule = snapshot.path("module");
+        String code = text(publishedModule.path("code"), module.getCode());
+        String name = text(publishedModule.path("name"), module.getName());
+        return new RuntimeModuleCatalogItem(nullableLong(publishedModule.path("groupId"), module.getGroupId()), text(group.path("code"), "ungrouped"),
+                text(group.path("name"), "其他"), group.path("sortOrder").isNumber() ? group.path("sortOrder").asInt() : Integer.MAX_VALUE,
+                module.getId(), code, name, null, null, code, name, null, "/runtime/" + code, 10, "SHARED_RECORDS");
     }
 
     private RuntimeModuleCatalogItem item(
@@ -123,7 +156,7 @@ public class RuntimeModuleCatalogService {
                     menu == null ? moduleName : text(menu.path("name"), moduleName),
                     menu == null ? null : text(menu.path("icon"), null),
                     menu == null ? "/runtime/" + moduleCode : text(menu.path("routePath"), "/runtime/" + moduleCode),
-                    menu == null || !menu.path("sortOrder").isNumber() ? 10 : menu.path("sortOrder").asInt());
+                    menu == null || !menu.path("sortOrder").isNumber() ? 10 : menu.path("sortOrder").asInt(), "CURRENT");
         } catch (Exception exception) {
             throw new IllegalStateException("Cannot read published module catalog snapshot for module " + module.getId(), exception);
         }

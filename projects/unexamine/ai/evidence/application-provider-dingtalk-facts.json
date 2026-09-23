@@ -1,0 +1,67 @@
+{
+  "step": "B12.4",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "structured-dingtalk-connection-identity-local-diagnostic",
+      "result": "PASS",
+      "connectionId": 12,
+      "identityId": 11,
+      "secretPlaintextReturned": false
+    },
+    {
+      "case": "encrypted-check-url-signature-owner-window",
+      "result": "PASS",
+      "encryptedSuccess": true,
+      "forged": "DINGTALK_CALLBACK_SIGNATURE_INVALID",
+      "expired": "PROVIDER_CALLBACK_TIMESTAMP_EXPIRED",
+      "wrongOwner": "DINGTALK_CALLBACK_OWNER_MISMATCH"
+    },
+    {
+      "case": "unknown-user-id-rejected-before-business-write",
+      "result": "PASS",
+      "errorCode": "PROVIDER_IDENTITY_UNMAPPED",
+      "eventRows": 0,
+      "flowWrites": 0
+    },
+    {
+      "case": "mapped-current-permission-event-and-replay",
+      "result": "PASS",
+      "applicationCallId": 168,
+      "accessChannel": "PROVIDER",
+      "eventRows": 1,
+      "flowInstanceRows": 1
+    },
+    {
+      "case": "dingtalk-template-deep-link-idempotent-delivery",
+      "result": "PASS",
+      "deliveryId": 5,
+      "status": "BLOCKED_EXTERNAL",
+      "deepLink": "/platform/flows?flowCode=dingtalk_provider_ea97ca608c",
+      "providerRows": 1,
+      "dingtalkRows": 1,
+      "inAppRows": 1
+    },
+    {
+      "case": "connection-revocation-immediate",
+      "result": "PASS",
+      "status": "DISABLED",
+      "callbackError": "PROVIDER_CONNECTION_INACTIVE"
+    }
+  ],
+  "cleanup": {
+    "provider_connection_disabled": true,
+    "application_disabled": true,
+    "message_template_unpublished": true,
+    "flow_disabled": true
+  },
+  "external_status": "blocked_external",
+  "external_reason": "工作区没有真实钉钉企业租户凭据、公网回调控制权和已确认的Stream/HTTP订阅配置",
+  "flow_id": 205,
+  "application_id": 50,
+  "connection_id": 12,
+  "identity_id": 11,
+  "application_call_id": 168,
+  "delivery_id": 5,
+  "checked_time": "2026-09-20T21:35:13.458871+08:00"
+}

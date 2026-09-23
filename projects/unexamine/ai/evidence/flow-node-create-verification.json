@@ -1,0 +1,86 @@
+{
+  "step": "B09.1b.3",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-19T02:16:13.588807+08:00",
+  "source_rows": [
+    "R0913",
+    "R0917",
+    "R0922",
+    "R0942",
+    "R0944",
+    "R0972",
+    "R0973"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+    "projects/unexamine/frontend/src/product/types.ts"
+  ],
+  "checks_actual_results": [
+    "普通GUI从业务模块公共新建表单触发96，原actor69/recordIdnull，02398f真实正式0条；节点补充主题/0/false，c6739b后续节点待生效且正式0，最终6518f2正式177一次。重新进入普通正式详情显示真实补充主题/0/否。",
+    "6518f2→f5264a API97虚拟表单recordId/id null、SECRET不预填、源字典/级联/关联/组织选项实际正常，隐藏/必填伪造403/422不推进；类型/SECRET保护补丁及同键回放，最终178一次，原outbox不变；98后续拒绝不新增正式。",
+    "GUI99原69新建申请首次节点批准补丁，d31247撤销CREATE保留UPDATE/HANDLE，最终6d7978真实审批COMPLETED而原业务CONFLICT/PERMISSION_DENIED，正式仍2条，原意图不变。",
+    "e26fd4只复验本包改动的公共来源选项：相同真实178 UPDATE和新字段CUSTOM任务字典/关联/组织来源正常，CUSTOM仅原5参数，批准后版本各递增一次，正式仍2条。SECRET提交公开***且真实存储不含明文、级联/多选/日期和组织引用真实保存。",
+    "新建默认值覆盖显式null缺口修正：fa5f31原请求遗漏score候选17，节点explicit null→后续候选null→正式无score，未重新套默认。统一CREATE默认只补missing输入；前端候选配置无defaultValue。",
+    "ab77e2→0d235a Maven定向CREATE保护快照新增1测试以及受影响原只读虚拟共享6测试均0fail/error；fcd348→97dfa4 vue-tsc/Vite构建通过。原第一JAR b4eee5 exit0/c8c313部署；实际missing/null缺口新增修改后250da7停止→cfa5bb/80ae4f exit0→7174b3同backend部署，当前JAR实际默认清空及旧81投影/来源黄金读回通过。",
+    "b3faf9最终3正式记录+target归档、模块/模板/绑定停用、空隔离分组精确停用、0pending/queued、Role114原权限策略精确恢复；151/154/170基线不变，Module51正式仍4，旧81/170当前投影分值30正常。",
+    "首次e36368隔离字段请求漏sortOrder真实400，记录脚本问题，补正后从target54继续，未重复创建或绕过校验。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-node-create-facts.json",
+    "projects/unexamine/ai/evidence/flow-node-create-acceptance.py"
+  ],
+  "permission_or_failure_result": "新建节点伪造403/必填422及原actor CREATE撤销后CONFLICT无正式落库；显式null实际保持空，缺字段默认候选正确；公开SECRET保护及持久化密文正常。脚本准备400如实记录，普通69不能借Root读取别人回执，GUI动作终态用真实持久状态交叉核对。",
+  "remaining": [
+    "B09.1b.4 FORM_TASK实际人工任务/发布处理人/普通填写节点；当前源码显示自动执行会跳过该配置能力，不能列为已完成。",
+    "手动或FLOW_ONLY没有AFTER_APPROVAL原意图的表单消费、只读审批人、平台人员解析/精确处理人 DTO、文件、会签分歧、所有操作/超时/自动通过/动态及业务失败恢复提示等完整原要求仍未完成。B09.1/B09/B10与全产品不授予完成。"
+  ],
+  "next_step": "B09.1b.4",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "f07d1c0d796f77ceeb3f14fcc0c40e3f2f9955232f4102277884b039175996be"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "0588c399dbc9a03c673bb72ada68426d8985baeb54898b01bbd5b76a44e595de"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+      "sha256": "2d7cb82905a6e85844be11f11580a2a4ddcadd60bdc2656ddce59312c8e59527"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+      "sha256": "f544441fba145afc00941e253757c3f78cf44054c621885a8fbf18be88e52e5f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "aca0de2fa26275693ba8dcd5746941788e4253998349f67ee43a7946e94e9306"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-create-facts.json",
+      "sha256": "62ac834e4f634c29d14d3b8f219326ad42b1e79e15602093928c7cd1b87350ce"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-create-acceptance.py",
+      "sha256": "c89db392c35372599ee8170d8f3c9c86c2f8809bd1a09e3b0cffffb628c46ca0"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-create-backend-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-create-backend-test.log",
+      "sha256": "5c6ffa625df48bb85ed85e42ac0ac1ab1eb642a6939c913144025b17f6fc1245"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-create-front-build.log",
+      "sha256": "340771f91c802a9a7163c38230569605c0b22c82c0d3c5be9d5190838e6d16e4"
+    }
+  ],
+  "integrated_verification": "普通新建未生效→节点修改→后续候选→最终原身份一次新建；实际类型保护/重复/整体拒绝及CREATE撤权不落库；改动共同UPDATE/CUSTOM选项路径定向验；原默认17→显式null→最终空；原角色/黄金源与完成投影恢复读回。"
+}

@@ -1,0 +1,151 @@
+{
+  "step": "B08.1a.1",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T23:16:38.772213+08:00",
+  "source_rows": [
+    "R0869",
+    "R0873",
+    "R0876",
+    "R0928",
+    "R0952",
+    "R0953",
+    "R1507",
+    "R0476",
+    "R2715"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowConditionService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocol.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/PublishedConditionCatalog.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DateTimeFieldProtocol.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowBindingConfigurationTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocolTest.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+    "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+    "projects/unexamine/frontend/src/product/date-time-input.ts",
+    "projects/unexamine/frontend/src/product/date-time-input.test.ts"
+  ],
+  "checks_actual_results": [
+    "真实本地当前发布module51/dictionary11/record168；MULTI逐项校验、去重、JSON存储/读回、当前来源中文名称、编辑字典、清空、无效类型和选项拒绝均实测，未用模拟变量代替无法保存记录。",
+    "DATETIME公共规范存储及条件同为北京时间/毫秒；真实Z+.123写入本地10:00:00.123；5类型协议测试通过，提取日期共享函数后仅复验受影响2项通过2d76b8。文本长得像日期不按日期判。",
+    "角色目录原来不能授予设计权限且真实普通授权拒绝；补全实际Flow鉴权动作和中文名称，原普通114仅追加本模块+Flow配置能力并真实发布成功。原普通浏览器组合未验且准确保留B08.1a.2。",
+    "真实nested数值/日期同刻/多选集合/日期型文本/boolean条件：设计simulate与实际AFTER_APPROVAL create分别priority_review和normal_review，审批前正式记录仅168一条；bad datetime422不变成NE或默认放行。",
+    "同一现有绑定不替换，流程发布v2后新申请80使用v31，旧78仍v30/priority/hash不变；旧真实审批落正式169一次，普通79拒绝REJECTED且不保存。新动作读取最新发布指针、旧动作/投递保留原快照，相关2版本测试1a7ab8通过。",
+    "合法新业务输入two不能绕过Flow constant unused停用；合法移除无值flow_only的发布后新申请422 FLOW_CONDITION_INVALID，幂等行0，旧定义快照不变；恢复同身份/current dictionary后有效配置不强行重建。",
+    "手动已停用选项与字典遵守相同当前目录和发布条件拒绝；跨业务模块Flow绑定422 BUSINESS_MODULE_MISMATCH，没写其他模块绑定。最新真实Flow发布快照仅8引用字段，无无关hidden/subject/manual字段目录。",
+    "已有空多选不能靠JSON非NULL通过改必填发布，真实迁移检查阻断；填回有效选项可发布，必填[]新增422且幂等行0，恢复choices可选原配置。原共享154/151完整API对象仍与前一包准确一致513320。",
+    "前端共享CURRENT模块/typed条件/OWN样本实现及身份/flow/module异步控制、undo/redo/中文摘要经严格类型、SFC及实际源码控制验证；公共DATETIME Z/offset/short-local/原毫秒保留22值边界通过。主build9023ba exit0，只有原大chunk警告；没有浏览器产品验收信用。",
+    "后端最终package4c71cc→d889d3 exit0，既有同容器启动38df81/HTTPUP2f6264，schema43/单后端单原生前端+共享redis不新增docker；没有Base重生成/覆写，没有schema或时间字段更名。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-condition-facts.json",
+    "projects/unexamine/ai/evidence/flow-condition-frontend-facts.json",
+    "projects/unexamine/ai/evidence/flow-condition-time-input-facts.json"
+  ],
+  "permission_or_failure_result": "19组实际API/DB及已有共享记录保留；准备失败、夹具错误和合法停用/迁移阻断如实保留。管理员API证明公共链行为，普通浏览器和完整审批能力未计完成。",
+  "remaining": [
+    "B08.1a.2普通设计者真实浏览器模块/条件/样本/发布/绑定/实际业务/失权组合与测试夹具整合收尾；公共骨架API contribution不计父B08.1a或B08完成。",
+    "平台业务对象目录/控制面字段、完整审批人和节点、复制/回滚/实例快照响应字段安全与全部其他B08/B09需求保持。",
+    "ModuleRule/TenantShareScope尚未完整迁移新typed语义，多选集合消费者仍需贯通；完整字段家族/选择历史ID和显示快照等B04/B05未完成。",
+    "超时/重复审批人/动态节点、应用四渠道/平台管理和服务、AppCall生成drift等其他全部有效需求继续；不减需求不恢复旧周期。"
+  ],
+  "next_step": "B08.1a.2",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "138aca796e805814111e4c359fab4e2150e01fcd2bef16cd500bd1c87c5fb37a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+      "sha256": "1f51f3885cf304093253c6540ed88a0d7e0576a650627770945ffa4d542d0f03"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "f15adc5cca98f40f70a0c646402d04234425994d29a3ef2ce40b45e1d8d56342"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "sha256": "8f1e6962009c6dd555f15ed6f9e7da39c5832358c76f44dcf24815664d385fce"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowConditionService.java",
+      "sha256": "b24d400f56df65ab6e31c4a0f0450808d978b6d6d71d248ad6706991be09764f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocol.java",
+      "sha256": "5ee623366ff196ef1751c20e0c9edad38b1dc4712235c0f3bd800096b555be64"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/PublishedConditionCatalog.java",
+      "sha256": "3bc8b291dd84ac33623da8ac77143a108804138d30ac8f2a23d06dce5c3d6b15"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DateTimeFieldProtocol.java",
+      "sha256": "cd9f19063c2697ec23bcd19458bac7ecf4fd86c69ce268996808214d65a30c64"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "a848c7bae32d2fc0c9d3353d78a5bef8af0e0d4033ca215f23b3fc40f955954f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "345a22921ec2815f0513ff7b1b9a9dce12b62f49f5d1fb5ec74716cd1c132711"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+      "sha256": "15b7f376f0d2aae86189d2c615eb217f1547a50755a632c2bc9c59230c8b8530"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowBindingConfigurationTest.java",
+      "sha256": "26d9cba44b6d21e042057bfc1ccfea8eb160a1a271ead2c3f3dd458fd073ec70"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocolTest.java",
+      "sha256": "a502e11e9e1bbc40bb2f581ed5e910daf834c9c187ab705f856bbee96819f3d9"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "ec6c90452e1e025a376d74426d9bff7e521b558f93b2b071a87fb37033bd383c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+      "sha256": "032260561b862da4890121ebad55e4fdae8f675d0bda2d464a254c8e56690604"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "e1ef18247562b993ea0ce49aa4b7dfeda0232b3a3808a29f02c1541d0a4f7d87"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/date-time-input.ts",
+      "sha256": "88f683516b683a8d7e0530bccc188ca70d1ce397700dbf6a64f1d15b56660f79"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/date-time-input.test.ts",
+      "sha256": "3f8e265a82c4dfe008e0c5ce55832a2b063b80e43434fd056f2aa8ed29463d66"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignModels.java",
+      "sha256": "45cdc69eb59bcf1b9d2c4801c69f49a80c512b6237ee95ad7bcb6659a36aa8d3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredRuleEvaluator.java",
+      "sha256": "557ea286f6835fb4ce6dc8034da8b5c0ad4e12b7718cd9fdc517a0260a6704d7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "sha256": "0edfce849bd68514dcd64722f9debecb328ae9fa34e6b321dc49da815123e4ed"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/conditions.ts",
+      "sha256": "df72d7fe86a45876272229b365eec625e0ac7836fd55e92afc037c96aee3a5fc"
+    }
+  ]
+}

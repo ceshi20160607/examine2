@@ -1,0 +1,41 @@
+{
+  "step": "B07.4b.2c",
+  "business_verification": "in_progress",
+  "cases": [],
+  "records": [],
+  "shares": [],
+  "registrations": [
+    {
+      "account_id": 60,
+      "system_id": 62,
+      "username": "shared_org_c707d60a4d9c"
+    },
+    {
+      "account_id": 61,
+      "system_id": 63,
+      "username": "shared_org_fc3cd1269961"
+    }
+  ],
+  "roles": [],
+  "departments": [
+    87
+  ],
+  "checked_time": "2026-09-18T12:11:32.996295+08:00",
+  "module_id": 35,
+  "module_code": "org_accept_ac891278",
+  "system_id": 54,
+  "actor_tenant_id": 57,
+  "data_tenant_id": 56,
+  "source_root": 71,
+  "source_owner": 71,
+  "hidden_member": 85,
+  "hidden_department": 87,
+  "cleanup": {
+    "archived_records": 0,
+    "synthetic_identities_disabled": true,
+    "test_roles_unassigned_disabled": true,
+    "errors": [],
+    "system_test_memberships_disabled": true
+  },
+  "failure": "Actual legacy CUSTOM config rejected MEMBER/DEPARTMENT because visual input support was absent; current bounded package adds complete selections and matching type support. No runtime case started."
+}

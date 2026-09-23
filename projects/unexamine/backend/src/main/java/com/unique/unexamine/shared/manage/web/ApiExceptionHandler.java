@@ -1,6 +1,7 @@
 package com.unique.unexamine.shared.manage.web;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
 import com.unique.unexamine.notification.manage.MessageService;
 import org.slf4j.Logger;
@@ -8,12 +9,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -40,6 +43,21 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiResult<Map<String, Object>>> conflict(DataIntegrityViolationException exception, HttpServletRequest request) {
         return response(HttpStatus.CONFLICT, "RESOURCE_CONFLICT", "唯一编码已被使用，或关联数据不属于当前范围", request, null);
+    }
+
+    /** 请求体和字段解析属于用户输入错误，不触发服务故障通知，也不回显内部类型或原始输入。 */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiResult<Map<String, Object>>> invalidBody(
+            HttpMessageNotReadableException exception, HttpServletRequest request) {
+        String message = "请求内容格式不正确，请检查填写的字段后重试";
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause instanceof MismatchedInputException mismatch
+                    && LocalDateTime.class.equals(mismatch.getTargetType())) {
+                message = "日期时间格式不正确，请重新选择完整日期和时间";
+                break;
+            }
+        }
+        return response(HttpStatus.BAD_REQUEST, "REQUEST_BODY_INVALID", message, request, null);
     }
 
     @ExceptionHandler(Exception.class)

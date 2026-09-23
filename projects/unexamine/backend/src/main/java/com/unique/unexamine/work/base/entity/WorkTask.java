@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 工作任务
  * </p>
  *
  * @author Template Base
@@ -62,6 +62,30 @@ public class WorkTask {
     @TableField("progress_percent")
     private BigDecimal progressPercent;
 
+    /**
+     * 预计工时
+     */
+    @TableField("estimated_hours")
+    private BigDecimal estimatedHours;
+
+    /**
+     * 实际工时
+     */
+    @TableField("actual_hours")
+    private BigDecimal actualHours;
+
+    /**
+     * 任务标签列表
+     */
+    @TableField("labels_json")
+    private String labelsJson;
+
+    /**
+     * 任务检查清单
+     */
+    @TableField("checklist_json")
+    private String checklistJson;
+
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
@@ -76,6 +100,36 @@ public class WorkTask {
 
     @TableField("completed_at")
     private LocalDateTime completedAt;
+
+    /**
+     * 完成说明
+     */
+    @TableField("completion_note")
+    private String completionNote;
+
+    /**
+     * 提交完成时间
+     */
+    @TableField("completion_submitted_time")
+    private LocalDateTime completionSubmittedTime;
+
+    /**
+     * 验收通过时间
+     */
+    @TableField("completion_accepted_time")
+    private LocalDateTime completionAcceptedTime;
+
+    /**
+     * 归档时间
+     */
+    @TableField("archive_time")
+    private LocalDateTime archiveTime;
+
+    /**
+     * 任务删除时间
+     */
+    @TableField("delete_time")
+    private LocalDateTime deleteTime;
 
     @TableField("custom_values_json")
     private String customValuesJson;
@@ -214,6 +268,38 @@ public class WorkTask {
         this.progressPercent = progressPercent;
     }
 
+    public BigDecimal getEstimatedHours() {
+        return estimatedHours;
+    }
+
+    public void setEstimatedHours(BigDecimal estimatedHours) {
+        this.estimatedHours = estimatedHours;
+    }
+
+    public BigDecimal getActualHours() {
+        return actualHours;
+    }
+
+    public void setActualHours(BigDecimal actualHours) {
+        this.actualHours = actualHours;
+    }
+
+    public String getLabelsJson() {
+        return labelsJson;
+    }
+
+    public void setLabelsJson(String labelsJson) {
+        this.labelsJson = labelsJson;
+    }
+
+    public String getChecklistJson() {
+        return checklistJson;
+    }
+
+    public void setChecklistJson(String checklistJson) {
+        this.checklistJson = checklistJson;
+    }
+
     public Long getOwnerAccountId() {
         return ownerAccountId;
     }
@@ -252,6 +338,46 @@ public class WorkTask {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public String getCompletionNote() {
+        return completionNote;
+    }
+
+    public void setCompletionNote(String completionNote) {
+        this.completionNote = completionNote;
+    }
+
+    public LocalDateTime getCompletionSubmittedTime() {
+        return completionSubmittedTime;
+    }
+
+    public void setCompletionSubmittedTime(LocalDateTime completionSubmittedTime) {
+        this.completionSubmittedTime = completionSubmittedTime;
+    }
+
+    public LocalDateTime getCompletionAcceptedTime() {
+        return completionAcceptedTime;
+    }
+
+    public void setCompletionAcceptedTime(LocalDateTime completionAcceptedTime) {
+        this.completionAcceptedTime = completionAcceptedTime;
+    }
+
+    public LocalDateTime getArchiveTime() {
+        return archiveTime;
+    }
+
+    public void setArchiveTime(LocalDateTime archiveTime) {
+        this.archiveTime = archiveTime;
+    }
+
+    public LocalDateTime getDeleteTime() {
+        return deleteTime;
+    }
+
+    public void setDeleteTime(LocalDateTime deleteTime) {
+        this.deleteTime = deleteTime;
     }
 
     public String getCustomValuesJson() {
@@ -335,11 +461,20 @@ public class WorkTask {
             ", priority = " + priority +
             ", status = " + status +
             ", progressPercent = " + progressPercent +
+            ", estimatedHours = " + estimatedHours +
+            ", actualHours = " + actualHours +
+            ", labelsJson = " + labelsJson +
+            ", checklistJson = " + checklistJson +
             ", ownerAccountId = " + ownerAccountId +
             ", ownerTenantMemberId = " + ownerTenantMemberId +
             ", startAt = " + startAt +
             ", dueAt = " + dueAt +
             ", completedAt = " + completedAt +
+            ", completionNote = " + completionNote +
+            ", completionSubmittedTime = " + completionSubmittedTime +
+            ", completionAcceptedTime = " + completionAcceptedTime +
+            ", archiveTime = " + archiveTime +
+            ", deleteTime = " + deleteTime +
             ", customValuesJson = " + customValuesJson +
             ", businessType = " + businessType +
             ", businessId = " + businessId +

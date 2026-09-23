@@ -22,6 +22,7 @@ import com.unique.unexamine.print.base.service.PrintTemplateBaseService;
 import com.unique.unexamine.print.base.service.PrintTemplatePublicationBaseService;
 import com.unique.unexamine.print.base.service.PrintTemplateVersionBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
+import com.unique.unexamine.runtimedata.manage.RuntimeFieldPresentation;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -254,6 +255,49 @@ public class PrintService {
                 published.versionNumber(), persistedVersion == null ? null : persistedVersion.getPublishedAt());
     }
 
+    /**
+     * 切换发布指针而不修改历史版本。草稿比目标版本更新时继续保留草稿状态，
+     * 普通用户仍只读取这里选中的不可变版本。
+     */
+    @Transactional
+    public PrintModels.Publication activateVersion(
+            AuthenticatedContext context, Long templateId, Long versionId,
+            Long expectedCurrentVersionId, String traceId) {
+        requireManage(context, traceId);
+        PrintTemplate template = requireTemplate(context, templateId);
+        PrintTemplateVersion version = versionService.selectById(versionId);
+        if (version == null || !Objects.equals(version.getTemplateId(), templateId)) {
+            throw new DomainException("PRINT_TEMPLATE_VERSION_NOT_FOUND", "打印模板版本不存在", HttpStatus.NOT_FOUND);
+        }
+        PrintTemplatePublication pointer = publication(templateId);
+        if (pointer == null || !Objects.equals(pointer.getCurrentVersionId(), expectedCurrentVersionId)) {
+            throw new DomainException("PRINT_PUBLICATION_VERSION_CONFLICT", "打印模板当前发布版本已变化",
+                    HttpStatus.CONFLICT);
+        }
+        pointer.setCurrentVersionId(versionId);
+        pointer.setUpdatedByMemberId(context.memberId());
+        pointer.setUpdatedAt(null);
+        if (publicationPointerService.updateById(pointer) == 0) {
+            throw new DomainException("PRINT_PUBLICATION_VERSION_CONFLICT", "打印模板发布指针已变化",
+                    HttpStatus.CONFLICT);
+        }
+        template.setStatus(Objects.equals(template.getDraftRevision(), version.getDraftRevision())
+                ? "PUBLISHED" : "DRAFT");
+        template.setUpdatedAt(null);
+        if (templateService.updateById(template) == 0) {
+            throw new DomainException("PRINT_TEMPLATE_VERSION_CONFLICT", "打印模板草稿已被其他操作修改",
+                    HttpStatus.CONFLICT);
+        }
+        SnapshotDocument snapshot = snapshotDocument(version.getSnapshotJson());
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "PRINT_TEMPLATE_VERSION_ACTIVATED", "PRINT_TEMPLATE_VERSION", versionId.toString(), "SUCCESS",
+                Map.of("templateId", templateId, "previousVersionId", expectedCurrentVersionId,
+                        "versionNumber", version.getVersionNumber(), "snapshotHash", version.getSnapshotHash()));
+        return new PrintModels.Publication(templateId, versionId, version.getVersionNumber(),
+                version.getDraftRevision(), version.getSnapshotHash(), snapshot.moduleVersionId(),
+                snapshot.moduleVersionNumber(), version.getPublishedAt());
+    }
+
     @Transactional(readOnly = true)
     public List<PrintModels.RuntimeTemplate> runtimeTemplates(AuthenticatedContext context, String moduleCode,
                                                               String traceId) {
@@ -264,15 +308,15 @@ public class PrintService {
                 .eq(PrintTemplate::getSystemId, context.systemId())
                 .eq(PrintTemplate::getOwnerTenantId, context.tenantId())
                 .eq(PrintTemplate::getModuleId, module.getId())
-                .eq(PrintTemplate::getStatus, "PUBLISHED")
                 .orderByAsc(PrintTemplate::getName))) {
             PrintTemplatePublication pointer = publication(template.getId());
             if (pointer == null) continue;
             PrintTemplateVersion version = versionService.selectById(pointer.getCurrentVersionId());
             if (version == null) continue;
-            result.add(new PrintModels.RuntimeTemplate(template.getId(), template.getCode(), template.getName(),
-                    template.getPageSize(), template.getOrientation(), version.getId(), version.getVersionNumber(),
-                    version.getSnapshotHash(), version.getPublishedAt()));
+            SnapshotDocument snapshot = snapshotDocument(version.getSnapshotJson());
+            result.add(new PrintModels.RuntimeTemplate(template.getId(), template.getCode(), snapshot.templateName(),
+                    snapshot.pageSize(), snapshot.orientation(), version.getId(), version.getVersionNumber(),
+                    version.getSnapshotHash(), snapshot.layout(), version.getPublishedAt()));
         }
         return result;
     }
@@ -308,7 +352,7 @@ public class PrintService {
         jobService.insert(job);
 
         byte[] pdf = pdfRenderer.render(snapshot.templateName(), snapshot.pageSize(), snapshot.orientation(),
-                rendered.pages());
+                snapshot.layout().offsetXmm(), snapshot.layout().offsetYmm(), rendered.pages());
         String fileName = template.getCode() + "-" + printable(record.recordNumber(), "record-" + recordId)
                 + "-v" + version.getVersionNumber() + ".pdf";
         FileModels.FileView file = fileStorageService.storeGenerated(context, fileName, "application/pdf", pdf,
@@ -330,8 +374,9 @@ public class PrintService {
     }
 
     @Transactional(readOnly = true)
-    public PrintModels.PrintJobView job(AuthenticatedContext context, Long jobId) {
+    public PrintModels.PrintJobView job(AuthenticatedContext context, Long jobId, String traceId) {
         PrintJob job = requireJob(context, jobId);
+        requireCurrentJobAccess(context, job, traceId);
         PrintTemplateVersion version = versionService.selectById(job.getTemplateVersionId());
         PrintTemplate template = version == null ? null : templateService.selectById(version.getTemplateId());
         if (version == null || template == null) {
@@ -343,6 +388,7 @@ public class PrintService {
     @Transactional
     public FileModels.BinaryContent binary(AuthenticatedContext context, Long jobId, boolean inline, String traceId) {
         PrintJob job = requireJob(context, jobId);
+        requireCurrentJobAccess(context, job, traceId);
         if (!"SUCCEEDED".equals(job.getStatus()) || job.getOutputFileId() == null) {
             throw new DomainException("PRINT_JOB_OUTPUT_NOT_READY", "打印文件尚未生成", HttpStatus.CONFLICT);
         }
@@ -442,7 +488,11 @@ public class PrintService {
                 omitted.add(field.code());
                 continue;
             }
-            visible.add(new PrintModels.PageField(field.code(), field.name(), display(value),
+            RuntimeFieldPresentation presentation = record.fieldPresentation() == null
+                    ? null : record.fieldPresentation().get(field.code());
+            String presented = presentation == null ? null : presentation.displayValue();
+            visible.add(new PrintModels.PageField(field.code(), field.name(),
+                    presented == null || presented.isBlank() ? display(value) : presented,
                     detailCodes.contains(field.code())));
         }
         int rows = layout.rowsPerPage();
@@ -501,7 +551,9 @@ public class PrintService {
             throw new DomainException("PRINT_TEMPLATE_FIELD_DUPLICATED", "普通字段与明细字段不能重复", HttpStatus.BAD_REQUEST);
         }
         return new PrintModels.Layout(strip(layout.header()), strip(layout.footer()), strip(layout.signatureLabel()),
-                normal, detail, layout.rowsPerPage());
+                normal, detail, layout.rowsPerPage(),
+                layout.offsetXmm() == null ? 0 : layout.offsetXmm(),
+                layout.offsetYmm() == null ? 0 : layout.offsetYmm());
     }
 
     private List<String> distinct(List<String> values) {
@@ -546,6 +598,13 @@ public class PrintService {
         return result;
     }
 
+    /** 下载或查看历史任务前重验当前记录与 PRINT 权限，撤权后旧链接立即失效。 */
+    private void requireCurrentJobAccess(AuthenticatedContext context, PrintJob job, String traceId) {
+        ConfiguredModule module = requireModule(context, job.getModuleId());
+        requirePrint(context, module.getCode(), traceId);
+        runtimeDataService.printView(context, module.getCode(), job.getRecordId(), traceId);
+    }
+
     private PrintModels.PrintJobView jobView(PrintJob job, PrintTemplate template, PrintTemplateVersion version) {
         Map<String, Object> authorization = map(job.getAuthorizationSnapshotJson());
         Map<String, Object> snapshot = map(job.getRecordSnapshotJson());
@@ -554,8 +613,9 @@ public class PrintService {
                 snapshot.getOrDefault("pages", List.of()),
                 new TypeReference<List<PrintModels.PreviewPage>>() {});
         String fileName = template.getCode() + "-record-" + job.getRecordId() + "-v" + version.getVersionNumber() + ".pdf";
+        SnapshotDocument document = snapshotDocument(version.getSnapshotJson());
         return new PrintModels.PrintJobView(job.getId(), job.getRecordId(), version.getId(),
-                version.getVersionNumber(), template.getName(), job.getStatus(), job.getOutputFileId(), fileName,
+                version.getVersionNumber(), document.templateName(), job.getStatus(), job.getOutputFileId(), fileName,
                 job.getOutputFileId() == null ? null : "/api/print/jobs/" + job.getId() + "/preview",
                 job.getOutputFileId() == null ? null : "/api/print/jobs/" + job.getId() + "/download",
                 pageCount, pages, authorization, snapshot, job.getErrorMessage(), job.getCreatedAt(), job.getFinishedAt());

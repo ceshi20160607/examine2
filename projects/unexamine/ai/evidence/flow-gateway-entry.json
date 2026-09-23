@@ -1,0 +1,140 @@
+{
+  "ok": true,
+  "mode": "bounded_steps",
+  "activeProject": "projects/unexamine",
+  "controlSource": "projects/unexamine/ai/planning/execution-control.json",
+  "stateSource": "projects/unexamine/ai/planning/spark-state.json",
+  "planSource": "projects/unexamine/ai/planning/spark-execution-plan.md",
+  "requirementSource": "docs/user_requirement.md",
+  "requirementSha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "step": "B10.1a",
+  "reason": "The released runtime is still a single active-node cursor. Build the shared split/join contract before dependent subflows, automatic nodes and application calls.",
+  "prerequisiteSteps": [
+    "B09.2c.8"
+  ],
+  "requirements": [
+    {
+      "id": "R0880",
+      "line": 880,
+      "section": "5.12",
+      "text": "�ڵ����ͣ�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0887",
+      "line": 887,
+      "section": "5.12",
+      "text": "- �������ء�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0888",
+      "line": 888,
+      "section": "5.12",
+      "text": "- �������ء�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0889",
+      "line": 889,
+      "section": "5.12",
+      "text": "- �ϲ����ء�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0939",
+      "line": 939,
+      "section": "5.12",
+      "text": "- ���̽ڵ㱣��ڵ����͡�������ʽ����������Դ���ⲿ�ڵ����á����������á�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0940",
+      "line": 940,
+      "section": "5.12",
+      "text": "- �������ߺ�������������������֧��",
+      "status": "unverified"
+    },
+    {
+      "id": "R0942",
+      "line": 942,
+      "section": "5.12",
+      "text": "- ����ʵ������ʱ��Ҫ��ģ��汾�Ľڵ㡢���ߡ��������ֶ�Ȩ�޺͸߼����ø��Ƴ����п��ա�",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0945",
+      "line": 945,
+      "section": "5.12",
+      "text": "- ������־����ÿһ�νڵ���롢�������ܾ���ת�졢��ǩ���ӽڵ㡢���ء���ֹ��",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0992",
+      "line": 992,
+      "section": "5.12",
+      "text": "- ����״̬�仯Ҫд��־��",
+      "status": "in_progress"
+    }
+  ],
+  "entryFiles": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "8b4b0e50c2964999e2b26d5b482ad8310f31a422c4657f517b9dc233a160dde7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "322002d24826b47306ea3f98ba275e0f8a4a542fe04e87b291039fa0a5703e93"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "c6658dd5213511df2966c45212ffb9fe5dc5ed833b35575077d090f40bb43493"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowConditionService.java",
+      "sha256": "fbf1d65d00d90d03d05c882a352c1647fd593e70268b19b8490e0ab5ea6ff0cc"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowInstanceGraphService.java",
+      "sha256": "aa7576f739f71ab147e6aae742d0688207c54f1f41ca549ef9f74bfc0ec16124"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "9cfd77d3b62ba01343d583ddefcba64615de47e4cec593655041098daa575d23"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "a7909fdbd17dfe6d806ae1bc5513dd8234230b4988cda5e60bf2d790b3fe8e87"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "702a00b1d81b936bf6318533dd6d3e3fa2bed9768e4e392c582e96ad8ac8b88c"
+    }
+  ],
+  "acceptance": [
+    "Design parallel, inclusive and merge gateways with structured controls and publish-time graph validation; users never write JSON.",
+    "A split creates durable branch executions from the frozen version; each branch advances independently and a merge continues exactly once only after its required arrivals.",
+    "Inclusive routing evaluates actual typed conditions and freezes the chosen branch set; restart, retries, duplicate arrivals and concurrent completions cannot duplicate downstream work.",
+    "Show branch and join reasons in the runtime page and history; verify API, database, ordinary GUI, same-backend restart, failure boundaries and exact cleanup without adding duplicate workflow infrastructure."
+  ],
+  "environment": "Reuse running shared redis:6379 with its existing authentication; project unexamine-redis-1 MUST stay stopped. Existing unexamine-mysql-1:33077 and same unexamine-golden-backend:18080 (existing network/jar/business-files mounts), one native Vite:15173. Backend healthy/preflight5/schema43. Do not full compose up, create duplicate frontend/backend/cache environments, use Testcontainers or change unrelated dm8/es8104. JDK21 native focused compile/tests work. Prefer current services and readback for this completion effort; preserve credentials internally, never write them to evidence.",
+  "policy": {
+    "authority": "�� AGENTS.md �͵�ǰ�������������涨ִ����Լ��docs/user_requirement.md ��Ψһ��Ʒ����Դ��spark-* ·���������������ã���ָ��ģ�͡�",
+    "model": "ʹ�õ�ǰ�Ựģ�ͣ�ί�ɷ�֧�̳е�ǰģ�ͣ����ٷ��� Spark ģ�͡�",
+    "taskAllocation": "�� state.task_packet ���ҵ���������������������������ʵʣ�๤�ڣ�Ԥ���ܹ��ڲ����� 240 ���ӣ�����ʵ�ʼ�ʱ�������Ǽ�����Լ�ȶ�������������ܡ�������д���ļ�������ʵ��ǰ��֤�ݡ�Ǩ��/����/������Դ�ͺϲ�˳�򣻹����ļ���ͬһ���моߴ��С�",
+    "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
+    "scope": "ֻչ����ǰԭ�ġ�����ļ���ֱ�����������������޸ĺ�ȫ��δ������󣬲�������ƻ�滮ȫ��Ŀ��",
+    "dependencies": "ÿ�� current_scope ��ʽ�г� prerequisite_steps��ǰ�ò��� verified �Ҷ�Ӧ֤�ݴ��ڲſ�ʵʩ������ʵ�ֱ仯ʱ������֤��Ӱ����Ϊ��������ʷ��֤���ɵ�ǰ��ɡ�",
+    "checkpoint": "��д��ʵҵ����֤��¼������ execution-verify --workspace workspace.json --receipt <��¼·��>��У��ͨ�������׼ȷ�ϵ㼰��һ���跶Χ���ṹ/��ϣͨ�����ܴ���ҳ�桢API���־û���Ȩ�޺�ʧ�ܽ����",
+    "loop": "ÿ�μ���������µ��� entry��ʵʩ��׼��������ڵ���һ��ִ�в��裻�����޼�¼���ŵ����⡣����������ɺ��������������֤���γ����ս��ۣ���׼����һ�������򵥲���ɻ�������ѹ���ȴ��û���������",
+    "blockers": "�ⲿ������¼������������������������з���ѡ�������ִ�в��裻���������������������Ϊ��ɡ�",
+    "stopping": "���� template_base/agents/workflow.json ����ʵֹͣ����������ȫ����������ڱ��ֽ���Ϊȫ����Ч������������ʵ����ͨ��������ȡ�������������",
+    "consumption": "�����¼����ʵ�����ģ��������޸ġ�ʧ�ܻ��ɵ㲻�ظ���ͨ�����ԡ����� token ʹ�û򵥲������Ϊֹͣ������",
+    "wakeAdapter": "�ⲿ������ֻ���ù�����ڣ�����ѡ�񡢷�Χ���ϵ㡢���������վ�������Ŀ�ļ������ڶ�ʱ��ʾ�︴��һ�׹���"
+  },
+  "continuous": true,
+  "stoppingPolicySource": "template_base/agents/workflow.json#executionLoop",
+  "openBlockers": [],
+  "completionCredit": false,
+  "note": "Context and artifact checks do not prove actual business behavior or whole-product completion."
+}

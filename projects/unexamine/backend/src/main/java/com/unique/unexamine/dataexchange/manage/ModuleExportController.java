@@ -63,6 +63,7 @@ public class ModuleExportController {
         AuthenticatedContext context = AuthenticationContextHolder.require();
         String traceId = TraceIdFilter.current(request);
         ExportModels.ExportBatchView batch = service.queue(context, moduleCode, input, traceId);
+        if (batch.jobId() != null || !"QUEUED".equals(batch.status())) return ApiResult.ok(batch);
         try {
             BackgroundJobModels.JobDetail job = jobs.submit(context, new BackgroundJobModels.SubmitJobRequest(
                     ModuleExportBackgroundJobHandler.MODULE_EXPORT, "EXPORT_BATCH", String.valueOf(batch.id()),

@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** 租户扩展配置契约；绑定标识由页面选择，并由业务服务验证归属。 */
 public final class TenantExtensionModels {
     private TenantExtensionModels() {
     }
@@ -24,6 +25,8 @@ public final class TenantExtensionModels {
             @NotBlank String fieldType,
             @NotNull Boolean required,
             @NotNull @Min(0) Integer sortOrder,
+            Long dictionaryId,
+            Long referenceModuleId,
             @NotNull JsonNode config) {
     }
 
@@ -37,10 +40,21 @@ public final class TenantExtensionModels {
             @NotEmpty List<@NotNull Long> grantIds) {
     }
 
+    /** 租户新增手动动作，参数引用有效模块的可写字段，不能覆盖主租户动作。 */
+    public record ExtensionActionInput(
+            Long actionId,
+            @NotBlank @Pattern(regexp = "[A-Z][A-Z0-9_]{1,59}") String code,
+            @NotBlank @Size(max = 200) String name,
+            @NotBlank @Pattern(regexp = "ROW|DETAIL_HEADER|BATCH") String location,
+            @NotEmpty @Size(max = 20) List<@NotBlank String> parameterFieldCodes,
+            @NotNull @Min(0) Integer sortOrder) {
+    }
+
     public record SaveTenantExtensionRequest(
             @NotNull List<@Valid ExtensionFieldInput> fields,
             @NotNull List<@Valid PageOverrideInput> pages,
             @NotNull List<@Valid ApplicationBindingInput> applicationBindings,
+            List<@Valid ExtensionActionInput> actions,
             @NotNull @Min(0) Integer expectedVersion) {
     }
 

@@ -1,0 +1,85 @@
+{
+  "step": "B04.1b",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T15:55:48.725264+08:00",
+  "source_rows": [
+    "R2803",
+    "R2804",
+    "R2805",
+    "R2806",
+    "R2889"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/TenantExtensionsView.vue"
+  ],
+  "checks_actual_results": [
+    "15 directed actual API/DB cases: both source77/recipient57 main-action code collisions, unknown/duplicate parameters422 and full action/extension/field state unchanged; tenant-owned physical actions480/481 same logical ACTION_TENANT_ACCEPT retain distinct IDs and actual source-specific parameter lists, own published runtime/catalog names and no internal __t codes.",
+    "Foreign recipient action ID cannot replace source action422 with no writes; readOnly hidden and unsupported PERCENT action parameter422 CUSTOM_ACTION_FIELD_INVALID roll back physical field/config and extension changes. Valid authoring supports bound CASCADE/REFERENCE through shared validator.",
+    "Legacy save body without actions preserves existing source action480; recipient rollback to prior version removes action from runtime/permission catalog without deleting physical identity, rollback to current restores481. Full active Flow/history lifecycle not awarded.",
+    "Main draft contains only owner56 fields/actions; normal main updateAction cannot mutate internal source77 action404/version unchanged. New main draft revision created via normal existing action save and real publish version2 includes only main-owner rows; no physical tenant fields/actions leak into base.",
+    "First exact main republish attempted already-published revision and properly409 PUBLICATION_VERSION_CONFLICT; recorded preparation failure, no implementation bypass or re-run of 12 passed branches. Only new revision publication directed followup executed.",
+    "Actual recipient configuration page69 temporaryrole73/source membership0: manual-action tab keeps public actions readonly, name/position/field checkboxes adds page action482 ACTION_TENANT_1 choice/city/related, save draft banner retains live, check and confirm publish recipient v4/current extension version8. DB/runtime view same physical482 owner57/module45/config. No JSON/code/IDs typed. Restored ordinaryrole114 after page.",
+    "Native JDK21 final package exit0 and same backend healthyUP. A premature start while final compile still running was immediately stopped before acceptance; waited package exit0 then final startUP. Final vue-tsc/Vite build exit0 and git diff --check exit0; existing bundle warning retained. No DDL/Base/new environments/full suites.",
+    "Public action snapshots retain trusted physical ID/logical code; source Flow action lookup consumes current published configuration, current tenant/main ownership and published membership. Actual binding/timeout/approval combinations remain unverified successor work."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/tenant-action-facts.json",
+    "projects/unexamine/ai/evidence/tenant-action-page-readback.json"
+  ],
+  "permission_or_failure_result": "Bounded tenant action authoring/publication/catalog/owner isolation verified with actual API, database and page; runtime ordinary source CUSTOM still incomplete.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionModels.java",
+      "sha256": "d1fdaff57c06f2bf69f05760977d4b611b95a5555ce601e5f4c3cc96e4f260d1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionService.java",
+      "sha256": "dca49917e9588f449a07e1b63a42ea7ef632980d92dde820f45505910065b683"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionRuntimeService.java",
+      "sha256": "4417bcb9fef526ee3aa47a1b06910c9a8487a7608f605bc099a42a7304b4d08c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "417f79b0924c0821d8983d8780d173bce75160313d860609b630dc7010621aa3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "cdf59f462f8a246c330b34ca9911eba1d2461462e503d0c61805faa223dcf0d6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+      "sha256": "6e1fd55a527f94e592daff5ff744d73c9957600fae0bf593395fd2465e4e115a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "sha256": "01a1f140e033f07cce27c63b04bae11db4deadbaf0d27f7895c28b30cfbe4c25"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "4c2124437203d1fd2258b7d75a3d011262b8cf1d3ba449aa008b5277699b84b3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TenantExtensionsView.vue",
+      "sha256": "a0d40499d255f02206f8823a280023800e6503634bd6cd451915df0337c1f4ad"
+    }
+  ],
+  "remaining": [
+    "B07.4b.2c.2b.2 source actual CUSTOM context, gated dictionary/cascade/reference choices, batch compatibility/intersections and ordinary execution/replay/audit",
+    "Common action-placement record/lifecycle must use actionType rather than relying on ACTION_ naming",
+    "Source-only fields/private modules shared resource awareness and page structures; source extension current v3 still references main base v1 after unchanged-field basev2; R2807 remains UNVERIFIED",
+    "Whole B04 migration/dependency/rollback/remove+readd/active Flow/application lifecycles, B05/B06 and all remaining product requirements",
+    "Templates extension selection keeps inherited module URL in current browser; navigation restoration gap retained B06",
+    "Retained69/77/149-151/14-15/actions480-482/config fixtures for exact next child; close after dependent work with histories/audits preserved"
+  ],
+  "next_step": "B07.4b.2c.2b.2"
+}

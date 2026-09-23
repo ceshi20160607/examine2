@@ -1,10 +1,16 @@
 export interface ReportDefinitionInput {
   primaryModuleCode: string
   relatedModuleCode?: string
+  thirdModuleCode?: string
   relationType?: 'REFERENCE' | 'SUBTABLE' | 'CASCADE'
   joinType?: 'INNER' | 'LEFT'
   primaryRelationField?: string
   relatedRelationField?: string
+  thirdRelationParentAlias?: 'primary' | 'related'
+  thirdRelationType?: 'REFERENCE' | 'SUBTABLE' | 'CASCADE'
+  thirdJoinType?: 'INNER' | 'LEFT'
+  thirdParentField?: string
+  thirdRelationField?: string
   outputFields: string[]
   metricOperation: 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX'
   metricField?: string
@@ -13,6 +19,7 @@ export interface ReportDefinitionInput {
   filterField?: string
   filterOperator?: string
   filterValue?: string
+  filters?: { field: string; operator: string; value: string }[]
   sortField?: string
   sortDirection?: 'ASC' | 'DESC'
   timeField?: string
@@ -40,9 +47,18 @@ export function buildReportDefinition(input: ReportDefinitionInput): Record<stri
       rightAlias: 'related', rightField: input.relatedRelationField || '',
     })
   }
+  if (input.relatedModuleCode?.trim() && input.thirdModuleCode?.trim()) {
+    modules.push({ alias: 'third', moduleCode: input.thirdModuleCode.trim() })
+    relations.push({
+      relationType: input.thirdRelationType || 'REFERENCE', joinType: input.thirdJoinType || 'INNER',
+      leftAlias: input.thirdRelationParentAlias || 'primary', leftField: input.thirdParentField || 'id',
+      rightAlias: 'third', rightField: input.thirdRelationField || '',
+    })
+  }
   const metricField = splitQualifiedField(input.metricField)
   const dimensionField = splitQualifiedField(input.dimensionField)
-  const filterField = splitQualifiedField(input.filterField)
+  const filters = input.filters || (input.filterField
+    ? [{ field: input.filterField, operator: input.filterOperator || 'EQ', value: input.filterValue || '' }] : [])
   const sortField = splitQualifiedField(input.sortField)
   const timeField = splitQualifiedField(input.timeField)
   return {
@@ -51,7 +67,10 @@ export function buildReportDefinition(input: ReportDefinitionInput): Record<stri
     outputFields: input.outputFields.map(splitQualifiedField).filter(Boolean),
     metric: { operation: input.metricOperation, ...(metricField || {}) },
     dimension: dimensionField ? { type: input.dimensionType || 'FIELD', ...dimensionField } : {},
-    filters: filterField ? [{ ...filterField, operator: input.filterOperator || 'EQ', value: input.filterValue || '' }] : [],
+    filters: filters.map(filter => ({
+      ...(splitQualifiedField(filter.field) || { alias: '', fieldCode: '' }),
+      operator: filter.operator || 'EQ', value: filter.value || '',
+    })),
     sort: sortField ? { ...sortField, direction: input.sortDirection || 'DESC' } : {},
     timeField: timeField ? { ...timeField, from: input.timeFrom || '', to: input.timeTo || '' } : {},
     maxScanRows: Math.max(1, Math.min(1000, Math.round(input.maxScanRows || 500))),

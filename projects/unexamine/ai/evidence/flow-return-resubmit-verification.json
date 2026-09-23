@@ -1,0 +1,104 @@
+{
+  "step": "B09.2c.6",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0914",
+    "R0915",
+    "R0941",
+    "R0942",
+    "R0943",
+    "R0945",
+    "R0946",
+    "R0989",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowNodeSuspensionService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/todo.ts",
+    "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "execution-context passed before implementation; no schema, generated Base, router, main, YAML or service-topology change.",
+    "JDK21 Maven focused suite passed: BusinessActionFormSubmissionsTest, FlowManualOperationPolicyTest and FlowApprovalCompletionPolicyTest, 16 tests with 0 failures/errors; final Spring Boot package succeeded.",
+    "frontend focused todo and flow-runtime tests passed, 4 tests; vue-tsc and Vite production build succeeded.",
+    "Actual system-source flow returned at review2 to specified review1 while original AFTER_APPROVAL action remained PENDING_APPROVAL; only current valid starter could resubmit corrected subject.",
+    "Two independent concurrent RESUBMIT HTTP requests serialized to one success and one already-handled conflict; exact winning request replay returned the same receipt, and the new review1 task used a different executionId from history.",
+    "Corrected system source completed review1/review2 and wrote exactly one formal record with the corrected subject; repeated result reads returned the same record.",
+    "Actual platform flow returned to the previous human node and resumed from that node; a published snapshot without returnPolicy defaulted to starter plus from-start and completed.",
+    "Invalid specified END target failed publication and created no flow_version; public projections exposed only safe return target, route and execution group fields.",
+    "Administrator GUI showed 待发起人修正, return reason, target and 修正并重新提交 modal; designer used Chinese controls, saved/published V2 without JSON and retained PREVIOUS plus RETURN_NODE after re-entry.",
+    "The same backend container was restarted before resubmit and after completion; all pending/completed states read back unchanged.",
+    "Exact cleanup restored role 114, archived the one isolated record, disabled owned module/bindings/flows/account/role/system and left 0 unfinished tasks/jobs/executions; golden rows 151/154/170 and Module51 formal count were unchanged.",
+    "Two harness-only currentVersionNumber assumptions failed before dependent mutations; version readback was corrected to flow_version and each run resumed from its exact guarded checkpoint.",
+    "git diff --check passed for packet files with existing CRLF normalization warnings only."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-return-resubmit-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-return-resubmit-facts.json"
+  ],
+  "permission_or_failure_result": "Only the original current starter may resubmit. Frozen return target and route, current business permission, field policy, form revision, task/instance lock and request fingerprint all remain server-authoritative. No external dependency or permission broadening was used.",
+  "remaining": "This verifies the return/resubmit contribution only. Proxy/delegation, required attachments, comments/reminders, remaining application/channel/platform requirements and the whole product remain incomplete.",
+  "next_step": "B09.2c.7",
+  "next_scope": "Implement one real proxy/delegation approval chain around the frozen task actor: effective interval and scope, original-versus-acting identity, current authorization, loop/self/expired guards, audit and page handling. Do not combine required attachments, comments/reminders or application channels in this packet.",
+  "integrated_verification": "8 actual case groups cover denial/no mutation, concurrent resubmit and replay, new execution grouping, corrected source once, previous-node continuation, legacy default, GUI save/re-entry/runtime display, two restarts and exact cleanup.",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T09:05:36.845413+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "7d093ec2ae5ecee5d382770beccbee4f6aba19ef646f0eeb1a0ccc2507685461"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "149570d85a3909be0ee9d5ace10508b180059834cb2623e21be1b99424f73117"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowNodeSuspensionService.java",
+      "sha256": "86a5d4eadac2856c9683dcf233e3637951825c9f047b33428a2a749d68f2a10b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+      "sha256": "27dc0defa2fb397b24a03adc902364842c53d9d04abaa235ff4996ef3a9a0275"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+      "sha256": "90b001d3902477afd0ece89fdfd21167132357db6b97783a3c2775f0d77f45b9"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "cc67d3799123f9c5f1001cc098db358d81105b4903bb68f80eb6e1edceff6143"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "9f1b4e41b9ac5191072d94e2dca2de5f5ca6dab7382855ea86058d5b6b884585"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.ts",
+      "sha256": "34c03df5af004f9f778d82778de68bd8a24f62d7f95a761aa10bf0c9b1c1405c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+      "sha256": "e45712326e573e10d93608b849492c1b15a3709716c8ef29bc68bef36af73f6f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-return-resubmit-acceptance.py",
+      "sha256": "8e56b3b4055dfe7997f12bcf6884dc565029003423d25cdbb2bc062f79d1217c"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-return-resubmit-facts.json",
+      "sha256": "6e8d5aa9a99c50cee2c4cc3b202db86cc1f148da28655149fd4c677b89d28120"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-return-resubmit-entry.json",
+      "sha256": "4f3f827d62121aee082ce8dd5ecf9bf571c13a759a65dc00e048465009ea4f1d"
+    }
+  ]
+}

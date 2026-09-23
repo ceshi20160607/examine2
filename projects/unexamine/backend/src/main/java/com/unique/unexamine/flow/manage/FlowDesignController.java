@@ -1,6 +1,7 @@
 package com.unique.unexamine.flow.manage;
 
 import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
+import com.unique.unexamine.application.manage.ApplicationModels;
 import com.unique.unexamine.shared.manage.web.ApiResult;
 import com.unique.unexamine.shared.manage.web.TraceIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -22,6 +24,24 @@ public class FlowDesignController {
 
     public FlowDesignController(FlowDesignService service) {
         this.service = service;
+    }
+
+    /** 仅返回当前有权模块的已发布条件字段，不携带真实记录或配置默认值。 */
+    @GetMapping("/condition-fields")
+    public ApiResult<List<FlowBindingModels.ConditionField>> conditionFields(@RequestParam Long moduleId) {
+        return ApiResult.ok(service.conditionFields(AuthenticationContextHolder.require(), moduleId));
+    }
+
+    /** 中文节点字段选择目录仅提供权限裁剪后的元数据，不返回默认值或业务值。 */
+    @GetMapping("/node-form-fields")
+    public ApiResult<List<FlowDesignModels.NodeFormField>> nodeFormFields(@RequestParam Long moduleId) {
+        return ApiResult.ok(service.nodeFormFields(AuthenticationContextHolder.require(), moduleId));
+    }
+
+    /** Webhook/外部节点使用普通选择器读取发布回调，不向浏览器返回地址和签名引用。 */
+    @GetMapping("/callback-catalog")
+    public ApiResult<List<ApplicationModels.FlowCallbackOption>> callbackCatalog() {
+        return ApiResult.ok(service.callbackCatalog(AuthenticationContextHolder.require()));
     }
 
     @GetMapping

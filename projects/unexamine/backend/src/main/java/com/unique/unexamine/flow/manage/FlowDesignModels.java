@@ -61,6 +61,11 @@ public final class FlowDesignModels {
     public record Issue(String code, String location, String message) {
     }
 
+    /** 安全节点字段目录与冻结绑定共用，不携带默认值、密钥、原始配置或业务数据。 */
+    public record NodeFormField(Long id, String code, String name, String fieldType, boolean editable,
+                                Long dictionaryId, Long referenceModuleId) {
+    }
+
     public record NodeView(
             Long id, String nodeKey, String nodeType, String name,
             BigDecimal positionX, BigDecimal positionY,

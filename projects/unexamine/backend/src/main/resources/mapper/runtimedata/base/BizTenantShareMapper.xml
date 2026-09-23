@@ -8,9 +8,13 @@
         <result column="system_id" property="systemId" />
         <result column="source_tenant_id" property="sourceTenantId" />
         <result column="target_tenant_id" property="targetTenantId" />
+        <result column="module_id" property="moduleId" />
         <result column="record_id" property="recordId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_json" property="scopeJson" />
         <result column="permission_json" property="permissionJson" />
         <result column="status" property="status" />
+        <result column="start_time" property="startTime" />
         <result column="expires_at" property="expiresAt" />
         <result column="granted_by_member_id" property="grantedByMemberId" />
         <result column="granted_at" property="grantedAt" />
@@ -20,7 +24,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, source_tenant_id, target_tenant_id, record_id, permission_json, `status`, expires_at, granted_by_member_id, granted_at, revoked_at, version
+        id, system_id, source_tenant_id, target_tenant_id, module_id, record_id, scope_type, scope_json, permission_json, `status`, start_time, expires_at, granted_by_member_id, granted_at, revoked_at, version
     </sql>
 
 </mapper>

@@ -1,0 +1,61 @@
+{
+  "step": "B10.2d.2",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "external-signed-frozen-version",
+      "result": "PASS",
+      "applicationVersionId": 14,
+      "flowVersionId": 184,
+      "currentFlowVersionId": 185,
+      "instanceId": 294
+    },
+    {
+      "case": "idempotency-and-replay",
+      "result": "PASS",
+      "sameResult": true,
+      "nonceReplayRejected": true,
+      "invalidSignatureRejected": true,
+      "instanceCount": 1
+    },
+    {
+      "case": "internal-current-identity-frozen-version",
+      "result": "PASS",
+      "flowVersionId": 184,
+      "instanceId": 295
+    },
+    {
+      "case": "application-republish-adopts-new-flow-version",
+      "result": "PASS",
+      "applicationVersionId": 15,
+      "flowVersionId": 185,
+      "instanceId": 296
+    },
+    {
+      "case": "readable-safe-call-log",
+      "result": "PASS",
+      "callCount": 4,
+      "successCount": 3,
+      "secretExposed": false
+    }
+  ],
+  "cleanup": {
+    "application_disabled": true,
+    "flow_disabled": true
+  },
+  "preparation_failures": [
+    "首次尝试未形成新草稿修订便再次发布应用，命中既有唯一约束并在调用前安全回滚；改为显式保存同一授权草稿后再发布。"
+  ],
+  "flow_id": 184,
+  "flow_version_v1": 184,
+  "flow_version_v2": 185,
+  "application_id": 14,
+  "application_version_v1": 14,
+  "application_version_v2": 15,
+  "instance_ids": [
+    294,
+    295,
+    296
+  ],
+  "checked_time": "2026-09-20T17:37:42.592635+08:00"
+}

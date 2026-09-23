@@ -1,0 +1,46 @@
+{
+  "step": "B14.3",
+  "status": "passed",
+  "cases": [
+    "published-module-date-field-projects-one-deduplicated-owner-todo-and-safe-open",
+    "message-preference-disabled-and-quiet-pagination-read-all-archive-dedup-and-deep-link",
+    "quiet-delivery-resumes-through-managed-retry-and-records-terminal-failure",
+    "same-backend-restart-preserves-todo-message-preference-and-deliveries",
+    "same-session-target-permission-revocation-invalidates-todo-and-denies-message-open",
+    "database-readback-confirms-rule-todo-recipient-and-delivery-state"
+  ],
+  "fixtures": {
+    "module_id": 92,
+    "module_group_id": 78,
+    "module_code": "contact_accept_c0d00587a7",
+    "module_publication_version_id": 142,
+    "record_id": 272,
+    "rule_id": 3,
+    "rule_version": 1,
+    "todo_id": 32,
+    "template_id": 13,
+    "message_ids": [
+      784,
+      785
+    ],
+    "role_id": 209,
+    "account_id": 140,
+    "username": "contact_accept_c0d00587a7",
+    "registration_system_id": 142,
+    "tenant_member_id": 246
+  },
+  "cleanup": {
+    "rule_removed": true,
+    "account_disabled": true,
+    "role_disabled": true,
+    "active_sessions": 0,
+    "module_disabled": true,
+    "record_soft_deleted": true,
+    "message_and_todo_evidence_retained": true
+  },
+  "preparation_failures": [
+    "首次真实撤权刷新暴露运行时拒绝与待办失效写入共用事务，捕获拒绝后外层仍被标记回滚并返回 500；失败夹具已按精确标识停用，改为隔离运行时读事务后使用全新夹具重跑。",
+    "第二次真实撤权已确认待办链修复，但消息列表计算目标可访问状态仍加入原运行时事务并返回 500；第二批夹具已精确停用，隔离读取器提升为待办与消息共同使用后再以全新夹具重跑。"
+  ],
+  "checked_time": "2026-09-21T02:53:50.197499+08:00"
+}

@@ -1,0 +1,124 @@
+{
+  "step": "B09.1b.2",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-19T01:53:47.357549+08:00",
+  "source_rows": [
+    "R0913",
+    "R0917",
+    "R0942",
+    "R0944",
+    "R0972",
+    "R0973"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeBusinessView.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/ApprovalBusinessReadTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/components/FlowTaskFormEditor.vue",
+    "projects/unexamine/frontend/src/product/components/RuntimeBusinessViewPanel.vue"
+  ],
+  "checks_actual_results": [
+    "真实ordinary GUI89：第一节点修改主题/数字/布尔/多选，原意图/正式173v0不变；后续节点显示候选，最终原动作EXECUTED一次173v1。2eefcd额外只读断言确认脏字段及未改动关联/组织/日期保持；该调用旧投影断言误用record路径，68bb00按真实DTO修正旧81/170投影通过。",
+    "实际API90：0/false、时区时间/日期、多选、组织/关联/级联、SECRET标准化；受保护快照与变量无SECRET明文，对外submitted***，最终174v1，outbox不改。8种非法补丁/variables/必填/日期/字典/拒绝带patch实际403/422且原任务和正式数据不变，同键相同回放、不同内容409。",
+    "实际91后续拒绝不写回；92 CUSTOM只可原subject/score参数，其他参数403，最终174v2通过原动作执行器。",
+    "实际93原actor当前UPDATE撤销，真实持久终态CONFLICT/PERMISSION_DENIED，175v0不变；Root无法查别人回执404，仍保留owner边界。实际94原expectedVersion期间另一个DIRECT动作写175v1，最终CONFLICT/RECORD_VERSION_CONFLICT，新正式字段不覆盖。",
+    "普通GUI95缓存修改后撤销UPDATE，提交403清空上下文/输入，0 APPROVE/正式v1；空态修复后实际读取403显示当前记录已清除，请刷新权限后重新进入，没有无待办提示。720px对话框内部滚动/footer可见，SECRET无预填，隐藏/只读/FLOW禁止字段不在输入中。",
+    "d93f1e实际收尾：95 TERMINATED、4隔离记录归档、模块模板绑定停用、0待处理任务、Role114权限与fieldPolicies精确恢复、151/154/170版本标题时间基线不变、Module51正式4条。",
+    "b4a3f5→fcc7cc最终BusinessActionFormSubmissionsTest 5/0/0；既有ApprovalBusinessReadTest 6/0/0在95762b→d08f6e通过，新5项配置密钥长度问题修正后仅重跑影响项。首次编译缺ObjectNode和5arg兼容constructor已修正，compile.log保留失败；079bc9停止→91c8f4/16a8d3 package exit0→0e7e69同backend部署，成功package为实际工具记录，不假称失败日志通过。最终front d5bb7b→c68da3 exit0；实际滚动/错误空态修改导致必要重建。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-node-submit-facts.json",
+    "projects/unexamine/ai/evidence/flow-node-submit-acceptance.py"
+  ],
+  "permission_or_failure_result": "真实字段/身份/拒绝/重复/撤权/版本冲突均按实际结果不覆盖。准备错误及缺失receipt工程失败完整保留，没有只改哈希/状态放行。",
+  "remaining": [
+    "B09.1b.3 CREATE虚拟候选和目录及原动作新建；FORM_TASK、文件上传输入、ALL_SIGN分歧及动态后续保留。",
+    "节点输入当前要求标准MODULE UPDATE授权，平台ACCOUNT处理人精确DTO/候选领取/代理委托/加减签退回重提/超时自动通过等全要求未完成；B09.1/B09和全产品未完成。"
+  ],
+  "next_step": "B09.1b.3",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "14ad85f2fae483e2a7db99c07b90cde40a26b2313cbb3ff07d57f1a39cee53c7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "6a52c6ede390ff3fdd7e539561b001084656805e3750bafc5e707444c02a9ce1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+      "sha256": "023e3f6f4bcbc196b6f930022236baf441fd6dd7349321c88c4e85f8e59e0bcb"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeBusinessView.java",
+      "sha256": "fd62f5733f284e6430fb65fc6e9b322a7c19c79b2cc596dd42061da20c2a2b5c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "72122a90ebb422bb1b7bd4bc51cad32f94f48d48d11eea6370ce3eee91d56f9a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+      "sha256": "02be6951c14c1188c6eb54dd56399913f9fe55e1831435318086b3ab20344e4b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+      "sha256": "f9eafdf4842a63dac5042fc71f76c6c8c5a7e2ee6e01e8ac459183dc4bbebd9c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissionsTest.java",
+      "sha256": "8e239084b88ef8c4891164d8162ad3276196ecfb1b83f59d96ea4482eb74ecb9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/control/ApprovalBusinessReadTest.java",
+      "sha256": "3eebee8ebd7c492a921bcf2f9744033c15671c018cfdbb3fca4e3175384e02ee"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "ef6a5d475d05636d7e6eccc19ddf4f050c7248de60c72d73e576b4231a307043"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "ee29784ec52e097490732fb1ba71c9a930421a09665b357a4257329ca56caa60"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FlowTaskFormEditor.vue",
+      "sha256": "221f44148ac1106c9405ac1c41d150566ce793539151535ac8ee4d895b88829c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeBusinessViewPanel.vue",
+      "sha256": "996fe85f6c9c72cf7790187474adad9a2b7f26bf3f25dd66dcb5424c7cc87936"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-submit-facts.json",
+      "sha256": "7c6ed1c30a032c4a50b3e44bee72e4b0d2ce946d6bdefee94b23bc4be83dff0d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-submit-acceptance.py",
+      "sha256": "9d84bd19bd9c3ac6044fd63bd152801f49d92bfbc5a43ea4e3b64c2dcd83052d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-submit-compile.log",
+      "sha256": "69dd72db75ddd763c6fef6d4b839e5b3b8aa08a409df36d03ab954b0bb12ddc5"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-submit-backend-test.log",
+      "sha256": "5c6ffa625df48bb85ed85e42ac0ac1ab1eb642a6939c913144025b17f6fc1245"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-submit-front-build.log",
+      "sha256": "14ae2ab4fde1bf63597325aea76ce4b5ef5e1a2f57b67cf637cd2cb79f7d17d1"
+    }
+  ],
+  "integrated_verification": "冻结当前授权类型表单→普通脏补丁→独立保护快照→后续候选→原身份批准一次；拒绝/权限撤销/记录冲突不越权覆盖；原意图和旧来源正式投影基线不变，原角色恢复。"
+}

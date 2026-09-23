@@ -1,0 +1,76 @@
+{
+  "step": "B07.4b.2c.2",
+  "before": {
+    "record": [
+      [
+        "147",
+        "77",
+        "41",
+        "3",
+        "101",
+        "E9A1B5E99DA2E69DA5E6BA90E5AD97E585B8E5928CE8A1A8E58D95E9AA8CE694B6"
+      ]
+    ],
+    "values": [
+      [
+        "choice",
+        "7372635F6F6E65"
+      ],
+      [
+        "city",
+        "5B31355D"
+      ],
+      [
+        "hidden",
+        "E58E9FE5A78BE7A781E69C89E580BCE4BF9DE68C81"
+      ],
+      [
+        "related",
+        "313434"
+      ],
+      [
+        "subject",
+        "E9A1B5E99DA2E69DA5E6BA90E5AD97E585B8E5928CE8A1A8E58D95E9AA8CE694B6"
+      ]
+    ]
+  },
+  "share_status": "REVOKED",
+  "ui_save_pending": false,
+  "after": {
+    "record": [
+      [
+        "147",
+        "77",
+        "41",
+        "3",
+        "101",
+        "E9A1B5E99DA2E69DA5E6BA90E5AD97E585B8E5928CE8A1A8E58D95E9AA8CE694B6"
+      ]
+    ],
+    "values": [
+      [
+        "choice",
+        "7372635F6F6E65"
+      ],
+      [
+        "city",
+        "5B31355D"
+      ],
+      [
+        "hidden",
+        "E58E9FE5A78BE7A781E69C89E580BCE4BF9DE68C81"
+      ],
+      [
+        "related",
+        "313434"
+      ],
+      [
+        "subject",
+        "E9A1B5E99DA2E69DA5E6BA90E5AD97E585B8E5928CE8A1A8E58D95E9AA8CE694B6"
+      ]
+    ]
+  },
+  "values_and_version_unchanged": true,
+  "list_visible_count": 0,
+  "ui_dialog_closed": true
+}

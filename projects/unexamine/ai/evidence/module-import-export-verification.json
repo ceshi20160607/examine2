@@ -1,0 +1,175 @@
+{
+  "step": "B13.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1018",
+    "R1020",
+    "R1022",
+    "R1024",
+    "R1025",
+    "R1026",
+    "R1027",
+    "R1028",
+    "R1030",
+    "R1032",
+    "R1033",
+    "R1034",
+    "R1035",
+    "R1036",
+    "R1038",
+    "R1040",
+    "R1041",
+    "R1042",
+    "R1043",
+    "R1044",
+    "R1045",
+    "R1046",
+    "R1048",
+    "R1050",
+    "R1051",
+    "R1052",
+    "R1053",
+    "R1054",
+    "R1055",
+    "R1057",
+    "R1059",
+    "R1060",
+    "R1061",
+    "R1062",
+    "R1063",
+    "R1064",
+    "R1065",
+    "R1066",
+    "R1778",
+    "R1981",
+    "R2060",
+    "R2062",
+    "R2063",
+    "R2064",
+    "R2065",
+    "R2067",
+    "R2069",
+    "R2070",
+    "R2383",
+    "R2384",
+    "R2590",
+    "R2615",
+    "R2735",
+    "R2744",
+    "R2775",
+    "R2823",
+    "R2831",
+    "R2932"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/pom.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/SpreadsheetExchangeCodec.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ImportModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ExportModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/components/ModuleImportDrawer.vue",
+    "projects/unexamine/frontend/src/product/components/ModuleExportDrawer.vue",
+    "projects/unexamine/ai/evidence/module-import-export-acceptance.py",
+    "projects/unexamine/ai/evidence/module-import-permission-acceptance.py"
+  ],
+  "checks_actual_results": [
+    "服务端生成可读取Excel模板，模板只列当前发布模块、当前CREATE/UPDATE页面和IMPORT文件渠道允许写入的业务字段；业务编号仅允许匹配，创建继续使用系统编号。",
+    "真实XLSX经受控文件上传后读取表头，页面用字段名称映射和唯一匹配字段；混合文件预演得到1新增、1更新、2错误且零写入，错误文件含精确原因。",
+    "后台确认导入成功2行、失败2行；按当前唯一业务字段匹配，省略字段不被清空，选择标签解析为存储值，失败行不写入，并保留逐行结果。",
+    "安全回滚删除本批次新建记录；导入后被他人修改的记录保留并明确报告冲突，批次状态为ROLLBACK_PARTIAL。",
+    "当前筛选Excel导出使用服务端字段权限和展示值；相同幂等键复用同一批次，真实生成文件可下载且包含选择标签而非内部码。",
+    "普通成员FILE渠道FULL脱敏在真实生成Excel中输出***且原备注不存在；同租户其他用户不能读取批次和原始行，撤销IMPORT后同一会话执行立即403且无任务或业务写入，同时独立EXPORT预估仍成功。",
+    "普通业务页面显示紧凑导入/导出动作；导入抽屉提供Excel模板、Excel/CSV选择、预演明细、错误下载、历史和安全回滚，导出抽屉提供Excel/CSV、命名字段、范围预估、后台状态和下载，没有JSON、textarea或内部ID说明。",
+    "JDK21 Maven package、前端vue-tsc/Vite生产构建、两个Python验收脚本编译和git diff --check通过；1280x720页面无横向溢出，完整刷新新增控制台错误/警告为0。",
+    "继续复用原后端、MySQL、共享Redis和单个原生Vite；没有启动第二套前后端或缓存服务。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/module-import-export-facts.json",
+    "projects/unexamine/ai/evidence/module-import-permission-facts.json",
+    "projects/unexamine/ai/evidence/module-import-export-page-readback.json"
+  ],
+  "permission_or_failure_result": "导入/导出均按独立模块动作和当前数据/字段权限执行；后台再次解析当前权限。批次原始行仅提交人可读，撤销IMPORT后同一会话403且批次保持PREVIEWED，独立EXPORT仍可用，FILE字段FULL脱敏的Excel不含原值。",
+  "remaining": "R1981导入导出配置的可复用版本管理尚未形成独立发布/回退页面，保持未验证；B13.3可视化打印、B12.5微信产品选择和真实外部租户凭据验收，以及其他未验证需求继续保留。",
+  "next_step": "B13.3",
+  "next_scope": "复用模块动作、当前字段展示、受控生成文件和权限链，完成可视化打印模板、真实记录预览/生成/下载和普通页面入口。",
+  "integrated_verification": "Excel模板、字段映射、预演零写、混合执行、逐行结果、后续修改冲突、批次安全回滚、筛选/幂等/脱敏导出、撤权、普通页面和当前构建组合通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T23:45:57.075649+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/pom.xml",
+      "sha256": "a94f31af3e619ef96561e3586674861dcc9472a5c3703ed640428ed5a090d753"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/SpreadsheetExchangeCodec.java",
+      "sha256": "452e57b892159f20d777afc7f398db56f60a01fdfbf1ec392bee715309d8116d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ImportModels.java",
+      "sha256": "282c5b8ab7e73e0ebeba8018e53566b32097bc2a84315d07a5f393da4d43166d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportController.java",
+      "sha256": "174d136042b2ae0ce11cd164e87354e8a3cd20124d7314619ab9d742c6c1b04c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+      "sha256": "9d4d4c9a413f7b25a1f3a68f633617d2d07f71eb34b510a95fff5034cd74761b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ExportModels.java",
+      "sha256": "6906ffce7c25bf894dfb65ff279492d1beb1943512df352cba14a1845358e0a2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportController.java",
+      "sha256": "bc072849e0ab33af67f78e4dd55491b7a29d7e6593f38d4e94e7cba14372db7e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportService.java",
+      "sha256": "1c1a45a7eed9b5a5f5ec6e458bce1804359367a4dd0f3cba4f1dcc8edcfb7a67"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "ae17e821dd416ea5a80c88b9b8e996b54fc20381cd0b3ff1dc412ebd9e043d31"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "ca7e7fc180d5705d9370ef58237e1f07f1e643b7b03f744e93cbcdeaa0e0a9b3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModuleImportDrawer.vue",
+      "sha256": "0a76619850d3ebaa47575d5896ceb8327f855a5c16577a639abb665b61d435a4"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ModuleExportDrawer.vue",
+      "sha256": "ce948d4858e34c3fed8c16c07b8a4d819ac83feeadb85c265fbd3fdafc33291c"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/module-import-export-acceptance.py",
+      "sha256": "0cf984e646b255c334803652d9e136cbc53af04d87ac17ad844ba6d0a0ce0793"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/module-import-permission-acceptance.py",
+      "sha256": "962f46c255605f68d4382698b7f2e599b64a0d730f10ab5fafe1c4b010d33cc4"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/module-import-export-facts.json",
+      "sha256": "df20986b75a2c2f92f8dd8beddd2e18ea4e0d382d3f3daff4594e7048910f38e"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/module-import-permission-facts.json",
+      "sha256": "73700f4d82ccdded47b0567937f78f73923b4d12d3f2ead4ed790ae655e083b6"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/module-import-export-page-readback.json",
+      "sha256": "8cc3d90657fffc2d214943e45285700d9505344d29de5d77ad670f8d29f4113c"
+    }
+  ]
+}

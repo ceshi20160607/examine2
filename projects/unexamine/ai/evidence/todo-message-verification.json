@@ -1,0 +1,213 @@
+{
+  "step": "B14.3",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0227",
+    "R0228",
+    "R0229",
+    "R0230",
+    "R0234",
+    "R0235",
+    "R0236",
+    "R0237",
+    "R1091",
+    "R1092",
+    "R1093",
+    "R1094",
+    "R1095",
+    "R1096",
+    "R1097",
+    "R1099",
+    "R1100",
+    "R1104",
+    "R1105",
+    "R1262"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/entity/TodoContactRule.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/mapper/TodoContactRuleMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/service/TodoContactRuleBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/notification/base/TodoContactRuleMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/RuntimeTargetAccessReader.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+    "projects/unexamine/db/migration/V53__todo_contact_rule.sql",
+    "projects/unexamine/db/update/V53__todo_contact_rule.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/todo.ts",
+    "projects/unexamine/frontend/src/product/message.ts",
+    "projects/unexamine/frontend/src/product/todo.test.ts",
+    "projects/unexamine/frontend/src/product/message.test.ts",
+    "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/MessageWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/MessageTemplateManagementView.vue",
+    "projects/unexamine/frontend/src/product/views/WorkConfigurationView.vue",
+    "projects/unexamine/tools/base-codegen.json",
+    "projects/unexamine/ai/evidence/todo-message-acceptance.py"
+  ],
+  "checks_actual_results": [
+    "V53 增量迁移新增“今日需联系”规则表，表与字段均有中文备注，新增时间字段使用 *_time；Base 生成器连续两次输出一致，18 个模块、170 张表、680 个生成文件，Manage 业务代码未被覆盖。",
+    "今日需联系通过结构化规则选择命名模块、DATE/DATETIME 字段、提前天数和优先级；发布后按当前成员权限与数据范围投影业务记录，不复制记录、不建立独立联系模块，页面无需手写 JSON 或内部 ID。",
+    "统一待办页继续聚合 Flow 审批、工作任务和联系记录；来源、截止时间、优先级、状态与安全打开入口齐全，同一规则/模块/记录幂等，日期变化、转交、删除、停用或撤权会同步完成或失效且不影响其他来源。",
+    "消息模板支持命名变量、收件范围、站内与外部渠道意图、目标、去重键；收件人投递记录支持禁用、免打扰、失败与受控重试，外部凭据缺失保持可解释状态而不冒充发送成功。",
+    "真实 API 验收 6 组通过：联系待办投影/去重/安全打开，禁用和免打扰，消息分页/来源筛选/已读/全部已读/归档/去重/深链，三次受控失败，同一后端重启持久化，撤权后的待办失效与消息拒绝，数据库读回。",
+    "真实撤权先后暴露待办与消息在捕获运行时拒绝后仍污染外层事务的问题；公共 RuntimeTargetAccessReader 使用隔离只读事务后，两条链均以全新夹具重跑通过。",
+    "同一管理员的平台与系统令牌读回确认隔离：平台 1 条待办均为 PLATFORM，系统当前 0 条；平台 151 条消息均为 PLATFORM，系统 302 条消息均为 SYSTEM。",
+    "系统工作配置、消息中心、偏好抽屉、分页和待办空态完成实际浏览器检查；联系规则配置全部为命名结构化控件，消息页面每卡片只有一个清晰跳转。",
+    "JDK 21 Maven compile、前端 todo/message 2 个文件 4 个测试、vue-tsc/Vite 生产构建、workspace-validate、execution-context 和 git diff --check 通过；Vite 仅有既有大包告警。",
+    "夹具账号、角色、会话、模块、规则和业务记录已精确清理，消息与待办证据保留；Docker Desktop 外部停止后只恢复原 MySQL、共享 Redis、同一后端和一个 Vite，项目专用 Redis 保持停止。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/todo-message-facts.json",
+    "projects/unexamine/ai/evidence/todo-message-page-readback.json"
+  ],
+  "permission_or_failure_result": "同一普通成员撤去模块详情权限后，联系待办转为 INVALID、待办打开被拒绝、消息深链被拒绝且 targetCurrentlyAccessible=false；读取权限拒绝不再把外层刷新事务标记回滚。",
+  "remaining": "R0236 的 AI 来源消息由 B16 补齐；R1105 的真实企业微信/飞书/钉钉发送受 B12 外部凭据阻塞，微信还需产品形态选择；R1262 的团队统计与跨对象指标归 B15、AI 联动归 B16。平台运维总要求继续归 B17。",
+  "next_step": "B15.1",
+  "next_scope": "按 B15 原范围先核对现有 analytics 公共数据源、权限过滤、设计器和运行页，接纳一个不超过 240 分钟的共享统计骨架包；先稳定统计口径与安全数据源，再接仪表盘和 KPI。",
+  "integrated_verification": "用户可在系统工作配置中以可视化命名字段定义今日联系规则，在统一待办中接收有权记录，并在统一消息流完成筛选、分页、已读、归档、免打扰和安全跳转；撤权、目标变化、重启、失败重试和上下文隔离均有真实结果。",
+  "completion_credit": false,
+  "verified_time": "2026-09-21T16:16:48.210626+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "2318cca413ca9a48925b9ed5187031d81f757715ecc0c69c0c2c28de62c17242"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/entity/TodoContactRule.java",
+      "sha256": "65575dae547adda5d6c05b12163998b3bb495ac0fcdbd502a2fde7a40da34681"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/mapper/TodoContactRuleMapper.java",
+      "sha256": "218a1a963f6a918bf3e8918227e9bc0b04419511799d5733812184801b1d274e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/base/service/TodoContactRuleBaseService.java",
+      "sha256": "ecf7162ebe7a8279b1871bb21895b7bb948accabea99172b8dd03db5276799a4"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/notification/base/TodoContactRuleMapper.xml",
+      "sha256": "58b11291737089fcc5335eefa72b3ae6fd8d9d3ce619d084a17eef17fc09c7ec"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleController.java",
+      "sha256": "2164e55114a67dfe1e05c18bbf6c13b5ede715795af3efd49b07b07151b34c3c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleModels.java",
+      "sha256": "76057ad40d2b3570c5450db5accf7556792ccb0a777e40a20bd3a860289c4178"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoContactRuleService.java",
+      "sha256": "2f0f95196d44517a982451de1db0c371590f12a10d59a63c85f79d8d91fe6513"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/RuntimeTargetAccessReader.java",
+      "sha256": "1bdc23caf47d2b8a68f92b0f6e410b6e46bc3bfecd4c4dbdb22436f664ce4f9a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoController.java",
+      "sha256": "a7d131fdc8f6b882ae0af9d80b7a7406c1ebd8f5bdb05ae636b23f78f5a3421a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoModels.java",
+      "sha256": "0596c3e00039dee08aa79c5171a6092d3c2b45418a28cfabde21096858a9ff92"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+      "sha256": "91fdba623ab2699e5e53092f797816019c8053ea7eeaa8d0b6687eebf1c78d5f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageController.java",
+      "sha256": "745306acf6346671f7f9b6ca0d3afd78622ac9b55e58050fd12434272e7a6a16"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageModels.java",
+      "sha256": "9b7d0c129ddeff648cae57770dc29408f776823dd6ebf0f8abd6fc2a20ef63ca"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+      "sha256": "6d09c0ff449c16e32d7e4c4e357dc477f0080aaeed7d0778e39d91a7bc667fb3"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V53__todo_contact_rule.sql",
+      "sha256": "484e1fdc2d0b106e06da9b44e6dcc1a58d1f7360cb48164951d3548d1157b196"
+    },
+    {
+      "path": "projects/unexamine/db/update/V53__todo_contact_rule.sql",
+      "sha256": "484e1fdc2d0b106e06da9b44e6dcc1a58d1f7360cb48164951d3548d1157b196"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "8aa860008d9f9c86f0f5a14b241b72b3c9054120115abebe1cab190bb7f0e428"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "513bcc9efc13fef0cd1b33f4fbc43485453b556d750b38667e5b26d04130d48e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "f1bf15cb657be0bea834746df8bfd4adc056da95b95a5dbaefeb71052ac1a0bf"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.ts",
+      "sha256": "90b6fe66d1497e470a01f501f56bca0494eb216fdb8cb0646dcee77d3a537c90"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/message.ts",
+      "sha256": "abba544e585ff73c3ab21798ab6daecaae0f44252c7bd8fe9bcb59d9640e0258"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.test.ts",
+      "sha256": "3f0845eeb7cf79dac06627e6d6bb1c0335ffd5595b75c8f704cdc707631c5351"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/message.test.ts",
+      "sha256": "3422305df1b1d161a496458ea0399ddcd98f2a9f1a7b646ae471d0541a10ddf1"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+      "sha256": "e04cc1395d91af6b880790c61121c275a067972199bfbb0000bb2f9b432b834c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/MessageWorkspaceView.vue",
+      "sha256": "0ed537e377a0a59c731a7e9cbb0486d1809b3f442b0e037756fe38346556f17e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/MessageTemplateManagementView.vue",
+      "sha256": "67e6d41aa88ca91fc1dfd22e96da1c7cd05eec97885e9866a1ae445d03d6de2b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/WorkConfigurationView.vue",
+      "sha256": "ebefca1881ae4c3268f3d166b784ef59d5d6744100a8ee507daa85c4370f4599"
+    },
+    {
+      "path": "projects/unexamine/tools/base-codegen.json",
+      "sha256": "8799b38d1a58ffbe64c97a7c1932e9791127f82e8ff7ae76ea7558ab0536fe43"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/todo-message-acceptance.py",
+      "sha256": "8de10775bc560b79671edc298461cd198b92f25fdd0558f3876b3924104e5541"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/todo-message-facts.json",
+      "sha256": "0c80b315bd40d9d34902994fcf001dcec1faf3cc9d71470075c89f92d1b16bd4"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/todo-message-page-readback.json",
+      "sha256": "c0aadb139eb971098bb49fb323b0e19f71a8bc4825f64cb49bb0ab503da92209"
+    }
+  ]
+}

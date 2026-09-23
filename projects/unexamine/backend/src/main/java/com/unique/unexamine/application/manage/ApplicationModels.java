@@ -20,7 +20,9 @@ public final class ApplicationModels {
             @NotBlank @Pattern(regexp = "[a-z][a-z0-9_]{1,63}") String code,
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description,
-            @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType) {
+            @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType,
+            @Pattern(regexp = "api|link|workflow|database|robot|message") String iconCode,
+            @Min(1) @Max(3650) Integer credentialValidityDays) {
     }
 
     public record SaveDraftRequest(
@@ -28,8 +30,10 @@ public final class ApplicationModels {
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description,
             @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType,
+            @Pattern(regexp = "api|link|workflow|database|robot|message") String iconCode,
             @Valid List<CallbackInput> callbacks,
-            @NotNull @Size(min = 1) @Valid List<GrantInput> grants) {
+            @NotNull @Size(min = 1) @Valid List<GrantInput> grants,
+            @Valid List<IdentityMappingInput> identityMappings) {
     }
 
     public record CallbackInput(
@@ -60,6 +64,14 @@ public final class ApplicationModels {
             @Size(max = 64) String maskStrategy) {
     }
 
+    /** 跨系统调用身份只提交结构化成员选项，系统、租户和显示名称均由服务端反查。 */
+    public record IdentityMappingInput(
+            Long id,
+            @NotNull Long sourceTenantMemberId,
+            @NotNull Long targetTenantMemberId,
+            @NotNull Boolean enabled) {
+    }
+
     public record PublishRequest(@NotNull Integer expectedDraftRevision, @NotBlank @Size(max = 500) String changeSummary) {
     }
 
@@ -68,7 +80,12 @@ public final class ApplicationModels {
 
     public record CopyRequest(
             @NotBlank @Pattern(regexp = "[a-z][a-z0-9_]{1,63}") String code,
-            @NotBlank @Size(max = 200) String name) {
+            @NotBlank @Size(max = 200) String name,
+            @Min(1) @Max(3650) Integer credentialValidityDays) {
+    }
+
+    /** 新签发凭证的有效期；为空时使用平台默认值。 */
+    public record CredentialIssueRequest(@Min(1) @Max(3650) Integer validityDays) {
     }
 
     public record RollbackRequest(
@@ -86,6 +103,7 @@ public final class ApplicationModels {
             String sourceName,
             String description,
             String applicationType,
+            String iconCode,
             List<CallbackInput> callbacks,
             List<GrantInput> grants,
             LocalDateTime exportedAt) {
@@ -96,6 +114,8 @@ public final class ApplicationModels {
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description,
             @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType,
+            @Pattern(regexp = "api|link|workflow|database|robot|message") String iconCode,
+            @Min(1) @Max(3650) Integer credentialValidityDays,
             @Valid List<CallbackInput> callbacks,
             @NotNull @Size(min = 1) @Valid List<GrantInput> grants) {
     }
@@ -113,6 +133,8 @@ public final class ApplicationModels {
             String clientSecret,
             String secretReference,
             String secretHint,
+            LocalDateTime validFrom,
+            LocalDateTime expiresAt,
             boolean shownOnce) {
     }
 
@@ -142,6 +164,20 @@ public final class ApplicationModels {
             Integer version) {
     }
 
+    /** 流程设计器只读取可选择的发布摘要，不暴露地址和密钥引用。 */
+    public record FlowCallbackOption(
+            Long applicationId,
+            String applicationCode,
+            String applicationName,
+            Long applicationVersionId,
+            Integer applicationVersionNumber,
+            Long callbackId,
+            String callbackType,
+            List<String> eventCodes,
+            Integer timeoutMillis,
+            Integer maxAttempts) {
+    }
+
     public record FieldView(Long id, String fieldCode, boolean readable, boolean writable, String maskStrategy) {
     }
 
@@ -162,6 +198,40 @@ public final class ApplicationModels {
             List<ResourceField> fields) {
     }
 
+    /** 应用页面使用的成员选项；页面展示业务名称，主键仅作为选择值传回。 */
+    public record IdentityMemberOption(
+            Long systemId,
+            String systemName,
+            Long tenantId,
+            String tenantName,
+            Long tenantMemberId,
+            String memberName,
+            String employeeNumber) {
+    }
+
+    public record IdentityCatalog(
+            List<IdentityMemberOption> sourceMembers,
+            List<IdentityMemberOption> targetMembers) {
+    }
+
+    public record IdentityMappingView(
+            Long id,
+            Long sourceSystemId,
+            String sourceSystemName,
+            Long sourceTenantId,
+            String sourceTenantName,
+            Long sourceTenantMemberId,
+            String sourceMemberName,
+            Long targetSystemId,
+            String targetSystemName,
+            Long targetTenantId,
+            String targetTenantName,
+            Long targetTenantMemberId,
+            String targetMemberName,
+            String status,
+            Integer version) {
+    }
+
     public record GrantView(
             Long id,
             String targetType,
@@ -174,6 +244,8 @@ public final class ApplicationModels {
             Map<String, Object> rateLimit,
             String status,
             Integer version,
+            Long resourceVersionId,
+            Integer resourceVersionNumber,
             List<FieldView> fields) {
     }
 
@@ -219,6 +291,7 @@ public final class ApplicationModels {
             String name,
             String description,
             String applicationType,
+            String iconCode,
             Integer draftRevision,
             String status,
             Integer version,
@@ -227,6 +300,8 @@ public final class ApplicationModels {
             List<CallbackView> callbacks,
             List<GrantView> grants,
             List<GrantView> publishedGrants,
+            List<IdentityMappingView> identityMappings,
+            List<IdentityMappingView> publishedIdentityMappings,
             List<CredentialView> credentials,
             List<VersionView> versions,
             List<StatusEvent> statusHistory,

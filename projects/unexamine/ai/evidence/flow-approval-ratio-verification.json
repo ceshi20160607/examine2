@@ -1,0 +1,88 @@
+{
+  "step": "B09.2c.5",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0908",
+    "R0910",
+    "R0916",
+    "R0943",
+    "R0945",
+    "R0989",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowApprovalCompletionPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowApprovalCompletionPolicyTest.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "execution-context and shared-contract entries passed before implementation; no schema, generated Base, router, main or service topology changes.",
+    "Maven FlowApprovalCompletionPolicyTest test package exit0: 3 tests, 0 failures/errors; final Spring Boot JAR built with JDK21.",
+    "frontend vue-tsc and Vite production build exit0; existing large-chunk warning retained.",
+    "Actual isolated API/DB acceptance passed: invalid OR ratio and 0 percent produced no flow_version; absent legacy policy froze ALL and required every approval.",
+    "Actual system source flow: first of two votes stayed WAITING; adding a third participant changed denominator; second vote reached 66%, cancelled remaining task/timeout job, wrote one ratio audit and executed source business record exactly once.",
+    "Actual three-person 67% flow submitted final two task approvals through concurrent independent HTTP requests; both succeeded under instance serialization and exactly one AUTO_END was produced.",
+    "Actual administrator GUI used segmented controls and number input, saved and re-entered 60%, published V2 without JSON; runtime page showed 达到 60% 同意后通过 on all three task cards and usable common layout.",
+    "Same backend container restart retained completed ratio result; cleanup disabled owned flows/module/accounts/roles/systems and left no unfinished task/job/execution; golden records 151/154/170 and Module51 formal count unchanged.",
+    "Two harness corrections were preserved: missing isolated enabled field stopped before source action/instance; public DTO field assumption stopped before concurrent approvals. Both continued from exact guarded state without repeating successful actions.",
+    "git diff --check passed for packet files with existing CRLF normalization warnings only."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-approval-ratio-facts.json",
+    "projects/unexamine/ai/evidence/flow-approval-ratio-acceptance.py"
+  ],
+  "permission_or_failure_result": "Explicit policy is accepted only for ALL_SIGN; malformed mode/key/type/range blocks publication without frozen version. Runtime reads task snapshot only, excludes CANCELLED effective participants, serializes by instance lock, cancels threshold remainder and preserves current authorization/idempotency. No permission broadening or external dependency was used.",
+  "remaining": "Only ALL_SIGN completion policy contribution is verified. Proxy/delegation, real return and resubmit, required attachments, comments/reminders, remaining application/channel/platform requirements and the whole product remain incomplete.",
+  "next_step": "B09.2c.6",
+  "next_scope": "冻结退回目标与重新提交路径，先复核 current RETURN terminal/source coordinator/graph execution，限定一个可用退回重提业务闭环；不同时扩张代理委托、附件评论或全部需求。",
+  "integrated_verification": "11 actual case groups cover strict design validation, legacy compatibility, frozen task projection, add-sign denominator, threshold remainder cleanup, business source once, concurrent final votes, GUI save/re-entry/publish/runtime display, restart persistence and exact cleanup.",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T08:20:10.113864+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowApprovalCompletionPolicy.java",
+      "sha256": "d727e2f1b1f8854903269f65afd1dc1371ed6c4ae54dea21d8bc199665c65768"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "c36366c4a1ba4faece3534c1fa8d30099928647f22433ddfea100acdf6adf05e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "b289961848fabd4e6e08d1d44a1b06d8137c34c1e426b811f6c0c916b9489b87"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowApprovalCompletionPolicyTest.java",
+      "sha256": "c0d18ea552b1da76034eb67bf2e585f4e117e1c39bee3354d1a143c44dc0f22d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "ac748b799825d3167f4b82f284f13b081e37f1d5f474c29202454b5515f6c09e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "63d0c650f132fbf44ff8ba07abd151b8f453142da60aad468847e6e6942b61ec"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-approval-ratio-acceptance.py",
+      "sha256": "44f1c69b55dd939f4596b6107127268c4ad4d98ff56bdae7f2963569bdc52622"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-approval-ratio-facts.json",
+      "sha256": "c37effda44640ab9eb59e51f1493052729249146123c3216c3ff36b6cc24cbe4"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-approval-ratio-entry.json",
+      "sha256": "3a28a2ae1f0670062d13b8acff2fba91da467ecaeb58dd9be5da5ad1f57fb9fa"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-approval-ratio-shared-entry.json",
+      "sha256": "217a775ea481c00517becc49dcbb3472c326d0608dea99e2613d4aaac2dc3b1b"
+    }
+  ]
+}

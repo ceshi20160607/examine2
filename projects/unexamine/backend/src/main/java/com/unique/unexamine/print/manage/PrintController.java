@@ -65,6 +65,14 @@ public class PrintController {
                 body.expectedDraftRevision(), TraceIdFilter.current(request)));
     }
 
+    @PostMapping("/admin/templates/{templateId}/versions/{versionId}/activate")
+    public ApiResult<PrintModels.Publication> activateVersion(
+            @PathVariable Long templateId, @PathVariable Long versionId,
+            @Valid @RequestBody PrintModels.ActivateVersionRequest body, HttpServletRequest request) {
+        return ApiResult.ok(service.activateVersion(AuthenticationContextHolder.require(), templateId, versionId,
+                body.expectedCurrentVersionId(), TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/runtime/modules/{moduleCode}/templates")
     public ApiResult<List<PrintModels.RuntimeTemplate>> runtimeTemplates(
             @PathVariable String moduleCode, HttpServletRequest request) {
@@ -81,8 +89,8 @@ public class PrintController {
     }
 
     @GetMapping("/jobs/{jobId}")
-    public ApiResult<PrintModels.PrintJobView> job(@PathVariable Long jobId) {
-        return ApiResult.ok(service.job(AuthenticationContextHolder.require(), jobId));
+    public ApiResult<PrintModels.PrintJobView> job(@PathVariable Long jobId, HttpServletRequest request) {
+        return ApiResult.ok(service.job(AuthenticationContextHolder.require(), jobId, TraceIdFilter.current(request)));
     }
 
     @GetMapping("/jobs/{jobId}/preview")

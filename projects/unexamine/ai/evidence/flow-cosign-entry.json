@@ -1,0 +1,147 @@
+{
+  "ok": true,
+  "mode": "bounded_steps",
+  "activeProject": "projects/unexamine",
+  "controlSource": "projects/unexamine/ai/planning/execution-control.json",
+  "stateSource": "projects/unexamine/ai/planning/spark-state.json",
+  "planSource": "projects/unexamine/ai/planning/spark-execution-plan.md",
+  "requirementSource": "docs/user_requirement.md",
+  "requirementSha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "step": "B09.1b.6",
+  "reason": "ALL_SIGN当前显式拒绝公共节点表单，多个APP补丁按动作ID静默覆盖；完成当前会签/顺序会签的授权表单及并发陈旧候选保护，保留原动作和冻结快照，复用公共骨架。；只读审阅发现普通审批AUTO_APPROVE绕过节点必填，在当前共用链加安全阻断，完整自动审批实现仍留后续超时包。；真实顺序会签未按指定人员配置顺序而按姓名排序，加入公共人员解析排序修正。；真实收尾122已TERMINATED但126仍QUEUED，公共终止必须同时关闭排队会签任务并检查更新结果。",
+  "prerequisiteSteps": [
+    "B09.1c.1",
+    "B09.1b.5"
+  ],
+  "requirements": [
+    {
+      "id": "R0908",
+      "line": 908,
+      "section": "5.12",
+      "text": "- 审批方式支持或签、会签、顺序会签。",
+      "status": "unverified"
+    },
+    {
+      "id": "R0910",
+      "line": 910,
+      "section": "5.12",
+      "text": "- 会签表示所有人都要处理，可以配置全部同意才通过或达到比例后通过。",
+      "status": "unverified"
+    },
+    {
+      "id": "R0911",
+      "line": 911,
+      "section": "5.12",
+      "text": "- 顺序会签表示按配置顺序一个一个审批。",
+      "status": "unverified"
+    },
+    {
+      "id": "R0913",
+      "line": 913,
+      "section": "5.12",
+      "text": "- 节点可以配置字段查看、字段编辑、字段必填、字段隐藏。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0917",
+      "line": 917,
+      "section": "5.12",
+      "text": "- 节点可以配置业务表单快照、节点内可编辑字段、节点完成后字段回写。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0942",
+      "line": 942,
+      "section": "5.12",
+      "text": "- 流程实例创建时，要把模板版本的节点、连线、条件、字段权限和高级设置复制成运行快照。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0944",
+      "line": 944,
+      "section": "5.12",
+      "text": "- 流程提交快照保存节点内字段修改，支持审批过程中修改字段。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0972",
+      "line": 972,
+      "section": "5.12",
+      "text": "- 同意。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0912",
+      "line": 912,
+      "section": "5.12",
+      "text": "- 节点可以配置超时提醒、自动通过、自动拒绝、自动转交。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0978",
+      "line": 978,
+      "section": "5.12",
+      "text": "- 终止。",
+      "status": "unverified"
+    }
+  ],
+  "entryFiles": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "dba3e596a5ff7a2d0b251c60f83aabdfae21e0cea90df3be7a4b03f18429de2e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "d278d1921b7edf8cd9ff2918912b4b50e89cb3c9c155f6417f026b4ec368dc18"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionFormSubmissions.java",
+      "sha256": "e7440c2e2ed459a0bc79910cf54a19a8b353c508a6aeeee8fa0ef263ee5293ae"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "5edec886b49703d5b8deee48efcf0295c27d51ce8e3a9a0b929cb72cad3f7f1f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "e20eeae466ac795118b04aa9af4590c52179dbb2c2ed34b683ad2d8f8f856677"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FlowTaskFormEditor.vue",
+      "sha256": "3f6b11a68c92a92c1885d4f86d131d8687fb30e482814523309ff3e387243c0b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "dec7ad7450948418b17ad855611b3de530af1189f8ccb3a634ab5cf28ab8d18c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowParticipantResolver.java",
+      "sha256": "e30f5eb6320f130c24304dcf8ee6f5913e7c89ff803a9f74cd744aaa0827ad3b"
+    }
+  ],
+  "acceptance": [
+    "ALL_SIGN和SEQUENTIAL按当前处理人/冻结策略共享候选表单；多审批人各自提交不同字段合并，所有必要处理完成才恢复原CREATE/UPDATE/CUSTOM一次。",
+    "并发同字段不同值提交不能依到达顺序静默覆盖；陈旧候选明确409并保留任务/未保存内容，刷新读回后明确提交；撤权、只读和必填仍守原权限。",
+    "实际API并发/重复/失败与普通页面表单/冲突定向组合，SECRET受保护且原actor/config/expectedVersion不变；拒绝不生效。会签比例、手动/FLOW_ONLY、文件、所有高级动作和完整需求仍保留。"
+  ],
+  "environment": "Reuse running shared redis:6379 with its existing authentication; project unexamine-redis-1 MUST stay stopped. Existing unexamine-mysql-1:33077 and same unexamine-golden-backend:18080 (existing network/jar/business-files mounts), one native Vite:15173. Backend healthy/preflight5/schema43. Do not full compose up, create duplicate frontend/backend/cache environments, use Testcontainers or change unrelated dm8/es8104. JDK21 native focused compile/tests work. Prefer current services and readback for this completion effort; preserve credentials internally, never write them to evidence.",
+  "policy": {
+    "authority": "根 AGENTS.md 和当前完整交付方案规定执行契约；docs/user_requirement.md 是唯一产品需求源。spark-* 路径仅保留兼容引用，不指定模型。",
+    "model": "使用当前会话模型，委派分支继承当前模型；不再分配 Spark 模型。",
+    "taskAllocation": "按 state.task_packet 组合业务相关任务，先评估公共依赖与真实剩余工期，预计总工期不超过 240 分钟；不是实际计时。公共骨架与契约稳定后接入依赖功能。并行须写明文件归属、实际前置证据、迁移/构建/测试资源和合并顺序；公共文件及同一运行夹具串行。",
+    "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
+    "scope": "只展开当前原文、入口文件及直接依赖；保留既有修改和全部未完成需求，不重新审计或规划全项目。",
+    "dependencies": "每个 current_scope 显式列出 prerequisite_steps；前置步骤 verified 且对应证据存在才可实施。依赖实现变化时重新验证受影响行为，不把历史验证当成当前完成。",
+    "checkpoint": "先写真实业务验证记录，运行 execution-verify --workspace workspace.json --receipt <记录路径>；校验通过后更新准确断点及下一步骤范围。结构/哈希通过不能代替页面、API、持久化、权限和失败结果。",
+    "loop": "每次检查点结束重新调用 entry，实施已准入任务包内的下一可执行步骤；不得无记录扩张到包外。整包开发完成后先整理、组合验证和形成验收结论，再准入下一包。不因单步完成或上下文压缩等待用户喊继续。",
+    "blockers": "外部依赖记录具体阻塞与解锁条件，按既有方案选择独立可执行步骤；不得缩减需求或把阻塞项标为完成。",
+    "stopping": "采用 template_base/agents/workflow.json 的真实停止条件；其中全部周期完成在本轮解释为全部有效需求与最终真实验收通过，不读取旧周期完成数。",
+    "consumption": "检查点记录本轮实际消耗；无新增修改、失败或疑点不重复已通过测试。不以 token 使用或单步完成作为停止条件。",
+    "wakeAdapter": "外部调度器只调用工程入口；任务选择、范围、断点、依赖和验收均来自项目文件，不在定时提示里复制一套规则。"
+  },
+  "continuous": true,
+  "stoppingPolicySource": "template_base/agents/workflow.json#executionLoop",
+  "openBlockers": [],
+  "completionCredit": false,
+  "note": "Context and artifact checks do not prove actual business behavior or whole-product completion."
+}

@@ -1,0 +1,867 @@
+{
+  "step": "B09.2c.6",
+  "status": "verified_contribution",
+  "code": "return_d04de5e40e",
+  "fields": {
+    "subject": {
+      "id": 263,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 68,
+      "code": "subject",
+      "name": "申请主题",
+      "fieldType": "TEXT",
+      "required": true,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 264,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 68,
+      "code": "score",
+      "name": "申请分值",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 265,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 68,
+      "code": "enabled",
+      "name": "是否启用",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "flows": [
+    125,
+    126,
+    127,
+    128
+  ],
+  "instances": [
+    231,
+    232,
+    233,
+    234
+  ],
+  "records": [
+    225
+  ],
+  "cases": [
+    {
+      "case": "non-starter-resubmit-denied-without-mutation"
+    },
+    {
+      "case": "concurrent-resubmit-serializes-replay-and-new-execution-group",
+      "instance_id": 231
+    },
+    {
+      "case": "corrected-system-source-executes-once",
+      "record_id": 225
+    },
+    {
+      "case": "previous-return-node-resubmit-reruns-target-and-completes",
+      "instance_id": 232
+    },
+    {
+      "case": "legacy-absent-return-policy-defaults-starter-from-start",
+      "instance_id": 233
+    },
+    {
+      "case": "designer-structured-return-policy-save-reenter-publish"
+    },
+    {
+      "case": "runtime-page-shows-return-reason-route-and-resubmit-form",
+      "instance_id": 234
+    },
+    {
+      "case": "same-backend-restart-retains-return-resubmit-results"
+    }
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "golden_count": [
+    [
+      "4"
+    ]
+  ],
+  "checked_time": "2026-09-19T09:03:41.585263+08:00",
+  "registration": {
+    "username": "return_d04de5e40e_member",
+    "account_id": 105,
+    "system_id": 107
+  },
+  "platform_role_id": 13,
+  "platform_member_id": 103,
+  "platform_link_id": 16,
+  "tenant_member_id": 176,
+  "module_id": 68,
+  "system_flow": 125,
+  "previous_flow": 126,
+  "legacy_flow": 127,
+  "designer_version_before": 1,
+  "source_action": {
+    "flowInstanceId": 231,
+    "idempotencyRecordId": 429,
+    "outboxId": 394
+  },
+  "system_instance": 231,
+  "previous_instance": 232,
+  "legacy_instance": 233,
+  "gui_instance": 234,
+  "restart_pending_state": {
+    "231": {
+      "instance": [
+        [
+          "231",
+          "WAITING",
+          "review1",
+          "4"
+        ]
+      ],
+      "tasks": [
+        [
+          "339",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "340",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "341",
+          "review1",
+          "RETURN_TASK",
+          "PENDING"
+        ]
+      ],
+      "actions": [
+        [
+          "803",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "804",
+          "339",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "805",
+          "340",
+          "review2",
+          "RETURN"
+        ]
+      ],
+      "executions": [
+        [
+          "682",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "683",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "684",
+          "review2",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "232": {
+      "instance": [
+        [
+          "232",
+          "WAITING",
+          "review1",
+          "4"
+        ]
+      ],
+      "tasks": [
+        [
+          "342",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "343",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "344",
+          "review1",
+          "RETURN_TASK",
+          "PENDING"
+        ]
+      ],
+      "actions": [
+        [
+          "806",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "807",
+          "342",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "808",
+          "343",
+          "review2",
+          "RETURN"
+        ]
+      ],
+      "executions": [
+        [
+          "685",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "686",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "687",
+          "review2",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "233": {
+      "instance": [
+        [
+          "233",
+          "WAITING",
+          "review1",
+          "2"
+        ]
+      ],
+      "tasks": [
+        [
+          "345",
+          "review1",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "346",
+          "review1",
+          "RETURN_TASK",
+          "PENDING"
+        ]
+      ],
+      "actions": [
+        [
+          "809",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "810",
+          "345",
+          "review1",
+          "RETURN"
+        ]
+      ],
+      "executions": [
+        [
+          "688",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "689",
+          "review1",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "234": {
+      "instance": [
+        [
+          "234",
+          "WAITING",
+          "review1",
+          "4"
+        ]
+      ],
+      "tasks": [
+        [
+          "347",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "348",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "349",
+          "review1",
+          "RETURN_TASK",
+          "PENDING"
+        ]
+      ],
+      "actions": [
+        [
+          "811",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "812",
+          "347",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "813",
+          "348",
+          "review2",
+          "RETURN"
+        ]
+      ],
+      "executions": [
+        [
+          "690",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "691",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "692",
+          "review2",
+          "COMPLETED"
+        ]
+      ]
+    }
+  },
+  "prepared": true,
+  "api_verified": true,
+  "completed_restart_state": {
+    "231": {
+      "instance": [
+        [
+          "231",
+          "COMPLETED",
+          "end",
+          "10"
+        ]
+      ],
+      "tasks": [
+        [
+          "339",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "340",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "341",
+          "review1",
+          "RETURN_TASK",
+          "RESUBMIT"
+        ],
+        [
+          "350",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "351",
+          "review2",
+          "APPROVAL",
+          "APPROVE"
+        ]
+      ],
+      "actions": [
+        [
+          "803",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "804",
+          "339",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "805",
+          "340",
+          "review2",
+          "RETURN"
+        ],
+        [
+          "814",
+          "341",
+          "review1",
+          "RESUBMIT"
+        ],
+        [
+          "815",
+          "350",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "816",
+          "351",
+          "review2",
+          "APPROVE"
+        ],
+        [
+          "817",
+          "NULL",
+          "end",
+          "AUTO_END"
+        ]
+      ],
+      "executions": [
+        [
+          "682",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "683",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "684",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "693",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "694",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "695",
+          "end",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "232": {
+      "instance": [
+        [
+          "232",
+          "COMPLETED",
+          "end",
+          "10"
+        ]
+      ],
+      "tasks": [
+        [
+          "342",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "343",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "344",
+          "review1",
+          "RETURN_TASK",
+          "RESUBMIT"
+        ],
+        [
+          "352",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "353",
+          "review2",
+          "APPROVAL",
+          "APPROVE"
+        ]
+      ],
+      "actions": [
+        [
+          "806",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "807",
+          "342",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "808",
+          "343",
+          "review2",
+          "RETURN"
+        ],
+        [
+          "818",
+          "344",
+          "review1",
+          "RESUBMIT"
+        ],
+        [
+          "819",
+          "352",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "820",
+          "353",
+          "review2",
+          "APPROVE"
+        ],
+        [
+          "821",
+          "NULL",
+          "end",
+          "AUTO_END"
+        ]
+      ],
+      "executions": [
+        [
+          "685",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "686",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "687",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "696",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "697",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "698",
+          "end",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "233": {
+      "instance": [
+        [
+          "233",
+          "COMPLETED",
+          "end",
+          "6"
+        ]
+      ],
+      "tasks": [
+        [
+          "345",
+          "review1",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "346",
+          "review1",
+          "RETURN_TASK",
+          "RESUBMIT"
+        ],
+        [
+          "354",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ]
+      ],
+      "actions": [
+        [
+          "809",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "810",
+          "345",
+          "review1",
+          "RETURN"
+        ],
+        [
+          "822",
+          "346",
+          "review1",
+          "RESUBMIT"
+        ],
+        [
+          "823",
+          "354",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "824",
+          "NULL",
+          "end",
+          "AUTO_END"
+        ]
+      ],
+      "executions": [
+        [
+          "688",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "689",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "699",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "700",
+          "end",
+          "COMPLETED"
+        ]
+      ]
+    },
+    "234": {
+      "instance": [
+        [
+          "234",
+          "COMPLETED",
+          "end",
+          "10"
+        ]
+      ],
+      "tasks": [
+        [
+          "347",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "348",
+          "review2",
+          "APPROVAL",
+          "RETURN"
+        ],
+        [
+          "349",
+          "review1",
+          "RETURN_TASK",
+          "RESUBMIT"
+        ],
+        [
+          "355",
+          "review1",
+          "APPROVAL",
+          "APPROVE"
+        ],
+        [
+          "356",
+          "review2",
+          "APPROVAL",
+          "APPROVE"
+        ]
+      ],
+      "actions": [
+        [
+          "811",
+          "NULL",
+          "start",
+          "START"
+        ],
+        [
+          "812",
+          "347",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "813",
+          "348",
+          "review2",
+          "RETURN"
+        ],
+        [
+          "825",
+          "349",
+          "review1",
+          "RESUBMIT"
+        ],
+        [
+          "826",
+          "355",
+          "review1",
+          "APPROVE"
+        ],
+        [
+          "827",
+          "356",
+          "review2",
+          "APPROVE"
+        ],
+        [
+          "828",
+          "NULL",
+          "end",
+          "AUTO_END"
+        ]
+      ],
+      "executions": [
+        [
+          "690",
+          "start",
+          "COMPLETED"
+        ],
+        [
+          "691",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "692",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "701",
+          "review1",
+          "COMPLETED"
+        ],
+        [
+          "702",
+          "review2",
+          "COMPLETED"
+        ],
+        [
+          "703",
+          "end",
+          "COMPLETED"
+        ]
+      ]
+    }
+  },
+  "gui_verified": true,
+  "restart_verified": true,
+  "cleanup": {
+    "unfinished_tasks": 0,
+    "unfinished_jobs": 0,
+    "unfinished_executions": 0,
+    "role_114_restored": true,
+    "golden_rows_unchanged": true
+  },
+  "remaining": "代理委托、附件必填、评论催办、全局高级动态节点配置及应用开放等后续包仍未完成"
+}

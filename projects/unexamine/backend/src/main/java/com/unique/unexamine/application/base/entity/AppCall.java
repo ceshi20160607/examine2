@@ -320,6 +320,7 @@ public class AppCall {
         return "AppCall{" +
             "id = " + id +
             ", applicationId = " + applicationId +
+            ", applicationVersionId = " + applicationVersionId +
             ", credentialVersion = " + credentialVersion +
             ", grantId = " + grantId +
             ", requestId = " + requestId +

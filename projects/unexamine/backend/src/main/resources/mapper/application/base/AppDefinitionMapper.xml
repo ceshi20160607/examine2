@@ -13,6 +13,7 @@
         <result column="name" property="name" />
         <result column="description" property="description" />
         <result column="application_type" property="applicationType" />
+        <result column="icon_code" property="iconCode" />
         <result column="draft_revision" property="draftRevision" />
         <result column="status" property="status" />
         <result column="created_by_account_id" property="createdByAccountId" />
@@ -23,7 +24,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, owner_system_id, owner_tenant_id, `code`, `name`, `description`, application_type, draft_revision, `status`, created_by_account_id, created_at, updated_at, version
+        id, context_type, platform_id, owner_system_id, owner_tenant_id, `code`, `name`, `description`, application_type, icon_code, draft_revision, `status`, created_by_account_id, created_at, updated_at, version
     </sql>
 
 </mapper>

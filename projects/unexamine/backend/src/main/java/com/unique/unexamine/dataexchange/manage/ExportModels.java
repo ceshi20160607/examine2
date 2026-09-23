@@ -20,6 +20,8 @@ public final class ExportModels {
             @Size(max = 100) String sortField,
             @Pattern(regexp = "ASC|DESC") String sortDirection,
             List<Long> selectedRecordIds,
+            @Pattern(regexp = "CSV|XLSX") String format,
+            @Size(max = 100) String idempotencyKey,
             @NotEmpty List<@Size(max = 100) String> selectedFields) {
     }
 
@@ -37,7 +39,7 @@ public final class ExportModels {
     public record ExportBatchView(
             Long id, String moduleCode, Long jobId, String status,
             long totalRows, long exportedRows, Long resultFileId, String errorMessage,
-            Map<String, Object> filterSnapshot, List<String> selectedFields,
+            Map<String, Object> filterSnapshot, String format, List<String> selectedFields,
             LocalDateTime createdAt, LocalDateTime startedAt, LocalDateTime finishedAt, Integer version) {
     }
 }

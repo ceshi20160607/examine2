@@ -114,12 +114,15 @@ function markSaved(layoutJson: string) {
 watch(() => props.layoutJson, value => { if (!dirty.value) markSaved(value) })
 watch(() => props.pendingField, (field, previous) => {
   if (!field && previous) sections.value = sections.value.map(section => ({ ...section, fieldCodes: section.fieldCodes.filter(code => code !== '__pending_field__') }))
-  if (field) { const config = parseFormLayout(field.configJson); previewValues[field.code] = config.defaultValue ?? (field.fieldType === 'BOOLEAN' ? false : undefined) }
+  if (field) { const config = parseFormLayout(field.configJson); previewValues[field.code] = field.fieldType === 'SECRET' ? undefined : config.defaultValue ?? (field.fieldType === 'BOOLEAN' ? false : undefined) }
 }, { deep: true })
 watch(allFields, fields => {
-  fields.forEach(field => { if (!(field.code in previewValues)) previewValues[field.code] = parseFormLayout(field.configJson).defaultValue ?? (field.fieldType === 'BOOLEAN' ? false : undefined) })
+  const codes = new Set(fields.map(field => field.code))
+  Object.keys(previewValues).forEach(code => { if (!codes.has(code)) delete previewValues[code] })
+  fields.forEach(field => { if (field.fieldType === 'SECRET') previewValues[field.code] = undefined
+    else if (!(field.code in previewValues)) previewValues[field.code] = parseFormLayout(field.configJson).defaultValue ?? (field.fieldType === 'BOOLEAN' ? false : undefined) })
 }, { immediate: true })
-onBeforeUnmount(() => { resetPointer(); window.clearTimeout(clickTimer) })
+onBeforeUnmount(() => { resetPointer(); window.clearTimeout(clickTimer); Object.keys(previewValues).forEach(code => delete previewValues[code]) })
 defineExpose({ getLayout: () => layout.value, commitField, markSaved, hasUnsaved: () => dirty.value || Boolean(props.pendingField) || Boolean(props.propertyDirty) })
 </script>
 <template>

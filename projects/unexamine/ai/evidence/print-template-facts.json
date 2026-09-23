@@ -1,0 +1,31 @@
+{
+  "step": "B13.3",
+  "status": "passed",
+  "cases": [
+    "visual-layout-real-record-display-value-pagination-and-first-publication",
+    "new-draft-does-not-replace-current-immutable-publication",
+    "immutable-version-activation-and-snapshot-metadata",
+    "ordinary-actor-field-intersection-real-pdf-and-job-owner-isolation",
+    "same-session-print-revocation-invalidates-old-job-preview-and-download"
+  ],
+  "fixtures": {
+    "module_id": 89,
+    "module_code": "print_accept_3306b9f1a5",
+    "module_version_id": 139,
+    "record_id": 269,
+    "template_id": 2,
+    "template_code": "print_order_3306b9f1a5",
+    "version_v1_id": 2,
+    "version_v2_id": 3,
+    "current_version_id": 3,
+    "print_job_id": 3,
+    "output_file_id": 59
+  },
+  "cleanup": {
+    "account_disabled": true,
+    "sessions_revoked": true,
+    "registration_system_disabled": true,
+    "temporary_role_disabled": true
+  },
+  "checked_time": "2026-09-21T00:06:18.617968+08:00"
+}

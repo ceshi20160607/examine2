@@ -102,6 +102,7 @@ const fieldForm = reactive({
   minLength: undefined as number | undefined, maxLength: undefined as number | undefined,
   patternMode: 'NONE', customPattern: '', richTextMode: 'FULL', jsonSchema: newJsonSchema(),
   currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false, saveMode: 'FINAL',
+  cascadeDisplayFieldCode: 'title', cascadeValueFieldCode: 'id', cascadeParentFieldCode: '',
   sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true, sensitive: false, readOnly: false,
   version: 0,
 })
@@ -213,6 +214,35 @@ const dictionaryOptions = computed(() => dictionaries.value.map(entry => ({
 const referenceModuleOptions = computed(() => overview.value.modules
   .filter(module => module.id !== selectedModuleId.value)
   .map(module => ({ value: module.id, label: module.name })))
+const cascadeTargetPublication = ref<RuntimeModuleConfiguration>()
+const cascadeTargetError = ref('')
+let cascadeTargetRequest = 0
+const cascadeTargetFields = computed(() => cascadeTargetPublication.value?.configuration.fields || [])
+const cascadeDisplayOptions = computed(() => [
+  { value: 'title', label: '记录标题' }, { value: 'recordNumber', label: '记录编号' },
+  ...cascadeTargetFields.value.filter(field => ['TEXT', 'MULTILINE_TEXT'].includes(field.fieldType))
+    .map(field => ({ value: field.code, label: field.name })),
+])
+const cascadeValueOptions = computed(() => [
+  { value: 'id', label: '记录 ID（系统内部保存）' }, { value: 'recordNumber', label: '记录编号' },
+  ...cascadeTargetFields.value.filter(field => field.uniqueValue && field.searchable)
+    .map(field => ({ value: field.code, label: field.name })),
+])
+const cascadeParentOptions = computed(() => cascadeTargetFields.value
+  .filter(field => field.fieldType === 'REFERENCE' && field.referenceModuleId === fieldForm.referenceModuleId)
+  .map(field => ({ value: field.code, label: field.name })))
+watch(() => [fieldForm.fieldType, fieldForm.referenceModuleId, token.value] as const, async ([type, moduleId, accessToken]) => {
+  const request = ++cascadeTargetRequest
+  cascadeTargetPublication.value = undefined
+  cascadeTargetError.value = ''
+  if (type !== 'CASCADE' || !moduleId || !accessToken) return
+  try {
+    const publication = await api<RuntimeModuleConfiguration>(`/api/admin/module-config/modules/${moduleId}/published`, {}, accessToken)
+    if (request === cascadeTargetRequest) cascadeTargetPublication.value = publication
+  } catch (cause) {
+    if (request === cascadeTargetRequest) cascadeTargetError.value = readable(cause)
+  }
+}, { immediate: true })
 const conversionModuleOptions = computed(() => overview.value.modules
   .filter(module => module.id !== selectedModuleId.value)
   .map(module => ({ value: module.code, label: module.name })))
@@ -220,7 +250,7 @@ const activeFieldOptions = computed(() => (draft.value?.fields || []).filter(fie
   .map(field => ({ value: field.code, label: field.name })))
 const manualActionFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
   && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD', 'NUMBER', 'MONEY', 'BOOLEAN', 'DATE', 'DATETIME',
-    'SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'RICH_TEXT', 'JSON'].includes(field.fieldType))
+    'SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'RICH_TEXT', 'JSON', 'MEMBER', 'DEPARTMENT', 'SECRET'].includes(field.fieldType))
   .filter(field => { try { return !JSON.parse(field.configJson || '{}').readOnly } catch { return false } })
   .map(field => ({ value: field.code, label: field.name })))
 const indexFieldOptions = computed(() => (draft.value?.fields || []).filter(field => field.status === 'ACTIVE'
@@ -234,6 +264,12 @@ const fieldConfigurationIssue = computed(() => {
   if (fieldForm.fieldType === 'CASCADE') {
     if (Boolean(fieldForm.dictionaryId) === Boolean(fieldForm.referenceModuleId)) return '级联字段必须且只能选择层级字典或模块数据源之一'
     if (fieldForm.maxDepth < 1) return '最大层级必须大于 0'
+    if (fieldForm.referenceModuleId) {
+      if (!cascadeTargetPublication.value) return cascadeTargetError.value || '正在读取目标模块已发布字段'
+      if (!cascadeDisplayOptions.value.some(item => item.value === fieldForm.cascadeDisplayFieldCode)) return '请选择目标模块的显示字段'
+      if (!cascadeValueOptions.value.some(item => item.value === fieldForm.cascadeValueFieldCode)) return '请选择目标模块的唯一值字段'
+      if (!cascadeParentOptions.value.some(item => item.value === fieldForm.cascadeParentFieldCode)) return '请选择目标模块中指向自身的父级关联字段'
+    }
   }
   if (fieldForm.fieldType === 'MONEY' && (!fieldForm.currency.trim() || fieldForm.precision < 0 || fieldForm.precision > 6)) return '金额字段需要币种，精度范围为 0 到 6'
   if (['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType) && !fieldForm.referenceModuleId) return '该字段类型必须选择目标模块'
@@ -243,6 +279,7 @@ const fieldConfigurationIssue = computed(() => {
   if (fieldForm.fieldType.startsWith('SYSTEM_') && !fieldForm.readOnly) return '系统字段必须只读'
   if (fieldForm.uniqueValue && !supportsUniqueValue(fieldForm.fieldType)) return '当前字段类型不支持唯一值约束'
   if (supportsTextConstraints(fieldForm.fieldType)) {
+    if (fieldForm.fieldType === 'SECRET' && ((fieldForm.minLength ?? 0) > 4096 || (fieldForm.maxLength ?? 0) > 4096)) return '密码和密钥长度不能超过 4096 个字符'
     if (fieldForm.minLength !== undefined && (fieldForm.minLength < 0 || !Number.isInteger(fieldForm.minLength))) return '最短长度必须是大于等于 0 的整数'
     if (fieldForm.maxLength !== undefined && (fieldForm.maxLength < 1 || !Number.isInteger(fieldForm.maxLength))) return '最长长度必须是大于 0 的整数'
     if (fieldForm.minLength !== undefined && fieldForm.maxLength !== undefined && fieldForm.minLength > fieldForm.maxLength) return '最短长度不能大于最长长度'
@@ -378,7 +415,8 @@ function beginField(type: string) {
     status: 'ACTIVE', optionsText: ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'TAG'].includes(type) ? 'active|启用\ninactive|停用' : '',
     defaultValue: undefined, placeholder: '', richTextMode: 'FULL', jsonSchema: newJsonSchema(), minLength: undefined, maxLength: undefined, patternMode: 'NONE', customPattern: '',
     currency: 'CNY', precision: 2, maxDepth: 3, allowIntermediate: false,
-    saveMode: 'FINAL', sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true,
+    saveMode: 'FINAL', cascadeDisplayFieldCode: 'title', cascadeValueFieldCode: 'id', cascadeParentFieldCode: '',
+    sequenceCode: '', expression: '', modelCode: '', humanConfirmation: true,
     sensitive: type === 'SECRET', readOnly: type.startsWith('SYSTEM_'), version: 0,
   })
   fieldDrawer.value = true
@@ -395,14 +433,16 @@ function editField(field: ConfiguredField) {
   } catch { /* invalid drafts are reported by publication check */ }
   Object.assign(fieldForm, {
     code: field.code, name: field.name, fieldType: field.fieldType, required: field.required,
-    uniqueValue: Boolean(field.uniqueValue), searchable: Boolean(field.searchable),
+    uniqueValue: supportsUniqueValue(field.fieldType) && Boolean(field.uniqueValue), searchable: field.fieldType !== 'SECRET' && Boolean(field.searchable),
     dictionaryId: field.dictionaryId, referenceModuleId: field.referenceModuleId,
     sortOrder: field.sortOrder, status: field.status, optionsText,
-    defaultValue: config.defaultValue ?? undefined, placeholder: config.placeholder ?? '',
+    defaultValue: field.fieldType === 'SECRET' ? undefined : config.defaultValue ?? undefined, placeholder: config.placeholder ?? '',
     minLength: config.minLength ?? undefined, maxLength: config.maxLength ?? undefined,
     patternMode: config.patternMode || 'NONE', customPattern: config.customPattern || '', richTextMode: config.richTextMode || 'FULL', jsonSchema: config.jsonSchema || newJsonSchema(), currency: config.currency || 'CNY',
     precision: config.precision ?? 2, maxDepth: config.maxDepth ?? 3,
     allowIntermediate: Boolean(config.allowIntermediate), saveMode: config.saveMode || 'FINAL',
+    cascadeDisplayFieldCode: config.displayFieldCode || 'title', cascadeValueFieldCode: config.valueFieldCode || 'id',
+    cascadeParentFieldCode: config.parentFieldCode || '',
     sequenceCode: config.sequenceCode || '', expression: config.expression || '', modelCode: config.modelCode || '',
     humanConfirmation: config.humanConfirmation !== false, sensitive: Boolean(config.sensitive) || field.fieldType === 'SECRET',
     readOnly: Boolean(config.readOnly) || field.fieldType.startsWith('SYSTEM_'), version: field.version,
@@ -414,10 +454,10 @@ function editField(field: ConfiguredField) {
 function fieldConfig() {
   const config: Record<string, unknown> = {
     placeholder: fieldForm.placeholder || undefined,
-    sensitive: fieldForm.sensitive,
+    sensitive: fieldForm.fieldType === 'SECRET' || fieldForm.sensitive,
     readOnly: fieldForm.readOnly,
   }
-  if (fieldForm.defaultValue !== undefined && fieldForm.defaultValue !== null && fieldForm.defaultValue !== '') {
+  if (fieldForm.fieldType !== 'SECRET' && fieldForm.defaultValue !== undefined && fieldForm.defaultValue !== null && fieldForm.defaultValue !== '') {
     config.defaultValue = fieldForm.defaultValue
   }
   if (supportsTextConstraints(fieldForm.fieldType)) {
@@ -435,7 +475,14 @@ function fieldConfig() {
   if (fieldForm.fieldType === 'RICH_TEXT') config.richTextMode = fieldForm.richTextMode
   if (fieldForm.fieldType === 'JSON') config.jsonSchema = fieldForm.jsonSchema
   if (fieldForm.fieldType === 'MONEY') Object.assign(config, { currency: fieldForm.currency, precision: fieldForm.precision })
-  if (fieldForm.fieldType === 'CASCADE') Object.assign(config, { maxDepth: fieldForm.maxDepth, allowIntermediate: fieldForm.allowIntermediate, saveMode: fieldForm.saveMode })
+  if (fieldForm.fieldType === 'CASCADE') Object.assign(config, {
+    maxDepth: fieldForm.maxDepth, allowIntermediate: fieldForm.allowIntermediate, saveMode: fieldForm.saveMode,
+    ...(fieldForm.referenceModuleId ? {
+      displayFieldCode: fieldForm.cascadeDisplayFieldCode,
+      valueFieldCode: fieldForm.cascadeValueFieldCode,
+      parentFieldCode: fieldForm.cascadeParentFieldCode,
+    } : {}),
+  })
   if (fieldForm.fieldType === 'AUTO_NUMBER') config.sequenceCode = fieldForm.sequenceCode
   if (['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType)) config.expression = fieldForm.expression
   if (fieldForm.fieldType === 'AI_FILL') Object.assign(config, { modelCode: fieldForm.modelCode, humanConfirmation: fieldForm.humanConfirmation })
@@ -443,6 +490,7 @@ function fieldConfig() {
 }
 
 watch(() => fieldForm.fieldType, (current, previous) => {
+  if (current === 'SECRET') { fieldForm.sensitive = true; fieldForm.defaultValue = undefined }
   if (!editingField.value && current !== previous) {
     fieldForm.defaultValue = undefined
     if (!supportsUniqueValue(current)) fieldForm.uniqueValue = false
@@ -1139,7 +1187,7 @@ onMounted(() => loadOverview())
             :layout-json="formDesignPage.layoutJson" :fields="draft.fields" :pending-field="pendingFormField" :saving="saving"
             :property-dirty="fieldPropertyDirty" :property-issue="fieldDrawer ? fieldConfigurationIssue : ''"
             @add="beginField" @select="editField" @save="saveDesignerDraft" @publish="publishDesigner" @cancel="cancelFieldProperties">
-            <template #properties><ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :available-ai-models="availableAiModels" />
+            <template #properties><ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :cascade-display-options="cascadeDisplayOptions" :cascade-value-options="cascadeValueOptions" :cascade-parent-options="cascadeParentOptions" :cascade-target-error="cascadeTargetError" :available-ai-models="availableAiModels" />
               <a-alert v-if="designerError" type="error" show-icon :message="designerError" />
               <div class="drawer-footer"><a-button @click="cancelFieldProperties">取消属性修改</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div>
             </template>
@@ -1303,7 +1351,7 @@ onMounted(() => loadOverview())
       </a-form>
     </a-modal>
     <a-drawer :open="fieldDrawer && !formDesignActive" @close="fieldDrawer = false" :title="editingField ? '编辑字段' : '添加字段'" width="520">
-      <ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :available-ai-models="availableAiModels" />
+      <ModuleFieldProperties :field-form="fieldForm" :editing="Boolean(editingField)" :field-configuration-issue="fieldConfigurationIssue" :dictionary-options="dictionaryOptions" :reference-module-options="referenceModuleOptions" :cascade-display-options="cascadeDisplayOptions" :cascade-value-options="cascadeValueOptions" :cascade-parent-options="cascadeParentOptions" :cascade-target-error="cascadeTargetError" :available-ai-models="availableAiModels" />
       <template #footer><div class="drawer-footer"><a-button @click="fieldDrawer = false">取消</a-button><a-button type="primary" :loading="saving" :disabled="Boolean(fieldConfigurationIssue)" @click="saveField">保存字段</a-button></div></template>
     </a-drawer>
     <a-drawer v-model:open="actionDrawer" :title="editingAction ? `配置动作：${editingAction.name}` : '新建手动动作'" width="480">

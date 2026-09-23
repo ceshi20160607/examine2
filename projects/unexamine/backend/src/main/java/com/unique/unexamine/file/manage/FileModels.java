@@ -3,6 +3,7 @@ package com.unique.unexamine.file.manage;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -16,7 +17,7 @@ public final class FileModels {
     public record StartUploadRequest(
             @NotBlank @Size(max = 500) String originalName,
             @NotBlank @Size(max = 255) String contentType,
-            @Min(1) @Max(1073741824L) Long expectedSize,
+            @NotNull @Min(1) @Max(1073741824L) Long expectedSize,
             @Pattern(regexp = "[a-fA-F0-9]{64}") String expectedSha256) {
     }
 
@@ -24,11 +25,39 @@ public final class FileModels {
             Long id, String contextType, Long platformId, Long systemId, Long tenantId,
             String originalName, String contentType, Long expectedSize, String expectedSha256,
             String status, String uploadToken, boolean shownOnce, LocalDateTime expiresAt,
-            Integer version) {
+            Long uploadedSize, Integer version) {
+    }
+
+    /** 分片写入结果只返回续传位置，不再次暴露上传凭证。 */
+    public record UploadChunkView(
+            Long sessionId, Long uploadedSize, Long expectedSize, String status, boolean idempotent) {
+    }
+
+    /** 上传前可见的实际容量和存储位置，页面不需要推测部署配置。 */
+    public record StoragePolicyView(
+            Long maximumFileSizeBytes, Long contextQuotaBytes, Long usedBytes, Long reservedBytes,
+            Long availableBytes, String backendType, String backendName) {
+    }
+
+    /** 存储配置只返回可展示字段，访问密钥永不回传。 */
+    public record StorageBackendView(
+            Long id, String code, String name, String backendType, String endpoint, String bucketName,
+            String region, boolean pathStyle, boolean credentialConfigured, String status, Integer version) {
+    }
+
+    public record ConfigureObjectStorageRequest(
+            @NotBlank @Size(max = 200) String name,
+            @NotBlank @Size(max = 1000) String endpoint,
+            @NotBlank @Size(max = 255) @Pattern(regexp = "[a-zA-Z0-9][a-zA-Z0-9._-]{1,253}") String bucketName,
+            @NotBlank @Size(max = 100) String region,
+            @Size(max = 200) String accessKeyId,
+            @Size(max = 200) String secretAccessKey,
+            boolean pathStyle,
+            boolean activate) {
     }
 
     public record AddReferenceRequest(
-            @NotBlank @Pattern(regexp = "ACCOUNT|FLOW_INSTANCE|BUSINESS_RECORD|WORK_TASK") String ownerType,
+            @NotBlank @Pattern(regexp = "ACCOUNT|FLOW_INSTANCE|BUSINESS_RECORD|WORK_TASK|WORK_LOG") String ownerType,
             @NotBlank @Size(max = 100) String ownerId,
             @Size(max = 100) String fieldCode,
             @NotBlank @Pattern(regexp = "ATTACHMENT|IMAGE|DOCUMENT|RESULT") String referenceType) {

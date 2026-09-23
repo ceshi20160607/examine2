@@ -12,9 +12,11 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
-import com.unique.unexamine.authorization.manage.DataScopeExpression;
+import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
+import com.unique.unexamine.authorization.manage.FieldAccessDecision;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
-import com.unique.unexamine.authorization.manage.PermissionGrant;
+import com.unique.unexamine.authorization.manage.PermissionResolver;
+import com.unique.unexamine.authorization.manage.ResolvedPermissions;
 import com.unique.unexamine.backgroundjobs.manage.BackgroundJobExecution;
 import com.unique.unexamine.dataexchange.base.entity.ExchangeImportBatch;
 import com.unique.unexamine.dataexchange.base.entity.ExchangeImportRow;
@@ -24,6 +26,7 @@ import com.unique.unexamine.dataexchange.base.service.ExchangeImportRowBaseServi
 import com.unique.unexamine.dataexchange.base.service.ExchangeMappingBaseService;
 import com.unique.unexamine.file.manage.FileModels;
 import com.unique.unexamine.file.manage.FileStorageService;
+import com.unique.unexamine.flow.manage.FlowTriggerEventService;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.runtimedata.manage.CreateRuntimeRecordRequest;
@@ -63,8 +66,12 @@ public class ModuleImportService {
     private final RuntimeDataService runtimeDataService;
     private final FileStorageService fileStorageService;
     private final PermissionChecker permissionChecker;
+    private final PermissionResolver permissionResolver;
+    private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final FlowTriggerEventService flowEvents;
+    private final SpreadsheetExchangeCodec spreadsheetCodec;
 
     public ModuleImportService(
             ExchangeMappingBaseService mappings,
@@ -74,8 +81,12 @@ public class ModuleImportService {
             RuntimeDataService runtimeDataService,
             FileStorageService fileStorageService,
             PermissionChecker permissionChecker,
+            PermissionResolver permissionResolver,
+            ChannelFieldPolicyResolver fieldPolicyResolver,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            FlowTriggerEventService flowEvents,
+            SpreadsheetExchangeCodec spreadsheetCodec) {
         this.mappings = mappings;
         this.batches = batches;
         this.rows = rows;
@@ -83,21 +94,39 @@ public class ModuleImportService {
         this.runtimeDataService = runtimeDataService;
         this.fileStorageService = fileStorageService;
         this.permissionChecker = permissionChecker;
+        this.permissionResolver = permissionResolver;
+        this.fieldPolicyResolver = fieldPolicyResolver;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.flowEvents = flowEvents;
+        this.spreadsheetCodec = spreadsheetCodec;
     }
 
     public ImportModels.TemplateView template(AuthenticatedContext context, String moduleCode, String traceId) {
         RuntimeModuleConfiguration configuration = requireImport(context, moduleCode, traceId);
         List<ImportModels.TemplateColumn> columns = new ArrayList<>();
-        columns.add(new ImportModels.TemplateColumn("title", "标题", "TEXT", true, true, true));
-        columns.add(new ImportModels.TemplateColumn("recordNumber", "业务编号", "TEXT", false, true, true));
-        columns.add(new ImportModels.TemplateColumn("status", "状态", "TEXT", false, true, true));
+        columns.add(new ImportModels.TemplateColumn("title", "标题", "TEXT", true, true, true, false));
+        columns.add(new ImportModels.TemplateColumn("recordNumber", "业务编号（仅匹配）", "TEXT",
+                false, false, true, true));
+        columns.add(new ImportModels.TemplateColumn("status", "状态", "TEXT", false, true, true, false));
+        List<String> fieldCodes = new ArrayList<>();
+        configuration.configuration().path("fields").forEach(field -> fieldCodes.add(field.path("code").asText()));
+        Map<String, FieldAccessDecision> createAccess = fieldPolicyResolver.resolve(
+                context, moduleCode, "CREATE", "PAGE", fieldCodes);
+        Map<String, FieldAccessDecision> updateAccess = fieldPolicyResolver.resolve(
+                context, moduleCode, "UPDATE", "PAGE", fieldCodes);
+        Map<String, FieldAccessDecision> importAccess = fieldPolicyResolver.resolve(
+                context, moduleCode, "IMPORT", "FILE", fieldCodes);
         configuration.configuration().path("fields").forEach(field -> {
-            boolean writable = field.path("access").path("writable").asBoolean(false);
+            String code = field.path("code").asText();
+            boolean writable = field.path("access").path("writable").asBoolean(false)
+                    && writable(createAccess.get(code)) && writable(updateAccess.get(code))
+                    && writable(importAccess.get(code)) && !field.path("fieldType").asText().startsWith("SYSTEM_")
+                    && !field.path("config").path("readOnly").asBoolean(false);
             if ("ACTIVE".equals(field.path("status").asText("ACTIVE")) && writable) {
-                columns.add(new ImportModels.TemplateColumn(field.path("code").asText(), field.path("name").asText(),
-                        field.path("fieldType").asText(), field.path("required").asBoolean(), true, false));
+                columns.add(new ImportModels.TemplateColumn(code, field.path("name").asText(),
+                        field.path("fieldType").asText(), field.path("required").asBoolean(), true, false,
+                        field.path("uniqueValue").asBoolean(false)));
             }
         });
         String header = columns.stream().map(ImportModels.TemplateColumn::code)
@@ -108,6 +137,25 @@ public class ModuleImportService {
                 columns, header, sample);
     }
 
+    public byte[] templateWorkbook(AuthenticatedContext context, String moduleCode, String traceId) {
+        ImportModels.TemplateView template = template(context, moduleCode, traceId);
+        List<String> headers = template.columns().stream().map(ImportModels.TemplateColumn::name).toList();
+        List<String> sample = template.columns().stream().map(column -> {
+            if ("title".equals(column.code())) return "示例记录";
+            if ("recordNumber".equals(column.code())) return "更新已有数据时填写";
+            return column.required() ? "请填写" : "";
+        }).toList();
+        return spreadsheetCodec.xlsx("导入数据", headers, List.of(sample));
+    }
+
+    public ImportModels.SourceHeadersView sourceHeaders(
+            AuthenticatedContext context, String moduleCode, Long sourceFileId, String traceId) {
+        requireImport(context, moduleCode, traceId);
+        FileModels.FileView source = requireSourceFile(context, sourceFileId, traceId);
+        SpreadsheetExchangeCodec.ParsedSheet sheet = parseSource(context, source, traceId);
+        return new ImportModels.SourceHeadersView(source.id(), sheet.format(), sheet.headers());
+    }
+
     @Transactional
     public ImportModels.ImportBatchView preview(
             AuthenticatedContext context,
@@ -115,27 +163,26 @@ public class ModuleImportService {
             ImportModels.PreviewRequest input,
             String traceId) {
         RuntimeModuleConfiguration configuration = requireImport(context, moduleCode, traceId);
-        FileModels.FileView source = fileStorageService.detail(context, input.sourceFileId(), traceId);
-        if (!"ACTIVE".equals(source.status()) || !"CLEAN".equals(source.scanStatus())) {
-            throw conflict("IMPORT_SOURCE_FILE_UNSAFE", "导入文件尚未通过安全扫描");
-        }
-        if (source.references().isEmpty()) {
-            throw conflict("IMPORT_SOURCE_FILE_UNREFERENCED", "导入文件必须先保存业务引用");
-        }
-        byte[] bytes = fileStorageService.download(context, source.id(), traceId).bytes();
-        List<List<String>> csv = parseCsv(new String(bytes, StandardCharsets.UTF_8));
-        if (csv.size() < 2) throw invalid("IMPORT_FILE_EMPTY", "导入文件必须包含表头和至少一行数据");
-        if (csv.size() - 1 > MAX_ROWS) throw invalid("IMPORT_ROW_LIMIT_EXCEEDED", "单批预演最多支持 500 行");
+        FileModels.FileView source = requireSourceFile(context, input.sourceFileId(), traceId);
+        SpreadsheetExchangeCodec.ParsedSheet sheet = parseSource(context, source, traceId);
+        if (sheet.rows().isEmpty()) throw invalid("IMPORT_FILE_EMPTY", "导入文件必须包含表头和至少一行数据");
+        if (sheet.rows().size() > MAX_ROWS) throw invalid("IMPORT_ROW_LIMIT_EXCEEDED", "单批预演最多支持 500 行");
 
-        List<String> headers = csv.getFirst().stream().map(String::strip).toList();
-        if (headers.stream().anyMatch(String::isBlank) || new LinkedHashSet<>(headers).size() != headers.size()) {
-            throw invalid("IMPORT_HEADER_INVALID", "导入表头不能为空或重复");
-        }
+        List<String> headers = sheet.headers();
         Map<String, ImportModels.TemplateColumn> targets = new LinkedHashMap<>();
         template(context, moduleCode, traceId).columns().forEach(column -> targets.put(column.code(), column));
         Map<String, String> mapping = normalizedMapping(headers, input.columnMapping(), targets.keySet());
         if (!mapping.containsValue("title")) throw invalid("IMPORT_TITLE_MAPPING_REQUIRED", "必须映射标题列");
         String conflictPolicy = input.conflictPolicy() == null ? "ERROR" : input.conflictPolicy();
+        String matchFieldCode = input.matchFieldCode() == null || input.matchFieldCode().isBlank()
+                ? "recordNumber" : input.matchFieldCode().strip();
+        ImportModels.TemplateColumn matchField = targets.get(matchFieldCode);
+        if (matchField == null || !matchField.uniqueMatch()) {
+            throw invalid("IMPORT_MATCH_FIELD_INVALID", "只能使用业务编号或当前发布的唯一字段匹配更新");
+        }
+        if (!"ERROR".equals(conflictPolicy) && !mapping.containsValue(matchFieldCode)) {
+            throw invalid("IMPORT_MATCH_FIELD_REQUIRED", "跳过或更新模式必须映射匹配字段");
+        }
 
         ExchangeMapping mappingEntity = new ExchangeMapping();
         mappingEntity.setSystemId(context.systemId());
@@ -147,7 +194,8 @@ public class ModuleImportService {
         mappingEntity.setMappingType("IMPORT");
         mappingEntity.setColumnMappingJson(json(mapping));
         mappingEntity.setValidationPolicyJson(json(Map.of("maximumRows", MAX_ROWS, "previewOnly", true)));
-        mappingEntity.setConflictPolicyJson(json(Map.of("recordNumber", conflictPolicy)));
+        mappingEntity.setConflictPolicyJson(json(Map.of(
+                "policy", conflictPolicy, "matchFieldCode", matchFieldCode)));
         mappingEntity.setStatus("ACTIVE");
         mappingEntity.setCreatedByMemberId(context.memberId());
         mappingEntity.setVersion(0);
@@ -161,7 +209,7 @@ public class ModuleImportService {
         batch.setSourceFileId(source.id());
         batch.setMode("DRY_RUN");
         batch.setStatus("PREVIEWING");
-        batch.setTotalRows((long) csv.size() - 1);
+        batch.setTotalRows((long) sheet.rows().size());
         batch.setValidRows(0L);
         batch.setSuccessRows(0L);
         batch.setFailedRows(0L);
@@ -172,9 +220,17 @@ public class ModuleImportService {
         batches.insert(batch);
 
         Map<String, Integer> counts = new LinkedHashMap<>(Map.of("create", 0, "update", 0, "skip", 0, "error", 0));
-        for (int index = 1; index < csv.size(); index++) {
-            ExchangeImportRow row = previewRow(context, moduleCode, batch.getId(), index + 1L, headers,
-                    csv.get(index), mapping, targets, conflictPolicy, traceId);
+        Set<String> seenMatches = new LinkedHashSet<>();
+        for (int index = 0; index < sheet.rows().size(); index++) {
+            ExchangeImportRow row = previewRow(context, moduleCode, batch.getId(), index + 2L, headers,
+                    sheet.rows().get(index), mapping, targets, conflictPolicy, matchFieldCode, traceId);
+            String matchKey = nullable(state(row).get("matchKey"));
+            if (Set.of("READY", "SKIP").contains(row.getStatus()) && matchKey != null && !matchKey.isBlank()
+                    && !seenMatches.add(matchKey)) {
+                row.setStatus("ERROR");
+                row.setErrorJson(json(Map.of("code", "IMPORT_DUPLICATE_MATCH_IN_FILE",
+                        "message", "同一导入文件内的匹配值重复：" + matchKey)));
+            }
             rows.insert(row);
             String key = switch (row.getStatus()) {
                 case "READY" -> state(row).get("operation").toString().toLowerCase(Locale.ROOT);
@@ -235,6 +291,8 @@ public class ModuleImportService {
         parameters.put("batchId", batchId);
         parameters.put("accountId", context.accountId());
         parameters.put("platformId", context.platformId());
+        parameters.put("systemId", context.systemId());
+        parameters.put("tenantId", context.tenantId());
         parameters.put("memberId", context.memberId());
         parameters.put("tenantMemberId", context.tenantMemberId());
         parameters.put("username", context.username());
@@ -257,14 +315,19 @@ public class ModuleImportService {
         AuthenticatedContext context = executionContext(parameters);
         long batchId = Long.parseLong(parameters.get("batchId").toString());
         ExchangeImportBatch batch = requireBatchById(context, batchId);
+        String moduleCode = String.valueOf(parseObject(batch.getAuthorizationSnapshotJson()).get("moduleCode"));
+        if (Set.of("COMPLETED", "COMPLETED_WITH_ERRORS").contains(batch.getStatus())) {
+            ensureFlowEvents(context, batch, moduleCode);
+            return parseObject(batch.getSummaryJson());
+        }
         if (!Set.of("QUEUED", "RUNNING").contains(batch.getStatus())) {
             throw new IllegalStateException("Import batch is not queued");
         }
+        requireImport(context, moduleCode, "import-job-" + execution.jobId());
         batch.setJobId(execution.jobId());
         batch.setStatus("RUNNING");
         if (batch.getStartedAt() == null) batch.setStartedAt(LocalDateTime.now());
         batches.updateById(batch);
-        String moduleCode = String.valueOf(parseObject(batch.getAuthorizationSnapshotJson()).get("moduleCode"));
         List<ExchangeImportRow> items = batchRows(batchId);
         long processed = 0;
         long succeeded = items.stream().filter(item -> "SUCCEEDED".equals(item.getStatus())).count();
@@ -316,22 +379,32 @@ public class ModuleImportService {
             }
         }
         batch = batches.selectById(batchId);
+        long validationFailed = batchRows(batchId).stream().filter(item -> "ERROR".equals(item.getStatus())).count();
+        long totalFailed = failed + validationFailed;
         batch.setSuccessRows(succeeded);
-        batch.setFailedRows(failed + batchRows(batchId).stream().filter(item -> "ERROR".equals(item.getStatus())).count());
-        batch.setStatus(failed > 0 ? "COMPLETED_WITH_ERRORS" : "COMPLETED");
+        batch.setFailedRows(totalFailed);
+        batch.setStatus(totalFailed > 0 ? "COMPLETED_WITH_ERRORS" : "COMPLETED");
         batch.setFinishedAt(LocalDateTime.now());
         Map<String, Object> summary = new LinkedHashMap<>(parseObject(batch.getSummaryJson()));
         summary.put("executed", succeeded + failed);
         summary.put("succeeded", succeeded);
-        summary.put("failed", failed);
+        summary.put("failed", totalFailed);
+        summary.put("executionFailedRows", failed);
+        summary.put("validationFailedRows", validationFailed);
         summary.put("jobId", execution.jobId());
         batch.setSummaryJson(json(summary));
         batches.updateById(batch);
         auditRecorder.record("import-job-" + execution.jobId(), context.accountId(), context.systemId(), context.tenantId(),
                 context.memberId(), "MODULE_IMPORT_COMPLETED", "IMPORT_BATCH", String.valueOf(batchId), batch.getStatus(),
-                Map.of("moduleCode", moduleCode, "successRows", succeeded, "failedRows", failed,
+                Map.of("moduleCode", moduleCode, "successRows", succeeded, "failedRows", totalFailed,
                         "jobId", execution.jobId()));
+        ensureFlowEvents(context, batch, moduleCode);
         return summary;
+    }
+
+    private void ensureFlowEvents(AuthenticatedContext context, ExchangeImportBatch batch, String moduleCode) {
+        flowEvents.enqueueImportEvents(context, batch.getModuleId(), moduleCode, batch.getId(), batch.getStatus(),
+                value(batch.getTotalRows()), value(batch.getSuccessRows()), value(batch.getFailedRows()), batch.getJobId());
     }
 
     public ImportModels.ImportBatchView detail(
@@ -347,6 +420,7 @@ public class ModuleImportService {
                         .eq(ExchangeImportBatch::getSystemId, context.systemId())
                         .eq(ExchangeImportBatch::getTenantId, context.tenantId())
                         .eq(ExchangeImportBatch::getModuleId, configuration.moduleId())
+                        .eq(ExchangeImportBatch::getCreatedByMemberId, context.memberId())
                         .orderByDesc(ExchangeImportBatch::getId).last("limit 20"))
                 .stream().map(batch -> view(context, moduleCode, batch.getId(), traceId)).toList();
     }
@@ -436,7 +510,8 @@ public class ModuleImportService {
     private ExchangeImportRow previewRow(
             AuthenticatedContext context, String moduleCode, Long batchId, long rowNumber,
             List<String> headers, List<String> values, Map<String, String> mapping,
-            Map<String, ImportModels.TemplateColumn> targets, String conflictPolicy, String traceId) {
+            Map<String, ImportModels.TemplateColumn> targets, String conflictPolicy,
+            String matchFieldCode, String traceId) {
         ExchangeImportRow row = new ExchangeImportRow();
         row.setBatchId(batchId);
         row.setRowNumber(rowNumber);
@@ -456,19 +531,28 @@ public class ModuleImportService {
             String recordNumber = nullableText(submitted.remove("recordNumber"));
             String status = nullableText(submitted.remove("status"));
             if (title == null || title.isBlank()) throw invalid("IMPORT_TITLE_REQUIRED", "标题不能为空");
-            RuntimeRecordView existing = existing(context, moduleCode, recordNumber, traceId);
+            JsonNode matchValue = "recordNumber".equals(matchFieldCode)
+                    ? (recordNumber == null ? NullNode.instance : TextNode.valueOf(recordNumber))
+                    : submitted.get(matchFieldCode);
+            RuntimeRecordView existing = existing(context, moduleCode, matchFieldCode, matchValue, traceId);
             String operation = existing == null ? "CREATE" : switch (conflictPolicy) {
                 case "UPDATE" -> "UPDATE";
                 case "SKIP" -> "SKIP";
-                default -> throw conflict("IMPORT_RECORD_CONFLICT", "业务编号已存在：" + recordNumber);
+                default -> throw conflict("IMPORT_RECORD_CONFLICT", "唯一匹配字段已有数据：" + matchText(matchValue));
             };
+            String matchKey = empty(matchValue) ? null : matchFieldCode + "=" + matchText(matchValue);
             if ("SKIP".equals(operation)) {
                 row.setStatus("SKIP");
                 row.setTargetRecordId(existing.id());
-                row.setNormalizedJson(json(Map.of("operation", "SKIP", "reason", "RECORD_NUMBER_EXISTS")));
+                Map<String, Object> state = new LinkedHashMap<>();
+                state.put("operation", "SKIP");
+                state.put("reason", "UNIQUE_MATCH_EXISTS");
+                if (matchKey != null) state.put("matchKey", matchKey);
+                row.setNormalizedJson(json(state));
                 return row;
             }
-            CreateRuntimeRecordRequest request = new CreateRuntimeRecordRequest(title, recordNumber, status,
+            CreateRuntimeRecordRequest request = new CreateRuntimeRecordRequest(title,
+                    existing == null ? null : existing.recordNumber(), status,
                     existing == null ? context.memberId() : existing.ownerMemberId(),
                     existing == null ? null : existing.departmentId(),
                     existing == null ? List.of() : existing.participantMemberIds(), submitted);
@@ -481,6 +565,7 @@ public class ModuleImportService {
             Map<String, Object> state = new LinkedHashMap<>();
             state.put("operation", operation);
             state.put("payload", normalized);
+            if (matchKey != null) state.put("matchKey", matchKey);
             if (validation.beforeState() != null) state.put("before", validation.beforeState());
             if (validation.recordVersion() != null) state.put("expectedRecordVersion", validation.recordVersion());
             row.setStatus("READY");
@@ -494,12 +579,18 @@ public class ModuleImportService {
     }
 
     private RuntimeRecordView existing(
-            AuthenticatedContext context, String moduleCode, String recordNumber, String traceId) {
-        if (recordNumber == null || recordNumber.isBlank()) return null;
-        String filters = json(List.of(Map.of("fieldCode", "recordNumber", "operator", "EQ", "value", recordNumber)));
+            AuthenticatedContext context, String moduleCode, String matchFieldCode,
+            JsonNode matchValue, String traceId) {
+        if (empty(matchValue)) return null;
+        String text = matchText(matchValue);
+        String filters = json(List.of(Map.of(
+                "fieldCode", matchFieldCode, "operator", "EQ", "value", text)));
         RuntimeRecordList result = runtimeDataService.list(context, moduleCode, "ACTIVE", "OWN", "", filters,
                 "updatedAt", "DESC", 1, 2, traceId + "-conflict-check");
-        return result.records().stream().filter(record -> recordNumber.equals(record.recordNumber())).findFirst().orElse(null);
+        if (result.records().size() > 1) {
+            throw conflict("IMPORT_MATCH_NOT_UNIQUE", "匹配字段返回多条数据，不能安全更新");
+        }
+        return result.records().stream().findFirst().orElse(null);
     }
 
     private RuntimeModuleConfiguration requireImport(
@@ -531,7 +622,8 @@ public class ModuleImportService {
     private ExchangeImportBatch requireBatchById(AuthenticatedContext context, Long batchId) {
         ExchangeImportBatch batch = batches.selectById(batchId);
         if (batch == null || !Objects.equals(batch.getSystemId(), context.systemId())
-                || !Objects.equals(batch.getTenantId(), context.tenantId())) {
+                || !Objects.equals(batch.getTenantId(), context.tenantId())
+                || !Objects.equals(batch.getCreatedByMemberId(), context.memberId())) {
             throw notFound("IMPORT_BATCH_NOT_FOUND", "导入批次不存在");
         }
         return batch;
@@ -541,14 +633,15 @@ public class ModuleImportService {
             AuthenticatedContext context, String moduleCode, Long batchId, String traceId) {
         ExchangeImportBatch batch = requireBatch(context, moduleCode, batchId);
         ExchangeMapping mapping = mappings.selectById(batch.getMappingId());
+        Map<String, Object> conflict = mapping == null ? Map.of() : parseObject(mapping.getConflictPolicyJson());
         List<ImportModels.ImportRowView> rowViews = batchRows(batchId).stream().map(this::rowView).toList();
         return new ImportModels.ImportBatchView(batch.getId(), batch.getSystemId(), batch.getTenantId(),
                 batch.getModuleId(), moduleCode, batch.getMappingId(), batch.getSourceFileId(), batch.getJobId(),
                 batch.getMode(), batch.getStatus(), value(batch.getTotalRows()), value(batch.getValidRows()),
                 value(batch.getSuccessRows()), value(batch.getFailedRows()),
                 mapping == null ? Map.of() : parseStringMap(mapping.getColumnMappingJson()),
-                mapping == null ? "ERROR" : String.valueOf(parseObject(mapping.getConflictPolicyJson())
-                        .getOrDefault("recordNumber", "ERROR")),
+                String.valueOf(conflict.getOrDefault("policy", conflict.getOrDefault("recordNumber", "ERROR"))),
+                String.valueOf(conflict.getOrDefault("matchFieldCode", "recordNumber")),
                 parseObject(batch.getSummaryJson()), rowViews, batch.getCreatedAt(), batch.getStartedAt(),
                 batch.getFinishedAt(), batch.getVersion());
     }
@@ -581,17 +674,42 @@ public class ModuleImportService {
     }
 
     private AuthenticatedContext executionContext(Map<String, Object> parameters) {
+        Long systemId = longValue(parameters.get("systemId"));
+        Long tenantId = longValue(parameters.get("tenantId"));
+        ResolvedPermissions resolved = permissionResolver.resolve(
+                systemId, tenantId, longValue(parameters.get("tenantMemberId")));
         return new AuthenticatedContext(null, longValue(parameters.get("accountId")),
-                longValue(parameters.get("platformId")), longValue(parameters.get("systemId")),
-                longValue(parameters.get("tenantId")), longValue(parameters.get("memberId")),
+                longValue(parameters.get("platformId")), systemId, tenantId, longValue(parameters.get("memberId")),
                 longValue(parameters.get("tenantMemberId")), String.valueOf(parameters.getOrDefault("username", "job")),
                 String.valueOf(parameters.getOrDefault("displayName", "后台导入")),
                 String.valueOf(parameters.getOrDefault("mfaLevel", "PASSWORD")),
-                objectMapper.convertValue(parameters.getOrDefault("roleIds", List.of()), new TypeReference<List<Long>>() { }),
-                objectMapper.convertValue(parameters.getOrDefault("permissions", List.of()),
-                        new TypeReference<List<PermissionGrant>>() { }),
-                objectMapper.convertValue(parameters.getOrDefault("dataScopes", Map.of()),
-                        new TypeReference<Map<String, DataScopeExpression>>() { }));
+                resolved.roleIds(), resolved.permissions(), resolved.dataScopes());
+    }
+
+    private FileModels.FileView requireSourceFile(
+            AuthenticatedContext context, Long sourceFileId, String traceId) {
+        FileModels.FileView source = fileStorageService.detail(context, sourceFileId, traceId);
+        if (!"ACTIVE".equals(source.status()) || !"CLEAN".equals(source.scanStatus())) {
+            throw conflict("IMPORT_SOURCE_FILE_UNSAFE", "导入文件尚未通过安全扫描");
+        }
+        if (source.references().isEmpty()) {
+            throw conflict("IMPORT_SOURCE_FILE_UNREFERENCED", "导入文件必须先保存业务引用");
+        }
+        return source;
+    }
+
+    private SpreadsheetExchangeCodec.ParsedSheet parseSource(
+            AuthenticatedContext context, FileModels.FileView source, String traceId) {
+        try {
+            byte[] bytes = fileStorageService.download(context, source.id(), traceId).bytes();
+            return spreadsheetCodec.read(bytes, source.originalName(), source.contentType());
+        } catch (IllegalArgumentException exception) {
+            throw invalid("IMPORT_FILE_FORMAT_INVALID", exception.getMessage());
+        }
+    }
+
+    private boolean writable(FieldAccessDecision decision) {
+        return decision != null && decision.writable();
     }
 
     private Map<String, String> normalizedMapping(
@@ -670,6 +788,18 @@ public class ModuleImportService {
     private String nullableText(JsonNode value) {
         String text = text(value);
         return text == null || text.isBlank() ? null : text;
+    }
+
+    private boolean empty(JsonNode value) {
+        return value == null || value.isNull() || value.isMissingNode()
+                || value.isTextual() && value.textValue().isBlank();
+    }
+
+    private String matchText(JsonNode value) {
+        if (empty(value)) return "";
+        if (value.isTextual()) return value.textValue().strip();
+        if (value.isNumber() || value.isBoolean()) return value.asText();
+        return value.toString();
     }
 
     private Map<String, Object> state(ExchangeImportRow row) {

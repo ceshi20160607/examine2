@@ -1,0 +1,41 @@
+{
+  "step": "B07.4b.2c",
+  "business_verification": "in_progress",
+  "cases": [],
+  "records": [],
+  "shares": [],
+  "registrations": [
+    {
+      "account_id": 62,
+      "system_id": 64,
+      "username": "shared_org_067074380c24"
+    },
+    {
+      "account_id": 63,
+      "system_id": 65,
+      "username": "shared_org_fd93f46256bc"
+    }
+  ],
+  "roles": [],
+  "departments": [
+    90
+  ],
+  "checked_time": "2026-09-18T12:13:38.826972+08:00",
+  "module_id": 36,
+  "module_code": "org_accept_e28298b7",
+  "system_id": 54,
+  "actor_tenant_id": 57,
+  "data_tenant_id": 56,
+  "source_root": 71,
+  "source_owner": 71,
+  "hidden_member": 88,
+  "hidden_department": 90,
+  "cleanup": {
+    "archived_records": 0,
+    "synthetic_identities_disabled": true,
+    "test_roles_unassigned_disabled": true,
+    "errors": [],
+    "system_test_memberships_disabled": true
+  },
+  "failure": "Fixture used duplicate UPDATE permission while placeholder custom=UPDATE; no runtime case started. Exact synthetic identities and module closed."
+}

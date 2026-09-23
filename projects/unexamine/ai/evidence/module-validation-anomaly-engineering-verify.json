@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "step": "B10.2c.2c",
+  "nextStep": "B10.2d.1",
+  "artifactIntegrity": "passed",
+  "completionCredit": false,
+  "verified_time": "2026-09-20T16:36:34.309987+08:00",
+  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/module-validation-anomaly-verification.json"
+}

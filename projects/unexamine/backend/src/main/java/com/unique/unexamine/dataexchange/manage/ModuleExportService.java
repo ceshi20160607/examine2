@@ -20,9 +20,8 @@ import com.unique.unexamine.file.manage.FileStorageService;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.notification.manage.MessageService;
-import com.unique.unexamine.runtimedata.base.entity.BusinessRecord;
-import com.unique.unexamine.runtimedata.base.service.BusinessRecordBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
+import com.unique.unexamine.runtimedata.manage.RuntimeFieldPresentation;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
@@ -31,7 +30,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,7 +55,6 @@ public class ModuleExportService {
     private final ExchangeExportBatchBaseService batches;
     private final ModulePublicationService publicationService;
     private final RuntimeDataService runtimeDataService;
-    private final BusinessRecordBaseService recordService;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final PermissionChecker permissionChecker;
     private final PermissionResolver permissionResolver;
@@ -65,13 +62,13 @@ public class ModuleExportService {
     private final MessageService messageService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final SpreadsheetExchangeCodec spreadsheetCodec;
     private final long maximumRows;
 
     public ModuleExportService(
             ExchangeExportBatchBaseService batches,
             ModulePublicationService publicationService,
             RuntimeDataService runtimeDataService,
-            BusinessRecordBaseService recordService,
             ChannelFieldPolicyResolver fieldPolicyResolver,
             PermissionChecker permissionChecker,
             PermissionResolver permissionResolver,
@@ -79,11 +76,11 @@ public class ModuleExportService {
             MessageService messageService,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
+            SpreadsheetExchangeCodec spreadsheetCodec,
             @Value("${unexamine.exports.max-rows:5000}") long maximumRows) {
         this.batches = batches;
         this.publicationService = publicationService;
         this.runtimeDataService = runtimeDataService;
-        this.recordService = recordService;
         this.fieldPolicyResolver = fieldPolicyResolver;
         this.permissionChecker = permissionChecker;
         this.permissionResolver = permissionResolver;
@@ -91,6 +88,7 @@ public class ModuleExportService {
         this.messageService = messageService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.spreadsheetCodec = spreadsheetCodec;
         this.maximumRows = Math.max(1, maximumRows);
     }
 
@@ -112,11 +110,22 @@ public class ModuleExportService {
                             "maximumRows", maximumRows));
             throw invalid("EXPORT_ROW_QUOTA_EXCEEDED", "预计导出行数超过当前配额 " + maximumRows + " 行");
         }
+        Map<String, Object> filterSnapshot = querySnapshot(input);
+        String idempotencyKey = String.valueOf(filterSnapshot.get("idempotencyKey"));
+        ExchangeExportBatch existing = batches.selectList(Wrappers.<ExchangeExportBatch>lambdaQuery()
+                        .eq(ExchangeExportBatch::getSystemId, context.systemId())
+                        .eq(ExchangeExportBatch::getTenantId, context.tenantId())
+                        .eq(ExchangeExportBatch::getModuleId, preparation.configuration().moduleId())
+                        .eq(ExchangeExportBatch::getCreatedByMemberId, context.memberId())
+                        .orderByDesc(ExchangeExportBatch::getId).last("limit 20"))
+                .stream().filter(item -> idempotencyKey.equals(String.valueOf(
+                        parseObject(item.getFilterSnapshotJson()).get("idempotencyKey"))))
+                .findFirst().orElse(null);
+        if (existing != null) return view(moduleCode, existing);
         ExchangeExportBatch batch = new ExchangeExportBatch();
         batch.setSystemId(context.systemId());
         batch.setTenantId(context.tenantId());
         batch.setModuleId(preparation.configuration().moduleId());
-        Map<String, Object> filterSnapshot = querySnapshot(input);
         filterSnapshot.put("authorizedRecordIds", preparation.records().stream().map(RuntimeRecordView::id).toList());
         filterSnapshot.put("estimatedAt", LocalDateTime.now().toString());
         batch.setFilterSnapshotJson(json(filterSnapshot));
@@ -210,7 +219,8 @@ public class ModuleExportService {
             Set<Long> authorizedAtSubmission = new LinkedHashSet<>(longList(snapshot.get("authorizedRecordIds")));
             ExportModels.ExportQuery executionQuery = new ExportModels.ExportQuery(query.lifecycleState(),
                     query.tenantScope(), query.search(), query.filters(), query.sortField(), query.sortDirection(),
-                    authorizedAtSubmission.stream().toList(), query.selectedFields());
+                    authorizedAtSubmission.stream().toList(), query.format(), query.idempotencyKey(),
+                    query.selectedFields());
             List<RuntimeRecordView> current = records(
                     context, moduleCode, executionQuery, trace(execution), maximumRows + 1);
             List<RuntimeRecordView> exported = current.stream()
@@ -219,9 +229,18 @@ public class ModuleExportService {
                 throw invalid("EXPORT_ROW_QUOTA_EXCEEDED", "任务执行时的导出行数超过配额");
             }
             List<String> snapshotMasked = stringList(authorization.get("maskedFields"));
-            byte[] csv = csv(context, selectedFields, snapshotMasked, exported, batchId, execution);
+            List<List<String>> table = table(selectedFields, snapshotMasked, exported, batchId, execution);
+            List<String> headers = selectedFields.stream().map(FieldDefinition::name).toList();
+            String format = normalizedFormat(query.format());
+            byte[] content = "XLSX".equals(format)
+                    ? spreadsheetCodec.xlsx("导出数据", headers, table)
+                    : spreadsheetCodec.csv(headers, table);
+            String extension = "XLSX".equals(format) ? "xlsx" : "csv";
+            String contentType = "XLSX".equals(format)
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "text/csv;charset=UTF-8";
             FileModels.FileView file = fileStorageService.storeGenerated(context,
-                    moduleCode + "-export-" + batchId + ".csv", "text/csv;charset=UTF-8", csv,
+                    moduleCode + "-export-" + batchId + "." + extension, contentType, content,
                     "module_export", "export-job-" + execution.jobId());
             batch = batches.selectById(batchId);
             batch.setStatus("COMPLETED");
@@ -364,13 +383,11 @@ public class ModuleExportService {
         return result.size() > limit ? result.subList(0, (int) limit + 1) : result;
     }
 
-    private byte[] csv(
-            AuthenticatedContext context, List<FieldDefinition> fields,
+    private List<List<String>> table(
+            List<FieldDefinition> fields,
             List<String> snapshotMasked, List<RuntimeRecordView> records,
             Long batchId, BackgroundJobExecution execution) {
-        StringBuilder result = new StringBuilder("\uFEFF");
-        result.append(fields.stream().map(field -> csvCell(field.name())).collect(java.util.stream.Collectors.joining(",")))
-                .append('\n');
+        List<List<String>> result = new ArrayList<>();
         Set<String> submissionMasks = new LinkedHashSet<>(snapshotMasked);
         long processed = 0;
         for (RuntimeRecordView record : records) {
@@ -380,21 +397,23 @@ public class ModuleExportService {
                 if (!field.builtIn() && submissionMasks.contains(field.code()) && value != null) {
                     value = mask(String.valueOf(jsonValue(value)), field.maskStrategy() == null ? "FULL" : field.maskStrategy());
                 }
-                if ("REFERENCE".equals(field.fieldType()) && value instanceof JsonNode node && node.isNumber()) {
-                    BusinessRecord referenced = recordService.selectById(node.longValue());
-                    value = referenced == null || !Objects.equals(referenced.getSystemId(), context.systemId())
-                            ? node.asText() : referenced.getTitle();
+                if (!field.builtIn() && !submissionMasks.contains(field.code())
+                        && usesDisplayValue(field.fieldType())) {
+                    RuntimeFieldPresentation presentation = record.fieldPresentation().get(field.code());
+                    if (presentation != null && presentation.displayValue() != null) {
+                        value = presentation.displayValue();
+                    }
                 }
-                values.add(csvCell(text(value)));
+                values.add(text(value));
             }
-            result.append(String.join(",", values)).append('\n');
+            result.add(List.copyOf(values));
             processed++;
             ExchangeExportBatch progress = batches.selectById(batchId);
             progress.setExportedRows(processed);
             batches.updateById(progress);
             execution.heartbeat(processed, records.size());
         }
-        return result.toString().getBytes(StandardCharsets.UTF_8);
+        return result;
     }
 
     private Object builtIn(RuntimeRecordView record, String code) {
@@ -402,13 +421,20 @@ public class ModuleExportService {
             case "recordNumber" -> record.recordNumber();
             case "title" -> record.title();
             case "status" -> record.status();
-            case "ownerMemberId" -> record.ownerMemberId();
-            case "departmentId" -> record.departmentId();
+            case "ownerMemberId" -> record.ownerMemberId() == null ? ""
+                    : record.organizationLabels().members().getOrDefault(record.ownerMemberId(), "不可见成员");
+            case "departmentId" -> record.departmentId() == null ? ""
+                    : record.organizationLabels().departments().getOrDefault(record.departmentId(), "不可见部门");
             case "dataTenantName" -> record.dataTenantName();
             case "createdAt" -> record.createdAt();
             case "updatedAt" -> record.updatedAt();
             default -> null;
         };
+    }
+
+    private boolean usesDisplayValue(String fieldType) {
+        return Set.of("REFERENCE", "MEMBER", "DEPARTMENT", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE")
+                .contains(fieldType);
     }
 
     private RuntimeModuleConfiguration requireExport(
@@ -476,6 +502,9 @@ public class ModuleExportService {
         result.put("sortField", input.sortField() == null ? "updatedAt" : input.sortField());
         result.put("sortDirection", input.sortDirection() == null ? "DESC" : input.sortDirection());
         result.put("selectedRecordIds", input.selectedRecordIds() == null ? List.of() : input.selectedRecordIds());
+        result.put("format", normalizedFormat(input.format()));
+        result.put("idempotencyKey", input.idempotencyKey() == null || input.idempotencyKey().isBlank()
+                ? java.util.UUID.randomUUID().toString() : input.idempotencyKey().strip());
         return result;
     }
 
@@ -487,7 +516,9 @@ public class ModuleExportService {
                         new TypeReference<List<Map<String, String>>>() { }),
                 String.valueOf(source.getOrDefault("sortField", "updatedAt")),
                 String.valueOf(source.getOrDefault("sortDirection", "DESC")),
-                longList(source.get("selectedRecordIds")), fields);
+                longList(source.get("selectedRecordIds")),
+                normalizedFormat(String.valueOf(source.getOrDefault("format", "CSV"))),
+                String.valueOf(source.getOrDefault("idempotencyKey", "legacy")), fields);
     }
 
     private ExportModels.ExportBatchView view(String moduleCode, ExchangeExportBatch batch) {
@@ -495,8 +526,14 @@ public class ModuleExportService {
         snapshot.remove("authorizedRecordIds");
         return new ExportModels.ExportBatchView(batch.getId(), moduleCode, batch.getJobId(), batch.getStatus(),
                 value(batch.getTotalRows()), value(batch.getExportedRows()), batch.getResultFileId(),
-                batch.getErrorMessage(), snapshot, parseStringList(batch.getSelectedFieldsJson()),
+                batch.getErrorMessage(), snapshot,
+                normalizedFormat(String.valueOf(snapshot.getOrDefault("format", "CSV"))),
+                parseStringList(batch.getSelectedFieldsJson()),
                 batch.getCreatedAt(), batch.getStartedAt(), batch.getFinishedAt(), batch.getVersion());
+    }
+
+    private String normalizedFormat(String value) {
+        return "XLSX".equalsIgnoreCase(value) ? "XLSX" : "CSV";
     }
 
     private String stronger(String left, String right) {
@@ -537,11 +574,6 @@ public class ModuleExportService {
     private String text(Object value) {
         Object normalized = jsonValue(value);
         return normalized == null ? "" : String.valueOf(normalized);
-    }
-
-    private String csvCell(String value) {
-        String escaped = value == null ? "" : value.replace("\"", "\"\"");
-        return "\"" + escaped + "\"";
     }
 
     private String json(Object value) {

@@ -1,0 +1,1853 @@
+{
+  "step": "B07.4b.2c.2b.2",
+  "browser_account_id": 69,
+  "role_id": 114,
+  "source_memberships": 0,
+  "normal_system_entry": {
+    "system_id": 54,
+    "tenant_id": 57
+  },
+  "dialog_name": "来源扩展填写动作",
+  "actual_parameter_codes": [
+    "choice",
+    "city",
+    "related"
+  ],
+  "recipient_parameter_codes": [
+    "subject"
+  ],
+  "no_JSON_codes_IDs_typed": true,
+  "actual_result": "成功 / 动作已执行 + 业务变更已生效; LIST刷新来源选项1/来源省1-来源城市/真实共享目标",
+  "record": [
+    [
+      "77",
+      "45",
+      "8",
+      "101"
+    ]
+  ],
+  "values": {
+    "choice": "src_one",
+    "city": "[14, 16]",
+    "hidden": "正式扩展私有值不得丢失",
+    "related": "149",
+    "subject": "正式基础叠加来源扩展页面保存成功"
+  },
+  "audit": {
+    "id": "4269",
+    "event_code": "BUSINESS_RECORD_UPDATED",
+    "actor_account_id": "69",
+    "tenant_id": "57",
+    "detail": {
+      "shareId": 15,
+      "moduleCode": "extension_accept_4a356e1ce2",
+      "afterFields": {
+        "city": [
+          14,
+          16
+        ],
+        "choice": "src_one",
+        "hidden": "正式扩展私有值不得丢失",
+        "related": 149,
+        "subject": "正式基础叠加来源扩展页面保存成功"
+      },
+      "beforeFields": {
+        "city": [
+          15
+        ],
+        "choice": "src_two",
+        "hidden": "正式扩展私有值不得丢失",
+        "related": 149,
+        "subject": "正式基础叠加来源扩展页面保存成功"
+      },
+      "dataTenantId": 77,
+      "actorTenantId": 57,
+      "configVersionId": 73,
+      "participantMemberIds": []
+    },
+    "permission_snapshot": {
+      "action": "ACTION_TENANT_ACCEPT",
+      "channel": "PAGE",
+      "roleIds": [
+        114
+      ],
+      "resource": "MODULE:extension_accept_4a356e1ce2",
+      "dataScope": {
+        "MODULE:extension_accept_4a356e1ce2:ACTION_TENANT_ACCEPT": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        }
+      }
+    }
+  },
+  "temporary_share_without_CUSTOM": {
+    "id": 15,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 151,
+    "moduleCode": "extension_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T08:15:41.839+08:00",
+    "expiresAt": null,
+    "revokedAt": "2026-09-18T07:33:33.147+08:00",
+    "grantedByMemberId": 71,
+    "version": 10
+  },
+  "remaining_gaps": [
+    "ROW按钮仍取接收方动作名称；来源独有动作/字段结构目录下一包，不能授予产品完成"
+  ],
+  "checked_time": "2026-09-18T16:19:43.293184+08:00",
+  "ordinary69_current_share_revocation": {
+    "observed": "动作参数无法加载：业务数据不存在或共享授权已失效；未打开参数modal，LIST刷新后仅保留编辑按钮",
+    "old_params_cleared": true,
+    "record_version_unchanged": true
+  },
+  "restored_share": {
+    "id": 15,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 151,
+    "moduleCode": "extension_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_TENANT_ACCEPT"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T08:16:46.543+08:00",
+    "expiresAt": null,
+    "revokedAt": "2026-09-18T07:33:33.147+08:00",
+    "grantedByMemberId": 71,
+    "version": 11
+  },
+  "batch": {
+    "prior_documents": {
+      "57": {
+        "moduleId": 45,
+        "moduleCode": "extension_accept_4a356e1ce2",
+        "moduleName": "正式扩展公共表单",
+        "baseTenantId": 56,
+        "baseTenantName": "默认主租户",
+        "baseVersionId": 73,
+        "baseVersionNumber": 2,
+        "extension": {
+          "id": 3,
+          "systemId": 54,
+          "tenantId": 57,
+          "baseModuleId": 45,
+          "draftRevision": 4,
+          "extensionJson": "{\"pages\": [{\"source\": \"TENANT\", \"pageType\": \"FORM\", \"fieldCodes\": [\"subject\", \"city\", \"choice\", \"related\", \"hidden\", \"extension_mu6mcrsn\"]}, {\"source\": \"TENANT\", \"pageType\": \"LIST\", \"fieldCodes\": [\"subject\", \"choice\", \"city\", \"related\", \"hidden\", \"extension_mu6mcrsn\"]}], \"fields\": [{\"id\": 148, \"code\": \"choice\", \"name\": \"接收方扩展选择\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 3, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.818+08:00\", \"fieldType\": \"SINGLE_SELECT\", \"mandatory\": false, \"sortOrder\": 1, \"updatedAt\": \"2026-09-18T15:04:06.818+08:00\", \"configJson\": \"{}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": 8, \"ownerTenantId\": 57, \"sourceTenantId\": 57, \"referenceModuleId\": null}, {\"id\": 149, \"code\": \"city\", \"name\": \"接收方扩展地区\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 3, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.826+08:00\", \"fieldType\": \"CASCADE\", \"mandatory\": false, \"sortOrder\": 2, \"updatedAt\": \"2026-09-18T15:04:06.826+08:00\", \"configJson\": \"{\\\"maxDepth\\\":2,\\\"allowIntermediate\\\":false,\\\"saveMode\\\":\\\"PATH\\\"}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": 9, \"ownerTenantId\": 57, \"sourceTenantId\": 57, \"referenceModuleId\": null}, {\"id\": 150, \"code\": \"related\", \"name\": \"接收方扩展关联\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 3, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.833+08:00\", \"fieldType\": \"REFERENCE\", \"mandatory\": false, \"sortOrder\": 3, \"updatedAt\": \"2026-09-18T15:04:06.833+08:00\", \"configJson\": \"{}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": null, \"ownerTenantId\": 57, \"sourceTenantId\": 57, \"referenceModuleId\": 44}, {\"id\": 151, \"code\": \"hidden\", \"name\": \"接收方扩展私有字段\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 3, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.836+08:00\", \"fieldType\": \"TEXT\", \"mandatory\": false, \"sortOrder\": 4, \"updatedAt\": \"2026-09-18T15:04:06.836+08:00\", \"configJson\": \"{\\\"defaultValue\\\":\\\"保留默认值\\\"}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": null, \"ownerTenantId\": 57, \"sourceTenantId\": 57, \"referenceModuleId\": null}, {\"id\": 152, \"code\": \"extension_mu6mcrsn\", \"name\": \"页面配置状态\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 2, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:10:42.594+08:00\", \"fieldType\": \"STATUS\", \"mandatory\": false, \"sortOrder\": 60, \"updatedAt\": \"2026-09-18T15:10:42.594+08:00\", \"configJson\": \"{\\\"placeholder\\\":\\\"\\\"}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": 8, \"ownerTenantId\": 57, \"sourceTenantId\": 57, \"referenceModuleId\": null}], \"source\": {\"type\": \"TENANT\", \"tenantId\": 57, \"baseModuleId\": 45}, \"actions\": [{\"id\": 481, \"code\": \"ACTION_TENANT_ACCEPT\", \"name\": \"接收方扩展填写动作\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 1, \"location\": \"ROW\", \"moduleId\": 45, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:50:47.46+08:00\", \"mandatory\": false, \"sortOrder\": 10, \"updatedAt\": \"2026-09-18T15:50:47.46+08:00\", \"actionType\": \"CUSTOM\", \"configJson\": \"{\\\"operation\\\":\\\"UPDATE_FIELDS\\\",\\\"parameterFieldCodes\\\":[\\\"subject\\\"]}\", \"ownerTenantId\": 57, \"sourceTenantId\": 57}, {\"id\": 482, \"code\": \"ACTION_TENANT_1\", \"name\": \"页面字段勾选动作\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 0, \"location\": \"ROW\", \"moduleId\": 45, \"systemId\": 54, \"createdAt\": null, \"mandatory\": false, \"sortOrder\": 20, \"updatedAt\": null, \"actionType\": \"CUSTOM\", \"configJson\": \"{\\\"operation\\\":\\\"UPDATE_FIELDS\\\",\\\"parameterFieldCodes\\\":[\\\"choice\\\",\\\"city\\\",\\\"related\\\"]}\", \"ownerTenantId\": 57, \"sourceTenantId\": 57}], \"schemaVersion\": 1, \"applicationBindings\": []}",
+          "status": "PUBLISHED",
+          "currentVersionId": 8,
+          "updatedByMemberId": 101,
+          "createdByMemberId": 71,
+          "createdAt": "2026-09-18T15:04:06.841+08:00",
+          "updatedAt": "2026-09-18T15:04:06.841+08:00",
+          "version": 9
+        },
+        "draft": {
+          "pages": [
+            {
+              "source": "TENANT",
+              "pageType": "FORM",
+              "fieldCodes": [
+                "subject",
+                "city",
+                "choice",
+                "related",
+                "hidden",
+                "extension_mu6mcrsn"
+              ]
+            },
+            {
+              "source": "TENANT",
+              "pageType": "LIST",
+              "fieldCodes": [
+                "subject",
+                "choice",
+                "city",
+                "related",
+                "hidden",
+                "extension_mu6mcrsn"
+              ]
+            }
+          ],
+          "fields": [
+            {
+              "id": 148,
+              "code": "choice",
+              "name": "接收方扩展选择",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.818+08:00",
+              "fieldType": "SINGLE_SELECT",
+              "mandatory": false,
+              "sortOrder": 1,
+              "updatedAt": "2026-09-18T15:04:06.818+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 8,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 149,
+              "code": "city",
+              "name": "接收方扩展地区",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.826+08:00",
+              "fieldType": "CASCADE",
+              "mandatory": false,
+              "sortOrder": 2,
+              "updatedAt": "2026-09-18T15:04:06.826+08:00",
+              "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 9,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 150,
+              "code": "related",
+              "name": "接收方扩展关联",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.833+08:00",
+              "fieldType": "REFERENCE",
+              "mandatory": false,
+              "sortOrder": 3,
+              "updatedAt": "2026-09-18T15:04:06.833+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": 44
+            },
+            {
+              "id": 151,
+              "code": "hidden",
+              "name": "接收方扩展私有字段",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.836+08:00",
+              "fieldType": "TEXT",
+              "mandatory": false,
+              "sortOrder": 4,
+              "updatedAt": "2026-09-18T15:04:06.836+08:00",
+              "configJson": "{\"defaultValue\":\"保留默认值\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 152,
+              "code": "extension_mu6mcrsn",
+              "name": "页面配置状态",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:10:42.594+08:00",
+              "fieldType": "STATUS",
+              "mandatory": false,
+              "sortOrder": 60,
+              "updatedAt": "2026-09-18T15:10:42.594+08:00",
+              "configJson": "{\"placeholder\":\"\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 8,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            }
+          ],
+          "source": {
+            "type": "TENANT",
+            "tenantId": 57,
+            "baseModuleId": 45
+          },
+          "actions": [
+            {
+              "id": 481,
+              "code": "ACTION_TENANT_ACCEPT",
+              "name": "接收方扩展填写动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:50:47.46+08:00",
+              "mandatory": false,
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:50:47.46+08:00",
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"subject\"]}",
+              "ownerTenantId": 57,
+              "sourceTenantId": 57
+            },
+            {
+              "id": 482,
+              "code": "ACTION_TENANT_1",
+              "name": "页面字段勾选动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": null,
+              "mandatory": false,
+              "sortOrder": 20,
+              "updatedAt": null,
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"choice\",\"city\",\"related\"]}",
+              "ownerTenantId": 57,
+              "sourceTenantId": 57
+            }
+          ],
+          "schemaVersion": 1,
+          "applicationBindings": []
+        },
+        "mergedPreview": {
+          "group": {
+            "id": 39,
+            "code": "group_8cc1e07a5b",
+            "icon": null,
+            "name": "正式租户扩展验收",
+            "status": "ACTIVE",
+            "version": 0,
+            "systemId": 54,
+            "createdAt": "2026-09-18T15:04:04.433+08:00",
+            "sortOrder": 90,
+            "updatedAt": "2026-09-18T15:04:04.433+08:00",
+            "ownerTenantId": 56,
+            "createdByMemberId": 71
+          },
+          "menus": [
+            {
+              "id": 39,
+              "code": "extension_accept_4a356e1ce2",
+              "icon": null,
+              "name": "正式扩展公共表单",
+              "status": "ACTIVE",
+              "version": 0,
+              "visible": true,
+              "moduleId": 45,
+              "parentId": null,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.446+08:00",
+              "routePath": "/runtime/extension_accept_4a356e1ce2",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:04:04.446+08:00",
+              "ownerTenantId": 56
+            }
+          ],
+          "pages": [
+            {
+              "id": 116,
+              "name": "默认列表",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "LIST",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.441+08:00",
+              "updatedAt": "2026-09-18T15:04:04.441+08:00",
+              "layoutJson": "{\"components\":[],\"fieldCodes\":[\"subject\",\"choice\",\"city\",\"related\",\"hidden\",\"extension_mu6mcrsn\"],\"source\":\"TENANT\"}",
+              "ownerTenantId": 56
+            },
+            {
+              "id": 117,
+              "name": "默认表单",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "FORM",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.443+08:00",
+              "updatedAt": "2026-09-18T15:04:04.443+08:00",
+              "layoutJson": "{\"components\":[],\"fieldCodes\":[\"subject\",\"city\",\"choice\",\"related\",\"hidden\",\"extension_mu6mcrsn\"],\"source\":\"TENANT\"}",
+              "ownerTenantId": 56
+            },
+            {
+              "id": 118,
+              "name": "默认详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "DETAIL",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.444+08:00",
+              "updatedAt": "2026-09-18T15:04:04.444+08:00",
+              "layoutJson": "{\"components\": []}",
+              "ownerTenantId": 56
+            }
+          ],
+          "rules": [],
+          "fields": [
+            {
+              "id": 141,
+              "code": "subject",
+              "name": "公共主题",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "required": true,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.524+08:00",
+              "fieldType": "TEXT",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T15:04:04.524+08:00",
+              "configJson": "{\"maxLength\": 80}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 56,
+              "referenceModuleId": null,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 148,
+              "code": "choice",
+              "name": "接收方扩展选择",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.818+08:00",
+              "fieldType": "SINGLE_SELECT",
+              "mandatory": false,
+              "sortOrder": 1,
+              "updatedAt": "2026-09-18T15:04:06.818+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 8,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 149,
+              "code": "city",
+              "name": "接收方扩展地区",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.826+08:00",
+              "fieldType": "CASCADE",
+              "mandatory": false,
+              "sortOrder": 2,
+              "updatedAt": "2026-09-18T15:04:06.826+08:00",
+              "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 9,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 150,
+              "code": "related",
+              "name": "接收方扩展关联",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.833+08:00",
+              "fieldType": "REFERENCE",
+              "mandatory": false,
+              "sortOrder": 3,
+              "updatedAt": "2026-09-18T15:04:06.833+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": 44
+            },
+            {
+              "id": 151,
+              "code": "hidden",
+              "name": "接收方扩展私有字段",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 3,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.836+08:00",
+              "fieldType": "TEXT",
+              "mandatory": false,
+              "sortOrder": 4,
+              "updatedAt": "2026-09-18T15:04:06.836+08:00",
+              "configJson": "{\"defaultValue\":\"保留默认值\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            },
+            {
+              "id": 152,
+              "code": "extension_mu6mcrsn",
+              "name": "页面配置状态",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:10:42.594+08:00",
+              "fieldType": "STATUS",
+              "mandatory": false,
+              "sortOrder": 60,
+              "updatedAt": "2026-09-18T15:10:42.594+08:00",
+              "configJson": "{\"placeholder\":\"\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 8,
+              "ownerTenantId": 57,
+              "sourceTenantId": 57,
+              "referenceModuleId": null
+            }
+          ],
+          "module": {
+            "id": 45,
+            "code": "extension_accept_4a356e1ce2",
+            "name": "正式扩展公共表单",
+            "status": "ACTIVE",
+            "groupId": 39,
+            "version": 3,
+            "systemId": 54,
+            "createdAt": "2026-09-18T15:04:04.439+08:00",
+            "updatedAt": "2026-09-18T15:04:04.439+08:00",
+            "description": null,
+            "draftRevision": 3,
+            "ownerTenantId": 56,
+            "titleFieldCode": null,
+            "statusFieldCode": null,
+            "createdByMemberId": 71,
+            "numberSequenceCode": null
+          },
+          "actions": [
+            {
+              "id": 456,
+              "code": "LIST",
+              "name": "列表",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "MODULE_ENTRY",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.448+08:00",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T15:04:04.448+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 457,
+              "code": "DETAIL",
+              "name": "详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.45+08:00",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:04:04.45+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 458,
+              "code": "CREATE",
+              "name": "新建",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.452+08:00",
+              "sortOrder": 20,
+              "updatedAt": "2026-09-18T15:04:04.452+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 459,
+              "code": "UPDATE",
+              "name": "编辑",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_HEADER",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.454+08:00",
+              "sortOrder": 30,
+              "updatedAt": "2026-09-18T15:04:04.454+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 460,
+              "code": "ARCHIVE",
+              "name": "归档",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.455+08:00",
+              "sortOrder": 40,
+              "updatedAt": "2026-09-18T15:04:04.455+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 461,
+              "code": "DELETE",
+              "name": "删除",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.457+08:00",
+              "sortOrder": 50,
+              "updatedAt": "2026-09-18T15:04:04.457+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 462,
+              "code": "RESTORE",
+              "name": "恢复",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_HEADER",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.459+08:00",
+              "sortOrder": 60,
+              "updatedAt": "2026-09-18T15:04:04.459+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 463,
+              "code": "TRANSFER",
+              "name": "转交负责人",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.46+08:00",
+              "sortOrder": 70,
+              "updatedAt": "2026-09-18T15:04:04.46+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 464,
+              "code": "CONVERT",
+              "name": "转化记录",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.462+08:00",
+              "sortOrder": 80,
+              "updatedAt": "2026-09-18T15:04:04.462+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 465,
+              "code": "SHARE",
+              "name": "共享给租户",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.464+08:00",
+              "sortOrder": 90,
+              "updatedAt": "2026-09-18T15:04:04.464+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 466,
+              "code": "IMPORT",
+              "name": "导入",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.466+08:00",
+              "sortOrder": 100,
+              "updatedAt": "2026-09-18T15:04:04.466+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 467,
+              "code": "EXPORT",
+              "name": "导出",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.468+08:00",
+              "sortOrder": 110,
+              "updatedAt": "2026-09-18T15:04:04.468+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 481,
+              "code": "ACTION_TENANT_ACCEPT",
+              "name": "接收方扩展填写动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:50:47.46+08:00",
+              "mandatory": false,
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:50:47.46+08:00",
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"subject\"]}",
+              "ownerTenantId": 57,
+              "sourceTenantId": 57
+            },
+            {
+              "id": 482,
+              "code": "ACTION_TENANT_1",
+              "name": "页面字段勾选动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": null,
+              "mandatory": false,
+              "sortOrder": 20,
+              "updatedAt": null,
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"choice\",\"city\",\"related\"]}",
+              "ownerTenantId": 57,
+              "sourceTenantId": 57
+            }
+          ],
+          "queryIndexes": [],
+          "draftRevision": 3,
+          "schemaVersion": 3,
+          "versionNumber": 2,
+          "queryIndexFields": [],
+          "tenantExtensionApplied": true,
+          "tenantExtensionSource": {
+            "type": "TENANT",
+            "tenantId": 57,
+            "baseModuleId": 45
+          },
+          "applicationBindings": []
+        },
+        "availableApplicationGrants": [],
+        "versions": [
+          {
+            "versionId": 8,
+            "versionNumber": 4,
+            "baseModuleVersionId": 73,
+            "publishedAt": "2026-09-18T07:53:55.214+08:00",
+            "current": true
+          },
+          {
+            "versionId": 6,
+            "versionNumber": 3,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:50:47.586+08:00",
+            "current": false
+          },
+          {
+            "versionId": 4,
+            "versionNumber": 2,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:10:56.38+08:00",
+            "current": false
+          },
+          {
+            "versionId": 3,
+            "versionNumber": 1,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:04:06.963+08:00",
+            "current": false
+          }
+        ]
+      },
+      "77": {
+        "moduleId": 45,
+        "moduleCode": "extension_accept_4a356e1ce2",
+        "moduleName": "正式扩展公共表单",
+        "baseTenantId": 56,
+        "baseTenantName": "默认主租户",
+        "baseVersionId": 73,
+        "baseVersionNumber": 2,
+        "extension": {
+          "id": 2,
+          "systemId": 54,
+          "tenantId": 77,
+          "baseModuleId": 45,
+          "draftRevision": 3,
+          "extensionJson": "{\"pages\": [{\"source\": \"TENANT\", \"pageType\": \"FORM\", \"fieldCodes\": [\"subject\", \"city\", \"choice\", \"related\", \"hidden\"]}], \"fields\": [{\"id\": 144, \"code\": \"choice\", \"name\": \"来源扩展选择\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 2, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.51+08:00\", \"fieldType\": \"SINGLE_SELECT\", \"mandatory\": false, \"sortOrder\": 1, \"updatedAt\": \"2026-09-18T15:04:06.51+08:00\", \"configJson\": \"{}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": 6, \"ownerTenantId\": 77, \"sourceTenantId\": 77, \"referenceModuleId\": null}, {\"id\": 145, \"code\": \"city\", \"name\": \"来源扩展地区\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 2, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.518+08:00\", \"fieldType\": \"CASCADE\", \"mandatory\": false, \"sortOrder\": 2, \"updatedAt\": \"2026-09-18T15:04:06.518+08:00\", \"configJson\": \"{\\\"maxDepth\\\":2,\\\"allowIntermediate\\\":false,\\\"saveMode\\\":\\\"PATH\\\"}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": 7, \"ownerTenantId\": 77, \"sourceTenantId\": 77, \"referenceModuleId\": null}, {\"id\": 146, \"code\": \"related\", \"name\": \"来源扩展关联\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 2, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.524+08:00\", \"fieldType\": \"REFERENCE\", \"mandatory\": false, \"sortOrder\": 3, \"updatedAt\": \"2026-09-18T15:04:06.524+08:00\", \"configJson\": \"{}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": null, \"ownerTenantId\": 77, \"sourceTenantId\": 77, \"referenceModuleId\": 44}, {\"id\": 147, \"code\": \"hidden\", \"name\": \"来源扩展私有字段\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 2, \"moduleId\": 45, \"required\": false, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:04:06.526+08:00\", \"fieldType\": \"TEXT\", \"mandatory\": false, \"sortOrder\": 4, \"updatedAt\": \"2026-09-18T15:04:06.526+08:00\", \"configJson\": \"{\\\"defaultValue\\\":\\\"保留默认值\\\"}\", \"searchable\": false, \"uniqueValue\": false, \"dictionaryId\": null, \"ownerTenantId\": 77, \"sourceTenantId\": 77, \"referenceModuleId\": null}], \"source\": {\"type\": \"TENANT\", \"tenantId\": 77, \"baseModuleId\": 45}, \"actions\": [{\"id\": 480, \"code\": \"ACTION_TENANT_ACCEPT\", \"name\": \"来源扩展填写动作\", \"source\": \"TENANT\", \"status\": \"ACTIVE\", \"version\": 1, \"location\": \"ROW\", \"moduleId\": 45, \"systemId\": 54, \"createdAt\": \"2026-09-18T15:50:43.651+08:00\", \"mandatory\": false, \"sortOrder\": 10, \"updatedAt\": \"2026-09-18T15:50:43.651+08:00\", \"actionType\": \"CUSTOM\", \"configJson\": \"{\\\"operation\\\":\\\"UPDATE_FIELDS\\\",\\\"parameterFieldCodes\\\":[\\\"choice\\\",\\\"city\\\",\\\"related\\\"]}\", \"ownerTenantId\": 77, \"sourceTenantId\": 77}], \"schemaVersion\": 1, \"applicationBindings\": []}",
+          "status": "PUBLISHED",
+          "currentVersionId": 7,
+          "updatedByMemberId": 71,
+          "createdByMemberId": 71,
+          "createdAt": "2026-09-18T15:04:06.533+08:00",
+          "updatedAt": "2026-09-18T15:04:06.533+08:00",
+          "version": 5
+        },
+        "draft": {
+          "pages": [
+            {
+              "source": "TENANT",
+              "pageType": "FORM",
+              "fieldCodes": [
+                "subject",
+                "city",
+                "choice",
+                "related",
+                "hidden"
+              ]
+            }
+          ],
+          "fields": [
+            {
+              "id": 144,
+              "code": "choice",
+              "name": "来源扩展选择",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.51+08:00",
+              "fieldType": "SINGLE_SELECT",
+              "mandatory": false,
+              "sortOrder": 1,
+              "updatedAt": "2026-09-18T15:04:06.51+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 6,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            },
+            {
+              "id": 145,
+              "code": "city",
+              "name": "来源扩展地区",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.518+08:00",
+              "fieldType": "CASCADE",
+              "mandatory": false,
+              "sortOrder": 2,
+              "updatedAt": "2026-09-18T15:04:06.518+08:00",
+              "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 7,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            },
+            {
+              "id": 146,
+              "code": "related",
+              "name": "来源扩展关联",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.524+08:00",
+              "fieldType": "REFERENCE",
+              "mandatory": false,
+              "sortOrder": 3,
+              "updatedAt": "2026-09-18T15:04:06.524+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": 44
+            },
+            {
+              "id": 147,
+              "code": "hidden",
+              "name": "来源扩展私有字段",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.526+08:00",
+              "fieldType": "TEXT",
+              "mandatory": false,
+              "sortOrder": 4,
+              "updatedAt": "2026-09-18T15:04:06.526+08:00",
+              "configJson": "{\"defaultValue\":\"保留默认值\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            }
+          ],
+          "source": {
+            "type": "TENANT",
+            "tenantId": 77,
+            "baseModuleId": 45
+          },
+          "actions": [
+            {
+              "id": 480,
+              "code": "ACTION_TENANT_ACCEPT",
+              "name": "来源扩展填写动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:50:43.651+08:00",
+              "mandatory": false,
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:50:43.651+08:00",
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"choice\",\"city\",\"related\"]}",
+              "ownerTenantId": 77,
+              "sourceTenantId": 77
+            }
+          ],
+          "schemaVersion": 1,
+          "applicationBindings": []
+        },
+        "mergedPreview": {
+          "group": {
+            "id": 39,
+            "code": "group_8cc1e07a5b",
+            "icon": null,
+            "name": "正式租户扩展验收",
+            "status": "ACTIVE",
+            "version": 0,
+            "systemId": 54,
+            "createdAt": "2026-09-18T15:04:04.433+08:00",
+            "sortOrder": 90,
+            "updatedAt": "2026-09-18T15:04:04.433+08:00",
+            "ownerTenantId": 56,
+            "createdByMemberId": 71
+          },
+          "menus": [
+            {
+              "id": 39,
+              "code": "extension_accept_4a356e1ce2",
+              "icon": null,
+              "name": "正式扩展公共表单",
+              "status": "ACTIVE",
+              "version": 0,
+              "visible": true,
+              "moduleId": 45,
+              "parentId": null,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.446+08:00",
+              "routePath": "/runtime/extension_accept_4a356e1ce2",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:04:04.446+08:00",
+              "ownerTenantId": 56
+            }
+          ],
+          "pages": [
+            {
+              "id": 116,
+              "name": "默认列表",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "LIST",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.441+08:00",
+              "updatedAt": "2026-09-18T15:04:04.441+08:00",
+              "layoutJson": "{\"components\": []}",
+              "ownerTenantId": 56
+            },
+            {
+              "id": 117,
+              "name": "默认表单",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "FORM",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.443+08:00",
+              "updatedAt": "2026-09-18T15:04:04.443+08:00",
+              "layoutJson": "{\"components\":[],\"fieldCodes\":[\"subject\",\"city\",\"choice\",\"related\",\"hidden\"],\"source\":\"TENANT\"}",
+              "ownerTenantId": 56
+            },
+            {
+              "id": 118,
+              "name": "默认详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "pageType": "DETAIL",
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.444+08:00",
+              "updatedAt": "2026-09-18T15:04:04.444+08:00",
+              "layoutJson": "{\"components\": []}",
+              "ownerTenantId": 56
+            }
+          ],
+          "rules": [],
+          "fields": [
+            {
+              "id": 141,
+              "code": "subject",
+              "name": "公共主题",
+              "status": "ACTIVE",
+              "version": 0,
+              "moduleId": 45,
+              "required": true,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.524+08:00",
+              "fieldType": "TEXT",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T15:04:04.524+08:00",
+              "configJson": "{\"maxLength\": 80}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 56,
+              "referenceModuleId": null,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 144,
+              "code": "choice",
+              "name": "来源扩展选择",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.51+08:00",
+              "fieldType": "SINGLE_SELECT",
+              "mandatory": false,
+              "sortOrder": 1,
+              "updatedAt": "2026-09-18T15:04:06.51+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 6,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            },
+            {
+              "id": 145,
+              "code": "city",
+              "name": "来源扩展地区",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.518+08:00",
+              "fieldType": "CASCADE",
+              "mandatory": false,
+              "sortOrder": 2,
+              "updatedAt": "2026-09-18T15:04:06.518+08:00",
+              "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": 7,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            },
+            {
+              "id": 146,
+              "code": "related",
+              "name": "来源扩展关联",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.524+08:00",
+              "fieldType": "REFERENCE",
+              "mandatory": false,
+              "sortOrder": 3,
+              "updatedAt": "2026-09-18T15:04:06.524+08:00",
+              "configJson": "{}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": 44
+            },
+            {
+              "id": 147,
+              "code": "hidden",
+              "name": "来源扩展私有字段",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 2,
+              "moduleId": 45,
+              "required": false,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:06.526+08:00",
+              "fieldType": "TEXT",
+              "mandatory": false,
+              "sortOrder": 4,
+              "updatedAt": "2026-09-18T15:04:06.526+08:00",
+              "configJson": "{\"defaultValue\":\"保留默认值\"}",
+              "searchable": false,
+              "uniqueValue": false,
+              "dictionaryId": null,
+              "ownerTenantId": 77,
+              "sourceTenantId": 77,
+              "referenceModuleId": null
+            }
+          ],
+          "module": {
+            "id": 45,
+            "code": "extension_accept_4a356e1ce2",
+            "name": "正式扩展公共表单",
+            "status": "ACTIVE",
+            "groupId": 39,
+            "version": 3,
+            "systemId": 54,
+            "createdAt": "2026-09-18T15:04:04.439+08:00",
+            "updatedAt": "2026-09-18T15:04:04.439+08:00",
+            "description": null,
+            "draftRevision": 3,
+            "ownerTenantId": 56,
+            "titleFieldCode": null,
+            "statusFieldCode": null,
+            "createdByMemberId": 71,
+            "numberSequenceCode": null
+          },
+          "actions": [
+            {
+              "id": 456,
+              "code": "LIST",
+              "name": "列表",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "MODULE_ENTRY",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.448+08:00",
+              "sortOrder": 0,
+              "updatedAt": "2026-09-18T15:04:04.448+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 457,
+              "code": "DETAIL",
+              "name": "详情",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.45+08:00",
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:04:04.45+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 458,
+              "code": "CREATE",
+              "name": "新建",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.452+08:00",
+              "sortOrder": 20,
+              "updatedAt": "2026-09-18T15:04:04.452+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 459,
+              "code": "UPDATE",
+              "name": "编辑",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_HEADER",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.454+08:00",
+              "sortOrder": 30,
+              "updatedAt": "2026-09-18T15:04:04.454+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 460,
+              "code": "ARCHIVE",
+              "name": "归档",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.455+08:00",
+              "sortOrder": 40,
+              "updatedAt": "2026-09-18T15:04:04.455+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 461,
+              "code": "DELETE",
+              "name": "删除",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.457+08:00",
+              "sortOrder": 50,
+              "updatedAt": "2026-09-18T15:04:04.457+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 462,
+              "code": "RESTORE",
+              "name": "恢复",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_HEADER",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.459+08:00",
+              "sortOrder": 60,
+              "updatedAt": "2026-09-18T15:04:04.459+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 463,
+              "code": "TRANSFER",
+              "name": "转交负责人",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.46+08:00",
+              "sortOrder": 70,
+              "updatedAt": "2026-09-18T15:04:04.46+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 464,
+              "code": "CONVERT",
+              "name": "转化记录",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.462+08:00",
+              "sortOrder": 80,
+              "updatedAt": "2026-09-18T15:04:04.462+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 465,
+              "code": "SHARE",
+              "name": "共享给租户",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "DETAIL_MORE",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.464+08:00",
+              "sortOrder": 90,
+              "updatedAt": "2026-09-18T15:04:04.464+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 466,
+              "code": "IMPORT",
+              "name": "导入",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.466+08:00",
+              "sortOrder": 100,
+              "updatedAt": "2026-09-18T15:04:04.466+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 467,
+              "code": "EXPORT",
+              "name": "导出",
+              "status": "ACTIVE",
+              "version": 0,
+              "location": "LIST_TOOLBAR",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:04:04.468+08:00",
+              "sortOrder": 110,
+              "updatedAt": "2026-09-18T15:04:04.468+08:00",
+              "actionType": "BUILTIN",
+              "configJson": "{}",
+              "ownerTenantId": 56,
+              "source": "MAIN",
+              "sourceTenantId": 56,
+              "mandatory": true
+            },
+            {
+              "id": 480,
+              "code": "ACTION_TENANT_ACCEPT",
+              "name": "来源扩展填写动作",
+              "source": "TENANT",
+              "status": "ACTIVE",
+              "version": 1,
+              "location": "ROW",
+              "moduleId": 45,
+              "systemId": 54,
+              "createdAt": "2026-09-18T15:50:43.651+08:00",
+              "mandatory": false,
+              "sortOrder": 10,
+              "updatedAt": "2026-09-18T15:50:43.651+08:00",
+              "actionType": "CUSTOM",
+              "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"choice\",\"city\",\"related\"]}",
+              "ownerTenantId": 77,
+              "sourceTenantId": 77
+            }
+          ],
+          "queryIndexes": [],
+          "draftRevision": 3,
+          "schemaVersion": 3,
+          "versionNumber": 2,
+          "queryIndexFields": [],
+          "tenantExtensionApplied": true,
+          "tenantExtensionSource": {
+            "type": "TENANT",
+            "tenantId": 77,
+            "baseModuleId": 45
+          },
+          "applicationBindings": []
+        },
+        "availableApplicationGrants": [],
+        "versions": [
+          {
+            "versionId": 7,
+            "versionNumber": 3,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:50:49.642+08:00",
+            "current": true
+          },
+          {
+            "versionId": 5,
+            "versionNumber": 2,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:50:43.821+08:00",
+            "current": false
+          },
+          {
+            "versionId": 2,
+            "versionNumber": 1,
+            "baseModuleVersionId": 72,
+            "publishedAt": "2026-09-18T07:04:06.69+08:00",
+            "current": false
+          }
+        ]
+      }
+    },
+    "changed_versions": {
+      "57": 9,
+      "77": 10
+    },
+    "records": {
+      "57": {
+        "id": 152,
+        "recordNumber": null,
+        "title": "接收方参数不同的批量验收记录",
+        "status": "ACTIVE",
+        "ownerMemberId": 71,
+        "departmentId": 75,
+        "createdByMemberId": 71,
+        "updatedByMemberId": 71,
+        "createdConfigVersionId": 73,
+        "updatedConfigVersionId": 73,
+        "participantMemberIds": [],
+        "archived": false,
+        "archivedAt": null,
+        "deleted": false,
+        "deletedAt": null,
+        "version": 0,
+        "createdAt": "2026-09-18T16:16:47.1+08:00",
+        "updatedAt": "2026-09-18T16:16:47.1+08:00",
+        "dataTenantId": 57,
+        "dataTenantName": "协作工作空间",
+        "ownedByCurrentTenant": true,
+        "shared": false,
+        "shareId": null,
+        "shareStatus": null,
+        "sharedActions": [],
+        "shareExpiresAt": null,
+        "organizationLabels": {
+          "members": {
+            "71": "平台超级管理员"
+          },
+          "departments": {
+            "75": "接收租户根部门"
+          }
+        },
+        "fieldPresentation": {
+          "choice": {
+            "name": "接收方扩展选择",
+            "fieldType": "SINGLE_SELECT",
+            "displayValue": "未填写"
+          },
+          "city": {
+            "name": "接收方扩展地区",
+            "fieldType": "CASCADE",
+            "displayValue": "未填写"
+          },
+          "extension_mu6mcrsn": {
+            "name": "页面配置状态",
+            "fieldType": "STATUS",
+            "displayValue": "未填写"
+          },
+          "hidden": {
+            "name": "接收方扩展私有字段",
+            "fieldType": "TEXT",
+            "displayValue": null
+          },
+          "related": {
+            "name": "接收方扩展关联",
+            "fieldType": "REFERENCE",
+            "displayValue": "未填写"
+          },
+          "subject": {
+            "name": "公共主题",
+            "fieldType": "TEXT",
+            "displayValue": null
+          }
+        },
+        "fields": {
+          "hidden": "保留默认值",
+          "subject": "接收方参数不同的批量验收记录"
+        }
+      },
+      "77": {
+        "id": 153,
+        "recordNumber": null,
+        "title": "来源参数相同的批量验收记录",
+        "status": "ACTIVE",
+        "ownerMemberId": 71,
+        "departmentId": 98,
+        "createdByMemberId": 71,
+        "updatedByMemberId": 71,
+        "createdConfigVersionId": 73,
+        "updatedConfigVersionId": 73,
+        "participantMemberIds": [],
+        "archived": false,
+        "archivedAt": null,
+        "deleted": false,
+        "deletedAt": null,
+        "version": 0,
+        "createdAt": "2026-09-18T16:16:47.202+08:00",
+        "updatedAt": "2026-09-18T16:16:47.202+08:00",
+        "dataTenantId": 77,
+        "dataTenantName": "来源目录隔离验收",
+        "ownedByCurrentTenant": true,
+        "shared": false,
+        "shareId": null,
+        "shareStatus": null,
+        "sharedActions": [],
+        "shareExpiresAt": null,
+        "organizationLabels": {
+          "members": {
+            "71": "平台超级管理员"
+          },
+          "departments": {
+            "98": "全公司"
+          }
+        },
+        "fieldPresentation": {
+          "choice": {
+            "name": "来源扩展选择",
+            "fieldType": "SINGLE_SELECT",
+            "displayValue": "来源选项2"
+          },
+          "city": {
+            "name": "来源扩展地区",
+            "fieldType": "CASCADE",
+            "displayValue": "来源省2"
+          },
+          "hidden": {
+            "name": "来源扩展私有字段",
+            "fieldType": "TEXT",
+            "displayValue": null
+          },
+          "related": {
+            "name": "来源扩展关联",
+            "fieldType": "REFERENCE",
+            "displayValue": "正式扩展来源关联目标"
+          },
+          "subject": {
+            "name": "公共主题",
+            "fieldType": "TEXT",
+            "displayValue": null
+          }
+        },
+        "fields": {
+          "choice": "src_two",
+          "city": [
+            15
+          ],
+          "hidden": "批量来源私有值保留",
+          "related": 149,
+          "subject": "来源参数相同的批量验收记录"
+        }
+      }
+    },
+    "shares": {
+      "77": {
+        "id": 16,
+        "sourceTenantId": 77,
+        "sourceTenantName": "来源目录隔离验收",
+        "targetTenantId": 57,
+        "targetTenantName": "协作工作空间",
+        "recordId": 153,
+        "moduleCode": "extension_accept_4a356e1ce2",
+        "allowedActions": [
+          "LIST",
+          "DETAIL",
+          "UPDATE",
+          "ACTION_TENANT_ACCEPT"
+        ],
+        "status": "ACTIVE",
+        "effectiveAt": "2026-09-18T08:16:47.282+08:00",
+        "expiresAt": null,
+        "revokedAt": null,
+        "grantedByMemberId": 71,
+        "version": 0
+      }
+    },
+    "status": "verified_API_page_database_and_test_rows_closed",
+    "no_new_module_namespace": true,
+    "incompatible": {
+      "selected": [
+        152,
+        151
+      ],
+      "observed": "这些记录的来源动作字段或选项配置不同，请按来源分开处理记录",
+      "no_dialog_no_writes_versions": [
+        [
+          "151",
+          "8"
+        ],
+        [
+          "152",
+          "0"
+        ],
+        [
+          "153",
+          "0"
+        ]
+      ]
+    },
+    "compatible": {
+      "selected": [
+        153,
+        151
+      ],
+      "actual_dialog_name": "来源扩展填写动作",
+      "actual_parameters": [
+        "choice",
+        "city",
+        "related"
+      ],
+      "picked": {
+        "choice": "src_two",
+        "city": [
+          15
+        ],
+        "related": 149
+      },
+      "observed": "两条逐条成功/动作已执行，LIST刷新正确",
+      "versions": [
+        [
+          "151",
+          "77",
+          "45",
+          "9",
+          "101"
+        ],
+        [
+          "152",
+          "57",
+          "45",
+          "0",
+          "71"
+        ],
+        [
+          "153",
+          "77",
+          "45",
+          "1",
+          "101"
+        ]
+      ],
+      "both_private_values_unchanged": true
+    },
+    "cleanup": {
+      "restored_ROW_action_current_extension_versions": {
+        "57": 11,
+        "77": 12
+      },
+      "records_archived": [
+        [
+          "152",
+          "1",
+          "1"
+        ],
+        [
+          "153",
+          "1",
+          "2"
+        ]
+      ],
+      "share_revoked": [
+        [
+          "16",
+          "REVOKED",
+          "1"
+        ]
+      ]
+    }
+  },
+  "current_handoff": {
+    "record151_version": 9,
+    "source77_extension_version_id": 12,
+    "recipient57_extension_version_id": 11,
+    "retained_active_records": [
+      149,
+      150,
+      151
+    ],
+    "retained_active_shares": [
+      14,
+      15
+    ],
+    "retained_published_role": 114,
+    "next_exact_gap": "Trusted shared source action/field catalog and actual labels/placement; no source-only action/field declared complete"
+  },
+  "final_build_source_confirmation_context": {
+    "actual_source_name": "来源扩展填写动作",
+    "confirmation": false,
+    "confirmationText": "",
+    "record_version": 9,
+    "note": "最终构建新来源确认协议readback通过；true确认分支/高级动作配置组合保留后续，不冒充本包已测"
+  }
+}

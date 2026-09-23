@@ -24,6 +24,9 @@ import com.unique.unexamine.moduleconfig.base.service.CfgTenantExtensionVersionB
 import com.unique.unexamine.moduleconfig.base.mapper.CfgTenantExtensionMapper;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleFieldBaseService;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleAction;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleActionBaseService;
+import com.unique.unexamine.moduleconfig.manage.TenantExtensionModels.ExtensionActionInput;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModulePublicationBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
 import com.unique.unexamine.moduleconfig.manage.TenantExtensionModels.ApplicationBindingInput;
@@ -64,6 +67,7 @@ public class TenantExtensionService {
     private final SystemTenantBaseService tenantService;
     private final ConfiguredModuleBaseService moduleService;
     private final ConfiguredModuleFieldBaseService fieldService;
+    private final ConfiguredModuleActionBaseService actionService;
     private final ConfiguredModulePublicationBaseService publicationService;
     private final ConfiguredModuleVersionBaseService moduleVersionService;
     private final CfgTenantExtensionBaseService extensionService;
@@ -75,11 +79,15 @@ public class TenantExtensionService {
     private final TenantExtensionRuntimeService runtimeService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final ModuleConfigurationService configurationService;
+    private final DictionaryConfigurationService dictionaryConfigurationService;
+    private final ModuleIdentifierIntegrity identifierIntegrity;
 
     public TenantExtensionService(
             SystemTenantBaseService tenantService,
             ConfiguredModuleBaseService moduleService,
             ConfiguredModuleFieldBaseService fieldService,
+            ConfiguredModuleActionBaseService actionService,
             ConfiguredModulePublicationBaseService publicationService,
             ConfiguredModuleVersionBaseService moduleVersionService,
             CfgTenantExtensionBaseService extensionService,
@@ -90,10 +98,14 @@ public class TenantExtensionService {
             AppGrantFieldBaseService grantFieldService,
             TenantExtensionRuntimeService runtimeService,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ModuleConfigurationService configurationService,
+            DictionaryConfigurationService dictionaryConfigurationService,
+            ModuleIdentifierIntegrity identifierIntegrity) {
         this.tenantService = tenantService;
         this.moduleService = moduleService;
         this.fieldService = fieldService;
+        this.actionService = actionService;
         this.publicationService = publicationService;
         this.moduleVersionService = moduleVersionService;
         this.extensionService = extensionService;
@@ -105,6 +117,9 @@ public class TenantExtensionService {
         this.runtimeService = runtimeService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.configurationService = configurationService;
+        this.dictionaryConfigurationService = dictionaryConfigurationService;
+        this.identifierIntegrity = identifierIntegrity;
     }
 
     @Transactional(readOnly = true)
@@ -182,6 +197,8 @@ public class TenantExtensionService {
         ConfiguredModule module = requireBaseModule(context, scope, moduleId);
         CfgTenantExtension extension = requireExtension(context, moduleId);
         if (!expectedDraftRevision.equals(extension.getDraftRevision())) conflict("租户扩展草稿已经变化，请重新检查");
+        identifierIntegrity.lockSystem(context.systemId());
+        identifierIntegrity.requireUnambiguous(module);
         BaseConfiguration base = baseConfiguration(module);
         JsonNode document = parse(extension.getExtensionJson());
         List<TenantExtensionIssue> issues = validateDocument(context, module, base.configuration(), document);
@@ -321,6 +338,9 @@ public class TenantExtensionService {
                 physical.setStatus("ACTIVE");
                 physical.setVersion(0);
             }
+            validateFieldBinding(context, input.fieldType(), input.dictionaryId(), input.referenceModuleId(), input.config());
+            physical.setDictionaryId(input.dictionaryId());
+            physical.setReferenceModuleId(input.referenceModuleId());
             physical.setName(input.name().strip());
             physical.setRequired(input.required());
             physical.setSortOrder(input.sortOrder());
@@ -362,8 +382,103 @@ public class TenantExtensionService {
         source.put("baseModuleId", module.getId());
         document.set("fields", fields);
         document.set("pages", pages);
+        document.set("actions", extensionActions(context, module, base, fields, old, request.actions()));
         document.set("applicationBindings", bindings);
         return document;
+    }
+
+    /** 动作仍使用公共物理身份，内部编码隔离租户；发布快照恢复用户看到的稳定逻辑编码。 */
+    private ArrayNode extensionActions(AuthenticatedContext context, ConfiguredModule module, JsonNode base,
+                                       ArrayNode extensionFields, JsonNode old, List<ExtensionActionInput> submitted) {
+        List<ExtensionActionInput> inputs = submitted;
+        if (inputs == null) {
+            inputs = new ArrayList<>(); // 旧客户端未传动作时保留现有动作，同时重新校验字段引用。
+            for (JsonNode action : old.path("actions")) {
+                List<String> codes = new ArrayList<>();
+                parse(action.path("configJson").asText("{}")).path("parameterFieldCodes").forEach(code -> codes.add(code.asText()));
+                inputs.add(new ExtensionActionInput(action.path("id").asLong(), action.path("code").asText(),
+                        action.path("name").asText(), action.path("location").asText(), codes, action.path("sortOrder").asInt()));
+            }
+        }
+        if (inputs.size() > 20) invalid("每个租户模块最多配置20个新增动作");
+        List<JsonNode> fields = new ArrayList<>();
+        base.path("fields").forEach(fields::add);
+        extensionFields.forEach(fields::add);
+        Set<String> codes = new HashSet<>();
+        base.path("actions").forEach(action -> codes.add(action.path("code").asText().toUpperCase(Locale.ROOT)));
+        Map<String, JsonNode> previous = new LinkedHashMap<>();
+        old.path("actions").forEach(action -> previous.put(action.path("code").asText(), action));
+        ArrayNode result = objectMapper.createArrayNode();
+        for (ExtensionActionInput input : inputs) {
+            String code = input.code().strip().toUpperCase(Locale.ROOT);
+            if (!codes.add(code)) invalid("新增动作与主配置或本租户动作编码冲突：" + code);
+            ObjectNode config = objectMapper.createObjectNode();
+            config.put("operation", "UPDATE_FIELDS");
+            config.set("parameterFieldCodes", objectMapper.valueToTree(input.parameterFieldCodes()));
+            configurationService.validateCustomActionConfig(config, fields);
+            JsonNode prior = previous.get(code);
+            String physicalCode = "__t" + context.tenantId() + "_" + code;
+            ConfiguredModuleAction physical;
+            if (prior != null) {
+                physical = actionService.selectById(prior.path("id").asLong());
+                if (input.actionId() != null && !input.actionId().equals(prior.path("id").asLong())) invalid("动作身份不能修改：" + code);
+            } else {
+                if (input.actionId() != null) invalid("新动作不能指定已有动作身份");
+                // 删除后重新加入同一编码时复用原物理身份，保留历史版本及 Flow 引用。
+                physical = actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
+                        .eq(ConfiguredModuleAction::getModuleId, module.getId())
+                        .eq(ConfiguredModuleAction::getOwnerTenantId, context.tenantId())
+                        .eq(ConfiguredModuleAction::getCode, physicalCode)).stream().findFirst().orElse(null);
+                if (physical == null) {
+                    physical = new ConfiguredModuleAction();
+                    physical.setSystemId(context.systemId());
+                    physical.setOwnerTenantId(context.tenantId());
+                    physical.setModuleId(module.getId());
+                    physical.setCode(physicalCode);
+                    physical.setActionType("CUSTOM");
+                    physical.setVersion(0);
+                }
+            }
+            if (physical == null || !context.systemId().equals(physical.getSystemId())
+                    || !context.tenantId().equals(physical.getOwnerTenantId()) || !module.getId().equals(physical.getModuleId())
+                    || !physicalCode.equals(physical.getCode()) || !"CUSTOM".equals(physical.getActionType())) invalid("动作来源无效：" + code);
+            physical.setName(input.name().strip());
+            physical.setLocation(input.location());
+            physical.setSortOrder(input.sortOrder());
+            physical.setStatus("ACTIVE");
+            physical.setConfigJson(write(config));
+            if (physical.getId() == null) actionService.insert(physical);
+            else if (actionService.updateById(physical) == 0) conflict("扩展动作已经变化");
+            ObjectNode action = objectMapper.valueToTree(physical);
+            action.put("code", code);
+            action.put("source", "TENANT");
+            action.put("sourceTenantId", context.tenantId());
+            action.put("mandatory", false);
+            result.add(action);
+        }
+        return result;
+    }
+
+    /** 发布时检查动作物理归属和当前有效参数，不能用旧快照跳过来源及字段变化。 */
+    private void validateActions(AuthenticatedContext context, ConfiguredModule module, JsonNode base,
+                                 JsonNode document, List<TenantExtensionIssue> issues) {
+        List<JsonNode> fields = new ArrayList<>();
+        base.path("fields").forEach(fields::add);
+        document.path("fields").forEach(fields::add);
+        Set<String> codes = new HashSet<>();
+        base.path("actions").forEach(action -> codes.add(action.path("code").asText().toUpperCase(Locale.ROOT)));
+        for (JsonNode action : document.path("actions")) {
+            String code = action.path("code").asText();
+            ConfiguredModuleAction physical = actionService.selectById(action.path("id").asLong());
+            if (!codes.add(code) || physical == null || !context.systemId().equals(physical.getSystemId())
+                    || !context.tenantId().equals(physical.getOwnerTenantId()) || !module.getId().equals(physical.getModuleId())
+                    || !("__t" + context.tenantId() + "_" + code).equals(physical.getCode())
+                    || !"CUSTOM".equals(physical.getActionType()) || !"ACTIVE".equals(physical.getStatus())) {
+                issues.add(new TenantExtensionIssue("actions." + code, "TENANT_ACTION_SOURCE_INVALID", "扩展动作身份、编码或来源无效"));
+            }
+            try { configurationService.validateCustomActionConfig(parse(action.path("configJson").asText("{}")), fields); }
+            catch (DomainException exception) { issues.add(new TenantExtensionIssue("actions." + code, exception.code(), exception.getMessage())); }
+        }
     }
 
     private List<TenantExtensionIssue> validateDocument(
@@ -382,9 +497,17 @@ public class TenantExtensionService {
                 issues.add(new TenantExtensionIssue("fields." + code, "TENANT_FIELD_CODE_CONFLICT", "扩展字段稳定编码发生冲突"));
             }
             ConfiguredModuleField physical = fieldService.selectById(field.path("id").asLong());
-            if (physical == null || !context.tenantId().equals(physical.getOwnerTenantId())
+            if (physical == null || !context.systemId().equals(physical.getSystemId())
+                    || !context.tenantId().equals(physical.getOwnerTenantId()) || !"ACTIVE".equals(physical.getStatus())
                     || !module.getId().equals(physical.getModuleId()) || !physical.getFieldType().equals(field.path("fieldType").asText())) {
                 issues.add(new TenantExtensionIssue("fields." + code, "TENANT_FIELD_SOURCE_INVALID", "扩展字段来源或基础语义无效"));
+            }
+            try {
+                validateFieldBinding(context, field.path("fieldType").asText(),
+                        nullableId(field, "dictionaryId"), nullableId(field, "referenceModuleId"),
+                        parse(field.path("configJson").asText("{}")));
+            } catch (DomainException exception) {
+                issues.add(new TenantExtensionIssue("fields." + code, exception.code(), exception.getMessage()));
             }
         });
         document.path("pages").forEach(page -> {
@@ -396,9 +519,28 @@ public class TenantExtensionService {
                 issues.add(new TenantExtensionIssue("pages.FORM", "MAIN_MANDATORY_FIELD_HIDDEN", "租户页面不能隐藏主租户强制字段"));
             }
         });
+        validateActions(context, module, base, document, issues);
         try { validateBindings(context, module, readBindings(document), allCodes, false); }
         catch (DomainException exception) { issues.add(new TenantExtensionIssue("applicationBindings", exception.code(), exception.getMessage())); }
         return issues;
+    }
+
+    /** 草稿和发布重复核对当前有效来源，不能使用其他租户的字典或未发布关联模块。 */
+    private void validateFieldBinding(AuthenticatedContext context, String fieldType, Long dictionaryId,
+                                      Long referenceModuleId, JsonNode config) {
+        configurationService.validateFieldDefinition(context, fieldType, dictionaryId, referenceModuleId, config, null);
+        if (dictionaryId != null) dictionaryConfigurationService.validateExtensionBinding(context, dictionaryId);
+        if (referenceModuleId != null) {
+            ConfiguredModule target = moduleService.selectById(referenceModuleId);
+            if (!"ACTIVE".equals(target.getStatus()) || publication(target) == null) {
+                invalid("租户扩展只能绑定已发布的关联模块");
+            }
+            identifierIntegrity.requireUnambiguous(target);
+        }
+    }
+
+    private Long nullableId(JsonNode field, String property) {
+        return field.path(property).isNumber() ? field.path(property).longValue() : null;
     }
 
     private ArrayNode validateBindings(
@@ -480,6 +622,13 @@ public class TenantExtensionService {
     }
 
     private ObjectNode decorateBase(ObjectNode base, SystemTenant mainTenant) {
+        base.path("actions").forEach(action -> {
+            if (action.isObject()) {
+                ((ObjectNode) action).put("source", "MAIN");
+                ((ObjectNode) action).put("sourceTenantId", mainTenant.getId());
+                ((ObjectNode) action).put("mandatory", true);
+            }
+        });
         base.path("fields").forEach(field -> {
             if (field.isObject()) {
                 ((ObjectNode) field).put("source", "MAIN");
@@ -564,6 +713,7 @@ public class TenantExtensionService {
         source.put("tenantId", context.tenantId());
         document.putArray("fields");
         document.putArray("pages");
+        document.putArray("actions");
         document.putArray("applicationBindings");
         return document;
     }

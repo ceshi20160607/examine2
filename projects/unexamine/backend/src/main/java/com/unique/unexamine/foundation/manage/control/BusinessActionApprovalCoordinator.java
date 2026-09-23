@@ -38,11 +38,15 @@ public class BusinessActionApprovalCoordinator {
     private final AuditRecorder audit;
     private final ObjectMapper json;
     private final TransactionTemplate transactions;
+    private final BusinessActionValueProtection valueProtection;
+    /** 节点已批准字段补丁独立于原待审批意图。 */
+    private final BusinessActionFormSubmissions formSubmissions;
 
     public BusinessActionApprovalCoordinator(BusinessActionMapper mapper, CoreIdempotencyRecordBaseService results,
             CoreEventOutboxBaseService events, PermissionResolver permissions, ObjectProvider<RuntimeDataService> runtime,
             ObjectProvider<FoundationExtensionDispatcher> dispatcher, AuditRecorder audit, ObjectMapper json,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager, BusinessActionValueProtection valueProtection,
+            BusinessActionFormSubmissions formSubmissions) {
         this.mapper = mapper;
         this.results = results;
         this.events = events;
@@ -53,6 +57,8 @@ public class BusinessActionApprovalCoordinator {
         this.json = BusinessAction.storageMapper(json);
         this.transactions = new TransactionTemplate(transactionManager);
         this.transactions.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.valueProtection = valueProtection;
+        this.formSubmissions = formSubmissions;
     }
 
     public void reconcileDue() {
@@ -60,6 +66,29 @@ public class BusinessActionApprovalCoordinator {
     }
 
     public void reconcile(long actionId) { settle(actionId, false); }
+
+    /** 本人申请目录只读取当前成员上下文；调用方还须复用原动作进度的业务权限校验。 */
+    public java.util.List<CoreEventOutbox> ownFlowEvents(AuthenticatedContext viewer, Long cursor, int pageSize) {
+        currentActor(viewer);
+        return mapper.ownFlowEvents(viewer, cursor, pageSize);
+    }
+
+    /** 通知仅从内部 START/outbox 恢复原申请人，手动流程没有这种业务动作关联。 */
+    public NotificationAction notificationAction(FlowInstance flow) {
+        CoreEventOutbox event = mapper.boundFlowEvent(flow.getId());
+        if (event == null) return null;
+        try {
+            var input = json.treeToValue(read(event.getPayloadJson()).get("action"), BusinessAction.Input.class);
+            long actionId = Long.parseLong(event.getAggregateId());
+            actionForProgress(flow, input.actor(), input.moduleCode(), actionId);
+            return new NotificationAction(actionId, input);
+        } catch (JsonProcessingException | NumberFormatException exception) {
+            throw conflict("ACTION_INTENT_INVALID", "原业务动作无法读取，已阻止通知跳转");
+        }
+    }
+
+    /** 已验证关联的原动作标识及实际发起人；不会作为接口响应输出原始输入。 */
+    public record NotificationAction(long actionId, BusinessAction.Input input) {}
 
     // Called only after the receipt endpoint has checked ownership. Execution still rechecks original authority.
     void retry(long actionId) { settle(actionId, true); }
@@ -79,7 +108,8 @@ public class BusinessActionApprovalCoordinator {
                 AuthenticatedContext actor = currentActor(intent.input().actor());
                 // 动作结果既可能是记录，也可能包含转化目标；保留原类型结构供原请求回放。
                 Object value = runtime.getObject().resumeApprovedAction(
-                        new BusinessAction.ApprovedExecution(intent.input(), intent.payload().path("configurationSnapshot")), actor);
+                        new BusinessAction.ApprovedExecution(formSubmissions.mergeForExecution(intent.input(), flow),
+                                intent.payload().path("configurationSnapshot")), actor);
                 finish(intent, "EXECUTED", value, null, null);
                 CoreEventOutbox event = new CoreEventOutbox();
                 event.setContextType("SYSTEM");
@@ -133,7 +163,9 @@ public class BusinessActionApprovalCoordinator {
         }
         ObjectNode payload = read(event.getPayloadJson());
         try {
-            return new Intent(record, event, payload, json.treeToValue(payload.get("action"), BusinessAction.Input.class),
+            // 仅锁定后供原动作执行解密；payload仍是加密存储副本，终态回写不会重存明文意图。
+            ObjectNode execution = valueProtection.restoreForExecution(payload);
+            return new Intent(record, event, payload, json.treeToValue(execution.get("action"), BusinessAction.Input.class),
                     response.path("status").asText(), payload.path("flowInstanceId").asLong());
         } catch (JsonProcessingException exception) {
             throw conflict("ACTION_INTENT_INVALID", "待审批操作内容无法读取，已阻止执行");
@@ -152,7 +184,100 @@ public class BusinessActionApprovalCoordinator {
         return flow;
     }
 
-    private AuthenticatedContext currentActor(AuthenticatedContext original) {
+    /** 内部流程续跑只恢复服务端持久化的原动作，随后重新校验真实发起人的当前身份和权限。 */
+    public AuthenticatedContext actorForBoundFlow(FlowInstance flow) {
+        CoreEventOutbox event = mapper.boundFlowEvent(flow.getId());
+        if (event == null) throw conflict("ACTION_FLOW_ORIGIN_MISSING", "流程的原业务动作不存在，已阻止执行");
+        var payload = read(event.getPayloadJson());
+        try {
+            BusinessAction.Input input = json.treeToValue(payload.get("action"), BusinessAction.Input.class);
+            if (!Objects.equals(flow.getSystemId(), input.actor().systemId())
+                    || !Objects.equals(flow.getTenantId(), input.dataTenantId())
+                    || !Objects.equals(flow.getStartedByAccountId(), input.actor().accountId())
+                    || flow.getFlowVersionId() != payload.path("binding").path("flowVersionId").asLong()
+                    || (payload.hasNonNull("flowInstanceId") && flow.getId() != payload.path("flowInstanceId").asLong())) {
+                throw conflict("ACTION_APPROVAL_FLOW_MISMATCH", "流程与原业务动作不匹配，已阻止执行");
+            }
+            return currentActor(input.actor());
+        } catch (JsonProcessingException exception) {
+            throw conflict("ACTION_INTENT_INVALID", "原业务动作无法读取，已阻止执行");
+        }
+    }
+
+    /** 查看入口必须从服务端 START/outbox 关联恢复本人原动作，不能相信流程业务快照中的身份。 */
+    public BusinessAction.Input actionForProgress(FlowInstance flow, AuthenticatedContext viewer,
+                                                  String moduleCode, long actionId) {
+        CoreEventOutbox event = mapper.boundFlowEvent(flow.getId());
+        if (event == null || !"BUSINESS_ACTION".equals(event.getAggregateType())
+                || !Long.toString(actionId).equals(event.getAggregateId())
+                || !Objects.equals(event.getSystemId(), viewer.systemId())) {
+            throw new DomainException("ACTION_FLOW_NOT_FOUND", "该操作的审批进度不存在或无权访问", HttpStatus.NOT_FOUND);
+        }
+        var payload = read(event.getPayloadJson());
+        try {
+            BusinessAction.Input input = json.treeToValue(payload.get("action"), BusinessAction.Input.class);
+            AuthenticatedContext original = input.actor();
+            if (!moduleCode.equals(input.moduleCode()) || !Objects.equals(viewer.accountId(), original.accountId())
+                    || !Objects.equals(viewer.systemId(), original.systemId())
+                    || !Objects.equals(viewer.tenantId(), original.tenantId())
+                    || !Objects.equals(viewer.memberId(), original.memberId())
+                    || !Objects.equals(viewer.tenantMemberId(), original.tenantMemberId())
+                    || !Objects.equals(flow.getFlowId(), payload.path("binding").path("flowId").asLong())
+                    || !("MODULE:" + moduleCode).equals(flow.getBusinessType())) {
+                throw new DomainException("ACTION_FLOW_NOT_FOUND", "该操作的审批进度不存在或无权访问", HttpStatus.NOT_FOUND);
+            }
+            // 同样验证真实来源数据租户、发起账号和绑定版本；返回时仍使用接收方当前权限。
+            actorForBoundFlow(flow);
+            return input;
+        } catch (JsonProcessingException exception) {
+            throw conflict("ACTION_INTENT_INVALID", "原业务动作无法读取，已阻止访问");
+        }
+    }
+
+    /** 只读页面从服务端 START/outbox 恢复原提交；不借发起人权限，也不解密待审批密钥。 */
+    public BoundBusinessRead businessReadForFlow(FlowInstance flow) {
+        CoreEventOutbox event = mapper.boundFlowEvent(flow.getId());
+        if (event == null) return null;
+        var payload = read(event.getPayloadJson());
+        // 启动事务先保存 START 标记，随后 outbox 才落定实例 ID；初始回执不投影未落定的关联。
+        if (!payload.hasNonNull("flowInstanceId")) return null;
+        var input = valueProtection.flowInput(payload);
+        if (!"BUSINESS_ACTION".equals(event.getAggregateType())
+                || !Objects.equals(event.getSystemId(), flow.getSystemId())
+                || !Objects.equals(input.actor().systemId(), flow.getSystemId())
+                || !Objects.equals(input.dataTenantId(), flow.getTenantId())
+                || !Objects.equals(input.actor().accountId(), flow.getStartedByAccountId())
+                || !Objects.equals(flow.getFlowId(), payload.path("binding").path("flowId").asLong())
+                || !Objects.equals(flow.getFlowVersionId(), payload.path("binding").path("flowVersionId").asLong())
+                || !Objects.equals(flow.getId(), payload.path("flowInstanceId").asLong())
+                || !("MODULE:" + input.moduleCode()).equals(flow.getBusinessType())) {
+            throw conflict("ACTION_APPROVAL_FLOW_MISMATCH", "审批业务关联无法核验，不能读取提交内容");
+        }
+        Long recordId = input.recordId();
+        if (recordId == null && payload.path("result").path("id").isIntegralNumber()) {
+            recordId = payload.path("result").path("id").longValue();
+        }
+        return new BoundBusinessRead(input, payload.path("configurationSnapshot").deepCopy(), recordId);
+    }
+
+    /** 数据只供当前查看者重新鉴权，不能用于恢复执行或直接返回给客户端。 */
+    public record BoundBusinessRead(BusinessAction.Input input,
+            com.fasterxml.jackson.databind.JsonNode configurationSnapshot, Long recordId) {}
+
+    /** 仅内部已授权任务表单使用；查看页面继续使用不解密的 businessReadForFlow。 */
+    public BoundBusinessRead formOriginForFlow(FlowInstance flow) {
+        BoundBusinessRead safe = businessReadForFlow(flow);
+        if (safe == null) return null;
+        var event = mapper.boundFlowEvent(flow.getId());
+        var payload = read(event.getPayloadJson());
+        if (!"AFTER_APPROVAL".equals(payload.path("mode").asText())) return null;
+        var restored = valueProtection.restoreForExecution(payload);
+        var original = json.convertValue(restored.path("action"), BusinessAction.Input.class);
+        return new BoundBusinessRead(original, safe.configurationSnapshot(), original.recordId());
+    }
+
+    /** 原发起人仍须属于其实际租户；不能借来源租户或当前审批人的权限续跑。 */
+    public AuthenticatedContext currentActor(AuthenticatedContext original) {
         if (mapper.activeActor(original) != 1) {
             throw conflict("ACTION_ACTOR_INACTIVE", "原发起人的账号、系统、租户或成员身份已停用，未执行业务变更");
         }

@@ -1,0 +1,84 @@
+{
+  "record_id": 143,
+  "source_share_revoked_publicly": true,
+  "share_id": 11,
+  "before_denied_save": {
+    "record": [
+      [
+        "56",
+        "E9A1B5E99DA2E69DA5E6BA90E7BC96E8BE91E9AA8CE694B6",
+        "91",
+        "93",
+        "5"
+      ]
+    ],
+    "values": [
+      [
+        "hidden_department",
+        "3933"
+      ],
+      [
+        "hidden_person",
+        "3931"
+      ],
+      [
+        "secret_text",
+        "E4BF9DE79599E58F97E99990E5A487E6B3A8"
+      ],
+      [
+        "subject",
+        "E9A1B5E99DA2E69DA5E6BA90E7BC96E8BE91E9AA8CE694B6"
+      ],
+      [
+        "visible_department",
+        "3731"
+      ],
+      [
+        "visible_person",
+        "3931"
+      ]
+    ]
+  },
+  "after_denied_save": {
+    "record": [
+      [
+        "56",
+        "E9A1B5E99DA2E69DA5E6BA90E7BC96E8BE91E9AA8CE694B6",
+        "91",
+        "93",
+        "5"
+      ]
+    ],
+    "values": [
+      [
+        "hidden_department",
+        "3933"
+      ],
+      [
+        "hidden_person",
+        "3931"
+      ],
+      [
+        "secret_text",
+        "E4BF9DE79599E58F97E99990E5A487E6B3A8"
+      ],
+      [
+        "subject",
+        "E9A1B5E99DA2E69DA5E6BA90E7BC96E8BE91E9AA8CE694B6"
+      ],
+      [
+        "visible_department",
+        "3731"
+      ],
+      [
+        "visible_person",
+        "3931"
+      ]
+    ]
+  },
+  "denied_save_no_change": true,
+  "share_status": "REVOKED",
+  "page_form_and_detail_closed": true,
+  "page_record_removed_from_list": true,
+  "remaining_list_count": 1
+}

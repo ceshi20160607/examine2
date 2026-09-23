@@ -31,4 +31,7 @@ public final class TodoModels {
 
     public record HandleResult(TodoView todo, String resultReference, Object targetResult) {
     }
+
+    /** 已通过当前待办所有权和目标审批权限校验的服务端跳转地址。 */
+    public record OpenResult(Long todoId, String route) {}
 }

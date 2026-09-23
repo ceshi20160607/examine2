@@ -77,10 +77,10 @@ export function isBasicRuntimeField(fieldType: string) {
 }
 
 export function supportsTextConstraints(fieldType: string) {
-  return textRuntimeFieldTypes.has(fieldType) || fieldType === 'RICH_TEXT'
+  return textRuntimeFieldTypes.has(fieldType) || ['RICH_TEXT', 'SECRET'].includes(fieldType)
 }
 export function isSharedRuntimeField(fieldType: string) {
-  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON', 'MONEY', 'SINGLE_SELECT', 'STATUS'].includes(fieldType)
+  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON', 'MONEY', 'SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'SECRET'].includes(fieldType)
 }
 export function supportsFieldSearch(fieldType: string) { return !['JSON', 'SECRET'].includes(fieldType) }
 export function supportsContentSort(fieldType: string) { return !['RICH_TEXT', 'JSON', 'SECRET'].includes(fieldType) }
@@ -107,6 +107,8 @@ export function defaultEditor(fieldType: string): 'TEXT' | 'NUMBER' | 'DATE' | '
 }
 
 export function filterOperators(fieldType?: string) {
+  // 秘密值不参与任何条件推断，展示权限不能变成查询权限。
+  if (fieldType === 'SECRET') return []
   const common = [{ value: 'EQ', label: '等于' }, { value: 'NE', label: '不等于' }]
   const empty = [{ value: 'EMPTY', label: '为空' }, { value: 'NOT_EMPTY', label: '不为空' }]
   const family = fieldFamily(fieldType)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Empty, message } from 'ant-design-vue'
 import { ReloadOutlined } from '@ant-design/icons-vue'
 import { ApiError, api } from '../api'
@@ -10,9 +11,10 @@ import { todoActionLabel, todoNeedsComment, todoNeedsTarget, todoStatusLabel, to
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import PersonSelect from '../components/PersonSelect.vue'
 import { productDateTime } from '../presentation'
-import type { SystemPeopleDirectory, TodoHandleResult, TodoItemView } from '../types'
+import type { SystemPeopleDirectory, TodoHandleResult, TodoItemView, TodoOpenResult } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
+const router = useRouter()
 const emit = defineEmits<{
   openFlow: [target: { taskId?: number; instanceId?: number }]
   openWork: [target: { taskId: number }]
@@ -31,6 +33,16 @@ const selected = ref<TodoItemView>()
 const action = ref('APPROVE')
 const actionForm = reactive({ comment: '', targetTenantMemberId: undefined as number | undefined })
 const lastResult = ref<TodoHandleResult>()
+const openingTodoId = ref<number>()
+let active = true
+let listGeneration = 0
+let directoryGeneration = 0
+let openGeneration = 0
+const identity = computed(() => {
+  const context = current.value
+  return JSON.stringify([props.context, context?.platformId, context?.accountId, context?.systemId, context?.tenantId,
+    context?.memberId, context?.tenantMemberId, context?.contextRevision, context?.roleIds, context?.permissions, context?.dataScopes])
+})
 const groups = computed(() => [
   { key: 'APPROVAL', label: '需要审批', description: '需要你作出明确决定的流程事项', rows: rows.value.filter(item => item.todoType === 'APPROVAL') },
   { key: 'WORK', label: '需要推进', description: '由你负责推进的任务事项', rows: rows.value.filter(item => item.todoType === 'WORK') },
@@ -40,6 +52,14 @@ const groups = computed(() => [
 function can(actionCode: string) {
   return allowsPermission(current.value?.permissions, 'TODO', contextCode.value, actionCode)
     || allowsPermission(current.value?.permissions, 'TODO', '*', actionCode)
+}
+
+function requestContext() {
+  return { token: token.value, identity: identity.value }
+}
+
+function requestCurrent(context: ReturnType<typeof requestContext>) {
+  return active && context.token === token.value && context.identity === identity.value
 }
 
 function describeError(error: unknown) {
@@ -64,29 +84,55 @@ function priorityColor(value: string) {
 
 async function load() {
   if (!token.value || !can('VIEW')) return
+  const context = requestContext()
+  const request = ++listGeneration
   loading.value = true
   try {
-    rows.value = await api<TodoItemView[]>(`/api/todos?status=${encodeURIComponent(status.value)}&type=${encodeURIComponent(type.value)}`, {}, token.value)
+    const result = await api<TodoItemView[]>(`/api/todos?status=${encodeURIComponent(status.value)}&type=${encodeURIComponent(type.value)}`, {}, context.token)
+    if (requestCurrent(context) && request === listGeneration) rows.value = result
   } catch (error) {
-    message.error(describeError(error))
-  } finally { loading.value = false }
+    if (requestCurrent(context) && request === listGeneration) message.error(describeError(error))
+  } finally { if (requestCurrent(context) && request === listGeneration) loading.value = false }
 }
 
 async function loadDirectory() {
   if (!token.value || props.context !== 'system') return
-  try { directory.value = await api<SystemPeopleDirectory>('/api/system-directory', {}, token.value) }
-  catch (error) { message.error(describeError(error)) }
+  const context = requestContext()
+  const request = ++directoryGeneration
+  try {
+    const result = await api<SystemPeopleDirectory>('/api/system-directory', {}, context.token)
+    if (requestCurrent(context) && request === directoryGeneration) directory.value = result
+  } catch (error) { if (requestCurrent(context) && request === directoryGeneration) message.error(describeError(error)) }
 }
 
-function openSource(todo: TodoItemView) {
-  if (todo.sourceType === 'FLOW_TASK' && Number(todo.sourceId)) {
-    emit('openFlow', { taskId: Number(todo.sourceId) })
-  } else if (todo.sourceType === 'WORK_TASK' && Number(todo.sourceId)) {
-    emit('openWork', { taskId: Number(todo.sourceId) })
-  }
+async function openSource(todo: TodoItemView) {
+  if (!['FLOW_TASK', 'WORK_TASK', 'RUNTIME_RECORD'].includes(todo.sourceType) || !token.value || openingTodoId.value) return
+  const context = requestContext()
+  const request = ++openGeneration
+  openingTodoId.value = todo.id
+  try {
+    // 只传待办 ID，由服务端重查当前所有权及 Flow 可见权限后生成跳转地址。
+    const result = await api<TodoOpenResult>(`/api/todos/${todo.id}/open`, { method: 'POST' }, context.token)
+    if (!requestCurrent(context) || request !== openGeneration) return
+    if (result.todoId !== todo.id || !result.route) {
+      message.error('待办打开结果与当前事项不匹配，请刷新待办')
+      return
+    }
+    if (todo.sourceType === 'WORK_TASK' && Number(todo.sourceId)) emit('openWork', { taskId: Number(todo.sourceId) })
+    else await router.push(result.route)
+  } catch (reason) {
+    if (!requestCurrent(context) || request !== openGeneration) return
+    if (reason instanceof ApiError && reason.httpStatus === 401) message.error('请重新登录后打开此待办')
+    else if (reason instanceof ApiError && [403, 404].includes(reason.httpStatus || 0)) {
+      message.error('当前已无法打开此待办或来源，可能已处理或权限已变化，请刷新待办')
+    } else message.error(describeError(reason))
+  } finally { if (requestCurrent(context) && request === openGeneration) openingTodoId.value = undefined }
 }
 
 function openAction(todo: TodoItemView, actionCode: string) {
+  if (!can('HANDLE') || !todo.availableActions.includes(actionCode)) return
+  // 审批快捷入口也进入公共运行页，复用冻结意见、表单修订号、领取和选人规则，避免另造一套审批弹窗。
+  if (todo.sourceType === 'FLOW_TASK') { void openSource(todo); return }
   selected.value = todo
   action.value = actionCode
   Object.assign(actionForm, { comment: '', targetTenantMemberId: undefined })
@@ -97,32 +143,54 @@ async function handleTodo() {
   if (!token.value || !selected.value || !can('HANDLE')) return
   if (todoNeedsComment(action.value) && !actionForm.comment.trim()) return message.warning('拒绝或退回必须填写可追溯原因')
   if (todoNeedsTarget(action.value) && !actionForm.targetTenantMemberId) return message.warning('转交必须选择目标成员')
+  const context = requestContext()
+  const actionCode = action.value
+  const todoId = selected.value.id
   busy.value = true
   try {
-    lastResult.value = await api<TodoHandleResult>(`/api/todos/${selected.value.id}/actions`, {
+    const result = await api<TodoHandleResult>(`/api/todos/${todoId}/actions`, {
       method: 'POST', body: JSON.stringify({
-        actionCode: action.value,
+        actionCode,
         comment: actionForm.comment || undefined,
         targetTenantMemberId: actionForm.targetTenantMemberId,
-        idempotencyKey: runtimeIdempotency(`todo-${action.value.toLowerCase()}`),
+        idempotencyKey: runtimeIdempotency(`todo-${actionCode.toLowerCase()}`),
       }),
-    }, token.value)
+    }, context.token)
+    if (!requestCurrent(context)) return
+    lastResult.value = result
     actionOpen.value = false
     await load()
-    message.success(`待办已${todoActionLabel(action.value)}，目标对象状态已读回`)
+    if (requestCurrent(context)) message.success(`待办已${todoActionLabel(actionCode)}，目标对象状态已读回`)
   } catch (error) {
+    if (!requestCurrent(context)) return
     message.error(describeError(error))
     await load()
-  } finally { busy.value = false }
+  } finally { if (requestCurrent(context)) busy.value = false }
 }
 
 function openLastResult() {
+  if (lastResult.value?.todo.sourceType === 'FLOW_TASK') { void openSource(lastResult.value.todo); return }
   const instanceId = lastResult.value?.targetResult?.instance.id
   if (instanceId) emit('openFlow', { instanceId })
 }
 
 watch([status, type], () => void load())
+watch([identity, token], () => {
+  listGeneration++
+  directoryGeneration++
+  openGeneration++
+  rows.value = []
+  directory.value = { departments: [], people: [], permissionVersion: 0 }
+  selected.value = undefined
+  actionOpen.value = false
+  lastResult.value = undefined
+  openingTodoId.value = undefined
+  loading.value = false
+  busy.value = false
+  if (token.value) { void load(); void loadDirectory() }
+}, { flush: 'sync' })
 onMounted(() => Promise.all([load(), loadDirectory()]))
+onBeforeUnmount(() => { active = false; listGeneration++; directoryGeneration++; openGeneration++; rows.value = []; lastResult.value = undefined })
 </script>
 
 <template>
@@ -154,9 +222,9 @@ onMounted(() => Promise.all([load(), loadDirectory()]))
               <div><span class="todo-card__title"><strong>{{ todo.title }}</strong><a-tag :color="priorityColor(todo.priority)">{{ priorityLabel(todo.priority) }}</a-tag><a-tag :color="statusColor(todo.status)">{{ todoStatusLabel(todo.status) }}</a-tag></span><p>{{ todo.summary }}</p><small>{{ todo.sourceLabel }} · {{ todo.objectName }} · 发起人 {{ todo.initiatorName }}<template v-if="todo.dueAt"> · 截止 {{ productDateTime(todo.dueAt) }}</template></small></div>
             </div>
             <div class="todo-card__actions">
-              <a-button v-if="['FLOW_TASK','WORK_TASK'].includes(todo.sourceType)" @click="openSource(todo)">打开来源</a-button>
+              <a-button v-if="['FLOW_TASK','WORK_TASK','RUNTIME_RECORD'].includes(todo.sourceType)" :loading="openingTodoId === todo.id" :disabled="Boolean(openingTodoId && openingTodoId !== todo.id)" @click="openSource(todo)">打开来源</a-button>
               <template v-if="can('HANDLE')">
-                <a-button v-for="item in todo.availableActions" :key="item" :type="item === 'APPROVE' ? 'primary' : 'default'" @click="openAction(todo, item)">{{ todoActionLabel(item) }}</a-button>
+                <a-button v-for="item in todo.availableActions.filter(action => !['DELEGATE','REVOKE_DELEGATION'].includes(action))" :key="item" :type="['APPROVE','RESUBMIT'].includes(item) ? 'primary' : 'default'" @click="openAction(todo, item)">{{ todoActionLabel(item) }}</a-button>
               </template>
             </div>
           </article>

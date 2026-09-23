@@ -24,24 +24,28 @@ export interface BusinessActionResult<T> {
 /** Keep one request identity across a lost response; a changed form becomes a new action. */
 export function createRuntimeAction() {
   let pending: { fingerprint: string; key: string } | undefined
-  return async function execute<T>(path: string, method: string, body: unknown, token?: string): Promise<BusinessActionResult<T>> {
+  let revision = 0
+  async function execute<T>(path: string, method: string, body: unknown, token?: string, current?: () => boolean): Promise<BusinessActionResult<T>> {
     const serialized = JSON.stringify(body)
     const fingerprint = JSON.stringify([token, path, method, serialized])
     if (pending?.fingerprint !== fingerprint) pending = { fingerprint, key: crypto.randomUUID() }
-    const result = await executeRuntimeAction<T>(path, method, body, pending.key, token)
-    pending = undefined
+    const requestRevision = revision
+    const result = await executeRuntimeAction<T>(path, method, body, pending.key, token, current)
+    if (requestRevision === revision) pending = undefined
     return result
   }
+  // 秘密输入只在当前提交或未知结果重试期间保留，关闭或换身份后释放请求指纹。
+  return Object.assign(execute, { clear: () => { revision++; pending = undefined } })
 }
 
 /** Execute one record action with a caller-owned identity so batch retries can retain failed item keys. */
-export async function executeRuntimeAction<T>(path: string, method: string, body: unknown, idempotencyKey: string, token?: string) {
+export async function executeRuntimeAction<T>(path: string, method: string, body: unknown, idempotencyKey: string, token?: string, current?: () => boolean) {
     const result = await api<BusinessActionResult<T>>(path, {
       method, body: JSON.stringify(body), headers: { 'Idempotency-Key': idempotencyKey, Prefer: 'return=action' },
     }, token)
     // A receipt/read failure must not turn a committed write into a reported save failure.
     const receiptPath = `${path.slice(0, path.indexOf('/records'))}/records/action-results/${result.idempotencyRecordId}`
-    result.delivery = await api<NonNullable<BusinessActionResult<T>['delivery']>>(receiptPath, {}, token).catch(() => undefined)
+    if (!current || current()) result.delivery = await api<NonNullable<BusinessActionResult<T>['delivery']>>(receiptPath, {}, token).catch(() => undefined)
     return result
 }
 
@@ -57,16 +61,22 @@ export interface RuntimeBatchItem<T> {
 /** 各批量动作共用逐条请求身份；结果可以是目标记录包装，未知提交结果始终重试原请求。 */
 export function createRuntimeBatchAction<T extends { id: number; title: string }, TResult = T>() {
   const pending = new Map<number, { path: string; body: unknown; key: string }>()
+  let revision = 0
   return {
-    clear: () => pending.clear(),
+    clear: () => { revision++; pending.clear() },
     async submit(targets: T[], previous: RuntimeBatchItem<TResult>[], options: {
       retryFailed?: boolean
       token: string
       request: (record: T) => { path: string; body: unknown }
       completed: string
+      current?: () => boolean
     }): Promise<RuntimeBatchItem<TResult>[]> {
       const results = new Map(previous.map(item => [item.recordId, item]))
+      const requestRevision = revision
+      const current = () => requestRevision === revision && (!options.current || options.current())
       for (const record of targets) {
+        // 已发送事务由服务端完成；失效上下文不再发后续记录或回填旧结果。
+        if (!current()) break
         const old = results.get(record.id)
         if (old?.status === 'SUCCESS' || (options.retryFailed && old?.status !== 'FAILED')) continue
         let request = pending.get(record.id)
@@ -76,11 +86,13 @@ export function createRuntimeBatchAction<T extends { id: number; title: string }
           pending.set(record.id, request)
         }
         try {
-          const result = await executeRuntimeAction<TResult>(request.path, 'POST', request.body, request.key, options.token)
+          const result = await executeRuntimeAction<TResult>(request.path, 'POST', request.body, request.key, options.token, current)
+          if (!current()) break
           results.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS',
             message: businessActionMessage(result, options.completed), result })
           pending.delete(record.id)
         } catch (reason) {
+          if (!current()) break
           // 明确拒绝意味着未提交；校验修正后可使用新版本。超时、限流及服务器故障仍按未知结果保留原请求。
           const rejected = reason instanceof ApiError && (reason.code === 'RECORD_VERSION_CONFLICT'
             || Boolean(reason.httpStatus && reason.httpStatus >= 400 && reason.httpStatus < 500 && ![408, 429].includes(reason.httpStatus)))

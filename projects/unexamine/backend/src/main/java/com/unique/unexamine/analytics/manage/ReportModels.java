@@ -9,7 +9,7 @@ public final class ReportModels {
     }
 
     public record FieldMetadata(String code, String name, String fieldType, boolean searchable,
-                                boolean readable, boolean indexed, boolean builtIn) {
+                                boolean readable, boolean indexed, boolean builtIn, Long referenceModuleId) {
     }
 
     public record ModuleMetadata(Long moduleId, String moduleCode, String moduleName,

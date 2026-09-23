@@ -1,0 +1,57 @@
+{
+  "step": "B10.2d.1",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "safe-published-callback-selector",
+      "result": "PASS",
+      "applicationId": 12,
+      "applicationVersionId": 11,
+      "callbackId": 1,
+      "addressOrSecretExposed": false
+    },
+    {
+      "case": "signed-delivery-failure-is-durable",
+      "result": "PASS",
+      "instanceId": 291,
+      "jobId": 112,
+      "sequence": 1,
+      "signatureValid": true,
+      "responseStatus": 503,
+      "eventId": "flow-webhook:291:866",
+      "payloadHash": "b570a97ed251700d4324992ebba4729c684e39e75fa4cefd7b7cc68410088ebd"
+    },
+    {
+      "case": "restart-retry-advances-once",
+      "result": "PASS",
+      "instanceId": 291,
+      "attemptCount": 2,
+      "sameEventId": true,
+      "samePayloadHash": true,
+      "callbackExecutionCount": 1
+    },
+    {
+      "case": "completed-job-scan-is-idempotent",
+      "result": "PASS",
+      "receiverRequestCount": 2,
+      "callbackExecutionCount": 1
+    }
+  ],
+  "cleanup": {
+    "application_disabled": true,
+    "flow_disabled": true,
+    "secret_disabled": true
+  },
+  "checked_time": "2026-09-20T17:03:22.365550+08:00",
+  "application_id": 12,
+  "flow_id": 182,
+  "flow_version_id": 181,
+  "callback_id": 1,
+  "instance_id": 291,
+  "job_id": 112,
+  "receiver": {
+    "requestCount": 2,
+    "signaturesValid": true,
+    "rawPayloadStored": false
+  }
+}

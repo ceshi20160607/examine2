@@ -1,0 +1,112 @@
+{
+  "step": "B10.2c.2c",
+  "status": "passed",
+  "code": "validation_anomaly_a0cd9c2f65",
+  "module_ids": [
+    71
+  ],
+  "flow_ids": [
+    181
+  ],
+  "binding_ids": [
+    124
+  ],
+  "event_ids": [
+    453,
+    454,
+    455
+  ],
+  "instance_ids": [
+    289,
+    290
+  ],
+  "cases": [
+    {
+      "case": "no-binding-preserves-original-rejection",
+      "result": "无绑定时原操作返回原业务规则错误且无新增记录，脱敏事件安全结束。",
+      "http": 422,
+      "code": "BUSINESS_RULE_REJECTED",
+      "outboxId": 453
+    },
+    {
+      "case": "flow-unavailable-does-not-change-business-error",
+      "result": "流程停用时异常事实进入可靠重试，原新建仍返回业务规则错误且完整回滚。",
+      "outboxId": 454,
+      "retryCount": 1
+    },
+    {
+      "case": "durable-event-recovers-after-backend-restart",
+      "result": "后端重启后保留失败事件；流程恢复后只启动一个实例。",
+      "outboxId": 454,
+      "instanceId": 289
+    },
+    {
+      "case": "same-action-and-rule-start-at-most-once",
+      "result": "同一请求标识与规则重复失败仍复用原异常事实和流程实例。",
+      "outboxCount": 2,
+      "instanceCount": 1
+    },
+    {
+      "case": "update-validation-rolls-back-and-starts-exception",
+      "result": "编辑校验拒绝后记录值和版本不变，异常流程只携带记录引用和规则身份。",
+      "outboxId": 455,
+      "instanceId": 290
+    },
+    {
+      "case": "concurrency-and-input-errors-are-excluded",
+      "result": "版本冲突和普通输入错误保持原响应，均未产生 EXCEPTION 事实。",
+      "eventCount": 3
+    },
+    {
+      "case": "permission-errors-are-excluded",
+      "result": "缺少模块新建权限返回 403，未产生 EXCEPTION 事实。",
+      "http": 403
+    }
+  ],
+  "module_id": 71,
+  "checked_time": "2026-09-20T16:30:06.476657+08:00",
+  "record_id": 240,
+  "recovery_key": "validation-recovery-e69b2c743a968fe3",
+  "recovery_title": "流程恢复校验拒绝",
+  "restart": {
+    "flow_id": 181,
+    "event_id": 454,
+    "source_id": "CREATE:28320da46a21",
+    "original_http": 422,
+    "original_code": "BUSINESS_RULE_REJECTED"
+  },
+  "prepared": true,
+  "permission_fixture": {
+    "role_id": 159,
+    "tenant_member_id": 190,
+    "member_version": 1,
+    "account_id": 112,
+    "registration_system_id": 114,
+    "registration_system_code": "system_f737e15478",
+    "username": "validation_denied_7b2a9a7be6f8"
+  },
+  "condition_fields": [
+    "actionCode",
+    "errorCategory",
+    "exceptionSource",
+    "failedRows",
+    "importStatus",
+    "recordId",
+    "ruleCode",
+    "ruleId",
+    "ruleName",
+    "ruleType",
+    "successRows",
+    "totalRows"
+  ],
+  "resumed": true,
+  "cleanup": {
+    "binding_disabled": true,
+    "flow_disabled": true,
+    "module_disabled": true,
+    "record_deleted": true,
+    "temporary_account_disabled": true,
+    "events_settled": true,
+    "unfinished_instances": 0
+  }
+}

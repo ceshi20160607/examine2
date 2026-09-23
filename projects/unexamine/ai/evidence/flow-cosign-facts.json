@@ -1,0 +1,435 @@
+{
+  "step": "B09.1b.6",
+  "status": "verified_contribution",
+  "code": "cosign_a8874221c6",
+  "fields": {
+    "subject": {
+      "id": 230,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 58,
+      "code": "subject",
+      "name": "会签主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 231,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 58,
+      "code": "score",
+      "name": "会签数量",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 232,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 58,
+      "code": "enabled",
+      "name": "是否启用",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "credential": {
+      "id": 233,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 58,
+      "code": "credential",
+      "name": "保护内容",
+      "fieldType": "SECRET",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 3,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "hidden": {
+      "id": 234,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 58,
+      "code": "hidden",
+      "name": "内部备注",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 4,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "flows": [
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53
+  ],
+  "actions": [
+    {
+      "idempotencyRecordId": 364,
+      "outboxId": 290,
+      "idempotencyKey": "cosign_start_05df19a771fd",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 120
+    },
+    {
+      "idempotencyRecordId": 365,
+      "outboxId": 292,
+      "idempotencyKey": "cosign_start_56ae4ee9f1e2",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 121
+    },
+    {
+      "idempotencyRecordId": 366,
+      "outboxId": 294,
+      "idempotencyKey": "cosign_start_92af7d7c4972",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 122
+    },
+    {
+      "idempotencyRecordId": 367,
+      "outboxId": 295,
+      "idempotencyKey": "cosign_start_db988407ef0f",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 123
+    },
+    {
+      "idempotencyRecordId": 368,
+      "outboxId": 296,
+      "idempotencyKey": "cosign_start_ed08ce0871e4",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 124
+    },
+    {
+      "idempotencyRecordId": 369,
+      "outboxId": 298,
+      "idempotencyKey": "cosign_update_c082c32d65ac",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 125
+    },
+    {
+      "idempotencyRecordId": 370,
+      "outboxId": 300,
+      "idempotencyKey": "cosign_custom_6dbc6ed33b6a",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 126
+    },
+    {
+      "idempotencyRecordId": 371,
+      "outboxId": 302,
+      "idempotencyKey": "cosign_start_3080930f0832",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 127
+    },
+    {
+      "idempotencyRecordId": 372,
+      "outboxId": 303,
+      "idempotencyKey": "cosign_start_2d98796890a4",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 128
+    },
+    {
+      "idempotencyRecordId": 373,
+      "outboxId": 304,
+      "idempotencyKey": "cosign_start_a59347ba47b5",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 129
+    },
+    {
+      "idempotencyRecordId": 374,
+      "outboxId": 306,
+      "idempotencyKey": "cosign_start_cc3b29ddc9a9",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 130
+    }
+  ],
+  "records": [
+    187,
+    188,
+    189,
+    190,
+    191
+  ],
+  "cases": [
+    {
+      "case": "actual_two_requests_wait_same_instance_lock_then_current_read",
+      "instance_id": 120,
+      "waiters": 2,
+      "statuses": [
+        200,
+        409
+      ]
+    },
+    {
+      "case": "parallel_stale_patch_409_task_preserved_refresh_disjoint_merge_once_replay",
+      "record_id": 187
+    },
+    {
+      "case": "actual_two_requests_wait_same_instance_lock_then_current_read",
+      "instance_id": 121,
+      "waiters": 2,
+      "statuses": [
+        200,
+        200
+      ]
+    },
+    {
+      "case": "parallel_last_two_empty_approvals_finish_instead_of_both_waiting"
+    },
+    {
+      "case": "sequence_configured_74_then_139_actual_name_sort_139_first_failed_preserved_terminated",
+      "instance_id": 122
+    },
+    {
+      "case": "interrupted_sequence_fixture_terminated_preserve_failure_history",
+      "instance_id": 123
+    },
+    {
+      "case": "sequential_configured_order_queued_latest_candidate_secret_not_prefilled_zero_false_once"
+    },
+    {
+      "case": "same_all_sign_update_and_custom_original_actor_version_once"
+    },
+    {
+      "case": "required_hidden_rejected_without_formal_save"
+    },
+    {
+      "case": "real_worker_auto_approve_with_form_not_bypass_required_incident_task_kept_no_save",
+      "instance_id": 128
+    },
+    {
+      "case": "gui_ordinary_opened_old_form_then_other_person_changed_candidate"
+    },
+    {
+      "case": "ordinary_gui_409_preserve_input_reload_safe_latest_explicit_submit_once",
+      "record_id": 190
+    },
+    {
+      "case": "ordinary_old_session_score_write_permission_revoked_before_conflict_reload"
+    },
+    {
+      "case": "ordinary_gui_reload_drops_revoked_score_patch_preserves_allowed_subject_and_false",
+      "record_id": 191
+    },
+    {
+      "case": "new_real_sequential_terminal_cancels_pending_and_queued_replay_then_exact_old_fixture_repair",
+      "instance_id": 131,
+      "repair_task_id": 126
+    },
+    {
+      "case": "role_exactly_restored_isolated_archive_disable_no_pending_golden_unchanged"
+    }
+  ],
+  "api_started": true,
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "checked_time": "2026-09-19T03:52:48.057571+08:00",
+  "module_id": 58,
+  "custom": {
+    "id": 634,
+    "systemId": 54,
+    "ownerTenantId": 57,
+    "moduleId": 58,
+    "code": "ACTION_70D9FC5A8136",
+    "name": "会签字段动作",
+    "actionType": "CUSTOM",
+    "location": "ROW",
+    "sortOrder": 120,
+    "status": "ACTIVE",
+    "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"subject\",\"score\"],\"confirmation\":false,\"confirmationText\":null}",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "registration": {
+    "account_id": 87,
+    "system_id": 89,
+    "username": "cosign_a8874221c6_eee5df"
+  },
+  "api_member": 139,
+  "all_flow": 45,
+  "sequential_flow": 50,
+  "resume_started": true,
+  "registrations": [
+    {
+      "account_id": 85,
+      "system_id": 87,
+      "username": "cosign_a8874221c6_e05633"
+    },
+    {
+      "account_id": 86,
+      "system_id": 88,
+      "username": "cosign_a8874221c6_4b6833"
+    },
+    {
+      "account_id": 87,
+      "system_id": 89,
+      "username": "cosign_a8874221c6_eee5df"
+    }
+  ],
+  "resume_member": 143,
+  "resume_all_flow": 49,
+  "pre_verification_failures": [
+    "122配置74→139但姓名排序139先，真实业务缺陷已修，原实例终止。",
+    "123已按配置Root先激活后人；错误假设可写SECRET预填***导致测试KeyError。按RuntimeDataService3785确认可写保护值正确不预填，修断言为字段缺席，未改产品。",
+    "测试进程中断不落凭证，后续新隔离处理人接续；原随机身份/流程/实例全部记录并精确停用，已通过并发120/121不重跑。",
+    "第一次清理已恢复角色/归档全部正式5条/停用夹具身份，但126/122 TERMINATED后仍QUEUED导致断言真实失败；修公共终止并e04c6a新平台顺序实例PENDING+QUEUED实际一起CANCELLED及重放，随后只精确修复旧夹具126，b75653清理通过。"
+  ],
+  "api_verified": true,
+  "timeout_flow": 51,
+  "timeout_action": {
+    "idempotencyRecordId": 372,
+    "outboxId": 303,
+    "idempotencyKey": "cosign_start_2d98796890a4",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 128
+  },
+  "timeout_verified": true,
+  "gui_flow": 52,
+  "gui_action": {
+    "idempotencyRecordId": 373,
+    "outboxId": 304,
+    "idempotencyKey": "cosign_start_a59347ba47b5",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 129
+  },
+  "gui_other_submitted": true,
+  "gui_verified": true,
+  "revoke_action": {
+    "idempotencyRecordId": 374,
+    "outboxId": 306,
+    "idempotencyKey": "cosign_start_cc3b29ddc9a9",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 130
+  },
+  "revoke_other_submitted": true,
+  "score_revoked": true,
+  "revoke_gui_verified": true,
+  "termination_flow": 53,
+  "termination_instance": 131,
+  "termination_verified": true,
+  "cleanup_verified": true,
+  "actual_gui_observations": [
+    "129普通108/69按真实本人任务打开公共会签表单，输入主题/0/否和意见；Root另提交主题/8后旧候选409，弹窗和修改保留，提交禁用。",
+    "显式重读显示最新主题/8/是对照，输入保留本人主题/0/否及意见；明确再次同意→190准确字段并仅一次。",
+    "130同样冲突后仅撤score PAGE/FLOW writable，旧会话重读只读score8并中文提示补丁移除，主题/否保持可编辑；明确提交→191 score8而不是伪造0。",
+    "两PENDING摘要同时显示真实两名处理人，不只显示第一名；SECRET控件不预填或参与明文比较。"
+  ],
+  "verification_limits": [
+    "当前只验证既有AFTER_APPROVAL CREATE/UPDATE/UPDATE_FIELDS CUSTOM的会签及顺序；未完成全部比例/重复审批人/自动审批/其他高级动作。",
+    "超时AUTO_APPROVE存在节点表单时目前安全转人工异常，128真实worker保留待办/无APP无正式写入且精确终止，完整安全自动通过接下包；不以此缩减要求。",
+    "恢复刷新失败/身份切换额外矩阵未全部真实重现；源码保留守卫，任务整失权清空仍按原边界。",
+    "手动/FLOW_ONLY原业务表单消费者、文件、完整应用及剩余产品要求仍保留。"
+  ]
+}

@@ -22,7 +22,8 @@ import PlatformDashboardConfigurationView from './views/PlatformDashboardConfigu
 import PlatformMessageConfigurationView from './views/PlatformMessageConfigurationView.vue'
 import PlatformApplicationConfigurationView from './views/PlatformApplicationConfigurationView.vue'
 import PlatformWorkConfigurationView from './views/PlatformWorkConfigurationView.vue'
-import { platformContext, platformTokens, systemContext, systemTokens } from './session'
+import { clearSession, platformContext, platformTokens, setPlatformSession, systemContext, systemTokens, type CurrentContext } from './session'
+import { api, ApiError } from './api'
 import {
   allowsPermission,
   hasPlatformAdminCapability,
@@ -55,23 +56,49 @@ function requirePlatform() {
   return platformTokens.value?.accessToken && platformContext.value?.accountId ? true : { path: '/login' }
 }
 
+/** 平台导航和受限入口按当前授权判断，不能永久使用登录时存储的权限。 */
+async function refreshPlatformAuthorization() {
+  const authenticated = requirePlatform()
+  if (authenticated !== true) return authenticated
+  const accountId = platformContext.value?.accountId
+  try {
+    const context = await api<CurrentContext>('/api/auth/me', {}, platformTokens.value!.accessToken)
+    // 账号切换期间旧响应不能覆盖新平台身份，也不清理其系统工作区。
+    if (!platformTokens.value || platformContext.value?.accountId !== accountId) return false
+    if (context.accountId !== accountId || context.systemId != null) return false
+    setPlatformSession(platformTokens.value, context)
+    return true
+  } catch (error) {
+    if (platformContext.value?.accountId !== accountId) return false
+    if (error instanceof ApiError && (error.httpStatus === 401 || error.code === 'ACCOUNT_DISABLED')) clearSession()
+    return requirePlatform() === true ? platformNotice('authorization-unavailable') : { path: '/login' }
+  }
+}
+
+/** 首页网络失败时保留可重试的壳；业务与后台入口必须刷新成功才准入。 */
+async function requirePlatformHome() {
+  const refreshed = await refreshPlatformAuthorization()
+  if (refreshed === false) return false
+  return requirePlatform()
+}
+
 function requirePlatformResource(...resourceTypes: string[]) {
-  return () => {
-    const authenticated = requirePlatform()
+  return async () => {
+    const authenticated = await refreshPlatformAuthorization()
     if (authenticated !== true) return authenticated
     return hasResourceAccess(platformContext.value?.permissions, ...resourceTypes) ? true : platformNotice('access-denied')
   }
 }
 
-function requirePlatformWorkRuntime() {
-  const authenticated = requirePlatform()
+async function requirePlatformWorkRuntime() {
+  const authenticated = await refreshPlatformAuthorization()
   if (authenticated !== true) return authenticated
   return hasWorkRuntimeAccess(platformContext.value?.permissions, 'PLATFORM') ? true : platformNotice('access-denied')
 }
 
 function requirePlatformAdmin(capability: PlatformAdminCapability) {
-  return () => {
-    const authenticated = requirePlatform()
+  return async () => {
+    const authenticated = await refreshPlatformAuthorization()
     if (authenticated !== true) return authenticated
     return hasPlatformAdminCapability(platformContext.value?.permissions, capability) ? true : platformNotice('access-denied')
   }
@@ -111,8 +138,8 @@ export const productRoutes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: AuthView, props: { initialMode: 'login' } },
   { path: '/register', name: 'register', component: AuthView, props: { initialMode: 'register' } },
   { path: '/sso/callback', name: 'sso-callback', component: SsoCallbackView },
-  { path: '/platform', name: 'platform', component: PlatformHomeView, beforeEnter: requirePlatform },
-  { path: '/platform/dashboard', name: 'platform-dashboard', component: PlatformDashboardView, beforeEnter: requirePlatform,
+  { path: '/platform', name: 'platform', component: PlatformHomeView, beforeEnter: requirePlatformHome },
+  { path: '/platform/dashboard', name: 'platform-dashboard', component: PlatformDashboardView, beforeEnter: requirePlatformHome,
     meta: { title: '首页', capability: 'dashboard', description: '汇总当前账号有权访问的系统、待办、任务和消息。' } },
   { path: '/platform/flows', name: 'platform-flows', component: PlatformFlowView, beforeEnter: requirePlatformResource('FLOW'),
     meta: { title: '流程', capability: 'flow', description: '查看权限范围内的系统流程和通过应用开放的外部流程。' } },
@@ -134,7 +161,7 @@ export const productRoutes: RouteRecordRaw[] = [
   { path: '/platform/admin/dashboards', name: 'platform-dashboard-configurations', component: PlatformDashboardConfigurationView, beforeEnter: requirePlatformAdmin('configuration') },
   { path: '/platform/admin/messages', name: 'platform-message-configurations', component: PlatformMessageConfigurationView, beforeEnter: requirePlatformAdmin('message') },
   { path: '/platform/admin/work', name: 'platform-work-configurations', component: PlatformWorkConfigurationView, beforeEnter: requirePlatformAdmin('work') },
-  { path: '/profile', name: 'profile', component: PersonalCenterView, beforeEnter: requirePlatform },
+  { path: '/profile', name: 'profile', component: PersonalCenterView, beforeEnter: requirePlatformHome },
   { path: '/systems/:systemId', name: 'system-home', component: SystemHomeView, beforeEnter: requireSystem },
   { path: '/systems/:systemId/admin', name: 'system-admin', component: SystemAdminHomeView, beforeEnter: requireSystemAdmin },
   { path: '/:pathMatch(.*)*', redirect: unavailableRoute },

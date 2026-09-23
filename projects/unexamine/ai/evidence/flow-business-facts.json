@@ -1,0 +1,599 @@
+{
+  "step": "B09.1a",
+  "status": "verified_contribution",
+  "cases": [
+    {
+      "case": "ordinary_pending_full_and_owner_progress",
+      "result": "真实普通用户待审批新建有公共提交描述，无正式行；本人窄进度与完整页使用同一投影，字典中文多选一致。"
+    },
+    {
+      "case": "current_field_channel_mask_no_payload_backdoor",
+      "result": "同一有效登录立即按新 PAGE/FLOW 交集隐藏原提交字段并 FULL 脱敏分值；完整响应和本人窄进度无隐藏检验值、旧载荷补回。"
+    },
+    {
+      "case": "pending_create_detail_row_scope",
+      "result": "拟定负责人101与原发起人不同，DETAIL 本人负责范围拒绝读取草稿；仍可看审批状态，不能用审批发起身份扩大数据范围。"
+    },
+    {
+      "case": "detail_revoked_keeps_only_own_progress",
+      "status": 403,
+      "code": "FLOW_INSTANCE_VIEW_DENIED",
+      "result": "完整实例失权拒绝，本人业务进度仍可读但无申请内容和正式记录。"
+    },
+    {
+      "case": "read_projection_does_not_mutate_intent_or_engine",
+      "hash": "8cd321cb842b6899cc9889cf53736d9025f47562e2be9279a66d681b1602dee7",
+      "result": "多次权限发布和投影读取前后原动作、实例业务快照、流程冻结版本、变量及既有正式字段哈希完全一致；验收申请拒绝收尾。"
+    },
+    {
+      "case": "ordinary_completed_actual_ui_public_fields",
+      "result": "普通69完整实例81：两份字段中文网格、日期时间北京时间10点、多选中文、TEXT日期外观原样；业务面板667px无横向溢出，未显示字段码/重复fields对象/内部成员ID。"
+    },
+    {
+      "case": "ordinary_current_mask_and_hide_actual_ui",
+      "result": "普通69已加载实例重新选择后，提交与当前正式两份字段同时隐藏主题/单选；隐藏主题值和单选标签DOM各0，分值FULL脱敏DOM2。"
+    },
+    {
+      "case": "ordinary_detail_loss_actual_ui_clear",
+      "result": "同一普通69撤销MODULE51 DETAIL，重新选择实例触发403并清空所有原详情/业务面板，当前分类0条，明确失权提示。"
+    },
+    {
+      "case": "frozen_node_policy_and_manual_record_trust",
+      "result": "新独立已发布流程的节点隐藏多选和分值，真实正式记录170分别裁剪值/描述；手动提交的旧变量和业务快照不能覆盖真实数据。随后改草稿取消隐藏，旧实例仍消费冻结策略和原定义哈希，既有81快照不变。"
+    },
+    {
+      "case": "final_actual_formal_source_full_storage_readback",
+      "result": "最终部署读取81当前正式170时间/分值正确，独立节点86实际普通页面拒绝；完整物理值含DATE/DATETIME/FILE/规范化及时间列读取前后一致，来源151/154全部字段与版本等于既有基线，模块51仍4条正式记录。",
+      "physical_value_hash": "a86e4d584c0152cd3fd736935da55512c4ec2f18d8e0602f0c844a1451eb41f5"
+    },
+    {
+      "case": "ordinary_pending_create_real_ui",
+      "result": "普通69使用公共页面新建分值30申请；进度抽屉及完整待办均显示中文原提交内容和正式数据未生成提示，列表仍4条。本人从待办页面拒绝后实际实例REJECTED、待办清零，未产生正式记录。"
+    },
+    {
+      "case": "ordinary_source_owner_progress_final_channel_contract",
+      "result": "最终部署普通69在共享来源事项通过本人动作263进度查看真实来源154：字典来源选项2、关联正式扩展来源关联目标及真实来源工作空间名称，原提交说明与当前说明区分。本人窄进度遵守PAGE权限；完整审批遵守PAGE/FLOW交集，均使用同一只读投影和冻结节点裁剪。"
+    },
+    {
+      "case": "legacy_missing_configuration_does_not_block_directory",
+      "result": "原来源Flow69旧事件无configurationSnapshot，最终部署不以此拒绝合法绑定或堵塞应用目录；普通目录实际加载7项。缺少历史字段身份时不重建原草稿，正式数据独立鉴权。"
+    }
+  ],
+  "temporary_identity": {
+    "account_id": 80,
+    "system_id": 82,
+    "member_id": 123
+  },
+  "temporary_identity_disabled": true,
+  "checked_time": "2026-09-19T00:44:14.106751+08:00",
+  "pending_action": {
+    "idempotencyRecordId": 329,
+    "outboxId": 236,
+    "idempotencyKey": "business_read_ee26085a4aac",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 85
+  },
+  "observed_defects": [
+    {
+      "case": "start_outbox_read_before_link",
+      "result": "新建流程初始详情早于 outbox 实例关联，现未落定时不投影；已落定关联仍严格校验。"
+    },
+    {
+      "case": "draft_null_department_unboxing",
+      "result": "部门可为空，使用 Long 显式装箱保留空值，避免原成员停用或无部门时详情500。"
+    },
+    {
+      "case": "legacy_missing_snapshot_breaks_own_applications",
+      "result": "本人目录既有来源实例69保存的configurationSnapshot为NULL；可信关联仍可核验，改为禁止旧提交投影、当前记录单独鉴权，不阻断本人目录。"
+    }
+  ],
+  "preparation_failures": [
+    {
+      "case": "runtime_action_catalog",
+      "result": "脚本 HANDLE_SELF 不是现有动作，改为 HANDLE；首次角色保存拒绝，无权限变更。"
+    },
+    {
+      "case": "scope_protocol",
+      "result": "脚本误用 SPECIFIED_MEMBERS，改项目公开 DEPARTMENT；失败自动恢复原角色并停用测试身份，旧申请待修复后收尾。"
+    },
+    {
+      "stage": "ui_close_readback",
+      "reason": "MySQL CLI默认字符集不能可靠匹配中文标题；改用已知隔离时间后数值归属定位唯一实例87，再用真实接口验证中文标题。未更改业务数据或守卫。"
+    }
+  ],
+  "prior_attempts": [
+    {
+      "action": {
+        "idempotencyRecordId": 327,
+        "outboxId": 234,
+        "idempotencyKey": "business_read_e83466dd0181",
+        "status": "PENDING_APPROVAL",
+        "replayed": false,
+        "mode": "AFTER_APPROVAL",
+        "value": null,
+        "flowInstanceId": 83
+      },
+      "cases": [
+        {
+          "case": "ordinary_pending_full_and_owner_progress",
+          "result": "真实普通用户待审批新建有公共提交描述，无正式行；本人窄进度与完整页使用同一投影，字典中文多选一致。"
+        },
+        {
+          "case": "current_field_channel_mask_no_payload_backdoor",
+          "result": "同一有效登录立即按新 PAGE/FLOW 交集隐藏原提交字段并 FULL 脱敏分值；完整响应和本人窄进度无隐藏检验值、旧载荷补回。"
+        }
+      ],
+      "closed_flow_id": 83,
+      "reason": "验收脚本使用非法 SPECIFIED_MEMBERS 配置，已改为项目支持的 DEPARTMENT 范围"
+    },
+    {
+      "action": {
+        "idempotencyRecordId": 328,
+        "outboxId": 235,
+        "idempotencyKey": "business_read_152737a04c25",
+        "status": "PENDING_APPROVAL",
+        "replayed": false,
+        "mode": "AFTER_APPROVAL",
+        "value": null,
+        "flowInstanceId": 84
+      },
+      "cases": [
+        {
+          "case": "ordinary_pending_full_and_owner_progress",
+          "result": "真实普通用户待审批新建有公共提交描述，无正式行；本人窄进度与完整页使用同一投影，字典中文多选一致。"
+        },
+        {
+          "case": "current_field_channel_mask_no_payload_backdoor",
+          "result": "同一有效登录立即按新 PAGE/FLOW 交集隐藏原提交字段并 FULL 脱敏分值；完整响应和本人窄进度无隐藏检验值、旧载荷补回。"
+        }
+      ],
+      "closed_flow_id": 84,
+      "reason": "验收脚本使用非法 SPECIFIED_MEMBERS 配置，已改为项目支持的 DEPARTMENT 范围"
+    }
+  ],
+  "api_verified": true,
+  "ordinary_role_permissions": [
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "actionCode": "LIST",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "actionCode": "UPDATE",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_target_4a356e1ce2",
+      "actionCode": "LIST",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_target_4a356e1ce2",
+      "actionCode": "DETAIL",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "actionCode": "ACTION_TENANT_ACCEPT",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "actionCode": "SOURCE_FILL",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "actionCode": "LIST",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "actionCode": "DETAIL",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "actionCode": "UPDATE",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "actionCode": "ACTION_1B6DB1864661",
+      "dataScopeType": "ALL",
+      "dataScopeJson": null
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "flow_condition_accept_20260918",
+      "actionCode": "LIST",
+      "dataScopeType": "ALL"
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "flow_condition_accept_20260918",
+      "actionCode": "DETAIL",
+      "dataScopeType": "ALL"
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "flow_condition_accept_20260918",
+      "actionCode": "CREATE",
+      "dataScopeType": "ALL"
+    },
+    {
+      "resourceType": "MODULE",
+      "resourceCode": "flow_condition_accept_20260918",
+      "actionCode": "UPDATE",
+      "dataScopeType": "ALL"
+    },
+    {
+      "resourceType": "FLOW",
+      "resourceCode": "SYSTEM",
+      "actionCode": "VIEW_RUNTIME",
+      "dataScopeType": "ALL"
+    },
+    {
+      "resourceType": "FLOW",
+      "resourceCode": "SYSTEM",
+      "actionCode": "HANDLE",
+      "dataScopeType": "ALL"
+    }
+  ],
+  "ordinary_role_policies": [
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "subject",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "choice",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "city",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "related",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "hidden",
+      "channel": "PAGE",
+      "readable": false,
+      "writable": false,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_target_4a356e1ce2",
+      "fieldCode": "subject",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": false,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "extension_accept_4a356e1ce2",
+      "fieldCode": "source_note",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "fieldCode": "subject",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "fieldCode": "choice",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "fieldCode": "related",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "fieldCode": "hidden",
+      "channel": "PAGE",
+      "readable": false,
+      "writable": false,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "shared_private_accept_4a356e1ce2",
+      "fieldCode": "source_note",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "subject",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "subject",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "score",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "score",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "enabled",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "enabled",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "occurred",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "occurred",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "day",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "day",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "choices",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "choices",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "choice",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "choice",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "date_text",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "date_text",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "hidden",
+      "channel": "PAGE",
+      "readable": false,
+      "writable": false,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "hidden",
+      "channel": "FLOW",
+      "readable": false,
+      "writable": false,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "manual_choice",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "manual_choice",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "flow_only",
+      "channel": "PAGE",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    },
+    {
+      "resourceCode": "flow_condition_accept_20260918",
+      "fieldCode": "flow_only",
+      "channel": "FLOW",
+      "readable": true,
+      "writable": true,
+      "maskStrategy": null
+    }
+  ],
+  "ui_permission_phase": "ui_grant",
+  "ui_completed_and_loss_verified": true,
+  "node_fixture": {
+    "flow_id": 28,
+    "instance_id": 86,
+    "record_id": 170,
+    "original_instance_hash": "9e7a62898fa0b8ddc93c4ceba57a129bd4abdb9356e7074010ce19169c49e7f0"
+  },
+  "node_verified": true,
+  "recovery_bytecode_comparison": [
+    {
+      "method": "authorizeActionProgress",
+      "identical": true
+    },
+    {
+      "method": "resumeApprovedAction",
+      "identical": true
+    },
+    {
+      "method": "actionVariables",
+      "identical": true
+    },
+    {
+      "method": "actionVariables",
+      "identical": true
+    },
+    {
+      "method": "protectActionReplay",
+      "identical": true
+    },
+    {
+      "method": "validateImport",
+      "identical": true
+    },
+    {
+      "method": "update",
+      "identical": true
+    },
+    {
+      "method": "updateAction",
+      "identical": true
+    }
+  ],
+  "recovery_verified": true,
+  "integrated_readback_verified": true,
+  "ordinary_pending_ui": {
+    "instance_id": 87,
+    "account_id": 69,
+    "status": "REJECTED",
+    "formal_record_count": 4,
+    "pending_tasks": 0
+  },
+  "original_role_restored": true,
+  "api_initial_channel_note": "原API验收在两渠道交集版本通过；后续实际来源进度暴露本人PAGE入口不能强制FLOW权限，已按入口约定修正、编译和普通来源进度复验，保留初次测试原事实。",
+  "backend_test": "ApprovalBusinessReadTest 6 tests, 0 failures/errors/skipped; 2dec00; report retained.",
+  "backend_final_package": "52604 exit0 / 013177; final deployed readback 3d2a37 and actual ordinary UI 87 readback 9f1eed.",
+  "frontend_build": "c5a24b / d5f2d2 exit0; vue-tsc and Vite build; retained flow-business-front-build.log.",
+  "temporary_cleanup": "Approval review rejected cleanup of system temporary recovery files with blocked by policy. Left outside repository; no task/data impact; no workaround.",
+  "verified_time": "2026-09-19T00:45:46.415064+08:00"
+}

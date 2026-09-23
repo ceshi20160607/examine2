@@ -14,7 +14,8 @@ public final class ImportModels {
     }
 
     public record TemplateColumn(
-            String code, String name, String fieldType, boolean required, boolean writable, boolean builtIn) {
+            String code, String name, String fieldType, boolean required,
+            boolean writable, boolean builtIn, boolean uniqueMatch) {
     }
 
     public record TemplateView(
@@ -22,10 +23,14 @@ public final class ImportModels {
             String csvHeader, String sampleRow) {
     }
 
+    public record SourceHeadersView(Long sourceFileId, String format, List<String> headers) {
+    }
+
     public record PreviewRequest(
             @NotNull Long sourceFileId,
             @NotNull Map<@Size(max = 200) String, @Size(max = 100) String> columnMapping,
             @Pattern(regexp = "ERROR|SKIP|UPDATE") String conflictPolicy,
+            @Size(max = 100) String matchFieldCode,
             @Size(max = 200) String mappingName) {
     }
 
@@ -46,7 +51,7 @@ public final class ImportModels {
             Long id, Long systemId, Long tenantId, Long moduleId, String moduleCode,
             Long mappingId, Long sourceFileId, Long jobId, String mode, String status,
             long totalRows, long validRows, long successRows, long failedRows,
-            Map<String, String> columnMapping, String conflictPolicy,
+            Map<String, String> columnMapping, String conflictPolicy, String matchFieldCode,
             Map<String, Object> summary, List<ImportRowView> rows,
             LocalDateTime createdAt, LocalDateTime startedAt, LocalDateTime finishedAt, Integer version) {
     }

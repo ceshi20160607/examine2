@@ -1,0 +1,96 @@
+{
+  "step": "B10.1b",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0880",
+    "R0890",
+    "R0939",
+    "R0942",
+    "R0945",
+    "R0991",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowSubflowPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowSubflowPolicyTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "Execution context passed before implementation. The existing flow version, execution, action, history, task and job storage were reused; no duplicate workflow engine, scheduler, backend, frontend or Redis service was added.",
+    "The designer exposes a published child-flow selector, inherit switch and separate structured input/output mapping rows with add/remove controls. Users do not enter flow IDs or JSON.",
+    "Publication rejected self references, unavailable unpublished children, cross-scope invalid targets, duplicate mapping targets and direct or indirect subflow cycles.",
+    "Publication froze the child flow version, definition hash, name and version number. A parent published before child V2 continued to start frozen child V1.",
+    "Runtime persisted reciprocal parent-instance, parent-execution, node and child-instance links. Child success applied explicit output mappings and resumed the exact parent execution once under a stable idempotency key.",
+    "Child exception remained visible while the parent waited. Child incident could be manually resumed; rejected, terminated or withdrawn children produced a recoverable parent incident instead of silently completing the parent.",
+    "Terminating a parent recursively terminated active child chains and cleared their tasks, jobs and active executions. Two same-backend restarts preserved waiting and terminal parent-child relations and did not duplicate parent resume.",
+    "Ordinary designer and runtime GUI checks showed structured mapping controls, frozen child version, readable parent-child links, waiting/completion/exception/termination history and translated terminal task states.",
+    "Eleven isolated actual case groups covered publication guards, frozen version and mappings, failure visibility, restart recovery, exactly-once resume/replay, incident recovery, cascade termination, ordinary GUI and exact cleanup.",
+    "JDK21 Maven package with FlowSubflowPolicyTest passed. The final frontend production build passed with only the pre-existing bundle-size warning. Targeted git diff --check passed with existing CRLF normalization warnings only.",
+    "Cleanup disabled owned flows 148-156, left zero unfinished tasks, jobs and executions for owned instances 254-259, and preserved existing Module51."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-subflow-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-subflow-facts.json",
+    "projects/unexamine/ai/evidence/flow-subflow-before-variable-readback.json"
+  ],
+  "permission_or_failure_result": "Subflow targets and frozen versions are server-authoritative. Publication blocks self/cyclic/unpublished targets and invalid mappings; durable reciprocal links plus SUBFLOW_RESUME:<parentExecution>:<childInstance> prevent duplicate parent continuation; failures remain visible and recoverable, and parent terminal state cannot leave active child work.",
+  "remaining": "This closes the bounded subflow lifecycle contribution. Remaining automatic business, notification, wait/timer, webhook/external nodes, controlled applications, external channels and all other product requirements remain required.",
+  "next_step": "B10.2a",
+  "next_scope": "Implement structured automatic business data nodes over the verified common action executor: field update and data create/update choose authorized modules, operations and fields through controls, publish an immutable safe configuration, execute idempotently with permission and version checks, expose readable success/failure/retry history, and verify actual API/database/GUI/replay/restart/cleanup without JSON or raw action codes.",
+  "integrated_verification": "11 actual case groups, focused backend package/test, frontend production build, ordinary GUI, API/database readback, two same-backend restarts, idempotent replay and exact cleanup passed.",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T11:52:00+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowSubflowPolicy.java",
+      "sha256": "3c61fa1333ddd1fa64ab24aa872c82fb0f6a2810050ddf778897c7a431c697ea"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "2768a95a1a31cea2e031e1c8eb0d7799441909c26393eb8284426438364bbb63"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "158e74b0133142557016466240254b2d2217b695dd4e8522a0bc9fe34ba73753"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "e9367caf79976fcc4cec6133a325e0e19cdaaf80a737775a3d82d0afb4dbc11a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowSubflowPolicyTest.java",
+      "sha256": "1dafb2ab88722a568fef46ae5b87397b8daf337e1f3db2e7b9abe6373fd34024"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "a36eb7a5dd22723d557977a9379b1cfaddba087b89359630f24dd6e480f833dc"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "f13641f68903decf0723046ca945a9cb54349a5b07d0b9b3557ad301ec41311e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "a4a393533f2dbaa14485151850b5b749dd5b3cc0a8ad1b104fa2305cc20d360f"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-subflow-acceptance.py",
+      "sha256": "5bfbbba63725cb79238848795268b15b7af1e0827f2bcf963e3a15162e32bc63"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-subflow-facts.json",
+      "sha256": "9dcaeb486da33ffabc073b6aff5202b2181597a57ff10a537d0a3812f77379f6"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-subflow-before-variable-readback.json",
+      "sha256": "b5c1ddeeba164cba9cef9ce3f9ab91ce962e4441e843b90f2197b4549dd2077c"
+    }
+  ]
+}

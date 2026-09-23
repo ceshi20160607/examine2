@@ -31,6 +31,11 @@ import com.unique.unexamine.system.base.service.SystemMemberRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
+import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.SharedSourceMetadataService;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,11 +56,21 @@ import java.util.stream.Collectors;
 public class SystemAuthorizationManagementService {
     private static final Map<String, List<String>> FIXED_RESOURCES = Map.of(
             "CONFIG:SYSTEM", List.of("MANAGE", "MIGRATE_TENANT_MODE"),
-            "CONFIG:MODULE", List.of("MANAGE"),
+            "CONFIG:MODULE", List.of("MANAGE", "PREVIEW", "PUBLISH", "ROLLBACK"),
+            "CONFIG:MODULE_FIELD", List.of("CONFIGURE_SENSITIVE"),
+            // 设计与运行授权分别配置，目录必须覆盖真实服务检查，否则普通配置者永远无法被授权。
+            "FLOW:SYSTEM", List.of("VIEW", "DESIGN", "SIMULATE", "PUBLISH", "BIND_VIEW", "BIND_PUBLISH",
+                    "VIEW_RUNTIME", "START", "HANDLE", "TERMINATE", "ADD_MANUAL_NODE"),
+            // 业务附件与审批页共用同一文件权限，普通角色必须能在权限页面明确配置。
+            "FILE:OBJECT", List.of("VIEW", "UPLOAD", "REFERENCE", "DELETE", "DOWNLOAD", "MANAGE"),
             "AUDIT:EVENT", List.of("VIEW", "VIEW_SENSITIVE", "PURGE"),
             "TODO:SYSTEM", List.of("VIEW", "HANDLE"),
             "MESSAGE:SYSTEM", List.of("VIEW", "SEND", "MANAGE"),
-            "AI:SYSTEM", List.of("VIEW", "MANAGE", "PUBLISH"));
+            "AI:SYSTEM", List.of("VIEW", "MANAGE", "PUBLISH"),
+            // 工作台此前只有运行时检查、没有可配置资源，普通成员无法被授予真实任务权限。
+            "WORK:SYSTEM", List.of("VIEW", "CREATE_PROJECT", "MANAGE_PROJECT", "CREATE_TASK", "UPDATE_TASK",
+                    "CREATE_LOG", "UPDATE_LOG", "VIEW_OTHERS", "VIEW_ALL", "VIEW_CONFIG", "CONFIGURE",
+                    "PUBLISH_CONFIG", "VIEW_CALENDAR", "VIEW_DETAIL"));
     private static final Set<String> DATA_SCOPES = Set.of(
             "ALL", "DEPARTMENT_AND_DESCENDANTS", "DEPARTMENT", "SELF_AND_SUBORDINATES", "SELF", "CUSTOM");
     private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE", "FLOW");
@@ -63,17 +78,32 @@ public class SystemAuthorizationManagementService {
             "LIST", "DETAIL", "CREATE", "UPDATE", "DELETE", "IMPORT", "EXPORT", "CONVERT", "PRINT");
     private static final Map<String, String> ACTION_NAMES = Map.ofEntries(
             Map.entry("MANAGE", "管理"), Map.entry("MIGRATE_TENANT_MODE", "切换组织模式"),
+            Map.entry("PREVIEW", "预览与检查"), Map.entry("PUBLISH", "发布"), Map.entry("ROLLBACK", "回滚发布"),
+            Map.entry("CONFIGURE_SENSITIVE", "配置敏感字段"),
+            Map.entry("VIEW_RUNTIME", "查看流程运行"), Map.entry("START", "发起流程"),
+            Map.entry("DESIGN", "设计流程"), Map.entry("SIMULATE", "模拟流程"),
+            Map.entry("BIND_VIEW", "查看动作绑定"), Map.entry("BIND_PUBLISH", "配置动作绑定"),
+            Map.entry("HANDLE", "处理事项"), Map.entry("TERMINATE", "终止流程"), Map.entry("ADD_MANUAL_NODE", "添加审批节点"),
             Map.entry("VIEW", "查看"), Map.entry("VIEW_SENSITIVE", "查看敏感信息"), Map.entry("PURGE", "清理"),
             Map.entry("LIST", "查看列表"), Map.entry("DETAIL", "查看详情"), Map.entry("CREATE", "新建"),
             Map.entry("UPDATE", "编辑"), Map.entry("DELETE", "删除"), Map.entry("IMPORT", "导入"),
             Map.entry("EXPORT", "导出"), Map.entry("CONVERT", "转化"), Map.entry("PRINT", "打印"),
+            Map.entry("UPLOAD", "上传"), Map.entry("REFERENCE", "建立业务引用"), Map.entry("DOWNLOAD", "下载"),
             Map.entry("ARCHIVE", "归档"), Map.entry("RESTORE", "恢复"), Map.entry("TRANSFER", "转交负责人"),
-            Map.entry("SHARE", "共享"));
+            Map.entry("SHARE", "共享"), Map.entry("CREATE_PROJECT", "新建项目"),
+            Map.entry("MANAGE_PROJECT", "管理项目"), Map.entry("CREATE_TASK", "新建任务"),
+            Map.entry("UPDATE_TASK", "处理任务"), Map.entry("CREATE_LOG", "新建工作日志"),
+            Map.entry("UPDATE_LOG", "修订工作日志"), Map.entry("VIEW_OTHERS", "查看他人工作"),
+            Map.entry("VIEW_ALL", "查看全部工作"), Map.entry("VIEW_CONFIG", "查看工作配置"),
+            Map.entry("CONFIGURE", "配置工作字段"), Map.entry("PUBLISH_CONFIG", "发布工作配置"),
+            Map.entry("VIEW_CALENDAR", "查看工作日历"), Map.entry("VIEW_DETAIL", "查看统计明细"));
 
     private final SystemDepartmentBaseService departmentService;
     private final PlatformAccountBaseService accountService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    /** 主租户模板可供当前租户配置角色，但数据访问仍受运行时共享和权限交集限制。 */
+    private final SystemTenantBaseService tenantService;
     private final SystemRoleBaseService roleService;
     private final SystemMemberRoleBaseService memberRoleService;
     private final SystemRolePermissionBaseService permissionService;
@@ -88,12 +118,16 @@ public class SystemAuthorizationManagementService {
     private final OrganizationRelationRepository relationRepository;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final ModulePublicationService modulePublicationService;
+    /** 来源资源只来自当前有效共享，不枚举其他租户的全部扩展。 */
+    private final SharedSourceMetadataService sharedSourceMetadata;
 
     public SystemAuthorizationManagementService(
             SystemDepartmentBaseService departmentService,
             PlatformAccountBaseService accountService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
+            SystemTenantBaseService tenantService,
             SystemRoleBaseService roleService,
             SystemMemberRoleBaseService memberRoleService,
             SystemRolePermissionBaseService permissionService,
@@ -107,11 +141,13 @@ public class SystemAuthorizationManagementService {
             PermissionResolver permissionResolver,
             OrganizationRelationRepository relationRepository,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, ModulePublicationService modulePublicationService,
+            SharedSourceMetadataService sharedSourceMetadata) {
         this.departmentService = departmentService;
         this.accountService = accountService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
+        this.tenantService = tenantService;
         this.roleService = roleService;
         this.memberRoleService = memberRoleService;
         this.permissionService = permissionService;
@@ -126,6 +162,8 @@ public class SystemAuthorizationManagementService {
         this.relationRepository = relationRepository;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.modulePublicationService = modulePublicationService;
+        this.sharedSourceMetadata = sharedSourceMetadata;
     }
 
     @Transactional(readOnly = true)
@@ -313,8 +351,9 @@ public class SystemAuthorizationManagementService {
     public SystemAuthorizationModels.RoleView saveRole(
             AuthenticatedContext context, SystemAuthorizationModels.SaveRoleRequest input, String traceId) {
         requireContext(context);
-        input.permissions().forEach(permission -> validatePermission(context, permission));
-        input.fieldPolicies().forEach(policy -> validateFieldPolicy(context, policy));
+        List<SystemAuthorizationModels.ResourceView> catalog = resources(context);
+        input.permissions().forEach(permission -> validatePermission(context, permission, catalog));
+        input.fieldPolicies().forEach(policy -> validateFieldPolicy(context, policy, catalog));
         SystemRole role;
         if (input.id() == null) {
             role = new SystemRole();
@@ -360,8 +399,9 @@ public class SystemAuthorizationManagementService {
         if (permissions.isEmpty()) {
             throw new DomainException("ROLE_PERMISSION_REQUIRED", "角色至少需要一项有效权限", HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        permissions.forEach(permission -> validatePermission(context, permission));
-        policies.forEach(policy -> validateFieldPolicy(context, policy));
+        List<SystemAuthorizationModels.ResourceView> catalog = resources(context);
+        permissions.forEach(permission -> validatePermission(context, permission, catalog));
+        policies.forEach(policy -> validateFieldPolicy(context, policy, catalog));
         role.setStatus("ACTIVE");
         if (roleService.updateById(role) != 1) throw conflict();
         long version = latestVersion(context.systemId(), context.tenantId()) + 1;
@@ -509,7 +549,8 @@ public class SystemAuthorizationManagementService {
         }
     }
 
-    private void validatePermission(AuthenticatedContext context, SystemAuthorizationModels.PermissionInput input) {
+    private void validatePermission(AuthenticatedContext context, SystemAuthorizationModels.PermissionInput input,
+                                    List<SystemAuthorizationModels.ResourceView> catalog) {
         if (!DATA_SCOPES.contains(input.dataScopeType())) {
             throw new DomainException("DATA_SCOPE_INVALID", "数据范围无效：" + input.dataScopeType(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -517,13 +558,8 @@ public class SystemAuthorizationManagementService {
         String fixedKey = input.resourceType() + ":" + input.resourceCode();
         boolean valid = FIXED_RESOURCES.getOrDefault(fixedKey, List.of()).contains(input.actionCode());
         if ("MODULE".equals(input.resourceType())) {
-            ConfiguredModule module = requireModule(context, input.resourceCode());
-            Set<String> actions = new LinkedHashSet<>(MODULE_ACTIONS);
-            actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
-                            .eq(ConfiguredModuleAction::getModuleId, module.getId())
-                            .eq(ConfiguredModuleAction::getStatus, "ACTIVE"))
-                    .forEach(action -> actions.add(action.getCode()));
-            valid = actions.contains(input.actionCode());
+            valid = catalog.stream().anyMatch(resource -> "MODULE".equals(resource.resourceType())
+                    && input.resourceCode().equals(resource.resourceCode()) && resource.actions().contains(input.actionCode()));
         }
         if (!valid) {
             throw new DomainException("AUTHORIZATION_REFERENCE_INVALID", "权限引用了不存在的资源或动作",
@@ -535,16 +571,13 @@ public class SystemAuthorizationManagementService {
         }
     }
 
-    private void validateFieldPolicy(AuthenticatedContext context, SystemAuthorizationModels.FieldPolicyInput input) {
+    private void validateFieldPolicy(AuthenticatedContext context, SystemAuthorizationModels.FieldPolicyInput input,
+                                     List<SystemAuthorizationModels.ResourceView> catalog) {
         if (!CHANNELS.contains(input.channel())) {
             throw new DomainException("FIELD_POLICY_CHANNEL_INVALID", "字段渠道无效", HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        ConfiguredModule module = requireModule(context, input.resourceCode());
-        boolean fieldExists = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
-                        .eq(ConfiguredModuleField::getModuleId, module.getId())
-                        .eq(ConfiguredModuleField::getCode, input.fieldCode())
-                        .eq(ConfiguredModuleField::getStatus, "ACTIVE"))
-                .stream().findAny().isPresent();
+        boolean fieldExists = catalog.stream().anyMatch(resource -> "MODULE".equals(resource.resourceType())
+                && input.resourceCode().equals(resource.resourceCode()) && resource.fields().contains(input.fieldCode()));
         if (!fieldExists) {
             throw new DomainException("AUTHORIZATION_FIELD_REFERENCE_INVALID", "字段权限引用了不存在的模块字段",
                     HttpStatus.UNPROCESSABLE_ENTITY);
@@ -574,13 +607,18 @@ public class SystemAuthorizationManagementService {
         return "*".equals(granted) || granted.equals(required);
     }
 
-    private ConfiguredModule requireModule(AuthenticatedContext context, String code) {
+    /** 角色资源与运行目录采用相同模板边界；不纳入其他扩展租户的私有模块。 */
+    private List<ConfiguredModule> authorizationModules(AuthenticatedContext context) {
+        Long mainTenantId = tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                        .eq(SystemTenant::getSystemId, context.systemId())
+                        .eq(SystemTenant::getMain, true).eq(SystemTenant::getStatus, "ACTIVE"))
+                .stream().map(SystemTenant::getId).findFirst().orElseThrow(() -> new DomainException(
+                        "MAIN_TENANT_MISSING", "当前系统缺少有效主租户", HttpStatus.CONFLICT));
         return moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
                         .eq(ConfiguredModule::getSystemId, context.systemId())
-                        .eq(ConfiguredModule::getOwnerTenantId, context.tenantId())
-                        .eq(ConfiguredModule::getCode, code))
-                .stream().findFirst().orElseThrow(() -> new DomainException("AUTHORIZATION_REFERENCE_INVALID",
-                        "权限引用了不存在的业务模块", HttpStatus.UNPROCESSABLE_ENTITY));
+                        .in(ConfiguredModule::getOwnerTenantId, List.of(context.tenantId(), mainTenantId)))
+                .stream().sorted(Comparator.comparing(module -> !context.tenantId().equals(module.getOwnerTenantId())))
+                .toList();
     }
 
     private List<SystemAuthorizationModels.RoleView> roles(AuthenticatedContext context) {
@@ -594,6 +632,16 @@ public class SystemAuthorizationManagementService {
                 FIXED_RESOURCES.get("CONFIG:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("CONFIG:SYSTEM")), Map.of()));
         result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "MODULE", "业务模块配置",
                 FIXED_RESOURCES.get("CONFIG:MODULE"), List.of(), actionNames(FIXED_RESOURCES.get("CONFIG:MODULE")), Map.of()));
+        // 与真实配置入口一致，普通管理员可以被明确授权，不依赖平台管理员通配权限。
+        result.add(new SystemAuthorizationModels.ResourceView("CONFIG", "MODULE_FIELD", "敏感字段配置",
+                FIXED_RESOURCES.get("CONFIG:MODULE_FIELD"), List.of(),
+                actionNames(FIXED_RESOURCES.get("CONFIG:MODULE_FIELD")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("FLOW", "SYSTEM", "流程设计、运行与审批",
+                FIXED_RESOURCES.get("FLOW:SYSTEM"), List.of(),
+                actionNames(FIXED_RESOURCES.get("FLOW:SYSTEM")), Map.of()));
+        result.add(new SystemAuthorizationModels.ResourceView("FILE", "OBJECT", "业务附件",
+                FIXED_RESOURCES.get("FILE:OBJECT"), List.of(),
+                actionNames(FIXED_RESOURCES.get("FILE:OBJECT")), Map.of()));
         result.add(new SystemAuthorizationModels.ResourceView("AUDIT", "EVENT", "审计日志",
                 FIXED_RESOURCES.get("AUDIT:EVENT"), List.of(), actionNames(FIXED_RESOURCES.get("AUDIT:EVENT")), Map.of()));
         result.add(new SystemAuthorizationModels.ResourceView("TODO", "SYSTEM", "我的待办",
@@ -602,25 +650,83 @@ public class SystemAuthorizationManagementService {
                 FIXED_RESOURCES.get("MESSAGE:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("MESSAGE:SYSTEM")), Map.of()));
         result.add(new SystemAuthorizationModels.ResourceView("AI", "SYSTEM", "智能助手",
                 FIXED_RESOURCES.get("AI:SYSTEM"), List.of(), actionNames(FIXED_RESOURCES.get("AI:SYSTEM")), Map.of()));
-        for (ConfiguredModule module : moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
-                .eq(ConfiguredModule::getSystemId, context.systemId()).eq(ConfiguredModule::getOwnerTenantId, context.tenantId()))) {
-            Set<String> actions = new LinkedHashSet<>(MODULE_ACTIONS);
-            actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
-                            .eq(ConfiguredModuleAction::getModuleId, module.getId()).eq(ConfiguredModuleAction::getStatus, "ACTIVE"))
-                    .forEach(action -> actions.add(action.getCode()));
-            List<ConfiguredModuleField> configuredFields = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
-                            .eq(ConfiguredModuleField::getModuleId, module.getId()).eq(ConfiguredModuleField::getStatus, "ACTIVE"))
-                    .stream().sorted(Comparator.comparing(ConfiguredModuleField::getSortOrder)
-                            .thenComparing(ConfiguredModuleField::getId)).toList();
-            List<String> fields = configuredFields.stream().map(ConfiguredModuleField::getCode).toList();
+        result.add(new SystemAuthorizationModels.ResourceView("WORK", "SYSTEM", "项目、任务与工作日志",
+                FIXED_RESOURCES.get("WORK:SYSTEM"), List.of(),
+                actionNames(FIXED_RESOURCES.get("WORK:SYSTEM")), Map.of()));
+        List<ConfiguredModule> modules = new ArrayList<>(authorizationModules(context));
+        Set<Long> currentModuleIds = modules.stream().map(ConfiguredModule::getId).collect(Collectors.toSet());
+        Map<Long, List<SharedSourceMetadataService.SourcePublication>> sources = sharedSourceMetadata.current(context);
+        sharedSourceMetadata.modules(context, sources.keySet()).stream()
+                .filter(module -> !currentModuleIds.contains(module.getId())).forEach(modules::add);
+        for (ConfiguredModule module : modules) {
+            boolean current = currentModuleIds.contains(module.getId());
+            // 私有来源模块只提供实际共享允许的发布动作，不能顺带授予新建、再共享等模块全局动作。
+            Set<String> actions = current ? new LinkedHashSet<>(MODULE_ACTIONS) : new LinkedHashSet<>();
+            List<SharedSourceMetadataService.SourcePublication> source = sources.getOrDefault(module.getId(), List.of());
+            List<JsonNode> configuredActions = current ? authorizationActions(context, module, source)
+                    : appendSharedResources(List.of(), source, "actions");
+            configuredActions.forEach(action -> actions.add(action.path("code").asText()));
+            List<JsonNode> configuredFields = current ? authorizationFields(context, module, source)
+                    : appendSharedResources(List.of(), source, "fields");
+            List<String> fields = configuredFields.stream().map(field -> field.path("code").asText()).toList();
             Map<String, String> fieldNames = configuredFields.stream().collect(Collectors.toMap(
-                    ConfiguredModuleField::getCode, ConfiguredModuleField::getName,
+                    field -> field.path("code").asText(), field -> field.path("name").asText(),
                     (first, ignored) -> first, LinkedHashMap::new));
             List<String> sortedActions = actions.stream().sorted().toList();
+            Map<String, String> names = new LinkedHashMap<>(actionNames(sortedActions));
+            configuredActions.forEach(action -> names.put(action.path("code").asText(), action.path("name").asText()));
             result.add(new SystemAuthorizationModels.ResourceView("MODULE", module.getCode(), module.getName(),
-                    sortedActions, fields, actionNames(sortedActions), fieldNames));
+                    sortedActions, fields, names, fieldNames));
         }
         return result;
+    }
+
+    /** 本租户动作加上真实有效共享允许的来源动作，不枚举来源未发布或未共享动作。 */
+    private List<JsonNode> authorizationActions(AuthenticatedContext context, ConfiguredModule module,
+                                               List<SharedSourceMetadataService.SourcePublication> sources) {
+        if ("ACTIVE".equals(module.getStatus())) {
+            List<JsonNode> actions = new ArrayList<>();
+            modulePublicationService.published(context, module.getCode()).configuration().path("actions").forEach(actions::add);
+            return appendSharedResources(actions, sources, "actions");
+        }
+        return actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
+                        .eq(ConfiguredModuleAction::getModuleId, module.getId())
+                        .eq(ConfiguredModuleAction::getOwnerTenantId, module.getOwnerTenantId())
+                        .eq(ConfiguredModuleAction::getStatus, "ACTIVE")).stream()
+                .map(action -> (JsonNode) objectMapper.valueToTree(action)).toList();
+    }
+
+    /** 发布字段使用逻辑编码；来源专属字段只在真实有效共享存在时进入当前角色目录。 */
+    private List<JsonNode> authorizationFields(AuthenticatedContext context, ConfiguredModule module,
+                                              List<SharedSourceMetadataService.SourcePublication> sources) {
+        if ("ACTIVE".equals(module.getStatus())) {
+            List<JsonNode> fields = new ArrayList<>();
+            modulePublicationService.published(context, module.getCode()).configuration().path("fields").forEach(fields::add);
+            return appendSharedResources(fields, sources, "fields");
+        }
+        // 本租户尚未发布的模块可提前配置角色；只包含该模块所有者自己的草稿字段。
+        return fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                        .eq(ConfiguredModuleField::getModuleId, module.getId())
+                        .eq(ConfiguredModuleField::getOwnerTenantId, module.getOwnerTenantId())
+                        .eq(ConfiguredModuleField::getStatus, "ACTIVE")
+                        .orderByAsc(ConfiguredModuleField::getSortOrder, ConfiguredModuleField::getId)).stream()
+                .map(field -> (JsonNode) objectMapper.valueToTree(field)).toList();
+    }
+
+    /** 角色硬限制按逻辑编码配置；同编码优先保留本租户名称，记录显示始终采用真实来源描述。 */
+    private List<JsonNode> appendSharedResources(List<JsonNode> local,
+                                                List<SharedSourceMetadataService.SourcePublication> sources, String part) {
+        Map<String, JsonNode> logical = new LinkedHashMap<>();
+        local.forEach(node -> logical.put(node.path("code").asText(), node));
+        for (SharedSourceMetadataService.SourcePublication source : sources) {
+            for (JsonNode node : source.configuration().configuration().path(part)) {
+                String code = node.path("code").asText();
+                if (code.isBlank() || code.startsWith("__t") || !"ACTIVE".equals(node.path("status").asText())) continue;
+                if ("actions".equals(part) && !source.allowedActions().contains(code)) continue;
+                logical.putIfAbsent(code, node);
+            }
+        }
+        return new ArrayList<>(logical.values());
     }
 
     private SystemAuthorizationModels.RoleView roleView(SystemRole role) {

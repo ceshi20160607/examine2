@@ -1,0 +1,25 @@
+{
+  "step": "B10.2c.2a",
+  "status": "passed",
+  "checked_time": "2026-09-20T15:04:56.221562+08:00",
+  "route": "/systems/54/admin?section=flow&module=flow_condition_accept_20260918&moduleTask=FLOW&triggerEvent=IMPORT_COMPLETED",
+  "workspace": "协作工作空间",
+  "checks": {
+    "structured_import_completed_help": true,
+    "structured_exception_failed_rows_condition": true,
+    "execution_mode_fixed_to_flow_only": true,
+    "json_prompt_visible": false,
+    "textarea_count": 0,
+    "real_event_history_visible": true,
+    "restart_recovered_instance_visible": 280,
+    "no_matching_binding_result_visible": true,
+    "raw_import_values_visible": false
+  },
+  "observed_labels": [
+    "每个导入批次结束后触发一次",
+    "事件事实保存后可靠启动流程；重复投递不会重复创建实例。",
+    "近期事件触发结果",
+    "已启动流程实例 280",
+    "没有命中绑定，已安全结束"
+  ]
+}

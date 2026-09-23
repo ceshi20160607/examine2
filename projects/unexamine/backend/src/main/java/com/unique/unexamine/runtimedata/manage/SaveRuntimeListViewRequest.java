@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
+/** 保存当前个人查询；旧客户端未提供范围时仍采用有效记录、全部租户。 */
 public record SaveRuntimeListViewRequest(
         @NotBlank @Size(max = 80) String name,
         @Size(max = 200) String search,
@@ -20,5 +21,7 @@ public record SaveRuntimeListViewRequest(
         @NotNull @Size(max = 10) List<@NotBlank @Size(max = 80) String> fixedFieldCodes,
         @NotNull @Min(10) @Max(200) Integer pageSize,
         boolean defaultView,
-        Integer expectedVersion) {
+        Integer expectedVersion,
+        @Pattern(regexp = "(?i)ACTIVE|ARCHIVED|DELETED") String lifecycleState,
+        @Pattern(regexp = "(?i)ALL|OWN|SHARED") String tenantScope) {
 }

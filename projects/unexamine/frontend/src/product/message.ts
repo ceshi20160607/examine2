@@ -3,11 +3,11 @@ export function messageStatusLabel(status: string) {
 }
 
 export function messageChannelLabel(channel: string) {
-  return ({ IN_APP: '站内', EMAIL: '邮件', SMS: '短信', WEBHOOK: 'Webhook' } as Record<string, string>)[channel] || channel
+  return ({ IN_APP: '站内', EMAIL: '邮件', SMS: '短信', WEBHOOK: 'Webhook', WECOM: '企业微信', FEISHU: '飞书', DINGTALK: '钉钉' } as Record<string, string>)[channel] || channel
 }
 
 export function deliveryStatusLabel(status: string) {
-  return ({ DELIVERED: '已送达', RETRY_PENDING: '等待重试', FAILED: '失败', SENT: '已发送' } as Record<string, string>)[status] || status
+  return ({ DELIVERED: '已送达', RETRY_PENDING: '等待重试', QUIET_PENDING: '免打扰时段后发送', SKIPPED: '已关闭', FAILED: '失败', SENT: '已发送' } as Record<string, string>)[status] || status
 }
 
 export function parseTemplateVariables(value: string) {

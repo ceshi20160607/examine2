@@ -56,6 +56,9 @@ public class TenantExtensionRuntimeService {
         ObjectNode merged = base.deepCopy();
         ArrayNode fields = merged.withArray("fields");
         extensionDocument.path("fields").forEach(field -> fields.add(field.deepCopy()));
+        // 基础动作保持原样，租户只能追加自己的动作；保存和发布均校验冲突。
+        ArrayNode actions = merged.withArray("actions");
+        extensionDocument.path("actions").forEach(action -> actions.add(action.deepCopy()));
         extensionDocument.path("pages").forEach(override -> applyPageOverride(merged.withArray("pages"), override));
         merged.put("tenantExtensionApplied", true);
         merged.set("tenantExtensionSource", extensionDocument.path("source").deepCopy());

@@ -90,16 +90,7 @@ public class SystemBootstrapService {
         tenant.setStatus("ACTIVE");
         tenantService.insert(tenant);
 
-        SystemDepartment rootDepartment = new SystemDepartment();
-        rootDepartment.setSystemId(system.getId());
-        rootDepartment.setTenantId(tenant.getId());
-        rootDepartment.setParentId(null);
-        rootDepartment.setCode("root");
-        rootDepartment.setName("全公司");
-        rootDepartment.setPathCode("/root");
-        rootDepartment.setSortOrder(0);
-        rootDepartment.setStatus("ACTIVE");
-        departmentService.insert(rootDepartment);
+        SystemDepartment rootDepartment = initializeRootDepartment(system.getId(), tenant.getId());
 
         SystemMember member = new SystemMember();
         member.setSystemId(system.getId());
@@ -159,6 +150,22 @@ public class SystemBootstrapService {
             throw new DomainException("SYSTEM_TENANT_MODE_INVALID", "系统组织模式无效", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return normalized;
+    }
+
+    /** 新系统主租户和新增租户共用默认部门；由调用方的创建事务保证失败整体回滚。 */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public SystemDepartment initializeRootDepartment(Long systemId, Long tenantId) {
+        SystemDepartment root = new SystemDepartment();
+        root.setSystemId(systemId);
+        root.setTenantId(tenantId);
+        root.setParentId(null);
+        root.setCode("root");
+        root.setName("全公司");
+        root.setPathCode("/root");
+        root.setSortOrder(0);
+        root.setStatus("ACTIVE");
+        departmentService.insert(root);
+        return root;
     }
 
     private String resolveSystemCode(Long platformId, String requestedCode) {

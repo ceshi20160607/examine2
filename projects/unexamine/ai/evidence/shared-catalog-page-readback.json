@@ -1,0 +1,100 @@
+{
+  "step": "B07.4b.2c.2",
+  "browser_account_id": 69,
+  "browser_role": 110,
+  "source_memberships": 0,
+  "normal_system_entry": {
+    "system_id": 54,
+    "actor_tenant_id": 57
+  },
+  "source_form_field_order": [
+    "city",
+    "choice",
+    "subject",
+    "related"
+  ],
+  "typed_source_choices": {
+    "choice": "src_one",
+    "city": [
+      15
+    ],
+    "related": 144
+  },
+  "hidden_and_readonly_inputs_absent": true,
+  "update_without_detail_entry": true,
+  "record": [
+    [
+      "77",
+      "41",
+      "3",
+      "101",
+      "E9A1B5E99DA2E69DA5E6BA90E5AD97E585B8E5928CE8A1A8E58D95E9AA8CE694B6"
+    ]
+  ],
+  "values": {
+    "choice": "src_one",
+    "city": "[15]",
+    "hidden": "原始私有值保持",
+    "related": "144",
+    "subject": "页面来源字典和表单验收"
+  },
+  "audit": [
+    {
+      "id": "4000",
+      "actor_account_id": "69",
+      "tenant_id": "57",
+      "detail": {
+        "shareId": 13,
+        "moduleCode": "catalog_accept_887f2b7e92",
+        "afterFields": {
+          "city": [
+            15
+          ],
+          "choice": "src_one",
+          "hidden": "原始私有值保持",
+          "related": 144,
+          "subject": "页面来源字典和表单验收"
+        },
+        "beforeFields": {
+          "city": [
+            14,
+            16
+          ],
+          "choice": "src_two",
+          "hidden": "原始私有值保持",
+          "related": 144,
+          "subject": "目标无详情仍可编辑父字段"
+        },
+        "dataTenantId": 77,
+        "actorTenantId": 57,
+        "configVersionId": 68,
+        "participantMemberIds": []
+      },
+      "permission_snapshot": {
+        "action": "UPDATE",
+        "channel": "PAGE",
+        "roleIds": [
+          110
+        ],
+        "resource": "MODULE:catalog_accept_887f2b7e92",
+        "dataScope": {
+          "MODULE:catalog_accept_887f2b7e92:UPDATE": {
+            "mode": "ALL",
+            "terms": [
+              {
+                "type": "ALL",
+                "roleIds": [
+                  110
+                ],
+                "condition": null
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "ui_closed_after_success": true,
+  "real_page_layout_visually_inspected": true,
+  "remaining_list_display": "Current list uses recipient field labels/raw source option code; record source LIST/DETAIL metadata/display remains required."
+}

@@ -174,7 +174,7 @@ public class AuthenticationService {
                     Map.of("reason", "ACCOUNT_DISABLED"));
             throw new DomainException("ACCOUNT_DISABLED", "账号已停用", HttpStatus.FORBIDDEN);
         }
-        refreshSystemAuthorizationSnapshot(session);
+        refreshAuthorizationSnapshot(session);
         return new AuthenticatedContext(session.getId(), account.getId(), session.getPlatformId(), session.getSystemId(), session.getTenantId(),
                 session.getMemberId(), session.getTenantMemberId(), account.getUsername(), account.getDisplayName(), session.getMfaLevel(),
                 readJson(session.getRoleIdsJson(), new TypeReference<List<Long>>() {}),
@@ -275,7 +275,23 @@ public class AuthenticationService {
                 refreshExpiresAt.atZone(clock.getZone()).toOffsetDateTime());
     }
 
-    private void refreshSystemAuthorizationSnapshot(AuthenticationSession session) {
+    /** 平台暂无完整权限版本发布链，逐次解析当前有效授权，避免旧token保留已撤销的审批权限。 */
+    private void refreshAuthorizationSnapshot(AuthenticationSession session) {
+        if (session.getSystemId() == null) {
+            ResolvedPermissions resolved = platformPermissionResolver.resolve(session.getPlatformId(), session.getAccountId());
+            String roles = toJson(resolved.roleIds());
+            String permissions = toJson(resolved.permissions());
+            String scopes = toJson(resolved.dataScopes());
+            // 只在授权内容变化时更新会话，普通读取不产生无意义的会话写入。
+            if (!roles.equals(session.getRoleIdsJson()) || !permissions.equals(session.getActionPermissionsJson())
+                    || !scopes.equals(session.getDataScopesJson())) {
+                session.setRoleIdsJson(roles);
+                session.setActionPermissionsJson(permissions);
+                session.setDataScopesJson(scopes);
+                sessionService.updateById(session);
+            }
+            return;
+        }
         if (session.getSystemId() == null || session.getTenantId() == null || session.getTenantMemberId() == null) {
             return;
         }

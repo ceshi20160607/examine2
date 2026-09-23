@@ -76,6 +76,7 @@ public class ModulePublicationService {
     private final StructuredRuleEvaluator ruleEvaluator;
     private final SystemTenantBaseService tenantService;
     private final TenantExtensionRuntimeService tenantExtensionRuntimeService;
+    private final ModuleIdentifierIntegrity identifierIntegrity;
 
     public ModulePublicationService(
             ConfiguredModuleBaseService moduleService,
@@ -96,7 +97,8 @@ public class ModulePublicationService {
             JdbcTemplate jdbc,
             StructuredRuleEvaluator ruleEvaluator,
             SystemTenantBaseService tenantService,
-            TenantExtensionRuntimeService tenantExtensionRuntimeService) {
+            TenantExtensionRuntimeService tenantExtensionRuntimeService,
+            ModuleIdentifierIntegrity identifierIntegrity) {
         this.moduleService = moduleService;
         this.fieldService = fieldService;
         this.groupService = groupService;
@@ -116,6 +118,7 @@ public class ModulePublicationService {
         this.ruleEvaluator = ruleEvaluator;
         this.tenantService = tenantService;
         this.tenantExtensionRuntimeService = tenantExtensionRuntimeService;
+        this.identifierIntegrity = identifierIntegrity;
     }
 
     @Transactional(readOnly = true)
@@ -132,6 +135,7 @@ public class ModulePublicationService {
             Long moduleId,
             PublishModuleRequest request,
             String traceId) {
+        identifierIntegrity.lockSystem(context.systemId());
         ConfiguredModule module = requireOwnedModule(context, moduleId);
         if (!request.expectedDraftRevision().equals(module.getDraftRevision())) {
             throw conflict("草稿已经变化，请重新执行发布检查");
@@ -201,7 +205,8 @@ public class ModulePublicationService {
             Long moduleId,
             RollbackModuleRequest request,
             String traceId) {
-        requireOwnedModule(context, moduleId);
+        identifierIntegrity.lockSystem(context.systemId());
+        identifierIntegrity.requireUnambiguous(requireOwnedModule(context, moduleId));
         ConfiguredModuleVersion target = versionService.selectById(request.targetVersionId());
         if (target == null || !moduleId.equals(target.getModuleId()) || !context.systemId().equals(target.getSystemId())
                 || !context.tenantId().equals(target.getOwnerTenantId())) {
@@ -291,6 +296,19 @@ public class ModulePublicationService {
                             "dataScopes", context.dataScopes(), "entry", "RUNTIME_MODULE_CONFIGURATION"));
             throw new DomainException("PERMISSION_DENIED", "没有查看该模块的权限", HttpStatus.FORBIDDEN);
         }
+        return guardRuntimeConfiguration(context, moduleCode, configuration, "LIST", true);
+    }
+
+    /** 调用方先校验具体记录；以实际操作者裁剪来源快照，不取得来源租户的角色权限。 */
+    public RuntimeModuleConfiguration recordEditConfiguration(
+            AuthenticatedContext actor, String moduleCode, RuntimeModuleConfiguration sourceConfiguration) {
+        return guardRuntimeConfiguration(actor, moduleCode, sourceConfiguration, "UPDATE", false);
+    }
+
+    /** 模块入口与记录编辑共用字段策略；编辑只消费 UPDATE，不混入 CREATE 的字段写权限。 */
+    private RuntimeModuleConfiguration guardRuntimeConfiguration(
+            AuthenticatedContext context, String moduleCode, RuntimeModuleConfiguration configuration,
+            String readAction, boolean includeCreate) {
         ObjectNode visible = configuration.configuration().deepCopy();
         ArrayNode actions = objectMapper.createArrayNode();
         configuration.configuration().path("actions").forEach(action -> {
@@ -303,8 +321,8 @@ public class ModulePublicationService {
         List<String> fieldCodes = new ArrayList<>();
         configuration.configuration().path("fields").forEach(field -> fieldCodes.add(field.path("code").asText()));
         Map<String, FieldAccessDecision> readAccess = fieldPolicyResolver.resolve(
-                context, moduleCode, "LIST", "PAGE", fieldCodes);
-        Map<String, FieldAccessDecision> createAccess = permissionChecker.allows(context, "MODULE", moduleCode, "CREATE")
+                context, moduleCode, readAction, "PAGE", fieldCodes);
+        Map<String, FieldAccessDecision> createAccess = includeCreate && permissionChecker.allows(context, "MODULE", moduleCode, "CREATE")
                 ? fieldPolicyResolver.resolve(context, moduleCode, "CREATE", "PAGE", fieldCodes) : Map.of();
         Map<String, FieldAccessDecision> updateAccess = permissionChecker.allows(context, "MODULE", moduleCode, "UPDATE")
                 ? fieldPolicyResolver.resolve(context, moduleCode, "UPDATE", "PAGE", fieldCodes) : Map.of();
@@ -315,6 +333,7 @@ public class ModulePublicationService {
             FieldAccessDecision read = readAccess.get(code);
             boolean writable = (createAccess.containsKey(code) && createAccess.get(code).writable())
                     || (updateAccess.containsKey(code) && updateAccess.get(code).writable());
+            if (!includeCreate && (read == null || !read.readable()) && !writable) return;
             ObjectNode access = objectMapper.createObjectNode();
             access.put("channel", "PAGE");
             access.put("readable", read != null && read.readable());
@@ -329,7 +348,9 @@ public class ModulePublicationService {
                 configuration.versionNumber(), configuration.publicationVersion(), visible);
     }
 
-    @Transactional(readOnly = true)
+    // 只读目录的不可访问结果可由审批投影转换为“业务不可查看”，不能把调用方正常幂等回执标为回滚。
+    // 若调用方不处理领域异常，调用方自己的事务仍按原规则回滚；本方法不执行任何业务写入。
+    @Transactional(readOnly = true, noRollbackFor = DomainException.class)
     public RuntimeModuleConfiguration published(AuthenticatedContext context, String moduleCode) {
         if (context.systemId() == null || context.tenantId() == null) {
             throw new DomainException("SYSTEM_CONTEXT_REQUIRED", "请先进入系统", HttpStatus.CONFLICT);
@@ -358,6 +379,7 @@ public class ModulePublicationService {
         if (module == null || !context.systemId().equals(module.getSystemId())) {
             throw new DomainException("CONFIGURATION_NOT_FOUND", "运行模块不存在", HttpStatus.NOT_FOUND);
         }
+        identifierIntegrity.requireUnambiguous(module);
         ConfiguredModulePublication publication = publicationService.selectList(
                         Wrappers.<ConfiguredModulePublication>lambdaQuery()
                                 .eq(ConfiguredModulePublication::getSystemId, context.systemId())
@@ -430,11 +452,16 @@ public class ModulePublicationService {
                 indexFields,
                 actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
                         .eq(ConfiguredModuleAction::getModuleId, moduleId).eq(ConfiguredModuleAction::getStatus, "ACTIVE")
+                        .eq(ConfiguredModuleAction::getOwnerTenantId, module.getOwnerTenantId())
                         .orderByAsc(ConfiguredModuleAction::getSortOrder, ConfiguredModuleAction::getId)));
     }
 
     private List<PublicationCheckIssue> validate(ConfiguredModule module, SnapshotParts parts) {
         List<PublicationCheckIssue> issues = new ArrayList<>();
+        if (identifierIntegrity.hasActiveConflict(module)) {
+            issues.add(new PublicationCheckIssue("module.code", "MODULE_CODE_CONFLICT",
+                    "模块标识存在历史冲突，请先处理重复模块；不能发布替换其他租户配置"));
+        }
         if (parts.fields().isEmpty()) {
             issues.add(new PublicationCheckIssue("fields", "ACTIVE_FIELD_REQUIRED", "至少配置一个有效字段"));
         }
@@ -448,11 +475,22 @@ public class ModulePublicationService {
                     && field.getDictionaryId() == null) {
                 validateOptions(field, path, issues);
             }
+            if ("CASCADE".equals(field.getFieldType()) && field.getReferenceModuleId() != null) {
+                // 目标模块层级选项尚未接通运行态保存与权限校验，不能发布后让普通用户在表单中失败。
+                issues.add(new PublicationCheckIssue(path + ".config", "MODULE_CASCADE_RUNTIME_UNAVAILABLE",
+                        "模块级联的运行态选项、保存和展示尚未就绪，当前不能发布该字段"));
+            }
             try {
                 TextFieldProtocol.validateConfiguration(field.getFieldType(),
                         objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
                 StructuredContentFieldProtocol.validateConfiguration(field.getFieldType(),
                         objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
+                SecretFieldProtocol.validateConfiguration(field.getFieldType(),
+                        objectMapper.readTree(field.getConfigJson() == null ? "{}" : field.getConfigJson()));
+                if ("SECRET".equals(field.getFieldType()) && (Boolean.TRUE.equals(field.getSearchable())
+                        || Boolean.TRUE.equals(field.getUniqueValue()))) {
+                    throw new IllegalArgumentException("密码/密钥不能用于搜索或唯一性索引");
+                }
             } catch (Exception exception) {
                 issues.add(new PublicationCheckIssue(path + ".config", "FIELD_CONFIG_INVALID", exception.getMessage()));
             }
@@ -601,12 +639,14 @@ public class ModulePublicationService {
                     continue;
                 }
                 if (!publishedField.path("required").asBoolean(false) && Boolean.TRUE.equals(draftField.getRequired())) {
+                    // 多选空数组表示未选择，不能因JSON列非NULL而绕过必填变更迁移检查；普通JSON字段仍按原协议。
                     Integer missing = jdbc.queryForObject("select count(*) from biz_record r left join biz_record_value v "
                                     + "on v.record_id=r.id and v.field_id=? where r.module_id=? and r.deleted=0 and "
                                     + "(v.id is null or (v.value_text is null and v.value_number is null and v.value_date is null "
                                     + "and v.value_datetime is null and v.value_boolean is null and v.value_reference_id is null "
-                                    + "and v.value_file_id is null and v.value_json is null))",
-                            Integer.class, draftField.getId(), module.getId());
+                                    + "and v.value_file_id is null and v.value_json is null) "
+                                    + "or (?='MULTI_SELECT' and json_type(v.value_json)='ARRAY' and json_length(v.value_json)=0))",
+                            Integer.class, draftField.getId(), module.getId(), draftField.getFieldType());
                     if (missing != null && missing > 0) {
                         issues.add(new PublicationCheckIssue("fields." + code + ".required",
                                 "REQUIRED_FIELD_DATA_MIGRATION_REQUIRED",
@@ -780,6 +820,9 @@ public class ModulePublicationService {
                 if (!fieldsById.containsKey(indexField.getFieldId())) {
                     issues.add(new PublicationCheckIssue("indexes." + index.getCode(), "QUERY_INDEX_FIELD_NOT_ACTIVE",
                             "查询索引引用不存在或已停用字段"));
+                } else if ("SECRET".equals(fieldsById.get(indexField.getFieldId()).getFieldType())) {
+                    issues.add(new PublicationCheckIssue("indexes." + index.getCode(), "SECRET_INDEX_FORBIDDEN",
+                            "密码/密钥不能写入查询索引"));
                 }
             }
         }

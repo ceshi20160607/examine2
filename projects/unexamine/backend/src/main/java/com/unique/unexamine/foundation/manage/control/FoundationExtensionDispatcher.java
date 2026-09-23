@@ -40,7 +40,8 @@ public class FoundationExtensionDispatcher {
                 for (FoundationCommandExtension extension : extensions) extension.afterCommit(event);
                 event.setStatus("PUBLISHED");
                 event.setPublishedAt(LocalDateTime.now());
-                event.setLastError(null);
+                // MyBatis 的非空更新策略不会把 null 写回数据库；空串明确清除已经恢复的失败说明。
+                event.setLastError("");
                 update(event);
             });
         } catch (RuntimeException exception) {
@@ -62,7 +63,7 @@ public class FoundationExtensionDispatcher {
     @Scheduled(fixedDelayString = "${unexamine.actions.outbox.poll-delay-ms:1000}")
     public void retryDue() {
         for (CoreEventOutbox event : outboxService.selectList(Wrappers.<CoreEventOutbox>lambdaQuery()
-                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "BUSINESS_ACTION_COMPLETION", "FOUNDATION_COMMAND")
+                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "BUSINESS_ACTION_COMPLETION", "FOUNDATION_COMMAND", "FLOW_TRIGGER_EVENT")
                 .in(CoreEventOutbox::getStatus, "PENDING", "FAILED")
                 .le(CoreEventOutbox::getAvailableAt, LocalDateTime.now())
                 .orderByAsc(CoreEventOutbox::getId).last("limit 50"))) {

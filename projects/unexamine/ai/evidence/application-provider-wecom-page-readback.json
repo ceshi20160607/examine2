@@ -1,0 +1,65 @@
+{
+  "step": "B12.1",
+  "status": "passed",
+  "route": "http://localhost:15173/platform/admin/applications",
+  "context": "platform-admin",
+  "applicationId": 30,
+  "applicationName": "企业微信受控接入验收",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "assertions": [
+    {
+      "name": "official-product-boundary",
+      "result": "PASS",
+      "detail": "页面分别展示企业微信内部自建应用、飞书企业自建应用、钉钉企业内部应用、微信公众号和微信小程序；不存在通用“微信自建应用”。"
+    },
+    {
+      "name": "structured-configuration",
+      "result": "PASS",
+      "detail": "入口为“新增企业微信连接”；连接详情显示 CorpID/AgentID、命名事件路由和回调地址复制，不提供 JSON 编辑器。"
+    },
+    {
+      "name": "diagnostic-boundary",
+      "result": "PASS",
+      "detail": "详情明确显示“本地协议通过”，并明确说明尚未验证真实企业微信租户连通。"
+    },
+    {
+      "name": "safe-secret-readback",
+      "result": "PASS",
+      "detail": "只显示 3 个密钥引用、版本和尾号，页面没有 Secret、Token 或 EncodingAESKey 明文。"
+    },
+    {
+      "name": "callback-history",
+      "result": "PASS",
+      "detail": "回调记录显示成员文本事件已执行并关联应用调用 110。"
+    },
+    {
+      "name": "desktop-layout",
+      "result": "PASS",
+      "detail": "1440 桌面宽度下 body 无横向溢出；连接卡和回调地址均限制在详情列内，回调地址省略并保留复制入口，最近诊断不再重叠。"
+    }
+  ],
+  "layout_measurement": {
+    "bodyClientWidth": 1425,
+    "bodyScrollWidth": 1425,
+    "providerSectionWidth": 799,
+    "providerSectionScrollWidth": 797,
+    "providerConnectionGridWidth": 763,
+    "providerConnectionGridScrollWidth": 763,
+    "callbackCopyWidth": 376,
+    "callbackCopyScrollWidth": 376
+  },
+  "visible_connection": {
+    "name": "企业微信审批入口",
+    "status": "已停用",
+    "diagnostic": "本地协议通过",
+    "externalVerified": false,
+    "eventRoute": "成员发送文本消息 → wecom_provider_5b055e6bdb",
+    "secretReferenceCount": 3,
+    "eventStatus": "已执行",
+    "applicationCallId": 110
+  },
+  "checked_time": "2026-09-20T20:03:12.996902+08:00"
+}

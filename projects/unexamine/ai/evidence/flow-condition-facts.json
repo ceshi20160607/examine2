@@ -1,0 +1,1480 @@
+{
+  "step": "B08.1a.1",
+  "status": "verified_contribution",
+  "module_code": "flow_condition_accept_20260918",
+  "fields": {
+    "subject": {
+      "id": 177,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "subject",
+      "name": "事项主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 178,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "score",
+      "name": "优先分值",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 179,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "enabled",
+      "name": "是否紧急",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "occurred": {
+      "id": 180,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "occurred",
+      "name": "发生时间",
+      "fieldType": "DATETIME",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 3,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "day": {
+      "id": 181,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "day",
+      "name": "业务日期",
+      "fieldType": "DATE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 4,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "choices": {
+      "id": 182,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "choices",
+      "name": "事项标签",
+      "fieldType": "MULTI_SELECT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 11,
+      "referenceModuleId": null,
+      "sortOrder": 5,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "choice": {
+      "id": 183,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "choice",
+      "name": "事项类别",
+      "fieldType": "SINGLE_SELECT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 11,
+      "referenceModuleId": null,
+      "sortOrder": 6,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "date_text": {
+      "id": 184,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "date_text",
+      "name": "文本标识",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 7,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "hidden": {
+      "id": 185,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 51,
+      "code": "hidden",
+      "name": "内部字段",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 8,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "cases": [
+    {
+      "case": "isolated_current_module_dictionary_record_and_ordinary_designer_role_prepared",
+      "module_id": 51,
+      "record_id": 168
+    },
+    {
+      "case": "real_typed_simulation_priority",
+      "expected": "priority_review"
+    },
+    {
+      "case": "real_typed_simulation_numeric_fallback",
+      "expected": "normal_review"
+    },
+    {
+      "case": "real_typed_simulation_same_instant_NE",
+      "expected": "priority_review"
+    },
+    {
+      "case": "real_typed_simulation_multiselect_set",
+      "expected": "priority_review"
+    },
+    {
+      "case": "invalid_actual_datetime_not_false_NE_or_fallback",
+      "status": 422,
+      "error_code": "CONDITION_RUNTIME_VALUE_INVALID"
+    },
+    {
+      "case": "actual_multi_storage_display_edit_dictionary_type_current_option_dedup_clear_and_offset_ms_save",
+      "record_id": 168,
+      "storage_type": "MULTI_SELECT"
+    },
+    {
+      "case": "real_business_intents_use_same_typed_priority_and_fallback_as_simulation_without_formal_create",
+      "instances": [
+        78,
+        79
+      ]
+    },
+    {
+      "case": "same_existing_binding_new_action_latest_version_old_instance_frozen",
+      "old_instance": 78,
+      "new_instance": 80,
+      "old_version": 30,
+      "new_version": 31
+    },
+    {
+      "case": "wrong_flow_business_module_rejected_before_binding_writes",
+      "status": 422,
+      "error_code": "FLOW_BINDING_BUSINESS_MODULE_MISMATCH"
+    },
+    {
+      "case": "old_version_real_approval_executes_original_action_once",
+      "instance": 78,
+      "record_id": 169
+    },
+    {
+      "case": "real_fallback_reject_does_not_execute_create",
+      "instance": 79,
+      "business_status": "REJECTED"
+    },
+    {
+      "case": "valid_actual_options_cannot_bypass_retired_flow_constant_before_new_intent",
+      "status": 422,
+      "error_code": "FLOW_CONDITION_INVALID"
+    },
+    {
+      "case": "current_published_condition_field_removed_rejects_new_intent_old_snapshot_unchanged",
+      "status": 422,
+      "error_code": "FLOW_CONDITION_INVALID"
+    },
+    {
+      "case": "manual_and_dictionary_options_share_current_active_catalog_and_publish_guard",
+      "status": 422,
+      "error_code": "FLOW_BINDING_CONDITION_INVALID"
+    },
+    {
+      "case": "new_publication_snapshot_contains_only_referenced_safe_fields",
+      "fields": 8
+    },
+    {
+      "case": "existing_empty_multiselect_blocks_required_publication_until_migrated",
+      "issues": [
+        "REQUIRED_FIELD_DATA_MIGRATION_REQUIRED"
+      ]
+    },
+    {
+      "case": "required_multiselect_empty_rejected_before_any_business_intent",
+      "status": 422,
+      "error_code": "FIELD_VALIDATION_FAILED"
+    },
+    {
+      "case": "affected_shared_runtime_original_source_records_full_API_preserved_after_common_field_changes",
+      "records": [
+        154,
+        151
+      ]
+    }
+  ],
+  "dictionary_id": 11,
+  "checked_time": "2026-09-18T23:15:25.295078+08:00",
+  "dictionary_items": [
+    {
+      "id": 23,
+      "dictionaryId": 11,
+      "parentId": null,
+      "code": "one",
+      "label": "普通事项",
+      "pathCode": "one",
+      "color": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    {
+      "id": 24,
+      "dictionaryId": 11,
+      "parentId": null,
+      "code": "two",
+      "label": "特殊事项",
+      "pathCode": "two",
+      "color": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  ],
+  "dictionary_publication": {
+    "dictionaryId": 11,
+    "versionId": 19,
+    "versionNumber": 1,
+    "publicationVersion": 0,
+    "snapshot": {
+      "dictionary": {
+        "id": 11,
+        "systemId": 54,
+        "ownerTenantId": 57,
+        "code": "flow_condition_accept_20260918_choices",
+        "name": "审批条件验收选项",
+        "hierarchical": false,
+        "status": "DRAFT",
+        "createdByMemberId": 71,
+        "createdAt": "2026-09-18T22:50:47.099+08:00",
+        "updatedAt": "2026-09-18T22:50:47.099+08:00",
+        "version": 2
+      },
+      "items": [
+        {
+          "id": 23,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "one",
+          "label": "普通事项",
+          "pathCode": "one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.191+08:00",
+          "updatedAt": "2026-09-18T22:50:47.191+08:00",
+          "version": 0
+        },
+        {
+          "id": 24,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "two",
+          "label": "特殊事项",
+          "pathCode": "two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.239+08:00",
+          "updatedAt": "2026-09-18T22:50:47.239+08:00",
+          "version": 0
+        }
+      ]
+    }
+  },
+  "module_id": 51,
+  "module_publication": {
+    "moduleId": 51,
+    "versionId": 87,
+    "versionNumber": 1,
+    "draftRevision": 10,
+    "publishedAt": "2026-09-18T22:50:48.114559105+08:00"
+  },
+  "observed_failures": [
+    {
+      "stage": "prepare",
+      "result": "本地API新增422 FIELD_VALIDATION_FAILED，choices:当前阶段不支持该字段类型",
+      "artifact": "aef908",
+      "writes": "module51/dictionary11/fields177-185已发布；没有业务记录保存或角色扩权。",
+      "fix": "公共normalize+value_json存储+来源选项描述+编辑字典入口，禁止删除字段或只用模拟样本绕过。"
+    },
+    {
+      "stage": "ordinary_designer_role",
+      "artifact": "a0be32",
+      "result": "AUTHORIZATION_REFERENCE_INVALID 422；真实FLOW:SYSTEM权限目录只有运行5动作，与Design/Binding服务鉴权不匹配",
+      "fix": "补目录中VIEW/DESIGN/SIMULATE/PUBLISH/BIND_VIEW/BIND_PUBLISH及中文名称；保留原角色、保留失败，不能改成超管页面验证。"
+    },
+    {
+      "artifact": "acd4fa",
+      "classification": "验收夹具预期错误",
+      "result": "拒绝业务状态实际为REJECTED，Source coordinator直接保存Flow终态；改正确断言后只续该未通过断点，不重跑前11组。"
+    },
+    {
+      "artifact": "8beab3",
+      "classification": "既有保护正确拒绝",
+      "result": "已使用字典项停用DICTIONARY_ITEM_IN_USE；使用未有业务数据但被Flow条件引用的unused项验证，无绕过或强制SQL。"
+    },
+    {
+      "artifact": "dc86b9",
+      "classification": "既有迁移检查正确拒绝",
+      "result": "已使用occurred字段停用发布FIELD_REMOVAL_REQUIRES_MIGRATION；恢复其草稿、增加无业务数据flow_only条件字段完成合法配置失效验证。"
+    },
+    {
+      "artifact": "f307c7",
+      "classification": "验收脚本重复发布夹具错误",
+      "result": "同草稿修订再次发布唯一约束409；当前版本已真实发布，不重复写入，只检验已有真实8字段快照。"
+    },
+    {
+      "classification": "工具/启动准备失败无业务写入",
+      "result": "两处空apply_patch非法hunk失败均无改动；startup HTTP提前尝试失败且无业务写入，后续健康UP再执行。"
+    }
+  ],
+  "record": {
+    "id": 168,
+    "recordNumber": null,
+    "title": "正常审批业务样本",
+    "status": "ACTIVE",
+    "ownerMemberId": 71,
+    "departmentId": 75,
+    "createdByMemberId": 71,
+    "updatedByMemberId": 71,
+    "createdConfigVersionId": 87,
+    "updatedConfigVersionId": 92,
+    "participantMemberIds": [],
+    "archived": false,
+    "archivedAt": null,
+    "deleted": false,
+    "deletedAt": null,
+    "version": 5,
+    "createdAt": "2026-09-18T22:57:21.451+08:00",
+    "updatedAt": "2026-09-18T23:14:28.25+08:00",
+    "dataTenantId": 57,
+    "dataTenantName": "协作工作空间",
+    "ownedByCurrentTenant": true,
+    "shared": false,
+    "shareId": null,
+    "shareStatus": null,
+    "sharedActions": [],
+    "shareExpiresAt": null,
+    "organizationLabels": {
+      "members": {
+        "71": "平台超级管理员"
+      },
+      "departments": {
+        "75": "接收租户根部门"
+      }
+    },
+    "fieldPresentation": {
+      "choice": {
+        "name": "事项类别",
+        "fieldType": "SINGLE_SELECT",
+        "displayValue": "普通事项",
+        "fieldId": 183,
+        "sortOrder": 6
+      },
+      "choices": {
+        "name": "事项标签",
+        "fieldType": "MULTI_SELECT",
+        "displayValue": "特殊事项、普通事项",
+        "fieldId": 182,
+        "sortOrder": 5
+      },
+      "date_text": {
+        "name": "文本标识",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 184,
+        "sortOrder": 7
+      },
+      "day": {
+        "name": "业务日期",
+        "fieldType": "DATE",
+        "displayValue": null,
+        "fieldId": 181,
+        "sortOrder": 4
+      },
+      "enabled": {
+        "name": "是否紧急",
+        "fieldType": "BOOLEAN",
+        "displayValue": null,
+        "fieldId": 179,
+        "sortOrder": 2
+      },
+      "flow_only": {
+        "name": "流程条件未使用字段",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 186,
+        "sortOrder": 10
+      },
+      "hidden": {
+        "name": "内部字段",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 185,
+        "sortOrder": 8
+      },
+      "manual_choice": {
+        "name": "手动选项状态验收",
+        "fieldType": "SINGLE_SELECT",
+        "displayValue": "未填写",
+        "fieldId": 187,
+        "sortOrder": 9
+      },
+      "occurred": {
+        "name": "发生时间",
+        "fieldType": "DATETIME",
+        "displayValue": null,
+        "fieldId": 180,
+        "sortOrder": 3
+      },
+      "score": {
+        "name": "优先分值",
+        "fieldType": "NUMBER",
+        "displayValue": null,
+        "fieldId": 178,
+        "sortOrder": 1
+      },
+      "subject": {
+        "name": "事项主题",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 177,
+        "sortOrder": 0
+      }
+    },
+    "actions": [
+      {
+        "id": 535,
+        "code": "DETAIL",
+        "name": "详情",
+        "actionType": "BUILTIN",
+        "location": "ROW",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 537,
+        "code": "UPDATE",
+        "name": "编辑",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_HEADER",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 538,
+        "code": "ARCHIVE",
+        "name": "归档",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 539,
+        "code": "DELETE",
+        "name": "删除",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 541,
+        "code": "TRANSFER",
+        "name": "转交负责人",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 542,
+        "code": "CONVERT",
+        "name": "转化记录",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 543,
+        "code": "SHARE",
+        "name": "共享给租户",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      }
+    ],
+    "fields": {
+      "choice": "one",
+      "choices": [
+        "two",
+        "one"
+      ],
+      "date_text": "2026-09-18T02:00:00Z",
+      "day": "2026-09-18",
+      "enabled": true,
+      "occurred": "2026-09-18T10:00",
+      "score": 10.0,
+      "subject": "真实业务条件验收"
+    }
+  },
+  "role_baseline": {
+    "id": 114,
+    "code": "role_072e45a64f",
+    "name": "正式扩展共享验收·extension_accept_4a356e1ce2",
+    "description": null,
+    "builtIn": false,
+    "status": "ACTIVE",
+    "permissions": [
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "ACTION_TENANT_ACCEPT",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "SOURCE_FILL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "ACTION_1B6DB1864661",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      }
+    ],
+    "fieldPolicies": [
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "city",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_target_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      }
+    ],
+    "version": 129
+  },
+  "role_extended": true,
+  "flow_id": 26,
+  "initial_flow_publication": {
+    "flowId": 26,
+    "versionId": 30,
+    "versionNumber": 1,
+    "draftRevision": 2,
+    "definitionHash": "685a48c48a08b45b6b20637b8e54f959f65b70089bea9aa645721edef02440d7",
+    "previousVersionId": null,
+    "simulation": {
+      "flowId": 26,
+      "draftRevision": 2,
+      "successful": true,
+      "steps": [
+        {
+          "nodeKey": "start",
+          "nodeType": "START",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "gate",
+          "nodeType": "GATEWAY",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "priority_review",
+          "nodeType": "APPROVAL",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "end",
+          "nodeType": "END",
+          "outcome": "VISITED"
+        }
+      ],
+      "issues": [],
+      "variables": {
+        "subject": "真实业务条件验收",
+        "score": 10,
+        "enabled": true,
+        "occurred": "2026-09-18T10:00:00",
+        "day": "2026-09-18",
+        "choices": [
+          "two",
+          "one"
+        ],
+        "choice": "one",
+        "date_text": "2026-09-18T02:00:00Z"
+      }
+    }
+  },
+  "binding": {
+    "id": 35,
+    "systemId": 54,
+    "ownerTenantId": 57,
+    "scopeType": "TENANT_OVERRIDE",
+    "moduleId": 51,
+    "actionId": null,
+    "triggerEvent": "CREATE",
+    "flowId": 26,
+    "flowVersionId": 30,
+    "flowVersionNumber": 1,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": {
+      "mode": "ALL",
+      "conditions": []
+    },
+    "mutuallyExclusive": true,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "priority_action": {
+    "idempotencyRecordId": 310,
+    "outboxId": 221,
+    "idempotencyKey": "flow_condition_accept_20260918_priority",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 78
+  },
+  "normal_action": {
+    "idempotencyRecordId": 311,
+    "outboxId": 222,
+    "idempotencyKey": "flow_condition_accept_20260918_normal",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 79
+  },
+  "multi_runtime_verified": true,
+  "old_instance_snapshot": {
+    "id": 78,
+    "version_id": 30,
+    "hash": "fc1b43ecd145073f0ac104347c90cc7f97d231bb1613016d1ca341be98cf8d21"
+  },
+  "second_flow_publication": {
+    "flowId": 26,
+    "versionId": 31,
+    "versionNumber": 2,
+    "draftRevision": 3,
+    "definitionHash": "75f9254a19408e2af887ba98b6a2ec77da611901650234054b7dae4d1ab61fba",
+    "previousVersionId": 30,
+    "simulation": {
+      "flowId": 26,
+      "draftRevision": 3,
+      "successful": true,
+      "steps": [
+        {
+          "nodeKey": "start",
+          "nodeType": "START",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "gate",
+          "nodeType": "GATEWAY",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "normal_review",
+          "nodeType": "APPROVAL",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "end",
+          "nodeType": "END",
+          "outcome": "VISITED"
+        }
+      ],
+      "issues": [],
+      "variables": {
+        "subject": "真实业务条件验收",
+        "score": 10,
+        "enabled": true,
+        "occurred": "2026-09-18T10:00:00",
+        "day": "2026-09-18",
+        "choices": [
+          "two",
+          "one"
+        ],
+        "choice": "one",
+        "date_text": "2026-09-18T02:00:00Z"
+      }
+    }
+  },
+  "new_version_action": {
+    "idempotencyRecordId": 318,
+    "outboxId": 226,
+    "idempotencyKey": "flow_condition_accept_20260918_latest",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 80
+  },
+  "version_upgrade_verified": true,
+  "mismatch_verified": true,
+  "old_approved_record": {
+    "id": 169,
+    "recordNumber": null,
+    "title": "实际高优先审批意图",
+    "status": "ACTIVE",
+    "ownerMemberId": 71,
+    "departmentId": 75,
+    "createdByMemberId": 71,
+    "updatedByMemberId": 71,
+    "createdConfigVersionId": 87,
+    "updatedConfigVersionId": 87,
+    "participantMemberIds": [],
+    "archived": false,
+    "archivedAt": null,
+    "deleted": false,
+    "deletedAt": null,
+    "version": 0,
+    "createdAt": "2026-09-18T23:03:49.074+08:00",
+    "updatedAt": "2026-09-18T23:03:49.074+08:00",
+    "dataTenantId": 57,
+    "dataTenantName": "协作工作空间",
+    "ownedByCurrentTenant": true,
+    "shared": false,
+    "shareId": null,
+    "shareStatus": null,
+    "sharedActions": [],
+    "shareExpiresAt": null,
+    "organizationLabels": {
+      "members": {
+        "71": "平台超级管理员"
+      },
+      "departments": {
+        "75": "接收租户根部门"
+      }
+    },
+    "fieldPresentation": {
+      "choice": {
+        "name": "事项类别",
+        "fieldType": "SINGLE_SELECT",
+        "displayValue": "普通事项",
+        "fieldId": 183,
+        "sortOrder": 6
+      },
+      "choices": {
+        "name": "事项标签",
+        "fieldType": "MULTI_SELECT",
+        "displayValue": "特殊事项、普通事项",
+        "fieldId": 182,
+        "sortOrder": 5
+      },
+      "date_text": {
+        "name": "文本标识",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 184,
+        "sortOrder": 7
+      },
+      "day": {
+        "name": "业务日期",
+        "fieldType": "DATE",
+        "displayValue": null,
+        "fieldId": 181,
+        "sortOrder": 4
+      },
+      "enabled": {
+        "name": "是否紧急",
+        "fieldType": "BOOLEAN",
+        "displayValue": null,
+        "fieldId": 179,
+        "sortOrder": 2
+      },
+      "hidden": {
+        "name": "内部字段",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 185,
+        "sortOrder": 8
+      },
+      "occurred": {
+        "name": "发生时间",
+        "fieldType": "DATETIME",
+        "displayValue": null,
+        "fieldId": 180,
+        "sortOrder": 3
+      },
+      "score": {
+        "name": "优先分值",
+        "fieldType": "NUMBER",
+        "displayValue": null,
+        "fieldId": 178,
+        "sortOrder": 1
+      },
+      "subject": {
+        "name": "事项主题",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 177,
+        "sortOrder": 0
+      }
+    },
+    "actions": [
+      {
+        "id": 535,
+        "code": "DETAIL",
+        "name": "详情",
+        "actionType": "BUILTIN",
+        "location": "ROW",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 537,
+        "code": "UPDATE",
+        "name": "编辑",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_HEADER",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 538,
+        "code": "ARCHIVE",
+        "name": "归档",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 539,
+        "code": "DELETE",
+        "name": "删除",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 541,
+        "code": "TRANSFER",
+        "name": "转交负责人",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 542,
+        "code": "CONVERT",
+        "name": "转化记录",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 543,
+        "code": "SHARE",
+        "name": "共享给租户",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      }
+    ],
+    "fields": {
+      "choice": "one",
+      "choices": [
+        "two",
+        "one"
+      ],
+      "date_text": "2026-09-18T02:00:00Z",
+      "day": "2026-09-18",
+      "enabled": true,
+      "occurred": "2026-09-18T10:00",
+      "score": 10.0,
+      "subject": "真实业务条件验收"
+    }
+  },
+  "old_approval_verified": true,
+  "normal_rejection_verified": true,
+  "dictionary_guard_item": {
+    "id": 25,
+    "dictionaryId": 11,
+    "parentId": null,
+    "code": "unused",
+    "label": "流程条件专用未使用项",
+    "pathCode": "unused",
+    "color": null,
+    "sortOrder": 2,
+    "status": "ACTIVE",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "dictionary_guard_flow_publication": {
+    "flowId": 26,
+    "versionId": 32,
+    "versionNumber": 3,
+    "draftRevision": 4,
+    "definitionHash": "7ea4763ad720f40533a0bbcf87323eb57e95906d1e71b4cb7645aad58371badc",
+    "previousVersionId": 31,
+    "simulation": {
+      "flowId": 26,
+      "draftRevision": 4,
+      "successful": true,
+      "steps": [
+        {
+          "nodeKey": "start",
+          "nodeType": "START",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "gate",
+          "nodeType": "GATEWAY",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "normal_review",
+          "nodeType": "APPROVAL",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "end",
+          "nodeType": "END",
+          "outcome": "VISITED"
+        }
+      ],
+      "issues": [],
+      "variables": {
+        "subject": "真实业务条件验收",
+        "score": 10,
+        "enabled": true,
+        "occurred": "2026-09-18T10:00:00",
+        "day": "2026-09-18",
+        "choices": [
+          "two",
+          "one"
+        ],
+        "choice": "one",
+        "date_text": "2026-09-18T02:00:00Z"
+      }
+    }
+  },
+  "disabled_dictionary_publication": {
+    "dictionaryId": 11,
+    "versionId": 21,
+    "versionNumber": 3,
+    "publicationVersion": 2,
+    "snapshot": {
+      "dictionary": {
+        "id": 11,
+        "systemId": 54,
+        "ownerTenantId": 57,
+        "code": "flow_condition_accept_20260918_choices",
+        "name": "审批条件验收选项",
+        "hierarchical": false,
+        "status": "ACTIVE",
+        "createdByMemberId": 71,
+        "createdAt": "2026-09-18T22:50:47.099+08:00",
+        "updatedAt": "2026-09-18T22:50:47.099+08:00",
+        "version": 5
+      },
+      "items": [
+        {
+          "id": 23,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "one",
+          "label": "普通事项",
+          "pathCode": "one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.191+08:00",
+          "updatedAt": "2026-09-18T22:50:47.191+08:00",
+          "version": 0
+        },
+        {
+          "id": 24,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "two",
+          "label": "特殊事项",
+          "pathCode": "two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.239+08:00",
+          "updatedAt": "2026-09-18T22:50:47.239+08:00",
+          "version": 0
+        },
+        {
+          "id": 25,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "unused",
+          "label": "流程条件专用未使用项",
+          "pathCode": "unused",
+          "color": null,
+          "sortOrder": 2,
+          "status": "DISABLED",
+          "createdAt": "2026-09-18T23:08:56.054+08:00",
+          "updatedAt": "2026-09-18T23:08:56.054+08:00",
+          "version": 1
+        }
+      ]
+    }
+  },
+  "dictionary_guard_done": true,
+  "restored_dictionary_publication": {
+    "dictionaryId": 11,
+    "versionId": 22,
+    "versionNumber": 4,
+    "publicationVersion": 3,
+    "snapshot": {
+      "dictionary": {
+        "id": 11,
+        "systemId": 54,
+        "ownerTenantId": 57,
+        "code": "flow_condition_accept_20260918_choices",
+        "name": "审批条件验收选项",
+        "hierarchical": false,
+        "status": "ACTIVE",
+        "createdByMemberId": 71,
+        "createdAt": "2026-09-18T22:50:47.099+08:00",
+        "updatedAt": "2026-09-18T22:50:47.099+08:00",
+        "version": 6
+      },
+      "items": [
+        {
+          "id": 23,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "one",
+          "label": "普通事项",
+          "pathCode": "one",
+          "color": null,
+          "sortOrder": 0,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.191+08:00",
+          "updatedAt": "2026-09-18T22:50:47.191+08:00",
+          "version": 0
+        },
+        {
+          "id": 24,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "two",
+          "label": "特殊事项",
+          "pathCode": "two",
+          "color": null,
+          "sortOrder": 1,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T22:50:47.239+08:00",
+          "updatedAt": "2026-09-18T22:50:47.239+08:00",
+          "version": 0
+        },
+        {
+          "id": 25,
+          "dictionaryId": 11,
+          "parentId": null,
+          "code": "unused",
+          "label": "流程条件专用未使用项",
+          "pathCode": "unused",
+          "color": null,
+          "sortOrder": 2,
+          "status": "ACTIVE",
+          "createdAt": "2026-09-18T23:08:56.054+08:00",
+          "updatedAt": "2026-09-18T23:08:56.054+08:00",
+          "version": 2
+        }
+      ]
+    }
+  },
+  "occurred_draft_restored": {
+    "moduleId": 51,
+    "versionId": 88,
+    "versionNumber": 2,
+    "draftRevision": 12,
+    "publishedAt": "2026-09-18T23:09:47.250658594+08:00"
+  },
+  "field_guard_field": {
+    "id": 186,
+    "systemId": 54,
+    "ownerTenantId": 57,
+    "moduleId": 51,
+    "code": "flow_only",
+    "name": "流程条件未使用字段",
+    "fieldType": "TEXT",
+    "required": false,
+    "uniqueValue": false,
+    "searchable": false,
+    "dictionaryId": null,
+    "referenceModuleId": null,
+    "sortOrder": 10,
+    "status": "ACTIVE",
+    "configJson": "{}",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "field_guard_flow_publication": {
+    "flowId": 26,
+    "versionId": 33,
+    "versionNumber": 4,
+    "draftRevision": 5,
+    "definitionHash": "da39661649d7d42d5f56c3c1f2671616012b04b1e67ad4aa7c8b5c4b98268e90",
+    "previousVersionId": 32,
+    "simulation": {
+      "flowId": 26,
+      "draftRevision": 5,
+      "successful": true,
+      "steps": [
+        {
+          "nodeKey": "start",
+          "nodeType": "START",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "gate",
+          "nodeType": "GATEWAY",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "normal_review",
+          "nodeType": "APPROVAL",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "end",
+          "nodeType": "END",
+          "outcome": "VISITED"
+        }
+      ],
+      "issues": [],
+      "variables": {
+        "subject": "真实业务条件验收",
+        "score": 10,
+        "enabled": true,
+        "occurred": "2026-09-18T10:00:00",
+        "day": "2026-09-18",
+        "choices": [
+          "two",
+          "one"
+        ],
+        "choice": "one",
+        "date_text": "2026-09-18T02:00:00Z"
+      }
+    }
+  },
+  "disabled_field_publication": {
+    "moduleId": 51,
+    "versionId": 90,
+    "versionNumber": 4,
+    "draftRevision": 14,
+    "publishedAt": "2026-09-18T23:09:47.846021328+08:00"
+  },
+  "field_guard_done": true,
+  "restored_field_publication": {
+    "moduleId": 51,
+    "versionId": 91,
+    "versionNumber": 5,
+    "draftRevision": 15,
+    "publishedAt": "2026-09-18T23:09:48.417154315+08:00"
+  },
+  "manual_option_field": {
+    "id": 187,
+    "systemId": 54,
+    "ownerTenantId": 57,
+    "moduleId": 51,
+    "code": "manual_choice",
+    "name": "手动选项状态验收",
+    "fieldType": "SINGLE_SELECT",
+    "required": false,
+    "uniqueValue": false,
+    "searchable": false,
+    "dictionaryId": null,
+    "referenceModuleId": null,
+    "sortOrder": 9,
+    "status": "ACTIVE",
+    "configJson": "{\"options\":[{\"value\":\"allowed\",\"label\":\"仍可用\"},{\"value\":\"stopped\",\"label\":\"已停用\",\"status\":\"DISABLED\"}]}",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "manual_option_publication": {
+    "moduleId": 51,
+    "versionId": 92,
+    "versionNumber": 6,
+    "draftRevision": 16,
+    "publishedAt": "2026-09-18T23:09:48.571610162+08:00"
+  },
+  "manual_option_guard_done": true,
+  "minimal_profile_publication": {
+    "versionId": 33,
+    "versionNumber": 4
+  },
+  "required_migration_checked": true,
+  "required_publication": {
+    "moduleId": 51,
+    "versionId": 93,
+    "versionNumber": 7,
+    "draftRevision": 17,
+    "publishedAt": "2026-09-18T23:14:28.467241147+08:00"
+  },
+  "required_runtime_checked": true,
+  "optional_choices_restored": {
+    "moduleId": 51,
+    "versionId": 94,
+    "versionNumber": 8,
+    "draftRevision": 18,
+    "publishedAt": "2026-09-18T23:14:29.040582789+08:00"
+  },
+  "verified_time": "2026-09-18T23:16:38.772213+08:00",
+  "fixture_handoff": "module51/dictionary11/flow26/currentv33；record168/169隔离测试记录保留、80当前WAITING，普通69的role114临时仅增加本模块及Flow配置授权，原权限/字段策略不改；B08.1a.2继续真实普通UI并整合收尾准确恢复，不能声称普通UI已验收。",
+  "source_review_remaining": "类型协议当前仅Flow/Binding消费；ModuleRule和TenantShareScope的旧消费/多选集合语义仍在后续，不能计全项目条件判定统一。选择历史字典ID/显示快照完整要求亦未完成。"
+}

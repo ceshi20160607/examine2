@@ -1,0 +1,22 @@
+{
+  "step": "B13.2",
+  "status": "passed",
+  "cases": [
+    "file-channel-mask-is-applied-in-generated-excel",
+    "same-tenant-import-batches-and-raw-rows-are-owner-isolated",
+    "same-session-import-execute-is-denied-after-role-republish",
+    "import-revoke-does-not-remove-independent-export-action"
+  ],
+  "cleanup": {
+    "account_disabled": true,
+    "sessions_revoked": true,
+    "registration_system_disabled": true,
+    "temporary_role_disabled": true
+  },
+  "fixture": {
+    "batch_id": 15,
+    "source_file_id": 58,
+    "masked_export_batch_id": 4
+  },
+  "checked_time": "2026-09-20T23:45:41.730047+08:00"
+}

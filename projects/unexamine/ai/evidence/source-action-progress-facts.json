@@ -1,0 +1,2948 @@
+{
+  "step": "B07.4b.2c.3",
+  "status": "passed",
+  "module_code": "shared_private_accept_4a356e1ce2",
+  "cases": [
+    {
+      "case": "ordinary69_pending_source_flow_original_actor_and_narrow_current_record_ui",
+      "action_id": 263,
+      "instance_id": 63,
+      "record_version": 4,
+      "source_member_count": 0,
+      "original_started_account": 69,
+      "source_started_tenant_member_none": true,
+      "current_source_dict_reference_labels": true,
+      "protected_field_absent": true,
+      "proposed_value_absent": true,
+      "other_actor_status404": true
+    },
+    {
+      "case": "legitimate_CUSTOM_UPDATE_starter_no_DETAIL_gets_progress_without_current_record_ui",
+      "action_id": 263,
+      "approval_state": "WAITING",
+      "business_data_absent": true,
+      "old_record_cleared": true,
+      "source_roles_not_adopted": true,
+      "active_node_human_label": "处理中"
+    },
+    {
+      "case": "ordinary69_source_approval_completed_applies_original_current_authorized_action_once_and_UI",
+      "action_id": 263,
+      "instance_id": 63,
+      "status": "COMPLETED",
+      "business_status": "EXECUTED",
+      "record_version": 5,
+      "source_note": "来源审批通过后才保存说明",
+      "protected_field_unchanged": true,
+      "original_actor_account69": true,
+      "actor_tenant57_data_tenant77": true,
+      "db_outbox_association": [
+        [
+          "EXECUTED",
+          "69",
+          "57",
+          "77",
+          "63"
+        ]
+      ],
+      "audit_actor": [
+        [
+          "69",
+          "57"
+        ]
+      ],
+      "visited_nodes_complete": true,
+      "current_source_labels_correct": true
+    },
+    {
+      "case": "ordinary69_rejected_progress_preserves_business_value_and_source_comment_private_ui",
+      "action_id": 264,
+      "instance_id": 64,
+      "flow_status": "REJECTED",
+      "business_status": "REJECTED",
+      "record_version5_unchanged": true,
+      "proposed_value_absent": true,
+      "approval_comment_absent": true,
+      "source_snapshot_candidates_variables_absent": true
+    },
+    {
+      "case": "CUSTOM_progress_requires_current_UPDATE_role_permission_ui_clears_all",
+      "action_id": 264,
+      "current_custom_grant_retained": true,
+      "current_UPDATE_removed": true,
+      "progress_denied": true,
+      "history_record_snapshot_cleared": true
+    },
+    {
+      "case": "current_original_CUSTOM_UPDATE_SELF_range_does_not_adopt_source_owner_ui",
+      "action_id": 264,
+      "recipient_member101_source_owner71": true,
+      "current_role_scopes_SELF": true,
+      "progress_denied": true,
+      "previous_history_record_absent": true
+    },
+    {
+      "case": "current_source_share_without_original_CUSTOM_denies_owned_progress_ui",
+      "action_id": 264,
+      "current_role_original_restored": true,
+      "share17_LIST_DETAIL_UPDATE_retained": true,
+      "original_CUSTOM_share_missing": true,
+      "progress_denied": true,
+      "history_record_cleared": true
+    },
+    {
+      "case": "owned_source_action_progress_rechecks_actual_current_share_expiry_ui",
+      "action_id": 264,
+      "expiry_elapsed_by_database": true,
+      "current_role_and_original_custom_grants_present": true,
+      "progress_denied": true,
+      "all_history_record_absent": true
+    },
+    {
+      "case": "full_share_revocation_clears_loaded_original_action_progress_but_source_history_survives_ui",
+      "action_id": 264,
+      "share_id": 17,
+      "all_nodes_history_current_record_cleared": true,
+      "source_record_version5_unchanged": true,
+      "source_instances63_64_preserved": true
+    },
+    {
+      "case": "general_current_recipient_Flow_detail_boundary_and_reserved_START_prefix_still_denied",
+      "recipient57_full_admin_view_runtime_but_source63_64_status404": true,
+      "manual_start_reserved_prefix": {
+        "status": 422,
+        "code": "FLOW_START_KEY_RESERVED"
+      },
+      "actual_internal_outbox_original69": true,
+      "source_member_zero": true
+    },
+    {
+      "case": "ordinary69_zero_source_member_initial_exception_survives_start_and_progress_ui",
+      "action_id": 266,
+      "instance_id": 66,
+      "source_tenant_member_none": true,
+      "flow_locked_version": 25,
+      "flow_version_number2": true,
+      "status": "EXCEPTION",
+      "business_status": "PENDING_APPROVAL",
+      "record154_version5_unchanged": true,
+      "generic_admin_wait_message": true,
+      "no_raw_error_config_variables_candidates_private_values": true,
+      "first_failed_attempt_rolled_back_without_orphan": true
+    },
+    {
+      "case": "actual_owned_action_progress_trusted_schema_wrong_module_action_and_arbitrary_instance_query",
+      "own_action_id": 267,
+      "actual_instance_id": 67,
+      "ignored_arbitrary_instance62": true,
+      "ignored_source_tenant57": true,
+      "wrong_module_action404": true,
+      "narrow_DTO_no_source_config_variables_candidates_errors": true,
+      "manual_clock_instance_not_bound": true
+    },
+    {
+      "case": "actual_pending_CREATE_no_businessId_or_effective_record_has_safe_readonly_progress",
+      "action_id": 268,
+      "instance_id": 68,
+      "business_id_null": true,
+      "current_record_null": true,
+      "status": "WAITING",
+      "source_existing154_version5_unchanged": true
+    },
+    {
+      "case": "current_PAGE_field_mask_applies_to_progress_record_and_presentation_UI",
+      "action_id": 266,
+      "current_source_note_FULL_mask": true,
+      "actual_mask_text": "***",
+      "original_value_absent_in_drawer": true,
+      "source_private_hidden_absent": true,
+      "old_snapshot_never_used": true
+    },
+    {
+      "case": "ordinary69_FLOW_ONLY_initial_source_exception_progress_readable_without_business_write_UI",
+      "action_id": 269,
+      "instance_id": 69,
+      "flow_version_number2": true,
+      "source_member_zero": true,
+      "mode": "FLOW_ONLY",
+      "business_status": "FLOW_STARTED",
+      "human_business_label": "流程已发起",
+      "flow_status": "EXCEPTION",
+      "record154_version5_unchanged": true,
+      "proposed_source_note_absent": true
+    },
+    {
+      "case": "source_tenant_disabled_denies_loaded_original_progress_without_deleting_snapshots_UI",
+      "action_id": 269,
+      "instance_id": 69,
+      "source77_disabled": true,
+      "recipient57_identity_remains_active": true,
+      "all_progress_history_record_cleared": true,
+      "source_flow_history_preserved": true
+    },
+    {
+      "case": "ordinary69_generic_Flow_workspace_denied_and_identity_navigation_clears_progress_UI",
+      "account69_role114_recipient_only": true,
+      "source77_member_zero": true,
+      "workspace_flow_denied_human_message": true,
+      "no_general_source_instance_link_or_catalog": true,
+      "old_progress_drawer_removed_on_navigation": true
+    },
+    {
+      "case": "common_main_extension_regression_final_current_roles_shares_sources_and_private_business_readback",
+      "private_record154_version": 5,
+      "common_record151_version": 11,
+      "role114_original_restored": true,
+      "ordinary69_source_memberships": 0,
+      "ordinary_member108_roles": [
+        114
+      ],
+      "source77_active": true,
+      "share17_active_null_expiry_revoked": true,
+      "all_six_current_synthetic_flows_closed_preserved": true,
+      "source47_CREATE_CUSTOM_restored_DIRECT": true
+    },
+    {
+      "case": "current_cold_page_and_same_version_history_back_restore_owned_receipt_progress_UI_and_real_SFC_mount",
+      "action_id": 269,
+      "instance_id": 69,
+      "no_new_action_submitted": true,
+      "cold_reload_receipt_restored": true,
+      "actual_historical_progress_read_TERMINATED": true,
+      "current_code_navigation_back_restored_entry_without_reload": true,
+      "drawer_not_restored_automatically": true,
+      "real_source_vue_memory_mount_exit0": true,
+      "no_code_patch_for_old_page_cache": true
+    },
+    {
+      "case": "post_executor_origin_order_fix_ordinary_direct_CUSTOM_regression_has_one_source_write_no_Flow_UI",
+      "source154_version6": true,
+      "original_actor69_tenant57": true,
+      "data_tenant77": true,
+      "private_hidden_unchanged": true,
+      "immediate_latest_list_value": true,
+      "no_new_Flow": true,
+      "normal_typed_form": true,
+      "direct_receipt_does_not_offer_approval_progress": true
+    }
+  ],
+  "baseline_bindings": {
+    "currentTenant": [],
+    "inheritedDefaults": []
+  },
+  "checked_time": "2026-09-18T18:15:49.232305+08:00",
+  "binding": {
+    "id": 22,
+    "systemId": 54,
+    "ownerTenantId": 77,
+    "scopeType": "TENANT_OVERRIDE",
+    "moduleId": 47,
+    "actionId": 496,
+    "triggerEvent": "MANUAL",
+    "flowId": 23,
+    "flowVersionId": 24,
+    "flowVersionNumber": 1,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": null,
+    "mutuallyExclusive": true,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "failures_retained": [
+    {
+      "stage": "actual_ordinary_pending_progress",
+      "result": "Action263/Flow63 pending record154v4. Both receipt and progress500 FoundationControlService.actionDelivery mixed primitive long/null nested conditional unboxed absent result. Fixed explicit nullable Long branch; reuse same pending action, no resubmit."
+    },
+    {
+      "stage": "preparation_readonly",
+      "result": "Role DTO is resourceCode, not moduleCode. Assertion failed before mutation, corrected exact published contract."
+    },
+    {
+      "stage": "expiry_preparation",
+      "result": "API emits +08 but existing LocalDateTime request parser rejects ISO offset with500 before mutation; current UI sends local datetime. Recorded B03.1c shared input/invalid-body follow-up, no clock receipt credit changed."
+    },
+    {
+      "stage": "actual_source_private_AFTER_APPROVAL_initial_exception",
+      "result": "INITIATOR ordinary69 has no source tenant member. Initial exception notification tried trusted START/outbox origin before synchronous FoundationControlService persisted event; ACTION_FLOW_ORIGIN_MISSING rolled back entire submission. Fixed persist original event before start same TX, bind returned instance afterward; no weakened context/snapshot trust. Failed UI intent retained for same retry."
+    },
+    {
+      "stage": "readback_assertions_before_mutation",
+      "result": "Source full InstanceView retains true account display name for source admin (narrow starter DTO omits identities); share DTO has no effectiveStatus field; recipient root-admin DETAIL may legitimately read hidden fields. Corrected contracts, ordinary narrow-field privacy separately verified on actual page."
+    },
+    {
+      "stage": "long_lived_development_browser_history",
+      "result": "First history back restored old development page without new progress button though receipt200. Current cold reload restored269 with progress; then same current-code navigation to denied Flow and back restored button without another reload, actual historical269 progress TERMINATED read. Old HMR warnings16:32 not current errors; no unsupported code patch. Independent actual-SFC/Vue mount session rehydration validated0, cache diagnosis treated inference only."
+    }
+  ],
+  "pending": {
+    "action_id": 263,
+    "instance_id": 63,
+    "record_id": 154,
+    "record_version_before": 4,
+    "proposed_source_note": "来源审批通过后才保存说明"
+  },
+  "pending_source_readback": {
+    "status": "WAITING",
+    "startedByTenantMemberId": null,
+    "businessId": null,
+    "instanceId": 63,
+    "flowVersionId": 24,
+    "original_actor_account": 69
+  },
+  "original_role": {
+    "id": 114,
+    "code": "role_072e45a64f",
+    "name": "正式扩展共享验收·extension_accept_4a356e1ce2",
+    "description": null,
+    "builtIn": false,
+    "status": "ACTIVE",
+    "permissions": [
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "ACTION_TENANT_ACCEPT",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "SOURCE_FILL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "ACTION_1B6DB1864661",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      }
+    ],
+    "fieldPolicies": [
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "city",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_target_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      }
+    ],
+    "version": 55
+  },
+  "temporary_role": null,
+  "approved": {
+    "actionId": 181,
+    "replayed": false,
+    "instance": {
+      "id": 63,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 24,
+      "flowVersionNumber": 1,
+      "definitionHash": "7889552348d2f3c20d4cf9440e03b7e9ab3cd315fe8b78c29cbf82cb37055c81",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 68,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 69,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 103,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {
+              "action": "MANUAL",
+              "timeoutMinutes": 5
+            },
+            "assigneePolicy": {
+              "type": "PERSON",
+              "tenantMemberIds": [
+                104
+              ]
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 104,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 105,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 2,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": null,
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "values": {
+            "source_note": "来源审批通过后才保存说明"
+          },
+          "version": 4
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 263,
+        "moduleId": 47,
+        "actionCode": "ACTION_1B6DB1864661",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 57,
+        "executionMode": "AFTER_APPROVAL",
+        "targetRecordId": 154,
+        "configVersionId": 74
+      },
+      "title": "shared_private_accept_4a356e1ce2 · ACTION_1B6DB1864661",
+      "currentNodeKey": "end",
+      "currentNodeName": "审批结束",
+      "status": "COMPLETED",
+      "startedByTenantMemberId": null,
+      "startedByName": "来源表单普通页面验收",
+      "startedAt": "2026-09-18T17:48:28.686+08:00",
+      "finishedAt": "2026-09-18T17:53:25.165+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 3,
+      "variables": {
+        "values": {
+          "source_note": "来源审批通过后才保存说明"
+        },
+        "version": 4
+      },
+      "tasks": [
+        {
+          "id": 48,
+          "nodeKey": "approval",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "assigneeTenantMemberId": 104,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "全公司",
+          "assigneePosition": null,
+          "assigneeSnapshot": {
+            "sequence": 1,
+            "formPolicy": {},
+            "policyType": "PERSON",
+            "approvalMode": "OR_SIGN",
+            "sequenceCount": 1,
+            "timeoutPolicy": {
+              "action": "MANUAL",
+              "timeoutMinutes": 5
+            },
+            "resolvedPeople": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ]
+          },
+          "dueAt": "2026-09-18T17:53:28.738+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-18T17:53:25.093+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 49,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 104,
+              "displayName": "平台超级管理员",
+              "departmentName": "全公司",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-18T17:48:28.752+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 179,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "values": {
+                "source_note": "来源审批通过后才保存说明"
+              },
+              "version": 4
+            }
+          },
+          "result": {
+            "status": "WAITING",
+            "version": 1,
+            "instanceId": 63,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:263",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T17:48:28.724+08:00"
+        },
+        {
+          "id": 180,
+          "taskId": null,
+          "nodeKey": "end",
+          "actionCode": "AUTO_END",
+          "comment": null,
+          "input": {},
+          "result": {
+            "status": "COMPLETED",
+            "version": 3,
+            "instanceId": 63,
+            "currentNodeKey": "end"
+          },
+          "idempotencyKey": "AUTO:end:570c014d-2c31-4ac0-8077-e5d58c96e0a8",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T17:53:25.188+08:00"
+        },
+        {
+          "id": 181,
+          "taskId": 48,
+          "nodeKey": "approval",
+          "actionCode": "APPROVE",
+          "comment": "普通来源共享动作的当前授权审批通过验收",
+          "input": {
+            "variables": {},
+            "targetTenantMemberId": ""
+          },
+          "result": {
+            "status": "COMPLETED",
+            "version": 3,
+            "instanceId": 63,
+            "currentNodeKey": "end"
+          },
+          "idempotencyKey": "source-progress-approve-263",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T17:53:25.251+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 149,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T17:48:28.69+08:00",
+          "leftAt": "2026-09-18T17:48:28.691+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 150,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T17:48:28.73+08:00",
+          "leftAt": "2026-09-18T17:53:25.11+08:00",
+          "resultCode": "APPROVE",
+          "version": 1
+        },
+        {
+          "id": 151,
+          "parentExecutionId": null,
+          "nodeKey": "end",
+          "nodeType": "END",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T17:53:25.164+08:00",
+          "leftAt": "2026-09-18T17:53:25.167+08:00",
+          "resultCode": "COMPLETED",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 263,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 24,
+            "definitionHash": "7889552348d2f3c20d4cf9440e03b7e9ab3cd315fe8b78c29cbf82cb37055c81"
+          },
+          "occurredAt": "2026-09-18T17:48:28.697+08:00"
+        },
+        {
+          "id": 264,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T17:48:28.726+08:00"
+        },
+        {
+          "id": 265,
+          "executionId": 150,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "jobType": "TASK_TIMEOUT",
+            "nextRunAt": "2026-09-18T17:53:28.738172940",
+            "maxAttempts": 1
+          },
+          "occurredAt": "2026-09-18T17:48:28.748+08:00"
+        },
+        {
+          "id": 266,
+          "executionId": null,
+          "taskId": 48,
+          "nodeKey": "approval",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "assignees": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ],
+            "taskCount": 1,
+            "approvalMode": "OR_SIGN"
+          },
+          "occurredAt": "2026-09-18T17:48:28.755+08:00"
+        },
+        {
+          "id": 267,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "end",
+          "eventType": "ACTION",
+          "eventName": "流程已完成",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "COMPLETED",
+          "detail": {
+            "comment": "",
+            "actionCode": "AUTO_END"
+          },
+          "occurredAt": "2026-09-18T17:53:25.201+08:00"
+        },
+        {
+          "id": 268,
+          "executionId": null,
+          "taskId": 48,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "COMPLETED",
+          "detail": {
+            "comment": "普通来源共享动作的当前授权审批通过验收",
+            "actionCode": "APPROVE"
+          },
+          "occurredAt": "2026-09-18T17:53:25.254+08:00"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 8,
+          "executionId": 150,
+          "nodeKey": "approval",
+          "jobType": "TASK_TIMEOUT",
+          "status": "PENDING",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-18T17:53:28.738+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": null,
+          "version": 0
+        }
+      ],
+      "allowedActions": [],
+      "nextStep": "Flow 已完成"
+    }
+  },
+  "rejected_pending": {
+    "instance_id": 64,
+    "action_id": 264,
+    "record_version": 5
+  },
+  "rejected": {
+    "actionId": 183,
+    "replayed": false,
+    "instance": {
+      "id": 64,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 24,
+      "flowVersionNumber": 1,
+      "definitionHash": "7889552348d2f3c20d4cf9440e03b7e9ab3cd315fe8b78c29cbf82cb37055c81",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 68,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 69,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 103,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {
+              "action": "MANUAL",
+              "timeoutMinutes": 5
+            },
+            "assigneePolicy": {
+              "type": "PERSON",
+              "tenantMemberIds": [
+                104
+              ]
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 104,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 105,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 2,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": null,
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "values": {
+            "source_note": "被拒绝的来源说明不得保存"
+          },
+          "version": 5
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 264,
+        "moduleId": 47,
+        "actionCode": "ACTION_1B6DB1864661",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 57,
+        "executionMode": "AFTER_APPROVAL",
+        "targetRecordId": 154,
+        "configVersionId": 74
+      },
+      "title": "shared_private_accept_4a356e1ce2 · ACTION_1B6DB1864661",
+      "currentNodeKey": "approval",
+      "currentNodeName": "来源审批确认",
+      "status": "REJECTED",
+      "startedByTenantMemberId": null,
+      "startedByName": "来源表单普通页面验收",
+      "startedAt": "2026-09-18T17:54:30.832+08:00",
+      "finishedAt": "2026-09-18T17:54:42.742+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 2,
+      "variables": {
+        "values": {
+          "source_note": "被拒绝的来源说明不得保存"
+        },
+        "version": 5
+      },
+      "tasks": [
+        {
+          "id": 49,
+          "nodeKey": "approval",
+          "taskType": "APPROVAL",
+          "status": "REJECT",
+          "assigneeTenantMemberId": 104,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "全公司",
+          "assigneePosition": null,
+          "assigneeSnapshot": {
+            "sequence": 1,
+            "formPolicy": {},
+            "policyType": "PERSON",
+            "approvalMode": "OR_SIGN",
+            "sequenceCount": 1,
+            "timeoutPolicy": {
+              "action": "MANUAL",
+              "timeoutMinutes": 5
+            },
+            "resolvedPeople": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ]
+          },
+          "dueAt": "2026-09-18T17:59:30.875+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-18T17:54:42.735+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 50,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 104,
+              "displayName": "平台超级管理员",
+              "departmentName": "全公司",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-18T17:54:30.898+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 182,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "values": {
+                "source_note": "被拒绝的来源说明不得保存"
+              },
+              "version": 5
+            }
+          },
+          "result": {
+            "status": "WAITING",
+            "version": 1,
+            "instanceId": 64,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:264",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T17:54:30.857+08:00"
+        },
+        {
+          "id": 183,
+          "taskId": 49,
+          "nodeKey": "approval",
+          "actionCode": "REJECT",
+          "comment": "来源私有内部说明及候选人配置不应出现在发起人的窄历史中",
+          "input": {
+            "variables": {},
+            "targetTenantMemberId": ""
+          },
+          "result": {
+            "status": "REJECTED",
+            "version": 2,
+            "instanceId": 64,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "source-progress-reject-264",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T17:54:42.748+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 152,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T17:54:30.833+08:00",
+          "leftAt": "2026-09-18T17:54:30.835+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 153,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T17:54:30.863+08:00",
+          "leftAt": "2026-09-18T17:54:42.738+08:00",
+          "resultCode": "REJECT",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 269,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 24,
+            "definitionHash": "7889552348d2f3c20d4cf9440e03b7e9ab3cd315fe8b78c29cbf82cb37055c81"
+          },
+          "occurredAt": "2026-09-18T17:54:30.839+08:00"
+        },
+        {
+          "id": 270,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T17:54:30.859+08:00"
+        },
+        {
+          "id": 271,
+          "executionId": 153,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "jobType": "TASK_TIMEOUT",
+            "nextRunAt": "2026-09-18T17:59:30.874765316",
+            "maxAttempts": 1
+          },
+          "occurredAt": "2026-09-18T17:54:30.892+08:00"
+        },
+        {
+          "id": 272,
+          "executionId": null,
+          "taskId": 49,
+          "nodeKey": "approval",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "assignees": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ],
+            "taskCount": 1,
+            "approvalMode": "OR_SIGN"
+          },
+          "occurredAt": "2026-09-18T17:54:30.901+08:00"
+        },
+        {
+          "id": 273,
+          "executionId": null,
+          "taskId": 49,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "审批拒绝",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "REJECTED",
+          "detail": {
+            "comment": "来源私有内部说明及候选人配置不应出现在发起人的窄历史中",
+            "actionCode": "REJECT"
+          },
+          "occurredAt": "2026-09-18T17:54:42.75+08:00"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 9,
+          "executionId": 153,
+          "nodeKey": "approval",
+          "jobType": "TASK_TIMEOUT",
+          "status": "PENDING",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-18T17:59:30.875+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": null,
+          "version": 0
+        }
+      ],
+      "allowedActions": [],
+      "nextStep": "当前状态：REJECTED"
+    }
+  },
+  "share_before": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T17:23:07.847+08:00",
+    "expiresAt": null,
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 5
+  },
+  "temporary_share": null,
+  "expiring_share": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T17:57:06.59+08:00",
+    "expiresAt": "2026-09-18T17:57:21+08:00",
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 7
+  },
+  "exception_publication": {
+    "flowId": 23,
+    "versionId": 25,
+    "versionNumber": 2,
+    "draftRevision": 3,
+    "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e",
+    "previousVersionId": 24,
+    "simulation": {
+      "flowId": 23,
+      "draftRevision": 3,
+      "successful": true,
+      "steps": [
+        {
+          "nodeKey": "start",
+          "nodeType": "START",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "outcome": "VISITED"
+        },
+        {
+          "nodeKey": "end",
+          "nodeType": "END",
+          "outcome": "VISITED"
+        }
+      ],
+      "issues": [],
+      "variables": {}
+    }
+  },
+  "exception_binding": {
+    "id": 23,
+    "systemId": 54,
+    "ownerTenantId": 77,
+    "scopeType": "TENANT_OVERRIDE",
+    "moduleId": 47,
+    "actionId": 496,
+    "triggerEvent": "MANUAL",
+    "flowId": 23,
+    "flowVersionId": 25,
+    "flowVersionNumber": 2,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": null,
+    "mutuallyExclusive": true,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "reserved_prefix_denial": {
+    "status": 422,
+    "code": "FLOW_START_KEY_RESERVED"
+  },
+  "share_renewed": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T17:57:44.162+08:00",
+    "expiresAt": null,
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 8
+  },
+  "revoked_share": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "REVOKED",
+    "effectiveAt": "2026-09-18T17:57:44.162+08:00",
+    "expiresAt": null,
+    "revokedAt": "2026-09-18T17:58:00.591+08:00",
+    "grantedByMemberId": 71,
+    "version": 9
+  },
+  "share_restored": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T17:58:30.233+08:00",
+    "expiresAt": null,
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 10
+  },
+  "exception_pending": {
+    "instance_id": 66,
+    "action_id": 266,
+    "status": "EXCEPTION",
+    "record_version": 5
+  },
+  "exception_terminated": {
+    "actionId": 187,
+    "replayed": false,
+    "instance": {
+      "id": 66,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 25,
+      "flowVersionNumber": 2,
+      "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 70,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 71,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 106,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {
+              "type": "INITIATOR"
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 107,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 108,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 3,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": null,
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "values": {
+            "source_note": "没有审批人时不得自动生效"
+          },
+          "version": 5
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 266,
+        "moduleId": 47,
+        "actionCode": "ACTION_1B6DB1864661",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 57,
+        "executionMode": "AFTER_APPROVAL",
+        "targetRecordId": 154,
+        "configVersionId": 74
+      },
+      "title": "shared_private_accept_4a356e1ce2 · ACTION_1B6DB1864661",
+      "currentNodeKey": "approval",
+      "currentNodeName": "来源审批确认",
+      "status": "TERMINATED",
+      "startedByTenantMemberId": null,
+      "startedByName": "来源表单普通页面验收",
+      "startedAt": "2026-09-18T18:01:35.697+08:00",
+      "finishedAt": "2026-09-18T18:03:18.333046596+08:00",
+      "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+      "errorMessage": "审批节点没有可解析的有效处理人",
+      "version": 2,
+      "variables": {
+        "values": {
+          "source_note": "没有审批人时不得自动生效"
+        },
+        "version": 5
+      },
+      "tasks": [],
+      "actions": [
+        {
+          "id": 185,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "values": {
+                "source_note": "没有审批人时不得自动生效"
+              },
+              "version": 5
+            }
+          },
+          "result": {
+            "status": "EXCEPTION",
+            "version": 1,
+            "instanceId": 66,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:266",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T18:01:35.758+08:00"
+        },
+        {
+          "id": 186,
+          "taskId": null,
+          "nodeKey": "approval",
+          "actionCode": "NODE_EXCEPTION",
+          "comment": "审批节点没有可解析的有效处理人",
+          "input": {
+            "exceptionType": "ASSIGNEE"
+          },
+          "result": {
+            "status": "EXCEPTION",
+            "version": 1,
+            "instanceId": 66,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "EXCEPTION:9",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T18:01:35.946+08:00"
+        },
+        {
+          "id": 187,
+          "taskId": null,
+          "nodeKey": "approval",
+          "actionCode": "TERMINATE",
+          "comment": "仅关闭本地来源发起人异常验收实例，保留快照历史",
+          "input": {},
+          "result": {
+            "status": "TERMINATED",
+            "version": 2,
+            "instanceId": 66,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "source-progress-terminate-266",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:03:18.341+08:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "id": 9,
+          "nodeKey": "approval",
+          "exceptionType": "ASSIGNEE",
+          "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+          "errorMessage": "审批节点没有可解析的有效处理人",
+          "policyAction": "MANUAL",
+          "status": "OPEN",
+          "resolvedByTenantMemberId": null,
+          "resolvedByName": null,
+          "resolutionComment": null,
+          "occurredAt": "2026-09-18T18:01:35.806+08:00",
+          "resolvedAt": null,
+          "version": 0
+        }
+      ],
+      "executions": [
+        {
+          "id": 156,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T18:01:35.7+08:00",
+          "leftAt": "2026-09-18T18:01:35.702+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 157,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "FAILED",
+          "enteredAt": "2026-09-18T18:01:35.77+08:00",
+          "leftAt": "2026-09-18T18:01:35.797+08:00",
+          "resultCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 277,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 25,
+            "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e"
+          },
+          "occurredAt": "2026-09-18T18:01:35.731+08:00"
+        },
+        {
+          "id": 278,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T18:01:35.762+08:00"
+        },
+        {
+          "id": 279,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "INCIDENT",
+          "eventName": "流程进入异常处理",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "EXCEPTION",
+          "detail": {
+            "message": "审批节点没有可解析的有效处理人",
+            "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+            "policyAction": "MANUAL"
+          },
+          "occurredAt": "2026-09-18T18:01:35.823+08:00"
+        },
+        {
+          "id": 280,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "节点执行异常",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "EXCEPTION",
+          "detail": {
+            "comment": "审批节点没有可解析的有效处理人",
+            "actionCode": "NODE_EXCEPTION"
+          },
+          "occurredAt": "2026-09-18T18:01:35.948+08:00"
+        },
+        {
+          "id": 281,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "管理员终止",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "TERMINATED",
+          "detail": {
+            "comment": "仅关闭本地来源发起人异常验收实例，保留快照历史",
+            "actionCode": "TERMINATE"
+          },
+          "occurredAt": "2026-09-18T18:03:18.342+08:00"
+        }
+      ],
+      "jobs": [],
+      "allowedActions": [],
+      "nextStep": "当前状态：TERMINATED"
+    }
+  },
+  "own_root_action": {
+    "idempotencyRecordId": 267,
+    "outboxId": 182,
+    "idempotencyKey": "source-progress-root-own-readonly-control",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 67
+  },
+  "own_root_rejected": {
+    "actionId": 189,
+    "replayed": false,
+    "instance": {
+      "id": 67,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 25,
+      "flowVersionNumber": 2,
+      "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 70,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 71,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 106,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {
+              "type": "INITIATOR"
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 107,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 108,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 3,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": null,
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "values": {
+            "source_note": "来源审批通过后才保存说明"
+          },
+          "version": 5
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 267,
+        "moduleId": 47,
+        "actionCode": "ACTION_1B6DB1864661",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 77,
+        "executionMode": "AFTER_APPROVAL",
+        "targetRecordId": 154,
+        "configVersionId": 74
+      },
+      "title": "shared_private_accept_4a356e1ce2 · ACTION_1B6DB1864661",
+      "currentNodeKey": "approval",
+      "currentNodeName": "来源审批确认",
+      "status": "REJECTED",
+      "startedByTenantMemberId": 104,
+      "startedByName": "平台超级管理员",
+      "startedAt": "2026-09-18T18:03:18.519+08:00",
+      "finishedAt": "2026-09-18T18:03:19.11+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 2,
+      "variables": {
+        "values": {
+          "source_note": "来源审批通过后才保存说明"
+        },
+        "version": 5
+      },
+      "tasks": [
+        {
+          "id": 50,
+          "nodeKey": "approval",
+          "taskType": "APPROVAL",
+          "status": "REJECT",
+          "assigneeTenantMemberId": 104,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "全公司",
+          "assigneePosition": null,
+          "assigneeSnapshot": {
+            "sequence": 1,
+            "formPolicy": {},
+            "policyType": "INITIATOR",
+            "approvalMode": "OR_SIGN",
+            "sequenceCount": 1,
+            "timeoutPolicy": {},
+            "resolvedPeople": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ]
+          },
+          "dueAt": null,
+          "claimedAt": null,
+          "completedAt": "2026-09-18T18:03:19.105+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 51,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 104,
+              "displayName": "平台超级管理员",
+              "departmentName": "全公司",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的流程发起人解析",
+              "createdAt": "2026-09-18T18:03:18.549+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 188,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "values": {
+                "source_note": "来源审批通过后才保存说明"
+              },
+              "version": 5
+            }
+          },
+          "result": {
+            "status": "WAITING",
+            "version": 1,
+            "instanceId": 67,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:267",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:03:18.533+08:00"
+        },
+        {
+          "id": 189,
+          "taskId": 50,
+          "nodeKey": "approval",
+          "actionCode": "REJECT",
+          "comment": "仅关闭当前本人控制组，不修改业务值",
+          "input": {
+            "variables": {},
+            "targetTenantMemberId": ""
+          },
+          "result": {
+            "status": "REJECTED",
+            "version": 2,
+            "instanceId": 67,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "source-progress-root-own-reject-267",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:03:19.114+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 158,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T18:03:18.521+08:00",
+          "leftAt": "2026-09-18T18:03:18.522+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 159,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T18:03:18.538+08:00",
+          "leftAt": "2026-09-18T18:03:19.108+08:00",
+          "resultCode": "REJECT",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 282,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 25,
+            "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e"
+          },
+          "occurredAt": "2026-09-18T18:03:18.524+08:00"
+        },
+        {
+          "id": 283,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T18:03:18.534+08:00"
+        },
+        {
+          "id": 284,
+          "executionId": null,
+          "taskId": 50,
+          "nodeKey": "approval",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "assignees": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ],
+            "taskCount": 1,
+            "approvalMode": "OR_SIGN"
+          },
+          "occurredAt": "2026-09-18T18:03:18.55+08:00"
+        },
+        {
+          "id": 285,
+          "executionId": null,
+          "taskId": 50,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "审批拒绝",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "REJECTED",
+          "detail": {
+            "comment": "仅关闭当前本人控制组，不修改业务值",
+            "actionCode": "REJECT"
+          },
+          "occurredAt": "2026-09-18T18:03:19.116+08:00"
+        }
+      ],
+      "jobs": [],
+      "allowedActions": [],
+      "nextStep": "当前状态：REJECTED"
+    }
+  },
+  "create_binding": {
+    "id": 24,
+    "systemId": 54,
+    "ownerTenantId": 77,
+    "scopeType": "TENANT_OVERRIDE",
+    "moduleId": 47,
+    "actionId": null,
+    "triggerEvent": "CREATE",
+    "flowId": 23,
+    "flowVersionId": 25,
+    "flowVersionNumber": 2,
+    "executionMode": "AFTER_APPROVAL",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": null,
+    "mutuallyExclusive": true,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "own_pending_create": {
+    "idempotencyRecordId": 268,
+    "outboxId": 183,
+    "idempotencyKey": "source-progress-pending-create-control",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 68
+  },
+  "own_create_withdrawn": {
+    "actionId": 191,
+    "replayed": false,
+    "instance": {
+      "id": 68,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 25,
+      "flowVersionNumber": 2,
+      "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 70,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 71,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 106,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {
+              "type": "INITIATOR"
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 107,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 108,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 3,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": null,
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "title": "尚未生成正式记录的审批进度验收",
+          "fields": {
+            "subject": "尚未生成正式记录的审批进度验收"
+          },
+          "status": null,
+          "departmentId": 98,
+          "recordNumber": null,
+          "ownerMemberId": 71,
+          "participantMemberIds": []
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 268,
+        "moduleId": 47,
+        "actionCode": "CREATE",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 77,
+        "executionMode": "AFTER_APPROVAL",
+        "targetRecordId": null,
+        "configVersionId": 74,
+        "proposedOwnerMemberId": 71
+      },
+      "title": "尚未生成正式记录的审批进度验收",
+      "currentNodeKey": "approval",
+      "currentNodeName": "来源审批确认",
+      "status": "WITHDRAWN",
+      "startedByTenantMemberId": 104,
+      "startedByName": "平台超级管理员",
+      "startedAt": "2026-09-18T18:04:20.423+08:00",
+      "finishedAt": "2026-09-18T18:04:20.598934594+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 2,
+      "variables": {
+        "departmentId": 98,
+        "fields": {
+          "subject": "尚未生成正式记录的审批进度验收"
+        },
+        "ownerMemberId": 71,
+        "participantMemberIds": [],
+        "recordNumber": null,
+        "status": null,
+        "subject": "尚未生成正式记录的审批进度验收",
+        "title": "尚未生成正式记录的审批进度验收"
+      },
+      "tasks": [
+        {
+          "id": 51,
+          "nodeKey": "approval",
+          "taskType": "APPROVAL",
+          "status": "CANCELLED",
+          "assigneeTenantMemberId": 104,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "全公司",
+          "assigneePosition": null,
+          "assigneeSnapshot": {
+            "sequence": 1,
+            "formPolicy": {},
+            "policyType": "INITIATOR",
+            "approvalMode": "OR_SIGN",
+            "sequenceCount": 1,
+            "timeoutPolicy": {},
+            "resolvedPeople": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ]
+          },
+          "dueAt": null,
+          "claimedAt": null,
+          "completedAt": "2026-09-18T18:04:20.602+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 52,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 104,
+              "displayName": "平台超级管理员",
+              "departmentName": "全公司",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的流程发起人解析",
+              "createdAt": "2026-09-18T18:04:20.462+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 190,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "title": "尚未生成正式记录的审批进度验收",
+              "fields": {
+                "subject": "尚未生成正式记录的审批进度验收"
+              },
+              "status": null,
+              "subject": "尚未生成正式记录的审批进度验收",
+              "departmentId": 98,
+              "recordNumber": null,
+              "ownerMemberId": 71,
+              "participantMemberIds": []
+            }
+          },
+          "result": {
+            "status": "WAITING",
+            "version": 1,
+            "instanceId": 68,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:268",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:04:20.451+08:00"
+        },
+        {
+          "id": 191,
+          "taskId": null,
+          "nodeKey": "approval",
+          "actionCode": "WITHDRAW",
+          "comment": "仅关闭未创建正式数据的本地控制组",
+          "input": {},
+          "result": {
+            "status": "WITHDRAWN",
+            "version": 2,
+            "instanceId": 68,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "source-progress-create-withdraw-268",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:04:20.606+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 160,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T18:04:20.425+08:00",
+          "leftAt": "2026-09-18T18:04:20.425+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 161,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "ACTIVE",
+          "enteredAt": "2026-09-18T18:04:20.455+08:00",
+          "leftAt": null,
+          "resultCode": null,
+          "version": 0
+        }
+      ],
+      "history": [
+        {
+          "id": 286,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 25,
+            "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e"
+          },
+          "occurredAt": "2026-09-18T18:04:20.428+08:00"
+        },
+        {
+          "id": 287,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T18:04:20.452+08:00"
+        },
+        {
+          "id": 288,
+          "executionId": null,
+          "taskId": 51,
+          "nodeKey": "approval",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {
+            "assignees": [
+              {
+                "displayName": "平台超级管理员",
+                "positionTitle": null,
+                "departmentName": "全公司",
+                "tenantMemberId": 104
+              }
+            ],
+            "taskCount": 1,
+            "approvalMode": "OR_SIGN"
+          },
+          "occurredAt": "2026-09-18T18:04:20.463+08:00"
+        },
+        {
+          "id": 289,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "发起人撤回",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WITHDRAWN",
+          "detail": {
+            "comment": "仅关闭未创建正式数据的本地控制组",
+            "actionCode": "WITHDRAW"
+          },
+          "occurredAt": "2026-09-18T18:04:20.608+08:00"
+        }
+      ],
+      "jobs": [],
+      "allowedActions": [],
+      "nextStep": "当前状态：WITHDRAWN"
+    }
+  },
+  "flow_only_binding": {
+    "id": 25,
+    "systemId": 54,
+    "ownerTenantId": 77,
+    "scopeType": "TENANT_OVERRIDE",
+    "moduleId": 47,
+    "actionId": 496,
+    "triggerEvent": "MANUAL",
+    "flowId": 23,
+    "flowVersionId": 25,
+    "flowVersionNumber": 2,
+    "executionMode": "FLOW_ONLY",
+    "priorityOrder": 0,
+    "conditionExpression": null,
+    "condition": null,
+    "mutuallyExclusive": true,
+    "status": "ACTIVE",
+    "version": 0,
+    "updatedAt": null
+  },
+  "flow_only": {
+    "instance_id": 69,
+    "action_id": 269,
+    "mode": "FLOW_ONLY"
+  },
+  "temporary_source_tenant": null,
+  "flow_only_terminated": {
+    "actionId": 194,
+    "replayed": false,
+    "instance": {
+      "id": 69,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 77,
+      "flowId": 23,
+      "flowVersionId": 25,
+      "flowVersionNumber": 2,
+      "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e",
+      "definitionSnapshot": {
+        "code": "flow_aaeb9320554c",
+        "name": "运行时钟与来源审批进度验收",
+        "edges": [
+          {
+            "id": 70,
+            "config": {},
+            "edgeKey": "first",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "start",
+            "targetNodeKey": "approval",
+            "conditionExpression": null
+          },
+          {
+            "id": 71,
+            "config": {},
+            "edgeKey": "last",
+            "version": 0,
+            "priorityOrder": 0,
+            "sourceNodeKey": "approval",
+            "targetNodeKey": "end",
+            "conditionExpression": null
+          }
+        ],
+        "nodes": [
+          {
+            "id": 106,
+            "name": "来源审批确认",
+            "config": {},
+            "nodeKey": "approval",
+            "version": 0,
+            "nodeType": "APPROVAL",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {
+              "type": "INITIATOR"
+            },
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 107,
+            "name": "审批结束",
+            "config": {},
+            "nodeKey": "end",
+            "version": 0,
+            "nodeType": "END",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          },
+          {
+            "id": 108,
+            "name": "提交申请",
+            "config": {},
+            "nodeKey": "start",
+            "version": 0,
+            "nodeType": "START",
+            "positionX": "0.000",
+            "positionY": "0.000",
+            "formPolicy": {},
+            "timeoutPolicy": {},
+            "assigneePolicy": {},
+            "exceptionPolicy": {
+              "action": "MANUAL"
+            }
+          }
+        ],
+        "flowId": 23,
+        "systemId": 54,
+        "tenantId": 77,
+        "platformId": 1,
+        "contextType": "SYSTEM",
+        "draftRevision": 3,
+        "schemaVersion": 1
+      },
+      "businessType": "MODULE:shared_private_accept_4a356e1ce2",
+      "businessId": "154",
+      "businessSnapshot": {
+        "depth": 0,
+        "intent": {
+          "values": {
+            "source_note": "仅发起流程不得直接保存说明"
+          },
+          "version": 5
+        },
+        "record": {},
+        "channel": "PAGE",
+        "actionId": 269,
+        "moduleId": 47,
+        "actionCode": "ACTION_1B6DB1864661",
+        "causationId": null,
+        "dataTenantId": 77,
+        "actorTenantId": 57,
+        "executionMode": "FLOW_ONLY",
+        "targetRecordId": 154,
+        "configVersionId": 74
+      },
+      "title": "shared_private_accept_4a356e1ce2 · ACTION_1B6DB1864661",
+      "currentNodeKey": "approval",
+      "currentNodeName": "来源审批确认",
+      "status": "TERMINATED",
+      "startedByTenantMemberId": null,
+      "startedByName": "来源表单普通页面验收",
+      "startedAt": "2026-09-18T18:06:04.23+08:00",
+      "finishedAt": "2026-09-18T18:07:44.59894839+08:00",
+      "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+      "errorMessage": "审批节点没有可解析的有效处理人",
+      "version": 2,
+      "variables": {
+        "values": {
+          "source_note": "仅发起流程不得直接保存说明"
+        },
+        "version": 5
+      },
+      "tasks": [],
+      "actions": [
+        {
+          "id": 192,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {
+            "flowId": 23,
+            "variables": {
+              "values": {
+                "source_note": "仅发起流程不得直接保存说明"
+              },
+              "version": 5
+            }
+          },
+          "result": {
+            "status": "EXCEPTION",
+            "version": 1,
+            "instanceId": 69,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "business-action:269",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T18:06:04.248+08:00"
+        },
+        {
+          "id": 193,
+          "taskId": null,
+          "nodeKey": "approval",
+          "actionCode": "NODE_EXCEPTION",
+          "comment": "审批节点没有可解析的有效处理人",
+          "input": {
+            "exceptionType": "ASSIGNEE"
+          },
+          "result": {
+            "status": "EXCEPTION",
+            "version": 1,
+            "instanceId": 69,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "EXCEPTION:10",
+          "actedByTenantMemberId": null,
+          "actedByName": "系统自动处理",
+          "actedAt": "2026-09-18T18:06:04.292+08:00"
+        },
+        {
+          "id": 194,
+          "taskId": null,
+          "nodeKey": "approval",
+          "actionCode": "TERMINATE",
+          "comment": "关闭本地仅发起来源进度验收实例，保留完整历史",
+          "input": {},
+          "result": {
+            "status": "TERMINATED",
+            "version": 2,
+            "instanceId": 69,
+            "currentNodeKey": "approval"
+          },
+          "idempotencyKey": "source-progress-flow-only-terminate-269",
+          "actedByTenantMemberId": 104,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-18T18:07:44.604+08:00"
+        }
+      ],
+      "exceptions": [
+        {
+          "id": 10,
+          "nodeKey": "approval",
+          "exceptionType": "ASSIGNEE",
+          "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+          "errorMessage": "审批节点没有可解析的有效处理人",
+          "policyAction": "MANUAL",
+          "status": "OPEN",
+          "resolvedByTenantMemberId": null,
+          "resolvedByName": null,
+          "resolutionComment": null,
+          "occurredAt": "2026-09-18T18:06:04.262+08:00",
+          "resolvedAt": null,
+          "version": 0
+        }
+      ],
+      "executions": [
+        {
+          "id": 162,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-18T18:06:04.234+08:00",
+          "leftAt": "2026-09-18T18:06:04.235+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 163,
+          "parentExecutionId": null,
+          "nodeKey": "approval",
+          "nodeType": "APPROVAL",
+          "status": "FAILED",
+          "enteredAt": "2026-09-18T18:06:04.253+08:00",
+          "leftAt": "2026-09-18T18:06:04.261+08:00",
+          "resultCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 290,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "flowVersionId": 25,
+            "definitionHash": "fc8b5c9bd49a91ef4b08060cb5eff907ab5916c6295754c0d6e9ccd0ca58823e"
+          },
+          "occurredAt": "2026-09-18T18:06:04.238+08:00"
+        },
+        {
+          "id": 291,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {
+            "comment": "",
+            "actionCode": "START"
+          },
+          "occurredAt": "2026-09-18T18:06:04.25+08:00"
+        },
+        {
+          "id": 292,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "INCIDENT",
+          "eventName": "流程进入异常处理",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "EXCEPTION",
+          "detail": {
+            "message": "审批节点没有可解析的有效处理人",
+            "errorCode": "FLOW_RUNTIME_ASSIGNEE_UNRESOLVED",
+            "policyAction": "MANUAL"
+          },
+          "occurredAt": "2026-09-18T18:06:04.265+08:00"
+        },
+        {
+          "id": 293,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "节点执行异常",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": null,
+          "afterStatus": "EXCEPTION",
+          "detail": {
+            "comment": "审批节点没有可解析的有效处理人",
+            "actionCode": "NODE_EXCEPTION"
+          },
+          "occurredAt": "2026-09-18T18:06:04.293+08:00"
+        },
+        {
+          "id": 294,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "approval",
+          "eventType": "ACTION",
+          "eventName": "管理员终止",
+          "actorTenantMemberId": 104,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "TERMINATED",
+          "detail": {
+            "comment": "关闭本地仅发起来源进度验收实例，保留完整历史",
+            "actionCode": "TERMINATE"
+          },
+          "occurredAt": "2026-09-18T18:07:44.605+08:00"
+        }
+      ],
+      "jobs": [],
+      "allowedActions": [],
+      "nextStep": "当前状态：TERMINATED"
+    }
+  },
+  "fixture_binding_restoration": [
+    {
+      "id": 26,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "scopeType": "TENANT_OVERRIDE",
+      "moduleId": 47,
+      "actionId": 496,
+      "triggerEvent": "MANUAL",
+      "flowId": null,
+      "flowVersionId": null,
+      "flowVersionNumber": null,
+      "executionMode": "DIRECT",
+      "priorityOrder": 0,
+      "conditionExpression": null,
+      "condition": null,
+      "mutuallyExclusive": true,
+      "status": "ACTIVE",
+      "version": 0,
+      "updatedAt": null
+    },
+    {
+      "id": 27,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "scopeType": "TENANT_OVERRIDE",
+      "moduleId": 47,
+      "actionId": null,
+      "triggerEvent": "CREATE",
+      "flowId": null,
+      "flowVersionId": null,
+      "flowVersionNumber": null,
+      "executionMode": "DIRECT",
+      "priorityOrder": 0,
+      "conditionExpression": null,
+      "condition": null,
+      "mutuallyExclusive": true,
+      "status": "ACTIVE",
+      "version": 0,
+      "updatedAt": null
+    }
+  ],
+  "fixture_timeout_cleanup": {
+    "only_own_completed_jobs": [],
+    "history_kept": true
+  },
+  "final_readback": {
+    "private_record154_version": 6,
+    "common_record151_version": 11,
+    "role114_original_restored": true,
+    "ordinary69_source_memberships": 0,
+    "ordinary_member108_roles": [
+      114
+    ],
+    "source77_active": true,
+    "share17_active_null_expiry_revoked": true,
+    "all_six_current_synthetic_flows_closed_preserved": true,
+    "source47_CREATE_CUSTOM_restored_DIRECT": true,
+    "private_source_note": "来源审批与直接动作均可正常使用"
+  },
+  "packet_verification": "passed"
+}

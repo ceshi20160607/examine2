@@ -407,6 +407,8 @@ class FlowAndWorkManagementHttpTest {
     void manualWorkLogKeepsImmutableRevisionsLinksAndExplicitOtherAuthorPermission() {
         Session owner = register("c34_log_owner", "c34-log-system", "c34-log-owner@example.com");
         Session outsider = register("c34_log_viewer", "c34-log-viewer-system", "c34-log-viewer@example.com");
+        long viewerRoleId = addMemberWithPermissions(
+                owner, outsider.accountId(), "WORK", List.of("VIEW", "UPDATE_LOG"), "LOG_VIEWER");
 
         ResponseEntity<Map> project = exchange("/api/work/projects", HttpMethod.POST, owner.token(), Map.of(
                 "code", "c34_log_project", "name", "C34 日志关联项目", "members", List.of()));
@@ -423,8 +425,10 @@ class FlowAndWorkManagementHttpTest {
         String today = LocalDate.now().toString();
         Map<String, Object> links = Map.of("projectId", projectId, "taskIds", List.of(taskId));
         ResponseEntity<Map> created = exchange("/api/work/logs", HttpMethod.POST, owner.token(), Map.of(
-                "workDate", today, "title", "C34 每日交付日志", "content", "完成 Flow 绑定后端",
-                "durationMinutes", 120, "customValues", links));
+                "workDate", today, "title", "C34 每日交付日志", "completedText", "完成 Flow 绑定后端",
+                "durationMinutes", 120, "projectId", projectId, "taskIds", List.of(taskId),
+                "visibilityType", "ROLE", "visibleRoleIds", List.of(viewerRoleId),
+                "materials", List.of(), "customValues", Map.of()));
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
         long logId = number(data(created).get("id"));
         assertThat(data(created)).containsEntry("status", "DRAFT").containsEntry("version", 0);
@@ -434,15 +438,15 @@ class FlowAndWorkManagementHttpTest {
                 owner.token(), null).getBody().get("data"))).singleElement().satisfies(item ->
                 assertThat(map(item)).containsEntry("id", (int) logId));
 
-        Map<String, Object> submit = logUpdate(0, today, "C34 每日交付日志", "完成 Flow 绑定与日志服务",
-                "SUBMITTED", links, "完成当日工作并提交");
-        ResponseEntity<Map> submitted = exchange("/api/work/logs/" + logId, HttpMethod.PUT, owner.token(), submit);
+        ResponseEntity<Map> submitted = exchange("/api/work/logs/" + logId + "/submit", HttpMethod.POST,
+                owner.token(), Map.of("expectedVersion", 0, "reason", "完成当日工作并提交"));
         assertThat(submitted.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(submitted)).containsEntry("status", "SUBMITTED").containsEntry("version", 1);
         assertThat((List<?>) data(submitted).get("revisions")).hasSize(2);
 
         ResponseEntity<Map> submittedMutation = exchange("/api/work/logs/" + logId, HttpMethod.PUT, owner.token(),
-                logUpdate(1, today, "C34 每日交付日志", "偷偷改写已提交内容", "SUBMITTED", links, "错误改写"));
+                logUpdate(1, today, "C34 每日交付日志", "偷偷改写已提交内容", links,
+                        "错误改写", viewerRoleId));
         assertThat(submittedMutation.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(submittedMutation.getBody().get("code")).isEqualTo("WORK_LOG_SUBMITTED_IMMUTABLE");
         ResponseEntity<Map> future = exchange("/api/work/logs", HttpMethod.POST, owner.token(), Map.of(
@@ -451,13 +455,14 @@ class FlowAndWorkManagementHttpTest {
         assertThat(future.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(future.getBody().get("code")).isEqualTo("WORK_LOG_FUTURE_DATE_INVALID");
 
-        ResponseEntity<Map> withdrawn = exchange("/api/work/logs/" + logId, HttpMethod.PUT, owner.token(),
-                logUpdate(1, today, "C34 每日交付日志", "完成 Flow 绑定与日志服务", "WITHDRAWN", links, "发现遗漏，主动撤回"));
+        ResponseEntity<Map> withdrawn = exchange("/api/work/logs/" + logId + "/withdraw", HttpMethod.POST,
+                owner.token(), Map.of("expectedVersion", 1, "reason", "发现遗漏，主动撤回"));
         assertThat(withdrawn.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(withdrawn)).containsEntry("status", "WITHDRAWN").containsEntry("version", 2);
         assertThat((List<?>) data(withdrawn).get("revisions")).hasSize(3);
         ResponseEntity<Map> stale = exchange("/api/work/logs/" + logId, HttpMethod.PUT, owner.token(),
-                logUpdate(1, today, "C34 每日交付日志", "过期覆盖", "WITHDRAWN", links, "旧页面保存"));
+                logUpdate(1, today, "C34 每日交付日志", "过期覆盖", links,
+                        "旧页面保存", viewerRoleId));
         assertThat(stale.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
         int logCountBeforeTaskChange = count("work_log", "author_account_id=" + owner.accountId());
@@ -466,14 +471,12 @@ class FlowAndWorkManagementHttpTest {
                 .isEqualTo(HttpStatus.OK);
         assertThat(count("work_log", "author_account_id=" + owner.accountId())).isEqualTo(logCountBeforeTaskChange);
 
-        long viewerRoleId = addMemberWithPermissions(
-                owner, outsider.accountId(), "WORK", List.of("VIEW", "UPDATE_LOG"), "LOG_VIEWER");
         Session viewer = enterTenant(outsider, owner.systemId(), owner.tenantId(), platformLogin(outsider.username()));
         ResponseEntity<Map> denied = exchange("/api/work/logs?authorAccountId=" + owner.accountId(),
                 HttpMethod.GET, viewer.token(), null);
         assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         ResponseEntity<Map> authorDenied = exchange("/api/work/logs/" + logId, HttpMethod.PUT, viewer.token(),
-                logUpdate(2, today, "C34 每日交付日志", "越权改写", "DRAFT", links, "越权"));
+                logUpdate(2, today, "C34 每日交付日志", "越权改写", links, "越权", viewerRoleId));
         assertThat(authorDenied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(authorDenied.getBody().get("code")).isEqualTo("WORK_LOG_AUTHOR_REQUIRED");
 
@@ -1619,11 +1622,22 @@ class FlowAndWorkManagementHttpTest {
     }
 
     private Map<String, Object> logUpdate(
-            int version, String date, String title, String content, String status,
-            Map<String, Object> customValues, String reason) {
-        return Map.of("expectedVersion", version, "workDate", date, "title", title, "content", content,
-                "durationMinutes", 150, "status", status, "customValues", customValues,
-                "revisionReason", reason);
+            int version, String date, String title, String content,
+            Map<String, Object> links, String reason, long visibleRoleId) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("expectedVersion", version);
+        payload.put("workDate", date);
+        payload.put("title", title);
+        payload.put("completedText", content);
+        payload.put("durationMinutes", 150);
+        payload.put("projectId", links.get("projectId"));
+        payload.put("taskIds", links.get("taskIds"));
+        payload.put("visibilityType", "ROLE");
+        payload.put("visibleRoleIds", List.of(visibleRoleId));
+        payload.put("materials", List.of());
+        payload.put("configuredValues", Map.of());
+        payload.put("revisionReason", reason);
+        return payload;
     }
 
     private Session register(String username, String systemCode, String email) {

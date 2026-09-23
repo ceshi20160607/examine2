@@ -48,14 +48,18 @@ import java.util.UUID;
 public class WorkManagementService {
     private static final Set<String> PROJECT_ROLES = Set.of("OWNER", "MANAGER", "MEMBER", "OBSERVER");
     private static final Set<String> PROJECT_STATUSES = Set.of("PLANNED", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED");
-    private static final Set<String> TASK_STATUSES = Set.of("BACKLOG", "TODO", "IN_PROGRESS", "BLOCKED", "COMPLETED", "CANCELLED");
+    private static final Set<String> TASK_STATUSES = Set.of(
+            "BACKLOG", "TODO", "IN_PROGRESS", "BLOCKED", "WAITING_CONFIRMATION",
+            "COMPLETED", "CANCELLED", "ARCHIVED");
     private static final Map<String, Set<String>> TASK_TRANSITIONS = Map.of(
-            "BACKLOG", Set.of("TODO", "CANCELLED"),
+            "BACKLOG", Set.of("TODO", "IN_PROGRESS", "CANCELLED"),
             "TODO", Set.of("IN_PROGRESS", "CANCELLED"),
-            "IN_PROGRESS", Set.of("BLOCKED", "COMPLETED", "CANCELLED"),
+            "IN_PROGRESS", Set.of("BLOCKED", "CANCELLED"),
             "BLOCKED", Set.of("IN_PROGRESS", "CANCELLED"),
-            "COMPLETED", Set.of("IN_PROGRESS"),
-            "CANCELLED", Set.of("TODO"));
+            "WAITING_CONFIRMATION", Set.of(),
+            "COMPLETED", Set.of(),
+            "CANCELLED", Set.of(),
+            "ARCHIVED", Set.of());
 
     private final WorkProjectBaseService projectService;
     private final WorkProjectMemberBaseService projectMemberService;
@@ -127,6 +131,8 @@ public class WorkManagementService {
         if (scopedProjects(context).stream().anyMatch(project -> code.equals(project.getCode()))) {
             throw conflict("WORK_PROJECT_CODE_CONFLICT", "当前范围已存在相同项目编码");
         }
+        BusinessReference business = validateBusinessReference(context, input.businessType(), input.businessId(),
+                input.businessTitle(), traceId);
         WorkParticipantResolver.ResolvedPerson owner = participantResolver.current(context);
         LinkedHashMap<Long, MemberAssignment> members = new LinkedHashMap<>();
         members.put(owner.accountId(), new MemberAssignment(owner, "OWNER"));
@@ -147,6 +153,13 @@ public class WorkManagementService {
         project.setCode(code);
         project.setName(input.name().strip());
         project.setDescription(blankToNull(input.description()));
+        project.setCustomerName(blankToNull(input.customerName()));
+        project.setInternalDepartmentName(blankToNull(input.internalDepartmentName()));
+        project.setStage(blankToNull(input.stage()));
+        project.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
+        project.setBusinessType(business.type());
+        project.setBusinessId(business.id());
+        project.setBusinessTitle(business.title());
         project.setOwnerAccountId(context.accountId());
         project.setOwnerTenantMemberId(owner.tenantMemberId());
         project.setStartDate(input.startDate());
@@ -188,12 +201,28 @@ public class WorkManagementService {
         }
         project.setName(input.name().strip());
         project.setDescription(blankToNull(input.description()));
+        if (input.customerName() != null) project.setCustomerName(blankToNull(input.customerName()));
+        if (input.internalDepartmentName() != null) {
+            project.setInternalDepartmentName(blankToNull(input.internalDepartmentName()));
+        }
+        if (input.stage() != null) project.setStage(blankToNull(input.stage()));
+        if (input.labels() != null) project.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
+        if (input.businessType() != null || input.businessId() != null || input.businessTitle() != null) {
+            BusinessReference business = validateBusinessReference(context, input.businessType(), input.businessId(),
+                    input.businessTitle(), traceId);
+            project.setBusinessType(business.type());
+            project.setBusinessId(business.id());
+            project.setBusinessTitle(business.title());
+        }
         project.setStartDate(input.startDate());
         project.setDueDate(input.dueDate());
         project.setStatus(status);
         project.setProgressPercent(input.progressPercent());
         if (projectService.updateById(project) != 1) {
             throw conflict("WORK_PROJECT_VERSION_CONFLICT", "项目已被其他人修改，请刷新后重试");
+        }
+        if (input.members() != null) {
+            replaceProjectMembers(context, project, input.members());
         }
         audit(context, traceId, "WORK_PROJECT_UPDATED", "WORK_PROJECT", projectId,
                 Map.of("status", status, "progressPercent", input.progressPercent()));
@@ -215,10 +244,64 @@ public class WorkManagementService {
         group.setName(input.name().strip());
         group.setSortOrder(input.sortOrder());
         group.setStatus("ACTIVE");
+        if (input.ownerTenantMemberId() != null || input.compatibilityOwnerAccountId() != null) {
+            WorkParticipantResolver.ResolvedPerson owner = participantResolver.require(
+                    context, input.ownerTenantMemberId(), input.compatibilityOwnerAccountId());
+            requireProjectMember(projectId, owner.accountId());
+            group.setOwnerAccountId(owner.accountId());
+            group.setOwnerTenantMemberId(owner.tenantMemberId());
+        }
+        group.setDueTime(input.dueTime());
+        group.setProgressPercent(input.progressPercent() == null ? BigDecimal.ZERO : input.progressPercent());
         group.setVersion(0);
         taskGroupService.insert(group);
         audit(context, traceId, "WORK_TASK_GROUP_CREATED", "WORK_TASK_GROUP", group.getId(),
                 Map.of("projectId", projectId, "sortOrder", group.getSortOrder()));
+        return view(context, project, true);
+    }
+
+    @Transactional
+    public WorkManagementModels.ProjectView updateTaskGroup(
+            AuthenticatedContext context, Long projectId, Long groupId,
+            WorkManagementModels.UpdateTaskGroupRequest input, String traceId) {
+        requireAction(context, "MANAGE_PROJECT");
+        WorkProject project = requireOwned(context, projectId);
+        requireProjectRole(context, projectId, Set.of("OWNER", "MANAGER"));
+        WorkTaskGroup group = taskGroupService.selectById(groupId);
+        if (group == null || !Objects.equals(group.getProjectId(), projectId)) {
+            throw new DomainException("TASK_GROUP_NOT_FOUND", "任务组不存在或不属于当前项目", HttpStatus.NOT_FOUND);
+        }
+        if (!Objects.equals(group.getVersion(), input.expectedVersion())) {
+            throw conflict("TASK_GROUP_VERSION_CONFLICT", "任务组已被其他人修改，请刷新后重试");
+        }
+        if (taskGroups(projectId).stream().anyMatch(item -> !Objects.equals(item.getId(), groupId)
+                && Objects.equals(item.getSortOrder(), input.sortOrder()))) {
+            throw conflict("TASK_GROUP_ORDER_CONFLICT", "同一项目内任务组排序值不能重复");
+        }
+        String status = input.status().strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("ACTIVE", "COMPLETED", "CANCELLED").contains(status)) {
+            throw invalid("TASK_GROUP_STATUS_INVALID", "任务组状态无效");
+        }
+        group.setName(input.name().strip());
+        group.setSortOrder(input.sortOrder());
+        group.setStatus(status);
+        group.setDueTime(input.dueTime());
+        group.setProgressPercent(input.progressPercent());
+        if (input.ownerTenantMemberId() == null && input.compatibilityOwnerAccountId() == null) {
+            group.setOwnerAccountId(null);
+            group.setOwnerTenantMemberId(null);
+        } else {
+            WorkParticipantResolver.ResolvedPerson owner = participantResolver.require(
+                    context, input.ownerTenantMemberId(), input.compatibilityOwnerAccountId());
+            requireProjectMember(projectId, owner.accountId());
+            group.setOwnerAccountId(owner.accountId());
+            group.setOwnerTenantMemberId(owner.tenantMemberId());
+        }
+        if (taskGroupService.updateById(group) != 1) {
+            throw conflict("TASK_GROUP_VERSION_CONFLICT", "任务组已被其他人修改，请刷新后重试");
+        }
+        audit(context, traceId, "WORK_TASK_GROUP_UPDATED", "WORK_TASK_GROUP", groupId,
+                Map.of("projectId", projectId, "status", status));
         return view(context, project, true);
     }
 
@@ -250,6 +333,10 @@ public class WorkManagementService {
         String priority = normalizePriority(input.priority());
         List<WorkParticipantResolver.ResolvedPerson> collaborators = normalizeCollaborators(context, projectId,
                 input.collaboratorTenantMemberIds(), input.compatibilityCollaboratorAccountIds(), owner);
+        List<WorkParticipantResolver.ResolvedPerson> followers = normalizeParticipants(
+                context, projectId, input.followerTenantMemberIds(), owner, collaborators);
+        List<WorkParticipantResolver.ResolvedPerson> acceptors = normalizeParticipants(
+                context, projectId, input.acceptanceTenantMemberIds(), owner, List.of());
         BusinessReference business = validateBusinessReference(context, input.businessType(), input.businessId(),
                 input.businessTitle(), traceId);
         WorkTask task = new WorkTask();
@@ -263,6 +350,9 @@ public class WorkManagementService {
         task.setPriority(priority);
         task.setStatus("TODO");
         task.setProgressPercent(BigDecimal.ZERO);
+        task.setEstimatedHours(input.estimatedHours());
+        task.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
+        task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
         task.setOwnerAccountId(owner.accountId());
         task.setOwnerTenantMemberId(owner.tenantMemberId());
         task.setStartAt(input.startAt());
@@ -275,11 +365,12 @@ public class WorkManagementService {
         task.setCreatedByAccountId(context.accountId());
         task.setVersion(0);
         taskService.insert(task);
-        replaceCollaborators(task.getId(), collaborators);
+        replaceTaskMembers(task.getId(), collaborators, followers, acceptors);
         insertHistory(task, "CREATED", null, snapshot(task), null, context.accountId());
         audit(context, traceId, "WORK_PROJECT_TASK_CREATED", "WORK_TASK", task.getId(),
                 Map.of("projectId", projectId, "owner", owner.displayName(),
-                        "collaboratorCount", collaborators.size()));
+                        "collaboratorCount", collaborators.size(), "followerCount", followers.size(),
+                        "acceptorCount", acceptors.size()));
         projectTaskEvent(context, task, "CREATED", traceId);
         return view(context, task, true);
     }
@@ -300,25 +391,40 @@ public class WorkManagementService {
         requireAction(context, "CREATE_TASK");
         WorkParticipantResolver.ResolvedPerson owner = participantResolver.require(
                 context, input.ownerTenantMemberId(), input.compatibilityOwnerAccountId());
-        if (input.taskGroupId() != null || input.parentTaskId() != null) {
-            throw invalid("ORDINARY_TASK_RELATION_INVALID", "普通任务不能绑定项目任务组或父任务");
+        if (input.taskGroupId() != null) {
+            throw invalid("ORDINARY_TASK_RELATION_INVALID", "普通任务不能绑定项目任务组");
+        }
+        WorkTask parent = null;
+        if (input.parentTaskId() != null) {
+            parent = requireOwnedTask(context, input.parentTaskId());
+            if (parent.getProjectId() != null || parent.getDeleteTime() != null) {
+                throw invalid("PARENT_TASK_INVALID", "父任务不存在或不是当前范围的普通任务");
+            }
+            requireTaskModification(context, parent);
         }
         requireValidTimes(input.startAt(), input.dueAt());
         List<WorkParticipantResolver.ResolvedPerson> collaborators = normalizeCollaborators(context, null,
                 input.collaboratorTenantMemberIds(), input.compatibilityCollaboratorAccountIds(), owner);
+        List<WorkParticipantResolver.ResolvedPerson> followers = normalizeParticipants(
+                context, null, input.followerTenantMemberIds(), owner, collaborators);
+        List<WorkParticipantResolver.ResolvedPerson> acceptors = normalizeParticipants(
+                context, null, input.acceptanceTenantMemberIds(), owner, List.of());
         BusinessReference business = validateBusinessReference(context, input.businessType(), input.businessId(),
                 input.businessTitle(), traceId);
         WorkTask task = new WorkTask();
         bindContext(task, context);
         task.setProjectId(null);
         task.setTaskGroupId(null);
-        task.setParentTaskId(null);
+        task.setParentTaskId(parent == null ? null : parent.getId());
         task.setTitle(input.title().strip());
         task.setDescription(blankToNull(input.description()));
         task.setTaskType("ORDINARY");
         task.setPriority(normalizePriority(input.priority()));
         task.setStatus("TODO");
         task.setProgressPercent(BigDecimal.ZERO);
+        task.setEstimatedHours(input.estimatedHours());
+        task.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
+        task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
         task.setOwnerAccountId(owner.accountId());
         task.setOwnerTenantMemberId(owner.tenantMemberId());
         task.setStartAt(input.startAt());
@@ -331,10 +437,11 @@ public class WorkManagementService {
         task.setCreatedByAccountId(context.accountId());
         task.setVersion(0);
         taskService.insert(task);
-        replaceCollaborators(task.getId(), collaborators);
+        replaceTaskMembers(task.getId(), collaborators, followers, acceptors);
         insertHistory(task, "CREATED", null, snapshot(task), null, context.accountId());
         audit(context, traceId, "WORK_ORDINARY_TASK_CREATED", "WORK_TASK", task.getId(),
-                Map.of("owner", owner.displayName(), "collaboratorCount", collaborators.size()));
+                Map.of("owner", owner.displayName(), "collaboratorCount", collaborators.size(),
+                        "followerCount", followers.size(), "acceptorCount", acceptors.size()));
         projectTaskEvent(context, task, "CREATED", traceId);
         return view(context, task, true);
     }
@@ -362,23 +469,38 @@ public class WorkManagementService {
         if (task.getProjectId() != null) {
             requireProjectMember(task.getProjectId(), owner.accountId());
         }
+        if (!Objects.equals(owner.accountId(), task.getOwnerAccountId())) {
+            throw invalid("WORK_TASK_TRANSFER_ACTION_REQUIRED", "更换负责人请使用转派操作");
+        }
         requireValidTimes(input.startAt(), input.dueAt());
         String nextStatus = input.status().strip().toUpperCase(Locale.ROOT);
         validateTransition(task.getStatus(), nextStatus);
         String before = toJson(snapshot(task));
-        List<WorkParticipantResolver.ResolvedPerson> collaborators = normalizeCollaborators(context,
-                task.getProjectId(), input.collaboratorTenantMemberIds(),
-                input.compatibilityCollaboratorAccountIds(), owner);
+        List<WorkTaskMember> currentMembers = taskMembers(taskId);
+        List<WorkParticipantResolver.ResolvedPerson> collaborators =
+                input.collaboratorTenantMemberIds() == null && input.compatibilityCollaboratorAccountIds() == null
+                        ? resolvedOfType(context, currentMembers, "COLLABORATOR")
+                        : normalizeCollaborators(context, task.getProjectId(), input.collaboratorTenantMemberIds(),
+                        input.compatibilityCollaboratorAccountIds(), owner);
+        List<WorkParticipantResolver.ResolvedPerson> followers = input.followerTenantMemberIds() == null
+                ? resolvedOfType(context, currentMembers, "FOLLOWER")
+                : normalizeParticipants(context, task.getProjectId(), input.followerTenantMemberIds(), owner, collaborators);
+        List<WorkParticipantResolver.ResolvedPerson> acceptors = input.acceptanceTenantMemberIds() == null
+                ? resolvedOfType(context, currentMembers, "ACCEPTOR")
+                : normalizeParticipants(context, task.getProjectId(), input.acceptanceTenantMemberIds(), owner, List.of());
         BusinessReference business = validateBusinessReference(context, input.businessType(), input.businessId(),
                 input.businessTitle(), traceId);
         task.setStatus(nextStatus);
-        task.setOwnerAccountId(owner.accountId());
-        task.setOwnerTenantMemberId(owner.tenantMemberId());
+        if (input.title() != null) task.setTitle(input.title().strip());
+        if (input.description() != null) task.setDescription(blankToNull(input.description()));
         task.setPriority(normalizePriority(input.priority()));
         task.setProgressPercent(input.progressPercent());
+        if (input.estimatedHours() != null) task.setEstimatedHours(input.estimatedHours());
+        if (input.actualHours() != null) task.setActualHours(input.actualHours());
+        if (input.labels() != null) task.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
+        if (input.checklist() != null) task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
         task.setStartAt(input.startAt());
         task.setDueAt(input.dueAt());
-        task.setCompletedAt("COMPLETED".equals(nextStatus) ? LocalDateTime.now() : null);
         task.setCustomValuesJson(nullableJson(
                 workConfigurationService.validateConfiguredValues(context, "TASK", input.configuredValues())));
         task.setBusinessType(business.type());
@@ -387,13 +509,234 @@ public class WorkManagementService {
         if (taskService.updateById(task) != 1) {
             throw conflict("WORK_TASK_VERSION_CONFLICT", "任务已被其他人修改，请刷新后重试");
         }
-        replaceCollaborators(taskId, collaborators);
+        replaceTaskMembers(taskId, collaborators, followers, acceptors);
         WorkTask updated = requireOwnedTask(context, taskId);
         String action = Objects.equals(taskStatus(before), nextStatus) ? "UPDATED" : "STATUS_CHANGED";
         insertHistory(updated, action, before, snapshot(updated), blankToNull(input.comment()), context.accountId());
         audit(context, traceId, "WORK_TASK_UPDATED", "WORK_TASK", taskId,
                 Map.of("status", nextStatus, "owner", owner.displayName(), "action", action));
         if ("STATUS_CHANGED".equals(action)) projectTaskEvent(context, updated, "STATUS_CHANGED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 转派只改变负责人，原参与人和过程历史均保留。 */
+    @Transactional
+    public WorkManagementModels.TaskView transferTask(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.TransferTaskRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskAdministration(context, task);
+        requireVersion(task, input.expectedVersion());
+        requireTaskActive(task);
+        WorkParticipantResolver.ResolvedPerson owner = participantResolver.require(
+                context, input.ownerTenantMemberId(), input.compatibilityOwnerAccountId());
+        if (task.getProjectId() != null) requireProjectMember(task.getProjectId(), owner.accountId());
+        if (Objects.equals(task.getOwnerAccountId(), owner.accountId())) {
+            throw invalid("WORK_TASK_OWNER_UNCHANGED", "新负责人不能与当前负责人相同");
+        }
+        String before = toJson(snapshot(task));
+        task.setOwnerAccountId(owner.accountId());
+        task.setOwnerTenantMemberId(owner.tenantMemberId());
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "TRANSFERRED", before, snapshot(updated), blankToNull(input.comment()), context.accountId());
+        audit(context, traceId, "WORK_TASK_TRANSFERRED", "WORK_TASK", taskId,
+                Map.of("owner", owner.displayName()));
+        projectTaskEvent(context, updated, "TRANSFERRED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 延期申请在当前权限范围内直接生效，并用不可变历史保留申请原因。 */
+    @Transactional
+    public WorkManagementModels.TaskView delayTask(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.DelayTaskRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskModification(context, task);
+        requireVersion(task, input.expectedVersion());
+        requireTaskActive(task);
+        requireValidTimes(task.getStartAt(), input.dueTime());
+        if (task.getDueAt() != null && !input.dueTime().isAfter(task.getDueAt())) {
+            throw invalid("WORK_TASK_DELAY_TIME_INVALID", "延期后的截止时间必须晚于当前截止时间");
+        }
+        String before = toJson(snapshot(task));
+        task.setDueAt(input.dueTime());
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "DELAY_REQUESTED", before, snapshot(updated), input.reason().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_DELAYED", "WORK_TASK", taskId,
+                Map.of("dueTime", input.dueTime().toString()));
+        projectTaskEvent(context, updated, "DELAYED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 完成任务先进入待验收，不能用普通编辑绕过验收。 */
+    @Transactional
+    public WorkManagementModels.TaskView submitCompletion(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.SubmitCompletionRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskModification(context, task);
+        requireVersion(task, input.expectedVersion());
+        if (!Set.of("TODO", "IN_PROGRESS", "BLOCKED").contains(task.getStatus())) {
+            throw invalid("WORK_TASK_COMPLETION_STATE_INVALID", "当前状态不能提交完成");
+        }
+        String before = toJson(snapshot(task));
+        task.setStatus("WAITING_CONFIRMATION");
+        task.setProgressPercent(new BigDecimal("100"));
+        task.setActualHours(input.actualHours());
+        task.setCompletionNote(input.completionNote().strip());
+        task.setCompletionSubmittedTime(LocalDateTime.now());
+        task.setCompletionAcceptedTime(null);
+        task.setCompletedAt(null);
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "COMPLETION_SUBMITTED", before, snapshot(updated),
+                input.completionNote().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_COMPLETION_SUBMITTED", "WORK_TASK", taskId,
+                Map.of("status", updated.getStatus()));
+        projectTaskEvent(context, updated, "COMPLETION_SUBMITTED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 验收人、任务创建人或项目管理者可以确认完成。 */
+    @Transactional
+    public WorkManagementModels.TaskView acceptCompletion(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.TaskReasonRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskAcceptance(context, task);
+        requireVersion(task, input.expectedVersion());
+        if (!"WAITING_CONFIRMATION".equals(task.getStatus())) {
+            throw invalid("WORK_TASK_ACCEPTANCE_STATE_INVALID", "只有待验收任务可以确认完成");
+        }
+        String before = toJson(snapshot(task));
+        LocalDateTime now = LocalDateTime.now();
+        task.setStatus("COMPLETED");
+        task.setProgressPercent(new BigDecimal("100"));
+        task.setCompletedAt(now);
+        task.setCompletionAcceptedTime(now);
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "COMPLETION_ACCEPTED", before, snapshot(updated), input.comment().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_COMPLETION_ACCEPTED", "WORK_TASK", taskId,
+                Map.of("status", updated.getStatus()));
+        projectTaskEvent(context, updated, "COMPLETION_ACCEPTED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 已完成、待验收或已取消任务可以由管理者重新打开。 */
+    @Transactional
+    public WorkManagementModels.TaskView reopenTask(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.TaskReasonRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskAdministration(context, task);
+        requireVersion(task, input.expectedVersion());
+        if (!Set.of("WAITING_CONFIRMATION", "COMPLETED", "CANCELLED").contains(task.getStatus())) {
+            throw invalid("WORK_TASK_REOPEN_STATE_INVALID", "当前状态不能重新打开");
+        }
+        String before = toJson(snapshot(task));
+        task.setStatus("IN_PROGRESS");
+        if (task.getProgressPercent() != null && task.getProgressPercent().compareTo(new BigDecimal("100")) >= 0) {
+            task.setProgressPercent(new BigDecimal("90"));
+        }
+        task.setCompletedAt(null);
+        task.setCompletionSubmittedTime(null);
+        task.setCompletionAcceptedTime(null);
+        task.setArchiveTime(null);
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "REOPENED", before, snapshot(updated), input.comment().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_REOPENED", "WORK_TASK", taskId,
+                Map.of("status", updated.getStatus()));
+        projectTaskEvent(context, updated, "REOPENED", traceId);
+        return view(context, updated, true);
+    }
+
+    /** 归档仅接受已完成或已取消任务，归档后保持可查。 */
+    @Transactional
+    public WorkManagementModels.TaskView archiveTask(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.TaskReasonRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskAdministration(context, task);
+        requireVersion(task, input.expectedVersion());
+        if (!Set.of("COMPLETED", "CANCELLED").contains(task.getStatus())) {
+            throw invalid("WORK_TASK_ARCHIVE_STATE_INVALID", "只有已完成或已取消任务可以归档");
+        }
+        String before = toJson(snapshot(task));
+        task.setStatus("ARCHIVED");
+        task.setArchiveTime(LocalDateTime.now());
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "ARCHIVED", before, snapshot(updated), input.comment().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_ARCHIVED", "WORK_TASK", taskId, Map.of());
+        return view(context, updated, true);
+    }
+
+    /** 软删除隐藏任务但保留审计、评论和业务关联。 */
+    @Transactional
+    public void deleteTask(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.TaskReasonRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskAdministration(context, task);
+        requireVersion(task, input.expectedVersion());
+        boolean hasChildren = taskService.selectList(Wrappers.<WorkTask>lambdaQuery()
+                        .eq(WorkTask::getParentTaskId, taskId).isNull(WorkTask::getDeleteTime))
+                .stream().findAny().isPresent();
+        if (hasChildren) throw conflict("WORK_TASK_HAS_SUBTASKS", "请先处理子任务后再删除");
+        String before = toJson(snapshot(task));
+        task.setStatus("ARCHIVED");
+        task.setArchiveTime(task.getArchiveTime() == null ? LocalDateTime.now() : task.getArchiveTime());
+        task.setDeleteTime(LocalDateTime.now());
+        updateTaskOrConflict(task);
+        insertHistory(task, "DELETED", before, snapshot(task), input.comment().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_DELETED", "WORK_TASK", taskId, Map.of("softDelete", true));
+    }
+
+    @Transactional
+    public WorkManagementModels.TaskView addComment(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.AddCommentRequest input,
+            String traceId) {
+        requireAction(context, "VIEW");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskVisible(context, task);
+        insertHistory(task, "COMMENTED", null, snapshot(task), input.comment().strip(), context.accountId());
+        audit(context, traceId, "WORK_TASK_COMMENTED", "WORK_TASK", taskId, Map.of());
+        return view(context, task, true);
+    }
+
+    @Transactional
+    public WorkManagementModels.TaskView recordProgress(
+            AuthenticatedContext context, Long taskId, WorkManagementModels.RecordProgressRequest input,
+            String traceId) {
+        requireAction(context, "UPDATE_TASK");
+        WorkTask task = requireOwnedTask(context, taskId);
+        requireTaskModification(context, task);
+        requireVersion(task, input.expectedVersion());
+        requireTaskActive(task);
+        String before = toJson(snapshot(task));
+        task.setProgressPercent(input.progressPercent());
+        task.setActualHours(input.actualHours());
+        if (Set.of("BACKLOG", "TODO").contains(task.getStatus())
+                && input.progressPercent().compareTo(BigDecimal.ZERO) > 0) {
+            task.setStatus("IN_PROGRESS");
+        }
+        updateTaskOrConflict(task);
+        WorkTask updated = requireOwnedTask(context, taskId);
+        insertHistory(updated, "PROGRESS_RECORDED", before, snapshot(updated),
+                blankToNull(input.comment()), context.accountId());
+        audit(context, traceId, "WORK_TASK_PROGRESS_RECORDED", "WORK_TASK", taskId,
+                Map.of("progressPercent", input.progressPercent()));
         return view(context, updated, true);
     }
 
@@ -438,8 +781,10 @@ public class WorkManagementService {
             case "TODO" -> "待开始";
             case "IN_PROGRESS" -> "开始";
             case "BLOCKED" -> "阻塞";
+            case "WAITING_CONFIRMATION" -> "待验收";
             case "COMPLETED" -> "完成";
             case "CANCELLED" -> "取消";
+            case "ARCHIVED" -> "归档";
             default -> status;
         };
     }
@@ -452,22 +797,27 @@ public class WorkManagementService {
                         member.getProjectRole(), member.getStatus())).toList() : List.of();
         List<WorkManagementModels.TaskGroupView> groups = includeDetail ? taskGroups(project.getId()).stream()
                 .map(group -> new WorkManagementModels.TaskGroupView(group.getId(), group.getName(),
-                        group.getSortOrder(), group.getStatus(), group.getVersion())).toList() : List.of();
+                        group.getSortOrder(), group.getStatus(), nullablePersonView(context,
+                                participantResolver.find(context, group.getOwnerTenantMemberId(), group.getOwnerAccountId())),
+                        group.getDueTime(), group.getProgressPercent(), group.getVersion())).toList() : List.of();
         List<WorkManagementModels.TaskView> tasks = includeDetail ? projectTasks(project.getId()).stream()
                 .map(task -> view(context, task, false)).toList() : List.of();
         WorkParticipantResolver.ResolvedPerson owner = participantResolver.find(
                 context, project.getOwnerTenantMemberId(), project.getOwnerAccountId());
         return new WorkManagementModels.ProjectView(project.getId(), project.getContextType(), project.getPlatformId(),
                 project.getSystemId(), project.getTenantId(), project.getCode(), project.getName(), project.getDescription(),
-                personView(context, owner), project.getStartDate(), project.getDueDate(), project.getProgressPercent(),
+                project.getCustomerName(), project.getInternalDepartmentName(), project.getStage(),
+                stringList(project.getLabelsJson()), project.getBusinessType(), project.getBusinessId(),
+                project.getBusinessTitle(), personView(context, owner), project.getStartDate(), project.getDueDate(), project.getProgressPercent(),
                 project.getStatus(), project.getVersion(), members, groups, tasks);
     }
 
     private WorkManagementModels.TaskView view(
             AuthenticatedContext context, WorkTask task, boolean includeHistory) {
-        List<WorkManagementModels.PersonView> collaborators = taskMembers(task.getId()).stream()
-                .map(member -> participantResolver.find(context, member.getTenantMemberId(), member.getAccountId()))
-                .filter(Objects::nonNull).map(person -> personView(context, person)).toList();
+        List<WorkTaskMember> taskMembers = taskMembers(task.getId());
+        List<WorkManagementModels.PersonView> collaborators = peopleOfType(context, taskMembers, "COLLABORATOR");
+        List<WorkManagementModels.PersonView> followers = peopleOfType(context, taskMembers, "FOLLOWER");
+        List<WorkManagementModels.PersonView> acceptors = peopleOfType(context, taskMembers, "ACCEPTOR");
         List<WorkManagementModels.HistoryView> history = includeHistory ? histories(task.getId()).stream()
                 .map(item -> new WorkManagementModels.HistoryView(item.getId(), item.getActionCode(),
                         fromJson(item.getBeforeJson()), fromJson(item.getAfterJson()), item.getCommentText(),
@@ -476,12 +826,20 @@ public class WorkManagementService {
                 context, task.getOwnerTenantMemberId(), task.getOwnerAccountId());
         List<WorkManagementModels.LinkedLogView> linkedLogs = includeHistory
                 ? linkedLogs(context, task.getId()) : List.of();
+        List<WorkManagementModels.TaskView> subtasks = includeHistory
+                ? childTasks(task.getId()).stream().map(child -> view(context, child, false)).toList()
+                : List.of();
+        boolean overdue = isOverdue(task);
         return new WorkManagementModels.TaskView(task.getId(), task.getContextType(), task.getPlatformId(),
                 task.getSystemId(), task.getTenantId(), task.getProjectId(), task.getTaskGroupId(), task.getParentTaskId(),
                 task.getTitle(), task.getDescription(), task.getTaskType(), task.getPriority(), task.getStatus(),
-                task.getProgressPercent(), personView(context, owner), task.getStartAt(), task.getDueAt(),
-                task.getCompletedAt(), task.getBusinessType(), task.getBusinessId(), task.getBusinessTitle(),
-                fromJson(task.getCustomValuesJson()), task.getVersion(), collaborators, history, linkedLogs);
+                overdue ? "已逾期" : taskStatusName(task.getStatus()), overdue, task.getProgressPercent(),
+                task.getEstimatedHours(), task.getActualHours(), stringList(task.getLabelsJson()),
+                checklist(task.getChecklistJson()), personView(context, owner), task.getStartAt(), task.getDueAt(),
+                task.getCompletedAt(), task.getCompletionNote(), task.getCompletionSubmittedTime(),
+                task.getCompletionAcceptedTime(), task.getArchiveTime(), task.getBusinessType(), task.getBusinessId(),
+                task.getBusinessTitle(), fromJson(task.getCustomValuesJson()), task.getVersion(), collaborators,
+                followers, acceptors, history, linkedLogs, subtasks, taskActions(context, task, taskMembers));
     }
 
     private List<WorkManagementModels.LinkedLogView> linkedLogs(
@@ -522,10 +880,28 @@ public class WorkManagementService {
         String role = task.getProjectId() == null ? null : projectRole(task.getProjectId(), context.accountId());
         boolean projectManager = role != null && Set.of("OWNER", "MANAGER").contains(role);
         boolean participant = Objects.equals(task.getOwnerAccountId(), context.accountId())
-                || taskMembers(task.getId()).stream().anyMatch(member -> Objects.equals(member.getAccountId(), context.accountId()));
+                || taskMembers(task.getId()).stream().anyMatch(member -> "COLLABORATOR".equals(member.getMemberType())
+                && Objects.equals(member.getAccountId(), context.accountId()));
         if (!projectManager && !participant) {
             throw forbidden("WORK_TASK_MODIFICATION_DENIED", "你不是该任务的负责人或协作成员");
         }
+    }
+
+    private void requireTaskAdministration(AuthenticatedContext context, WorkTask task) {
+        String role = task.getProjectId() == null ? null : projectRole(task.getProjectId(), context.accountId());
+        boolean allowed = Objects.equals(task.getCreatedByAccountId(), context.accountId())
+                || Objects.equals(task.getOwnerAccountId(), context.accountId())
+                || role != null && Set.of("OWNER", "MANAGER").contains(role);
+        if (!allowed) throw forbidden("WORK_TASK_ADMINISTRATION_DENIED", "当前成员不能管理该任务的负责人或生命周期");
+    }
+
+    private void requireTaskAcceptance(AuthenticatedContext context, WorkTask task) {
+        String role = task.getProjectId() == null ? null : projectRole(task.getProjectId(), context.accountId());
+        boolean allowed = Objects.equals(task.getCreatedByAccountId(), context.accountId())
+                || role != null && Set.of("OWNER", "MANAGER").contains(role)
+                || taskMembers(task.getId()).stream().anyMatch(member -> "ACCEPTOR".equals(member.getMemberType())
+                && Objects.equals(member.getAccountId(), context.accountId()));
+        if (!allowed) throw forbidden("WORK_TASK_ACCEPTANCE_DENIED", "你不是该任务的验收人");
     }
 
     private void requireTaskVisible(AuthenticatedContext context, WorkTask task) {
@@ -584,6 +960,24 @@ public class WorkManagementService {
         return List.copyOf(result.values());
     }
 
+    private List<WorkParticipantResolver.ResolvedPerson> normalizeParticipants(
+            AuthenticatedContext context, Long projectId, List<Long> tenantMemberIds,
+            WorkParticipantResolver.ResolvedPerson owner,
+            List<WorkParticipantResolver.ResolvedPerson> excluded) {
+        if (tenantMemberIds == null) return List.of();
+        Set<Long> excludedAccounts = new HashSet<>();
+        excludedAccounts.add(owner.accountId());
+        excluded.stream().map(WorkParticipantResolver.ResolvedPerson::accountId).forEach(excludedAccounts::add);
+        LinkedHashMap<Long, WorkParticipantResolver.ResolvedPerson> result = new LinkedHashMap<>();
+        for (Long tenantMemberId : tenantMemberIds) {
+            if (tenantMemberId == null) continue;
+            WorkParticipantResolver.ResolvedPerson person = participantResolver.require(context, tenantMemberId, null);
+            if (projectId != null) requireProjectMember(projectId, person.accountId());
+            if (!excludedAccounts.contains(person.accountId())) result.put(person.accountId(), person);
+        }
+        return List.copyOf(result.values());
+    }
+
     private void addCollaborator(
             Long projectId, WorkParticipantResolver.ResolvedPerson owner,
             Map<Long, WorkParticipantResolver.ResolvedPerson> result,
@@ -593,17 +987,26 @@ public class WorkManagementService {
         result.put(person.accountId(), person);
     }
 
-    private void replaceCollaborators(
-            Long taskId, List<WorkParticipantResolver.ResolvedPerson> people) {
+    private void replaceTaskMembers(
+            Long taskId, List<WorkParticipantResolver.ResolvedPerson> collaborators,
+            List<WorkParticipantResolver.ResolvedPerson> followers,
+            List<WorkParticipantResolver.ResolvedPerson> acceptors) {
         for (WorkTaskMember member : taskMembers(taskId)) {
             taskMemberService.deleteById(member.getId());
         }
+        insertTaskMembers(taskId, collaborators, "COLLABORATOR");
+        insertTaskMembers(taskId, followers, "FOLLOWER");
+        insertTaskMembers(taskId, acceptors, "ACCEPTOR");
+    }
+
+    private void insertTaskMembers(
+            Long taskId, List<WorkParticipantResolver.ResolvedPerson> people, String memberType) {
         for (WorkParticipantResolver.ResolvedPerson person : people) {
             WorkTaskMember member = new WorkTaskMember();
             member.setTaskId(taskId);
             member.setAccountId(person.accountId());
             member.setTenantMemberId(person.tenantMemberId());
-            member.setMemberType("COLLABORATOR");
+            member.setMemberType(memberType);
             taskMemberService.insert(member);
         }
     }
@@ -617,6 +1020,29 @@ public class WorkManagementService {
         member.setProjectRole(role);
         member.setStatus("ACTIVE");
         projectMemberService.insert(member);
+    }
+
+    private void replaceProjectMembers(
+            AuthenticatedContext context, WorkProject project,
+            List<WorkManagementModels.ProjectMemberInput> inputs) {
+        WorkParticipantResolver.ResolvedPerson owner = participantResolver.find(
+                context, project.getOwnerTenantMemberId(), project.getOwnerAccountId());
+        LinkedHashMap<Long, MemberAssignment> desired = new LinkedHashMap<>();
+        desired.put(project.getOwnerAccountId(), new MemberAssignment(owner, "OWNER"));
+        for (WorkManagementModels.ProjectMemberInput input : inputs) {
+            WorkParticipantResolver.ResolvedPerson person = participantResolver.require(
+                    context, input.tenantMemberId(), input.compatibilityAccountId());
+            String role = input.projectRole().strip().toUpperCase(Locale.ROOT);
+            if (!PROJECT_ROLES.contains(role) || "OWNER".equals(role)
+                    && !Objects.equals(person.accountId(), project.getOwnerAccountId())) {
+                throw invalid("PROJECT_ROLE_INVALID", "项目成员角色无效");
+            }
+            desired.put(person.accountId(), new MemberAssignment(person, role));
+        }
+        for (WorkProjectMember member : projectMembers(project.getId())) {
+            projectMemberService.deleteById(member.getId());
+        }
+        desired.values().forEach(member -> insertProjectMember(project.getId(), member.person(), member.role()));
     }
 
     private void insertHistory(WorkTask task, String action, String before, Map<String, Object> after,
@@ -641,10 +1067,18 @@ public class WorkManagementService {
         result.put("status", task.getStatus());
         result.put("priority", task.getPriority());
         result.put("progressPercent", task.getProgressPercent());
+        result.put("estimatedHours", task.getEstimatedHours());
+        result.put("actualHours", task.getActualHours());
+        result.put("labels", stringList(task.getLabelsJson()));
+        result.put("checklist", checklist(task.getChecklistJson()));
         result.put("ownerTenantMemberId", task.getOwnerTenantMemberId());
         result.put("startAt", task.getStartAt());
         result.put("dueAt", task.getDueAt());
         result.put("completedAt", task.getCompletedAt());
+        result.put("completionNote", task.getCompletionNote());
+        result.put("completionSubmittedTime", task.getCompletionSubmittedTime());
+        result.put("completionAcceptedTime", task.getCompletionAcceptedTime());
+        result.put("archiveTime", task.getArchiveTime());
         result.put("businessType", task.getBusinessType());
         result.put("businessId", task.getBusinessId());
         result.put("businessTitle", task.getBusinessTitle());
@@ -707,7 +1141,8 @@ public class WorkManagementService {
         var query = Wrappers.<WorkTask>lambdaQuery()
                 .eq(WorkTask::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
                 .eq(WorkTask::getPlatformId, context.platformId())
-                .isNull(WorkTask::getProjectId);
+                .isNull(WorkTask::getProjectId)
+                .isNull(WorkTask::getDeleteTime);
         if (context.systemId() == null) {
             query.isNull(WorkTask::getSystemId).isNull(WorkTask::getTenantId);
         } else {
@@ -732,7 +1167,7 @@ public class WorkManagementService {
 
     private WorkTask requireOwnedTask(AuthenticatedContext context, Long id) {
         WorkTask task = taskService.selectById(id);
-        if (task == null || !owned(context, task)) {
+        if (task == null || task.getDeleteTime() != null || !owned(context, task)) {
             throw new DomainException("WORK_TASK_NOT_FOUND", "任务不存在或不在当前范围", HttpStatus.NOT_FOUND);
         }
         return task;
@@ -784,7 +1219,14 @@ public class WorkManagementService {
 
     private List<WorkTask> projectTasks(Long projectId) {
         return taskService.selectList(Wrappers.<WorkTask>lambdaQuery()
-                .eq(WorkTask::getProjectId, projectId).orderByDesc(WorkTask::getUpdatedAt));
+                .eq(WorkTask::getProjectId, projectId).isNull(WorkTask::getDeleteTime)
+                .orderByDesc(WorkTask::getUpdatedAt));
+    }
+
+    private List<WorkTask> childTasks(Long taskId) {
+        return taskService.selectList(Wrappers.<WorkTask>lambdaQuery()
+                .eq(WorkTask::getParentTaskId, taskId).isNull(WorkTask::getDeleteTime)
+                .orderByAsc(WorkTask::getId));
     }
 
     private List<WorkTaskMember> taskMembers(Long taskId) {
@@ -820,6 +1262,74 @@ public class WorkManagementService {
         }
     }
 
+    private void requireVersion(WorkTask task, Integer expectedVersion) {
+        if (!Objects.equals(task.getVersion(), expectedVersion)) {
+            throw conflict("WORK_TASK_VERSION_CONFLICT", "任务已被其他人修改，请刷新后重试");
+        }
+    }
+
+    private void updateTaskOrConflict(WorkTask task) {
+        if (taskService.updateById(task) != 1) {
+            throw conflict("WORK_TASK_VERSION_CONFLICT", "任务已被其他人修改，请刷新后重试");
+        }
+    }
+
+    private void requireTaskActive(WorkTask task) {
+        if (Set.of("WAITING_CONFIRMATION", "COMPLETED", "CANCELLED", "ARCHIVED").contains(task.getStatus())) {
+            throw invalid("WORK_TASK_NOT_ACTIVE", "当前任务状态不能执行该操作");
+        }
+    }
+
+    private List<WorkManagementModels.PersonView> peopleOfType(
+            AuthenticatedContext context, List<WorkTaskMember> members, String memberType) {
+        return members.stream().filter(member -> memberType.equals(member.getMemberType()))
+                .map(member -> participantResolver.find(context, member.getTenantMemberId(), member.getAccountId()))
+                .filter(Objects::nonNull).map(person -> personView(context, person)).toList();
+    }
+
+    private List<WorkParticipantResolver.ResolvedPerson> resolvedOfType(
+            AuthenticatedContext context, List<WorkTaskMember> members, String memberType) {
+        return members.stream().filter(member -> memberType.equals(member.getMemberType()))
+                .map(member -> participantResolver.find(context, member.getTenantMemberId(), member.getAccountId()))
+                .filter(Objects::nonNull).toList();
+    }
+
+    private WorkManagementModels.PersonView nullablePersonView(
+            AuthenticatedContext context, WorkParticipantResolver.ResolvedPerson person) {
+        return person == null ? null : personView(context, person);
+    }
+
+    private boolean isOverdue(WorkTask task) {
+        return task.getDueAt() != null && task.getDueAt().isBefore(LocalDateTime.now())
+                && !Set.of("COMPLETED", "CANCELLED", "ARCHIVED").contains(task.getStatus());
+    }
+
+    private WorkManagementModels.TaskActionsView taskActions(
+            AuthenticatedContext context, WorkTask task, List<WorkTaskMember> members) {
+        String projectRole = task.getProjectId() == null ? null : projectRole(task.getProjectId(), context.accountId());
+        boolean manager = projectRole != null && Set.of("OWNER", "MANAGER").contains(projectRole);
+        boolean owner = Objects.equals(task.getOwnerAccountId(), context.accountId());
+        boolean creator = Objects.equals(task.getCreatedByAccountId(), context.accountId());
+        boolean collaborator = members.stream().anyMatch(member -> "COLLABORATOR".equals(member.getMemberType())
+                && Objects.equals(member.getAccountId(), context.accountId()));
+        boolean acceptor = members.stream().anyMatch(member -> "ACCEPTOR".equals(member.getMemberType())
+                && Objects.equals(member.getAccountId(), context.accountId()));
+        boolean active = !Set.of("WAITING_CONFIRMATION", "COMPLETED", "CANCELLED", "ARCHIVED")
+                .contains(task.getStatus());
+        boolean administrator = manager || creator || owner;
+        return new WorkManagementModels.TaskActionsView(
+                active && (manager || owner || collaborator),
+                active && administrator,
+                active && (manager || owner || collaborator),
+                Set.of("TODO", "IN_PROGRESS", "BLOCKED").contains(task.getStatus())
+                        && (manager || owner || collaborator),
+                "WAITING_CONFIRMATION".equals(task.getStatus()) && (manager || creator || acceptor),
+                Set.of("WAITING_CONFIRMATION", "COMPLETED", "CANCELLED").contains(task.getStatus()) && administrator,
+                Set.of("COMPLETED", "CANCELLED").contains(task.getStatus()) && administrator,
+                administrator,
+                true);
+    }
+
     private String normalizeCode(String code) {
         String normalized = code.strip().toLowerCase(Locale.ROOT);
         if (!normalized.matches("[a-z][a-z0-9_-]{1,99}")) {
@@ -846,8 +1356,56 @@ public class WorkManagementService {
         return value == null || value.isBlank() ? null : value.strip();
     }
 
+    private List<String> normalizeLabels(List<String> labels) {
+        if (labels == null) return List.of();
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        for (String label : labels) {
+            String normalized = blankToNull(label);
+            if (normalized != null) result.add(normalized);
+            if (result.size() > 20) throw invalid("WORK_LABEL_LIMIT_EXCEEDED", "标签最多 20 个");
+        }
+        return List.copyOf(result);
+    }
+
+    private List<WorkManagementModels.ChecklistItemView> normalizeChecklist(
+            List<WorkManagementModels.ChecklistItemInput> items) {
+        if (items == null) return List.of();
+        if (items.size() > 100) throw invalid("WORK_CHECKLIST_LIMIT_EXCEEDED", "检查清单最多 100 项");
+        List<WorkManagementModels.ChecklistItemView> result = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
+        for (WorkManagementModels.ChecklistItemInput item : items) {
+            String id = blankToNull(item.id());
+            if (id == null) id = UUID.randomUUID().toString();
+            if (!ids.add(id)) throw invalid("WORK_CHECKLIST_ID_DUPLICATED", "检查清单存在重复项");
+            result.add(new WorkManagementModels.ChecklistItemView(id, item.text().strip(), item.completed()));
+        }
+        return List.copyOf(result);
+    }
+
     private String nullableJson(Map<String, Object> value) {
         return value == null || value.isEmpty() ? null : toJson(value);
+    }
+
+    private String nullableListJson(List<?> value) {
+        return value == null || value.isEmpty() ? null : toJson(value);
+    }
+
+    private List<String> stringList(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        try {
+            return objectMapper.readValue(value, new TypeReference<>() { });
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Cannot deserialize work label data", exception);
+        }
+    }
+
+    private List<WorkManagementModels.ChecklistItemView> checklist(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        try {
+            return objectMapper.readValue(value, new TypeReference<>() { });
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Cannot deserialize work checklist data", exception);
+        }
     }
 
     private String toJson(Object value) {

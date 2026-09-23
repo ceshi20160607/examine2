@@ -37,6 +37,8 @@ public class SystemAdministrationService {
     private final SystemRolePermissionBaseService permissionService;
     private final SystemMemberRoleBaseService memberRoleService;
     private final AuditRecorder auditRecorder;
+    /** 复用主租户的默认组织初始化，新增租户无需手工补部门才能接纳成员。 */
+    private final SystemBootstrapService bootstrapService;
 
     public SystemAdministrationService(
             SystemDefinitionBaseService systemService,
@@ -46,7 +48,8 @@ public class SystemAdministrationService {
             SystemRoleBaseService roleService,
             SystemRolePermissionBaseService permissionService,
             SystemMemberRoleBaseService memberRoleService,
-            AuditRecorder auditRecorder) {
+            AuditRecorder auditRecorder,
+            SystemBootstrapService bootstrapService) {
         this.systemService = systemService;
         this.sessionService = sessionService;
         this.tenantService = tenantService;
@@ -55,6 +58,7 @@ public class SystemAdministrationService {
         this.permissionService = permissionService;
         this.memberRoleService = memberRoleService;
         this.auditRecorder = auditRecorder;
+        this.bootstrapService = bootstrapService;
     }
 
     @Transactional(readOnly = true)
@@ -116,10 +120,13 @@ public class SystemAdministrationService {
         tenant.setStatus("ACTIVE");
         tenantService.insert(tenant);
 
+        var rootDepartment = bootstrapService.initializeRootDepartment(context.systemId(), tenant.getId());
+
         SystemTenantMember tenantMember = new SystemTenantMember();
         tenantMember.setSystemId(context.systemId());
         tenantMember.setTenantId(tenant.getId());
         tenantMember.setSystemMemberId(context.memberId());
+        tenantMember.setDepartmentId(rootDepartment.getId());
         tenantMember.setTenantAdmin(true);
         tenantMember.setStatus("ACTIVE");
         tenantMemberService.insert(tenantMember);
@@ -150,7 +157,8 @@ public class SystemAdministrationService {
 
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "TENANT_CREATED", "TENANT", tenant.getId().toString(), "SUCCESS",
-                Map.of("code", tenant.getCode(), "name", tenant.getName(), "creatorGrantedAdmin", true));
+                Map.of("code", tenant.getCode(), "name", tenant.getName(), "creatorGrantedAdmin", true,
+                        "rootDepartmentId", rootDepartment.getId()));
         return view(tenant, context.tenantId());
     }
 

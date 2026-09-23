@@ -1,0 +1,126 @@
+{
+  "step": "B07.4b.2c.3a",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T18:55:11.560068+08:00",
+  "source_rows": [
+    "R0970",
+    "R0971",
+    "R0987",
+    "R0989",
+    "R2889",
+    "R2892",
+    "R1172"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoModels.java",
+    "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+    "projects/unexamine/frontend/src/product/components/BusinessActionApprovalDrawer.vue",
+    "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+    "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/MyApplicationsView.vue"
+  ],
+  "checks_actual_results": [
+    "Current original actor applications candidate SQL exact account/system/tenant/member/TM + actual internal START/outbox join, keyset event cursor. Real production current narrow progress checks each candidate, drops403/404 only and keeps cursor for candidate-empty pages; summary no record/raw intent/variables/candidates/config. No last-receipt dependence or source Flow permission expansion.",
+    "Actual source-root pageSize1 cursor traverses owned actions267/268 with no duplicates, ordinary263/264/269 excluded and wrong recipient-root tenant excludes all6 original source fixture actions. Anonymous401 and pageSize0/101/negative cursor422. Ordinary69 actual cold action269 query loads5 historical applications + narrow TERMINATED/FLOW_STARTED progress, current allowed source record/no hidden or source config; first-open immediate watch previous[] corrected.",
+    "Actual ordinary69 only recipient57, sole role114/zero source membership: typed form creates271/source70 and272/source71 WAITING, source154v6/protected fields unchanged. Source104 actual pending tasks52/53 and genuine source-owned todos18/19 open server-computed instance/task route200; wrong recipient-root context404/general foreign instance404. Actual source authorized REJECT closes both instances without applying proposed business values.",
+    "Source approver actual Flow notification current VIEW_RUNTIME/canView route200; old nonexistent VIEW gate corrected using actual instance authorization. Original external starter final source71 notification141 stored recipienttenant57/account69, targetBUSINESS_ACTION code:272, generic progress subject/content with no source comments/node/errors. Source root cannot open original ordinary personal message404.",
+    "Ordinary actual new notification141 click opens trusted action272 narrow REJECTED + locked version3/current source record unchanged, own directory6. Existing old139 FLOW_INSTANCE storage preserved; actual old-message click resolves action271 applications route and locked historical progress. All8 actual historical cross-tenant Flow inbox projections generic, source old comments/errors/code labels no longer echoed; original storage retained.",
+    "Actual share17 revoked, already loaded action271 refresh404 clears nodes/history/current record with human denial. Current applications refresh normal200 empty, current inbox12 retains generic notices with all8 application links disabled. Real invalid-target historical137 markedREAD persists/unread9. Normal regrant restores directory6, permissions/data/history preserved.",
+    "Actual negative acceptance caught shared read-TX UnexpectedRollback500 after per-item permission404; directory now has no shared outer read transaction and normal Flow instance/progress target checks use independent readonly transactions, so expected invalid targets do not roll back message read/archive. Business write transaction semantics unchanged. Root current source instance/todo/message positives after fix pass200.",
+    "Agent exclusive five frontend files integrated after backend contracts stable; four SFC parse/compileScript/compileTemplate + noEmit type check + diff0, no service/fixture/build writes. Root final frontend vue-tsc/Vite build0 with existing chunk warning; root latest JDK21 package0 after actual transaction fixes and same existing backend HTTP UP; diff check0. No full suite/mirroring tests/new containers/DDLs/Base/generated entry edits.",
+    "Actual visual acceptance caught new application-list colliding with old admin global sticky rule; unique local classes/theme tokens remove nested list scroll. Shared handwritten system workspace navigation resets document to visible header, drawer-only query preserves list position; generated router inspected read-only. Final browser header/list/single scrollbar readable.",
+    "All15 directed actual API/page/DB groups passed. Original role114 exact permission/field policies restored; sole108 assignment114/no source membership, share17/source77 ACTIVE expiresAt/revokedAt DBNULL, source154 unchangedv6. CREATE/CUSTOM DIRECT restored, original INITIATOR/no-timeout fixture definition restored via publication27/v4 with v3/new histories retained. New70/71 REJECTED, old ambiguous chronology20 unchanged."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/source-application-entry-facts.json",
+    "projects/unexamine/frontend/src/product/views/MyApplicationsView.vue"
+  ],
+  "permission_or_failure_result": "Bounded own BUSINESS_ACTION applications and trusted approval notification/todo entry verified; full manual Flow applications/graph/operations/explanations and all B10 remain incomplete.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "bb4a0697146e72373313677a0b8d5383119a071d21d6ba7a099c98f454ee5cc6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+      "sha256": "b1303617b17da1857f9ba7ae39dd2a9979c1a1fff08312940d00471313e922e1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "267d11484f765fa3dec95e4de31c04a129144c27f318ad4a51084887341fa16d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+      "sha256": "b404c182848a5f306edbb307d3ca735bee823347c7dbc098384433680b502354"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+      "sha256": "713f2e83e4edf66e3317df0bf5367c0abff0d69d38fe8a0ba17b5f05ff5ef946"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+      "sha256": "dbb8f9c05716e7256492f0d26c6e216d2fd707bcd7afb9e7ea2ed4ecea49fa22"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageModels.java",
+      "sha256": "a1003391206d4654aa07900d1e56b62d749da9628e2bf9cabbd1fbbaca6ac0df"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+      "sha256": "09ceb0c9b9b7aa7ea04438c9a12004ce549adc3ea883fac0e0de50b3f61cfd31"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoController.java",
+      "sha256": "a7d131fdc8f6b882ae0af9d80b7a7406c1ebd8f5bdb05ae636b23f78f5a3421a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoModels.java",
+      "sha256": "0596c3e00039dee08aa79c5171a6092d3c2b45418a28cfabde21096858a9ff92"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+      "sha256": "10ecbf3b338bac749198750ce8da0a3fe44d34b3c8e5ca714a596342048ab58b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "f40ab1b6417fd6d4c03d56aebd37c2d7d381bf5bb0b34acbbb7167242b414841"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/SystemShell.vue",
+      "sha256": "928bba6f8f63e0130ac4904dbea623c659688251f94687ed7d5254174b882f36"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/BusinessActionApprovalDrawer.vue",
+      "sha256": "82e80ceab230a689559ed6197fb11903ffc2d74b3d1cf2ee084945c09c7fceed"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+      "sha256": "d4d5807d6485a370d1db96900ce72ea6b1b597e5149d955fdf819b9c49c07254"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+      "sha256": "0f1074d2b870867f91f86c21486381afe4e961c52a9aa89cc09d79b18fb56625"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/MyApplicationsView.vue",
+      "sha256": "faaa4d8e3c1672f66abb155c50a648ec29c2bb329b7143e18fe4b5685ee91519"
+    }
+  ],
+  "remaining": [
+    "B07.4b.2c.2b.5a typed source list/filter/sort/persisted-view consumer next; parent .2b.5 all remaining fields/global consumers requires respective dependencies.",
+    "All full B10/manual Flow application/graph/explanation/approval operations/timeouts/dynamic nodes and module action/config lifecycles remain open.",
+    "Full B04/B05/B06/B07.4c/R2807/applications/platform and historical clock recovery remain open; source index rows retain in_progress."
+  ],
+  "next_step": "B07.4b.2c.2b.5a"
+}

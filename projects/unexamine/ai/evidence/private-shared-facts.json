@@ -1,0 +1,997 @@
+{
+  "step": "B07.4b.2c.2b.4",
+  "status": "passed",
+  "module_code": "shared_private_accept_4a356e1ce2",
+  "fields": {
+    "subject": {
+      "id": 156,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "moduleId": 47,
+      "code": "subject",
+      "name": "来源事项主题",
+      "fieldType": "TEXT",
+      "required": true,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{\"maxLength\":80}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "choice": {
+      "id": 157,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "moduleId": 47,
+      "code": "choice",
+      "name": "来源事项类型",
+      "fieldType": "SINGLE_SELECT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 6,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "related": {
+      "id": 158,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "moduleId": 47,
+      "code": "related",
+      "name": "来源关联业务",
+      "fieldType": "REFERENCE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": 44,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "hidden": {
+      "id": 159,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "moduleId": 47,
+      "code": "hidden",
+      "name": "来源私有内部说明",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 3,
+      "status": "ACTIVE",
+      "configJson": "{\"defaultValue\":\"内部默认不公开\"}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "source_note": {
+      "id": 160,
+      "systemId": 54,
+      "ownerTenantId": 77,
+      "moduleId": 47,
+      "code": "source_note",
+      "name": "来源事项说明",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 4,
+      "status": "ACTIVE",
+      "configJson": "{\"maxLength\":80}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "cases": [
+    {
+      "case": "legitimate_private_share_logical_resource_and_recipient_role_grant",
+      "resource": {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "name": "来源私有协作事项",
+        "actions": [
+          "ACTION_1B6DB1864661",
+          "DETAIL",
+          "LIST",
+          "UPDATE"
+        ],
+        "fields": [
+          "subject",
+          "choice",
+          "related",
+          "hidden",
+          "source_note"
+        ],
+        "actionNames": {
+          "ACTION_1B6DB1864661": "来源私有事项补充说明",
+          "DETAIL": "详情",
+          "LIST": "列表",
+          "UPDATE": "编辑"
+        },
+        "fieldNames": {
+          "subject": "来源事项主题",
+          "choice": "来源事项类型",
+          "related": "来源关联业务",
+          "hidden": "来源私有内部说明",
+          "source_note": "来源事项说明"
+        }
+      }
+    },
+    {
+      "case": "private_runtime_mode_LIST_DETAIL_and_forbidden_source_configuration",
+      "item": {
+        "groupId": 43,
+        "groupCode": "group_4c42276c5b",
+        "groupName": "来源私有协作",
+        "groupSortOrder": 40,
+        "moduleId": 47,
+        "moduleCode": "shared_private_accept_4a356e1ce2",
+        "moduleName": "来源私有协作事项",
+        "menuId": null,
+        "menuParentId": null,
+        "menuCode": "shared_private_accept_4a356e1ce2",
+        "menuName": "来源私有协作事项",
+        "menuIcon": null,
+        "menuRoutePath": "/runtime/shared_private_accept_4a356e1ce2",
+        "menuSortOrder": 10,
+        "configurationMode": "SHARED_RECORDS"
+      },
+      "record_version": 0,
+      "config_status": 404,
+      "config_error": "CONFIGURATION_NOT_FOUND",
+      "source_field_sort_denied": 403,
+      "own_records": 0,
+      "note": "API本组为既有管理员，只验证协议；零来源身份普通69的实际页面另验。"
+    },
+    {
+      "case": "ordinary69_private_module_normal_navigation_typed_UPDATE_CUSTOM_and_actual_database_audit",
+      "account_id": 69,
+      "system_member_id": 101,
+      "target_tenant_id": 57,
+      "source_memberships": 0,
+      "record_id": 154,
+      "version": 2,
+      "source_tenant_id": 77,
+      "module_id": 47,
+      "protected_private_value_retained": true,
+      "source_choice": "src_two",
+      "source_reference_id": 149,
+      "actual_action": "ACTION_1B6DB1864661",
+      "audit": [
+        {
+          "event": "BUSINESS_RECORD_UPDATED",
+          "account": 69,
+          "tenant": 57,
+          "detail": {
+            "shareId": 17,
+            "moduleCode": "shared_private_accept_4a356e1ce2",
+            "afterFields": {
+              "choice": "src_two",
+              "hidden": "来源私有字段必须保留",
+              "related": 149,
+              "subject": "来源私有共享事项普通页面编辑成功",
+              "source_note": "普通私有共享动作已提交"
+            },
+            "beforeFields": {
+              "choice": "src_two",
+              "hidden": "来源私有字段必须保留",
+              "related": 149,
+              "subject": "来源私有共享事项普通页面编辑成功",
+              "source_note": "普通私有共享编辑说明"
+            },
+            "dataTenantId": 77,
+            "actorTenantId": 57,
+            "configVersionId": 74,
+            "participantMemberIds": []
+          },
+          "permission": {
+            "action": "ACTION_1B6DB1864661",
+            "channel": "PAGE",
+            "roleIds": [
+              114
+            ],
+            "resource": "MODULE:shared_private_accept_4a356e1ce2",
+            "dataScope": {
+              "MODULE:shared_private_accept_4a356e1ce2:ACTION_1B6DB1864661": {
+                "mode": "ALL",
+                "terms": [
+                  {
+                    "type": "ALL",
+                    "roleIds": [
+                      114
+                    ],
+                    "condition": null
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "event": "BUSINESS_RECORD_UPDATED",
+          "account": 69,
+          "tenant": 57,
+          "detail": {
+            "shareId": 17,
+            "moduleCode": "shared_private_accept_4a356e1ce2",
+            "afterFields": {
+              "choice": "src_two",
+              "hidden": "来源私有字段必须保留",
+              "related": 149,
+              "subject": "来源私有共享事项普通页面编辑成功",
+              "source_note": "普通私有共享编辑说明"
+            },
+            "beforeFields": {
+              "choice": "src_one",
+              "hidden": "来源私有字段必须保留",
+              "related": 149,
+              "subject": "来源私有共享事项验收",
+              "source_note": "来源私有说明初始值"
+            },
+            "dataTenantId": 77,
+            "actorTenantId": 57,
+            "configVersionId": 74,
+            "participantMemberIds": []
+          },
+          "permission": {
+            "action": "UPDATE",
+            "channel": "PAGE",
+            "roleIds": [
+              114
+            ],
+            "resource": "MODULE:shared_private_accept_4a356e1ce2",
+            "dataScope": {
+              "MODULE:shared_private_accept_4a356e1ce2:UPDATE": {
+                "mode": "ALL",
+                "terms": [
+                  {
+                    "type": "ALL",
+                    "roleIds": [
+                      114
+                    ],
+                    "condition": null
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "ui": {
+        "normal_system_card": true,
+        "private_catalog_entry": true,
+        "human_source_column_names": true,
+        "DETAIL_human_source_types": true,
+        "hidden_field_absent": true,
+        "CREATE_and_RESHARE_absent": true,
+        "typed_source_form_no_JSON": true,
+        "CUSTOM_success": true
+      }
+    },
+    {
+      "case": "ordinary69_private_role_readonly_intersects_source_UPDATE_CUSTOM_share",
+      "ui_readable_record": true,
+      "ui_DETAIL": true,
+      "ui_no_edit_or_CUSTOM": true,
+      "record_version": 2,
+      "source_share_allows_UPDATE_CUSTOM": true
+    },
+    {
+      "case": "ordinary69_private_SELF_scope_zero_rows_and_close_previous_DETAIL",
+      "record_owner_system_member": 71,
+      "original_actor_system_member": 101,
+      "ui_records": 0,
+      "ui_previous_DETAIL_closed": true,
+      "source_membership_borrowed": false
+    },
+    {
+      "case": "ordinary69_private_missing_LIST_removes_catalog_and_previous_module",
+      "ui_private_entry_absent": true,
+      "ui_previous_record_absent": true,
+      "ui_switched_to_authorized_module": "extension_target_4a356e1ce2",
+      "ui_private_DETAIL_and_forms_closed": true,
+      "note": "等待未选中其他模块名称超时；实际页面已正确自动切换至获权关联模块，未重复业务。"
+    },
+    {
+      "case": "actual_expiry_zone_regression_fixed_for_UTC_container_and_Shanghai_API_deadline",
+      "api": {
+        "record_status": 404,
+        "catalog_absent": true,
+        "resources_absent": true,
+        "past_deadline_rejected": 422
+      },
+      "ui_private_entry_and_value_absent": true,
+      "real_backend_zone": "UTC",
+      "api_local_zone": "Asia/Shanghai",
+      "note": "复验原真实已到期授权，无再次新建记录或执行已通过动作。"
+    },
+    {
+      "case": "source_tenant_disabled_prevents_private_resources_catalog_LIST_DETAIL_without_membership_borrow",
+      "private_record_status": 404,
+      "private_catalog_and_resources_absent": true,
+      "ordinary_ui_private_entry_and_data_absent": true
+    },
+    {
+      "case": "expired_authorization_renewed_long_term_truly_clears_database_deadline",
+      "share_version": 3,
+      "expiresAt": null,
+      "revokedAt": null,
+      "record_version_unchanged": 2
+    },
+    {
+      "case": "private_shared_archived_history_catalog_LIST_DETAIL_remains_readable_without_write_entitlement",
+      "record_id": 154,
+      "version": 3,
+      "ordinary_UI_archive_filter_records": 1,
+      "ordinary_UI_DETAIL_readable": true,
+      "ordinary_UI_no_EDIT_CUSTOM_RESTORE_RESHARE": true,
+      "API_edit_and_CUSTOM_context_status": 404,
+      "source_private_preserved": true,
+      "note": "原生命周期query键误用已记录；原始radio check未选中，fresh AX后点击实际标签成功，未重复写操作。"
+    },
+    {
+      "case": "private_record_exact_module_system_boundary_and_recipient_reshare_denied",
+      "wrong_modules_and_record": [
+        404,
+        404,
+        404
+      ],
+      "recipient_reshare_status": 404,
+      "source_record_unmodified_version": 3,
+      "note": "管理员接口也不能把共享数据当自己的来源配置再次共享；普通页面无SHARE入口。"
+    },
+    {
+      "case": "private_share_revocation_removes_current_resources_catalog_data_and_old_ordinary_DETAIL_preserves_history",
+      "share_id": 17,
+      "share_status": "REVOKED",
+      "recipient_DETAIL_and_LIST_status": 404,
+      "ordinary_old_catalog_and_DETAIL_cleared": true,
+      "source_record_version": 3,
+      "source_history_preserved": true,
+      "history_count": null
+    },
+    {
+      "case": "private_revoked_share_regrant_clears_markers_exact_reference_options_and_common_projection_regression",
+      "source_record_version": 4,
+      "share_version": 5,
+      "expiresAt": null,
+      "revokedAt": null,
+      "reference_choices": [
+        149
+      ],
+      "unshared_private_reference150_absent": true,
+      "recipient_CREATE_and_config_status": 404,
+      "common151_version": 11,
+      "common_SOURCE_FILL_still_allowed": true,
+      "common_private_preserved": true
+    },
+    {
+      "case": "final_ordinary_private_and_common_runtime_layout_and_checkpoint",
+      "ordinary_account69": true,
+      "role_id114_only": true,
+      "source_memberships": 0,
+      "private_record_id154": true,
+      "private_source_fields_readable": true,
+      "private_EDIT_CUSTOM_restored": true,
+      "private_CREATE_RESHARE_absent": true,
+      "common_source_note_human_label_and_SOURCE_FILL_regression_passed": true,
+      "common_hidden_absent": true,
+      "UI_screenshot": "1280x720 actual private DETAIL common two-column drawer; fully loaded frame verified.",
+      "frontend_build_exit": 0,
+      "backend_final_package_exit": 0,
+      "backend_health": "UP",
+      "no_new_containers": true,
+      "project_redis_stopped": true,
+      "ddl_base_untouched": true
+    }
+  ],
+  "module_id": 47,
+  "group_id": 43,
+  "checked_time": "2026-09-18T17:24:59.989590+08:00",
+  "action": {
+    "id": 496,
+    "systemId": 54,
+    "ownerTenantId": 77,
+    "moduleId": 47,
+    "code": "ACTION_1B6DB1864661",
+    "name": "来源私有事项补充说明",
+    "actionType": "CUSTOM",
+    "location": "ROW",
+    "sortOrder": 120,
+    "status": "ACTIVE",
+    "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"source_note\"],\"confirmation\":false,\"confirmationText\":null}",
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0
+  },
+  "publication": {
+    "moduleId": 47,
+    "versionId": 74,
+    "versionNumber": 1,
+    "draftRevision": 7,
+    "publishedAt": "2026-09-18T09:04:08.551740624+08:00"
+  },
+  "record": {
+    "id": 154,
+    "recordNumber": null,
+    "title": "来源私有共享事项验收",
+    "status": "ACTIVE",
+    "ownerMemberId": 71,
+    "departmentId": 98,
+    "createdByMemberId": 71,
+    "updatedByMemberId": 71,
+    "createdConfigVersionId": 74,
+    "updatedConfigVersionId": 74,
+    "participantMemberIds": [],
+    "archived": false,
+    "archivedAt": null,
+    "deleted": false,
+    "deletedAt": null,
+    "version": 0,
+    "createdAt": "2026-09-18T17:04:08.633+08:00",
+    "updatedAt": "2026-09-18T17:04:08.633+08:00",
+    "dataTenantId": 77,
+    "dataTenantName": "来源目录隔离验收",
+    "ownedByCurrentTenant": true,
+    "shared": false,
+    "shareId": null,
+    "shareStatus": null,
+    "sharedActions": [],
+    "shareExpiresAt": null,
+    "organizationLabels": {
+      "members": {
+        "71": "平台超级管理员"
+      },
+      "departments": {
+        "98": "全公司"
+      }
+    },
+    "fieldPresentation": {
+      "choice": {
+        "name": "来源事项类型",
+        "fieldType": "SINGLE_SELECT",
+        "displayValue": "来源选项1",
+        "fieldId": 157,
+        "sortOrder": 1
+      },
+      "hidden": {
+        "name": "来源私有内部说明",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 159,
+        "sortOrder": 3
+      },
+      "related": {
+        "name": "来源关联业务",
+        "fieldType": "REFERENCE",
+        "displayValue": "正式扩展来源关联目标",
+        "fieldId": 158,
+        "sortOrder": 2
+      },
+      "source_note": {
+        "name": "来源事项说明",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 160,
+        "sortOrder": 4
+      },
+      "subject": {
+        "name": "来源事项主题",
+        "fieldType": "TEXT",
+        "displayValue": null,
+        "fieldId": 156,
+        "sortOrder": 0
+      }
+    },
+    "actions": [
+      {
+        "id": 485,
+        "code": "DETAIL",
+        "name": "详情",
+        "actionType": "BUILTIN",
+        "location": "ROW",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 487,
+        "code": "UPDATE",
+        "name": "编辑",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_HEADER",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 488,
+        "code": "ARCHIVE",
+        "name": "归档",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 489,
+        "code": "DELETE",
+        "name": "删除",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 491,
+        "code": "TRANSFER",
+        "name": "转交负责人",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 492,
+        "code": "CONVERT",
+        "name": "转化记录",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 493,
+        "code": "SHARE",
+        "name": "共享给租户",
+        "actionType": "BUILTIN",
+        "location": "DETAIL_MORE",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      },
+      {
+        "id": 496,
+        "code": "ACTION_1B6DB1864661",
+        "name": "来源私有事项补充说明",
+        "actionType": "CUSTOM",
+        "location": "ROW",
+        "status": "ACTIVE",
+        "configJson": "{\"confirmation\":false,\"confirmationText\":\"\"}",
+        "version": 0
+      }
+    ],
+    "fields": {
+      "choice": "src_one",
+      "hidden": "来源私有字段必须保留",
+      "related": 149,
+      "source_note": "来源私有说明初始值",
+      "subject": "来源私有共享事项验收"
+    }
+  },
+  "share": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T17:23:07.847+08:00",
+    "expiresAt": null,
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 5
+  },
+  "prior_role": {
+    "id": 114,
+    "code": "role_072e45a64f",
+    "name": "正式扩展共享验收·extension_accept_4a356e1ce2",
+    "description": null,
+    "builtIn": false,
+    "status": "ACTIVE",
+    "permissions": [
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "ACTION_TENANT_ACCEPT",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "SOURCE_FILL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      }
+    ],
+    "fieldPolicies": [
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "city",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_target_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      }
+    ],
+    "version": 45
+  },
+  "before_backend_deploy": {
+    "private_resource_present": false,
+    "configuration_read": {
+      "status": 404
+    },
+    "record_read": {
+      "status": 404
+    }
+  },
+  "desired_role": {
+    "id": 114,
+    "code": "role_072e45a64f",
+    "name": "正式扩展共享验收·extension_accept_4a356e1ce2",
+    "description": null,
+    "builtIn": false,
+    "status": "ACTIVE",
+    "permissions": [
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "ACTION_TENANT_ACCEPT",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "SOURCE_FILL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL"
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL"
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL"
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "actionCode": "ACTION_1B6DB1864661",
+        "dataScopeType": "ALL"
+      }
+    ],
+    "fieldPolicies": [
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "city",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_target_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false
+      },
+      {
+        "resourceCode": "shared_private_accept_4a356e1ce2",
+        "fieldCode": "source_note",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true
+      }
+    ],
+    "version": 45
+  },
+  "negative_stage": "restored",
+  "expiry_probe": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "ACTIVE",
+    "effectiveAt": "2026-09-18T09:13:55.329+08:00",
+    "expiresAt": "2026-09-18T17:13:57+08:00",
+    "revokedAt": null,
+    "grantedByMemberId": 71,
+    "version": 1
+  },
+  "failures_retained": [
+    {
+      "stage": "post_package_login_readiness",
+      "result": "Boot RemoteDisconnected before business; no mutation; require HTTP UP before subsequent login."
+    },
+    {
+      "stage": "TTL_probe",
+      "result": "UTC JVM compared to API Shanghai wall time; after user deadline access still active. Fixed validation, effective status and resource/catalog expiry clocks; grant/revoke timestamps use same API zone."
+    },
+    {
+      "stage": "SQL_clock_diagnostic",
+      "result": "Read-only wrong effective_at column rejected; corrected actual granted_at, no mutation."
+    },
+    {
+      "stage": "renewal_null_expiry",
+      "result": "Share update returned EXPIRED despite expiresAt:null; Base skipped null and retained prior deadline. Explicit null clearing in same transaction and post-update version fixed; no source data rewritten."
+    },
+    {
+      "stage": "archive_readback",
+      "result": "Used wrong lifecycle query key, default ACTIVE correctly gave zero; corrected actual lifecycleState without re-archiving or changing source."
+    },
+    {
+      "stage": "reference_choice_readback",
+      "result": "Assertion used id instead of actual narrow value DTO; corrected readback without repeat restore/regrant/any business action."
+    }
+  ],
+  "expiry_api": {
+    "record_status": 404,
+    "catalog_absent": true,
+    "resources_absent": true,
+    "past_deadline_rejected": 422
+  },
+  "revoked_share": {
+    "id": 17,
+    "sourceTenantId": 77,
+    "sourceTenantName": "来源目录隔离验收",
+    "targetTenantId": 57,
+    "targetTenantName": "协作工作空间",
+    "recordId": 154,
+    "moduleCode": "shared_private_accept_4a356e1ce2",
+    "allowedActions": [
+      "LIST",
+      "DETAIL",
+      "UPDATE",
+      "ACTION_1B6DB1864661"
+    ],
+    "status": "REVOKED",
+    "effectiveAt": "2026-09-18T17:21:12.927+08:00",
+    "expiresAt": null,
+    "revokedAt": "2026-09-18T17:22:25.551+08:00",
+    "grantedByMemberId": 71,
+    "version": 4
+  },
+  "record_final_version": 4,
+  "packet_verification": "passed",
+  "retained_fixture": {
+    "module_id": 47,
+    "source_tenant_id": 77,
+    "recipient_tenant_id": 57,
+    "record_id": 154,
+    "record_version": 4,
+    "share_id": 17,
+    "share_version": 5,
+    "status": "ACTIVE",
+    "purpose": "下一既定来源Flow与完整共享消费方验收复用；无密码和token。"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "step": "B09.4b",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0960",
+    "R0961",
+    "R0962",
+    "R0963",
+    "R0938",
+    "R0942",
+    "R0945",
+    "R0972"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowInstanceGraphService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowInstanceGraphTest.java"
+  ],
+  "checks_actual_results": [
+    "本包anchor-entry和contract-entry PASS；直接只读评估核对execution及所有task是真进入，图修改ACTION不是进入，不把原文缩减为仅当前后插。",
+    "0c573e/750800初2单测1失败发现BFS未筛源节点；已补源过滤。a9889b/750800最终Maven package BUILD SUCCESS、2针对图篡改隔离与历史循环可达测试PASS。861afa最终只读依赖修复package BUILD SUCCESS、tests skipped；c58ce8/36f6cb前端及d0306b最终9726退出0，vue-tsc/Vite成功，保留既有bundle体积提示。",
+    "e4ad34/45667真实187指定target之前APP（两个入边保留）与之后CC，再在未进入新APP前CC；原人工score2→left→新CC→新人工（继承target冻结subject/score必填和20分钟REMIND）→原target→新后CC→原优先默认END，正式216一次 score2/false，未走right/extra。新节点未来ACTION有历史仍可再作为锚点；只改图时不造任务通知。",
+    "189前插left APP和后插left CC在score0默认分支全部跳过，0提前任务/消息→right→target→原END正式217；188同模板未改另一实例图0/原路径正式218，HEX冻结发布版及历史不变。190原另一入边right同样必须经新增target前人工，END前CC一次→正式219。",
+    "当前/START/已进入left/未知锚点、END之后409，缺指定锚点422；预览后原APP推进使提交409陈旧，拒绝无新变更和历史不变。原边key、优先级和条件通过原实际命中与跳过及两入边对照验证，不宣称全图/全审批矩阵。",
+    "旧175无anchor字段请求实际先500 UnexpectedRollback：原请求已匹配，停用模块published期望404被嵌套只读事务标rollback-only。直接审阅RuntimeDataService/ModulePublicationService后，只对纯只读published领域异常noRollbackFor，调用者未处理异常仍自行回滚；b12c7b同旧请求200 replay，版本/状态/节点不变且proposed/current空，不恢复旧模板或数据。失败保留，未重复已过190。",
+    "普通新96 GUI191中文选指定节点前target/APP/真实人→预览、切后位置使确认失效且锚点清空（after目录无END）、重新选前预览确认；target后CC同人真实确认；reload原版本实例图保留。三独立人工原→新前插→原target后才完成，08a154第一人工后新APP待办/CC0，db3e8d最终3APP同意/两个图变更/唯一选人CC内容。完成仍自己标题无其它同意按钮，192另一实例始终原图。",
+    "1280×720实际预览按钮在滚动body下方不可见，已仅将现有三按钮放公共a-modal固定#footer；实际长表单截图固定取消/预览/确认可见，原disabled/guards保留。",
+    "最终同golden-backend重启7768b2/41bed4，25182f三系统/平台图修订/拓扑/状态版本/历史逐字段相同；9b7562精确关闭Module62、96/97模板绑定、216至219归档、0待任务/作业、114原值、96身份与会话停用/自己role6和link7撤回，黄金151/154/170及Module51四正式不变。23d6b1增专属Root98/193无锚点AFTER_CURRENT预览确认、同请求重放、两独立人工APP真完成，模板98及时停用且0待任务作业，未重新跑全矩阵。git diff --check PASS。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-instance-anchor-facts.json",
+    "projects/unexamine/ai/evidence/flow-instance-anchor-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-instance-anchor-entry.json",
+    "projects/unexamine/ai/evidence/flow-instance-anchor-contract-entry.json",
+    "projects/unexamine/ai/evidence/flow-instance-anchor-read-dependency-entry.json"
+  ],
+  "permission_or_failure_result": "沿同实例锁/当前有效身份及角色/原有查看交集/双版本/幂等守卫。BEFORE只替换所有入边target，AFTER只替换所有出边source；每条原条件/配置/优先级/边标识保留，桥才无条件。只选未进入可达节点，含取消/排队/暂停任务和任何执行都不可重开；尚未执行的新增节点可选。新APP按指定人工锚点冻结策略，否则当前人工策略，无同人自动继承。已停用业务只读预期异常不污染回执事务，无数据扩权。",
+  "remaining": [
+    "当前节点前插多任务暂停恢复及全部高级审批/字段/人员来源仍继续；仅指定从未进入锚点不是全量动态能力。",
+    "R0945公共记录发起双同名、人工状态语义与精确插入位置可读历史整理仍保留，不以本包持久留痕替代。",
+    "领取/委托/比例/退回重审/全动作渠道和全产品验收未完成。"
+  ],
+  "next_step": "B09.4c",
+  "integrated_verification": "可信折叠扩展→真正未进入目录→多入边/优先分支命中与跳过/冻结继承/一次原CREATE→旧回执升级和新原后插回归→普通页面前后/编辑失效/重入/3人次/唯一CC→固定footer→最终重启和精确收尾。",
+  "verified_time": "2026-09-19T06:03:49.671017+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowInstanceGraphService.java",
+      "sha256": "87dd04d81fb63c3e3814ffe6fb5b425e35b3568dbbb0ff8fd7b2bab4b064c007"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "d7f2a1155a3ee674af66766531065ed5fde21cfe276bd037f7dc7ad2714b58a1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "ea48ccb9b5feca7e7676c3ffa0c2fdd92e8e9ec322ed767bd9846baa56befe97"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "1fdba676c23932fafcfaf9f319c957317874172a4d1a81c7a3e1eb20b55dc31e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "0ae85137b12af4c39b96dcaa1a39417b29f3735b53d331b81f9c240ac22987b0"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "95e106536937cd422fc7fc11634e054ddbf77a7c3a50ebda01d9ebf37080665f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowInstanceGraphTest.java",
+      "sha256": "ef8f4b76c2d2197fa73019ad8513e8a184efc7764358139dbc6332e9fa1f0c00"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-after-current-regression.log",
+      "sha256": "0648faaee006e5a8ccad4c598b85ae18289fda0845c350d04153bcb0502febf9"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-api-more-resume.log",
+      "sha256": "13eb16ab6dece52df81fe4986c080879d1dbf9ed60870dadabb948b084733050"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-api-more.log",
+      "sha256": "58822fd5cc90f081c129719b2d1cd86d8ca8d00218dd19e41a425cd1038c9643"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-api.log",
+      "sha256": "6e2c79eebb0d40853524b81900a34444e6169cb8be6ce2221cc1ca5756e0780a"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-backend-build-final.log",
+      "sha256": "747b957b57bb00afee5d8e9137c1d0d990f619ff5f1dd442059ca85ba32866b8"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-backend-build.log",
+      "sha256": "833b05d673432c4ac3642212839b891cbb32ece8a5b1426fbb3f208e851140dc"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-cleanup.log",
+      "sha256": "251fc3cbf7d194fb7214bc0de0f767bedfbee2fb6d0678c4b1a63177cd7ae5e7"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-frontend-build.log",
+      "sha256": "e5ac50dbd9aa111080e8d9043a8e7c0d4a2d4e233a3f17fb3eb1faecb3c6b8e6"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-frontend-final-build.log",
+      "sha256": "80f08abfd89ad67a5b5067c695d058d8724abd7a4c1f361d60a80bd50a822cd7"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-gui-api.log",
+      "sha256": "abf1e5aca477cc97f31a1e21d40cc4c46172588dec7e3c7be8e4d7f9ce03b0a2"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-gui-interim.log",
+      "sha256": "633411b2d110a7314a221203360e7e37d5190b33cf7f21bb6490d3298224ac30"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-prepare-gui.log",
+      "sha256": "606b2ba22194acdc8a7c98e1b10fd3595bb06d312ad369ce4207017fc5df15e0"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-read-backend-build.log",
+      "sha256": "ec4ad6846adf66fda0bb98552415d74f2edd2577e4062192a930577a409e2def"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-restart.log",
+      "sha256": "d7fc414ebd1e666813df1a316b2ace60a64f0fcd4204188ffd5d00de7ea33dfa"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-facts.json",
+      "sha256": "b9b4d7c66c4c056b33501fb7677f82edc5c999bfb2974f76a3e4d052c04a2d72"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-instance-anchor-acceptance.py",
+      "sha256": "6fddcfde53c5f5557bdbf2dcda7132661c2fc69a5818dc23c5e9e7d4c2d00a06"
+    }
+  ]
+}

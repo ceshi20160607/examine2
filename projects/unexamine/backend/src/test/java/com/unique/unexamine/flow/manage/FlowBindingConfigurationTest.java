@@ -38,7 +38,8 @@ class FlowBindingConfigurationTest {
     FlowPublication publication;
     @BeforeEach void setup() throws Exception {
         service = new FlowBindingService(bindings,resolutions,definitions,publications,versions,modules,modulePublications,
-                actions,tenants,new PermissionChecker(),mock(AuditRecorder.class),json,configurations,fieldPolicies,new StructuredRuleEvaluator());
+                actions,tenants,new PermissionChecker(),mock(AuditRecorder.class),json,configurations,fieldPolicies,new StructuredRuleEvaluator(), new StructuredConditionProtocol(json, new StructuredRuleEvaluator()),
+                new PublishedConditionCatalog(json, mock(DictionaryConfigurationService.class), fieldPolicies), mock(FlowConditionService.class));
         var module = new ConfiguredModule();module.setId(30L);module.setCode("inspection");module.setSystemId(19L);module.setOwnerTenantId(21L);
         when(modules.selectById(30L)).thenReturn(module);
         var mp = new ConfiguredModulePublication();mp.setCurrentVersionId(41L);
@@ -58,7 +59,7 @@ class FlowBindingConfigurationTest {
         when(bindings.updateById(any())).thenReturn(1);
         when(actions.selectList(any())).thenReturn(List.of());
         when(configurations.published(actor,"inspection")).thenReturn(new RuntimeModuleConfiguration(30L,41L,2,1,json.readTree("""
-          {"fields":[{"code":"reading","name":"仪表读数","fieldType":"NUMBER","status":"ACTIVE","configJson":"{}"},
+          {"actions":[{"id":300,"code":"ACTION_REVIEW","status":"ACTIVE"}],"fields":[{"code":"reading","name":"仪表读数","fieldType":"NUMBER","status":"ACTIVE","configJson":"{}"},
           {"code":"hidden","name":"受限字段","fieldType":"NUMBER","status":"ACTIVE","configJson":"{}"}]}
           """)));
         when(fieldPolicies.resolveIntersection(any(),anyString(),anyString(),anyList(),anyList())).thenReturn(Map.of(
@@ -75,14 +76,17 @@ class FlowBindingConfigurationTest {
         assertThat(resolved.executionMode()).isEqualTo("DIRECT");assertThat(resolved.flowVersionId()).isNull();
         verify(resolutions,never()).insert(any());
     }
-    @Test void publishedBindingPinsFlowVersionAndAnUnmatchedActionFallsBackToNormalWrite() throws Exception {
+    /** 新动作随发布升级；已返回解析结果的版本对象不会被新发布指针改变。 */
+    @Test void newActionUsesLatestPublishedVersionAndUnmatchedActionFallsBackToNormalWrite() throws Exception {
         var request=request("AFTER_EXECUTION",100L,"{\"field\":\"reading\",\"operator\":\"GT\",\"value\":10}",false,true);
         var view=service.publish(actor,request,"trace");
         assertThat(view.flowVersionId()).isEqualTo(101L);
+        var oldResolution=service.resolveForAction(actor,30L,"CREATE",Map.of("reading",13),"trace");
         publication.setCurrentVersionId(102L);
         var resolution=service.resolveForAction(actor,30L,"CREATE",Map.of("reading",13),"trace");
-        assertThat(resolution.flowVersionId()).isEqualTo(101L);assertThat(resolution.flowVersionNumber()).isEqualTo(1);
-        assertThat(service.list(actor,30L,"CREATE").currentTenant().getFirst().flowVersionId()).isEqualTo(101L);
+        assertThat(oldResolution.flowVersionId()).isEqualTo(101L);
+        assertThat(resolution.flowVersionId()).isEqualTo(102L);assertThat(resolution.flowVersionNumber()).isEqualTo(2);
+        assertThat(service.list(actor,30L,"CREATE").currentTenant().getFirst().flowVersionId()).isEqualTo(102L);
         assertThat(service.resolveForAction(actor,30L,"CREATE",Map.of("reading",8),"trace")).isNull();
     }
     @Test void publicationRejectsHiddenReferencesAndWrongTypedValuesBeforeWrites() throws Exception {
@@ -102,10 +106,12 @@ class FlowBindingConfigurationTest {
         assertThat(service.resolveForAction(actor,30L,"CREATE",Map.of(),"trace").executionMode()).isEqualTo("FLOW_ONLY");
     }
 
-    /** 手动动作采用独立触发点；未命中条件时继续正常业务，命中时使用发布时固定的流程版本。 */
-    @Test void manualActionUsesItsOwnBindingAndPinnedFlowVersion() throws Exception {
+    /** 手动动作采用独立触发点；未命中继续正常业务，命中使用启动时最新发布版本。 */
+    @Test void manualActionUsesItsOwnBindingAndLatestFlowVersion() throws Exception {
         var action = new ConfiguredModuleAction();
         action.setId(300L);action.setModuleId(30L);action.setSystemId(19L);action.setStatus("ACTIVE");
+        // 测试动作也须属于当前配置租户，并出现在发布快照中，不能绕过真实来源校验。
+        action.setOwnerTenantId(21L);
         action.setCode("ACTION_REVIEW");action.setActionType("CUSTOM");
         when(actions.selectById(300L)).thenReturn(action);
         var input = new FlowBindingModels.PublishBindingRequest(30L,300L,"MANUAL",100L,"AFTER_EXECUTION",0,
@@ -113,7 +119,7 @@ class FlowBindingConfigurationTest {
         var published = service.publish(actor,input,"trace");
         assertThat(published.actionId()).isEqualTo(300L);
         publication.setCurrentVersionId(102L);
-        assertThat(service.resolveManualAction(actor,30L,300L,Map.of("reading",13),"trace").flowVersionId()).isEqualTo(101L);
+        assertThat(service.resolveManualAction(actor,30L,300L,Map.of("reading",13),"trace").flowVersionId()).isEqualTo(102L);
         assertThat(service.resolveManualAction(actor,30L,300L,Map.of("reading",8),"trace")).isNull();
     }
 }

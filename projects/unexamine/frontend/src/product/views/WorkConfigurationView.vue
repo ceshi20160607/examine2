@@ -6,7 +6,8 @@ import { allowsPermission } from '../permissions'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { isoDateOffset, sourceLabel } from '../work-configuration'
 import { versionLabel } from '../presentation'
-import type { SystemPeopleDirectory, WorkCalendar, WorkConfiguration, WorkConfigurationField, WorkProject } from '../types'
+import type { RuntimeModuleCatalogItem, RuntimeModuleConfiguration, SystemPeopleDirectory,
+  TodoContactRule, WorkCalendar, WorkConfiguration, WorkConfigurationField, WorkProject } from '../types'
 import PersonSelect from '../components/PersonSelect.vue'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system'; mode?: 'configuration' | 'calendar' }>(), { context: 'system', mode: 'configuration' })
@@ -23,12 +24,20 @@ const pageError = ref('')
 const fieldOpen = ref(false)
 const publishOpen = ref(false)
 const rollbackOpen = ref(false)
+const contactRuleOpen = ref(false)
 const activeField = ref<WorkConfigurationField>()
+const activeContactRule = ref<TodoContactRule>()
+const contactRules = ref<TodoContactRule[]>([])
+const contactModules = ref<RuntimeModuleCatalogItem[]>([])
+const contactModuleConfiguration = ref<RuntimeModuleConfiguration>()
 const fieldForm = reactive({
   targetType: 'TASK', fieldCode: '', fieldName: '', fieldType: 'TEXT', required: false, sortOrder: 10,
   dictionaryOptions: [] as string[], statisticsGroupBy: [] as string[], statisticsMetrics: [] as string[],
 })
 const publicationForm = reactive({ summary: '', targetVersion: 1, reason: '' })
+const contactRuleForm = reactive({
+  name: '', moduleCode: '', contactFieldCode: '', leadDays: 0, priority: 'NORMAL',
+})
 const filters = reactive({ from: isoDateOffset(-7), to: isoDateOffset(7), projectId: undefined as number | undefined, tenantMemberId: undefined as number | undefined })
 const fieldTypeOptions = [
   { value: 'TEXT', label: '单行文本' }, { value: 'TEXTAREA', label: '多行文本' },
@@ -52,6 +61,8 @@ const allConfiguredFields = computed(() => {
   const rows = [...(configuration.value?.ownDrafts || []), ...(configuration.value?.inheritedPlatformDefaults || [])]
   return rows.sort((a, b) => a.targetType.localeCompare(b.targetType) || a.sortOrder - b.sortOrder)
 })
+const contactDateFields = computed(() => (contactModuleConfiguration.value?.configuration.fields || [])
+  .filter(field => ['DATE', 'DATETIME'].includes(field.fieldType) && field.status === 'ACTIVE' && field.access?.readable))
 function can(action: string) {
   return allowsPermission(current.value?.permissions, 'WORK', contextCode.value, action)
     || allowsPermission(current.value?.permissions, 'WORK', '*', action)
@@ -104,8 +115,76 @@ function generatedFieldCode(name: string) {
 async function loadConfiguration() {
   if (!token.value || !can('VIEW_CONFIG')) return
   loading.value = true
-  try { configuration.value = await api<WorkConfiguration>('/api/work/configuration', {}, token.value) }
+  try {
+    configuration.value = await api<WorkConfiguration>('/api/work/configuration', {}, token.value)
+    if (props.context === 'system') {
+      const [rules, modules] = await Promise.all([
+        api<TodoContactRule[]>('/api/todo-contact-rules', {}, token.value),
+        api<RuntimeModuleCatalogItem[]>('/api/runtime/modules', {}, token.value),
+      ])
+      contactRules.value = rules
+      contactModules.value = modules.filter(module => module.configurationMode !== 'SHARED_RECORDS')
+    }
+  }
   catch (error) { message.error(describeError(error)) } finally { loading.value = false }
+}
+
+async function loadContactFields(moduleCode: string) {
+  contactModuleConfiguration.value = undefined
+  if (!token.value || !moduleCode) return
+  try {
+    contactModuleConfiguration.value = await api<RuntimeModuleConfiguration>(
+      `/api/runtime/modules/${encodeURIComponent(moduleCode)}/configuration`, {}, token.value)
+  } catch (error) { message.error(describeError(error)) }
+}
+
+async function openContactRule(rule?: TodoContactRule) {
+  activeContactRule.value = rule
+  Object.assign(contactRuleForm, rule ? {
+    name: rule.name, moduleCode: rule.moduleCode, contactFieldCode: rule.contactFieldCode,
+    leadDays: rule.leadDays, priority: rule.priority,
+  } : { name: '', moduleCode: '', contactFieldCode: '', leadDays: 0, priority: 'NORMAL' })
+  contactRuleOpen.value = true
+  await loadContactFields(contactRuleForm.moduleCode)
+}
+
+async function changeContactModule(moduleCode: string) {
+  contactRuleForm.contactFieldCode = ''
+  await loadContactFields(moduleCode)
+}
+
+async function saveContactRule() {
+  if (!token.value || !contactRuleForm.name.trim() || !contactRuleForm.moduleCode || !contactRuleForm.contactFieldCode) return
+  busy.value = 'contact-rule'
+  try {
+    const path = activeContactRule.value ? `/api/todo-contact-rules/${activeContactRule.value.id}` : '/api/todo-contact-rules'
+    await api(path, {
+      method: activeContactRule.value ? 'PUT' : 'POST',
+      body: JSON.stringify({ ...contactRuleForm, expectedVersion: activeContactRule.value?.version }),
+    }, token.value)
+    contactRuleOpen.value = false
+    message.success('联系规则草稿已保存，发布后开始生成待办')
+    await loadConfiguration()
+  } catch (error) { message.error(describeError(error)) } finally { busy.value = '' }
+}
+
+async function changeContactRuleStatus(rule: TodoContactRule, action: 'publish' | 'disable') {
+  if (!token.value) return
+  busy.value = `contact-${rule.id}`
+  try {
+    await api(`/api/todo-contact-rules/${rule.id}/${action}`, {
+      method: 'POST', body: JSON.stringify({ expectedVersion: rule.version }),
+    }, token.value)
+    message.success(action === 'publish' ? '联系规则已发布' : '联系规则已停用')
+    await loadConfiguration()
+  } catch (error) { message.error(describeError(error)) } finally { busy.value = '' }
+}
+
+function contactStatusLabel(status: string) {
+  return ({ DRAFT: '草稿', PUBLISHED: '已发布', DISABLED: '已停用' } as Record<string, string>)[status] || status
+}
+function contactPriorityLabel(priority: string) {
+  return ({ LOW: '低', NORMAL: '普通', HIGH: '高', URGENT: '紧急' } as Record<string, string>)[priority] || priority
 }
 
 function openField(field?: WorkConfigurationField) {
@@ -207,7 +286,7 @@ onMounted(() => props.mode === 'configuration' ? loadConfiguration() : loadCalen
 
 <template>
   <div v-if="mode === 'configuration'" class="work-configuration-page">
-    <div class="page-heading compact-heading"><div><p class="eyebrow">任务 · 工作配置</p><h1>字段、规则与统计口径</h1><p>草稿与发布版本分离；系统预览明确标注平台默认或系统覆盖，不复制任何任务、日志业务明细。</p></div><a-button v-if="can('CONFIGURE')" type="primary" @click="openField()">新建配置</a-button></div>
+    <div class="page-heading compact-heading"><div><p class="eyebrow">任务 · 工作配置</p><h1>字段、规则与统计口径</h1><p>草稿与发布版本分离；系统预览明确标注平台默认或系统覆盖，不复制任何任务、日志业务明细。</p></div><a-space><a-button v-if="context === 'system' && can('CONFIGURE')" @click="openContactRule()">新建联系规则</a-button><a-button v-if="can('CONFIGURE')" type="primary" @click="openField()">新建配置</a-button></a-space></div>
     <a-alert v-if="pageError" type="error" show-icon closable :message="pageError" @close="pageError = ''" />
     <a-alert v-if="!can('VIEW_CONFIG')" type="warning" show-icon message="当前工作范围没有工作配置查看权限" />
     <template v-else>
@@ -223,6 +302,18 @@ onMounted(() => props.mode === 'configuration' ? loadConfiguration() : loadCalen
         <a-empty v-if="!loading && !allConfiguredFields.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无工作配置，可先创建任务、日志字段或统计查询定义" />
       </div></a-spin>
       <section v-if="configuration?.effectivePublished.length" class="panel-card effective-preview"><div class="panel-title"><strong>当前生效预览</strong><a-tag color="green">{{ configuration.effectivePublished.length }} 项</a-tag></div><a-table :pagination="false" size="small" :data-source="configuration.effectivePublished" :row-key="(row: WorkConfigurationField) => `${row.targetType}:${row.fieldCode}`"><a-table-column title="对象"><template #default="{ record }">{{ targetLabel(record.targetType) }}</template></a-table-column><a-table-column title="字段" data-index="fieldName" /><a-table-column title="类型"><template #default="{ record }">{{ fieldTypeLabel(record.fieldType) }}</template></a-table-column><a-table-column title="来源"><template #default="{ record }">{{ sourceLabel(record.source) }}</template></a-table-column><a-table-column title="版本"><template #default="{ record }">{{ versionLabel(record.currentPublicationVersion) }}</template></a-table-column></a-table></section>
+      <section v-if="context === 'system'" class="panel-card effective-preview">
+        <div class="panel-title"><span><strong>今日需联系规则</strong><p>选择已发布模块的日期字段；系统按当前负责人和实时数据权限生成待办。</p></span><a-tag color="blue">{{ contactRules.length }} 条</a-tag></div>
+        <a-table v-if="contactRules.length" :pagination="false" size="small" :data-source="contactRules" row-key="id">
+          <a-table-column title="规则" data-index="name" />
+          <a-table-column title="业务来源"><template #default="{ record }">{{ record.moduleName }} · {{ record.contactFieldName }}</template></a-table-column>
+          <a-table-column title="生成时间"><template #default="{ record }">{{ record.leadDays ? `提前 ${record.leadDays} 天` : '字段日期当天' }}</template></a-table-column>
+          <a-table-column title="优先级"><template #default="{ record }">{{ contactPriorityLabel(record.priority) }}</template></a-table-column>
+          <a-table-column title="状态"><template #default="{ record }"><a-tag :color="record.status === 'PUBLISHED' ? 'green' : record.status === 'DRAFT' ? 'blue' : 'default'">{{ contactStatusLabel(record.status) }}</a-tag></template></a-table-column>
+          <a-table-column title="操作"><template #default="{ record }"><a-space><a-button v-if="can('CONFIGURE')" size="small" @click="openContactRule(record)">编辑草稿</a-button><a-button v-if="can('PUBLISH_CONFIG') && record.status !== 'PUBLISHED'" size="small" type="primary" :loading="busy === `contact-${record.id}`" @click="changeContactRuleStatus(record, 'publish')">发布</a-button><a-button v-if="can('PUBLISH_CONFIG') && record.status === 'PUBLISHED'" size="small" danger :loading="busy === `contact-${record.id}`" @click="changeContactRuleStatus(record, 'disable')">停用</a-button></a-space></template></a-table-column>
+        </a-table>
+        <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无联系规则，可从业务模块的日期字段创建" />
+      </section>
     </template>
   </div>
 
@@ -242,4 +333,12 @@ onMounted(() => props.mode === 'configuration' ? loadConfiguration() : loadCalen
   <a-modal v-model:open="fieldOpen" :title="activeField ? '编辑工作配置草稿' : '新建工作配置草稿'" width="700px" :confirm-loading="busy === 'field'" @ok="saveField"><a-form layout="vertical"><div class="form-grid"><a-form-item label="对象" required><a-select v-model:value="fieldForm.targetType" :disabled="!!activeField" :options="['PROJECT','TASK','LOG','STATISTICS'].map(value => ({ value, label: targetLabel(value) }))" @change="fieldForm.fieldType = fieldForm.targetType === 'STATISTICS' ? 'QUERY' : fieldForm.fieldType === 'QUERY' ? 'TEXT' : fieldForm.fieldType" /></a-form-item><a-form-item label="显示名称" required><a-input v-model:value="fieldForm.fieldName" /></a-form-item></div><div class="form-grid"><a-form-item label="字段类型" required><a-select v-model:value="fieldForm.fieldType" :disabled="fieldForm.targetType === 'STATISTICS'" :options="fieldTypeOptions.filter(item => fieldForm.targetType === 'STATISTICS' ? item.value === 'QUERY' : item.value !== 'QUERY')" /></a-form-item><a-form-item label="显示顺序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" style="width:100%" /></a-form-item></div><a-form-item label="必填"><a-switch v-model:checked="fieldForm.required" :disabled="fieldForm.targetType === 'STATISTICS'" /></a-form-item><template v-if="fieldForm.targetType === 'STATISTICS'"><a-form-item label="分组维度" required><a-select v-model:value="fieldForm.statisticsGroupBy" mode="multiple" placeholder="选择统计结果按什么查看" :options="statisticsGroupOptions" /></a-form-item><a-form-item label="统计指标" required><a-select v-model:value="fieldForm.statisticsMetrics" mode="multiple" placeholder="选择需要统计的数据" :options="statisticsMetricOptions" /></a-form-item><a-alert type="info" show-icon message="这里只保存统计口径，不复制任务或日志明细" /></template><a-form-item v-else-if="fieldForm.fieldType === 'DICTIONARY'" label="固定选项" required><a-select v-model:value="fieldForm.dictionaryOptions" mode="tags" placeholder="输入一个选项后按回车，可继续添加" :open="false" /><small>业务填写时只能选择这里发布的选项。</small></a-form-item></a-form></a-modal>
   <a-modal v-model:open="publishOpen" title="发布工作配置版本" :confirm-loading="busy === 'publish'" @ok="publishField"><a-alert type="warning" show-icon message="发布会改变当前生效预览，但不会改写历史版本" style="margin-bottom:16px" /><a-form layout="vertical"><a-form-item label="变更说明" required><a-textarea v-model:value="publicationForm.summary" /></a-form-item></a-form></a-modal>
   <a-modal v-model:open="rollbackOpen" title="恢复并发布新版本" :confirm-loading="busy === 'rollback'" @ok="rollbackField"><a-form layout="vertical"><a-form-item label="目标历史版本" required><a-select v-model:value="publicationForm.targetVersion" :options="activeField?.publicationVersions.map(version => ({ value: version.version, label: `${versionLabel(version.version)} · ${version.changeSummary}` }))" /></a-form-item><a-form-item label="恢复原因" required><a-textarea v-model:value="publicationForm.reason" /></a-form-item></a-form></a-modal>
+  <a-modal v-model:open="contactRuleOpen" :title="activeContactRule ? '编辑今日需联系规则' : '新建今日需联系规则'" width="680px" :confirm-loading="busy === 'contact-rule'" @ok="saveContactRule">
+    <a-alert type="info" show-icon message="规则只引用业务模块和日期字段" description="待办始终按当前负责人与实时权限读取，不复制业务记录，也不需要填写 JSON。" style="margin-bottom:16px" />
+    <a-form layout="vertical">
+      <a-form-item label="规则名称" required><a-input v-model:value="contactRuleForm.name" placeholder="例如：客户下次联系提醒" /></a-form-item>
+      <div class="form-grid"><a-form-item label="业务模块" required><a-select v-model:value="contactRuleForm.moduleCode" show-search :options="contactModules.map(module => ({ value: module.moduleCode, label: `${module.groupName} · ${module.moduleName}` }))" placeholder="选择已发布模块" @change="changeContactModule" /></a-form-item><a-form-item label="联系日期字段" required><a-select v-model:value="contactRuleForm.contactFieldCode" :disabled="!contactRuleForm.moduleCode" :options="contactDateFields.map(field => ({ value: field.code, label: `${field.name}（${field.fieldType === 'DATE' ? '日期' : '日期时间'}）` }))" placeholder="选择日期字段" /></a-form-item></div>
+      <div class="form-grid"><a-form-item label="提前生成"><a-input-number v-model:value="contactRuleForm.leadDays" :min="0" :max="365" style="width:100%" addon-after="天" /><small>0 表示字段日期当天进入“今日需联系”。</small></a-form-item><a-form-item label="待办优先级" required><a-select v-model:value="contactRuleForm.priority" :options="[{ value: 'LOW', label: '低' }, { value: 'NORMAL', label: '普通' }, { value: 'HIGH', label: '高' }, { value: 'URGENT', label: '紧急' }]" /></a-form-item></div>
+    </a-form>
+  </a-modal>
 </template>

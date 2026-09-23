@@ -1,0 +1,10 @@
+{
+  "step": "B12.4",
+  "nextStep": "B12.5",
+  "ok": true,
+  "artifactIntegrity": "passed",
+  "completionCredit": false,
+  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/application-provider-dingtalk-verification.json",
+  "verified_time": "2026-09-20T21:41:01.794834+08:00",
+  "note": "钉钉实际 API、数据库、普通页面、协议安全和企业微信/飞书回归均已通过；B12 仍受微信产品选择和真实外部租户阻塞，不能计为整体完成。"
+}

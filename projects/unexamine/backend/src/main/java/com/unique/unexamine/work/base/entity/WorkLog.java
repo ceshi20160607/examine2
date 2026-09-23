@@ -53,11 +53,65 @@ public class WorkLog {
     @TableField("content_text")
     private String contentText;
 
+    /**
+     * 今日已完成事项
+     */
+    @TableField("completed_text")
+    private String completedText;
+
+    /**
+     * 当前进行中事项
+     */
+    @TableField("in_progress_text")
+    private String inProgressText;
+
+    /**
+     * 下一工作日计划
+     */
+    @TableField("next_plan_text")
+    private String nextPlanText;
+
+    /**
+     * 风险与阻塞说明
+     */
+    @TableField("risk_text")
+    private String riskText;
+
+    /**
+     * 需要协助的事项
+     */
+    @TableField("assistance_text")
+    private String assistanceText;
+
     @TableField("duration_minutes")
     private Integer durationMinutes;
 
     @TableField("`status`")
     private String status;
+
+    /**
+     * 可见范围：本人、直属管理、项目成员、同部门或指定角色
+     */
+    @TableField("visibility_type")
+    private String visibilityType;
+
+    /**
+     * 指定可见角色标识快照
+     */
+    @TableField("visible_role_ids_json")
+    private String visibleRoleIdsJson;
+
+    /**
+     * 最近一次提交时间
+     */
+    @TableField("submitted_time")
+    private LocalDateTime submittedTime;
+
+    /**
+     * 最近一次撤回时间
+     */
+    @TableField("withdrawn_time")
+    private LocalDateTime withdrawnTime;
 
     @TableField("custom_values_json")
     private String customValuesJson;
@@ -169,6 +223,46 @@ public class WorkLog {
         this.contentText = contentText;
     }
 
+    public String getCompletedText() {
+        return completedText;
+    }
+
+    public void setCompletedText(String completedText) {
+        this.completedText = completedText;
+    }
+
+    public String getInProgressText() {
+        return inProgressText;
+    }
+
+    public void setInProgressText(String inProgressText) {
+        this.inProgressText = inProgressText;
+    }
+
+    public String getNextPlanText() {
+        return nextPlanText;
+    }
+
+    public void setNextPlanText(String nextPlanText) {
+        this.nextPlanText = nextPlanText;
+    }
+
+    public String getRiskText() {
+        return riskText;
+    }
+
+    public void setRiskText(String riskText) {
+        this.riskText = riskText;
+    }
+
+    public String getAssistanceText() {
+        return assistanceText;
+    }
+
+    public void setAssistanceText(String assistanceText) {
+        this.assistanceText = assistanceText;
+    }
+
     public Integer getDurationMinutes() {
         return durationMinutes;
     }
@@ -183,6 +277,38 @@ public class WorkLog {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getVisibilityType() {
+        return visibilityType;
+    }
+
+    public void setVisibilityType(String visibilityType) {
+        this.visibilityType = visibilityType;
+    }
+
+    public String getVisibleRoleIdsJson() {
+        return visibleRoleIdsJson;
+    }
+
+    public void setVisibleRoleIdsJson(String visibleRoleIdsJson) {
+        this.visibleRoleIdsJson = visibleRoleIdsJson;
+    }
+
+    public LocalDateTime getSubmittedTime() {
+        return submittedTime;
+    }
+
+    public void setSubmittedTime(LocalDateTime submittedTime) {
+        this.submittedTime = submittedTime;
+    }
+
+    public LocalDateTime getWithdrawnTime() {
+        return withdrawnTime;
+    }
+
+    public void setWithdrawnTime(LocalDateTime withdrawnTime) {
+        this.withdrawnTime = withdrawnTime;
     }
 
     public String getCustomValuesJson() {
@@ -255,8 +381,17 @@ public class WorkLog {
             ", workDate = " + workDate +
             ", title = " + title +
             ", contentText = " + contentText +
+            ", completedText = " + completedText +
+            ", inProgressText = " + inProgressText +
+            ", nextPlanText = " + nextPlanText +
+            ", riskText = " + riskText +
+            ", assistanceText = " + assistanceText +
             ", durationMinutes = " + durationMinutes +
             ", status = " + status +
+            ", visibilityType = " + visibilityType +
+            ", visibleRoleIdsJson = " + visibleRoleIdsJson +
+            ", submittedTime = " + submittedTime +
+            ", withdrawnTime = " + withdrawnTime +
             ", customValuesJson = " + customValuesJson +
             ", businessType = " + businessType +
             ", businessId = " + businessId +

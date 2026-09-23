@@ -10,6 +10,7 @@ import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleField;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleGroup;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModulePage;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModulePublication;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
 import com.unique.unexamine.moduleconfig.base.entity.CfgDictionary;
 import com.unique.unexamine.moduleconfig.base.entity.CfgModuleMenu;
 import com.unique.unexamine.moduleconfig.base.service.CfgDictionaryBaseService;
@@ -20,10 +21,13 @@ import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleFieldBaseS
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleGroupBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModulePageBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModulePublicationBaseService;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +41,9 @@ import java.util.LinkedHashMap;
 
 @Service
 public class ModuleConfigurationService {
-    private static final Set<String> CUSTOM_ACTION_FIELD_TYPES = Set.of(
-            "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "NUMBER", "MONEY",
-            "BOOLEAN", "DATE", "DATETIME", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "RICH_TEXT", "JSON");
+    static final Set<String> CUSTOM_ACTION_FIELD_TYPES = Set.of(
+            "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "SECRET", "NUMBER", "MONEY",
+            "BOOLEAN", "DATE", "DATETIME", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "RICH_TEXT", "JSON", "MEMBER", "DEPARTMENT", "CASCADE", "REFERENCE");
     static final Set<String> FIELD_TYPES = Set.of(
             "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "NUMBER", "PERCENT", "MONEY",
             "DATE", "DATETIME", "DATE_RANGE", "TIME", "TIME_RANGE", "SINGLE_SELECT", "MULTI_SELECT", "CASCADE",
@@ -56,11 +60,14 @@ public class ModuleConfigurationService {
     private final CfgModuleMenuBaseService menuService;
     private final ConfiguredModuleActionBaseService actionService;
     private final ConfiguredModulePublicationBaseService publicationService;
+    private final ConfiguredModuleVersionBaseService versionService;
     private final CfgDictionaryBaseService dictionaryService;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
     private final FieldUniqueIndexSynchronizer fieldUniqueIndexSynchronizer;
+    private final ModuleIdentifierIntegrity identifierIntegrity;
+    private final SystemTenantBaseService tenantService;
 
     public ModuleConfigurationService(
             ConfiguredModuleGroupBaseService groupService,
@@ -70,11 +77,13 @@ public class ModuleConfigurationService {
             CfgModuleMenuBaseService menuService,
             ConfiguredModuleActionBaseService actionService,
             ConfiguredModulePublicationBaseService publicationService,
+            ConfiguredModuleVersionBaseService versionService,
             CfgDictionaryBaseService dictionaryService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
-            FieldUniqueIndexSynchronizer fieldUniqueIndexSynchronizer) {
+            FieldUniqueIndexSynchronizer fieldUniqueIndexSynchronizer,
+            ModuleIdentifierIntegrity identifierIntegrity, SystemTenantBaseService tenantService) {
         this.groupService = groupService;
         this.moduleService = moduleService;
         this.fieldService = fieldService;
@@ -82,11 +91,14 @@ public class ModuleConfigurationService {
         this.menuService = menuService;
         this.actionService = actionService;
         this.publicationService = publicationService;
+        this.versionService = versionService;
         this.dictionaryService = dictionaryService;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
         this.fieldUniqueIndexSynchronizer = fieldUniqueIndexSynchronizer;
+        this.identifierIntegrity = identifierIntegrity;
+        this.tenantService = tenantService;
     }
 
     @Transactional
@@ -126,6 +138,7 @@ public class ModuleConfigurationService {
     @Transactional
     public ModuleDraft createModule(AuthenticatedContext context, CreateModuleRequest request, String traceId) {
         requireSystemContext(context);
+        identifierIntegrity.lockSystem(context.systemId());
         ConfiguredModuleGroup group = resolveModuleGroup(context, request, traceId);
         ConfiguredModule module = new ConfiguredModule();
         module.setSystemId(context.systemId());
@@ -174,6 +187,9 @@ public class ModuleConfigurationService {
             throw new DomainException("FIELD_TYPE_UNSUPPORTED", "当前字段类型不受支持", HttpStatus.BAD_REQUEST);
         }
         validateFieldDefinition(context, fieldType, request.dictionaryId(), request.referenceModuleId(), request.config(), traceId);
+        if ("SECRET".equals(fieldType) && (Boolean.TRUE.equals(request.searchable()) || Boolean.TRUE.equals(request.uniqueValue()))) {
+            invalidField("密码/密钥不支持搜索或唯一性索引");
+        }
         if ("JSON".equals(fieldType) && Boolean.TRUE.equals(request.searchable())) invalidField("结构化数据使用是否已填写筛选，不支持全文搜索");
         ConfiguredModuleField field = new ConfiguredModuleField();
         field.setSystemId(context.systemId());
@@ -219,6 +235,9 @@ public class ModuleConfigurationService {
         Long dictionaryId = request.dictionaryId() == null ? field.getDictionaryId() : request.dictionaryId();
         Long referenceModuleId = request.referenceModuleId() == null ? field.getReferenceModuleId() : request.referenceModuleId();
         validateFieldDefinition(context, field.getFieldType(), dictionaryId, referenceModuleId, request.config(), traceId);
+        if ("SECRET".equals(field.getFieldType()) && (Boolean.TRUE.equals(request.searchable()) || Boolean.TRUE.equals(request.uniqueValue()))) {
+            invalidField("密码/密钥不支持搜索或唯一性索引");
+        }
         if ("JSON".equals(field.getFieldType()) && Boolean.TRUE.equals(request.searchable())) invalidField("结构化数据使用是否已填写筛选，不支持全文搜索");
         field.setName(request.name().strip());
         field.setRequired(request.required());
@@ -395,6 +414,7 @@ public class ModuleConfigurationService {
         ConfiguredModule module = requireOwnedDraft(context, moduleId);
         ConfiguredModuleAction action = actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
                         .eq(ConfiguredModuleAction::getModuleId, moduleId)
+                        .eq(ConfiguredModuleAction::getOwnerTenantId, module.getOwnerTenantId())
                         .eq(ConfiguredModuleAction::getCode, actionCode.toUpperCase(Locale.ROOT)))
                 .stream().findFirst().orElseThrow(() -> notFound("动作不存在"));
         if (!request.version().equals(action.getVersion())) {
@@ -455,6 +475,16 @@ public class ModuleConfigurationService {
 
     /** 校验手动动作只能写当前模块中启用且可输入的业务字段。 */
     private void validateCustomActionConfig(Long moduleId, JsonNode config) {
+        ConfiguredModule module = moduleService.selectById(moduleId);
+        List<JsonNode> fields = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
+                        .eq(ConfiguredModuleField::getModuleId, moduleId)
+                        .eq(ConfiguredModuleField::getOwnerTenantId, module.getOwnerTenantId()))
+                .stream().map(field -> (JsonNode) objectMapper.valueToTree(field)).toList();
+        validateCustomActionConfig(config, fields);
+    }
+
+    /** 基础配置与扩展共用动作参数校验，限制字段类型、启用状态及只读语义。 */
+    void validateCustomActionConfig(JsonNode config, List<JsonNode> fields) {
         if (!"UPDATE_FIELDS".equals(config.path("operation").asText())
                 || !config.path("parameterFieldCodes").isArray()
                 || config.path("parameterFieldCodes").isEmpty()
@@ -468,11 +498,12 @@ public class ModuleConfigurationService {
             throw new DomainException("CUSTOM_ACTION_CONFIG_INVALID", "手动动作字段不能重复",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        Set<String> writable = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
-                        .eq(ConfiguredModuleField::getModuleId, moduleId)
-                        .eq(ConfiguredModuleField::getStatus, "ACTIVE"))
-                .stream().filter(this::customActionFieldWritable)
-                .map(ConfiguredModuleField::getCode).collect(java.util.stream.Collectors.toSet());
+        Set<String> writable = fields.stream().filter(field -> "ACTIVE".equals(field.path("status").asText())
+                        && CUSTOM_ACTION_FIELD_TYPES.contains(field.path("fieldType").asText()))
+                .filter(field -> {
+                    try { return !objectMapper.readTree(field.path("configJson").asText("{}")).path("readOnly").asBoolean(false); }
+                    catch (JsonProcessingException exception) { return false; }
+                }).map(field -> field.path("code").asText()).collect(java.util.stream.Collectors.toSet());
         if (!writable.containsAll(requested)) {
             throw new DomainException("CUSTOM_ACTION_FIELD_INVALID", "手动动作引用了不存在、停用或只读的字段",
                     HttpStatus.UNPROCESSABLE_ENTITY);
@@ -498,6 +529,7 @@ public class ModuleConfigurationService {
         ConfiguredModule module = requireOwnedDraft(context, moduleId);
         List<ConfiguredModuleField> fields = fieldService.selectList(Wrappers.<ConfiguredModuleField>lambdaQuery()
                 .eq(ConfiguredModuleField::getModuleId, moduleId)
+                .eq(ConfiguredModuleField::getOwnerTenantId, module.getOwnerTenantId())
                 .orderByAsc(ConfiguredModuleField::getSortOrder, ConfiguredModuleField::getId));
         List<ConfiguredModulePage> pages = pageService.selectList(Wrappers.<ConfiguredModulePage>lambdaQuery()
                 .eq(ConfiguredModulePage::getModuleId, moduleId)
@@ -513,6 +545,7 @@ public class ModuleConfigurationService {
         }
         List<ConfiguredModuleAction> actions = actionService.selectList(Wrappers.<ConfiguredModuleAction>lambdaQuery()
                 .eq(ConfiguredModuleAction::getModuleId, moduleId)
+                .eq(ConfiguredModuleAction::getOwnerTenantId, module.getOwnerTenantId())
                 .orderByAsc(ConfiguredModuleAction::getSortOrder, ConfiguredModuleAction::getId));
         boolean published = !publicationService.selectList(Wrappers.<ConfiguredModulePublication>lambdaQuery()
                 .eq(ConfiguredModulePublication::getModuleId, moduleId)).isEmpty();
@@ -582,16 +615,21 @@ public class ModuleConfigurationService {
         return module;
     }
 
-    private void validateFieldDefinition(
+    /** 模块字段与租户扩展共用配置语义，绑定来源由服务端校验。 */
+    void validateFieldDefinition(
             AuthenticatedContext context,
             String fieldType,
             Long dictionaryId,
             Long referenceModuleId,
             com.fasterxml.jackson.databind.JsonNode config,
             String traceId) {
+        if (!FIELD_TYPES.contains(fieldType) || config == null || !config.isObject()) {
+            invalidField("字段类型或配置结构无效");
+        }
         try {
             TextFieldProtocol.validateConfiguration(fieldType, config);
             StructuredContentFieldProtocol.validateConfiguration(fieldType, config);
+            SecretFieldProtocol.validateConfiguration(fieldType, config);
         } catch (IllegalArgumentException exception) {
             invalidField(exception.getMessage());
         }
@@ -612,8 +650,12 @@ public class ModuleConfigurationService {
         }
         if (referenceModuleId != null) {
             ConfiguredModule reference = moduleService.selectById(referenceModuleId);
+            SystemTenant owner = reference == null ? null : tenantService.selectById(reference.getOwnerTenantId());
+            // 基础模块身份可以被本租户扩展引用，目标记录仍由运行时按本租户隔离和授权。
+            boolean inherited = owner != null && Boolean.TRUE.equals(owner.getMain())
+                    && "ACTIVE".equals(owner.getStatus());
             if (reference == null || !context.systemId().equals(reference.getSystemId())
-                    || !context.tenantId().equals(reference.getOwnerTenantId())) {
+                    || !(context.tenantId().equals(reference.getOwnerTenantId()) || inherited)) {
                 throw new DomainException("REFERENCE_MODULE_NOT_FOUND", "关联模块不存在", HttpStatus.NOT_FOUND);
             }
         }
@@ -630,6 +672,7 @@ public class ModuleConfigurationService {
             }
             int maxDepth = config.path("maxDepth").asInt(0);
             if (maxDepth < 1) invalidField("级联字段必须配置大于 0 的最大层级");
+            if (referenceModuleId != null) validateModuleCascadeFields(referenceModuleId, config);
         }
         if ("MONEY".equals(fieldType)) {
             if (config.path("currency").asText().isBlank()) invalidField("金额字段必须配置币种");
@@ -653,6 +696,45 @@ public class ModuleConfigurationService {
         }
         if (fieldType.startsWith("SYSTEM_") && !config.path("readOnly").asBoolean(false)) {
             invalidField("系统字段必须配置为只读");
+        }
+    }
+
+    /** 模块级联依赖目标模块的命名显示、唯一值及自关联父级字段，不能只保存目标模块 ID。 */
+    private void validateModuleCascadeFields(Long targetModuleId, JsonNode config) {
+        String display = config.path("displayFieldCode").asText("").strip();
+        String value = config.path("valueFieldCode").asText("").strip();
+        String parent = config.path("parentFieldCode").asText("").strip();
+        if (display.isBlank() || value.isBlank() || parent.isBlank()) {
+            invalidField("模块级联必须选择显示字段、唯一值字段和父级关联字段");
+        }
+        ConfiguredModulePublication publication = publicationService.selectList(
+                Wrappers.<ConfiguredModulePublication>lambdaQuery()
+                        .eq(ConfiguredModulePublication::getModuleId, targetModuleId))
+                .stream().findFirst().orElse(null);
+        ConfiguredModuleVersion version = publication == null || publication.getCurrentVersionId() == null
+                ? null : versionService.selectById(publication.getCurrentVersionId());
+        if (version == null) invalidField("模块级联目标模块必须先发布");
+        JsonNode targetFields;
+        try {
+            targetFields = objectMapper.readTree(version.getSnapshotJson()).path("fields");
+        } catch (JsonProcessingException exception) {
+            invalidField("模块级联目标模块的发布字段不可读取");
+            return;
+        }
+        boolean displayValid = Set.of("title", "recordNumber").contains(display)
+                || java.util.stream.StreamSupport.stream(targetFields.spliterator(), false)
+                .anyMatch(field -> display.equals(field.path("code").asText())
+                        && Set.of("TEXT", "MULTILINE_TEXT").contains(field.path("fieldType").asText()));
+        boolean valueValid = Set.of("id", "recordNumber").contains(value)
+                || java.util.stream.StreamSupport.stream(targetFields.spliterator(), false)
+                .anyMatch(field -> value.equals(field.path("code").asText())
+                        && field.path("uniqueValue").asBoolean(false) && field.path("searchable").asBoolean(false));
+        boolean parentValid = java.util.stream.StreamSupport.stream(targetFields.spliterator(), false)
+                .anyMatch(field -> parent.equals(field.path("code").asText())
+                        && "REFERENCE".equals(field.path("fieldType").asText())
+                        && targetModuleId.equals(field.path("referenceModuleId").asLong()));
+        if (!displayValid || !valueValid || !parentValid) {
+            invalidField("模块级联字段必须来自目标模块的有效字段，父级字段须关联目标模块自身");
         }
     }
 
@@ -736,18 +818,14 @@ public class ModuleConfigurationService {
     private String resolveModuleCode(AuthenticatedContext context, String requestedCode) {
         if (requestedCode != null && !requestedCode.isBlank()) {
             String normalized = normalizeCode(requestedCode);
-            if (moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
-                    .eq(ConfiguredModule::getOwnerTenantId, context.tenantId())
-                    .eq(ConfiguredModule::getCode, normalized)).isEmpty()) {
+            if (!identifierIntegrity.occupied(context.systemId(), normalized)) {
                 return normalized;
             }
             throw new DomainException("MODULE_CODE_EXISTS", "模块标识已经存在", HttpStatus.CONFLICT);
         }
         for (int attempt = 0; attempt < 5; attempt++) {
             String generated = generatedCode("module");
-            if (moduleService.selectList(Wrappers.<ConfiguredModule>lambdaQuery()
-                    .eq(ConfiguredModule::getOwnerTenantId, context.tenantId())
-                    .eq(ConfiguredModule::getCode, generated)).isEmpty()) {
+            if (!identifierIntegrity.occupied(context.systemId(), generated)) {
                 return generated;
             }
         }

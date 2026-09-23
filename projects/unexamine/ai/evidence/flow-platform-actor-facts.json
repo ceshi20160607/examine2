@@ -1,0 +1,285 @@
+{
+  "step": "B09.1c.1",
+  "status": "verified_contribution",
+  "code": "platform_actor_64662998a8",
+  "flows": [
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44
+  ],
+  "cases": [
+    {
+      "case": "isolated_platform_role_fixture_and_real_gui_draft",
+      "flow_id": 38
+    },
+    {
+      "case": "gui_fixture_missing_design_catalog_VIEW_permission_restored_no_duplicate_flow"
+    },
+    {
+      "case": "ordinary_platform_gui_selected_saved_published_platform_identity",
+      "instance_id": 117
+    },
+    {
+      "case": "ordinary_platform_gui_real_approval_completed_once_and_my_application_not_null_equal"
+    },
+    {
+      "case": "platform_same_key_completed_approval_replayed_once_without_second_action"
+    },
+    {
+      "case": "platform_or_sign_transfer_history_not_authority_and_old_token_permission_role_member_revocation"
+    },
+    {
+      "case": "same_system_shared_current_handler_transfer_and_old_token_handle_revocation"
+    },
+    {
+      "case": "system_record_positive_readback_platform_physical_scope_404_and_frozen_candidates_keep_real_realm"
+    },
+    {
+      "case": "isolated_roles_members_flows_cleanup_no_pending_and_golden_unchanged"
+    }
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "ordinary_role_baseline": [],
+  "checked_time": "2026-09-19T03:25:39.336995+08:00",
+  "platform_role_id": 2,
+  "ordinary_link_id": 2,
+  "gui_flow": 38,
+  "prepared": true,
+  "pre_verification_findings": [
+    "实际平台授权后reload仍旧导航缓存，已补公共路由Auth/me刷新",
+    "最小人员目录无roleNames，共享PersonSelect option直接join造成真实选项渲染异常，已可选join并保留原完整目录标签",
+    "原路由同步测试4失败4通过，接异步后Node存储夹具缺失5失败5通过，补会话存储后定向10通过；不是业务负向结果",
+    "多处只读预检/patch/路径及计数假设失败未执行对应产品写入，随后按实际源码定位修复；如实计入消耗"
+  ],
+  "gui_instance": {
+    "id": 117,
+    "contextType": "PLATFORM",
+    "platformId": 1,
+    "systemId": null,
+    "tenantId": null,
+    "flowId": 38,
+    "flowVersionId": 47,
+    "flowVersionNumber": 1,
+    "definitionHash": "70485619d19df3d804e5e18edc8834bd18c5b8f7f1a213da44df488a3594149d",
+    "definitionSnapshot": {
+      "edges": [
+        {
+          "edgeKey": "0",
+          "sourceNodeKey": "start",
+          "targetNodeKey": "review"
+        },
+        {
+          "edgeKey": "1",
+          "sourceNodeKey": "review",
+          "targetNodeKey": "end"
+        }
+      ],
+      "nodes": [
+        {
+          "nodeKey": "start",
+          "name": "开始",
+          "nodeType": "START"
+        },
+        {
+          "nodeKey": "review",
+          "name": "指定人员审批",
+          "nodeType": "APPROVAL"
+        },
+        {
+          "nodeKey": "end",
+          "name": "结束",
+          "nodeType": "END"
+        }
+      ]
+    },
+    "businessType": null,
+    "businessId": null,
+    "businessSnapshot": {
+      "label": "未关联业务记录"
+    },
+    "businessView": null,
+    "title": "平台指定人员审批验收",
+    "currentNodeKey": "review",
+    "currentNodeName": "指定人员审批",
+    "status": "WAITING",
+    "startedByTenantMemberId": null,
+    "startedByCurrentUser": true,
+    "startedByName": "平台超级管理员",
+    "startedAt": "2026-09-19T03:23:32.486+08:00",
+    "finishedAt": null,
+    "errorCode": null,
+    "errorMessage": null,
+    "version": 1,
+    "variables": {},
+    "tasks": [
+      {
+        "id": 118,
+        "nodeKey": "review",
+        "taskType": "APPROVAL",
+        "status": "PENDING",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "来源表单普通页面验收",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": null,
+        "claimedAt": null,
+        "completedAt": null,
+        "version": 0,
+        "candidates": [
+          {
+            "id": 119,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 69,
+            "displayName": "来源表单普通页面验收",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T03:23:32.517+08:00"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": 346,
+        "taskId": null,
+        "nodeKey": "start",
+        "actionCode": "START",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "platform_start_ebbacd782653",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T03:23:32.498+08:00"
+      }
+    ],
+    "exceptions": [],
+    "executions": [
+      {
+        "id": 313,
+        "parentExecutionId": null,
+        "nodeKey": "start",
+        "nodeType": "START",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T03:23:32.489+08:00",
+        "leftAt": "2026-09-19T03:23:32.49+08:00",
+        "resultCode": "STARTED",
+        "version": 1
+      },
+      {
+        "id": 314,
+        "parentExecutionId": null,
+        "nodeKey": "review",
+        "nodeType": "APPROVAL",
+        "status": "ACTIVE",
+        "enteredAt": "2026-09-19T03:23:32.505+08:00",
+        "leftAt": null,
+        "resultCode": null,
+        "version": 0
+      }
+    ],
+    "history": [
+      {
+        "id": 560,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "INSTANCE",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T03:23:32.493+08:00"
+      },
+      {
+        "id": 561,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "ACTION",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T03:23:32.5+08:00"
+      },
+      {
+        "id": 562,
+        "executionId": null,
+        "taskId": 118,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T03:23:32.519+08:00"
+      }
+    ],
+    "jobs": [],
+    "allowedActions": [
+      "WITHDRAW",
+      "TERMINATE"
+    ],
+    "nextStep": "等待已解析审批人处理“指定人员审批”"
+  },
+  "gui_configured": true,
+  "gui_verified": true,
+  "registration": {
+    "account_id": 84,
+    "system_id": 86,
+    "username": "platform_actor_64662998a8_8f42be"
+  },
+  "api_platform_member": 82,
+  "api_instance": 118,
+  "api_system_member": 137,
+  "system_instance": 119,
+  "api_verified": true,
+  "boundary_verified": true,
+  "cleanup_verified": true,
+  "actual_gui_observations": [
+    "刷新后审批人中文选择仍在；发布V1；普通69我的申请0而待我处理1；同意完成后待我处理0。",
+    "精确撤销夹具权限后旧普通会话刷新重定向access-denied，导航不再包含流程和平台管理。"
+  ],
+  "acceptance_corrections": [
+    "平台直读已存在170按systemId物理边界返回404 RECORD_NOT_FOUND；系统上下文同URL实际200。此前403假设两次失败，按源码确认404设计，未改产品或削弱权限。"
+  ],
+  "observed_remaining": [
+    "发起历史INSTANCE和ACTION同名显示两条流程已发起，保留审计而待公共历史展示整理。",
+    "未实际构造第二平台，跨平台真实隔离矩阵仍待后续；不存在账号/系统ID冒用/停用人员已实际拒绝。",
+    "平台管理角色授权仍用SQL隔离夹具，不能计管理API完成；平台其他人员来源、FORM消费者、全部高级审批/应用/其余需求未完成。"
+  ]
+}

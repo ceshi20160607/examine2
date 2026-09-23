@@ -1,0 +1,39 @@
+{
+  "step": "B10.2d.2",
+  "status": "passed",
+  "checked_time": "2026-09-20T17:40:00+08:00",
+  "page": "http://localhost:15173/systems/54/admin?section=applications",
+  "application": {
+    "id": 14,
+    "name": "Flow 安全发起应用",
+    "status": "已停用",
+    "type": "服务调用",
+    "publication_count": 2,
+    "published_grant_count": 1,
+    "credential_count": 1,
+    "call_count": 4
+  },
+  "grant_readback": {
+    "scope": "当前系统",
+    "access_channels": [
+      "系统内访问",
+      "外部访问"
+    ],
+    "action": "发起流程",
+    "fixed_flow_version": 2,
+    "limit": "100 次 / 600 秒",
+    "json_configuration_input_present": false
+  },
+  "version_readback": [
+    "V2 当前运行，草稿 r3",
+    "V1，草稿 r2"
+  ],
+  "call_log_readback": [
+    "外部调用成功，FLOW_INSTANCE:296",
+    "系统内调用成功，FLOW_INSTANCE:295",
+    "错误签名失败，显示应用调用签名校验失败",
+    "外部调用成功，FLOW_INSTANCE:294，复用原结果 1 次"
+  ],
+  "secret_plaintext_visible": false,
+  "request_payload_visible": false
+}

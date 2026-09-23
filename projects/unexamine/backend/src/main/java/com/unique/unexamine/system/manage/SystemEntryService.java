@@ -71,7 +71,13 @@ public class SystemEntryService {
         if (tenant == null) {
             throw new DomainException("SYSTEM_CONFIGURATION_INVALID", "系统缺少可用的默认主租户", HttpStatus.CONFLICT);
         }
-        return enterResolved(accountId, system, tenant, previousSystemId, previousTenantId, traceId);
+        SystemMember member = first(memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                .eq(SystemMember::getSystemId, systemId).eq(SystemMember::getAccountId, accountId)
+                .eq(SystemMember::getStatus, "ACTIVE")));
+        if (member == null) deny(accountId, systemId, traceId);
+        SystemTenant permittedTenant = defaultTenant(system, member);
+        if (permittedTenant == null) denyTenant(accountId, systemId, null, traceId, "NO_ACTIVE_TENANT_MEMBERSHIP");
+        return enterResolved(accountId, system, permittedTenant, previousSystemId, previousTenantId, traceId);
     }
 
     @Transactional(noRollbackFor = DomainException.class)
@@ -163,13 +169,29 @@ public class SystemEntryService {
             if (system == null || Boolean.TRUE.equals(system.getDeleted())) {
                 continue;
             }
-            SystemTenant tenant = first(tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
-                    .eq(SystemTenant::getSystemId, system.getId())
-                    .eq(SystemTenant::getMain, true)));
+            SystemTenant tenant = defaultTenant(system, membership);
+            if (tenant == null) continue; // 没有可进入工作空间的系统不能列为可访问。
             result.add(new AccessibleSystem(system.getId(), system.getCode(), system.getName(), system.getTenantMode(),
                     system.getStatus(), tenant == null ? null : tenant.getId(), tenant == null ? null : tenant.getName()));
         }
         return result.stream().sorted(java.util.Comparator.comparing(AccessibleSystem::systemId).reversed()).toList();
+    }
+
+    /** 默认进入实际获权空间：主空间优先，多空间系统再选最早的有效成员空间。 */
+    private SystemTenant defaultTenant(SystemDefinition system, SystemMember member) {
+        List<Long> tenantIds = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                        .eq(SystemTenantMember::getSystemId, system.getId())
+                        .eq(SystemTenantMember::getSystemMemberId, member.getId())
+                        .eq(SystemTenantMember::getStatus, "ACTIVE")).stream()
+                .map(SystemTenantMember::getTenantId).toList();
+        if (tenantIds.isEmpty()) return null;
+        return tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                        .eq(SystemTenant::getSystemId, system.getId()).eq(SystemTenant::getStatus, "ACTIVE")
+                        .in(SystemTenant::getId, tenantIds)).stream()
+                .filter(tenant -> "MULTI".equals(system.getTenantMode()) || Boolean.TRUE.equals(tenant.getMain()))
+                .sorted(java.util.Comparator.comparing((SystemTenant tenant) -> Boolean.TRUE.equals(tenant.getMain()))
+                        .reversed().thenComparing(SystemTenant::getId))
+                .findFirst().orElse(null);
     }
 
     private void deny(Long accountId, Long systemId, String traceId) {

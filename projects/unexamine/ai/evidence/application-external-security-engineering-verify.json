@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "step": "B11.2",
+  "nextStep": "B11.3",
+  "artifactIntegrity": "passed",
+  "completionCredit": false,
+  "verified_time": "2026-09-20T18:39:30.165610+08:00",
+  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/application-external-security-verification.json"
+}

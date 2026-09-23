@@ -1,0 +1,153 @@
+{
+  "ok": true,
+  "mode": "bounded_steps",
+  "activeProject": "projects/unexamine",
+  "controlSource": "projects/unexamine/ai/planning/execution-control.json",
+  "stateSource": "projects/unexamine/ai/planning/spark-state.json",
+  "planSource": "projects/unexamine/ai/planning/spark-execution-plan.md",
+  "requirementSource": "docs/user_requirement.md",
+  "requirementSha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "step": "B09.2c.3",
+  "reason": "沿用冻结人工操作与候选任务骨架，补同一运行审批节点参与人的加签、减签；区别于动态插入新节点，不能修改历史模板或已完成审批事实。",
+  "prerequisiteSteps": [
+    "B09.2c.2",
+    "B09.1b.6",
+    "B09.4c"
+  ],
+  "requirements": [
+    {
+      "id": "R0914",
+      "line": 914,
+      "section": "5.12",
+      "text": "- 节点可以配置审批操作按钮，比如同意、拒绝、转办、加签、退回、撤回。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0916",
+      "line": 916,
+      "section": "5.12",
+      "text": "- 节点可以配置代理审批、委托、候选人领取、会签比例、会签顺序、审批意见必填、附件必填。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0938",
+      "line": 938,
+      "section": "5.12",
+      "text": "- 流程高级设置保存撤回、拒绝、重审、超时、异常兜底、是否允许加签加节点等规则。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0943",
+      "line": 943,
+      "section": "5.12",
+      "text": "- 流程任务保存当前待办、候选人、处理状态和处理意见。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0945",
+      "line": 945,
+      "section": "5.12",
+      "text": "- 流程日志保存每一次节点进入、审批、拒绝、转办、加签、加节点、撤回、终止。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0979",
+      "line": 979,
+      "section": "5.12",
+      "text": "- 加签。",
+      "status": "unverified"
+    },
+    {
+      "id": "R0980",
+      "line": 980,
+      "section": "5.12",
+      "text": "- 减签。",
+      "status": "unverified"
+    },
+    {
+      "id": "R0989",
+      "line": 989,
+      "section": "5.12",
+      "text": "- 审批页面同时展示业务数据、流程图、历史、操作区。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0992",
+      "line": 992,
+      "section": "5.12",
+      "text": "- 流程状态变化要写日志。",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0968",
+      "line": 968,
+      "section": "5.12",
+      "text": "- 待办。",
+      "status": "in_progress"
+    }
+  ],
+  "entryFiles": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "aa417af67687b34f44f4e5d9a8e146c08a5ff94cab576dde3aae1331cdd9ac24"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+      "sha256": "3410941f884ad98b7ae84bf4a64a6bb5c9835839bab1c60c3c7c37ac62ceade2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "1167ade8989e8c47208e5b19e85e069e45ba9003cd0fbdaab89b5405df2edec9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "b3ddac4150536feec88680cbc115c1826818aa28eba7963e640866bff42e4f9d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowParticipantResolver.java",
+      "sha256": "af2f0286c6b9e3aceabc180a7ba7a50254c38075c390d3977a808a3bdd9c8c05"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+      "sha256": "bda362c181a8766345e97a1076058b181f0d1562294ce4609eff5329d71969db"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "e6d43fd8e259684082ba2b18a38d8424060bcb141a88bcb333a15d7cbdeebd42"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "bb066eb8182a365d8b77c11f6918a3ff986c4ea2e01c3db8f61191b7d5609252"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "5d1f678a928b5da3a62af5cdf756a818a625f1ca28a004c73870ff4c25c218b6"
+    }
+  ],
+  "acceptance": [
+    "普通画布结构化配置加签/减签操作及意见要求，发布冻结，在途任务不受后续模板改动影响，无手写JSON。",
+    "真实当前审批节点按现有OR_SIGN/ALL_SIGN/SEQUENTIAL语义增减参与人，保留已完成事实、至少一个有效处理路径；明确领取归属、待办、表单、期限与作业的兼容处理，不重复推进下游。",
+    "统一当前身份权限、冻结按钮政策、人物有效性与任务版本，非法目标/重复参与人/非法状态/直调绕过拒绝无业务写入；幂等回执和审计可读。",
+    "真实平台及系统来源操作、普通GUI人物选择、同节点加减签后完成、来源业务一次执行、重启保留和精确清理组合验证。"
+  ],
+  "environment": "Reuse running shared redis:6379 with its existing authentication; project unexamine-redis-1 MUST stay stopped. Existing unexamine-mysql-1:33077 and same unexamine-golden-backend:18080 (existing network/jar/business-files mounts), one native Vite:15173. Backend healthy/preflight5/schema43. Do not full compose up, create duplicate frontend/backend/cache environments, use Testcontainers or change unrelated dm8/es8104. JDK21 native focused compile/tests work. Prefer current services and readback for this completion effort; preserve credentials internally, never write them to evidence.",
+  "policy": {
+    "authority": "根 AGENTS.md 和当前完整交付方案规定执行契约；docs/user_requirement.md 是唯一产品需求源。spark-* 路径仅保留兼容引用，不指定模型。",
+    "model": "使用当前会话模型，委派分支继承当前模型；不再分配 Spark 模型。",
+    "taskAllocation": "按 state.task_packet 组合业务相关任务，先评估公共依赖与真实剩余工期，预计总工期不超过 240 分钟；不是实际计时。公共骨架与契约稳定后接入依赖功能。并行须写明文件归属、实际前置证据、迁移/构建/测试资源和合并顺序；公共文件及同一运行夹具串行。",
+    "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
+    "scope": "只展开当前原文、入口文件及直接依赖；保留既有修改和全部未完成需求，不重新审计或规划全项目。",
+    "dependencies": "每个 current_scope 显式列出 prerequisite_steps；前置步骤 verified 且对应证据存在才可实施。依赖实现变化时重新验证受影响行为，不把历史验证当成当前完成。",
+    "checkpoint": "先写真实业务验证记录，运行 execution-verify --workspace workspace.json --receipt <记录路径>；校验通过后更新准确断点及下一步骤范围。结构/哈希通过不能代替页面、API、持久化、权限和失败结果。",
+    "loop": "每次检查点结束重新调用 entry，实施已准入任务包内的下一可执行步骤；不得无记录扩张到包外。整包开发完成后先整理、组合验证和形成验收结论，再准入下一包。不因单步完成或上下文压缩等待用户喊继续。",
+    "blockers": "外部依赖记录具体阻塞与解锁条件，按既有方案选择独立可执行步骤；不得缩减需求或把阻塞项标为完成。",
+    "stopping": "采用 template_base/agents/workflow.json 的真实停止条件；其中全部周期完成在本轮解释为全部有效需求与最终真实验收通过，不读取旧周期完成数。",
+    "consumption": "检查点记录本轮实际消耗；无新增修改、失败或疑点不重复已通过测试。不以 token 使用或单步完成作为停止条件。",
+    "wakeAdapter": "外部调度器只调用工程入口；任务选择、范围、断点、依赖和验收均来自项目文件，不在定时提示里复制一套规则。"
+  },
+  "continuous": true,
+  "stoppingPolicySource": "template_base/agents/workflow.json#executionLoop",
+  "openBlockers": [],
+  "completionCredit": false,
+  "note": "Context and artifact checks do not prove actual business behavior or whole-product completion."
+}

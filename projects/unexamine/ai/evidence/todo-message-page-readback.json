@@ -1,0 +1,55 @@
+{
+  "step": "B14.3",
+  "status": "passed",
+  "checked_time": "2026-09-21T16:16:48.210626+08:00",
+  "browser": {
+    "url_base": "http://localhost:15173",
+    "identity": "平台超级管理员",
+    "system_id": 54,
+    "tenant_id": 57
+  },
+  "work_configuration": {
+    "route": "/systems/54/admin?section=parameters -> 工作配置",
+    "observed": [
+      "系统后台公共左侧导航、页面标题、业务参数子导航和右侧工作区布局一致。",
+      "今日联系规则表显示规则名、命名业务来源、触发时间、优先级、发布状态和编辑/停用动作。",
+      "新建联系规则为结构化弹窗：规则名称、业务模块、联系日期字段、提前天数、优先级。",
+      "界面明确说明不复制业务记录且无需填写 JSON，未暴露模块 ID 或字段 ID。"
+    ]
+  },
+  "message_workspace": {
+    "route": "/systems/54?workspace=messages",
+    "observed": [
+      "真实加载 302 条系统消息，提供全部/未读/已读/归档状态筛选和来源筛选。",
+      "消息按卡片流展示，整卡只有一个业务跳转意图，不堆叠重复详情按钮。",
+      "通知偏好抽屉按邮件、短信、Webhook、企业微信、飞书、钉钉显示命名开关，包含免打扰起止时间和保存动作。",
+      "底部分页显示上一页、第 1 页、本页 10 条、下一页，未要求填写 JSON。"
+    ]
+  },
+  "todo_workspace": {
+    "route": "/systems/54?workspace=todos",
+    "observed": [
+      "系统待办页使用公共页头、状态筛选、类型筛选和统一列表区域。",
+      "管理员当前系统上下文的全部筛选真实返回空态‘当前筛选没有待办记录’。",
+      "有数据的联系待办、来源/截止/优先级/状态/安全打开由普通成员真实 API、数据库和重启证据覆盖；夹具撤权后未通过改库伪造管理员页面数据。"
+    ]
+  },
+  "context_readback": {
+    "platform_todos": 1,
+    "platform_todo_contexts": [
+      "PLATFORM"
+    ],
+    "system_todos": 0,
+    "system_todo_contexts": [],
+    "platform_messages_total": 151,
+    "platform_message_contexts": [
+      "PLATFORM"
+    ],
+    "system_messages_total": 302,
+    "system_message_contexts": [
+      "SYSTEM"
+    ],
+    "conclusion": "同一账号的平台令牌与系统令牌只读结果按 contextType 隔离，系统业务消息不能混入平台列表。"
+  },
+  "environment_note": "验收完成并清理夹具后 Docker Desktop 曾被外部停止；恢复的是原有 MySQL、共享 Redis、同一 golden backend 和单个 Vite，未创建重复容器。"
+}

@@ -1,0 +1,22 @@
+{
+  "step": "B13.1",
+  "status": "passed",
+  "checked_time": "2026-09-20T22:47:46.314601+08:00",
+  "route": "/systems/54?workspace=runtime&module=file_accept_be8ef08ead",
+  "record_id": 266,
+  "checks": {
+    "list_uses_original_file_names_not_internal_ids": true,
+    "detail_overview_uses_original_file_names": true,
+    "attachment_tab_is_read_only_and_explains_record_edit_transaction": true,
+    "attachment_tab_has_preview_and_download": true,
+    "edit_uses_named_file_controls_with_size_storage_and_remaining_quota": true,
+    "image_field_renders_authenticated_thumbnail": true,
+    "json_labels": 0,
+    "textareas": 0,
+    "horizontal_overflow": false,
+    "fresh_console_warnings_or_errors_after_full_reload": 0,
+    "storage_page_shows_active_backend_single_file_limit_and_remaining_capacity": true,
+    "storage_configuration_uses_named_endpoint_bucket_region_and_credential_controls": true
+  },
+  "note": "Earlier captured console entries were from a stale application-provider HMR session; the B13 full reload produced no new warnings or errors."
+}

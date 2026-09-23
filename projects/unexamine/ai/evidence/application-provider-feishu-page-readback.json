@@ -1,0 +1,47 @@
+{
+  "step": "B12.3",
+  "status": "passed",
+  "url": "http://localhost:15173/platform/admin/applications",
+  "selected_application": "飞书受控接入验收",
+  "application_id": 43,
+  "observations": [
+    "普通平台应用管理页显示飞书企业自建应用、App ID、请求地址、三种密钥引用、Open ID / User ID成员映射和当前权限说明。",
+    "回调路由读回到当前已发布Flow授权；消息投递显示命名成员、业务深链、待真实飞书联通和FEISHU_EXTERNAL_CREDENTIALS_UNAVAILABLE，没有伪报发送成功。",
+    "企业微信与飞书均显示本地协议已实现，钉钉和两个微信产品形态仍按各自边界展示，没有混成通用自建应用。",
+    "新增连接弹窗可选择企业微信或飞书；飞书表单只显示App ID、App Secret、Verification Token、可选Encrypt Key、事件和已发布授权选择器。",
+    "飞书弹窗没有textarea、JSON标签或内部数字ID输入；成员映射和消息模板继续使用命名选择器。"
+  ],
+  "layout": {
+    "viewportWidth": 1440,
+    "bodyScrollWidth": 1425,
+    "documentScrollWidth": 1425,
+    "providerSection": {
+      "clientWidth": 797,
+      "scrollWidth": 797
+    },
+    "providerCards": [
+      {
+        "clientWidth": 795,
+        "scrollWidth": 795
+      }
+    ],
+    "horizontalOverflow": false
+  },
+  "structured_form": {
+    "fields": [
+      "平台",
+      "连接名称",
+      "App ID",
+      "接收事件",
+      "事件进入的已发布应用授权",
+      "App Secret",
+      "Verification Token",
+      "Encrypt Key（可选）"
+    ],
+    "textareaCount": 0,
+    "jsonLabelCount": 0
+  },
+  "console_errors_since_full_reload": [],
+  "console_warnings_since_full_reload": [],
+  "checked_time": "2026-09-20T21:16:17.253921+08:00"
+}

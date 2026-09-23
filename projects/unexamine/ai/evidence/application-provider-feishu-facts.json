@@ -1,0 +1,67 @@
+{
+  "step": "B12.3",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "structured-feishu-connection-identity-local-diagnostic",
+      "result": "PASS",
+      "connectionId": 14,
+      "identityId": 13,
+      "secretPlaintextReturned": false
+    },
+    {
+      "case": "encrypted-challenge-signature-token-window",
+      "result": "PASS",
+      "challengeReturned": true,
+      "forged": "FEISHU_CALLBACK_SIGNATURE_INVALID",
+      "expired": "PROVIDER_CALLBACK_TIMESTAMP_EXPIRED",
+      "wrongToken": "FEISHU_CALLBACK_TOKEN_INVALID"
+    },
+    {
+      "case": "unknown-open-id-rejected-before-business-write",
+      "result": "PASS",
+      "errorCode": "PROVIDER_IDENTITY_UNMAPPED",
+      "eventRows": 0,
+      "flowWrites": 0
+    },
+    {
+      "case": "mapped-current-permission-event-and-replay",
+      "result": "PASS",
+      "applicationCallId": 170,
+      "accessChannel": "PROVIDER",
+      "eventRows": 1,
+      "flowInstanceRows": 1
+    },
+    {
+      "case": "feishu-template-deep-link-idempotent-delivery",
+      "result": "PASS",
+      "deliveryId": 6,
+      "status": "BLOCKED_EXTERNAL",
+      "deepLink": "/platform/flows?flowCode=feishu_provider_4e4e2072ec",
+      "providerRows": 1,
+      "feishuRows": 1,
+      "inAppRows": 1
+    },
+    {
+      "case": "connection-revocation-immediate",
+      "result": "PASS",
+      "status": "DISABLED",
+      "callbackError": "PROVIDER_CONNECTION_INACTIVE"
+    }
+  ],
+  "cleanup": {
+    "provider_connection_disabled": true,
+    "application_disabled": true,
+    "message_template_unpublished": true,
+    "flow_disabled": true
+  },
+  "external_status": "blocked_external",
+  "external_reason": "工作区没有真实飞书企业租户凭据和公网请求地址控制权",
+  "flow_id": 207,
+  "application_id": 52,
+  "connection_id": 14,
+  "identity_id": 13,
+  "application_call_id": 170,
+  "delivery_id": 6,
+  "checked_time": "2026-09-20T21:35:39.880450+08:00"
+}

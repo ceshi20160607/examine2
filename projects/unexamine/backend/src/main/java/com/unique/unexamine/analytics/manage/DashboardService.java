@@ -555,10 +555,11 @@ public class DashboardService {
                         // flattening them into another module's list would change the report semantics.
                         if (dimensionFieldCode != null
                                 && (dimensionAlias == null || Objects.equals(primaryAlias, dimensionAlias))) {
-                            item.put("filter", Map.of(
-                                    "fieldCode", dimensionFieldCode,
-                                    "operator", "EQ",
-                                    "value", group.key()));
+                            // 未设置的分组没有等值键；下钻使用空值条件，避免 Map.of(null) 导致整张图失败。
+                            item.put("filter", group.key() == null
+                                    ? Map.of("fieldCode", dimensionFieldCode, "operator", "EMPTY")
+                                    : Map.of("fieldCode", dimensionFieldCode, "operator", "EQ",
+                                            "value", group.key()));
                         }
                         return (Map<String, Object>) item;
                     }).toList();

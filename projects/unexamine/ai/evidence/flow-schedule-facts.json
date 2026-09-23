@@ -1,0 +1,81 @@
+{
+  "step": "B10.2c.2b",
+  "status": "passed",
+  "code": "flow_schedule_d132f21a72",
+  "flows": [
+    180
+  ],
+  "bindings": [
+    121,
+    122,
+    123
+  ],
+  "events": [
+    446,
+    447,
+    448,
+    449,
+    450,
+    451
+  ],
+  "instances": [
+    284,
+    285
+  ],
+  "cases": [
+    {
+      "case": "structured-plan-persists-without-early-run",
+      "result": "一分钟间隔配置被服务端冻结为上海时区，页面读取下一次时间且未提前执行。",
+      "bindingId": 121,
+      "outboxId": 446,
+      "nextTime": "2026-09-20T15:41:11.111+08:00"
+    },
+    {
+      "case": "stable-slot-delivers-at-most-once",
+      "result": "同一周期时隙重复投递后复用原实例，流程实例仍只有一个。",
+      "instanceId": 284
+    },
+    {
+      "case": "replacement-invalidates-old-plan",
+      "result": "替换周期后旧计划到期只记录为失效计划，不启动新流程。",
+      "oldBindingId": 121,
+      "newBindingId": 122,
+      "staleOutboxId": 447
+    },
+    {
+      "case": "future-plan-survives-restart",
+      "result": "同一后端重启后未来计划保持原时间且没有提前启动流程。",
+      "outboxId": 448,
+      "nextTime": "2026-09-21T15:40:16.81+08:00"
+    },
+    {
+      "case": "missed-fire-once-recovers-once",
+      "result": "中断期间错过的补执行配置恢复后只启动一个流程实例。",
+      "outboxId": 448,
+      "instanceId": 285
+    },
+    {
+      "case": "missed-skip-advances-without-instance",
+      "result": "跳过策略不补建流程实例，并继续保存下一次未来计划。",
+      "skippedOutboxId": 450,
+      "nextOutboxId": 451
+    }
+  ],
+  "checked_time": "2026-09-20T15:52:35.642163+08:00",
+  "restart": {
+    "flowId": 180,
+    "bindingId": 122,
+    "outboxId": 448,
+    "nextTime": "2026-09-21T15:40:16.81+08:00",
+    "sourceId": "2026-09-21T15:40:16.810"
+  },
+  "prepared": true,
+  "finalBindingId": 123,
+  "resumed": true,
+  "cleanup": {
+    "bindingsDisabled": true,
+    "eventsSettled": true,
+    "flowsDisabled": true,
+    "unfinishedInstances": 0
+  }
+}

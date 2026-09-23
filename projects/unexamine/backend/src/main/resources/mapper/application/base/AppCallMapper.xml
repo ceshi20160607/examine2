@@ -6,6 +6,7 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.application.base.entity.AppCall">
         <id column="id" property="id" />
         <result column="application_id" property="applicationId" />
+        <result column="application_version_id" property="applicationVersionId" />
         <result column="credential_version" property="credentialVersion" />
         <result column="grant_id" property="grantId" />
         <result column="request_id" property="requestId" />
@@ -34,7 +35,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, application_id, credential_version, grant_id, request_id, trace_id, request_timestamp, nonce, idempotency_key, source_address, target_system_id, target_tenant_id, resource_type, resource_id, action_code, request_hash, permission_snapshot_json, `status`, response_code, response_json, target_reference, replay_count, duration_millis, error_message, called_at, finished_at
+        id, application_id, application_version_id, credential_version, grant_id, request_id, trace_id, request_timestamp, nonce, idempotency_key, source_address, target_system_id, target_tenant_id, resource_type, resource_id, action_code, request_hash, permission_snapshot_json, `status`, response_code, response_json, target_reference, replay_count, duration_millis, error_message, called_at, finished_at
     </sql>
 
 </mapper>

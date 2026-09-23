@@ -53,6 +53,11 @@ public class ApplicationManagementController {
         return ApiResult.ok(service.detail(AuthenticationContextHolder.require(), applicationId));
     }
 
+    @GetMapping("/{applicationId}/identity-catalog")
+    public ApiResult<ApplicationModels.IdentityCatalog> identityCatalog(@PathVariable Long applicationId) {
+        return ApiResult.ok(service.identityCatalog(AuthenticationContextHolder.require(), applicationId));
+    }
+
     @GetMapping("/{applicationId}/calls")
     public ApiResult<List<ApplicationBridgeModels.CallLogView>> calls(@PathVariable Long applicationId) {
         return ApiResult.ok(service.calls(AuthenticationContextHolder.require(), applicationId));
@@ -88,8 +93,10 @@ public class ApplicationManagementController {
 
     @PostMapping("/{applicationId}/credentials")
     public ApiResult<ApplicationModels.RotateResult> rotateCredential(
-            @PathVariable Long applicationId, HttpServletRequest request) {
-        return ApiResult.ok(service.rotateCredential(AuthenticationContextHolder.require(), applicationId,
+            @PathVariable Long applicationId,
+            @Valid @RequestBody(required = false) ApplicationModels.CredentialIssueRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.rotateCredential(AuthenticationContextHolder.require(), applicationId, body,
                 TraceIdFilter.current(request)));
     }
 
@@ -113,8 +120,10 @@ public class ApplicationManagementController {
 
     @PostMapping("/{applicationId}/enable")
     public ApiResult<ApplicationModels.RotateResult> enable(
-            @PathVariable Long applicationId, HttpServletRequest request) {
-        return ApiResult.ok(service.enable(AuthenticationContextHolder.require(), applicationId,
+            @PathVariable Long applicationId,
+            @Valid @RequestBody(required = false) ApplicationModels.CredentialIssueRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.enable(AuthenticationContextHolder.require(), applicationId, body,
                 TraceIdFilter.current(request)));
     }
 

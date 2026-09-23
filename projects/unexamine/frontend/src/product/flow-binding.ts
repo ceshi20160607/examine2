@@ -1,4 +1,4 @@
-import type { FlowBindingView } from './types'
+import type { FlowBindingView, FlowScheduleConfig } from './types'
 import type { ConditionGroup } from './conditions'
 
 export function activeBinding(bindings: FlowBindingView[]) {
@@ -19,6 +19,7 @@ export function publishedBindingPayload(input: {
   conditionExpression?: string
   condition?: ConditionGroup
   mutuallyExclusive: boolean
+  schedule?: FlowScheduleConfig
 }, replaceExisting = false) {
   return { ...input, flowId: input.executionMode === 'DIRECT' ? undefined : input.flowId,
     conditionExpression: input.conditionExpression?.trim() || undefined, replaceExisting }

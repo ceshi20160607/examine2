@@ -1,0 +1,108 @@
+{
+  "step": "B09.2c.7",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0916",
+    "R0943",
+    "R0945",
+    "R0989",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/todo.ts",
+    "projects/unexamine/frontend/src/product/todo.test.ts",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "execution-context passed before implementation; direct review found the existing task snapshot, candidates, instance lock, idempotent actions, todo projection and history sufficient, so no schema/Base/service-topology change was made.",
+    "JDK21 focused Maven policy/form/all-sign suite passed with 0 failures; backend package succeeded and the same mounted backend container stayed healthy after both restarts.",
+    "Frontend todo/flow-runtime focused tests passed (4 tests); vue-tsc and Vite production build succeeded. The only build note was the existing large-chunk advisory.",
+    "A published snapshot without DELEGATE kept the old four operations. Explicit policy required a delegation reason and froze DELEGATE without changing an already-started instance.",
+    "Actual system-source flow rejected self-delegation and multi-hop delegation, replayed the exact DELEGATE receipt, survived restart, and was approved by the real delegate while preserving the original principal and executing the source CREATE exactly once.",
+    "Platform principal/delegate concurrent approvals serialized to one 200 and one 409 with exactly one APPROVE action.",
+    "Principal revocation immediately removed delegate runtime access and changed the delegate todo to REASSIGNED even though the historical candidate row remained; prior DELEGATE and REVOKE actions stayed immutable.",
+    "Cross-context identity payload was rejected. A short delegation became EXPIRED without a duplicate timer service and returned processing to the principal. A disabled delegate lost access; reactivation after principal revoke did not restore the old relationship.",
+    "Administrator GUI showed a Chinese 委托代办 checkbox with forced opinion, saved/published V2 without JSON. Principal runtime GUI selected a delegate and expiry, then displayed principal, delegate, platform/current-task scope, interval, reason, revoke action and history; delegate completed the task.",
+    "Exact cleanup restored role114, archived the isolated formal record, disabled owned module/binding/flows/roles/accounts/systems/members/sessions, and left zero unfinished tasks/jobs/executions; golden records151/154/170 and Module51 count were unchanged.",
+    "git diff --check passed for packet files with existing CRLF normalization warnings only."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-delegation-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-delegation-facts.json"
+  ],
+  "permission_or_failure_result": "Delegation is task-scoped and server-authoritative. Only the original principal can create or revoke it; the delegate must remain an active same-context identity inside the interval and still pass frozen button, field, form, business permission, idempotency and instance-lock checks. Historical candidates alone never restore access.",
+  "remaining": "This verifies task-scoped proxy/delegation only. Required approval attachments, comments/reminders, application channels, broader platform requirements and the whole product remain incomplete.",
+  "next_step": "B09.2c.8",
+  "next_scope": "Complete the shared approval collaboration gap: structured required-attachment policy plus real comments and reminders using existing attachment/message/runtime authorization. Do not create duplicate file or notification frameworks and do not combine application-channel work.",
+  "integrated_verification": "9 actual case groups cover legacy compatibility, system source once, self/cycle/cross-scope/disabled/expired guards, replay, principal/delegate concurrency, revoke and todo recovery, GUI design/runtime, two same-container restarts and exact cleanup.",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T09:44:26.503152+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+      "sha256": "8523fd3af6d179e372ace5c04ce14e62c84282d2113f5b2ac1550d9cf592df89"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "f32522fd653c9b1c7f1d62b41d48a1038a5b95ee6a8e46ccd1c53f4f96a84bcf"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "58a145a0248106c6bc9f614009729081878887d6f2cd6c4bb3a94bced1b88e31"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+      "sha256": "8092d39f580d4230992dbd8e46534ae4eac1f2cde3a9f7ac3854fbdd65964077"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+      "sha256": "957c1c817783555792fd2991c05a3352ef26d7168b241e794a08e7e9ac762b5b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "dbdf745602e827e96a4f8c5ddb038a5e3eb368942250ed98263f41ae442a4d7f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.ts",
+      "sha256": "90b6fe66d1497e470a01f501f56bca0494eb216fdb8cb0646dcee77d3a537c90"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.test.ts",
+      "sha256": "3f0845eeb7cf79dac06627e6d6bb1c0335ffd5595b75c8f704cdc707631c5351"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "9d2de5034bbca0da21e6be411a876dd5daf7384bd9eed31fa3dc5c52a1008b9d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "a1846af39571c6eddd9dc24256a2cc8c6c1c105a256f422dcd26da34d7ea22a2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+      "sha256": "90db4e157a917ac0c3c672390a471c0bcc3f46c7137f848cc9b72c7cc8ddf595"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-delegation-acceptance.py",
+      "sha256": "c745a5481e49034143821bf2de0e68e5d3f49fe9f49abe7ec168378616ef3bac"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-delegation-facts.json",
+      "sha256": "493c1d4f02257b6d5f83f8c866f22174d09b55c636bdba917b377769d2f571ee"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-delegation-entry.json",
+      "sha256": "fcd189e1d1fd8019249800fe52ecd73fb3cf40f37ae97b1cda3a73ea8d71dba8"
+    }
+  ]
+}

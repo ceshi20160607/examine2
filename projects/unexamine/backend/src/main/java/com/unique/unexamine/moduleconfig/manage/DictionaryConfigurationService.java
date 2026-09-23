@@ -291,6 +291,11 @@ public class DictionaryConfigurationService {
         return runtimeDictionary(dictionary, parentId);
     }
 
+    /** 扩展发布检查只读取已发布绑定；错误由调用方汇总，不能把检查事务提前标记回滚。 */
+    void validateExtensionBinding(AuthenticatedContext context, Long dictionaryId) {
+        runtimeDictionary(runtimeDictionary(context, dictionaryId), null);
+    }
+
     /** 单选和状态字段使用字典当前发布的有效选项，不接受草稿、停用选项或未授权字典。 */
     // 校验失败由调用方汇总为预览或业务错误，不能提前把外层事务标记为只能回滚。
     @Transactional(readOnly = true, noRollbackFor = IllegalArgumentException.class)
@@ -386,6 +391,22 @@ public class DictionaryConfigurationService {
             return new DictionaryModels.RuntimeDictionary(dictionary.getId(), dictionary.getCode(), dictionary.getName(),
                     Boolean.TRUE.equals(dictionary.getHierarchical()), version.getId(), version.getVersionNumber(),
                     publication.getVersion(), selectable);
+        } catch (JsonProcessingException exception) {
+            throw new DomainException("DICTIONARY_SNAPSHOT_INVALID", "字典发布快照无法读取", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /** 记录展示只解析已绑定来源字典的当前发布快照；停用项仍用于解释历史值，不进入可选项。 */
+    @Transactional(readOnly = true, noRollbackFor = DomainException.class)
+    public List<JsonNode> publishedDisplayItems(AuthenticatedContext sourceContext, Long dictionaryId) {
+        CfgDictionary dictionary = runtimeDictionary(sourceContext, dictionaryId);
+        CfgDictionaryPublication publication = publication(dictionary.getId());
+        CfgDictionaryVersion version = publication == null ? null : versionService.selectById(publication.getCurrentVersionId());
+        if (version == null) throw notFound("字典发布版本不存在");
+        try {
+            List<JsonNode> items = new ArrayList<>();
+            objectMapper.readTree(version.getSnapshotJson()).path("items").forEach(items::add);
+            return List.copyOf(items);
         } catch (JsonProcessingException exception) {
             throw new DomainException("DICTIONARY_SNAPSHOT_INVALID", "字典发布快照无法读取", HttpStatus.INTERNAL_SERVER_ERROR);
         }

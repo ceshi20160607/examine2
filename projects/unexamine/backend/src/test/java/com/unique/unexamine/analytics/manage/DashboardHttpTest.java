@@ -55,10 +55,10 @@ class DashboardHttpTest {
     @Test
     void publishesContextBoundDashboardExecutesRealDataAndKeepsPublishedSnapshotsImmutable() {
         Session owner = register("dashboard_owner", "dashboard_system", "dashboard-owner@example.com");
-        publishCustomerModule(owner);
+        long customerModuleId = publishCustomerModule(owner);
         Map<String, Object> customerOne = createCustomer(owner, "C48-001", "北辰客户");
         Map<String, Object> customerTwo = createCustomer(owner, "C48-002", "星海客户");
-        publishOrderModule(owner);
+        publishOrderModule(owner, customerModuleId);
         createOrder(owner, "C49-ORDER-001", "北辰首单", number(customerOne.get("id")), 120);
         createOrder(owner, "C49-ORDER-002", "星海续费", number(customerTwo.get("id")), 280);
 
@@ -477,7 +477,7 @@ class DashboardHttpTest {
         return result;
     }
 
-    private void publishCustomerModule(Session owner) {
+    private long publishCustomerModule(Session owner) {
         long groupId = number(ok("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
                 Map.of("code", "sales", "name", "销售", "sortOrder", 10)).get("id"));
         long moduleId = number(((Map<?, ?>) ok("/api/admin/module-config/modules", HttpMethod.POST,
@@ -489,16 +489,17 @@ class DashboardHttpTest {
                 HttpMethod.GET, owner.token(), null);
         ok("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST, owner.token(),
                 Map.of("expectedDraftRevision", check.get("draftRevision")));
+        return moduleId;
     }
 
-    private void publishOrderModule(Session owner) {
+    private void publishOrderModule(Session owner, long customerModuleId) {
         long groupId = number(ok("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
                 Map.of("code", "commerce", "name", "交易", "sortOrder", 20)).get("id"));
         long moduleId = number(((Map<?, ?>) ok("/api/admin/module-config/modules", HttpMethod.POST,
                 owner.token(), Map.of("groupId", groupId, "code", "orders", "name", "订单")).get("module")).get("id"));
         ok("/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
-                Map.of("code", "customer_id", "name", "客户 ID", "fieldType", "NUMBER", "required", true,
-                        "searchable", true, "sortOrder", 10, "config", Map.of()));
+                Map.of("code", "customer_id", "name", "客户", "fieldType", "REFERENCE", "required", true,
+                        "referenceModuleId", customerModuleId, "searchable", true, "sortOrder", 10, "config", Map.of()));
         ok("/api/admin/module-config/modules/" + moduleId + "/fields", HttpMethod.POST, owner.token(),
                 Map.of("code", "amount", "name", "订单金额", "fieldType", "NUMBER", "required", true,
                         "searchable", true, "sortOrder", 20, "config", Map.of()));

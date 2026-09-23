@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { DeleteOutlined, DownloadOutlined, EyeOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
   compact?: boolean
   writable?: boolean
 }>(), { context: 'system', title: '附件', description: '文件会先安全扫描，再保存到当前业务对象。', compact: false, writable: true })
-const emit = defineEmits<{ changed: [] }>()
+const emit = defineEmits<{ changed: []; loaded: [items: BusinessAttachmentView[]] }>()
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken || '' : systemTokens.value?.accessToken || '')
 const rows = ref<BusinessAttachmentView[]>([])
 const loading = ref(false)
@@ -24,16 +24,49 @@ const uploading = ref(false)
 const uploadProgress = ref(0)
 const retryFile = ref<File>()
 const error = ref('')
+const thumbnails = new Map<number, string>()
+const thumbnailVersion = ref(0)
+
+function clearThumbnails() {
+  thumbnails.forEach(url => URL.revokeObjectURL(url))
+  thumbnails.clear()
+  thumbnailVersion.value += 1
+}
+
+function thumbnail(fileId: number) {
+  void thumbnailVersion.value
+  return thumbnails.get(fileId)
+}
+
+async function loadThumbnails(items: BusinessAttachmentView[]) {
+  clearThumbnails()
+  await Promise.all(items.filter(item => item.contentType.startsWith('image/') && item.previewable && item.attachmentId)
+    .map(async item => {
+      try { thumbnails.set(item.fileId, URL.createObjectURL(await authorizedBlob(`/api/business-attachments/${item.attachmentId}/preview`, token.value))) }
+      catch { /* 单个缩略图失败时保留文件名、下载和原始预览入口。 */ }
+    }))
+  thumbnailVersion.value += 1
+}
 
 function describeError(reason: unknown, fallback: string) {
   return reason instanceof ApiError ? `${reason.message}${reason.traceId ? `（追踪号 ${reason.traceId}）` : ''}` : fallback
 }
 
 async function load() {
-  if (!token.value || !props.endpoint) return
+  if (!token.value || !props.endpoint) {
+    rows.value = []
+    emit('loaded', [])
+    return
+  }
   loading.value = true
+  rows.value = []
+  emit('loaded', [])
   error.value = ''
-  try { rows.value = await api<BusinessAttachmentView[]>(props.endpoint, {}, token.value) }
+  try {
+    rows.value = await api<BusinessAttachmentView[]>(props.endpoint, {}, token.value)
+    await loadThumbnails(rows.value)
+    emit('loaded', rows.value)
+  }
   catch (reason) { error.value = describeError(reason, '附件加载失败') }
   finally { loading.value = false }
 }
@@ -67,7 +100,7 @@ async function preview(item: BusinessAttachmentView) {
   try {
     const blob = await authorizedBlob(`/api/business-attachments/${item.attachmentId}/preview`, token.value)
     window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer')
-  } catch (reason) { message.error(describeError(reason, '附件预览失败')) }
+  } catch (reason) { message.warning(`${describeError(reason, '附件预览失败')}，请使用下载查看`) }
 }
 
 async function download(item: BusinessAttachmentView) {
@@ -93,6 +126,7 @@ function size(value: number) {
 }
 
 watch(() => [props.endpoint, token.value], load, { immediate: true })
+onBeforeUnmount(clearThumbnails)
 </script>
 
 <template>
@@ -101,8 +135,12 @@ watch(() => [props.endpoint, token.value], load, { immediate: true })
     <a-progress v-if="uploading" :percent="uploadProgress" status="active" size="small" />
     <a-alert v-if="error" type="error" show-icon :message="error"><template v-if="retryFile" #action><a-button size="small" @click="upload(retryFile)">重试</a-button></template></a-alert>
     <div v-if="rows.length" class="business-attachments__list">
-      <article v-for="item in rows" :key="item.attachmentId"><span><strong>{{ item.originalName }}</strong><small>{{ size(item.sizeBytes) }} · {{ productDateTime(item.createdAt) }}</small></span><a-tag :color="item.scanStatus === 'CLEAN' ? 'green' : 'red'">{{ fileScanLabel(item.scanStatus) }}</a-tag><div><a-button v-if="item.previewable" type="text" size="small" @click="preview(item)"><EyeOutlined />预览</a-button><a-button v-if="item.downloadable" type="text" size="small" @click="download(item)"><DownloadOutlined />下载</a-button><a-button v-if="writable && item.removable" type="text" danger size="small" @click="remove(item)"><DeleteOutlined />移除</a-button></div></article>
+      <article v-for="item in rows" :key="item.attachmentId"><img v-if="thumbnail(item.fileId)" class="business-attachments__thumbnail" :src="thumbnail(item.fileId)" :alt="`${item.originalName} 缩略图`" /><span><strong>{{ item.originalName }}</strong><small>{{ size(item.sizeBytes) }} · {{ productDateTime(item.createdAt) }}</small></span><a-tag :color="item.scanStatus === 'CLEAN' ? 'green' : 'red'">{{ fileScanLabel(item.scanStatus) }}</a-tag><div><a-button v-if="item.previewable" type="text" size="small" @click="preview(item)"><EyeOutlined />预览</a-button><a-button v-if="item.downloadable" type="text" size="small" @click="download(item)"><DownloadOutlined />下载</a-button><a-button v-if="writable && item.removable" type="text" danger size="small" @click="remove(item)"><DeleteOutlined />移除</a-button></div></article>
     </div>
     <a-empty v-else-if="!loading" :image="false" description="暂无附件" />
   </section>
 </template>
+
+<style scoped>
+.business-attachments__thumbnail { width:48px; height:48px; flex:0 0 48px; object-fit:cover; border-radius:6px; }
+</style>

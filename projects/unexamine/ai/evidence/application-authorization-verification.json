@@ -1,0 +1,76 @@
+{
+  "step": "B11.1",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0398",
+    "R0402",
+    "R0404",
+    "R0405",
+    "R0407",
+    "R0408",
+    "R0411",
+    "R1081",
+    "R1082",
+    "R2855",
+    "R2862",
+    "R2925"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue"
+  ],
+  "checks_actual_results": [
+    "平台与系统后台复用同一套应用管理组件；平台资源目录只返回已发布平台 Flow，系统资源目录只返回当前系统/租户的有效发布模块和系统 Flow，页面没有 JSON 或物理 ID 输入。",
+    "服务端拒绝平台应用声明系统/租户、未知数据范围、重复资源动作、重复/无方向字段，以及在非流程发起、模块新建/编辑动作上声明可填写字段。",
+    "系统模块授权随应用版本冻结模块物理 ID、版本 ID、版本号和 schemaHash；模块从 V1 发布到 V2 不改变当前应用 V1，显式重发才采用 V2，应用回滚生成 V3 并恢复 V1 授权。",
+    "模块调用前校验冻结模块身份、系统、租户、状态、版本归属与摘要；同编码资源替换、停用或快照损坏不会静默落到其他模块。",
+    "应用固定 SELF 范围先与目标身份当前角色范围比较，再以缩窄后的数据范围执行；管理员本人记录调用成功，他人负责人记录以 PERMISSION_DENIED 拒绝。",
+    "平台应用固定平台 Flow V1，并通过系统内当前平台身份真实启动完成实例 298；跨系统授权在草稿保存阶段拒绝。",
+    "系统应用真实导出不包含 Client Secret 或调用历史；导入创建独立 DRAFT、独立凭证、无发布指针和无调用历史，随后精确停用。",
+    "普通系统页面显示固定模块 V1、V1/V2/V3 不可变历史、回滚历史、本人成功和范围拒绝调用；普通平台页面显示整个平台、固定 Flow V1 和一次真实调用，均无 JSON 配置框或密钥明文。",
+    "首次平台内部调用暴露权限快照 Map.of 不能保存空 memberId；临时夹具已停用，改为可空安全映射后以新夹具全量重跑通过，失败未隐藏。",
+    "JDK21 backend compile/package、frontend vue-tsc/production build、验收脚本语法与 git diff --check 通过；后端健康 UP。",
+    "最终无活动 B11.1 测试应用、Flow 或模块，无活动测试记录和 PENDING 调用；仍为一个后端、既有 MySQL、共享 Redis 和一个 Vite。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/application-authorization-acceptance.py",
+    "projects/unexamine/ai/evidence/application-authorization-facts.json",
+    "projects/unexamine/ai/evidence/application-authorization-page-readback.json"
+  ],
+  "permission_or_failure_result": "应用授权、当前目标身份权限和应用固定数据范围逐层取交集；草稿与资源改版不改变运行版本，只有应用重发或显式回滚切换。",
+  "remaining": "R0404 的应用图标、B11.2 凭证生命周期/接入说明/失败策略全矩阵、B11.3 系统 A→B 桥接，以及 B12 四渠道和其他产品要求仍未完成。",
+  "next_step": "B11.2",
+  "next_scope": "完成平台/系统应用凭证与接入闭环：一次性 Secret、轮换/撤销/重新启用、过期凭证、签名/时间戳/nonce/幂等/限流/IP/失败停用、错误说明和无需手写 JSON 的接入示例；复用当前应用网关。",
+  "integrated_verification": "真实平台 Flow、系统模块 V1/V2/应用重发/回滚、SELF 范围交集、篡改拒绝、安全导入导出、普通双页面、构建和精确清理通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T18:10:00.878165+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+      "sha256": "7046f99f53aa1e694c753f30373cadb52ee79cba6726d5df2093ae5c34aa3ca7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+      "sha256": "776ad4190560d035ff0783f8b6ecb07ddc5ed05256215b177ef18508d3c44318"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "19add75c85ac63208914dbcf5a3cb1739dfa8633b263f8cbbf2b7699351d56be"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/application-authorization-acceptance.py",
+      "sha256": "f177af05d6d206025806a2971d5fc1a7edb09914b5e069d67339fcaf5dfbd476"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-authorization-facts.json",
+      "sha256": "84041abc00be4015f6c14adee3b5dd1e1476bf1656583f955e90dc3ea6c8444e"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-authorization-page-readback.json",
+      "sha256": "68d639e9366ae8e32816c3e7a196d26584e8a34be2632c75218158218efd8419"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+-- 应用跨系统身份映射：草稿保存结构化来源身份与目标执行身份，发布版本只冻结业务引用。
+CREATE TABLE `app_bridge_identity` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '应用身份映射主键',
+  `application_id` BIGINT NOT NULL COMMENT '所属应用主键',
+  `source_system_id` BIGINT NOT NULL COMMENT '允许调用的来源系统主键',
+  `source_tenant_id` BIGINT NOT NULL COMMENT '允许调用的来源租户主键',
+  `source_tenant_member_id` BIGINT NOT NULL COMMENT '允许调用的来源租户成员主键',
+  `target_system_id` BIGINT NOT NULL COMMENT '目标执行系统主键',
+  `target_tenant_id` BIGINT NOT NULL COMMENT '目标执行租户主键',
+  `target_tenant_member_id` BIGINT NOT NULL COMMENT '目标执行租户成员主键',
+  `status` VARCHAR(32) NOT NULL COMMENT '映射状态：ACTIVE启用、DISABLED停用',
+  `created_by_account_id` BIGINT NOT NULL COMMENT '创建人平台账号主键',
+  `created_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `updated_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  `version` INT NOT NULL DEFAULT 0 COMMENT '乐观锁版本',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_app_bridge_identity_source` (`application_id`, `source_system_id`, `source_tenant_id`, `source_tenant_member_id`),
+  KEY `idx_app_bridge_identity_target` (`application_id`, `target_system_id`, `target_tenant_id`, `status`),
+  CONSTRAINT `fk_app_bridge_identity_application` FOREIGN KEY (`application_id`) REFERENCES `app_definition` (`id`),
+  CONSTRAINT `fk_app_bridge_identity_source_system` FOREIGN KEY (`source_system_id`) REFERENCES `sys_system` (`id`),
+  CONSTRAINT `fk_app_bridge_identity_source_tenant` FOREIGN KEY (`source_system_id`, `source_tenant_id`) REFERENCES `sys_tenant` (`system_id`, `id`),
+  CONSTRAINT `fk_app_bridge_identity_source_member` FOREIGN KEY (`source_tenant_id`, `source_tenant_member_id`) REFERENCES `sys_tenant_member` (`tenant_id`, `id`),
+  CONSTRAINT `fk_app_bridge_identity_target_system` FOREIGN KEY (`target_system_id`) REFERENCES `sys_system` (`id`),
+  CONSTRAINT `fk_app_bridge_identity_target_tenant` FOREIGN KEY (`target_system_id`, `target_tenant_id`) REFERENCES `sys_tenant` (`system_id`, `id`),
+  CONSTRAINT `fk_app_bridge_identity_target_member` FOREIGN KEY (`target_tenant_id`, `target_tenant_member_id`) REFERENCES `sys_tenant_member` (`tenant_id`, `id`),
+  CONSTRAINT `fk_app_bridge_identity_creator` FOREIGN KEY (`created_by_account_id`) REFERENCES `plat_account` (`id`),
+  CONSTRAINT `chk_app_bridge_identity_status` CHECK (`status` IN ('ACTIVE', 'DISABLED'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='应用跨系统调用身份映射';

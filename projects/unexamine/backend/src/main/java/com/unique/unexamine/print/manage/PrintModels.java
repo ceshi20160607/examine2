@@ -23,7 +23,9 @@ public final class PrintModels {
             @Size(max = 200) String signatureLabel,
             @NotEmpty @Size(max = 40) List<@Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{0,99}") String> fieldCodes,
             @Size(max = 20) List<@Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{0,99}") String> detailFieldCodes,
-            @NotNull @Min(4) @Max(24) Integer rowsPerPage) {
+            @NotNull @Min(4) @Max(24) Integer rowsPerPage,
+            @Min(-30) @Max(30) Integer offsetXmm,
+            @Min(-30) @Max(30) Integer offsetYmm) {
     }
 
     public record SaveTemplateRequest(
@@ -40,6 +42,9 @@ public final class PrintModels {
     }
 
     public record PublishRequest(@NotNull Integer expectedDraftRevision) {
+    }
+
+    public record ActivateVersionRequest(@NotNull Long expectedCurrentVersionId) {
     }
 
     public record PrintRequest(Long templateVersionId) {
@@ -88,7 +93,7 @@ public final class PrintModels {
 
     public record RuntimeTemplate(Long templateId, String code, String name, String pageSize,
                                   String orientation, Long versionId, Integer versionNumber,
-                                  String snapshotHash, LocalDateTime publishedAt) {
+                                  String snapshotHash, Layout layout, LocalDateTime publishedAt) {
     }
 
     public record PrintJobView(Long id, Long recordId, Long templateVersionId,

@@ -52,6 +52,15 @@ public class BusinessAttachmentController {
                 purpose, TraceIdFilter.current(request)));
     }
 
+    @PostMapping("/personal/files/{fileId}")
+    public ApiResult<FileModels.BusinessAttachmentView> attachPersonal(
+            @PathVariable Long fileId, @RequestParam(defaultValue = "DOCUMENT") String purpose,
+            HttpServletRequest request) {
+        AuthenticatedContext context = AuthenticationContextHolder.require();
+        return ApiResult.ok(service.attachBusinessFile(context, fileId, "ACCOUNT", context.accountId().toString(),
+                PERSONAL_FIELD, purpose, TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/records/{moduleCode}/{recordId}/fields/{fieldCode}")
     public ApiResult<List<FileModels.BusinessAttachmentView>> recordAttachments(
             @PathVariable String moduleCode, @PathVariable Long recordId, @PathVariable String fieldCode,
@@ -72,6 +81,16 @@ public class BusinessAttachmentController {
                 moduleCode + ":" + recordId, fieldCode, purpose, TraceIdFilter.current(request)));
     }
 
+    @PostMapping("/records/{moduleCode}/{recordId}/fields/{fieldCode}/files/{fileId}")
+    public ApiResult<FileModels.BusinessAttachmentView> attachRecordFile(
+            @PathVariable String moduleCode, @PathVariable Long recordId, @PathVariable String fieldCode,
+            @PathVariable Long fileId, @RequestParam(defaultValue = "ATTACHMENT") String purpose,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.attachBusinessFile(AuthenticationContextHolder.require(), fileId,
+                "BUSINESS_RECORD", moduleCode + ":" + recordId, fieldCode, purpose,
+                TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/flow-instances/{instanceId}")
     public ApiResult<List<FileModels.BusinessAttachmentView>> flowAttachments(
             @PathVariable Long instanceId, HttpServletRequest request) {
@@ -87,6 +106,14 @@ public class BusinessAttachmentController {
                 instanceId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
     }
 
+    @PostMapping("/flow-instances/{instanceId}/files/{fileId}")
+    public ApiResult<FileModels.BusinessAttachmentView> attachFlowFile(
+            @PathVariable Long instanceId, @PathVariable Long fileId,
+            @RequestParam(defaultValue = "ATTACHMENT") String purpose, HttpServletRequest request) {
+        return ApiResult.ok(service.attachBusinessFile(AuthenticationContextHolder.require(), fileId,
+                "FLOW_INSTANCE", instanceId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/work-tasks/{taskId}")
     public ApiResult<List<FileModels.BusinessAttachmentView>> workTaskAttachments(
             @PathVariable Long taskId, HttpServletRequest request) {
@@ -100,6 +127,37 @@ public class BusinessAttachmentController {
             @RequestParam(defaultValue = "ATTACHMENT") String purpose, HttpServletRequest request) {
         return ApiResult.ok(upload(AuthenticationContextHolder.require(), file, "WORK_TASK",
                 taskId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/work-tasks/{taskId}/files/{fileId}")
+    public ApiResult<FileModels.BusinessAttachmentView> attachWorkTaskFile(
+            @PathVariable Long taskId, @PathVariable Long fileId,
+            @RequestParam(defaultValue = "ATTACHMENT") String purpose, HttpServletRequest request) {
+        return ApiResult.ok(service.attachBusinessFile(AuthenticationContextHolder.require(), fileId,
+                "WORK_TASK", taskId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
+    }
+
+    @GetMapping("/work-logs/{logId}")
+    public ApiResult<List<FileModels.BusinessAttachmentView>> workLogAttachments(
+            @PathVariable Long logId, HttpServletRequest request) {
+        return ApiResult.ok(service.listBusinessAttachments(AuthenticationContextHolder.require(), "WORK_LOG",
+                logId.toString(), "attachments", TraceIdFilter.current(request)));
+    }
+
+    @PostMapping(value = "/work-logs/{logId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResult<FileModels.BusinessAttachmentView> uploadWorkLogAttachment(
+            @PathVariable Long logId, @RequestPart("file") MultipartFile file,
+            @RequestParam(defaultValue = "ATTACHMENT") String purpose, HttpServletRequest request) {
+        return ApiResult.ok(upload(AuthenticationContextHolder.require(), file, "WORK_LOG",
+                logId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/work-logs/{logId}/files/{fileId}")
+    public ApiResult<FileModels.BusinessAttachmentView> attachWorkLogFile(
+            @PathVariable Long logId, @PathVariable Long fileId,
+            @RequestParam(defaultValue = "ATTACHMENT") String purpose, HttpServletRequest request) {
+        return ApiResult.ok(service.attachBusinessFile(AuthenticationContextHolder.require(), fileId,
+                "WORK_LOG", logId.toString(), "attachments", purpose, TraceIdFilter.current(request)));
     }
 
     @GetMapping("/{attachmentId}/preview")

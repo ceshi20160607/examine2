@@ -1,0 +1,127 @@
+{
+  "step": "B09.2c.1",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0914",
+    "R0942",
+    "R0943",
+    "R0945",
+    "R0972",
+    "R0973",
+    "R0974",
+    "R0990",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "390d40 execution-context PASS after direct source contract review; no schema/Base/router or framework rewrite",
+    "c85fdd Maven package BUILD SUCCESS 3 meaningful policy boundary unit tests; f87524 vue-tsc/Vite build PASS, existing bundle warning retained",
+    "42c57a actual API 8 case groups: 8 illegal drafts reject publication with no frozen-version writes; old V1 requires APP opinion while V2 does not; disabled REJ/RETURN/TRANSFER and whitespace APP rejected before full DB changes",
+    "Actual old V1 dynamic BEFORE_CURRENT APP inherits strict frozen policy, handles ownnewtask then restores original, completes both; completed approval replay same receipt no writes, same key changed action409",
+    "Actual TRANSFER requires opinion; original non-starter no longer visible after transfer cannot replay complete instance403, new handler completes; legacy absent policy retains4/reasons",
+    "Actual system ALL_SIGN configured APP+mandatory, malicious fields with disabledREJ/emptyAPP do not write; both approve withscore6/enabledtrue, originalCREATE formal record exactlyonce",
+    "GUI temporary fixture design rights configurecheckboxes, forcedREJ锁定/emptyallowedblocking/save-reenter/publishV3; revokeDESIGN/PUBLISH/SIMULATE then ordinary runtime onlyAPP+ADD; blankGUI zeroDBwrites, exactChineseopinionstoredUTF8HEX, complete208 retainedownheading,1280x720actualmodal inspected",
+    "Initial AST helper defaulttoken initialization and GUI oracle column/Chinesecharset corrections preserved in facts; GUI completion not resubmitted; final03f0c9 capturecompletedbaseline then388c55 samebackendrestart exacttasks/history/frozenversions/sourceonce",
+    "b3cfa9 precise cleanupPASS,role114baseline restored,soleformalrecord archived,module64/flownowned disabled, temporaryplatrole/link and account98/member/session/emptySystem100 disabled,ownedtasks/jobs/executions0unfinished;golden151/154/170andModule51 count unchanged"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-node-operation-facts.json",
+    "projects/unexamine/ai/evidence/flow-node-operation-acceptance.py"
+  ],
+  "remaining": [
+    "Only four current human handlers configurable; claim/delegate/proxy/addsign/removesign/ratio and RETURN-to-previous/resubmit stillrequired and unimplemented",
+    "RETURN remains terminal RETURNED, not previousnode/resubmit",
+    "Existing actionhistory nulltaskbefore→START/instanceWAITING and repeat-auto PREVIOUS_HANDLER facts remain open",
+    "Full product/module field families/applicationchannels/sharing and final integration remain incomplete"
+  ],
+  "next_step": "B09.2c.2",
+  "integrated_verification": "single frozen policy→publication/instance/dynamic→ordinary directguards/no writes/replay/view revocation→systemALL_SIGN/sourceonce→realGUIconfigurepublish/opinion/owncompletion→samebackendrestart/exactcleanup",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T06:49:56.243291+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+      "sha256": "c784916b6a5473fc53721cfa3f2e6f031598b96795887f00701fffebbda573e8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "6abffcafd26828ca61f1ce05bbd26931df1226741b794ce14344f49931e50db3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "d3f7813255661eefb7f689ee97044f82b43e5d12da0743d3825152d255d55408"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "b3ddac4150536feec88680cbc115c1826818aa28eba7963e640866bff42e4f9d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+      "sha256": "4ee85e4aac4096f7696984d0a8800dd88907cee18368312b21bd66fdf3f88562"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "e6d43fd8e259684082ba2b18a38d8424060bcb141a88bcb333a15d7cbdeebd42"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "f9eb5bb753e0c83de7b203408f8c35a3b593df850769a7c91ee8eaad886a1ec0"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "dde3497ddd9b9a3ccdac174f1a7a9c2beda049bf92d051829470aafcaba5f63a"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-acceptance.py",
+      "sha256": "0087460fbd9832c40b9c2421ddebb59933803ed5c9d87d947ad4efa617484a43"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-api.log",
+      "sha256": "c089492525f795867068ee0bce06373625ab0f0e20ab0893b29bacd81f497487"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-backend-build.log",
+      "sha256": "5f88972f3ff1aca1fe7aa9ccfb17748d3291028bfba8a782cdbeb01c3ba903cd"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-cleanup.log",
+      "sha256": "e9ba23ee87b1e3c5d374310617a0c45ad76f6289a59890e81b61813fa80cc994"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-entry.json",
+      "sha256": "a32ce8f32abc6305e8b1449881d684640906993600c699ba93faeef81a9a6c4c"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-facts.json",
+      "sha256": "e588cf2ee90a02c63f4ecc589883144ab0bd45e43275a0f928ef6732f4cadc25"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-frontend-build.log",
+      "sha256": "70ec2b56a763379d298bfa5f5350a948e511fcc55a4ba39d05218a4160001c08"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-initial-entry.json",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-restart.log",
+      "sha256": "3e6a14c1dcffd168856dfe0c581bd50f875a9c484578c920da45d576e068445d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-node-operation-initial-verify.json",
+      "sha256": "b77935e58f8b14c9baf594ce0f1c34fa5a15e97c45447916e791bd5669a5c1b1"
+    }
+  ],
+  "permission_or_failure_result": "禁用REJECT/RETURN/TRANSFER实际403 FLOW_TASK_OPERATION_DISABLED，空白必填APP/TRANSFER实际422 FLOW_TASK_REASON_REQUIRED；实例/任务/行动/历史/jobs/execution逐表读回无写入；转交后原非发起人同键回执实际403 FLOW_INSTANCE_VIEW_DENIED且无写入；GUI配置权限精确撤回后普通运行按钮仅配置APP。工程验收初漏permission_or_failure_result字段失败已保存，补实际结果而非状态或hash绕过。"
+}

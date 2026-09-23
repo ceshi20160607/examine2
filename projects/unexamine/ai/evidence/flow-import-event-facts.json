@@ -1,0 +1,106 @@
+{
+  "step": "B10.2c.2a",
+  "status": "passed",
+  "code": "flow_import_4a1d3561b9",
+  "flows": [
+    177
+  ],
+  "bindings": [
+    115,
+    116
+  ],
+  "batches": [
+    8,
+    9,
+    10,
+    11
+  ],
+  "files": [
+    {
+      "id": 27,
+      "referenceId": 26
+    },
+    {
+      "id": 28,
+      "referenceId": 27
+    },
+    {
+      "id": 29,
+      "referenceId": 28
+    },
+    {
+      "id": 30,
+      "referenceId": 29
+    }
+  ],
+  "instances": [
+    277,
+    278,
+    279,
+    280
+  ],
+  "cases": [
+    {
+      "case": "event-without-binding-finishes-safely",
+      "result": "导入完成事件没有匹配绑定时可靠确认，不伪造流程实例。",
+      "batchId": 8,
+      "outboxId": 427
+    },
+    {
+      "case": "import-completion-starts-current-binding-once",
+      "result": "成功导入保存后按当前启用绑定启动一个流程实例。",
+      "batchId": 9,
+      "outboxId": 429,
+      "instanceId": 277
+    },
+    {
+      "case": "validation-errors-publish-completion-and-exception",
+      "result": "包含预演错误行的导入以部分成功结束，并分别触发导入完成和数据异常流程。",
+      "batchId": 10,
+      "completionInstance": 278,
+      "exceptionInstance": 279
+    },
+    {
+      "case": "outbox-payload-is-safe-metadata",
+      "result": "持久化事件仅包含批次统计和身份引用，不包含原始导入行、密码或密钥。"
+    },
+    {
+      "case": "repeated-delivery-reuses-event-instance",
+      "result": "已投递事件再次进入派发后读取原启动回执，流程实例仍只有一个。"
+    },
+    {
+      "case": "trigger-failure-does-not-rollback-import",
+      "result": "流程停用导致触发失败时，导入批次仍保持完成，发件箱保留失败原因等待重试。",
+      "batchId": 11,
+      "outboxId": 434
+    },
+    {
+      "case": "failed-event-survives-restart-and-recovers",
+      "result": "失败事件跨同一后端重启保留；恢复流程后自动重试并只创建一个实例。",
+      "batchId": 11,
+      "outboxId": 434,
+      "instanceId": 280
+    },
+    {
+      "case": "recovered-delivery-clears-old-error",
+      "result": "恢复成功后清除旧失败提示，重复派发仍读取同一实例。",
+      "outboxId": 434,
+      "instanceId": 280
+    }
+  ],
+  "checked_time": "2026-09-20T15:07:23.206336+08:00",
+  "deferred": {
+    "batchId": 11,
+    "outboxId": 434,
+    "flowId": 177
+  },
+  "prepared": true,
+  "resumed": true,
+  "cleanup": {
+    "bindingsDisabled": true,
+    "flowsDisabled": true,
+    "importsRolledBack": true,
+    "filesDeleted": true,
+    "unfinishedInstances": 0
+  }
+}

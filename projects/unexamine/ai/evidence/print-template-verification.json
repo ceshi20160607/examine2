@@ -1,0 +1,132 @@
+{
+  "step": "B13.3",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0453",
+    "R1138",
+    "R1155",
+    "R1156",
+    "R1157",
+    "R1158",
+    "R1159",
+    "R1160",
+    "R1172",
+    "R1173",
+    "R1174",
+    "R1880",
+    "R1882",
+    "R1883",
+    "R1884",
+    "R1885",
+    "R1886",
+    "R1887",
+    "R1980",
+    "R1989",
+    "R1993",
+    "R1995",
+    "R1996",
+    "R1997",
+    "R2003",
+    "R2074",
+    "R2076",
+    "R2077",
+    "R2078",
+    "R2079",
+    "R2080",
+    "R2081",
+    "R2082",
+    "R2084",
+    "R2086",
+    "R2087",
+    "R2088",
+    "R2089",
+    "R2232",
+    "R2241",
+    "R2421",
+    "R2610",
+    "R2611",
+    "R2612",
+    "R2932"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintPdfRenderer.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/product.css",
+    "projects/unexamine/ai/evidence/print-template-acceptance.py"
+  ],
+  "checks_actual_results": [
+    "系统业务参数提供左侧命名字段、中间真实纸张预览、右侧类型化页面属性；样例记录按业务标题选择，页眉、页脚、签章、明细行、纸张方向和套打毫米偏移均无需JSON或内部ID。",
+    "真实记录预览使用当前字段展示协议，单选存储值active输出为“处理中”；7个字段按每页4行生成2页并保留签章区、页眉页脚和A5横向布局。",
+    "模板V1发布后继续编辑V2草稿时，普通运行态仍读取V1不可变快照；V2发布后可将发布指针恢复V1再切回V2，历史版本未被覆盖。",
+    "普通成员按PAGE与FILE字段交集打印，受限备注被排除；真实受控文件为PDF，同租户其他成员不能读取其任务。",
+    "撤销PRINT后同一会话的旧任务详情、在线预览和下载均立即403，独立DETAIL仍可使用；临时账号、会话、注册系统和角色已停用。",
+    "记录详情通过模块打印动作进入，按当前发布版本生成2页PDF；页面预览与下载使用同一任务快照并显示版本、完成时间和受控文件入口。",
+    "1280x720系统后台、设计器和运行时弹窗均无页面横向溢出；修复公共后台子导航和打印工具栏收缩，页面控制台错误/警告为0。",
+    "JDK21 Maven package、前端vue-tsc/Vite生产构建、print.ts 3个单元测试、Python验收脚本编译和git diff --check通过。",
+    "继续复用原后端、MySQL、共享Redis和单个原生Vite，没有启动第二套前后端或缓存服务。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/print-template-facts.json",
+    "projects/unexamine/ai/evidence/print-template-page-readback.json"
+  ],
+  "permission_or_failure_result": "普通成员必须同时拥有模块DETAIL/PRINT与PAGE∩FILE字段可读权限；任务仅创建者可读，撤销PRINT后同一会话旧任务、预览和下载均403，DETAIL独立保留。",
+  "remaining": "打印模板备份、升级和全平台配置治理归B17；B04/B01/B02/B17跨包总要求只记录本次贡献。B12.5真实外部渠道凭据仍阻塞，B14及后续有效需求继续保留。",
+  "next_step": "B14.1",
+  "next_scope": "先运行B14.1 execution-context，核对现有普通任务、项目、任务组、子任务、协作、延期、完成确认和重开链，稳定工作公共契约后再补页面与验收。",
+  "integrated_verification": "可视字段设计、真实记录预览、发布快照、草稿隔离、两版切换、分页PDF、普通成员字段交集、任务隔离、撤权旧链接失效、系统后台与记录详情页面和当前构建组合通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-21T00:15:47.692139+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintController.java",
+      "sha256": "631f0812dc72ce61f61499deb011447f398a9a8ee4a51f48bffc78be2946469b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintModels.java",
+      "sha256": "9d313570bd961b25aad299da25435aff6b93dcc026579f80d0c8a25e3738fc46"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintPdfRenderer.java",
+      "sha256": "4da717f7d6611439503ddf25d271ef5762a5ba975b2f1a4d16b1eefd59f2709a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+      "sha256": "ba0d19aa6091024ce88e1a7f54fd5f026aeda5aceba142ee00d415a215f17829"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "7da46787d5b80b90f403e972fdfe50059e6b041400d7f9470d25982b275ab91a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue",
+      "sha256": "1d6871030869c5920555371f4d3f4d0d55c4b9a187a1a868f7f5ef0f6b8b32b3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "4e24007d9c4ff03656f56c729462313b74a5db6f4672836746f09f46a210bb30"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/product.css",
+      "sha256": "f320621c4c4465b2bccbab7e5260932fdab1740a8504117a3441977fb1a5c9ad"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/print-template-acceptance.py",
+      "sha256": "ca4c1f1f64e8617e8c7d3193d35bf1f6329d370aae8614a7748be57c1b6fd6db"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/print-template-facts.json",
+      "sha256": "6b3220e9e35753a29ee35cb3885aed0b74a4c58064c708814d3d7182847ae769"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/print-template-page-readback.json",
+      "sha256": "e826c5c5c41a9ace8ac0d8a8a4595ca0b48b7b69d81f4b462652e64bec369b42"
+    }
+  ]
+}

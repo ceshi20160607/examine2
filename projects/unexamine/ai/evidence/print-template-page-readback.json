@@ -1,0 +1,87 @@
+{
+  "step": "B13.3",
+  "status": "passed",
+  "context": {
+    "system_id": 54,
+    "tenant_id": 57,
+    "workspace_name": "协作工作空间",
+    "module_id": 89,
+    "module_code": "print_accept_3306b9f1a5",
+    "record_id": 269,
+    "template_id": 2,
+    "current_template_version_id": 3
+  },
+  "designer_page": {
+    "url": "http://localhost:15173/systems/54/admin?section=parameters",
+    "heading": "可视化打印设计",
+    "visible_sections": [
+      "1. 模块字段",
+      "2. 打印页面",
+      "3. 页面属性",
+      "发布历史"
+    ],
+    "field_interactions": [
+      "正文",
+      "明细",
+      "未使用"
+    ],
+    "sample_record_control": "按业务标题选择有权访问的真实记录",
+    "sample_record_label": "打印验收申请单",
+    "page_properties": [
+      "模板名称",
+      "纸张",
+      "方向",
+      "每页字段行数",
+      "套打水平偏移（毫米）",
+      "套打垂直偏移（毫米）",
+      "页眉",
+      "页脚",
+      "签章区"
+    ],
+    "published_version": "第 2 版",
+    "history_action": "恢复为当前",
+    "real_record_preview": {
+      "page_count": 2,
+      "select_display_value": "处理中",
+      "offset_x_mm": -4,
+      "offset_y_mm": 6
+    },
+    "json_or_internal_id_instruction_visible": false,
+    "page_horizontal_overflow": false,
+    "document_client_width": 1265,
+    "document_scroll_width": 1265,
+    "designer_client_width": 935,
+    "designer_scroll_width": 935,
+    "subnav_client_width": 933,
+    "subnav_scroll_width": 933
+  },
+  "runtime_page": {
+    "url": "http://localhost:15173/systems/54?workspace=runtime&module=print_accept_3306b9f1a5&recordId=269",
+    "record_title": "打印验收申请单",
+    "entry": "记录详情底部打印按钮",
+    "template_label": "采购申请打印单 V2 · v2 · A5",
+    "visible_controls": [
+      "按发布版本生成",
+      "打开原始 PDF",
+      "下载 PDF"
+    ],
+    "generated_result": "打印文件已生成，共 2 页",
+    "job_id": 4,
+    "output_file_id": 60,
+    "preview_uses_same_job_snapshot": true,
+    "select_display_value": "处理中",
+    "json_or_internal_id_instruction_visible": false,
+    "page_horizontal_overflow": false,
+    "modal_client_width": 1248,
+    "modal_scroll_width": 1248
+  },
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "console": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "checked_time": "2026-09-21T00:11:00+08:00"
+}

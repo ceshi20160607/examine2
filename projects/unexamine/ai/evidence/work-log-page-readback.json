@@ -1,0 +1,52 @@
+{
+  "step": "B14.2",
+  "status": "passed",
+  "url": "http://localhost:15173/systems/54?workspace=tasks&taskState=ALL&workTab=logs",
+  "page": {
+    "title": "工作日志",
+    "tabs": [
+      "普通任务",
+      "项目任务",
+      "每日日志",
+      "日历统计"
+    ],
+    "filters": [
+      "日期",
+      "状态",
+      "项目",
+      "日志作者"
+    ],
+    "empty_state": "当前条件下没有工作日志",
+    "new_action": "新建日志"
+  },
+  "structured_form": {
+    "fields": [
+      "工作日期",
+      "投入时间",
+      "日志标题",
+      "今日已完成",
+      "当前进行中",
+      "下一工作日计划",
+      "风险与阻塞",
+      "需要协助",
+      "关联项目",
+      "关联任务",
+      "关联业务记录",
+      "从现有工作中选材",
+      "可见范围"
+    ],
+    "material_help": "选择只会形成来源快照，不会自动写入或覆盖日志内容",
+    "json_or_internal_id_instruction_visible": false,
+    "named_selectors": true,
+    "save_action": "保存草稿"
+  },
+  "layout": {
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "result": "日志列表沿用工作页公共导航、页签、查询区和空状态；新建抽屉按基础信息、正文、关联对象、素材和可见范围排列，控件对齐且中文含义清楚。"
+  },
+  "console_note": "当前页面重载后可正常渲染并完成表单打开/关闭；该复用标签页保存了最终构建前热更新期间的两条旧错误，因此未把历史控制台计为当前零错误，当前生产构建另行通过。",
+  "checked_time": "2026-09-21T02:16:00+08:00"
+}

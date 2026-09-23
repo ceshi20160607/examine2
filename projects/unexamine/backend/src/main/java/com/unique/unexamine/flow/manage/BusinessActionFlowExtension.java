@@ -18,10 +18,13 @@ import java.util.Map;
 public class BusinessActionFlowExtension implements FoundationCommandExtension {
     private final ObjectMapper json;
     private final ObjectProvider<FlowRuntimeService> runtime;
+    private final com.unique.unexamine.foundation.manage.control.BusinessActionValueProtection valueProtection;
 
-    public BusinessActionFlowExtension(ObjectMapper json, ObjectProvider<FlowRuntimeService> runtime) {
+    public BusinessActionFlowExtension(ObjectMapper json, ObjectProvider<FlowRuntimeService> runtime,
+            com.unique.unexamine.foundation.manage.control.BusinessActionValueProtection valueProtection) {
         this.json = json;
         this.runtime = runtime;
+        this.valueProtection = valueProtection;
     }
 
     public Long start(BusinessAction.Input action, FlowBindingModels.ResolutionView binding,
@@ -35,7 +38,7 @@ public class BusinessActionFlowExtension implements FoundationCommandExtension {
         try {
             ObjectNode payload = (ObjectNode) json.readTree(event.getPayloadJson());
             if (!"AFTER_EXECUTION".equals(payload.path("mode").asText())) return;
-            Long instanceId = start(json.treeToValue(payload.get("action"), BusinessAction.Input.class),
+            Long instanceId = start(valueProtection.flowInput(payload),
                     json.treeToValue(payload.get("binding"), FlowBindingModels.ResolutionView.class),
                     Long.valueOf(event.getAggregateId()),
                     json.convertValue(payload.get("result"), new TypeReference<Map<String, Object>>() {}));

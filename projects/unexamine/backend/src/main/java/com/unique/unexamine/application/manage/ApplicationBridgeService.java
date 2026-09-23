@@ -5,14 +5,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.unique.unexamine.application.base.entity.AppCall;
 import com.unique.unexamine.application.base.entity.AppCallNonce;
+import com.unique.unexamine.application.base.entity.AppBridgeIdentity;
 import com.unique.unexamine.application.base.entity.AppCredential;
 import com.unique.unexamine.application.base.entity.AppDefinition;
 import com.unique.unexamine.application.base.entity.AppPublication;
 import com.unique.unexamine.application.base.entity.AppVersion;
 import com.unique.unexamine.application.base.service.AppCallBaseService;
 import com.unique.unexamine.application.base.service.AppCallNonceBaseService;
+import com.unique.unexamine.application.base.service.AppBridgeIdentityBaseService;
 import com.unique.unexamine.application.base.service.AppCredentialBaseService;
 import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
 import com.unique.unexamine.application.base.service.AppPublicationBaseService;
@@ -20,6 +23,7 @@ import com.unique.unexamine.application.base.service.AppVersionBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.DataScopeExpression;
+import com.unique.unexamine.authorization.manage.DataScopeTerm;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.authorization.manage.PermissionResolver;
 import com.unique.unexamine.authorization.manage.PlatformPermissionResolver;
@@ -28,6 +32,10 @@ import com.unique.unexamine.flow.base.entity.FlowDefinition;
 import com.unique.unexamine.flow.base.service.FlowDefinitionBaseService;
 import com.unique.unexamine.flow.manage.FlowRuntimeModels;
 import com.unique.unexamine.flow.manage.FlowRuntimeService;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModule;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
@@ -39,8 +47,12 @@ import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.runtimedata.manage.UpdateRuntimeRecordRequest;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemMember;
+import com.unique.unexamine.system.base.entity.SystemDefinition;
+import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
+import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -76,14 +88,19 @@ public class ApplicationBridgeService {
     private final AppVersionBaseService versionService;
     private final AppCallBaseService callService;
     private final AppCallNonceBaseService nonceService;
+    private final AppBridgeIdentityBaseService bridgeIdentityService;
     private final PlatformAccountBaseService accountService;
     private final PlatformMemberBaseService platformMemberService;
     private final SystemMemberBaseService systemMemberService;
+    private final SystemDefinitionBaseService systemService;
+    private final SystemTenantBaseService tenantService;
     private final SystemTenantMemberBaseService tenantMemberService;
     private final PlatformPermissionResolver platformPermissionResolver;
     private final PermissionResolver permissionResolver;
     private final PermissionChecker permissionChecker;
     private final FlowDefinitionBaseService flowDefinitionService;
+    private final ConfiguredModuleBaseService moduleService;
+    private final ConfiguredModuleVersionBaseService moduleVersionService;
     private final FlowRuntimeService flowRuntimeService;
     private final RuntimeDataService runtimeDataService;
     private final ApplicationSecretCipher secretCipher;
@@ -98,14 +115,19 @@ public class ApplicationBridgeService {
             AppVersionBaseService versionService,
             AppCallBaseService callService,
             AppCallNonceBaseService nonceService,
+            AppBridgeIdentityBaseService bridgeIdentityService,
             PlatformAccountBaseService accountService,
             PlatformMemberBaseService platformMemberService,
             SystemMemberBaseService systemMemberService,
+            SystemDefinitionBaseService systemService,
+            SystemTenantBaseService tenantService,
             SystemTenantMemberBaseService tenantMemberService,
             PlatformPermissionResolver platformPermissionResolver,
             PermissionResolver permissionResolver,
             PermissionChecker permissionChecker,
             FlowDefinitionBaseService flowDefinitionService,
+            ConfiguredModuleBaseService moduleService,
+            ConfiguredModuleVersionBaseService moduleVersionService,
             FlowRuntimeService flowRuntimeService,
             RuntimeDataService runtimeDataService,
             ApplicationSecretCipher secretCipher,
@@ -118,14 +140,19 @@ public class ApplicationBridgeService {
         this.versionService = versionService;
         this.callService = callService;
         this.nonceService = nonceService;
+        this.bridgeIdentityService = bridgeIdentityService;
         this.accountService = accountService;
         this.platformMemberService = platformMemberService;
         this.systemMemberService = systemMemberService;
+        this.systemService = systemService;
+        this.tenantService = tenantService;
         this.tenantMemberService = tenantMemberService;
         this.platformPermissionResolver = platformPermissionResolver;
         this.permissionResolver = permissionResolver;
         this.permissionChecker = permissionChecker;
         this.flowDefinitionService = flowDefinitionService;
+        this.moduleService = moduleService;
+        this.moduleVersionService = moduleVersionService;
         this.flowRuntimeService = flowRuntimeService;
         this.runtimeDataService = runtimeDataService;
         this.secretCipher = secretCipher;
@@ -175,7 +202,9 @@ public class ApplicationBridgeService {
                 throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "应用授权与目标身份当前角色权限没有允许交集");
             }
             requireTargetDataScope(grant, input.requestedDataScope(), targetContext);
-            Map<String, Object> permissionSnapshot = permissionSnapshot(application, credential, grant, targetContext);
+            AuthenticatedContext effectiveContext = restrictToApplicationScope(
+                    grant, input.requestedDataScope(), targetContext);
+            Map<String, Object> permissionSnapshot = permissionSnapshot(application, credential, grant, effectiveContext);
             Prepared prepared = transactions.execute(status -> prepareCall(application, credential, grant, input,
                     idempotencyKey, requestId, requestTimestamp, nonce, sourceAddress, requestHash,
                     permissionSnapshot));
@@ -184,13 +213,13 @@ public class ApplicationBridgeService {
 
             try {
                 ApplicationBridgeModels.CallResult result = transactions.execute(status -> executeTarget(
-                        application, credential, grant, input, targetContext, prepared.callId(), requestId,
+                        application, credential, grant, input, effectiveContext, prepared.callId(), requestId,
                         permissionSnapshot, application.getCreatedByAccountId(), startedNanos));
                 if (result == null) throw new IllegalStateException("Application target transaction returned no result");
                 return result;
             } catch (DomainException exception) {
                 finishFailure(prepared.callId(), exception.code(), exception.getMessage(), startedNanos);
-                recordFailure(application, credential, grant, input, targetContext, requestId,
+                recordFailure(application, credential, grant, input, effectiveContext, requestId,
                         permissionSnapshot, exception.code(), exception.getMessage());
                 throw exception;
             }
@@ -220,45 +249,54 @@ public class ApplicationBridgeService {
         AppDefinition application = definitionService.selectById(applicationId);
         if (application == null) throw new DomainException(
                 "APPLICATION_NOT_FOUND", "目标应用不存在", HttpStatus.NOT_FOUND);
-        requireInternalContext(context, application);
+        requireInternalSourceContext(context, application);
+        boolean providerAccess = "PROVIDER".equals(context.mfaLevel());
+        String trustedChannel = providerAccess ? "PROVIDER" : "INTERNAL";
+        String trustedPrefix = providerAccess ? "provider" : "internal";
         AppCredential internalIdentity = new AppCredential();
         internalIdentity.setApplicationId(applicationId);
         internalIdentity.setCredentialVersion(0);
-        internalIdentity.setClientId("internal-account:" + context.accountId());
+        internalIdentity.setClientId(trustedPrefix + ":" + context.systemId() + ":" + context.tenantId()
+                + ":" + context.tenantMemberId());
         PublishedGrant grant = findGrant(applicationId, input);
         String requestHash = sha256(writeJson(input));
-        String durableIdempotencyKey = "internal:" + context.accountId() + ":" + idempotencyKey;
+        String durableIdempotencyKey = trustedPrefix + ":" + context.systemId() + ":" + context.tenantId()
+                + ":" + context.tenantMemberId() + ":" + idempotencyKey;
         LocalDateTime requestedAt = LocalDateTime.now();
-        String nonce = "internal:" + requestId;
+        String nonce = trustedPrefix + ":" + requestId;
         try {
             if (!"ACTIVE".equals(application.getStatus())) {
                 throw forbidden("APPLICATION_DISABLED", "应用已停用或尚未发布");
             }
             if (grant == null) throw forbidden("APPLICATION_GRANT_DENIED", "应用未被授权访问该资源动作");
-            requireAccessChannel(grant, "INTERNAL");
+            requireAccessChannel(grant, providerAccess ? "EXTERNAL" : "INTERNAL");
             requireGrantBoundary(grant, input);
             requireDataScope(grant, input.requestedDataScope());
-            if (!permissionChecker.allows(context, grant.getResourceType(), grant.getResourceId(), grant.getActionCode())) {
-                throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "当前登录身份没有目标资源动作权限");
+            AuthenticatedContext targetContext = internalTargetContext(application, grant, context);
+            if (!permissionChecker.allows(targetContext, grant.getResourceType(), grant.getResourceId(), grant.getActionCode())) {
+                throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "映射的目标执行身份没有目标资源动作权限");
             }
-            requireTargetDataScope(grant, input.requestedDataScope(), context);
+            requireTargetDataScope(grant, input.requestedDataScope(), targetContext);
+            AuthenticatedContext effectiveContext = restrictToApplicationScope(
+                    grant, input.requestedDataScope(), targetContext);
             Map<String, Object> permissionSnapshot = permissionSnapshot(
-                    application, internalIdentity, grant, context);
-            permissionSnapshot.put("accessChannel", "INTERNAL");
+                    application, internalIdentity, grant, effectiveContext);
+            permissionSnapshot.put("accessChannel", trustedChannel);
+            permissionSnapshot.put("sourceIdentity", sourceIdentitySnapshot(context));
             Prepared prepared = transactions.execute(status -> prepareCall(
                     application, internalIdentity, grant, input, durableIdempotencyKey, requestId,
-                    requestedAt, nonce, "INTERNAL:" + context.accountId(), requestHash, permissionSnapshot));
+                    requestedAt, nonce, internalSource(context), requestHash, permissionSnapshot));
             if (prepared == null) throw new IllegalStateException("Internal application call returned no result");
             if (prepared.replayed() != null) return prepared.replayed();
             try {
                 ApplicationBridgeModels.CallResult result = transactions.execute(status -> executeTarget(
-                        application, internalIdentity, grant, input, context, prepared.callId(), requestId,
+                        application, internalIdentity, grant, input, effectiveContext, prepared.callId(), requestId,
                         permissionSnapshot, context.accountId(), startedNanos));
                 if (result == null) throw new IllegalStateException("Internal application target returned no result");
                 return result;
             } catch (DomainException exception) {
                 finishFailure(prepared.callId(), exception.code(), exception.getMessage(), startedNanos);
-                recordFailure(application, internalIdentity, grant, input, context, requestId,
+                recordFailure(application, internalIdentity, grant, input, effectiveContext, requestId,
                         permissionSnapshot, exception.code(), exception.getMessage());
                 throw exception;
             }
@@ -267,7 +305,7 @@ public class ApplicationBridgeService {
                     .eq(AppCall::getApplicationId, applicationId)
                     .eq(AppCall::getRequestId, requestId)).isEmpty()) {
                 logRejected(application, internalIdentity, grant, input, requestId, requestedAt, nonce,
-                        "INTERNAL:" + context.accountId(), requestHash,
+                        internalSource(context), requestHash,
                         exception.code(), exception.getMessage(), startedNanos);
             }
             throw exception;
@@ -324,7 +362,8 @@ public class ApplicationBridgeService {
         source.put("applicationCode", application.getCode());
         source.put("callId", callId);
         source.put("requestId", requestId);
-        source.put("accessChannel", credential.getCredentialVersion() == 0 ? "INTERNAL" : "EXTERNAL");
+        source.put("accessChannel", permissionSnapshot.getOrDefault("accessChannel",
+                credential.getCredentialVersion() == 0 ? "INTERNAL" : "EXTERNAL"));
         source.put("actorAccountId", actorAccountId);
         ApplicationBridgeModels.CallResult result = new ApplicationBridgeModels.CallResult(
                 requestId, false, application.getId(), grant.getId(), credential.getCredentialVersion(),
@@ -353,12 +392,18 @@ public class ApplicationBridgeService {
         if (!"START".equals(grant.getActionCode())) {
             throw invalid("APPLICATION_FLOW_ACTION_UNSUPPORTED", "应用当前只支持发起已授权 Flow");
         }
+        if (grant.getResourceObjectId() == null || grant.getResourceVersionId() == null
+                || grant.getResourceDefinitionHash() == null) {
+            throw conflict("APPLICATION_FLOW_VERSION_REQUIRED", "应用发布版本尚未固定目标 Flow 版本，请重新检查并发布应用");
+        }
         FlowDefinition flow = flowDefinitionService.selectList(Wrappers.<FlowDefinition>lambdaQuery()
+                        .eq(FlowDefinition::getId, grant.getResourceObjectId())
                         .eq(FlowDefinition::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
                         .eq(FlowDefinition::getPlatformId, context.platformId())
                         .eq(context.systemId() != null, FlowDefinition::getSystemId, context.systemId())
                         .eq(context.tenantId() != null, FlowDefinition::getOwnerTenantId, context.tenantId())
-                        .eq(FlowDefinition::getCode, grant.getResourceId()))
+                        .eq(FlowDefinition::getCode, grant.getResourceId())
+                        .eq(FlowDefinition::getStatus, "PUBLISHED"))
                 .stream().findFirst().orElseThrow(() -> invalid(
                         "APPLICATION_TARGET_FLOW_NOT_FOUND", "授权的目标 Flow 不存在于固定上下文"));
         Map<String, Object> payload = safe(input.payload());
@@ -368,9 +413,12 @@ public class ApplicationBridgeService {
         businessSnapshot.put("sourceType", "APPLICATION_CALL");
         businessSnapshot.put("applicationCallId", callId);
         businessSnapshot.put("requestId", requestId);
-        FlowRuntimeModels.ActionResult result = flowRuntimeService.start(context,
+        businessSnapshot.put("applicationVersionId", grant.getApplicationVersionId());
+        businessSnapshot.put("flowVersionId", grant.getResourceVersionId());
+        FlowRuntimeModels.ActionResult result = flowRuntimeService.startApplication(context,
                 new FlowRuntimeModels.StartRequest(flow.getId(), title, "APPLICATION_CALL", requestId,
-                        businessSnapshot, map(payload.get("variables")), "app-call:" + callId), requestId);
+                        businessSnapshot, map(payload.get("variables")), "app-call:" + callId),
+                grant.getResourceVersionId(), grant.getResourceDefinitionHash(), requestId);
         return new TargetResult("FLOW_INSTANCE:" + result.instance().id(), result,
                 "FLOW_INSTANCE", result.instance().id().toString());
     }
@@ -378,6 +426,7 @@ public class ApplicationBridgeService {
     private TargetResult executeModule(
             PublishedGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
             Long callId, String requestId) {
+        requireFrozenModule(grant, context);
         Map<String, Object> payload = safe(input.payload());
         Object value;
         String reference;
@@ -575,7 +624,7 @@ public class ApplicationBridgeService {
         }
     }
 
-    private void requireInternalContext(AuthenticatedContext context, AppDefinition application) {
+    private void requireInternalSourceContext(AuthenticatedContext context, AppDefinition application) {
         if (context == null || !Objects.equals(context.platformId(), application.getPlatformId())) {
             throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "当前登录身份不在应用所属平台范围");
         }
@@ -585,10 +634,125 @@ public class ApplicationBridgeService {
             }
             return;
         }
-        if (!Objects.equals(context.systemId(), application.getOwnerSystemId())
-                || !Objects.equals(context.tenantId(), application.getOwnerTenantId())) {
-            throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "系统应用只能从所属系统和租户访问");
+        if (context.systemId() == null || context.tenantId() == null || context.memberId() == null
+                || context.tenantMemberId() == null) {
+            throw forbidden("APPLICATION_INTERNAL_CONTEXT_DENIED", "系统应用只接受有效系统租户成员调用");
         }
+    }
+
+    /**
+     * 同系统调用沿用登录身份；跨系统调用只能使用当前发布版本中冻结且尚未停用的 A→B 身份映射。
+     */
+    private AuthenticatedContext internalTargetContext(
+            AppDefinition application, PublishedGrant grant, AuthenticatedContext sourceContext) {
+        if ("PLATFORM".equals(application.getContextType())) return sourceContext;
+        requireActiveSourceIdentity(sourceContext);
+        if (Objects.equals(sourceContext.systemId(), application.getOwnerSystemId())
+                && Objects.equals(sourceContext.tenantId(), application.getOwnerTenantId())) {
+            return sourceContext;
+        }
+        PublishedIdentity identity = findPublishedIdentity(grant.getApplicationVersionId(), sourceContext);
+        if (identity == null) {
+            throw forbidden("APPLICATION_SOURCE_IDENTITY_UNMAPPED", "当前来源成员没有此应用的跨系统身份映射");
+        }
+        AppBridgeIdentity current = bridgeIdentityService.selectById(identity.mappingId());
+        if (current == null || !Objects.equals(current.getApplicationId(), application.getId())
+                || !"ACTIVE".equals(current.getStatus())) {
+            throw forbidden("APPLICATION_IDENTITY_MAPPING_DISABLED", "跨系统身份映射已停用或撤销");
+        }
+        if (!Objects.equals(identity.targetSystemId(), application.getOwnerSystemId())
+                || !Objects.equals(identity.targetTenantId(), application.getOwnerTenantId())
+                || !Objects.equals(identity.targetSystemId(), grant.getTargetSystemId())
+                || !Objects.equals(identity.targetTenantId(), grant.getTargetTenantId())) {
+            throw forbidden("APPLICATION_IDENTITY_MAPPING_BOUNDARY_INVALID", "发布身份映射超出应用目标系统或租户范围");
+        }
+        return mappedTargetContext(application, identity);
+    }
+
+    private void requireActiveSourceIdentity(AuthenticatedContext context) {
+        SystemDefinition system = systemService.selectById(context.systemId());
+        SystemTenant tenant = tenantService.selectById(context.tenantId());
+        SystemMember member = systemMemberService.selectById(context.memberId());
+        SystemTenantMember tenantMember = tenantMemberService.selectById(context.tenantMemberId());
+        PlatformAccount account = accountService.selectById(context.accountId());
+        if (!active(system) || tenant == null || !"ACTIVE".equals(tenant.getStatus())
+                || member == null || !"ACTIVE".equals(member.getStatus())
+                || tenantMember == null || !"ACTIVE".equals(tenantMember.getStatus())
+                || account == null || !"ACTIVE".equals(account.getStatus())
+                || !Objects.equals(system.getPlatformId(), context.platformId())
+                || !Objects.equals(tenant.getSystemId(), context.systemId())
+                || !Objects.equals(member.getSystemId(), context.systemId())
+                || !Objects.equals(member.getAccountId(), context.accountId())
+                || !Objects.equals(tenantMember.getSystemId(), context.systemId())
+                || !Objects.equals(tenantMember.getTenantId(), context.tenantId())
+                || !Objects.equals(tenantMember.getSystemMemberId(), context.memberId())) {
+            throw forbidden("APPLICATION_SOURCE_IDENTITY_INACTIVE", "来源系统、租户或成员已停用");
+        }
+    }
+
+    private PublishedIdentity findPublishedIdentity(Long versionId, AuthenticatedContext sourceContext) {
+        AppVersion version = versionService.selectById(versionId);
+        if (version == null || version.getSnapshotJson() == null) return null;
+        Object raw = readMap(version.getSnapshotJson()).get("bridgeIdentities");
+        if (!(raw instanceof List<?> values)) return null;
+        for (Object value : values) {
+            Map<String, Object> identity = map(value);
+            if (Objects.equals(number(identity.get("sourceSystemId")), sourceContext.systemId())
+                    && Objects.equals(number(identity.get("sourceTenantId")), sourceContext.tenantId())
+                    && Objects.equals(number(identity.get("sourceTenantMemberId")), sourceContext.tenantMemberId())) {
+                return new PublishedIdentity(number(identity.get("mappingId")),
+                        number(identity.get("sourceSystemId")), number(identity.get("sourceTenantId")),
+                        number(identity.get("sourceTenantMemberId")), number(identity.get("targetSystemId")),
+                        number(identity.get("targetTenantId")), number(identity.get("targetTenantMemberId")));
+            }
+        }
+        return null;
+    }
+
+    private AuthenticatedContext mappedTargetContext(AppDefinition application, PublishedIdentity identity) {
+        SystemDefinition system = systemService.selectById(identity.targetSystemId());
+        SystemTenant tenant = tenantService.selectById(identity.targetTenantId());
+        SystemTenantMember tenantMember = tenantMemberService.selectById(identity.targetTenantMemberId());
+        SystemMember member = tenantMember == null ? null
+                : systemMemberService.selectById(tenantMember.getSystemMemberId());
+        PlatformAccount account = member == null ? null : accountService.selectById(member.getAccountId());
+        if (!active(system) || tenant == null || !"ACTIVE".equals(tenant.getStatus())
+                || tenantMember == null || !"ACTIVE".equals(tenantMember.getStatus())
+                || member == null || !"ACTIVE".equals(member.getStatus())
+                || account == null || !"ACTIVE".equals(account.getStatus())
+                || !Objects.equals(system.getPlatformId(), application.getPlatformId())
+                || !Objects.equals(tenant.getSystemId(), identity.targetSystemId())
+                || !Objects.equals(tenantMember.getSystemId(), identity.targetSystemId())
+                || !Objects.equals(tenantMember.getTenantId(), identity.targetTenantId())
+                || !Objects.equals(member.getSystemId(), identity.targetSystemId())) {
+            throw forbidden("APPLICATION_TARGET_IDENTITY_INACTIVE", "映射的目标系统、租户或成员已停用");
+        }
+        ResolvedPermissions permissions = permissionResolver.resolve(
+                identity.targetSystemId(), identity.targetTenantId(), identity.targetTenantMemberId());
+        return new AuthenticatedContext(null, account.getId(), application.getPlatformId(),
+                identity.targetSystemId(), identity.targetTenantId(), member.getId(), tenantMember.getId(),
+                account.getUsername(), member.getDisplayName(), "APPLICATION", permissions.roleIds(),
+                permissions.permissions(), permissions.dataScopes());
+    }
+
+    private boolean active(SystemDefinition system) {
+        return system != null && "ACTIVE".equals(system.getStatus()) && !Boolean.TRUE.equals(system.getDeleted());
+    }
+
+    private Map<String, Object> sourceIdentitySnapshot(AuthenticatedContext context) {
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("accountId", context.accountId());
+        source.put("systemId", context.systemId());
+        source.put("tenantId", context.tenantId());
+        source.put("memberId", context.memberId());
+        source.put("tenantMemberId", context.tenantMemberId());
+        source.put("roleIds", context.roleIds());
+        return source;
+    }
+
+    private String internalSource(AuthenticatedContext context) {
+        String sourceType = "PROVIDER".equals(context.mfaLevel()) ? "PROVIDER" : "INTERNAL";
+        return sourceType + ":" + context.systemId() + ":" + context.tenantId() + ":" + context.tenantMemberId();
     }
 
     private void requireAccessChannel(PublishedGrant grant, String requiredChannel) {
@@ -632,7 +796,9 @@ public class ApplicationBridgeService {
             return new PublishedGrant(number(grant.get("grantId")), version.getId(), version.getVersionNumber(),
                     version.getSnapshotHash(), string(grant.get("targetType")), number(grant.get("targetSystemId")),
                     number(grant.get("targetTenantId")), resourceType, resourceId, actionCode,
-                    writeJson(map(grant.get("dataScope"))), writeJson(map(grant.get("rateLimit"))), fields);
+                    writeJson(map(grant.get("dataScope"))), writeJson(map(grant.get("rateLimit"))),
+                    number(grant.get("resourceObjectId")), number(grant.get("resourceVersionId")),
+                    integer(grant.get("resourceVersionNumber"), 0), string(grant.get("resourceDefinitionHash")), fields);
         }
         return null;
     }
@@ -691,6 +857,46 @@ public class ApplicationBridgeService {
         }
     }
 
+    /**
+     * 模块调用在目标身份现有授权通过后，使用应用版本固定的数据范围执行。
+     * 这样应用的 SELF/部门边界不会因目标成员后来获得更宽角色而被绕过。
+     */
+    private AuthenticatedContext restrictToApplicationScope(
+            PublishedGrant grant, Map<String, Object> requested, AuthenticatedContext context) {
+        if (context.systemId() == null || !"MODULE".equals(grant.getResourceType())) return context;
+        Map<String, Object> effective = requested == null || requested.isEmpty()
+                ? readMap(grant.getDataScopeJson()) : requested;
+        String type = normalize(string(effective.get("type")));
+        DataScopeExpression scope = new DataScopeExpression("SINGLE",
+                List.of(new DataScopeTerm(type, NullNode.getInstance(), context.roleIds())));
+        return new AuthenticatedContext(context.sessionId(), context.accountId(), context.platformId(),
+                context.systemId(), context.tenantId(), context.memberId(), context.tenantMemberId(),
+                context.username(), context.displayName(), context.mfaLevel(), context.roleIds(),
+                context.permissions(), Map.of("MODULE:" + grant.getResourceId() + ":" + grant.getActionCode(), scope));
+    }
+
+    /** 模块调用校验应用发布时固定的物理模块和版本快照，禁止同编码替换或快照损坏。 */
+    private void requireFrozenModule(PublishedGrant grant, AuthenticatedContext context) {
+        if (grant.getResourceObjectId() == null || grant.getResourceVersionId() == null
+                || grant.getResourceDefinitionHash() == null) {
+            throw conflict("APPLICATION_MODULE_VERSION_REQUIRED", "应用发布版本尚未固定目标模块版本，请重新检查并发布应用");
+        }
+        ConfiguredModule module = moduleService.selectById(grant.getResourceObjectId());
+        if (module == null || !Objects.equals(module.getSystemId(), context.systemId())
+                || !Objects.equals(module.getOwnerTenantId(), context.tenantId())
+                || !Objects.equals(module.getCode(), grant.getResourceId())
+                || !Set.of("ACTIVE", "PUBLISHED").contains(module.getStatus())) {
+            throw conflict("APPLICATION_TARGET_MODULE_NOT_FOUND", "授权的目标模块不存在于固定系统和租户范围");
+        }
+        ConfiguredModuleVersion version = moduleVersionService.selectById(grant.getResourceVersionId());
+        if (version == null || !Objects.equals(version.getModuleId(), module.getId())
+                || !Objects.equals(version.getSystemId(), context.systemId())
+                || !Objects.equals(version.getOwnerTenantId(), context.tenantId())
+                || !Objects.equals(version.getSchemaHash(), grant.getResourceDefinitionHash())) {
+            throw conflict("APPLICATION_TARGET_MODULE_SNAPSHOT_INVALID", "应用固定的模块发布快照已损坏或不属于目标范围");
+        }
+    }
+
     private boolean scopeKeyMatches(String key, PublishedGrant grant) {
         String[] parts = key.split(":", 3);
         return parts.length == 3
@@ -743,10 +949,26 @@ public class ApplicationBridgeService {
         snapshot.put("applicationVersionId", grant.getApplicationVersionId());
         snapshot.put("applicationVersionNumber", grant.getApplicationVersionNumber());
         snapshot.put("applicationVersionHash", grant.getApplicationVersionHash());
+        if (grant.getResourceVersionId() != null) {
+            Map<String, Object> resourceVersion = new LinkedHashMap<>();
+            resourceVersion.put("resourceObjectId", grant.getResourceObjectId());
+            resourceVersion.put("versionId", grant.getResourceVersionId());
+            resourceVersion.put("versionNumber", grant.getResourceVersionNumber());
+            resourceVersion.put("definitionHash", grant.getResourceDefinitionHash());
+            snapshot.put("resourceVersion", resourceVersion);
+        }
         snapshot.put("grant", Map.of("resourceType", grant.getResourceType(), "resourceId", grant.getResourceId(),
                 "actionCode", grant.getActionCode(), "dataScope", readMap(grant.getDataScopeJson())));
-        snapshot.put("targetIdentity", Map.of("accountId", context.accountId(), "memberId", context.memberId(),
-                "roleIds", context.roleIds(), "permissions", context.permissions(), "dataScopes", context.dataScopes()));
+        Map<String, Object> targetIdentity = new LinkedHashMap<>();
+        targetIdentity.put("accountId", context.accountId());
+        targetIdentity.put("systemId", context.systemId());
+        targetIdentity.put("tenantId", context.tenantId());
+        targetIdentity.put("memberId", context.memberId());
+        targetIdentity.put("tenantMemberId", context.tenantMemberId());
+        targetIdentity.put("roleIds", context.roleIds());
+        targetIdentity.put("permissions", context.permissions());
+        targetIdentity.put("dataScopes", context.dataScopes());
+        snapshot.put("targetIdentity", targetIdentity);
         snapshot.put("decision", "APPLICATION_GRANT_INTERSECT_TARGET_IDENTITY_ALLOW");
         return snapshot;
     }
@@ -1033,12 +1255,18 @@ public class ApplicationBridgeService {
         private final String actionCode;
         private final String dataScopeJson;
         private final String rateLimitJson;
+        private final Long resourceObjectId;
+        private final Long resourceVersionId;
+        private final Integer resourceVersionNumber;
+        private final String resourceDefinitionHash;
         private final List<PublishedField> fields;
 
         private PublishedGrant(
                 Long id, Long applicationVersionId, Integer applicationVersionNumber, String applicationVersionHash,
                 String targetType, Long targetSystemId, Long targetTenantId, String resourceType, String resourceId,
-                String actionCode, String dataScopeJson, String rateLimitJson, List<PublishedField> fields) {
+                String actionCode, String dataScopeJson, String rateLimitJson,
+                Long resourceObjectId, Long resourceVersionId, Integer resourceVersionNumber,
+                String resourceDefinitionHash, List<PublishedField> fields) {
             this.id = id;
             this.applicationVersionId = applicationVersionId;
             this.applicationVersionNumber = applicationVersionNumber;
@@ -1051,6 +1279,10 @@ public class ApplicationBridgeService {
             this.actionCode = actionCode;
             this.dataScopeJson = dataScopeJson;
             this.rateLimitJson = rateLimitJson;
+            this.resourceObjectId = resourceObjectId;
+            this.resourceVersionId = resourceVersionId;
+            this.resourceVersionNumber = resourceVersionNumber;
+            this.resourceDefinitionHash = resourceDefinitionHash;
             this.fields = List.copyOf(fields);
         }
 
@@ -1066,10 +1298,25 @@ public class ApplicationBridgeService {
         String getActionCode() { return actionCode; }
         String getDataScopeJson() { return dataScopeJson; }
         String getRateLimitJson() { return rateLimitJson; }
+        Long getResourceObjectId() { return resourceObjectId; }
+        Long getResourceVersionId() { return resourceVersionId; }
+        Integer getResourceVersionNumber() { return resourceVersionNumber; }
+        String getResourceDefinitionHash() { return resourceDefinitionHash; }
         List<PublishedField> getFields() { return fields; }
     }
 
     private record PublishedField(String fieldCode, boolean readable, boolean writable) {
+    }
+
+    /** 发布版本固定的跨系统来源身份和目标执行身份。 */
+    private record PublishedIdentity(
+            Long mappingId,
+            Long sourceSystemId,
+            Long sourceTenantId,
+            Long sourceTenantMemberId,
+            Long targetSystemId,
+            Long targetTenantId,
+            Long targetTenantMemberId) {
     }
 
     private record Prepared(Long callId, ApplicationBridgeModels.CallResult replayed) {

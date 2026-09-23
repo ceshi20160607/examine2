@@ -25,8 +25,23 @@ public class MessageController {
     @GetMapping
     public ApiResult<MessageModels.InboxView> list(
             @RequestParam(defaultValue = "ACTIVE") String status,
-            @RequestParam(defaultValue = "ALL") String sourceType) {
-        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), status, sourceType));
+            @RequestParam(defaultValue = "ALL") String sourceType,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int pageSize) {
+        return ApiResult.ok(service.list(AuthenticationContextHolder.require(), status, sourceType, page, pageSize));
+    }
+
+    @GetMapping("/preferences")
+    public ApiResult<java.util.List<MessageModels.PreferenceView>> preferences() {
+        return ApiResult.ok(service.preferences(AuthenticationContextHolder.require()));
+    }
+
+    @PostMapping("/preferences")
+    public ApiResult<MessageModels.PreferenceView> savePreference(
+            @Valid @RequestBody MessageModels.SavePreferenceRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.savePreference(AuthenticationContextHolder.require(), input,
+                TraceIdFilter.current(request)));
     }
 
     @GetMapping("/unread-count")

@@ -12,9 +12,14 @@ const empty = computed(() => props.value === undefined || props.value === null |
 const display = computed(() => {
   if (empty.value) return '—'
   if (masked.value) return props.value === '***' ? '••••（已脱敏）' : '不可回显（已散列）'
+  // 显式可读明文由可信 presentation 单独渲染；缺描述的通用路径保持默认保护。
+  if (props.field.fieldType === 'SECRET') return '••••（已脱敏）'
   if (props.text !== undefined) return props.text
   if (props.field.fieldType === 'RICH_TEXT') return richPlainText(String(props.value)) || '—'
   if (props.field.fieldType === 'BOOLEAN') return props.value ? '是' : '否'
+  if (['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP'].includes(props.field.fieldType)) {
+    return Array.isArray(props.value) ? `已上传 ${props.value.length} 个文件` : '已上传文件'
+  }
   if (['SINGLE_SELECT', 'STATUS', 'MULTI_SELECT', 'TAG'].includes(props.field.fieldType)) {
     const options = Array.isArray(config.value.options) ? config.value.options as Array<{ value?: unknown; code?: unknown; label?: string }> : []
     const label = (value: unknown) => options.find(option => (option.value ?? option.code) === value)?.label || String(value)

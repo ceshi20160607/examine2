@@ -435,6 +435,14 @@ export interface TenantExtensionField extends ConfiguredField {
   mandatory: boolean
 }
 
+/** 租户扩展动作保留物理身份，公共动作仅用于只读合并展示。 */
+export interface TenantExtensionAction extends ConfiguredAction {
+  source: 'MAIN' | 'TENANT'
+  sourceTenantId: number
+  mandatory: boolean
+  sortOrder: number
+}
+
 export interface TenantExtensionApplicationGrant {
   applicationId: number
   applicationCode: string
@@ -469,6 +477,7 @@ export interface TenantExtensionModule {
   }
   draft: {
     fields: TenantExtensionField[]
+    actions: TenantExtensionAction[]
     pages: Array<{ pageType: string; fieldCodes: string[]; source: 'TENANT' }>
     applicationBindings: Array<{
       applicationId: number
@@ -479,6 +488,7 @@ export interface TenantExtensionModule {
   }
   mergedPreview: {
     fields: TenantExtensionField[]
+    actions: TenantExtensionAction[]
     pages: ConfiguredPage[]
     applicationBindings: unknown[]
     tenantExtensionApplied: boolean
@@ -552,6 +562,8 @@ export interface RuntimeDictionary {
 }
 
 export interface RuntimeModuleCatalogItem {
+  /** 旧目录兼容 CURRENT；共享记录入口不提供当前租户的完整配置。 */
+  configurationMode?: 'CURRENT' | 'SHARED_RECORDS'
   groupId: number
   groupCode: string
   groupName: string
@@ -633,6 +645,26 @@ export interface RuntimeModuleConfiguration {
   }
 }
 
+/** 仅包含当前记录已授权引用的组织名称，不代表可选择的来源组织目录。 */
+export interface RuntimeOrganizationLabels {
+  members: Record<string, string>
+  departments: Record<string, string>
+}
+
+/** 来源字段的已授权展示描述；脱敏文本不能用于恢复字典或关联原值。 */
+export interface RuntimeFieldPresentation {
+  fieldId: number | null
+  sortOrder: number
+  name: string
+  fieldType: string
+  displayValue?: string | null
+}
+
+/** 只读字段入口保留真实来源标识，不补造表单字段配置。 */
+export interface RuntimeReadField extends RuntimeFieldPresentation {
+  code: string
+}
+
 export interface RuntimeRecord {
   id: number
   recordNumber?: string
@@ -656,6 +688,10 @@ export interface RuntimeRecord {
   shareStatus?: 'ACTIVE' | 'EXPIRED' | 'REVOKED'
   sharedActions: string[]
   shareExpiresAt?: string
+  organizationLabels: RuntimeOrganizationLabels
+  fieldPresentation?: Record<string, RuntimeFieldPresentation>
+  /** 当前记录已经过权限与生命周期裁剪的来源动作；可选仅兼容旧回执。 */
+  actions?: ConfiguredAction[]
   fields: Record<string, unknown>
 }
 
@@ -664,6 +700,34 @@ export interface RuntimeRecordList {
   total: number
   page: number
   pageSize: number
+  queryFields: RuntimeListQueryField[]
+}
+
+/** 当前列表权限与实际来源发布字段交集的查询描述，不携带来源配置或完整目录。 */
+export interface RuntimeListQueryField {
+  code: string
+  name: string
+  fieldType: string
+  searchable: boolean
+  sortable: boolean
+  operators: string[]
+  options: Array<{ value: string; label: string }>
+}
+
+/** 编辑上下文按实际操作者的 UPDATE 权限提供来源发布配置，与列表、详情配置独立。 */
+export interface RuntimeRecordEditContext {
+  record: RuntimeRecord
+  configuration: RuntimeModuleConfiguration
+}
+
+/** 每条记录的实际来源手动动作上下文，不接受客户端指定来源目录。 */
+export interface RuntimeRecordActionContext {
+  actionCode: string
+  name: string
+  record: RuntimeRecord
+  parameters: RuntimeField[]
+  confirmation?: boolean
+  confirmationText?: string
 }
 
 export interface RuntimeListFilter {
@@ -686,6 +750,11 @@ export interface RuntimeListView {
   defaultView: boolean
   version: number
   updatedAt: string
+  /** 历史筛选或排序失效时禁止自动放宽条件恢复。 */
+  queryInvalid?: boolean
+  /** 与条件一起恢复；旧视图由服务端补全 ACTIVE/ALL。 */
+  lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'DELETED'
+  tenantScope: 'ALL' | 'OWN' | 'SHARED'
 }
 
 export interface RuntimeRecordTimelineChange {
@@ -812,6 +881,37 @@ export interface RuntimeTenantShare {
   revokedAt?: string
   grantedByMemberId: number
   version: number
+}
+
+/** 来源当前模块的数据范围授权；条件仅供来源管理，不进入目标记录投影。 */
+export interface RuntimeModuleRangeShare {
+  id: number
+  name: string
+  sourceTenantId: number
+  sourceTenantName: string
+  targetTenantId: number
+  targetTenantName: string
+  moduleCode: string
+  allowedActions: string[]
+  condition: import('./conditions').ConditionGroup
+  status: 'ACTIVE' | 'SCHEDULED' | 'EXPIRED' | 'REVOKED' | 'INVALID'
+  startTime?: string | null
+  expireTime?: string | null
+  grantTime: string
+  revokeTime?: string | null
+  grantedByMemberId: number
+  version: number
+}
+
+export interface SaveRuntimeModuleRangeShareRequest {
+  id?: number
+  name: string
+  targetTenantId: number
+  allowedActions: string[]
+  condition: import('./conditions').ConditionGroup
+  startTime?: string
+  expireTime?: string
+  version?: number
 }
 
 export interface AuditEvent {
@@ -1029,6 +1129,26 @@ export interface SystemDirectoryPerson {
 export interface SystemPeopleDirectory {
   departments: SystemDirectoryDepartment[]
   people: SystemDirectoryPerson[]
+  permissionVersion: number
+}
+
+/** 公共人员选择器只依赖当前作用域的有效身份与中文名称，不需要完整通讯录。 */
+export interface PeopleDirectoryOption {
+  tenantMemberId?: number | null
+  systemMemberId?: number | null
+  accountId?: number | null
+  displayName: string
+  departmentId?: number | null
+  departmentName?: string | null
+  positionTitle?: string | null
+  /** 完整系统目录可带角色名称；流程最小目录不提供角色信息。 */
+  roleNames?: string[]
+}
+
+/** 流程配置及转交的最小人员目录；平台使用 accountId，系统使用 tenantMemberId。 */
+export interface FlowParticipantDirectory {
+  departments: SystemDirectoryDepartment[]
+  people: PeopleDirectoryOption[]
   permissionVersion: number
 }
 
@@ -1738,7 +1858,19 @@ export interface OperationsContinuityOverview {
 }
 
 export type FlowNodeType = 'START' | 'END' | 'APPROVAL' | 'GATEWAY' | 'SUBFLOW' | 'FORM_TASK'
-  | 'NOTIFICATION' | 'UPDATE_FIELD' | 'WAIT_TIMER' | 'WEBHOOK' | 'EXTERNAL' | 'AI'
+  | 'CC' | 'NOTIFICATION' | 'MESSAGE' | 'UPDATE_FIELD' | 'DATA_ACTION' | 'WAIT' | 'TIMER' | 'WAIT_TIMER'
+  | 'WEBHOOK' | 'EXTERNAL' | 'AI'
+
+/** 节点字段目录只描述当前安全元数据，editable 是字段类型能力，不能替代审批人的实际权限。 */
+export interface FlowNodeFormField {
+  id: number
+  code: string
+  name: string
+  fieldType: string
+  editable: boolean
+  dictionaryId?: number | null
+  referenceModuleId?: number | null
+}
 
 export interface FlowNodeInput {
   nodeKey: string
@@ -1818,6 +1950,30 @@ export interface FlowPublicationResult {
   simulation: FlowSimulationResult
 }
 
+export interface FlowScheduleConfig {
+  schemaVersion?: number
+  scheduleMode: 'INTERVAL' | 'DAILY' | 'WEEKLY'
+  intervalValue?: number
+  intervalUnit?: 'MINUTE' | 'HOUR' | 'DAY'
+  dailyTime?: string
+  weekDay?: number
+  misfirePolicy: 'FIRE_ONCE' | 'SKIP'
+  timezone?: string
+}
+
+/** 流程外部节点的安全选择目录不包含回调地址和密钥引用。 */
+export interface FlowCallbackOption {
+  applicationId: number
+  applicationCode: string
+  applicationName: string
+  applicationVersionId: number
+  applicationVersionNumber: number
+  callbackId: number
+  callbackType: 'EVENT'
+  eventCodes: string[]
+  timeoutMillis: number
+  maxAttempts: number
+}
 export interface FlowBindingView {
   id: number
   systemId: number
@@ -1834,6 +1990,7 @@ export interface FlowBindingView {
   conditionExpression?: string
   condition?: import('./conditions').ConditionNode
   mutuallyExclusive: boolean
+  schedule?: FlowScheduleConfig
   status: string
   version: number
   updatedAt: string
@@ -1858,31 +2015,76 @@ export interface FlowBindingResolution {
   resolutionReason: string
   resolvedAt: string
 }
+export interface FlowBindingEventDelivery {
+  id: number
+  moduleId: number
+  eventType: string
+  sourceType: string
+  sourceId: string
+  status: 'PENDING' | 'FAILED' | 'PUBLISHED'
+  retryCount: number
+  flowInstanceId?: number
+  lastError?: string
+  occurredTime?: string
+  availableTime?: string
+  publishedTime?: string
+  deliveryResult?: 'FLOW_STARTED' | 'NO_MATCHING_BINDING' | 'STALE_SCHEDULE' | 'MISFIRE_SKIPPED' | string
+  actionCode?: string
+  errorCategory?: string
+  ruleName?: string
+  recordId?: number
+}
 
+/** 运行页只消费当前范围的发布目录，不读取流程设计定义或版本快照。 */
+export interface FlowRuntimeCatalogItem {
+  id: number
+  name: string
+  currentVersionId: number
+  currentVersionNumber: number
+}
 export interface FlowRuntimeCandidate {
   id: number
   candidateType: string
   tenantMemberId?: number
+  accountId?: number
   displayName: string
   departmentName?: string
   positionTitle?: string
   resolutionReason: string
   createdAt: string
 }
+export interface FlowTaskDelegation {
+  status: 'ACTIVE' | 'REVOKED' | 'EXPIRED' | string
+  effective: boolean
+  scope: 'TASK'
+  scopeName: string
+  contextName: string
+  principalName: string
+  delegateName: string
+  startTime: string
+  endTime: string
+  revokedTime?: string
+  reason?: string
+}
 export interface FlowRuntimeTask {
   id: number
   nodeKey: string
   taskType: string
   status: string
+  /** 来自服务器的当前任务处理授权，历史候选及本地身份猜测不能替代。 */
+  currentHandler: boolean
   assigneeTenantMemberId?: number
   assigneeName?: string
   assigneeDepartment?: string
   assigneePosition?: string
-  assigneeSnapshot: Record<string, unknown>
+  assigneeSnapshot: Record<string, unknown> & { delegation?: FlowTaskDelegation }
   dueAt?: string
   claimedAt?: string
   completedAt?: string
   version: number
+  /** 当前冻结节点是否要求随审批提交有效附件。 */
+  attachmentRequired: boolean
+  minimumAttachmentCount: number
   candidates: FlowRuntimeCandidate[]
 }
 export interface FlowRuntimeAction {
@@ -1927,11 +2129,14 @@ export interface FlowRuntimeInstance {
   businessType?: string
   businessId?: string
   businessSnapshot: Record<string, unknown>
+  businessView: RuntimeBusinessView | null
   title: string
   currentNodeKey?: string
   currentNodeName?: string
   status: string
   startedByTenantMemberId?: number
+  /** 服务端使用真实发起账号比较，平台没有工作空间成员ID时不能比较两个空值。 */
+  startedByCurrentUser: boolean
   startedByName: string
   startedAt: string
   finishedAt?: string
@@ -1939,19 +2144,90 @@ export interface FlowRuntimeInstance {
   errorMessage?: string
   version: number
   variables: Record<string, unknown>
+  /** 当前实例图最近一次持久变更的修订号，初始为 0。 */
+  graphRevision: number
+  runtimeNodeAnchors: Array<{ nodeKey: string; name: string; nodeType: string; beforeAllowed: boolean; afterAllowed: boolean }>
   tasks: FlowRuntimeTask[]
   actions: FlowRuntimeAction[]
   exceptions: FlowRuntimeException[]
-  executions: Array<{ id: number; nodeKey: string; nodeType: string; status: string; enteredAt: string; leftAt?: string; resultCode?: string }>
+  executions: Array<{ id: number; parentExecutionId?: number; nodeKey: string; nodeType: string; status: string; enteredAt: string; leftAt?: string; resultCode?: string }>
+  /** 当前实例关联的父流程或子流程；服务端只返回安全摘要和当前账号是否可查看。 */
+  subflows: Array<{
+    relation: 'PARENT' | 'CHILD'
+    instanceId: number
+    executionId: number
+    nodeKey: string
+    flowId: number
+    flowName: string
+    flowVersionId: number
+    flowVersionNumber?: number
+    status: string
+    errorCode?: string
+    viewable: boolean
+  }>
   history: Array<{ id: number; nodeKey?: string; eventType: string; eventName: string; actorTenantMemberId?: number; actorName: string; beforeStatus?: string; afterStatus?: string; detail: Record<string, unknown>; occurredAt: string }>
   jobs: Array<{ id: number; nodeKey: string; jobType: string; status: string; attemptCount: number; maxAttempts: number; nextRunAt: string; lastErrorCode?: string; lastErrorMessage?: string; completedAt?: string }>
   allowedActions: string[]
+  /** 当前处理人允许操作中的必填意见要求，来自实例冻结节点。 */
+  opinionRequiredActions: string[]
   nextStep: string
 }
 export interface FlowRuntimeActionResult {
   actionId: number
   replayed: boolean
   instance: FlowRuntimeInstance
+}
+
+/** 本人原业务动作的只读审批进度，不包含来源配置、变量或旧业务快照。 */
+/** 只读业务投影；提交内容尚不代表正式生效，禁止从流程变量恢复隐藏字段。 */
+export interface RuntimeBusinessView {
+  moduleCode: string
+  actionCode: string | null
+  proposed: RuntimeRecord | null
+  current: RuntimeRecord | null
+  /** 已同意的节点修改，仍不代表正式写入。 */
+  submitted?: RuntimeRecord | null
+  message: string | null
+}
+
+export interface BusinessActionProgress {
+  actionId: number
+  moduleCode: string
+  actionCode: string
+  mode: 'DIRECT' | 'AFTER_EXECUTION' | 'AFTER_APPROVAL' | 'FLOW_ONLY'
+  businessStatus: string
+  flowInstanceId: number
+  flowName: string
+  flowVersionNumber: number
+  status: string
+  currentNodeName: string | null
+  startTime: string | null
+  finishTime: string | null
+  nodes: Array<{ nodeKey: string; name: string; nodeType: string; status: string; enterTime: string | null; leaveTime: string | null }>
+  history: Array<{ nodeName: string | null; eventName: string; beforeStatus: string | null; afterStatus: string | null; occurredTime: string | null }>
+  /** 没有当前 DETAIL 权限时为 null；非空时仅含当前授权字段。 */
+  record: RuntimeRecord | null
+  businessView: RuntimeBusinessView | null
+  message: string | null
+}
+
+/** 当前身份仍有权查看的本人申请摘要，不包含业务记录或来源目录。 */
+export interface BusinessActionApplication {
+  actionId: number
+  moduleCode: string
+  actionCode: string
+  flowName: string
+  status: string
+  businessStatus: string
+  mode: BusinessActionProgress['mode']
+  currentNodeName: string | null
+  startTime: string | null
+  finishTime: string | null
+}
+
+export interface BusinessActionApplicationsPage {
+  items: BusinessActionApplication[]
+  nextCursor: number | null
 }
 export interface FlowManualNodePreview {
   instanceId: number
@@ -1971,6 +2247,36 @@ export interface FlowManualNodeResult {
   taskId: number
   actionId: number
   instance: FlowRuntimeInstance
+}
+/** 动态节点仅使用当前身份域人员，预览与确认均核对实例及执行图修订。 */
+export interface FlowRuntimeNodeRequest {
+  nodeType: 'APPROVAL' | 'NOTIFICATION'
+  name: string
+  position: 'AFTER_CURRENT' | 'BEFORE_CURRENT' | 'BEFORE_NODE' | 'AFTER_NODE'
+  anchorNodeKey?: string
+  assigneeIds: number[]
+  approvalMode: 'OR_SIGN' | 'ALL_SIGN' | 'SEQUENTIAL'
+  reason: string
+  expectedInstanceVersion: number
+  expectedGraphRevision: number
+  idempotencyKey: string
+}
+export interface FlowRuntimeNodePreview {
+  instanceId: number
+  instanceVersion: number
+  graphRevision: number
+  currentNodeKey: string
+  currentNodeName: string
+  anchorNodeKey: string
+  anchorNodeName: string
+  nodeType: 'APPROVAL' | 'NOTIFICATION'
+  name: string
+  position: 'AFTER_CURRENT' | 'BEFORE_CURRENT' | 'BEFORE_NODE' | 'AFTER_NODE'
+  approvalMode: 'OR_SIGN' | 'ALL_SIGN' | 'SEQUENTIAL'
+  assignees: FlowParticipantDirectory['people']
+  reason: string
+  allowed: boolean
+  checks: string[]
 }
 export interface TodoItemView {
   id: number
@@ -2005,9 +2311,54 @@ export interface TodoHandleResult {
   targetResult?: FlowRuntimeActionResult
 }
 
+/** 待办来源只能按当前服务端所有权和可见权限生成跳转地址。 */
+export interface TodoOpenResult {
+  todoId: number
+  route: string
+}
+
 export interface WorkPerson { tenantMemberId?: number; displayName: string; departmentName?: string; positionTitle?: string }
 export interface WorkProjectMember { id: number; person: WorkPerson; projectRole: string; status: string }
-export interface WorkTaskGroup { id: number; name: string; sortOrder: number; status: string; version: number }
+export interface WorkTaskGroup {
+  id: number
+  name: string
+  sortOrder: number
+  status: string
+  owner?: WorkPerson
+  dueTime?: string
+  progressPercent?: number
+  version: number
+}
+
+/** 模块日期字段生成“今日需联系”待办的命名配置。 */
+export interface TodoContactRule {
+  id: number
+  name: string
+  moduleCode: string
+  moduleName: string
+  contactFieldCode: string
+  contactFieldName: string
+  contactFieldType: 'DATE' | 'DATETIME'
+  leadDays: number
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
+  status: 'DRAFT' | 'PUBLISHED' | 'DISABLED'
+  createdByAccountId: number
+  createTime: string
+  updateTime: string
+  version: number
+}
+export interface WorkChecklistItem { id: string; text: string; completed: boolean }
+export interface WorkTaskActions {
+  canEdit: boolean
+  canTransfer: boolean
+  canDelay: boolean
+  canSubmitCompletion: boolean
+  canAcceptCompletion: boolean
+  canReopen: boolean
+  canArchive: boolean
+  canDelete: boolean
+  canComment: boolean
+}
 export interface WorkTaskHistory {
   id: number
   actionCode: string
@@ -2040,20 +2391,34 @@ export interface WorkTask {
   description?: string
   taskType: string
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
-  status: 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'COMPLETED' | 'CANCELLED'
+  status: 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'WAITING_CONFIRMATION' | 'COMPLETED' | 'CANCELLED' | 'ARCHIVED'
+  statusName: string
+  overdue: boolean
   progressPercent: number
+  estimatedHours?: number
+  actualHours?: number
+  labels: string[]
+  checklist: WorkChecklistItem[]
   owner: WorkPerson
   startAt?: string
   dueAt?: string
   completedAt?: string
+  completionNote?: string
+  completionSubmittedTime?: string
+  completionAcceptedTime?: string
+  archiveTime?: string
   businessType?: string
   businessId?: string
   businessTitle?: string
   configuredValues: Record<string, unknown>
   version: number
   collaborators: WorkPerson[]
+  followers: WorkPerson[]
+  acceptors: WorkPerson[]
   history: WorkTaskHistory[]
   linkedLogs: WorkTaskLinkedLog[]
+  subtasks: WorkTask[]
+  actions: WorkTaskActions
 }
 export interface WorkProject {
   id: number
@@ -2064,6 +2429,13 @@ export interface WorkProject {
   code: string
   name: string
   description?: string
+  customerName?: string
+  internalDepartmentName?: string
+  stage?: string
+  labels: string[]
+  businessType?: string
+  businessId?: string
+  businessTitle?: string
   owner: WorkPerson
   startDate?: string
   dueDate?: string
@@ -2083,6 +2455,26 @@ export interface WorkLogRevision {
   revisedByName: string
   revisedAt: string
 }
+export interface WorkLogMaterial {
+  id?: number
+  materialType: 'TASK' | 'TODO' | 'MESSAGE' | 'BUSINESS_OPERATION'
+  materialId: string
+  title: string
+  summary?: string
+  sourceTime?: string
+}
+export interface WorkLogMaterialCandidate extends WorkLogMaterial {
+  key: string
+  typeName: string
+}
+export interface WorkLogComment {
+  id: number
+  commentType: 'COMMENT' | 'FEEDBACK'
+  comment: string
+  author: WorkPerson
+  createdTime: string
+}
+export interface WorkLogOptions { roles: Array<{ id: number; code: string; name: string }> }
 export interface WorkLog {
   id: number
   contextType: 'PLATFORM' | 'SYSTEM'
@@ -2093,8 +2485,18 @@ export interface WorkLog {
   workDate: string
   title: string
   content: string
+  completedText?: string
+  inProgressText?: string
+  nextPlanText?: string
+  riskText?: string
+  assistanceText?: string
   durationMinutes?: number
   status: 'DRAFT' | 'SUBMITTED' | 'WITHDRAWN'
+  editable: boolean
+  visibilityType: 'SELF' | 'MANAGER' | 'PROJECT' | 'TEAM' | 'ROLE'
+  visibleRoleIds: number[]
+  submittedTime?: string
+  withdrawnTime?: string
   projectId?: number
   projectName?: string
   tasks: Array<{ id: number; title: string; status: string }>
@@ -2105,6 +2507,8 @@ export interface WorkLog {
   version: number
   createdAt: string
   updatedAt: string
+  materials: WorkLogMaterial[]
+  comments: WorkLogComment[]
   revisions: WorkLogRevision[]
 }
 
@@ -2250,7 +2654,156 @@ export interface ApplicationGrantView {
   rateLimit: Record<string, unknown>
   status: string
   version: number
+  resourceVersionId?: number
+  resourceVersionNumber?: number
   fields: ApplicationGrantFieldView[]
+}
+
+export interface ApplicationIdentityMemberOption {
+  systemId: number
+  systemName: string
+  tenantId: number
+  tenantName: string
+  tenantMemberId: number
+  memberName: string
+  employeeNumber?: string
+}
+
+export interface ApplicationIdentityCatalog {
+  sourceMembers: ApplicationIdentityMemberOption[]
+  targetMembers: ApplicationIdentityMemberOption[]
+}
+
+export interface ApplicationIdentityMappingView {
+  id: number
+  sourceSystemId: number
+  sourceSystemName: string
+  sourceTenantId: number
+  sourceTenantName: string
+  sourceTenantMemberId: number
+  sourceMemberName: string
+  targetSystemId: number
+  targetSystemName: string
+  targetTenantId: number
+  targetTenantName: string
+  targetTenantMemberId: number
+  targetMemberName: string
+  status: 'ACTIVE' | 'DISABLED' | 'MISSING'
+  version: number
+}
+
+export interface ApplicationProviderSecretReference {
+  secretType: 'API_SECRET' | 'CALLBACK_TOKEN' | 'ENCODING_AES_KEY'
+  secretVersion: number
+  referencePath: string
+  secretHint: string
+  status: 'ACTIVE' | 'REVOKED'
+  createdTime: string
+}
+
+export interface ApplicationProviderRoute {
+  id: number
+  eventCode: string
+  resourceType: string
+  resourceId: string
+  actionCode: string
+  targetSystemId?: number
+  targetTenantId?: number
+  status: 'ACTIVE' | 'DISABLED'
+  version: number
+}
+
+export interface ApplicationProviderConnection {
+  id: number
+  applicationId: number
+  providerCode: 'WECOM' | 'FEISHU' | 'DINGTALK' | 'WECHAT'
+  productCode: string
+  connectionKey: string
+  displayName: string
+  tenantKey: string
+  applicationKey?: string
+  callbackPath: string
+  status: 'DRAFT' | 'ACTIVE' | 'DISABLED'
+  diagnosticStatus: 'NOT_RUN' | 'LOCAL_PASSED' | 'FAILED' | 'EXTERNAL_PASSED'
+  diagnosticSummary?: string
+  diagnosticTime?: string
+  secrets: ApplicationProviderSecretReference[]
+  route?: ApplicationProviderRoute
+  version: number
+  createdTime: string
+  updatedTime: string
+}
+
+export interface ApplicationProviderCapability {
+  providerCode: string
+  providerName: string
+  productCode: string
+  productName: string
+  implementationStatus: string
+  identityBoundary: string
+  callbackBoundary: string
+  officialDocumentation: string
+}
+
+export interface ApplicationProviderDiagnostic {
+  connectionId: number
+  status: string
+  summary: string
+  checks: string[]
+  externallyVerified: boolean
+  connection: ApplicationProviderConnection
+}
+
+export interface ApplicationProviderEvent {
+  id: number
+  providerEventId: string
+  eventCode: string
+  senderExternalId?: string
+  status: 'RECEIVED' | 'PROCESSED' | 'IGNORED' | 'FAILED'
+  applicationCallId?: number
+  responseCode?: string
+  receivedTime: string
+  processedTime?: string
+}
+
+export interface ApplicationProviderIdentityOption {
+  targetType: 'PLATFORM' | 'SYSTEM'
+  targetMemberId: number
+  memberName: string
+  employeeNumber?: string
+  contextName: string
+}
+
+export interface ApplicationProviderIdentity {
+  id: number
+  connectionId: number
+  externalUserId: string
+  targetType: 'PLATFORM' | 'SYSTEM'
+  targetMemberId: number
+  memberName: string
+  employeeNumber?: string
+  contextName: string
+  status: 'ACTIVE' | 'DISABLED'
+  version: number
+  createdTime: string
+  updatedTime: string
+}
+
+export interface ApplicationProviderDelivery {
+  id: number
+  connectionId: number
+  identityId: number
+  externalUserId?: string
+  memberName: string
+  messageId: number
+  messageDeliveryId: number
+  idempotencyKey: string
+  deepLink: string
+  status: 'PENDING' | 'BLOCKED_EXTERNAL' | 'SENT' | 'DELIVERED' | 'FAILED' | 'CANCELED'
+  errorCode?: string
+  createTime: string
+  updateTime: string
+  sentTime?: string
 }
 
 export interface ApplicationCredentialView {
@@ -2295,6 +2848,7 @@ export interface ApplicationView {
   name: string
   description?: string
   applicationType: 'SERVICE' | 'WEBHOOK'
+  iconCode: 'api' | 'link' | 'workflow' | 'database' | 'robot' | 'message'
   draftRevision: number
   status: 'DRAFT' | 'ACTIVE' | 'DISABLED'
   version: number
@@ -2303,6 +2857,8 @@ export interface ApplicationView {
   callbacks: ApplicationCallbackView[]
   grants: ApplicationGrantView[]
   publishedGrants: ApplicationGrantView[]
+  identityMappings: ApplicationIdentityMappingView[]
+  publishedIdentityMappings: ApplicationIdentityMappingView[]
   credentials: ApplicationCredentialView[]
   versions: ApplicationVersionView[]
   statusHistory: ApplicationStatusEvent[]
@@ -2317,6 +2873,8 @@ export interface ApplicationCredentialSecret {
   clientSecret: string
   secretReference: string
   secretHint: string
+  validFrom: string
+  expiresAt: string
   shownOnce: boolean
 }
 
@@ -2331,6 +2889,7 @@ export interface ApplicationConfigurationExport {
   sourceName: string
   description?: string
   applicationType: 'SERVICE' | 'WEBHOOK'
+  iconCode: 'api' | 'link' | 'workflow' | 'database' | 'robot' | 'message'
   callbacks: Array<{
     callbackType: 'EVENT' | 'RESULT'
     url: string
@@ -2420,7 +2979,7 @@ export interface MessageTemplateView {
   tenantId?: number
   code: string
   name: string
-  channel: 'IN_APP' | 'EMAIL' | 'SMS' | 'WEBHOOK'
+  channel: 'IN_APP' | 'EMAIL' | 'SMS' | 'WEBHOOK' | 'WECOM' | 'FEISHU' | 'DINGTALK'
   draftRevision: number
   subjectTemplate?: string
   contentTemplate: string
@@ -2470,6 +3029,16 @@ export interface MessageItemView {
   createdAt: string
   actorName: string
   targetCurrentlyAccessible: boolean
+  deliveries: MessageRecipientDeliveryView[]
+}
+
+export interface MessageRecipientDeliveryView {
+  channel: string
+  destinationMasked?: string
+  status: string
+  attemptCount: number
+  nextAttemptAt?: string
+  failureReason?: string
 }
 
 export interface MessageDeliveryDiagnosticsView {
@@ -2481,6 +3050,19 @@ export interface MessageDeliveryDiagnosticsView {
 export interface MessageInboxView {
   messages: MessageItemView[]
   unreadCount: number
+  total: number
+  page: number
+  pageSize: number
+  hasPrevious: boolean
+  hasNext: boolean
+}
+
+export interface MessagePreferenceView {
+  channel: 'EMAIL' | 'SMS' | 'WEBHOOK' | 'WECOM' | 'FEISHU' | 'DINGTALK'
+  enabled: boolean
+  quietStart?: string
+  quietEnd?: string
+  version?: number
 }
 
 export interface MessageOpenResult {
@@ -2496,7 +3078,7 @@ export interface FileReferenceView {
   contextType: 'PLATFORM' | 'SYSTEM'
   systemId?: number
   tenantId?: number
-  ownerType: 'ACCOUNT' | 'FLOW_INSTANCE' | 'BUSINESS_RECORD' | 'WORK_TASK'
+  ownerType: 'ACCOUNT' | 'FLOW_INSTANCE' | 'BUSINESS_RECORD' | 'WORK_TASK' | 'WORK_LOG'
   ownerId: string
   fieldCode?: string
   referenceType: 'ATTACHMENT' | 'IMAGE' | 'DOCUMENT' | 'RESULT'
@@ -2563,6 +3145,39 @@ export interface FileUploadSessionView {
   uploadToken: string
   shownOnce: boolean
   expiresAt: string
+  uploadedSize: number
+  version: number
+}
+
+export interface FileUploadChunkView {
+  sessionId: number
+  uploadedSize: number
+  expectedSize: number
+  status: string
+  idempotent: boolean
+}
+
+export interface FileStoragePolicyView {
+  maximumFileSizeBytes: number
+  contextQuotaBytes: number
+  usedBytes: number
+  reservedBytes: number
+  availableBytes: number
+  backendType: 'LOCAL' | 'S3'
+  backendName: string
+}
+
+export interface FileStorageBackendView {
+  id: number
+  code: string
+  name: string
+  backendType: 'LOCAL' | 'S3'
+  endpoint?: string
+  bucketName: string
+  region?: string
+  pathStyle: boolean
+  credentialConfigured: boolean
+  status: 'ACTIVE' | 'INACTIVE'
   version: number
 }
 
@@ -2573,6 +3188,13 @@ export interface ImportTemplateColumn {
   required: boolean
   writable: boolean
   builtIn: boolean
+  uniqueMatch: boolean
+}
+
+export interface ImportSourceHeadersView {
+  sourceFileId: number
+  format: 'CSV' | 'XLSX'
+  headers: string[]
 }
 
 export interface ImportTemplateView {
@@ -2614,6 +3236,7 @@ export interface ImportBatchView {
   failedRows: number
   columnMapping: Record<string, string>
   conflictPolicy: 'ERROR' | 'SKIP' | 'UPDATE'
+  matchFieldCode: string
   summary: Record<string, unknown>
   rows: ImportRowView[]
   createdAt: string
@@ -2653,6 +3276,7 @@ export interface ExportBatchView {
   resultFileId?: number
   errorMessage?: string
   filterSnapshot: Record<string, unknown>
+  format: 'CSV' | 'XLSX'
   selectedFields: string[]
   createdAt: string
   startedAt?: string
@@ -2844,6 +3468,7 @@ export interface ReportFieldMetadata {
   readable: boolean
   indexed: boolean
   builtIn: boolean
+  referenceModuleId?: number | null
 }
 export interface ReportModuleMetadata {
   moduleId: number
@@ -2908,6 +3533,8 @@ export interface PrintLayout {
   fieldCodes: string[]
   detailFieldCodes: string[]
   rowsPerPage: number
+  offsetXmm: number
+  offsetYmm: number
 }
 export interface PrintFieldOption { id: number; code: string; name: string; fieldType: string }
 export interface PrintModuleOption {
@@ -2936,7 +3563,7 @@ export interface PrintPreview {
 }
 export interface RuntimePrintTemplate {
   templateId: number; code: string; name: string; pageSize: string; orientation: string
-  versionId: number; versionNumber: number; snapshotHash: string; publishedAt: string
+  versionId: number; versionNumber: number; snapshotHash: string; layout: PrintLayout; publishedAt: string
 }
 export interface PrintJob {
   id: number; recordId: number; templateVersionId: number; templateVersionNumber: number; templateName: string
@@ -3009,4 +3636,25 @@ export interface OperationsOneTimeSecret {
   oneTimeSecret: string
   displayOnce: boolean
   notice: string
+}
+
+/** 仅当前有效处理人可读的节点表单，表单字段已按来源及 PAGE/FLOW 授权裁剪。 */
+export interface FlowTaskFormContext {
+  taskId: number
+  instanceId: number
+  /** 当前已批准候选修订号；会签提交必须确认同一候选，避免覆盖他人已提交内容。 */
+  formRevision?: number | null
+  moduleCode: string | null
+  recordId: number | null
+  actionCode: string | null
+  /** 新建审批候选尚无正式 ID/版本/创建时间，不能用占位数值冒充正式数据。 */
+  form: (Omit<RuntimeRecordEditContext, 'record'> & {
+    record: Omit<RuntimeRecord, 'id' | 'version' | 'createdAt' | 'updatedAt'> & {
+      id: number | null
+      version: number | null
+      createdAt: string | null
+      updatedAt: string | null
+    }
+  }) | null
+  message: string | null
 }

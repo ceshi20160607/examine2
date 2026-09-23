@@ -17,6 +17,7 @@ import com.unique.unexamine.moduleconfig.manage.RuntimeModuleCatalogItem;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleCatalogService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
+import com.unique.unexamine.runtimedata.manage.RuntimeListQueryField;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
@@ -85,9 +86,11 @@ public class ReportService {
     public ReportModels.Metadata metadata(AuthenticatedContext context, String traceId) {
         requireSystemAdmin(context);
         List<ReportModels.ModuleMetadata> modules = catalogService.list(context).stream()
+                // 共享记录目录没有当前租户的发布配置，不能作为统计模型来源。
+                .filter(module -> "CURRENT".equals(module.configurationMode()))
                 .map(module -> moduleMetadata(context, module, traceId)).toList();
         return new ReportModels.Metadata(modules, METRICS.stream().sorted().toList(),
-                DIMENSIONS.stream().sorted().toList(), RELATIONS.stream().sorted().toList(),
+                DIMENSIONS.stream().sorted().toList(), List.of("REFERENCE", "SUBTABLE"),
                 MAXIMUM_MODULES, MAXIMUM_SCAN_ROWS, false);
     }
 
@@ -211,6 +214,7 @@ public class ReportService {
                     ? stringOrDefault(compiled.sort().get("direction"), "DESC") : "DESC";
             RuntimeRecordList first = runtimeDataService.list(context, module.moduleCode(), "ACTIVE", "ALL", "",
                     writeJson(filters), sortField, sortDirection, 1, PAGE_SIZE, traceId);
+            requireCurrentFieldAccess(compiled, module, first.queryFields());
             if (first.total() > maximumRows || totalScanned + first.total() > maximumRows) {
                 throw invalid("REPORT_QUERY_COST_EXCEEDED",
                         "权限过滤后的扫描记录超过成本上限 " + maximumRows + "，请增加固定筛选或降低范围");
@@ -263,6 +267,37 @@ public class ReportService {
                 LocalDateTime.now());
     }
 
+    /** 发布快照只说明字段结构；每次查询还须核对当前 LIST 字段权限，空数据也不能绕过。 */
+    private void requireCurrentFieldAccess(Compiled compiled, ModuleSpec module,
+                                           List<RuntimeListQueryField> queryFields) {
+        Set<String> permitted = new HashSet<>();
+        if (queryFields != null) queryFields.forEach(field -> permitted.add(field.code()));
+        Set<String> required = new LinkedHashSet<>();
+        compiled.outputFields().stream().filter(field -> module.alias().equals(string(field.get("alias"))))
+                .forEach(field -> required.add(string(field.get("fieldCode"))));
+        if (!"COUNT".equals(string(compiled.metric().get("operation")))
+                && module.alias().equals(string(compiled.metric().get("alias")))) {
+            required.add(string(compiled.metric().get("fieldCode")));
+        }
+        if (module.alias().equals(string(compiled.dimension().get("alias")))) {
+            required.add(string(compiled.dimension().get("fieldCode")));
+        }
+        for (Map<String, Object> relation : compiled.relations()) {
+            if (module.alias().equals(string(relation.get("leftAlias")))) {
+                required.add("SUBTABLE".equals(string(relation.get("relationType")).toUpperCase(Locale.ROOT))
+                        ? "id" : string(relation.get("leftField")));
+            }
+            if (module.alias().equals(string(relation.get("rightAlias")))) {
+                required.add(string(relation.get("rightField")));
+            }
+        }
+        required.removeAll(permitted);
+        if (!required.isEmpty()) {
+            throw forbidden("REPORT_CURRENT_FIELD_FORBIDDEN",
+                    "报表字段当前不可读、已脱敏或来源授权已失效：" + module.alias() + "." + required.iterator().next());
+        }
+    }
+
     private Compiled compile(AuthenticatedContext context, Map<String, Object> definition, String traceId) {
         if (context.systemId() == null || context.tenantId() == null) {
             throw invalid("REPORT_SYSTEM_CONTEXT_REQUIRED", "结构化模块报表只能在系统租户上下文配置和执行");
@@ -284,7 +319,7 @@ public class ReportService {
             }
             RuntimeModuleConfiguration runtime = modulePublicationService.runtime(context, moduleCode, traceId);
             LinkedHashMap<String, FieldSpec> fields = fields(runtime.configuration());
-            modules.add(new ModuleSpec(alias, moduleCode,
+            modules.add(new ModuleSpec(alias, runtime.moduleId(), moduleCode,
                     runtime.configuration().path("module").path("name").asText(moduleCode),
                     runtime.versionId(), runtime.versionNumber(), fields));
         }
@@ -300,6 +335,9 @@ public class ReportService {
         Set<String> outputKeys = new HashSet<>();
         for (Map<String, Object> output : outputs) {
             FieldSpec field = requireReadableField(byAlias, output, "REPORT_OUTPUT_FIELD_FORBIDDEN");
+            if ("SUBTABLE".equals(field.fieldType())) {
+                throw invalid("REPORT_OUTPUT_FIELD_UNAVAILABLE", "子表字段只声明明细关系，请选择明细模块的实际输出字段");
+            }
             String key = string(output.get("alias")) + "." + field.code();
             if (!outputKeys.add(key)) throw invalid("REPORT_OUTPUT_FIELD_DUPLICATE", "输出字段不能重复");
         }
@@ -323,6 +361,9 @@ public class ReportService {
             if (!DIMENSIONS.contains(type)) throw invalid("REPORT_DIMENSION_INVALID", "统计维度不受支持");
             normalizedDimension.put("type", type);
             FieldSpec field = requireReadableField(byAlias, dimension, "REPORT_DIMENSION_FIELD_FORBIDDEN");
+            if ("SUBTABLE".equals(field.fieldType())) {
+                throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "子表字段不能作为分组值，请选择明细模块字段");
+            }
             validateDimensionType(type, field);
         }
 
@@ -410,8 +451,26 @@ public class ReportService {
                     fieldReference(left, relation.get("leftField")), "REPORT_RELATION_FIELD_FORBIDDEN");
             FieldSpec rightField = requireReadableField(byAlias,
                     fieldReference(right, relation.get("rightField")), "REPORT_RELATION_FIELD_FORBIDDEN");
-            if (!leftField.indexed() || !rightField.indexed()) {
-                throw invalid("REPORT_QUERY_NOT_INDEXABLE", "关联两侧字段必须可检索或有索引");
+            if ("CASCADE".equals(type)) {
+                // 模块级联字段当前没有可读取的运行态值，不能伪装成普通字段相等连接。
+                throw invalid("REPORT_RELATION_RUNTIME_UNAVAILABLE", "该关系字段尚不支持运行态查询，请先使用已发布的关联字段");
+            }
+            ModuleSpec leftModule = byAlias.get(left);
+            ModuleSpec rightModule = byAlias.get(right);
+            boolean forward = "REFERENCE".equals(leftField.fieldType())
+                    && Objects.equals(leftField.referenceModuleId(), rightModule.moduleId())
+                    && "id".equals(rightField.code());
+            boolean backward = "id".equals(leftField.code())
+                    && "REFERENCE".equals(rightField.fieldType())
+                    && Objects.equals(rightField.referenceModuleId(), leftModule.moduleId());
+            boolean subtable = "SUBTABLE".equals(type)
+                    && "SUBTABLE".equals(leftField.fieldType())
+                    && Objects.equals(leftField.referenceModuleId(), rightModule.moduleId())
+                    && "REFERENCE".equals(rightField.fieldType())
+                    && Objects.equals(rightField.referenceModuleId(), leftModule.moduleId());
+            if (("REFERENCE".equals(type) && !forward && !backward)
+                    || ("SUBTABLE".equals(type) && !subtable)) {
+                throw invalid("REPORT_RELATION_NOT_DECLARED", "模块关系必须由已发布的关联字段或子表与明细反向关联字段共同声明");
             }
             connected.add(right);
         }
@@ -422,13 +481,15 @@ public class ReportService {
         if ("TIME".equals(type) && !Set.of("DATE", "DATETIME").contains(fieldType)) {
             throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "时间维度必须选择日期或日期时间字段");
         }
-        if ("PERSON".equals(type) && !Set.of("PERSON", "USER", "LONG", "INTEGER").contains(fieldType)) {
+        if ("PERSON".equals(type) && !Set.of("MEMBER", "PERSON", "USER", "SYSTEM_CREATED_BY",
+                "SYSTEM_UPDATED_BY").contains(fieldType)) {
             throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "人员维度必须选择人员字段");
         }
-        if ("DEPARTMENT".equals(type) && !Set.of("DEPARTMENT", "LONG", "INTEGER").contains(fieldType)) {
+        if ("DEPARTMENT".equals(type) && !"DEPARTMENT".equals(fieldType)) {
             throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "部门维度必须选择部门字段");
         }
-        if ("STATUS".equals(type) && !Set.of("STATUS", "SELECT", "TEXT").contains(fieldType)) {
+        if ("STATUS".equals(type) && !Set.of("STATUS", "SELECT", "SINGLE_SELECT", "CASCADE")
+                .contains(fieldType)) {
             throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "状态维度必须选择状态或选项字段");
         }
     }
@@ -439,10 +500,12 @@ public class ReportService {
         String rightAlias = string(relation.get("rightAlias"));
         String leftField = string(relation.get("leftField"));
         String rightField = string(relation.get("rightField"));
+        boolean subtable = "SUBTABLE".equals(string(relation.get("relationType")).toUpperCase(Locale.ROOT));
         boolean leftJoin = "LEFT".equals(stringOrDefault(relation.get("joinType"), "INNER").toUpperCase(Locale.ROOT));
         List<JoinedRow> joined = new ArrayList<>();
         for (JoinedRow row : rows) {
-            Object leftValue = value(row.records().get(leftAlias), leftField);
+            // 子表声明只定义目标模块；实际父子键来自父记录 ID 与明细的已发布反向关联字段。
+            Object leftValue = value(row.records().get(leftAlias), subtable ? "id" : leftField);
             List<RuntimeRecordView> matches = targets.stream()
                     .filter(target -> equalValue(leftValue, value(target, rightField))).toList();
             if (matches.isEmpty() && leftJoin) {
@@ -474,7 +537,8 @@ public class ReportService {
             grouped.computeIfAbsent(key, ignored -> new ArrayList<>()).add(row);
         }
         return grouped.entrySet().stream().map(entry -> new ReportModels.Group(entry.getKey(),
-                entry.getKey() == null ? "未设置" : String.valueOf(entry.getKey()),
+                "TIME".equals(type) && entry.getKey() != null ? String.valueOf(entry.getKey())
+                        : groupLabel(entry.getValue(), alias, field, entry.getKey()),
                 metric(entry.getValue(), metric), entry.getValue().size())).toList();
     }
 
@@ -500,7 +564,8 @@ public class ReportService {
         for (Map<String, Object> output : compiled.outputFields()) {
             String alias = string(output.get("alias"));
             String fieldCode = string(output.get("fieldCode"));
-            values.put(alias + "." + fieldCode, value(row.records().get(alias), fieldCode));
+            RuntimeRecordView record = row.records().get(alias);
+            values.put(alias + "." + fieldCode, presentedValue(record, fieldCode, value(record, fieldCode)));
         }
         LinkedHashMap<String, Object> item = new LinkedHashMap<>();
         item.put("id", primary == null ? null : primary.id());
@@ -528,6 +593,52 @@ public class ReportService {
             case "dataTenantName" -> record.dataTenantName();
             default -> jsonValue(record.fields().get(fieldCode));
         };
+    }
+
+    /** 聚合和关联继续使用原始键，面向用户的结果只显示当前权限下可解析的业务名称。 */
+    private String groupLabel(List<JoinedRow> rows, String alias, String fieldCode, Object key) {
+        if (key == null) return "未设置";
+        for (JoinedRow row : rows) {
+            Object displayed = presentedValue(row.records().get(alias), fieldCode, key);
+            if (displayed != null && !String.valueOf(displayed).isBlank()) return String.valueOf(displayed);
+        }
+        return "当前不可用";
+    }
+
+    private Object presentedValue(RuntimeRecordView record, String fieldCode, Object rawValue) {
+        if (record == null || rawValue == null) return rawValue;
+        if ("ownerMemberId".equals(fieldCode) && rawValue instanceof Number number) {
+            return record.organizationLabels() == null ? "成员不可用"
+                    : record.organizationLabels().members().getOrDefault(number.longValue(), "成员不可用");
+        }
+        if ("departmentId".equals(fieldCode) && rawValue instanceof Number number) {
+            return record.organizationLabels() == null ? "部门不可用"
+                    : record.organizationLabels().departments().getOrDefault(number.longValue(), "部门不可用");
+        }
+        var presentation = record.fieldPresentation() == null ? null : record.fieldPresentation().get(fieldCode);
+        if (presentation == null) {
+            return Set.of("id", "title", "recordNumber", "status", "createdAt", "updatedAt", "dataTenantName")
+                    .contains(fieldCode) ? rawValue : null;
+        }
+        if (presentation.displayValue() != null && !presentation.displayValue().isBlank()) {
+            return presentation.displayValue();
+        }
+        if (rawValue instanceof Number number) {
+            if (Set.of("MEMBER", "PERSON", "USER", "SYSTEM_CREATED_BY", "SYSTEM_UPDATED_BY")
+                    .contains(presentation.fieldType())) {
+                return record.organizationLabels() == null ? "成员不可用"
+                        : record.organizationLabels().members().getOrDefault(number.longValue(), "成员不可用");
+            }
+            if ("DEPARTMENT".equals(presentation.fieldType())) {
+                return record.organizationLabels() == null ? "部门不可用"
+                        : record.organizationLabels().departments().getOrDefault(number.longValue(), "部门不可用");
+            }
+        }
+        if ("REFERENCE".equals(presentation.fieldType())) return "关联记录不可用";
+        if (Set.of("SINGLE_SELECT", "MULTI_SELECT", "CASCADE").contains(presentation.fieldType())) {
+            return "选项不可用";
+        }
+        return rawValue;
     }
 
     private Object jsonValue(JsonNode value) {
@@ -572,7 +683,8 @@ public class ReportService {
         return new ReportModels.ModuleMetadata(runtime.moduleId(), item.moduleCode(), item.moduleName(),
                 runtime.versionId(), runtime.versionNumber(), fields(runtime.configuration()).values().stream()
                 .map(field -> new ReportModels.FieldMetadata(field.code(), field.name(), field.fieldType(),
-                        field.searchable(), field.readable(), field.indexed(), field.builtIn())).toList());
+                        field.searchable(), field.readable(), field.indexed(), field.builtIn(),
+                        field.referenceModuleId())).toList());
     }
 
     private LinkedHashMap<String, FieldSpec> fields(JsonNode configuration) {
@@ -593,14 +705,16 @@ public class ReportService {
                     && access.path("maskStrategy").asText("").isBlank();
             boolean searchable = field.path("searchable").asBoolean(false);
             result.put(code, new FieldSpec(code, field.path("name").asText(code),
-                    field.path("fieldType").asText("UNKNOWN"), searchable, readable, searchable, false));
+                    field.path("fieldType").asText("UNKNOWN"), searchable, readable, searchable, false,
+                    field.path("referenceModuleId").canConvertToLong()
+                            ? field.path("referenceModuleId").longValue() : null));
         });
         return result;
     }
 
     private void addBuiltIn(
             LinkedHashMap<String, FieldSpec> fields, String code, String name, String type, boolean indexed) {
-        fields.put(code, new FieldSpec(code, name, type, true, true, indexed, true));
+        fields.put(code, new FieldSpec(code, name, type, true, true, indexed, true, null));
     }
 
     private FieldSpec requireReadableField(
@@ -790,10 +904,10 @@ public class ReportService {
     }
 
     private record FieldSpec(String code, String name, String fieldType, boolean searchable,
-                             boolean readable, boolean indexed, boolean builtIn) {
+                             boolean readable, boolean indexed, boolean builtIn, Long referenceModuleId) {
     }
 
-    private record ModuleSpec(String alias, String moduleCode, String moduleName,
+    private record ModuleSpec(String alias, Long moduleId, String moduleCode, String moduleName,
                               Long versionId, Integer versionNumber,
                               LinkedHashMap<String, FieldSpec> fields) {
     }

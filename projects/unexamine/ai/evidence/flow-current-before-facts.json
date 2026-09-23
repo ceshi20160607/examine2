@@ -1,0 +1,3485 @@
+{
+  "step": "B09.4c",
+  "status": "verified_contribution",
+  "code": "before_5782c4297b",
+  "fields": {
+    "subject": {
+      "id": 248,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 63,
+      "code": "subject",
+      "name": "业务主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 249,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 63,
+      "code": "score",
+      "name": "业务数量",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 250,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 63,
+      "code": "enabled",
+      "name": "是否启用",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "flows": [
+    99,
+    100,
+    101,
+    102
+  ],
+  "actions": [
+    {
+      "idempotencyRecordId": 423,
+      "outboxId": 384,
+      "idempotencyKey": "before_5782c4297be17121d204ce",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 200
+    }
+  ],
+  "platform_instances": [
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    201,
+    202
+  ],
+  "records": [
+    220
+  ],
+  "cases": [
+    {
+      "case": "actual_partial_all_sign_whole_group_pause_keeps_approved_fact_nested_cc_and_approval_same_original_ids",
+      "instance_id": 194
+    },
+    {
+      "case": "actual_worker_control_reminder_completed_skips_expired_suspended_job_then_same_task_and_job_resume_with_frozen_remaining_time",
+      "instance_id": 194,
+      "control_instance": 195
+    },
+    {
+      "case": "actual_sequential_group_same_ids_original_pending_and_queued_no_early_deadline_then_normal_rotation",
+      "instance_id": 196
+    },
+    {
+      "case": "new_before_reject_cancels_all_original_suspended_tasks_jobs_executions",
+      "instance_id": 197
+    },
+    {
+      "case": "new_before_return_cancels_all_original_suspended_tasks_jobs_executions",
+      "instance_id": 198
+    },
+    {
+      "case": "nested_before_terminate_cleans_all_groups_and_paused_jobs",
+      "instance_id": 199
+    },
+    {
+      "case": "actual_source_create_partial_group_same_tasks_candidate4_to8_current_permissions_final_once",
+      "instance_id": 200
+    },
+    {
+      "case": "edge_oracle_wrong_envelope_errorCode_key_after_actual409_no_write_fixed_to_code",
+      "result": "oracle_failure_preserved",
+      "log": "flow-current-before-edge-cases.log"
+    },
+    {
+      "case": "ordinary_original_suspended_task_direct_handle_denied_no_bypass_or_new_history",
+      "instance_id": 194,
+      "error": "FLOW_TASK_ALREADY_HANDLED"
+    },
+    {
+      "case": "actual_new_before_auto_reject_worker_cleans_original_all_sign_suspended_tasks_jobs_executions",
+      "instance_id": 201
+    },
+    {
+      "case": "actual_pending_before_restart_original_same_id_still_suspended_new_waiting_and_frame_jobs_history_persistent"
+    },
+    {
+      "case": "final_current_terminal_shared_cleanup_closes_current_new_active_and_all_nested_original_executions",
+      "instance_id": 202
+    },
+    {
+      "case": "gui_current_before_after_cc_configured_original265_suspended_no_early_cc",
+      "instance_id": 194
+    },
+    {
+      "case": "actual_gui_new_approval_then_cc_once_to_selected97_resumes_original265_completed_reminder_not_repeated",
+      "instance_id": 194
+    },
+    {
+      "case": "ordinary_gui_current_before_preview_confirm_reload_approval_restores_same_old_task_then_actual_completed_selection"
+    },
+    {
+      "case": "same_backend_restart_persistent_frames_graph_restored_same_tasks_history"
+    },
+    {
+      "case": "exact_owned_identity_role_fixture_cleanup_archives_golden_unchanged_no_pending_paused_tasks_jobs_execution",
+      "records_archived": 1
+    },
+    {
+      "case": "initial_terminal199_current_active582_observed_shared_cleanup_extended_to_active_and_suspended_final202_api_verified_only_initial_owned_row_repaired",
+      "initial_owned_cleanup": [
+        [
+          "582",
+          "199",
+          "runtime_057c025f083a4baeb776ecea04e82382"
+        ]
+      ]
+    }
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "checked_time": "2026-09-19T06:27:49.092663+08:00",
+  "registration": {
+    "account_id": 97,
+    "system_id": 99,
+    "username": "before_5782c4297b_gui"
+  },
+  "gui_account": 97,
+  "gui_platform_member": 95,
+  "platform_role_id": 7,
+  "ordinary_platform_role_baseline": [],
+  "ordinary_platform_link_id": 8,
+  "api_member": 161,
+  "module_id": 63,
+  "prepared": true,
+  "api_started": true,
+  "gui_instance": 194,
+  "gui_flow": 99,
+  "baseline_instance": 195,
+  "paused_worker_instance": 194,
+  "paused_job_task": 265,
+  "paused_worker_before": [
+    [
+      "1",
+      "0"
+    ]
+  ],
+  "api_initial_verified": true,
+  "api_more_started": true,
+  "api_verified": true,
+  "suspended_restart_before": {
+    "id": 194,
+    "contextType": "PLATFORM",
+    "platformId": 1,
+    "systemId": null,
+    "tenantId": null,
+    "flowId": 99,
+    "flowVersionId": 108,
+    "flowVersionNumber": 1,
+    "definitionHash": "5c77c0bb91d8903dd283eb2575e5b48445f5b05752da6450f677484257391ff7",
+    "definitionSnapshot": {
+      "edges": [
+        {
+          "edgeKey": "edge_1",
+          "sourceNodeKey": "review",
+          "targetNodeKey": "end"
+        },
+        {
+          "edgeKey": "edge_0",
+          "sourceNodeKey": "start",
+          "targetNodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3"
+        },
+        {
+          "edgeKey": "runtime_25c81a8647134ca8800d35ba000e30a0_entry",
+          "sourceNodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "targetNodeKey": "runtime_78424cb5af1041e6a4620362da2d652d"
+        },
+        {
+          "edgeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3_entry",
+          "sourceNodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "targetNodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0"
+        },
+        {
+          "edgeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f_entry",
+          "sourceNodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "targetNodeKey": "review"
+        },
+        {
+          "edgeKey": "runtime_78424cb5af1041e6a4620362da2d652d_entry",
+          "sourceNodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "targetNodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f"
+        }
+      ],
+      "nodes": [
+        {
+          "nodeKey": "start",
+          "name": "开始",
+          "nodeType": "START"
+        },
+        {
+          "nodeKey": "review",
+          "name": "原始人工核对",
+          "nodeType": "APPROVAL"
+        },
+        {
+          "nodeKey": "end",
+          "name": "结束",
+          "nodeType": "END"
+        },
+        {
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "name": "当前之前独立人工",
+          "nodeType": "APPROVAL"
+        },
+        {
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "name": "当前之前即时真实抄送",
+          "nodeType": "NOTIFICATION"
+        },
+        {
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "name": "嵌套当前之前人工",
+          "nodeType": "APPROVAL"
+        },
+        {
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "name": "页面当前之前补充核对",
+          "nodeType": "APPROVAL"
+        }
+      ]
+    },
+    "businessType": null,
+    "businessId": null,
+    "businessSnapshot": {
+      "label": "未关联业务记录"
+    },
+    "businessView": null,
+    "title": "部分已审批整组前插页面",
+    "currentNodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+    "currentNodeName": "页面当前之前补充核对",
+    "status": "WAITING",
+    "startedByTenantMemberId": null,
+    "startedByCurrentUser": true,
+    "startedByName": "平台超级管理员",
+    "startedAt": "2026-09-19T06:15:48.401+08:00",
+    "finishedAt": null,
+    "errorCode": null,
+    "errorMessage": null,
+    "version": 15,
+    "graphRevision": 655,
+    "runtimeNodeAnchors": [
+      {
+        "nodeKey": "end",
+        "name": "结束",
+        "nodeType": "END",
+        "beforeAllowed": true,
+        "afterAllowed": false
+      }
+    ],
+    "variables": {},
+    "tasks": [
+      {
+        "id": 264,
+        "nodeKey": "review",
+        "taskType": "APPROVAL",
+        "status": "APPROVE",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "平台超级管理员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T07:15:48.458+08:00",
+        "claimedAt": null,
+        "completedAt": "2026-09-19T06:15:49.044+08:00",
+        "version": 1,
+        "candidates": [
+          {
+            "id": 278,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 1,
+            "displayName": "平台超级管理员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T06:15:48.482+08:00"
+          }
+        ]
+      },
+      {
+        "id": 265,
+        "nodeKey": "review",
+        "taskType": "APPROVAL",
+        "status": "SUSPENDED",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "整组前插页面成员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T06:16:28.824+08:00",
+        "claimedAt": null,
+        "completedAt": null,
+        "version": 3,
+        "candidates": [
+          {
+            "id": 279,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 97,
+            "displayName": "整组前插页面成员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T06:15:48.498+08:00"
+          }
+        ]
+      },
+      {
+        "id": 268,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "taskType": "APPROVAL",
+        "status": "APPROVE",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "平台超级管理员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T07:15:50.536+08:00",
+        "claimedAt": null,
+        "completedAt": "2026-09-19T06:16:26.751+08:00",
+        "version": 5,
+        "candidates": [
+          {
+            "id": 282,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 1,
+            "displayName": "平台超级管理员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T06:15:50.058+08:00"
+          }
+        ]
+      },
+      {
+        "id": 269,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "taskType": "APPROVAL",
+        "status": "APPROVE",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "平台超级管理员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T07:15:51.621+08:00",
+        "claimedAt": null,
+        "completedAt": "2026-09-19T06:15:51.959+08:00",
+        "version": 1,
+        "candidates": [
+          {
+            "id": 283,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 1,
+            "displayName": "平台超级管理员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T06:15:51.631+08:00"
+          }
+        ]
+      },
+      {
+        "id": 286,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "taskType": "APPROVAL",
+        "status": "PENDING",
+        "currentHandler": false,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "整组前插页面成员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T07:17:37.136+08:00",
+        "claimedAt": null,
+        "completedAt": null,
+        "version": 0,
+        "candidates": [
+          {
+            "id": 300,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 97,
+            "displayName": "整组前插页面成员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T06:17:37.149+08:00"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": 619,
+        "taskId": null,
+        "nodeKey": "start",
+        "actionCode": "START",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297b46c801ee6847",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:48.429+08:00"
+      },
+      {
+        "id": 621,
+        "taskId": 264,
+        "nodeKey": "review",
+        "actionCode": "APPROVE",
+        "comment": "真实核对当前候选内容",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297b356b2963d6e9",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:49.05+08:00"
+      },
+      {
+        "id": 622,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "actionCode": "RUNTIME_NODE_ADDED",
+        "comment": "本次实例需要补充核对，模板保持原路径",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297b52ada28ba756",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:49.993+08:00"
+      },
+      {
+        "id": 623,
+        "taskId": null,
+        "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+        "actionCode": "RUNTIME_NODE_ADDED",
+        "comment": "本次实例需要补充核对，模板保持原路径",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297bd4369b9657ab",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:51.04+08:00"
+      },
+      {
+        "id": 624,
+        "taskId": null,
+        "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+        "actionCode": "AUTO_EXECUTED",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "AUTO:runtime_d00546f45422418194b0f64c9ba3a3b3:153627c1-9b73-4a53-9e1e-5fd77f30c513",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:51.09+08:00"
+      },
+      {
+        "id": 625,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "actionCode": "RUNTIME_NODE_RESUMED",
+        "comment": "新增节点完成，继续原节点整组待办",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "RUNTIME_NODE_RESUMED:623",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:51.111+08:00"
+      },
+      {
+        "id": 626,
+        "taskId": null,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "actionCode": "RUNTIME_NODE_ADDED",
+        "comment": "本次实例需要补充核对，模板保持原路径",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297b15ec77c21588",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:51.585+08:00"
+      },
+      {
+        "id": 627,
+        "taskId": 269,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "actionCode": "APPROVE",
+        "comment": "真实核对当前候选内容",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297bc851af197b13",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:51.962+08:00"
+      },
+      {
+        "id": 628,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "actionCode": "RUNTIME_NODE_RESUMED",
+        "comment": "新增节点完成，继续原节点整组待办",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "RUNTIME_NODE_RESUMED:626",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:15:52.012+08:00"
+      },
+      {
+        "id": 629,
+        "taskId": 268,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "actionCode": "APPROVE",
+        "comment": "真实核对当前候选内容",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "before_5782c4297b762eb4a52bf8",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:16:26.754+08:00"
+      },
+      {
+        "id": 630,
+        "taskId": null,
+        "nodeKey": "review",
+        "actionCode": "RUNTIME_NODE_RESUMED",
+        "comment": "新增节点完成，继续原节点整组待办",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "RUNTIME_NODE_RESUMED:622",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T06:16:26.798+08:00"
+      },
+      {
+        "id": 655,
+        "taskId": null,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "actionCode": "RUNTIME_NODE_ADDED",
+        "comment": "先处理本次新增核对，再继续原会签待办",
+        "input": {},
+        "result": {},
+        "idempotencyKey": "flow-runtime-node-1789769846259-dtrsost",
+        "actedByTenantMemberId": null,
+        "actedByName": "整组前插页面成员",
+        "actedAt": "2026-09-19T06:17:37.094+08:00"
+      }
+    ],
+    "exceptions": [],
+    "executions": [
+      {
+        "id": 562,
+        "parentExecutionId": null,
+        "nodeKey": "start",
+        "nodeType": "START",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T06:15:48.406+08:00",
+        "leftAt": "2026-09-19T06:15:48.407+08:00",
+        "resultCode": "STARTED",
+        "version": 1
+      },
+      {
+        "id": 563,
+        "parentExecutionId": null,
+        "nodeKey": "review",
+        "nodeType": "APPROVAL",
+        "status": "SUSPENDED",
+        "enteredAt": "2026-09-19T06:15:48.443+08:00",
+        "leftAt": null,
+        "resultCode": null,
+        "version": 3
+      },
+      {
+        "id": 566,
+        "parentExecutionId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "nodeType": "APPROVAL",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T06:15:50.038+08:00",
+        "leftAt": "2026-09-19T06:16:26.767+08:00",
+        "resultCode": "APPROVE",
+        "version": 5
+      },
+      {
+        "id": 567,
+        "parentExecutionId": null,
+        "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+        "nodeType": "NOTIFICATION",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T06:15:51.064+08:00",
+        "leftAt": "2026-09-19T06:15:51.085+08:00",
+        "resultCode": "COMPLETED",
+        "version": 1
+      },
+      {
+        "id": 568,
+        "parentExecutionId": null,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "nodeType": "APPROVAL",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T06:15:51.614+08:00",
+        "leftAt": "2026-09-19T06:15:51.978+08:00",
+        "resultCode": "APPROVE",
+        "version": 1
+      },
+      {
+        "id": 587,
+        "parentExecutionId": null,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "nodeType": "APPROVAL",
+        "status": "ACTIVE",
+        "enteredAt": "2026-09-19T06:17:37.128+08:00",
+        "leftAt": null,
+        "resultCode": null,
+        "version": 0
+      }
+    ],
+    "history": [
+      {
+        "id": 1121,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "INSTANCE",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:48.415+08:00"
+      },
+      {
+        "id": 1122,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "ACTION",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:48.431+08:00"
+      },
+      {
+        "id": 1123,
+        "executionId": 563,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:48.476+08:00"
+      },
+      {
+        "id": 1124,
+        "executionId": 563,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:48.493+08:00"
+      },
+      {
+        "id": 1125,
+        "executionId": null,
+        "taskId": 264,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:48.5+08:00"
+      },
+      {
+        "id": 1131,
+        "executionId": null,
+        "taskId": 264,
+        "nodeKey": "review",
+        "eventType": "ACTION",
+        "eventName": "审批通过",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:49.053+08:00"
+      },
+      {
+        "id": 1132,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "ACTION",
+        "eventName": "已增加审批：当前之前独立人工（当前节点之前）",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "WAITING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:49.996+08:00"
+      },
+      {
+        "id": 1133,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "NODE_SUSPENDED",
+        "eventName": "原节点整组待办与剩余时限已暂停",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "ACTIVE",
+        "afterStatus": "SUSPENDED",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:49.998+08:00"
+      },
+      {
+        "id": 1134,
+        "executionId": 566,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:50.055+08:00"
+      },
+      {
+        "id": 1135,
+        "executionId": null,
+        "taskId": 268,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:50.06+08:00"
+      },
+      {
+        "id": 1136,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+        "eventType": "ACTION",
+        "eventName": "已增加抄送：当前之前即时真实抄送（当前节点之前）",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "WAITING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.043+08:00"
+      },
+      {
+        "id": 1137,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "NODE_SUSPENDED",
+        "eventName": "原节点整组待办与剩余时限已暂停",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "ACTIVE",
+        "afterStatus": "SUSPENDED",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.045+08:00"
+      },
+      {
+        "id": 1138,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+        "eventType": "ACTION",
+        "eventName": "自动节点已完成",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.092+08:00"
+      },
+      {
+        "id": 1139,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "ACTION",
+        "eventName": "新增节点完成，恢复原节点待办",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.113+08:00"
+      },
+      {
+        "id": 1140,
+        "executionId": 566,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "NODE_RESUMED",
+        "eventName": "原节点整组待办与剩余时限已恢复",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "SUSPENDED",
+        "afterStatus": "ACTIVE",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.115+08:00"
+      },
+      {
+        "id": 1141,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "eventType": "ACTION",
+        "eventName": "已增加审批：嵌套当前之前人工（当前节点之前）",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "WAITING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.587+08:00"
+      },
+      {
+        "id": 1142,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "NODE_SUSPENDED",
+        "eventName": "原节点整组待办与剩余时限已暂停",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "ACTIVE",
+        "afterStatus": "SUSPENDED",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.589+08:00"
+      },
+      {
+        "id": 1143,
+        "executionId": 568,
+        "taskId": null,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.628+08:00"
+      },
+      {
+        "id": 1144,
+        "executionId": null,
+        "taskId": 269,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.633+08:00"
+      },
+      {
+        "id": 1145,
+        "executionId": null,
+        "taskId": 269,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "eventType": "ACTION",
+        "eventName": "审批通过",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:51.966+08:00"
+      },
+      {
+        "id": 1146,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "ACTION",
+        "eventName": "新增节点完成，恢复原节点待办",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:52.014+08:00"
+      },
+      {
+        "id": 1147,
+        "executionId": 566,
+        "taskId": null,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "NODE_RESUMED",
+        "eventName": "原节点整组待办与剩余时限已恢复",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "SUSPENDED",
+        "afterStatus": "ACTIVE",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:15:52.016+08:00"
+      },
+      {
+        "id": 1149,
+        "executionId": null,
+        "taskId": 268,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "eventType": "ACTION",
+        "eventName": "审批通过",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:16:26.757+08:00"
+      },
+      {
+        "id": 1150,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "ACTION",
+        "eventName": "新增节点完成，恢复原节点待办",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:16:26.8+08:00"
+      },
+      {
+        "id": 1151,
+        "executionId": 563,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "NODE_RESUMED",
+        "eventName": "原节点整组待办与剩余时限已恢复",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": "SUSPENDED",
+        "afterStatus": "ACTIVE",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:16:26.803+08:00"
+      },
+      {
+        "id": 1177,
+        "executionId": 563,
+        "taskId": 265,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "处理超时，已提醒当前处理人（任务继续待处理）",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "PENDING",
+        "afterStatus": "PENDING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:16:29.761+08:00"
+      },
+      {
+        "id": 1215,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "eventType": "ACTION",
+        "eventName": "已增加审批：页面当前之前补充核对（当前节点之前）",
+        "actorTenantMemberId": null,
+        "actorName": "整组前插页面成员",
+        "beforeStatus": "WAITING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:17:37.096+08:00"
+      },
+      {
+        "id": 1216,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "NODE_SUSPENDED",
+        "eventName": "原节点整组待办与剩余时限已暂停",
+        "actorTenantMemberId": null,
+        "actorName": "整组前插页面成员",
+        "beforeStatus": "ACTIVE",
+        "afterStatus": "SUSPENDED",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:17:37.098+08:00"
+      },
+      {
+        "id": 1217,
+        "executionId": 587,
+        "taskId": null,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:17:37.146+08:00"
+      },
+      {
+        "id": 1218,
+        "executionId": null,
+        "taskId": 286,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T06:17:37.151+08:00"
+      }
+    ],
+    "jobs": [
+      {
+        "id": 52,
+        "executionId": 563,
+        "nodeKey": "review",
+        "jobType": "TASK_TIMEOUT",
+        "status": "CANCELLED",
+        "attemptCount": 0,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T07:15:48.458+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": "2026-09-19T06:15:49.073+08:00",
+        "version": 1
+      },
+      {
+        "id": 53,
+        "executionId": 563,
+        "nodeKey": "review",
+        "jobType": "TASK_TIMEOUT",
+        "status": "COMPLETED",
+        "attemptCount": 1,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T06:16:28.824+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": "2026-09-19T06:16:29.758+08:00",
+        "version": 4
+      },
+      {
+        "id": 56,
+        "executionId": 566,
+        "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+        "jobType": "TASK_TIMEOUT",
+        "status": "CANCELLED",
+        "attemptCount": 0,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T07:15:50.536+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": "2026-09-19T06:16:26.763+08:00",
+        "version": 5
+      },
+      {
+        "id": 57,
+        "executionId": 568,
+        "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+        "jobType": "TASK_TIMEOUT",
+        "status": "CANCELLED",
+        "attemptCount": 0,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T07:15:51.621+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": "2026-09-19T06:15:51.973+08:00",
+        "version": 1
+      },
+      {
+        "id": 71,
+        "executionId": 587,
+        "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+        "jobType": "TASK_TIMEOUT",
+        "status": "PENDING",
+        "attemptCount": 0,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T07:17:37.136+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": null,
+        "version": 0
+      }
+    ],
+    "allowedActions": [
+      "WITHDRAW",
+      "TERMINATE",
+      "ADD_RUNTIME_NODE"
+    ],
+    "nextStep": "等待已解析审批人处理“页面当前之前补充核对”"
+  },
+  "edge_verified": true,
+  "suspended_restart_verified": true,
+  "terminal_execution_verified": true,
+  "template_before_gui_completion": [
+    [
+      "108",
+      "1",
+      "5c77c0bb91d8903dd283eb2575e5b48445f5b05752da6450f677484257391ff7",
+      "7B22636F6465223A20226265666F72655F353738326334323937625F363937633062222C20226E616D65223A2022E983A8E58886E4BC9AE7ADBEE58588E69A82E5819CE5868DE681A2E5A48D222C20226564676573223A205B7B226964223A203435352C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203435362C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203633302C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633312C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A2022414C4C5F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A202252454D494E44222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039375D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633322C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A2039392C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "109",
+      "1",
+      "139fdc7cc39644525bb7f76982f0afec99dc23c3c247ec09db4727d505dd885e",
+      "7B22636F6465223A20226265666F72655F353738326334323937625F633831366461222C20226E616D65223A2022E9A1BAE5BA8FE7BB84E69A82E5819CE4BF9DE79599E68E92E9989F222C20226564676573223A205B7B226964223A203435372C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203435382C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203633332C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633342C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A202253455155454E5449414C227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A202252454D494E44222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039375D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633352C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130302C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "110",
+      "1",
+      "68c13d77f37be1d6c67a820cee83e78bf970a2b39ea93a7c0122f928bc54d592",
+      "7B22636F6465223A20226265666F72655F353738326334323937625F613235333365222C20226E616D65223A2022E58E9FE4B89AE58AA1E983A8E58886E4BC9AE7ADBEE5898DE68F92E58099E98089E4B880E6ACA1E689A7E8A18C222C20226564676573223A205B7B226964223A203435392C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203436302C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203633362C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B226D6F64756C654964223A2036337D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633372C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A2022414C4C5F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B226564697461626C65223A205B227375626A656374222C202273636F7265222C2022656E61626C6564225D2C20227265717569726564223A205B227375626A656374225D7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A202252454D494E44222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C202274656E616E744D656D626572496473223A205B37342C203136315D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203633382C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130312C202273797374656D4964223A2035342C202274656E616E744964223A2035372C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A202253595354454D222C2022666F726D436F6E74657874223A207B226669656C6473223A205B7B226964223A203234382C2022636F6465223A20227375626A656374222C20226E616D65223A2022E4B89AE58AA1E4B8BBE9A298222C20226564697461626C65223A20747275652C20226669656C6454797065223A202254455854222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D2C207B226964223A203234392C2022636F6465223A202273636F7265222C20226E616D65223A2022E4B89AE58AA1E695B0E9878F222C20226564697461626C65223A20747275652C20226669656C6454797065223A20224E554D424552222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D2C207B226964223A203235302C2022636F6465223A2022656E61626C6564222C20226E616D65223A2022E698AFE590A6E590AFE794A8222C20226564697461626C65223A20747275652C20226669656C6454797065223A2022424F4F4C45414E222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D5D2C20226D6F64756C654964223A2036332C20226D6F64756C65436F6465223A20226265666F72655F35373832633432393762222C20226D6F64756C6556657273696F6E4964223A203131317D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B226669656C6473223A205B5D2C20226D6F64756C654964223A2036332C20226D6F64756C65436F6465223A20226265666F72655F35373832633432393762222C20226669656C6442696E64696E6773223A205B5D2C20226D6F64756C6556657273696F6E4964223A203131317D7D"
+    ],
+    [
+      "111",
+      "1",
+      "ac70b001752c2c85b0b348ced308b0022bc7c51f7efb0a11e858c8e9ef55e3fa",
+      "7B22636F6465223A20226265666F72655F353738326334323937625F613030633865222C20226E616D65223A2022E696B0E5A29EE88A82E782B9E8B685E697B6E68B92E7BB9DE6B885E58E9FE7BB84222C20226564676573223A205B7B226964223A203436332C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203436342C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203634322C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203634332C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A2022414C4C5F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A20224155544F5F52454A454354222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039375D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203634342C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130322C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20332C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ]
+  ],
+  "gui_interim_verified": true,
+  "gui_resumed_verified": true,
+  "gui_verified": true,
+  "restart_before": {
+    "194": {
+      "id": 194,
+      "contextType": "PLATFORM",
+      "platformId": 1,
+      "systemId": null,
+      "tenantId": null,
+      "flowId": 99,
+      "flowVersionId": 108,
+      "flowVersionNumber": 1,
+      "definitionHash": "5c77c0bb91d8903dd283eb2575e5b48445f5b05752da6450f677484257391ff7",
+      "definitionSnapshot": {
+        "edges": [
+          {
+            "edgeKey": "edge_1",
+            "sourceNodeKey": "review",
+            "targetNodeKey": "end"
+          },
+          {
+            "edgeKey": "edge_0",
+            "sourceNodeKey": "start",
+            "targetNodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3"
+          },
+          {
+            "edgeKey": "runtime_25c81a8647134ca8800d35ba000e30a0_entry",
+            "sourceNodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+            "targetNodeKey": "runtime_78424cb5af1041e6a4620362da2d652d"
+          },
+          {
+            "edgeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3_entry",
+            "sourceNodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+            "targetNodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0"
+          },
+          {
+            "edgeKey": "runtime_78424cb5af1041e6a4620362da2d652d_entry",
+            "sourceNodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+            "targetNodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f"
+          },
+          {
+            "edgeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98_entry",
+            "sourceNodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+            "targetNodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98"
+          },
+          {
+            "edgeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f_entry",
+            "sourceNodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+            "targetNodeKey": "review"
+          }
+        ],
+        "nodes": [
+          {
+            "nodeKey": "start",
+            "name": "开始",
+            "nodeType": "START"
+          },
+          {
+            "nodeKey": "review",
+            "name": "原始人工核对",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "end",
+            "name": "结束",
+            "nodeType": "END"
+          },
+          {
+            "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+            "name": "当前之前独立人工",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+            "name": "当前之前即时真实抄送",
+            "nodeType": "NOTIFICATION"
+          },
+          {
+            "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+            "name": "嵌套当前之前人工",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+            "name": "页面当前之前补充核对",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+            "name": "前插核对完成后真实抄送",
+            "nodeType": "NOTIFICATION"
+          }
+        ]
+      },
+      "businessType": null,
+      "businessId": null,
+      "businessSnapshot": {
+        "label": "未关联业务记录"
+      },
+      "businessView": null,
+      "title": "部分已审批整组前插页面",
+      "currentNodeKey": "end",
+      "currentNodeName": "结束",
+      "status": "COMPLETED",
+      "startedByTenantMemberId": null,
+      "startedByCurrentUser": true,
+      "startedByName": "平台超级管理员",
+      "startedAt": "2026-09-19T06:15:48.401+08:00",
+      "finishedAt": "2026-09-19T06:26:10.353+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 21,
+      "graphRevision": 662,
+      "runtimeNodeAnchors": [],
+      "variables": {},
+      "tasks": [
+        {
+          "id": 264,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:15:48.458+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:15:49.044+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 278,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 1,
+              "displayName": "平台超级管理员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:48.482+08:00"
+            }
+          ]
+        },
+        {
+          "id": 265,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "整组前插页面成员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T06:25:43.17+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:26:10.305+08:00",
+          "version": 5,
+          "candidates": [
+            {
+              "id": 279,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 97,
+              "displayName": "整组前插页面成员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:48.498+08:00"
+            }
+          ]
+        },
+        {
+          "id": 268,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:15:50.536+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:16:26.751+08:00",
+          "version": 5,
+          "candidates": [
+            {
+              "id": 282,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 1,
+              "displayName": "平台超级管理员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:50.058+08:00"
+            }
+          ]
+        },
+        {
+          "id": 269,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:15:51.621+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:15:51.959+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 283,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 1,
+              "displayName": "平台超级管理员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:51.631+08:00"
+            }
+          ]
+        },
+        {
+          "id": 286,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "整组前插页面成员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:17:37.136+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:25:43.104+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 300,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 97,
+              "displayName": "整组前插页面成员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:17:37.149+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 619,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b46c801ee6847",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:48.429+08:00"
+        },
+        {
+          "id": 621,
+          "taskId": 264,
+          "nodeKey": "review",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b356b2963d6e9",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:49.05+08:00"
+        },
+        {
+          "id": 622,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "本次实例需要补充核对，模板保持原路径",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b52ada28ba756",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:49.993+08:00"
+        },
+        {
+          "id": 623,
+          "taskId": null,
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "本次实例需要补充核对，模板保持原路径",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297bd4369b9657ab",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:51.04+08:00"
+        },
+        {
+          "id": 624,
+          "taskId": null,
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "actionCode": "AUTO_EXECUTED",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "AUTO:runtime_d00546f45422418194b0f64c9ba3a3b3:153627c1-9b73-4a53-9e1e-5fd77f30c513",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:51.09+08:00"
+        },
+        {
+          "id": 625,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "actionCode": "RUNTIME_NODE_RESUMED",
+          "comment": "新增节点完成，继续原节点整组待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "RUNTIME_NODE_RESUMED:623",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:51.111+08:00"
+        },
+        {
+          "id": 626,
+          "taskId": null,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "本次实例需要补充核对，模板保持原路径",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b15ec77c21588",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:51.585+08:00"
+        },
+        {
+          "id": 627,
+          "taskId": 269,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297bc851af197b13",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:51.962+08:00"
+        },
+        {
+          "id": 628,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "actionCode": "RUNTIME_NODE_RESUMED",
+          "comment": "新增节点完成，继续原节点整组待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "RUNTIME_NODE_RESUMED:626",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:52.012+08:00"
+        },
+        {
+          "id": 629,
+          "taskId": 268,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b762eb4a52bf8",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:26.754+08:00"
+        },
+        {
+          "id": 630,
+          "taskId": null,
+          "nodeKey": "review",
+          "actionCode": "RUNTIME_NODE_RESUMED",
+          "comment": "新增节点完成，继续原节点整组待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "RUNTIME_NODE_RESUMED:622",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:26.798+08:00"
+        },
+        {
+          "id": 655,
+          "taskId": null,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "先处理本次新增核对，再继续原会签待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "flow-runtime-node-1789769846259-dtrsost",
+          "actedByTenantMemberId": null,
+          "actedByName": "整组前插页面成员",
+          "actedAt": "2026-09-19T06:17:37.094+08:00"
+        },
+        {
+          "id": 662,
+          "taskId": null,
+          "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "新增审批处理完成后通知，再恢复原会签",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "flow-runtime-node-1789770281881-doh3t5d",
+          "actedByTenantMemberId": null,
+          "actedByName": "整组前插页面成员",
+          "actedAt": "2026-09-19T06:24:47.45+08:00"
+        },
+        {
+          "id": 663,
+          "taskId": 286,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "actionCode": "APPROVE",
+          "comment": "新增核对完成，继续原会签",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "flow-approve-1789770342999-fah59u3",
+          "actedByTenantMemberId": null,
+          "actedByName": "整组前插页面成员",
+          "actedAt": "2026-09-19T06:25:43.11+08:00"
+        },
+        {
+          "id": 664,
+          "taskId": null,
+          "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+          "actionCode": "AUTO_EXECUTED",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "AUTO:runtime_815f1a49fbce4d6696a1b479c3f89b98:ab5d1a53-f5c3-410f-bca5-5c4c60142916",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:25:43.166+08:00"
+        },
+        {
+          "id": 665,
+          "taskId": null,
+          "nodeKey": "review",
+          "actionCode": "RUNTIME_NODE_RESUMED",
+          "comment": "新增节点完成，继续原节点整组待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "RUNTIME_NODE_RESUMED:655",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:25:43.184+08:00"
+        },
+        {
+          "id": 666,
+          "taskId": 265,
+          "nodeKey": "review",
+          "actionCode": "APPROVE",
+          "comment": "原会签核对完成",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "flow-approve-1789770370233-lb0a53i",
+          "actedByTenantMemberId": null,
+          "actedByName": "整组前插页面成员",
+          "actedAt": "2026-09-19T06:26:10.312+08:00"
+        },
+        {
+          "id": 667,
+          "taskId": null,
+          "nodeKey": "end",
+          "actionCode": "AUTO_END",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "AUTO:end:9f31ed87-c74c-428b-907f-ad705ad9b592",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:26:10.363+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 562,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:48.406+08:00",
+          "leftAt": "2026-09-19T06:15:48.407+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 563,
+          "parentExecutionId": null,
+          "nodeKey": "review",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:48.443+08:00",
+          "leftAt": "2026-09-19T06:26:10.329+08:00",
+          "resultCode": "APPROVE",
+          "version": 5
+        },
+        {
+          "id": 566,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:50.038+08:00",
+          "leftAt": "2026-09-19T06:16:26.767+08:00",
+          "resultCode": "APPROVE",
+          "version": 5
+        },
+        {
+          "id": 567,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "nodeType": "NOTIFICATION",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:51.064+08:00",
+          "leftAt": "2026-09-19T06:15:51.085+08:00",
+          "resultCode": "COMPLETED",
+          "version": 1
+        },
+        {
+          "id": 568,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:51.614+08:00",
+          "leftAt": "2026-09-19T06:15:51.978+08:00",
+          "resultCode": "APPROVE",
+          "version": 1
+        },
+        {
+          "id": 587,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:17:37.128+08:00",
+          "leftAt": "2026-09-19T06:25:43.126+08:00",
+          "resultCode": "APPROVE",
+          "version": 1
+        },
+        {
+          "id": 595,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+          "nodeType": "NOTIFICATION",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:25:43.143+08:00",
+          "leftAt": "2026-09-19T06:25:43.163+08:00",
+          "resultCode": "COMPLETED",
+          "version": 1
+        },
+        {
+          "id": 596,
+          "parentExecutionId": null,
+          "nodeKey": "end",
+          "nodeType": "END",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:26:10.352+08:00",
+          "leftAt": "2026-09-19T06:26:10.356+08:00",
+          "resultCode": "COMPLETED",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 1121,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.415+08:00"
+        },
+        {
+          "id": 1122,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.431+08:00"
+        },
+        {
+          "id": 1123,
+          "executionId": 563,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.476+08:00"
+        },
+        {
+          "id": 1124,
+          "executionId": 563,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.493+08:00"
+        },
+        {
+          "id": 1125,
+          "executionId": null,
+          "taskId": 264,
+          "nodeKey": "review",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.5+08:00"
+        },
+        {
+          "id": 1131,
+          "executionId": null,
+          "taskId": 264,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:49.053+08:00"
+        },
+        {
+          "id": 1132,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "ACTION",
+          "eventName": "已增加审批：当前之前独立人工（当前节点之前）",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:49.996+08:00"
+        },
+        {
+          "id": 1133,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_SUSPENDED",
+          "eventName": "原节点整组待办与剩余时限已暂停",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "ACTIVE",
+          "afterStatus": "SUSPENDED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:49.998+08:00"
+        },
+        {
+          "id": 1134,
+          "executionId": 566,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:50.055+08:00"
+        },
+        {
+          "id": 1135,
+          "executionId": null,
+          "taskId": 268,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:50.06+08:00"
+        },
+        {
+          "id": 1136,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "eventType": "ACTION",
+          "eventName": "已增加抄送：当前之前即时真实抄送（当前节点之前）",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.043+08:00"
+        },
+        {
+          "id": 1137,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "NODE_SUSPENDED",
+          "eventName": "原节点整组待办与剩余时限已暂停",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "ACTIVE",
+          "afterStatus": "SUSPENDED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.045+08:00"
+        },
+        {
+          "id": 1138,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_d00546f45422418194b0f64c9ba3a3b3",
+          "eventType": "ACTION",
+          "eventName": "自动节点已完成",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.092+08:00"
+        },
+        {
+          "id": 1139,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "ACTION",
+          "eventName": "新增节点完成，恢复原节点待办",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.113+08:00"
+        },
+        {
+          "id": 1140,
+          "executionId": 566,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "NODE_RESUMED",
+          "eventName": "原节点整组待办与剩余时限已恢复",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "SUSPENDED",
+          "afterStatus": "ACTIVE",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.115+08:00"
+        },
+        {
+          "id": 1141,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "eventType": "ACTION",
+          "eventName": "已增加审批：嵌套当前之前人工（当前节点之前）",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.587+08:00"
+        },
+        {
+          "id": 1142,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "NODE_SUSPENDED",
+          "eventName": "原节点整组待办与剩余时限已暂停",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "ACTIVE",
+          "afterStatus": "SUSPENDED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.589+08:00"
+        },
+        {
+          "id": 1143,
+          "executionId": 568,
+          "taskId": null,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.628+08:00"
+        },
+        {
+          "id": 1144,
+          "executionId": null,
+          "taskId": 269,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.633+08:00"
+        },
+        {
+          "id": 1145,
+          "executionId": null,
+          "taskId": 269,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:51.966+08:00"
+        },
+        {
+          "id": 1146,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "ACTION",
+          "eventName": "新增节点完成，恢复原节点待办",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:52.014+08:00"
+        },
+        {
+          "id": 1147,
+          "executionId": 566,
+          "taskId": null,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "NODE_RESUMED",
+          "eventName": "原节点整组待办与剩余时限已恢复",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "SUSPENDED",
+          "afterStatus": "ACTIVE",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:52.016+08:00"
+        },
+        {
+          "id": 1149,
+          "executionId": null,
+          "taskId": 268,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:26.757+08:00"
+        },
+        {
+          "id": 1150,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "新增节点完成，恢复原节点待办",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:26.8+08:00"
+        },
+        {
+          "id": 1151,
+          "executionId": 563,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_RESUMED",
+          "eventName": "原节点整组待办与剩余时限已恢复",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "SUSPENDED",
+          "afterStatus": "ACTIVE",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:26.803+08:00"
+        },
+        {
+          "id": 1177,
+          "executionId": 563,
+          "taskId": 265,
+          "nodeKey": "review",
+          "eventType": "TASK",
+          "eventName": "处理超时，已提醒当前处理人（任务继续待处理）",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "PENDING",
+          "afterStatus": "PENDING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:29.761+08:00"
+        },
+        {
+          "id": 1215,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "eventType": "ACTION",
+          "eventName": "已增加审批：页面当前之前补充核对（当前节点之前）",
+          "actorTenantMemberId": null,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:17:37.096+08:00"
+        },
+        {
+          "id": 1216,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_SUSPENDED",
+          "eventName": "原节点整组待办与剩余时限已暂停",
+          "actorTenantMemberId": null,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": "ACTIVE",
+          "afterStatus": "SUSPENDED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:17:37.098+08:00"
+        },
+        {
+          "id": 1217,
+          "executionId": 587,
+          "taskId": null,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:17:37.146+08:00"
+        },
+        {
+          "id": 1218,
+          "executionId": null,
+          "taskId": 286,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:17:37.151+08:00"
+        },
+        {
+          "id": 1243,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+          "eventType": "ACTION",
+          "eventName": "已增加抄送：前插核对完成后真实抄送（当前节点之后）",
+          "actorTenantMemberId": null,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:24:47.452+08:00"
+        },
+        {
+          "id": 1244,
+          "executionId": null,
+          "taskId": 286,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": null,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:25:43.113+08:00"
+        },
+        {
+          "id": 1245,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_815f1a49fbce4d6696a1b479c3f89b98",
+          "eventType": "ACTION",
+          "eventName": "自动节点已完成",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:25:43.167+08:00"
+        },
+        {
+          "id": 1246,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "新增节点完成，恢复原节点待办",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:25:43.185+08:00"
+        },
+        {
+          "id": 1247,
+          "executionId": 563,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_RESUMED",
+          "eventName": "原节点整组待办与剩余时限已恢复",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "SUSPENDED",
+          "afterStatus": "ACTIVE",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:25:43.188+08:00"
+        },
+        {
+          "id": 1248,
+          "executionId": null,
+          "taskId": 265,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": null,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:26:10.315+08:00"
+        },
+        {
+          "id": 1249,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "end",
+          "eventType": "ACTION",
+          "eventName": "流程已完成",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "COMPLETED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:26:10.365+08:00"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 52,
+          "executionId": 563,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:15:48.458+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:15:49.073+08:00",
+          "version": 1
+        },
+        {
+          "id": 53,
+          "executionId": 563,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "COMPLETED",
+          "attemptCount": 1,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T06:16:28.824+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:29.758+08:00",
+          "version": 4
+        },
+        {
+          "id": 56,
+          "executionId": 566,
+          "nodeKey": "runtime_78424cb5af1041e6a4620362da2d652d",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:15:50.536+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:26.763+08:00",
+          "version": 5
+        },
+        {
+          "id": 57,
+          "executionId": 568,
+          "nodeKey": "runtime_25c81a8647134ca8800d35ba000e30a0",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:15:51.621+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:15:51.973+08:00",
+          "version": 1
+        },
+        {
+          "id": 71,
+          "executionId": 587,
+          "nodeKey": "runtime_dbc91f0240814ea0a9501aec43f35f9f",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:17:37.136+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:25:43.12+08:00",
+          "version": 1
+        }
+      ],
+      "allowedActions": [],
+      "nextStep": "Flow 已完成"
+    },
+    "195": {
+      "id": 195,
+      "contextType": "PLATFORM",
+      "platformId": 1,
+      "systemId": null,
+      "tenantId": null,
+      "flowId": 99,
+      "flowVersionId": 108,
+      "flowVersionNumber": 1,
+      "definitionHash": "5c77c0bb91d8903dd283eb2575e5b48445f5b05752da6450f677484257391ff7",
+      "definitionSnapshot": {
+        "edges": [
+          {
+            "edgeKey": "edge_0",
+            "sourceNodeKey": "start",
+            "targetNodeKey": "review"
+          },
+          {
+            "edgeKey": "edge_1",
+            "sourceNodeKey": "review",
+            "targetNodeKey": "end"
+          }
+        ],
+        "nodes": [
+          {
+            "nodeKey": "start",
+            "name": "开始",
+            "nodeType": "START"
+          },
+          {
+            "nodeKey": "review",
+            "name": "原始人工核对",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "end",
+            "name": "结束",
+            "nodeType": "END"
+          }
+        ]
+      },
+      "businessType": null,
+      "businessId": null,
+      "businessSnapshot": {
+        "label": "未关联业务记录"
+      },
+      "businessView": null,
+      "title": "同平台模板另一实例原组",
+      "currentNodeKey": "review",
+      "currentNodeName": "原始人工核对",
+      "status": "WAITING",
+      "startedByTenantMemberId": null,
+      "startedByCurrentUser": true,
+      "startedByName": "平台超级管理员",
+      "startedAt": "2026-09-19T06:15:48.694+08:00",
+      "finishedAt": null,
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 1,
+      "graphRevision": 0,
+      "runtimeNodeAnchors": [
+        {
+          "nodeKey": "end",
+          "name": "结束",
+          "nodeType": "END",
+          "beforeAllowed": true,
+          "afterAllowed": false
+        }
+      ],
+      "variables": {},
+      "tasks": [
+        {
+          "id": 266,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "PENDING",
+          "currentHandler": true,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T06:16:22+08:00",
+          "claimedAt": null,
+          "completedAt": null,
+          "version": 0,
+          "candidates": [
+            {
+              "id": 280,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 1,
+              "displayName": "平台超级管理员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:48.743+08:00"
+            }
+          ]
+        },
+        {
+          "id": 267,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "PENDING",
+          "currentHandler": false,
+          "assigneeTenantMemberId": null,
+          "assigneeName": "整组前插页面成员",
+          "assigneeDepartment": null,
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:15:48.744+08:00",
+          "claimedAt": null,
+          "completedAt": null,
+          "version": 0,
+          "candidates": [
+            {
+              "id": 281,
+              "candidateType": "PLATFORM_ACCOUNT",
+              "tenantMemberId": null,
+              "accountId": 97,
+              "displayName": "整组前插页面成员",
+              "departmentName": null,
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:15:48.758+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 620,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297ba6b911b212ce",
+          "actedByTenantMemberId": null,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:15:48.709+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 564,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:15:48.696+08:00",
+          "leftAt": "2026-09-19T06:15:48.697+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 565,
+          "parentExecutionId": null,
+          "nodeKey": "review",
+          "nodeType": "APPROVAL",
+          "status": "ACTIVE",
+          "enteredAt": "2026-09-19T06:15:48.717+08:00",
+          "leftAt": null,
+          "resultCode": null,
+          "version": 0
+        }
+      ],
+      "history": [
+        {
+          "id": 1126,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.7+08:00"
+        },
+        {
+          "id": 1127,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": null,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.712+08:00"
+        },
+        {
+          "id": 1128,
+          "executionId": 565,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.739+08:00"
+        },
+        {
+          "id": 1129,
+          "executionId": 565,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.752+08:00"
+        },
+        {
+          "id": 1130,
+          "executionId": null,
+          "taskId": 266,
+          "nodeKey": "review",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:15:48.761+08:00"
+        },
+        {
+          "id": 1148,
+          "executionId": 565,
+          "taskId": 266,
+          "nodeKey": "review",
+          "eventType": "TASK",
+          "eventName": "处理超时，已提醒当前处理人（任务继续待处理）",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "PENDING",
+          "afterStatus": "PENDING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:25.725+08:00"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 54,
+          "executionId": 565,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "COMPLETED",
+          "attemptCount": 1,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T06:16:22+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:25.72+08:00",
+          "version": 2
+        },
+        {
+          "id": 55,
+          "executionId": 565,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "PENDING",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:15:48.744+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": null,
+          "version": 0
+        }
+      ],
+      "allowedActions": [
+        "APPROVE",
+        "REJECT",
+        "RETURN",
+        "TRANSFER",
+        "WITHDRAW",
+        "TERMINATE",
+        "ADD_RUNTIME_NODE"
+      ],
+      "nextStep": "请处理审批节点“原始人工核对”"
+    },
+    "200": {
+      "id": 200,
+      "contextType": "SYSTEM",
+      "platformId": 1,
+      "systemId": 54,
+      "tenantId": 57,
+      "flowId": 101,
+      "flowVersionId": 110,
+      "flowVersionNumber": 1,
+      "definitionHash": "68c13d77f37be1d6c67a820cee83e78bf970a2b39ea93a7c0122f928bc54d592",
+      "definitionSnapshot": {
+        "edges": [
+          {
+            "edgeKey": "edge_1",
+            "sourceNodeKey": "review",
+            "targetNodeKey": "end"
+          },
+          {
+            "edgeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a_entry",
+            "sourceNodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+            "targetNodeKey": "review"
+          },
+          {
+            "edgeKey": "edge_0",
+            "sourceNodeKey": "start",
+            "targetNodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a"
+          }
+        ],
+        "nodes": [
+          {
+            "nodeKey": "start",
+            "name": "开始",
+            "nodeType": "START"
+          },
+          {
+            "nodeKey": "review",
+            "name": "原始人工核对",
+            "nodeType": "APPROVAL"
+          },
+          {
+            "nodeKey": "end",
+            "name": "结束",
+            "nodeType": "END"
+          },
+          {
+            "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+            "name": "当前之前独立人工",
+            "nodeType": "APPROVAL"
+          }
+        ]
+      },
+      "businessType": "MODULE:before_5782c4297b",
+      "businessId": null,
+      "businessSnapshot": {
+        "label": "原业务整组前插"
+      },
+      "businessView": {
+        "moduleCode": "before_5782c4297b",
+        "actionCode": "CREATE",
+        "proposed": {
+          "id": null,
+          "recordNumber": null,
+          "title": "原业务整组前插",
+          "status": "PROPOSED",
+          "ownerMemberId": 71,
+          "departmentId": 75,
+          "createdByMemberId": 71,
+          "updatedByMemberId": null,
+          "createdConfigVersionId": 111,
+          "updatedConfigVersionId": null,
+          "participantMemberIds": [],
+          "archived": false,
+          "archivedAt": null,
+          "deleted": false,
+          "deletedAt": null,
+          "version": null,
+          "createdAt": null,
+          "updatedAt": null,
+          "dataTenantId": 57,
+          "dataTenantName": "协作工作空间",
+          "ownedByCurrentTenant": true,
+          "shared": false,
+          "shareId": null,
+          "shareStatus": null,
+          "sharedActions": [],
+          "shareExpiresAt": null,
+          "organizationLabels": {
+            "members": {
+              "71": "平台超级管理员"
+            },
+            "departments": {
+              "75": "接收租户根部门"
+            }
+          },
+          "fieldPresentation": {
+            "enabled": {
+              "name": "是否启用",
+              "fieldType": "BOOLEAN",
+              "displayValue": null,
+              "fieldId": 250,
+              "sortOrder": 2
+            },
+            "score": {
+              "name": "业务数量",
+              "fieldType": "NUMBER",
+              "displayValue": null,
+              "fieldId": 249,
+              "sortOrder": 1
+            },
+            "subject": {
+              "name": "业务主题",
+              "fieldType": "TEXT",
+              "displayValue": null,
+              "fieldId": 248,
+              "sortOrder": 0
+            }
+          },
+          "actions": [],
+          "fields": {
+            "enabled": false,
+            "score": 0,
+            "subject": "原业务整组前插"
+          }
+        },
+        "current": {
+          "id": 220,
+          "recordNumber": null,
+          "title": "原业务整组前插",
+          "status": "ACTIVE",
+          "ownerMemberId": 71,
+          "departmentId": 75,
+          "createdByMemberId": 71,
+          "updatedByMemberId": 71,
+          "createdConfigVersionId": 111,
+          "updatedConfigVersionId": 111,
+          "participantMemberIds": [],
+          "archived": false,
+          "archivedAt": null,
+          "deleted": false,
+          "deletedAt": null,
+          "version": 0,
+          "createdAt": "2026-09-19T06:16:35.379+08:00",
+          "updatedAt": "2026-09-19T06:16:35.379+08:00",
+          "dataTenantId": 57,
+          "dataTenantName": "协作工作空间",
+          "ownedByCurrentTenant": true,
+          "shared": false,
+          "shareId": null,
+          "shareStatus": null,
+          "sharedActions": [],
+          "shareExpiresAt": null,
+          "organizationLabels": {
+            "members": {
+              "71": "平台超级管理员"
+            },
+            "departments": {
+              "75": "接收租户根部门"
+            }
+          },
+          "fieldPresentation": {
+            "enabled": {
+              "name": "是否启用",
+              "fieldType": "BOOLEAN",
+              "displayValue": null,
+              "fieldId": 250,
+              "sortOrder": 2
+            },
+            "score": {
+              "name": "业务数量",
+              "fieldType": "NUMBER",
+              "displayValue": null,
+              "fieldId": 249,
+              "sortOrder": 1
+            },
+            "subject": {
+              "name": "业务主题",
+              "fieldType": "TEXT",
+              "displayValue": null,
+              "fieldId": 248,
+              "sortOrder": 0
+            }
+          },
+          "actions": [],
+          "fields": {
+            "enabled": true,
+            "score": 8.0,
+            "subject": "原业务整组前插"
+          }
+        },
+        "message": "提交内容仅供核对；正式生效情况以当前数据和操作结果为准。",
+        "submitted": {
+          "id": null,
+          "recordNumber": null,
+          "title": "原业务整组前插",
+          "status": "PROPOSED",
+          "ownerMemberId": 71,
+          "departmentId": 75,
+          "createdByMemberId": 71,
+          "updatedByMemberId": null,
+          "createdConfigVersionId": 111,
+          "updatedConfigVersionId": null,
+          "participantMemberIds": [],
+          "archived": false,
+          "archivedAt": null,
+          "deleted": false,
+          "deletedAt": null,
+          "version": null,
+          "createdAt": null,
+          "updatedAt": null,
+          "dataTenantId": 57,
+          "dataTenantName": "协作工作空间",
+          "ownedByCurrentTenant": true,
+          "shared": false,
+          "shareId": null,
+          "shareStatus": null,
+          "sharedActions": [],
+          "shareExpiresAt": null,
+          "organizationLabels": {
+            "members": {
+              "71": "平台超级管理员"
+            },
+            "departments": {
+              "75": "接收租户根部门"
+            }
+          },
+          "fieldPresentation": {
+            "enabled": {
+              "name": "是否启用",
+              "fieldType": "BOOLEAN",
+              "displayValue": null,
+              "fieldId": 250,
+              "sortOrder": 2
+            },
+            "score": {
+              "name": "业务数量",
+              "fieldType": "NUMBER",
+              "displayValue": null,
+              "fieldId": 249,
+              "sortOrder": 1
+            }
+          },
+          "actions": [],
+          "fields": {
+            "enabled": true,
+            "score": 8
+          }
+        }
+      },
+      "title": "原业务整组前插",
+      "currentNodeKey": "end",
+      "currentNodeName": "结束",
+      "status": "COMPLETED",
+      "startedByTenantMemberId": 74,
+      "startedByCurrentUser": true,
+      "startedByName": "平台超级管理员",
+      "startedAt": "2026-09-19T06:16:33.361+08:00",
+      "finishedAt": "2026-09-19T06:16:35.134+08:00",
+      "errorCode": null,
+      "errorMessage": null,
+      "version": 8,
+      "graphRevision": 650,
+      "runtimeNodeAnchors": [],
+      "variables": {},
+      "tasks": [
+        {
+          "id": 283,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": 74,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "接收租户根部门",
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:16:33.412+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:16:33.749+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 297,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 74,
+              "accountId": null,
+              "displayName": "平台超级管理员",
+              "departmentName": "接收租户根部门",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:16:33.421+08:00"
+            }
+          ]
+        },
+        {
+          "id": 284,
+          "nodeKey": "review",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": 161,
+          "assigneeName": "整组前插页面成员",
+          "assigneeDepartment": "接收租户根部门",
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:16:33.944+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:16:35.105+08:00",
+          "version": 3,
+          "candidates": [
+            {
+              "id": 298,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 161,
+              "accountId": null,
+              "displayName": "整组前插页面成员",
+              "departmentName": "接收租户根部门",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:16:33.43+08:00"
+            }
+          ]
+        },
+        {
+          "id": 285,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "taskType": "APPROVAL",
+          "status": "APPROVE",
+          "currentHandler": false,
+          "assigneeTenantMemberId": 74,
+          "assigneeName": "平台超级管理员",
+          "assigneeDepartment": "接收租户根部门",
+          "assigneePosition": null,
+          "assigneeSnapshot": {},
+          "dueAt": "2026-09-19T07:16:34.119+08:00",
+          "claimedAt": null,
+          "completedAt": "2026-09-19T06:16:34.565+08:00",
+          "version": 1,
+          "candidates": [
+            {
+              "id": 299,
+              "candidateType": "TENANT_MEMBER",
+              "tenantMemberId": 74,
+              "accountId": null,
+              "displayName": "平台超级管理员",
+              "departmentName": "接收租户根部门",
+              "positionTitle": null,
+              "resolutionReason": "按发布版本中的指定人员解析",
+              "createdAt": "2026-09-19T06:16:34.128+08:00"
+            }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": 648,
+          "taskId": null,
+          "nodeKey": "start",
+          "actionCode": "START",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "business-action:423",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:33.396+08:00"
+        },
+        {
+          "id": 649,
+          "taskId": 283,
+          "nodeKey": "review",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b9ccea683e386",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:33.754+08:00"
+        },
+        {
+          "id": 650,
+          "taskId": null,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "actionCode": "RUNTIME_NODE_ADDED",
+          "comment": "本次实例需要补充核对，模板保持原路径",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b457c841d4553",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:34.09+08:00"
+        },
+        {
+          "id": 651,
+          "taskId": 285,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297b737ee7d25b7d",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:34.572+08:00"
+        },
+        {
+          "id": 652,
+          "taskId": null,
+          "nodeKey": "review",
+          "actionCode": "RUNTIME_NODE_RESUMED",
+          "comment": "新增节点完成，继续原节点整组待办",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "RUNTIME_NODE_RESUMED:650",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:34.607+08:00"
+        },
+        {
+          "id": 653,
+          "taskId": 284,
+          "nodeKey": "review",
+          "actionCode": "APPROVE",
+          "comment": "真实核对当前候选内容",
+          "input": {},
+          "result": {},
+          "idempotencyKey": "before_5782c4297beb9012283f7d",
+          "actedByTenantMemberId": 161,
+          "actedByName": "整组前插页面成员",
+          "actedAt": "2026-09-19T06:16:35.109+08:00"
+        },
+        {
+          "id": 654,
+          "taskId": null,
+          "nodeKey": "end",
+          "actionCode": "AUTO_END",
+          "comment": null,
+          "input": {},
+          "result": {},
+          "idempotencyKey": "AUTO:end:912ae1af-e39e-4a98-a20c-0ef5eb4b6590",
+          "actedByTenantMemberId": 74,
+          "actedByName": "平台超级管理员",
+          "actedAt": "2026-09-19T06:16:35.141+08:00"
+        }
+      ],
+      "exceptions": [],
+      "executions": [
+        {
+          "id": 583,
+          "parentExecutionId": null,
+          "nodeKey": "start",
+          "nodeType": "START",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:16:33.362+08:00",
+          "leftAt": "2026-09-19T06:16:33.363+08:00",
+          "resultCode": "STARTED",
+          "version": 1
+        },
+        {
+          "id": 584,
+          "parentExecutionId": null,
+          "nodeKey": "review",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:16:33.403+08:00",
+          "leftAt": "2026-09-19T06:16:35.12+08:00",
+          "resultCode": "APPROVE",
+          "version": 3
+        },
+        {
+          "id": 585,
+          "parentExecutionId": null,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "nodeType": "APPROVAL",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:16:34.112+08:00",
+          "leftAt": "2026-09-19T06:16:34.583+08:00",
+          "resultCode": "APPROVE",
+          "version": 1
+        },
+        {
+          "id": 586,
+          "parentExecutionId": null,
+          "nodeKey": "end",
+          "nodeType": "END",
+          "status": "COMPLETED",
+          "enteredAt": "2026-09-19T06:16:35.133+08:00",
+          "leftAt": "2026-09-19T06:16:35.135+08:00",
+          "resultCode": "COMPLETED",
+          "version": 1
+        }
+      ],
+      "history": [
+        {
+          "id": 1200,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "INSTANCE",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.366+08:00"
+        },
+        {
+          "id": 1201,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "start",
+          "eventType": "ACTION",
+          "eventName": "流程已发起",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "RUNNING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.398+08:00"
+        },
+        {
+          "id": 1202,
+          "executionId": 584,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.419+08:00"
+        },
+        {
+          "id": 1203,
+          "executionId": 584,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.428+08:00"
+        },
+        {
+          "id": 1204,
+          "executionId": null,
+          "taskId": 283,
+          "nodeKey": "review",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.431+08:00"
+        },
+        {
+          "id": 1205,
+          "executionId": null,
+          "taskId": 283,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:33.756+08:00"
+        },
+        {
+          "id": 1206,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "eventType": "ACTION",
+          "eventName": "已增加审批：当前之前独立人工（当前节点之前）",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "WAITING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.093+08:00"
+        },
+        {
+          "id": 1207,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_SUSPENDED",
+          "eventName": "原节点整组待办与剩余时限已暂停",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "ACTIVE",
+          "afterStatus": "SUSPENDED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.096+08:00"
+        },
+        {
+          "id": 1208,
+          "executionId": 585,
+          "taskId": null,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "eventType": "JOB",
+          "eventName": "已安排审批超时检查",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.126+08:00"
+        },
+        {
+          "id": 1209,
+          "executionId": null,
+          "taskId": 285,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "eventType": "TASK",
+          "eventName": "审批任务已创建",
+          "actorTenantMemberId": null,
+          "actorName": "系统自动处理",
+          "beforeStatus": "RUNNING",
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.129+08:00"
+        },
+        {
+          "id": 1210,
+          "executionId": null,
+          "taskId": 285,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.574+08:00"
+        },
+        {
+          "id": 1211,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "新增节点完成，恢复原节点待办",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.609+08:00"
+        },
+        {
+          "id": 1212,
+          "executionId": 584,
+          "taskId": null,
+          "nodeKey": "review",
+          "eventType": "NODE_RESUMED",
+          "eventName": "原节点整组待办与剩余时限已恢复",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": "SUSPENDED",
+          "afterStatus": "ACTIVE",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:34.61+08:00"
+        },
+        {
+          "id": 1213,
+          "executionId": null,
+          "taskId": 284,
+          "nodeKey": "review",
+          "eventType": "ACTION",
+          "eventName": "审批通过",
+          "actorTenantMemberId": 161,
+          "actorName": "整组前插页面成员",
+          "beforeStatus": null,
+          "afterStatus": "WAITING",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:35.111+08:00"
+        },
+        {
+          "id": 1214,
+          "executionId": null,
+          "taskId": null,
+          "nodeKey": "end",
+          "eventType": "ACTION",
+          "eventName": "流程已完成",
+          "actorTenantMemberId": 74,
+          "actorName": "平台超级管理员",
+          "beforeStatus": null,
+          "afterStatus": "COMPLETED",
+          "detail": {},
+          "occurredAt": "2026-09-19T06:16:35.144+08:00"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 68,
+          "executionId": 584,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:16:33.412+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:33.76+08:00",
+          "version": 1
+        },
+        {
+          "id": 69,
+          "executionId": 584,
+          "nodeKey": "review",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:16:33.944+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:35.116+08:00",
+          "version": 3
+        },
+        {
+          "id": 70,
+          "executionId": 585,
+          "nodeKey": "runtime_9dcc2b2e2ee84fe8b2418e39bbfb6d3a",
+          "jobType": "TASK_TIMEOUT",
+          "status": "CANCELLED",
+          "attemptCount": 0,
+          "maxAttempts": 1,
+          "nextRunAt": "2026-09-19T07:16:34.119+08:00",
+          "lastErrorCode": null,
+          "lastErrorMessage": null,
+          "completedAt": "2026-09-19T06:16:34.579+08:00",
+          "version": 1
+        }
+      ],
+      "allowedActions": [],
+      "nextStep": "Flow 已完成"
+    }
+  },
+  "restart_verified": true,
+  "initial_terminal_active_fixture_cleanup": [
+    [
+      "582",
+      "199",
+      "runtime_057c025f083a4baeb776ecea04e82382"
+    ]
+  ],
+  "cleanup_verified": true,
+  "verified_time": "2026-09-19T06:31:20.823591+08:00"
+}

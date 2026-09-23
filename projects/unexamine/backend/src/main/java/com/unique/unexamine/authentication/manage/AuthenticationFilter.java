@@ -38,6 +38,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 || path.equals("/api/auth/refresh")
                 || path.startsWith("/api/auth/sso/")
                 || path.startsWith("/api/application-access/")
+                || path.startsWith("/api/provider-callbacks/")
                 || "OPTIONS".equals(request.getMethod());
     }
 

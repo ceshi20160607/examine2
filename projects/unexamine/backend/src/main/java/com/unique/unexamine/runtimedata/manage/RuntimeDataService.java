@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.DecimalNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.unique.unexamine.runtimedata.base.entity.BusinessRecord;
 import com.unique.unexamine.runtimedata.base.entity.BusinessRecordParticipant;
 import com.unique.unexamine.runtimedata.base.entity.BusinessRecordValue;
@@ -35,6 +36,10 @@ import com.unique.unexamine.runtimedata.base.service.BizRecordOwnerHistoryBaseSe
 import com.unique.unexamine.runtimedata.base.service.BizRecordConversionBaseService;
 import com.unique.unexamine.runtimedata.base.service.BizRecordConversionResultBaseService;
 import com.unique.unexamine.runtimedata.base.service.BizTenantShareBaseService;
+import com.unique.unexamine.file.base.entity.FileObject;
+import com.unique.unexamine.file.base.entity.FileReference;
+import com.unique.unexamine.file.base.service.FileObjectBaseService;
+import com.unique.unexamine.file.base.service.FileReferenceBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
@@ -47,32 +52,42 @@ import com.unique.unexamine.audit.base.service.AuditEventBaseService;
 import com.unique.unexamine.audit.base.service.AuditFieldChangeBaseService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.SharedSourceMetadataService;
+import com.unique.unexamine.moduleconfig.manage.ModuleIdentifierIntegrity;
 import com.unique.unexamine.moduleconfig.manage.TextFieldProtocol;
 import com.unique.unexamine.moduleconfig.manage.StructuredContentFieldProtocol;
 import com.unique.unexamine.moduleconfig.manage.DictionaryConfigurationService;
+import com.unique.unexamine.moduleconfig.manage.DictionaryModels;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
+import com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService;
+import com.unique.unexamine.authorization.manage.SystemPeopleDirectoryModels;
 import com.unique.unexamine.authorization.manage.FieldAccessDecision;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.foundation.manage.control.BusinessAction;
 import com.unique.unexamine.foundation.manage.control.FoundationControlService;
+import com.unique.unexamine.flow.manage.FlowAutomaticActionPolicy;
 import com.unique.unexamine.flow.manage.FlowBindingService;
+import com.unique.unexamine.flow.manage.FlowTriggerEventService;
 import jakarta.validation.Validator;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -86,7 +101,11 @@ public class RuntimeDataService {
     private final FoundationControlService actionControl;
     private final FlowBindingService actionBindings;
     private final Validator actionValidator;
+    private final com.unique.unexamine.shared.manage.security.RuntimeSecretCipher secretCipher;
     private final ModulePublicationService publicationService;
+    private final SharedSourceMetadataService sharedSourceMetadata;
+    private final TenantShareScopeService tenantShareScope;
+    private final ModuleIdentifierIntegrity moduleIdentifierIntegrity;
     private final DictionaryConfigurationService dictionaryConfigurationService;
     private final BusinessRecordBaseService recordService;
     private final BusinessRecordMapper recordMapper;
@@ -107,15 +126,20 @@ public class RuntimeDataService {
     private final SystemTenantBaseService tenantService;
     private final PermissionChecker permissionChecker;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
+    private final SystemPeopleDirectoryService peopleDirectoryService;
     private final AuditRecorder auditRecorder;
     private final AuditEventBaseService auditEventService;
     private final AuditFieldChangeBaseService fieldChangeService;
     private final RuntimeRuleIndexService ruleIndexService;
+    private final FlowTriggerEventService flowEvents;
     private final ObjectMapper objectMapper;
     private final JdbcTemplate jdbc;
+    private final FileObjectBaseService fileObjectService;
+    private final FileReferenceBaseService fileReferenceService;
 
     public RuntimeDataService(
             ModulePublicationService publicationService,
+            ModuleIdentifierIntegrity moduleIdentifierIntegrity,
             DictionaryConfigurationService dictionaryConfigurationService,
             BusinessRecordBaseService recordService,
             BusinessRecordMapper recordMapper,
@@ -136,18 +160,28 @@ public class RuntimeDataService {
             SystemTenantBaseService tenantService,
             PermissionChecker permissionChecker,
             ChannelFieldPolicyResolver fieldPolicyResolver,
+            SystemPeopleDirectoryService peopleDirectoryService,
             AuditRecorder auditRecorder,
             AuditEventBaseService auditEventService,
             AuditFieldChangeBaseService fieldChangeService,
             RuntimeRuleIndexService ruleIndexService,
             ObjectMapper objectMapper,
             FoundationControlService actionControl, FlowBindingService actionBindings, Validator actionValidator,
-            JdbcTemplate jdbc) {
+            JdbcTemplate jdbc, SharedSourceMetadataService sharedSourceMetadata,
+            com.unique.unexamine.shared.manage.security.RuntimeSecretCipher secretCipher, TenantShareScopeService tenantShareScope,
+            FlowTriggerEventService flowEvents,
+            FileObjectBaseService fileObjectService,
+            FileReferenceBaseService fileReferenceService) {
         this.jdbc = jdbc;
+        this.sharedSourceMetadata = sharedSourceMetadata;
+        this.tenantShareScope = tenantShareScope;
         this.actionControl = actionControl;
         this.actionBindings = actionBindings;
         this.actionValidator = actionValidator;
+        this.flowEvents = flowEvents;
+        this.secretCipher = secretCipher;
         this.publicationService = publicationService;
+        this.moduleIdentifierIntegrity = moduleIdentifierIntegrity;
         this.dictionaryConfigurationService = dictionaryConfigurationService;
         this.recordService = recordService;
         this.recordMapper = recordMapper;
@@ -168,11 +202,14 @@ public class RuntimeDataService {
         this.tenantService = tenantService;
         this.permissionChecker = permissionChecker;
         this.fieldPolicyResolver = fieldPolicyResolver;
+        this.peopleDirectoryService = peopleDirectoryService;
         this.auditRecorder = auditRecorder;
         this.auditEventService = auditEventService;
         this.fieldChangeService = fieldChangeService;
         this.ruleIndexService = ruleIndexService;
         this.objectMapper = objectMapper;
+        this.fileObjectService = fileObjectService;
+        this.fileReferenceService = fileReferenceService;
     }
 
     @Transactional(readOnly = true)
@@ -191,37 +228,11 @@ public class RuntimeDataService {
         if (pageNumber < 1 || pageSize < 1 || pageSize > 200) {
             throw new DomainException("PAGINATION_INVALID", "页码必须大于 0，每页数量不能超过 200", HttpStatus.BAD_REQUEST);
         }
-        requireAction(context, moduleCode, "LIST", traceId);
-        String normalizedTenantScope = tenantScope == null ? "ALL" : tenantScope.toUpperCase(Locale.ROOT);
-        if (!Set.of("ALL", "OWN", "SHARED").contains(normalizedTenantScope)) {
-            throw new DomainException("TENANT_SCOPE_INVALID", "租户范围只支持 ALL、OWN 或 SHARED", HttpStatus.BAD_REQUEST);
-        }
-        PublishedModule currentPublished = published(context, moduleCode);
+        ListQueryAccess queryAccess = listQueryAccess(context, moduleCode, lifecycleState, tenantScope, traceId);
+        List<RecordAccess> accessible = new ArrayList<>(queryAccess.records());
         List<RuntimeListFilter> filters = parseListFilters(filtersJson);
-        QueryAccessPolicy queryPolicy = queryAccessPolicy(context, moduleCode, currentPublished, filters, sortField);
-        List<RecordAccess> accessible = new ArrayList<>();
-        if (!"SHARED".equals(normalizedTenantScope)) {
-            LambdaQueryWrapper<BusinessRecord> ownQuery = baseBoundary(context, currentPublished.configuration().moduleId());
-            applyLifecycleState(ownQuery, lifecycleState);
-            applyDataScope(ownQuery, context, moduleCode, "LIST");
-            recordService.selectList(ownQuery).forEach(record -> accessible.add(
-                    new RecordAccess(record, currentPublished, context, null)));
-        }
-        if (!"OWN".equals(normalizedTenantScope)) {
-            for (BizTenantShare share : activeTargetShares(context)) {
-                if (!shareAllows(share, "LIST")) continue;
-                BusinessRecord record = recordService.selectById(share.getRecordId());
-                if (record == null || !context.systemId().equals(record.getSystemId())
-                        || !share.getSourceTenantId().equals(record.getTenantId())
-                        || !lifecycleMatches(record, lifecycleState)) continue;
-                ConfiguredModule sourceModule = moduleService.selectById(record.getModuleId());
-                if (sourceModule == null || !context.systemId().equals(sourceModule.getSystemId())
-                        || !moduleCode.equalsIgnoreCase(sourceModule.getCode())
-                        || !withinSharedScope(context, moduleCode, "LIST", record)) continue;
-                AuthenticatedContext sourceContext = tenantContext(context, record.getTenantId());
-                accessible.add(new RecordAccess(record, published(sourceContext, moduleCode), sourceContext, share));
-            }
-        }
+        QueryAccessPolicy queryPolicy = queryAccessPolicy(context, moduleCode, queryAccess);
+        validateListQuery(queryPolicy.fields(), filters, sortField, sortDirection);
         String normalizedSearch = search == null ? "" : search.strip();
         if (normalizedSearch.length() > 200) {
             throw new DomainException("LIST_SEARCH_INVALID", "搜索内容不能超过 200 个字符", HttpStatus.BAD_REQUEST);
@@ -233,7 +244,60 @@ public class RuntimeDataService {
         int to = Math.min(from + pageSize, accessible.size());
         List<RuntimeRecordView> views = accessible.subList(from, to).stream()
                 .map(access -> view(context, moduleCode, "LIST", List.of("PAGE"), access)).toList();
-        return new RuntimeRecordList(views, accessible.size(), pageNumber, pageSize);
+        return new RuntimeRecordList(views, accessible.size(), pageNumber, pageSize, queryPolicy.fields());
+    }
+
+    /** 查询目录与查询执行共用真实记录边界，不能用任意来源租户参数发现字段。 */
+    @Transactional(readOnly = true)
+    public List<RuntimeListQueryField> queryFields(
+            AuthenticatedContext context, String moduleCode, String lifecycleState, String tenantScope, String traceId) {
+        return queryAccessPolicy(context, moduleCode,
+                listQueryAccess(context, moduleCode, lifecycleState, tenantScope, traceId)).fields();
+    }
+
+    private ListQueryAccess listQueryAccess(
+            AuthenticatedContext context, String moduleCode, String lifecycleState, String tenantScope, String traceId) {
+        requireAction(context, moduleCode, "LIST", traceId);
+        String normalizedTenantScope = tenantScope == null ? "ALL" : tenantScope.toUpperCase(Locale.ROOT);
+        if (!Set.of("ALL", "OWN", "SHARED").contains(normalizedTenantScope)) {
+            throw new DomainException("TENANT_SCOPE_INVALID", "租户范围只支持 ALL、OWN 或 SHARED", HttpStatus.BAD_REQUEST);
+        }
+        SharedSourceMetadataService.RuntimeAccess moduleAccess = sharedSourceMetadata.requireRuntimeAccess(context, moduleCode);
+        // 来源数据只由当前有效共享和原操作者范围取得，不借用来源成员身份。
+        PublishedModule currentPublished = moduleAccess.currentConfiguration() ? published(context, moduleCode) : null;
+        List<RecordAccess> accessible = new ArrayList<>();
+        if (currentPublished != null && !"SHARED".equals(normalizedTenantScope)) {
+            LambdaQueryWrapper<BusinessRecord> ownQuery = baseBoundary(context, currentPublished.configuration().moduleId());
+            applyLifecycleState(ownQuery, lifecycleState);
+            applyDataScope(ownQuery, context, moduleCode, "LIST");
+            recordService.selectList(ownQuery).forEach(record -> accessible.add(
+                    new RecordAccess(record, currentPublished, context, null)));
+        }
+        if (!"OWN".equals(normalizedTenantScope)) {
+            Set<Long> included = new HashSet<>();
+            for (BizTenantShare share : activeTargetShares(context)) {
+                if (!shareAllows(share, "LIST") || !moduleAccess.module().getId().equals(share.getModuleId())
+                        || !sharedSourceMetadata.activeTenantPair(context, share.getSourceTenantId())) continue;
+                var candidates = Wrappers.<BusinessRecord>lambdaQuery()
+                        .eq(BusinessRecord::getSystemId, context.systemId())
+                        .eq(BusinessRecord::getTenantId, share.getSourceTenantId())
+                        .eq(BusinessRecord::getModuleId, share.getModuleId());
+                if ("RECORD".equals(share.getScopeType())) candidates.eq(BusinessRecord::getId, share.getRecordId());
+                applyLifecycleState(candidates, lifecycleState);
+                for (BusinessRecord record : recordService.selectList(candidates)) {
+                    if (included.contains(record.getId()) || !tenantShareScope.matches(context, share, record, moduleCode)
+                            || !withinSharedScope(context, moduleCode, "LIST", record)) continue;
+                    AuthenticatedContext sourceContext = tenantContext(context, record.getTenantId());
+                    PublishedModule sourcePublished = published(sourceContext, moduleCode);
+                    if (!record.getModuleId().equals(sourcePublished.configuration().moduleId())) {
+                        throw new DomainException("SHARE_CONFIGURATION_CONFLICT", "共享记录与来源发布模块不一致", HttpStatus.CONFLICT);
+                    }
+                    accessible.add(new RecordAccess(record, sourcePublished, sourceContext, share));
+                    included.add(record.getId());
+                }
+            }
+        }
+        return new ListQueryAccess(currentPublished, accessible);
     }
 
     private List<RuntimeListFilter> parseListFilters(String filtersJson) {
@@ -253,47 +317,159 @@ public class RuntimeDataService {
     }
 
     private QueryAccessPolicy queryAccessPolicy(
-            AuthenticatedContext context, String moduleCode, PublishedModule published,
-            List<RuntimeListFilter> filters, String sortField) {
+            AuthenticatedContext context, String moduleCode, ListQueryAccess access) {
+        Map<String, PublishedField> candidates = new LinkedHashMap<>();
+        Set<String> incompatible = new LinkedHashSet<>();
+        List<PublishedModule> publications = new ArrayList<>();
+        if (access.currentPublished() != null) publications.add(access.currentPublished());
+        access.records().forEach(record -> publications.add(record.published()));
+        for (PublishedModule publication : publications) {
+            for (PublishedField field : publication.fields()) {
+                PublishedField previous = candidates.putIfAbsent(field.code(), field);
+                if (previous != null && !previous.type().equals(field.type())) incompatible.add(field.code());
+            }
+        }
         Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
-                context, moduleCode, "LIST", List.of("PAGE"),
-                published.fields().stream().map(PublishedField::code).toList());
-        Set<String> queryableFields = published.fields().stream()
-                .filter(field -> {
-                    FieldAccessDecision decision = decisions.get(field.code());
-                    return decision != null && decision.readable()
-                            && (decision.maskStrategy() == null || decision.maskStrategy().isBlank());
-                })
-                .map(PublishedField::code).collect(java.util.stream.Collectors.toSet());
-        Set<String> searchableFields = published.fields().stream()
-                .filter(field -> !"JSON".equals(field.type()))
-                .filter(PublishedField::searchable).map(PublishedField::code)
-                .filter(queryableFields::contains).collect(java.util.stream.Collectors.toSet());
-        Set<String> builtIns = Set.of("title", "recordNumber", "status", "ownerMemberId", "departmentId",
-                "createdAt", "updatedAt", "dataTenantName");
+                context, moduleCode, "LIST", List.of("PAGE"), List.copyOf(candidates.keySet()));
+        Set<String> queryable = new LinkedHashSet<>();
+        candidates.forEach((code, field) -> {
+            FieldAccessDecision decision = decisions.get(code);
+            if (!incompatible.contains(code) && decision != null && decision.readable()
+                    && ("SECRET".equals(field.type()) || decision.maskStrategy() == null || decision.maskStrategy().isBlank())) queryable.add(code);
+        });
+        Map<String, Set<String>> searchableByPublication = new HashMap<>();
+        for (PublishedModule publication : publications) {
+            searchableByPublication.put(publicationKey(publication), publication.fields().stream()
+                    .filter(field -> queryable.contains(field.code()) && field.searchable() && !Set.of("JSON", "SECRET", "CASCADE").contains(field.type()))
+                    .map(PublishedField::code).collect(java.util.stream.Collectors.toSet()));
+        }
+        List<RuntimeListQueryField> descriptors = new ArrayList<>();
+        Map<String, String> builtinNames = new LinkedHashMap<>();
+        builtinNames.put("title", "标题"); builtinNames.put("recordNumber", "业务编号");
+        builtinNames.put("status", "状态"); builtinNames.put("ownerMemberId", "负责人");
+        builtinNames.put("departmentId", "负责部门"); builtinNames.put("createdAt", "创建时间");
+        builtinNames.put("updatedAt", "更新时间"); builtinNames.put("dataTenantName", "数据归属");
+        builtinNames.forEach((code, name) -> {
+            String type = Set.of("createdAt", "updatedAt").contains(code) ? "DATETIME"
+                    : "ownerMemberId".equals(code) ? "MEMBER" : "departmentId".equals(code) ? "DEPARTMENT"
+                    : "status".equals(code) ? "STATUS" : "TEXT";
+            descriptors.add(new RuntimeListQueryField(code, name, type, false, true,
+                    RuntimeListQueryField.operatorsFor(type), List.of()));
+        });
+        Map<String, Map<String, String>> choices = new LinkedHashMap<>();
+        Set<String> choiceTypes = Set.of("SINGLE_SELECT", "STATUS", "REFERENCE", "CASCADE", "MEMBER", "DEPARTMENT");
+        for (RecordAccess record : access.records()) {
+            Map<String, JsonNode> choiceValues = new LinkedHashMap<>();
+            List<PublishedField> choiceFields = record.published().fields().stream()
+                    .filter(field -> queryable.contains(field.code()) && choiceTypes.contains(queryType(field.type()))).toList();
+            Map<String, JsonNode> rawChoices = readRawValues(record.record().getId(), choiceFields);
+            choiceFields.forEach(field -> {
+                        JsonNode value = rawChoices.get(field.code());
+                        if (value != null && !value.isNull()) choiceValues.put(field.code(), value);
+                    });
+            // 名称解析复用受保护的记录投影；不返回来源字典或通讯录的其他条目。
+            Map<String, RuntimeFieldPresentation> names = fieldPresentation(context, record, choiceValues, decisions);
+            choiceValues.forEach((code, value) -> {
+                RuntimeFieldPresentation name = names.get(code);
+                String label = name == null ? null : name.displayValue();
+                if (label == null && Set.of("MEMBER", "DEPARTMENT").contains(queryType(candidates.get(code).type()))) {
+                    SystemPeopleDirectoryModels.Labels labels = organizationLabels(record, null, null, List.of(), Map.of(code, value));
+                    label = "MEMBER".equals(queryType(candidates.get(code).type())) ? labels.members().get(value.longValue())
+                            : labels.departments().get(value.longValue());
+                }
+                if (label != null) choices.computeIfAbsent(code, ignored -> new LinkedHashMap<>())
+                        .putIfAbsent(value.isArray() ? value.toString() : value.asText(), label);
+            });
+            SystemPeopleDirectoryModels.Labels labels = organizationLabels(record, record.record().getOwnerMemberId(),
+                    record.record().getDepartmentId(), List.of(), Map.of());
+            if (record.record().getOwnerMemberId() != null && labels.members().containsKey(record.record().getOwnerMemberId()))
+                choices.computeIfAbsent("ownerMemberId", ignored -> new LinkedHashMap<>()).putIfAbsent(
+                        record.record().getOwnerMemberId().toString(), labels.members().get(record.record().getOwnerMemberId()));
+            if (record.record().getDepartmentId() != null && labels.departments().containsKey(record.record().getDepartmentId()))
+                choices.computeIfAbsent("departmentId", ignored -> new LinkedHashMap<>()).putIfAbsent(
+                        record.record().getDepartmentId().toString(), labels.departments().get(record.record().getDepartmentId()));
+            choices.computeIfAbsent("status", ignored -> new LinkedHashMap<>()).putIfAbsent(
+                    record.record().getStatus(), "ACTIVE".equals(record.record().getStatus()) ? "有效" : record.record().getStatus());
+        }
+        for (String code : queryable) {
+            PublishedField field = candidates.get(code);
+            boolean searchable = searchableByPublication.values().stream().anyMatch(codes -> codes.contains(code));
+            descriptors.add(new RuntimeListQueryField(code, field.name(), field.type(), searchable,
+                    !Set.of("RICH_TEXT", "JSON", "CASCADE", "SECRET").contains(field.type()),
+                    RuntimeListQueryField.operatorsFor(queryType(field.type())), List.of()));
+        }
+        List<RuntimeListQueryField> fields = descriptors.stream().map(field -> new RuntimeListQueryField(
+                field.code(), field.name(), field.fieldType(), field.searchable(), field.sortable(), field.operators(),
+                choices.getOrDefault(field.code(), Map.of()).entrySet().stream()
+                        .map(choice -> new RuntimeListQueryField.Option(choice.getKey(), choice.getValue())).toList())).toList();
+        return new QueryAccessPolicy(queryable, searchableByPublication, builtinNames.keySet(), fields);
+    }
+
+    private String queryType(String type) {
+        return switch (type) {
+            case "SYSTEM_CREATED_AT", "SYSTEM_UPDATED_AT" -> "DATETIME";
+            case "SYSTEM_CREATED_BY", "SYSTEM_UPDATED_BY" -> "MEMBER";
+            default -> type;
+        };
+    }
+
+    private String publicationKey(PublishedModule publication) {
+        return publication.configuration().versionId() + ":" + publication.configuration().configuration().path("tenantExtensionVersionId").asText();
+    }
+
+    /** 视图保存和实时查询使用同一字段、运算符及值类型校验，不允许保存无法执行的条件。 */
+    public void validateListQuery(List<RuntimeListQueryField> fields, List<RuntimeListFilter> filters,
+                                  String sortField, String sortDirection) {
+        Map<String, RuntimeListQueryField> byCode = new HashMap<>();
+        fields.forEach(field -> byCode.put(field.code(), field));
         for (RuntimeListFilter filter : filters) {
-            if (filter == null || filter.fieldCode() == null || filter.fieldCode().isBlank()
-                    || (!builtIns.contains(filter.fieldCode()) && !queryableFields.contains(filter.fieldCode()))) {
-                throw new DomainException("LIST_FILTER_FIELD_FORBIDDEN", "筛选字段不存在、不可读或已脱敏", HttpStatus.FORBIDDEN);
-            }
+            RuntimeListQueryField field = filter == null ? null : byCode.get(filter.fieldCode());
+            if (field == null) throw new DomainException("LIST_FILTER_FIELD_FORBIDDEN",
+                    "筛选字段不存在、不可读或已脱敏", HttpStatus.FORBIDDEN);
             String operator = filter.operator() == null ? "" : filter.operator().strip().toUpperCase(Locale.ROOT);
-            if (!Set.of("EQ", "NE", "CONTAINS", "GT", "GTE", "LT", "LTE", "EMPTY", "NOT_EMPTY").contains(operator)) {
-                throw new DomainException("LIST_FILTER_OPERATOR_INVALID", "筛选运算符不受支持", HttpStatus.BAD_REQUEST);
-            }
-            PublishedField field = published.fields().stream().filter(item -> item.code().equals(filter.fieldCode())).findFirst().orElse(null);
-            if (field != null && "JSON".equals(field.type()) && !Set.of("EMPTY", "NOT_EMPTY").contains(operator)) {
-                throw new DomainException("LIST_FILTER_OPERATOR_INVALID", "结构化数据仅支持是否已填写筛选", HttpStatus.BAD_REQUEST);
-            }
+            if (!field.operators().contains(operator)) throw new DomainException("LIST_FILTER_OPERATOR_INVALID",
+                    "该字段不支持所选筛选运算符", HttpStatus.BAD_REQUEST);
+            if (!Set.of("EMPTY", "NOT_EMPTY").contains(operator)) queryLiteral(field.fieldType(), filter.value());
         }
         String normalizedSort = sortField == null || sortField.isBlank() ? "updatedAt" : sortField.strip();
-        if (!builtIns.contains(normalizedSort) && !queryableFields.contains(normalizedSort)) {
-            throw new DomainException("LIST_SORT_FIELD_FORBIDDEN", "排序字段不存在、不可读或已脱敏", HttpStatus.FORBIDDEN);
+        RuntimeListQueryField sort = byCode.get(normalizedSort);
+        if (sort == null || !sort.sortable()) throw new DomainException("LIST_SORT_FIELD_FORBIDDEN",
+                "排序字段不存在、不可读、已脱敏或不支持排序", HttpStatus.FORBIDDEN);
+        if (sortDirection != null && !Set.of("ASC", "DESC").contains(sortDirection.strip().toUpperCase(Locale.ROOT)))
+            throw new DomainException("LIST_SORT_DIRECTION_INVALID", "排序方向只支持 ASC 或 DESC", HttpStatus.BAD_REQUEST);
+    }
+
+    private JsonNode queryLiteral(String type, String value) {
+        String text = value == null ? "" : value;
+        try {
+            return switch (type) {
+                case "NUMBER", "MONEY" -> DecimalNode.valueOf(new BigDecimal(text));
+                case "MEMBER", "DEPARTMENT", "REFERENCE" -> LongNode.valueOf(Long.parseLong(text));
+                case "BOOLEAN" -> {
+                    if (!Set.of("true", "false").contains(text)) throw new IllegalArgumentException();
+                    yield BooleanNode.valueOf(Boolean.parseBoolean(text));
+                }
+                case "DATE" -> TextNode.valueOf(LocalDate.parse(text).toString());
+                case "DATETIME" -> {
+                    var parsed = java.time.format.DateTimeFormatter.ISO_DATE_TIME.parse(text);
+                    LocalDateTime local = parsed.isSupported(java.time.temporal.ChronoField.OFFSET_SECONDS)
+                            ? java.time.OffsetDateTime.from(parsed).atZoneSameInstant(ZoneId.of("Asia/Shanghai")).toLocalDateTime()
+                            : LocalDateTime.from(parsed);
+                    yield TextNode.valueOf(local.toString());
+                }
+                case "CASCADE" -> {
+                    JsonNode selection = text.startsWith("[") ? objectMapper.readTree(text) : LongNode.valueOf(Long.parseLong(text));
+                    if (selection.isArray()) {
+                        if (selection.isEmpty()) throw new IllegalArgumentException();
+                        for (JsonNode item : selection) if (!item.isIntegralNumber() || item.longValue() <= 0) throw new IllegalArgumentException();
+                    } else if (!selection.isIntegralNumber() || selection.longValue() <= 0) throw new IllegalArgumentException();
+                    yield selection;
+                }
+                default -> TextNode.valueOf(text);
+            };
+        } catch (Exception invalid) {
+            throw new DomainException("LIST_FILTER_VALUE_INVALID", "筛选值格式不正确，请按字段类型重新填写", HttpStatus.BAD_REQUEST);
         }
-        if (published.fields().stream().anyMatch(field -> field.code().equals(normalizedSort)
-                && Set.of("RICH_TEXT", "JSON").contains(field.type()))) {
-            throw new DomainException("LIST_SORT_FIELD_FORBIDDEN", "富文本和结构化数据不支持内容排序", HttpStatus.BAD_REQUEST);
-        }
-        return new QueryAccessPolicy(queryableFields, searchableFields, builtIns);
     }
 
     private boolean matchesListQuery(
@@ -305,15 +481,20 @@ public class RuntimeDataService {
                     || containsIgnoreCase(access.record().getRecordNumber(), needle);
             if (!matched) {
                 Map<String, JsonNode> raw = queryValues(access, values);
-                matched = policy.searchableFields().stream()
+                matched = policy.searchableFields().getOrDefault(publicationKey(access.published()), Set.of()).stream()
                         .map(raw::get).filter(java.util.Objects::nonNull)
                         .anyMatch(value -> containsIgnoreCase(value.asText(), needle));
             }
             if (!matched) return false;
         }
         for (RuntimeListFilter filter : filters) {
+            // 来源专属字段不存在时跳过整条记录；NE/EMPTY 也不能把不存在当成可见空值。
+            if (!policy.builtInFields().contains(filter.fieldCode())
+                    && access.published().fields().stream().noneMatch(field -> field.code().equals(filter.fieldCode()))) return false;
             JsonNode actual = queryValue(access, filter.fieldCode(), policy, values);
-            if (!matchesFilter(actual, filter)) return false;
+            String type = policy.fields().stream().filter(field -> field.code().equals(filter.fieldCode()))
+                    .findFirst().orElseThrow().fieldType();
+            if (!matchesFilter(actual, filter, type)) return false;
         }
         return true;
     }
@@ -322,14 +503,14 @@ public class RuntimeDataService {
         return value != null && value.toLowerCase(Locale.ROOT).contains(lowerNeedle);
     }
 
-    private boolean matchesFilter(JsonNode actual, RuntimeListFilter filter) {
+    private boolean matchesFilter(JsonNode actual, RuntimeListFilter filter, String type) {
         String operator = filter.operator().strip().toUpperCase(Locale.ROOT);
         boolean empty = empty(actual);
         if ("EMPTY".equals(operator)) return empty;
         if ("NOT_EMPTY".equals(operator)) return !empty;
         if (empty) return "NE".equals(operator);
-        JsonNode expected = TextNode.valueOf(filter.value() == null ? "" : filter.value());
-        int compared = compareQueryValues(actual, expected);
+        JsonNode expected = queryLiteral(type, filter.value());
+        int compared = compareQueryValues(actual, expected, type);
         return switch (operator) {
             case "EQ" -> compared == 0;
             case "NE" -> compared != 0;
@@ -351,10 +532,14 @@ public class RuntimeDataService {
         if (!Set.of("ASC", "DESC").contains(direction)) {
             throw new DomainException("LIST_SORT_DIRECTION_INVALID", "排序方向只支持 ASC 或 DESC", HttpStatus.BAD_REQUEST);
         }
+        String type = policy.fields().stream().filter(item -> item.code().equals(field)).findFirst().orElseThrow().fieldType();
         Comparator<RecordAccess> comparator = (left, right) -> compareQueryValues(
-                queryValue(left, field, policy, values), queryValue(right, field, policy, values));
+                queryValue(left, field, policy, values), queryValue(right, field, policy, values), type);
         if ("DESC".equals(direction)) comparator = comparator.reversed();
-        return comparator.thenComparing(item -> item.record().getId(), Comparator.reverseOrder());
+        // 不适用记录始终放在末尾，不借助不存在字段改变升降序中的位置。
+        Comparator<RecordAccess> applicability = Comparator.comparing(item -> !policy.builtInFields().contains(field)
+                && item.published().fields().stream().noneMatch(candidate -> candidate.code().equals(field)));
+        return applicability.thenComparing(comparator).thenComparing(item -> item.record().getId(), Comparator.reverseOrder());
     }
 
     private JsonNode queryValue(
@@ -376,7 +561,12 @@ public class RuntimeDataService {
 
     private Map<String, JsonNode> queryValues(RecordAccess access, Map<Long, Map<String, JsonNode>> values) {
         return values.computeIfAbsent(access.record().getId(), ignored -> {
-            Map<String, JsonNode> raw = readRawValues(access.record().getId(), access.published().fields());
+            Map<String, JsonNode> raw = readRawValues(access.record().getId(), access.published().fields().stream()
+                    .filter(field -> !"SECRET".equals(field.type())).toList());
+            access.published().fields().stream().filter(field -> field.type().startsWith("SYSTEM_")).forEach(field -> {
+                JsonNode value = systemFieldValue(access.record(), field.type());
+                if (value != null) raw.put(field.code(), value);
+            });
             access.published().fields().stream().filter(field -> "RICH_TEXT".equals(field.type())).forEach(field -> {
                 JsonNode value = raw.get(field.code());
                 if (value != null && value.isTextual()) raw.put(field.code(), TextNode.valueOf(StructuredContentFieldProtocol.plainText(value.textValue())));
@@ -389,14 +579,18 @@ public class RuntimeDataService {
         return value == null ? null : TextNode.valueOf(value);
     }
 
-    private int compareQueryValues(JsonNode left, JsonNode right) {
+    private int compareQueryValues(JsonNode left, JsonNode right, String type) {
         if (left == null || left.isNull()) return right == null || right.isNull() ? 0 : -1;
         if (right == null || right.isNull()) return 1;
-        try {
-            return new BigDecimal(left.asText()).compareTo(new BigDecimal(right.asText()));
-        } catch (NumberFormatException ignored) {
-            return left.asText().compareToIgnoreCase(right.asText());
-        }
+        return switch (type) {
+            case "NUMBER", "MONEY", "MEMBER", "DEPARTMENT", "REFERENCE" ->
+                    new BigDecimal(left.asText()).compareTo(new BigDecimal(right.asText()));
+            case "BOOLEAN" -> Boolean.compare(left.asBoolean(), right.asBoolean());
+            case "DATE" -> LocalDate.parse(left.asText()).compareTo(LocalDate.parse(right.asText()));
+            case "DATETIME" -> LocalDateTime.parse(left.asText()).compareTo(LocalDateTime.parse(right.asText()));
+            case "CASCADE" -> left.toString().compareTo(right.toString());
+            default -> left.asText().compareToIgnoreCase(right.asText());
+        };
     }
 
     @Transactional(readOnly = true)
@@ -447,7 +641,8 @@ public class RuntimeDataService {
             throw new DomainException("SHARE_TARGET_INVALID", "目标租户必须是同一系统内的其他有效租户",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        if (request.expiresAt() != null && !request.expiresAt().isAfter(LocalDateTime.now())) {
+        // API 的本地日期时间以北京时间表达，失效判断不能跟随容器默认时区。
+        if (request.expiresAt() != null && !request.expiresAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Shanghai")))) {
             throw new DomainException("SHARE_EXPIRY_INVALID", "共享失效时间必须晚于当前时间",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -462,10 +657,12 @@ public class RuntimeDataService {
                 && (request.version() == null || !request.version().equals(share.getVersion()))) {
             throw new DomainException("SHARE_VERSION_REQUIRED", "修改现有共享授权前请刷新授权版本", HttpStatus.CONFLICT);
         }
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         share.setSystemId(context.systemId());
         share.setSourceTenantId(context.tenantId());
         share.setTargetTenantId(target.getId());
+        share.setModuleId(record.getModuleId());
+        share.setScopeType("RECORD");
         share.setRecordId(recordId);
         share.setPermissionJson(writeJson(Map.of(
                 "moduleCode", moduleCode,
@@ -481,8 +678,15 @@ public class RuntimeDataService {
         if (share.getId() == null) {
             share.setVersion(0);
             tenantShareService.insert(share);
-        } else if (tenantShareService.updateById(share) == 0) {
-            throw new DomainException("SHARE_VERSION_CONFLICT", "共享授权已被其他操作修改", HttpStatus.CONFLICT);
+        } else {
+            if (tenantShareService.updateById(share) == 0) {
+                throw new DomainException("SHARE_VERSION_CONFLICT", "共享授权已被其他操作修改", HttpStatus.CONFLICT);
+            }
+            // Base 更新会略过 null；重新授权须真正清除旧截止时间和撤销标记，仍在同一事务及已更新版本内。
+            if (jdbc.update("UPDATE biz_tenant_share SET expires_at = ?, revoked_at = NULL WHERE id = ? AND version = ?",
+                    request.expiresAt(), share.getId(), share.getVersion()) != 1) {
+                throw new DomainException("SHARE_VERSION_CONFLICT", "共享授权已被其他操作修改", HttpStatus.CONFLICT);
+            }
         }
         auditRecorder.recordWithPermissionSnapshot(traceId, context.accountId(), context.systemId(), context.tenantId(),
                 context.memberId(), "BUSINESS_RECORD_SHARED", "TENANT_SHARE", share.getId().toString(), "SUCCESS",
@@ -517,7 +721,7 @@ public class RuntimeDataService {
             throw new DomainException("SHARE_NOT_ACTIVE", "共享授权已经失效或撤销", HttpStatus.CONFLICT);
         }
         share.setStatus("REVOKED");
-        share.setRevokedAt(LocalDateTime.now());
+        share.setRevokedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         if (tenantShareService.updateById(share) == 0) {
             throw new DomainException("SHARE_VERSION_CONFLICT", "共享授权已被其他操作修改", HttpStatus.CONFLICT);
         }
@@ -829,16 +1033,23 @@ public class RuntimeDataService {
         requireAction(context, moduleCode, "CREATE", traceId);
         PublishedModule published = published(context, moduleCode);
         AuthenticatedContext dataContext = context;
+        BusinessAction.Options effectiveOptions = options.materialized();
         BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
                 published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
-                "CREATE", null, null, request, options, traceId);
-        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
-                () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
-                        actionVariables(request, validateFields(context, dataContext, moduleCode, "CREATE",
-                                published.fields(), request.fields(), traceId, null)), traceId),
-                () -> validateImport(context, moduleCode, null, request, null, traceId),
-                () -> createDirect(context, moduleCode, request, traceId));
-        return protectActionReplay(context, moduleCode, "CREATE", result, traceId);
+                "CREATE", null, null, request, effectiveOptions, traceId);
+        try {
+            BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
+                    () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
+                            actionVariables(request, validateFields(context, dataContext, moduleCode, "CREATE",
+                                    published.fields(), request.fields(), traceId, null)), traceId),
+                    () -> validateImport(context, moduleCode, null, request, null, traceId),
+                    () -> createDirect(context, moduleCode, request, traceId));
+            return protectActionReplay(context, moduleCode, "CREATE", result, traceId);
+        } catch (DomainException exception) {
+            recordValidationAnomaly(context, published, moduleCode, "CREATE", null,
+                    effectiveOptions.idempotencyKey(), exception);
+            throw exception;
+        }
     }
 
     private RuntimeRecordView createDirect(
@@ -871,7 +1082,7 @@ public class RuntimeDataService {
         record.setDeleted(false);
         record.setVersion(0);
         recordService.insert(record);
-        replaceValues(context, record.getId(), published.fields(), normalizedValues);
+        replaceValues(context, moduleCode, record.getId(), published.fields(), normalizedValues);
         replaceParticipants(context, record.getId(), ownership.participantMemberIds());
         ruleIndexService.syncIndexes(context, published.configuration(), record.getId(), normalizedValues);
 
@@ -880,7 +1091,7 @@ public class RuntimeDataService {
                 "BUSINESS_RECORD_CREATED", "BUSINESS_RECORD", record.getId().toString(), "SUCCESS",
                 permissionSnapshot(context, moduleCode, "CREATE", "PAGE"),
                 Map.of("moduleCode", moduleCode, "configVersionId", published.configuration().versionId(),
-                        "fields", normalizedValues, "participantMemberIds", ownership.participantMemberIds()));
+                        "fields", redactSecrets(normalizedValues, published.fields()), "participantMemberIds", ownership.participantMemberIds()));
         recordFieldChanges(context, moduleCode, auditEventId, Map.of(), normalizedValues, published.fields());
         return view(context, moduleCode, "CREATE", List.of("PAGE"), recordService.selectById(record.getId()), published);
     }
@@ -908,6 +1119,223 @@ public class RuntimeDataService {
 
     public BusinessAction.Delivery retryApproval(AuthenticatedContext context, String moduleCode, long actionId) {
         return actionControl.retryApproval(context, moduleCode, actionId);
+    }
+
+    /** 审批只读数据按当前查看者鉴权；原意图只能由服务端已核验关联传入，不能取客户端流程变量。 */
+    @Transactional(readOnly = true)
+    public RuntimeBusinessView approvalBusinessView(AuthenticatedContext viewer, BusinessAction.Input input,
+            JsonNode submittedConfiguration, Long recordId, Map<String, Object> nodePolicy, List<String> channels, String traceId) {
+        String moduleCode = input.moduleCode();
+        JsonNode payload = objectMapper.valueToTree(input.payload());
+        if (!permissionChecker.allows(viewer, "MODULE", moduleCode, "DETAIL")) {
+            return new RuntimeBusinessView(moduleCode, input.actionCode(), null, null, "当前没有业务详情权限。");
+        }
+        try {
+            RecordAccess access;
+            if (recordId != null) {
+                access = requireRecordAccess(viewer, moduleCode, "DETAIL", recordId, false, traceId);
+                if (!Objects.equals(access.record().getTenantId(), input.dataTenantId())) {
+                    throw new DomainException("ACTION_FLOW_NOT_FOUND", "业务记录归属不匹配", HttpStatus.NOT_FOUND);
+                }
+            } else {
+                access = proposedRecordAccess(viewer, input, "DETAIL", traceId);
+            }
+            if (!Objects.equals(access.published().configuration().moduleId(), input.moduleId())) {
+                return new RuntimeBusinessView(moduleCode, input.actionCode(), null, null, "当前模块与原申请不匹配。");
+            }
+            RuntimeRecordView current = recordId == null ? null : approvalReadRecord(viewer, moduleCode, access, nodePolicy, channels);
+            RuntimeRecordView proposed = proposedReadRecord(viewer, input, submittedConfiguration, access, nodePolicy, channels);
+            return new RuntimeBusinessView(moduleCode, input.actionCode(), proposed, current,
+                    submittedConfiguration.isObject() ? "提交内容仅供核对；正式生效情况以当前数据和操作结果为准。"
+                            : "原申请缺少可核验的字段配置快照，提交内容不展示；当前数据仍按当前权限读取。");
+        } catch (DomainException exception) {
+            if (exception.status() == HttpStatus.FORBIDDEN || exception.status() == HttpStatus.NOT_FOUND) {
+                return new RuntimeBusinessView(moduleCode, input.actionCode(), null, null, "当前记录或共享权限已不可访问。");
+            }
+            throw exception;
+        }
+    }
+
+    /** 手动关联只读取真实记录，业务快照中的字段及租户声明不能成为授权依据。 */
+    @Transactional(readOnly = true)
+    public RuntimeBusinessView flowRecordView(AuthenticatedContext viewer, String moduleCode, Long recordId,
+            Long dataTenantId, Map<String, Object> nodePolicy, String traceId) {
+        try {
+            RecordAccess access = requireRecordAccess(viewer, moduleCode, "DETAIL", recordId, false, traceId);
+            if (!Objects.equals(access.record().getTenantId(), dataTenantId)) {
+                return new RuntimeBusinessView(moduleCode, null, null, null, "关联记录归属不匹配。");
+            }
+            return new RuntimeBusinessView(moduleCode, null, null,
+                    approvalReadRecord(viewer, moduleCode, access, nodePolicy, List.of("PAGE", "FLOW")), null);
+        } catch (DomainException exception) {
+            if (exception.status() == HttpStatus.FORBIDDEN || exception.status() == HttpStatus.NOT_FOUND) {
+                return new RuntimeBusinessView(moduleCode, null, null, null, "当前没有关联业务的查看权限。");
+            }
+            throw exception;
+        }
+    }
+
+    /** 新建审批只构造可信归属的内存行；没有正式 ID，不能查询或保存物理字段值。 */
+    private RecordAccess proposedRecordAccess(AuthenticatedContext viewer, BusinessAction.Input input,
+            String actionCode, String traceId) {
+        if (!"CREATE".equals(input.actionCode()) || input.recordId() != null
+                || !Objects.equals(viewer.tenantId(), input.dataTenantId())
+                || !Objects.equals(viewer.systemId(), input.actor().systemId())
+                || !Objects.equals(input.actor().tenantId(), input.dataTenantId())) {
+            throw new DomainException("FLOW_NODE_FORM_NOT_AVAILABLE", "当前不能访问该新建申请的节点表单", HttpStatus.FORBIDDEN);
+        }
+        requireAction(viewer, input.moduleCode(), actionCode, traceId);
+        PublishedModule current = published(viewer, input.moduleCode());
+        JsonNode payload = objectMapper.valueToTree(input.payload());
+        BusinessRecord proposed = new BusinessRecord();
+        proposed.setSystemId(viewer.systemId()); proposed.setTenantId(input.dataTenantId());
+        proposed.setModuleId(input.moduleId()); proposed.setCreatedByMemberId(input.actor().memberId());
+        proposed.setOwnerMemberId(payload.path("ownerMemberId").isIntegralNumber()
+                ? Long.valueOf(payload.path("ownerMemberId").longValue()) : input.actor().memberId());
+        proposed.setDepartmentId(payload.path("departmentId").isIntegralNumber()
+                ? Long.valueOf(payload.path("departmentId").longValue()) : currentDepartmentId(input.actor()));
+        if (!withinProposedScope(viewer, input.moduleCode(), actionCode, proposed, longValues(payload, "participantMemberIds"))) {
+            throw new DomainException("PERMISSION_DENIED", "申请草稿不在当前授权的数据范围内", HttpStatus.FORBIDDEN);
+        }
+        return new RecordAccess(proposed, current, tenantContext(viewer, input.dataTenantId()), null);
+    }
+
+    /** 虚拟草稿与物理行使用相同范围语义；未知项默认拒绝，审批参与身份不扩大业务可见范围。 */
+    private boolean withinProposedScope(AuthenticatedContext viewer, String moduleCode, String actionCode,
+            BusinessRecord proposed, List<Long> participants) {
+        Long department = currentDepartmentId(viewer);
+        for (DataScopeTerm term : matchingTerms(viewer, moduleCode, actionCode)) {
+            boolean matches = switch (term.type()) {
+                case "ALL" -> true;
+                case "SELF" -> Objects.equals(proposed.getOwnerMemberId(), viewer.memberId());
+                case "SELF_AND_SUBORDINATES" -> organizationRelationRepository.subordinateSystemMemberIds(
+                        viewer.tenantId(), viewer.tenantMemberId()).contains(proposed.getOwnerMemberId());
+                case "CREATED_BY_SELF" -> Objects.equals(proposed.getCreatedByMemberId(), viewer.memberId());
+                case "PARTICIPATED" -> participants.contains(viewer.memberId());
+                case "DEPARTMENT" -> department != null && department.equals(proposed.getDepartmentId());
+                case "DEPARTMENT_AND_DESCENDANTS" -> descendantDepartmentIds(viewer, department).contains(proposed.getDepartmentId());
+                case "SPECIFIED_DEPARTMENTS" -> longValues(term.condition(), "departmentIds").contains(proposed.getDepartmentId());
+                case "SPECIFIED_MEMBERS" -> longValues(term.condition(), "memberIds").contains(proposed.getOwnerMemberId());
+                default -> false;
+            };
+            if (matches) return true;
+        }
+        return false;
+    }
+
+    private Map<String, FieldAccessDecision> approvalReadDecisions(AuthenticatedContext viewer, String moduleCode,
+            PublishedModule published, Map<String, Object> nodePolicy, List<String> channels) {
+        Map<String, FieldAccessDecision> decisions = protectSecretDecisions(viewer, moduleCode, "DETAIL", channels,
+                published.fields(), fieldPolicyResolver.resolveIntersection(viewer, moduleCode, "DETAIL", channels,
+                        published.fields().stream().map(PublishedField::code).toList()));
+        decisions.replaceAll((code, decision) -> published.fields().stream().filter(field -> field.code().equals(code))
+                .anyMatch(field -> com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.allowsRead(nodePolicy, code)
+                        && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.matchesBinding(nodePolicy,
+                        field.id(), code, field.type(), field.dictionaryId(), field.referenceModuleId())) ? decision
+                : new FieldAccessDecision(code, decision.channel(), false, false, null, decision.contributingRoleIds(), "节点隐藏字段"));
+        return decisions;
+    }
+
+    /** 当前正式数据重新读取并重算名称，旧审批快照不参与补值。 */
+    private RuntimeRecordView approvalReadRecord(AuthenticatedContext viewer, String moduleCode,
+            RecordAccess access, Map<String, Object> nodePolicy, List<String> channels) {
+        Map<String, FieldAccessDecision> decisions = approvalReadDecisions(viewer, moduleCode, access.published(), nodePolicy, channels);
+        RuntimeRecordView current = view(viewer, moduleCode, "DETAIL", channels, access, decisions);
+        return current.withFields(current.fields(), current.organizationLabels(), current.fieldPresentation(), List.of());
+    }
+
+    /** 原提交仅投影仍为同一 ID/类型的已发布字段；不生成默认值，不将密钥意图解密给查看者。 */
+    private RuntimeRecordView proposedReadRecord(AuthenticatedContext viewer, BusinessAction.Input input,
+            JsonNode submittedConfiguration, RecordAccess access, Map<String, Object> nodePolicy, List<String> channels) {
+        if (!submittedConfiguration.isObject()) return null;
+        JsonNode payload = objectMapper.valueToTree(input.payload());
+        JsonNode values = payload.path("fields");
+        if (!values.isObject()) values = payload.path("values");
+        if (!values.isObject()) return null;
+        Map<String, JsonNode> submittedFields = new LinkedHashMap<>();
+        submittedConfiguration.path("fields").forEach(field -> submittedFields.put(field.path("code").asText(), field));
+        List<PublishedField> sameFields = access.published().fields().stream().filter(field -> {
+            JsonNode submitted = submittedFields.get(field.code());
+            return submitted != null && field.id().equals(submitted.path("id").asLong())
+                    && field.type().equals(submitted.path("fieldType").asText())
+                    && Objects.equals(field.dictionaryId(), submitted.hasNonNull("dictionaryId") ? submitted.path("dictionaryId").longValue() : null)
+                    && Objects.equals(field.referenceModuleId(), submitted.hasNonNull("referenceModuleId") ? submitted.path("referenceModuleId").longValue() : null);
+        }).toList();
+        RecordAccess proposedAccess = new RecordAccess(access.record(),
+                new PublishedModule(access.published().configuration(), sameFields), access.sourceContext(), access.share());
+        Map<String, FieldAccessDecision> decisions = approvalReadDecisions(viewer, input.moduleCode(), proposedAccess.published(), nodePolicy, channels);
+        Map<String, JsonNode> visible = new LinkedHashMap<>();
+        for (PublishedField field : sameFields) {
+            if (!values.has(field.code())) continue;
+            FieldAccessDecision decision = decisions.get(field.code());
+            JsonNode safe = "SECRET".equals(field.type()) && values.hasNonNull(field.code())
+                    ? TextNode.valueOf("***") : values.get(field.code());
+            safe = fieldPolicyResolver.protect(safe, decision);
+            if (safe != null) visible.put(field.code(), safe);
+        }
+        // 只为实际提交且可读的字段提供描述，避免未提交字段被公共详情误显示成修改为“未填写”。
+        decisions.replaceAll((code, decision) -> visible.containsKey(code) ? decision
+                : new FieldAccessDecision(code, decision.channel(), false, false, null, decision.contributingRoleIds(), "未提交或不可读"));
+        return proposedView(viewer, input, proposedAccess, visible, decisions);
+    }
+
+    /** 只读提交与可编辑候选共用真实归属描述，不生成默认值或占位正式行。 */
+    private RuntimeRecordView proposedView(AuthenticatedContext viewer, BusinessAction.Input input,
+            RecordAccess access, Map<String, JsonNode> visible, Map<String, FieldAccessDecision> decisions) {
+        JsonNode payload = objectMapper.valueToTree(input.payload());
+        BusinessRecord record = access.record();
+        Long owner = payload.path("ownerMemberId").isIntegralNumber()
+                ? Long.valueOf(payload.path("ownerMemberId").longValue()) : record.getOwnerMemberId();
+        Long department = payload.path("departmentId").isIntegralNumber()
+                ? Long.valueOf(payload.path("departmentId").longValue()) : record.getDepartmentId();
+        List<Long> participants = longValues(payload, "participantMemberIds");
+        return new RuntimeRecordView(null, payload.path("recordNumber").asText(null), payload.path("title").asText(null),
+                "PROPOSED", owner, department, input.actor().memberId(), null, input.configVersionId(), null, participants,
+                false, null, false, null, null, null, null, input.dataTenantId(), tenantName(input.dataTenantId()),
+                viewer.tenantId().equals(input.dataTenantId()), access.share() != null, null, null, List.of(), null,
+                organizationLabels(access, owner, department, participants, visible),
+                fieldPresentation(viewer, access, visible, decisions), List.of(), visible);
+    }
+
+    /** 审批进度只接受内部已核验原动作；原动作权限、共享和范围必须在查看时仍然有效。 */
+    @Transactional(readOnly = true)
+    public RuntimeRecordView authorizeActionProgress(AuthenticatedContext actor, BusinessAction.Input input,
+                                                     Long resultRecordId, String traceId) {
+        String action = "CONVERSION_UNLINK".equals(input.actionCode()) ? "CONVERT" : input.actionCode();
+        requireAction(actor, input.moduleCode(), action, traceId);
+        Long recordId = input.recordId() == null ? resultRecordId : input.recordId();
+        PublishedModule current;
+        if (recordId == null) {
+            if (!"CREATE".equals(action) || !Objects.equals(actor.tenantId(), input.dataTenantId())) {
+                throw new DomainException("ACTION_FLOW_NOT_FOUND", "原操作的业务关系已不可访问", HttpStatus.NOT_FOUND);
+            }
+            current = published(actor, input.moduleCode());
+        } else {
+            RecordAccess access = requireRecordAccess(actor, input.moduleCode(), action, recordId, false, traceId);
+            if (!Objects.equals(access.record().getTenantId(), input.dataTenantId())) {
+                throw new DomainException("ACTION_FLOW_NOT_FOUND", "原操作的业务关系已不可访问", HttpStatus.NOT_FOUND);
+            }
+            current = access.published();
+        }
+        if (!Objects.equals(current.configuration().moduleId(), input.moduleId())) {
+            throw new DomainException("ACTION_FLOW_NOT_FOUND", "原操作的模块关系已不可访问", HttpStatus.NOT_FOUND);
+        }
+        JsonNode configured = findPublishedAction(current, action);
+        if (!"ACTIVE".equals(configured.path("status").asText())) {
+            throw new DomainException("ACTION_FLOW_NOT_FOUND", "原操作的动作已不可访问", HttpStatus.NOT_FOUND);
+        }
+        if ("CUSTOM".equals(configured.path("actionType").asText())) {
+            requireRecordAccess(actor, input.moduleCode(), "UPDATE", recordId, false, traceId);
+        }
+        // 发起人没有 DETAIL 仍可看进度；业务内容必须另过当前 DETAIL 和字段策略，绝不取旧快照。
+        if (recordId == null || !permissionChecker.allows(actor, "MODULE", input.moduleCode(), "DETAIL")) return null;
+        try {
+            RecordAccess readable = requireRecordAccess(actor, input.moduleCode(), "DETAIL", recordId, false, traceId);
+            return view(actor, input.moduleCode(), "DETAIL", List.of("PAGE"), readable);
+        } catch (DomainException exception) {
+            if (exception.status() == HttpStatus.FORBIDDEN || exception.status() == HttpStatus.NOT_FOUND) return null;
+            throw exception;
+        }
     }
 
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
@@ -974,7 +1402,9 @@ public class RuntimeDataService {
             if (protectedValue != null) fields.put(code, protectedValue);
         });
         return new BusinessAction.Result<>(result.idempotencyRecordId(), result.outboxId(), result.idempotencyKey(),
-                result.status(), true, result.mode(), result.value().withFields(fields), result.flowInstanceId());
+                result.status(), true, result.mode(), result.value().withFields(fields, organizationLabels(access, result.value().ownerMemberId(),
+                        result.value().departmentId(), result.value().participantMemberIds(), fields),
+                        fieldPresentation(context, access, fields, decisions), recordActions(context, moduleCode, access)), result.flowInstanceId());
     }
 
     public RuntimeImportValidation validateImport(
@@ -987,8 +1417,10 @@ public class RuntimeDataService {
         if (recordId == null) {
             requireAction(context, moduleCode, "CREATE", traceId);
             PublishedModule published = published(context, moduleCode);
+            Map<String, JsonNode> importFields = resolveImportDisplayValues(
+                    context, published.fields(), request.fields());
             Map<String, JsonNode> normalized = validateFields(
-                    context, context, moduleCode, "CREATE", published.fields(), request.fields(), traceId, null);
+                    context, context, moduleCode, "CREATE", published.fields(), importFields, traceId, null);
             ruleIndexService.validate(published.configuration(), "CREATE", normalized);
             validateOwnership(context, request.ownerMemberId(), request.departmentId(),
                     request.participantMemberIds(), traceId, null);
@@ -1000,8 +1432,10 @@ public class RuntimeDataService {
             throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
         }
         Map<String, JsonNode> beforeFields = readRawValues(recordId, access.published().fields());
+        Map<String, JsonNode> importFields = resolveImportDisplayValues(
+                access.sourceContext(), access.published().fields(), request.fields());
         Map<String, JsonNode> normalized = validateFields(context, access.sourceContext(), moduleCode, "UPDATE",
-                access.published().fields(), request.fields(), traceId, recordId);
+                access.published().fields(), importFields, traceId, recordId);
         ruleIndexService.validate(access.published().configuration(), "UPDATE", normalized);
         validateOwnership(access.sourceContext(), request.ownerMemberId(), request.departmentId(),
                 request.participantMemberIds(), traceId, recordId);
@@ -1025,18 +1459,46 @@ public class RuntimeDataService {
         RecordAccess access = requireRecordAccess(context, moduleCode, "UPDATE", recordId, false, traceId);
         PublishedModule published = access.published();
         AuthenticatedContext dataContext = access.sourceContext();
+        BusinessAction.Options effectiveOptions = options.materialized();
         BusinessAction.Input input = new BusinessAction.Input(context, dataContext.tenantId(),
                 published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
-                "UPDATE", recordId, request.version(), request, options, traceId);
-        BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
-                () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
-                        actionVariables(request, validateFields(context, dataContext, moduleCode, "UPDATE",
-                                published.fields(), request.fields(), traceId, recordId)), traceId),
-                () -> validateImport(context, moduleCode, recordId, new CreateRuntimeRecordRequest(
-                        request.title(), request.recordNumber(), request.status(), request.ownerMemberId(),
-                        request.departmentId(), request.participantMemberIds(), request.fields()), request.version(), traceId),
-                () -> updateDirect(context, moduleCode, recordId, request, traceId));
-        return protectActionReplay(context, moduleCode, "UPDATE", result, traceId);
+                "UPDATE", recordId, request.version(), request, effectiveOptions, traceId);
+        try {
+            BusinessAction.Result<RuntimeRecordView> result = actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
+                    () -> actionBindings.resolveForAction(dataContext, input.moduleId(), input.actionCode(),
+                            actionVariables(request, validateFields(context, dataContext, moduleCode, "UPDATE",
+                                    published.fields(), request.fields(), traceId, recordId)), traceId),
+                    () -> validateImport(context, moduleCode, recordId, new CreateRuntimeRecordRequest(
+                            request.title(), request.recordNumber(), request.status(), request.ownerMemberId(),
+                            request.departmentId(), request.participantMemberIds(), request.fields()), request.version(), traceId),
+                    () -> updateDirect(context, moduleCode, recordId, request, traceId));
+            return protectActionReplay(context, moduleCode, "UPDATE", result, traceId);
+        } catch (DomainException exception) {
+            recordValidationAnomaly(context, published, moduleCode, "UPDATE", recordId,
+                    effectiveOptions.idempotencyKey(), exception);
+            throw exception;
+        }
+    }
+
+    /** 只把已发布业务规则拒绝转成脱敏异常事实，权限、并发及系统错误保持原处理路径。 */
+    private void recordValidationAnomaly(AuthenticatedContext context, PublishedModule published,
+            String moduleCode, String actionCode, Long recordId, String actionKey, DomainException exception) {
+        if (!Set.of("BUSINESS_RULE_REJECTED", "UNIQUE_RULE_VIOLATION").contains(exception.code())) return;
+        Map<String, Object> details = exception.details();
+        String ruleType = String.valueOf(details.getOrDefault("anomalyType", "")).strip();
+        if (!Set.of("BUSINESS_RULE", "UNIQUE_RULE").contains(ruleType)) return;
+        Long ruleId = details.get("ruleId") instanceof Number value ? value.longValue() : null;
+        String ruleCode = String.valueOf(details.getOrDefault("ruleCode", "")).strip();
+        String ruleName = String.valueOf(details.getOrDefault("ruleName", ruleCode)).strip();
+        try {
+            flowEvents.enqueueModuleValidationException(context, published.configuration().moduleId(),
+                    moduleCode, published.configuration().versionId(), actionCode,
+                    recordId, actionKey, exception.code(), ruleType, ruleId, ruleCode, ruleName);
+        } catch (RuntimeException deliveryFailure) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).warn(
+                    "Module validation anomaly could not be persisted for {} {}", moduleCode, actionCode,
+                    deliveryFailure);
+        }
     }
 
     /**
@@ -1066,21 +1528,15 @@ public class RuntimeDataService {
     private ManualActionPlan manualActionPlan(
             AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
             ManualRecordActionRequest request, String traceId, boolean checkVersion) {
-        RecordAccess access = requireRecordAccess(context, moduleCode, actionCode, recordId, true, traceId);
-        // 字段更新动作必须同时满足标准编辑权限与数据范围，与运行页可用性保持一致。
-        requireRecordAccess(context, moduleCode, "UPDATE", recordId, true, traceId);
-        JsonNode action = findPublishedAction(access.published(), actionCode);
-        if (!"CUSTOM".equals(action.path("actionType").asText()) || !"ACTIVE".equals(action.path("status").asText())) {
-            throw new DomainException("MANUAL_ACTION_NOT_AVAILABLE", "手动动作未发布或已停用", HttpStatus.CONFLICT);
-        }
-        JsonNode config = parseConfig(action.path("configJson").asText("{}"));
-        if (!"UPDATE_FIELDS".equals(config.path("operation").asText()) || !config.path("parameterFieldCodes").isArray()) {
-            throw new DomainException("MANUAL_ACTION_CONFIG_INVALID", "手动动作配置无效，请联系系统管理员",
-                    HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+        ManualActionDefinition definition = manualActionDefinition(context, moduleCode, recordId, actionCode, traceId);
+        RecordAccess access = definition.access();
+        JsonNode action = definition.action();
         Set<String> configured = new LinkedHashSet<>();
-        config.path("parameterFieldCodes").forEach(node -> configured.add(node.asText()));
-        if (request.values().isEmpty() || !configured.equals(request.values().keySet())) {
+        definition.parameters().forEach(field -> configured.add(field.code()));
+        Set<String> preservedSecrets = definition.parameters().stream().filter(field -> "SECRET".equals(field.type()))
+                .map(PublishedField::code).collect(java.util.stream.Collectors.toSet());
+        if (!configured.containsAll(request.values().keySet()) || configured.stream()
+                .anyMatch(code -> !request.values().containsKey(code) && !preservedSecrets.contains(code))) {
             throw new DomainException("MANUAL_ACTION_VALUES_INVALID", "请完整填写动作要求的业务字段",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -1089,8 +1545,7 @@ public class RuntimeDataService {
             recordVersionConflict(context, moduleCode, recordId, request.version(), record.getVersion(), traceId);
             throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
         }
-        List<PublishedField> inputFields = access.published().fields().stream()
-                .filter(field -> configured.contains(field.code())).toList();
+        List<PublishedField> inputFields = definition.parameters();
         Map<String, JsonNode> normalized = validateFields(context, access.sourceContext(), moduleCode, "UPDATE",
                 inputFields, request.values(), traceId, recordId);
         // 未选字段原样保留，避免局部动作覆盖只读、脱敏或无写入权限的其他业务值。
@@ -1104,6 +1559,84 @@ public class RuntimeDataService {
         if (actionId <= 0) throw new DomainException("MANUAL_ACTION_CONFIG_INVALID", "手动动作配置无效",
                 HttpStatus.UNPROCESSABLE_ENTITY);
         return new ManualActionPlan(access, actionId, update);
+    }
+
+    /** 展示、选项和执行共用来源动作鉴权，既不借用来源角色，也不跳过标准编辑限制。 */
+    private ManualActionDefinition manualActionDefinition(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String actionCode, String traceId) {
+        RecordAccess access = requireRecordAccess(actor, moduleCode, actionCode, recordId, true, traceId);
+        requireRecordAccess(actor, moduleCode, "UPDATE", recordId, true, traceId);
+        JsonNode action = findPublishedAction(access.published(), actionCode);
+        JsonNode config = parseConfig(action.path("configJson").asText("{}"));
+        if (!"CUSTOM".equals(action.path("actionType").asText()) || !"ACTIVE".equals(action.path("status").asText())
+                || !"UPDATE_FIELDS".equals(config.path("operation").asText())
+                || !config.path("parameterFieldCodes").isArray() || config.path("parameterFieldCodes").isEmpty()
+                || config.path("parameterFieldCodes").size() > 20 || action.path("id").asLong(0) <= 0) {
+            throw new DomainException("MANUAL_ACTION_NOT_AVAILABLE", "手动动作未发布、停用或配置无效", HttpStatus.CONFLICT);
+        }
+        List<PublishedField> parameters = new ArrayList<>();
+        Set<String> unique = new LinkedHashSet<>();
+        for (JsonNode code : config.path("parameterFieldCodes")) {
+            PublishedField field = access.published().fields().stream().filter(f -> f.code().equals(code.asText())).findFirst().orElse(null);
+            if (field == null || !unique.add(field.code()) || field.type().startsWith("SYSTEM_")
+                    || field.config().path("readOnly").asBoolean(false)) {
+                throw new DomainException("MANUAL_ACTION_CONFIG_INVALID", "动作参数不存在、重复或只读", HttpStatus.CONFLICT);
+            }
+            parameters.add(field);
+        }
+        List<String> codes = parameters.stream().map(PublishedField::code).toList();
+        Map<String, FieldAccessDecision> actionFields = fieldPolicyResolver.resolve(actor, moduleCode, actionCode, "PAGE", codes);
+        Map<String, FieldAccessDecision> updateFields = fieldPolicyResolver.resolve(actor, moduleCode, "UPDATE", "PAGE", codes);
+        if (codes.stream().anyMatch(code -> !actionFields.get(code).writable() || !updateFields.get(code).writable())) {
+            deny(actor, moduleCode, actionCode, traceId, Map.of("recordId", recordId, "reason", "ACTION_FIELD_NOT_WRITABLE"));
+        }
+        return new ManualActionDefinition(access, action, parameters, actionFields, updateFields);
+    }
+
+    /** 只给本记录实际动作的参数，不暴露其他可读字段、默认值或任意来源目录。 */
+    @Transactional(readOnly = true)
+    public RuntimeManualActionContext manualActionContext(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String actionCode, String traceId) {
+        String code = actionCode.strip().toUpperCase(Locale.ROOT);
+        ManualActionDefinition definition = manualActionDefinition(actor, moduleCode, recordId, code, traceId);
+        RecordAccess source = definition.access();
+        RecordAccess parameterAccess = new RecordAccess(source.record(),
+                new PublishedModule(source.published().configuration(), definition.parameters()), source.sourceContext(), source.share());
+        RuntimeRecordView record = view(actor, moduleCode, code, List.of("PAGE"), parameterAccess);
+        Map<String, JsonNode> values = new LinkedHashMap<>();
+        record.fields().forEach((field, value) -> values.put(field, fieldPolicyResolver.protect(value, definition.updateFields().get(field))));
+        Map<String, FieldAccessDecision> decisions = new LinkedHashMap<>();
+        List<JsonNode> parameters = new ArrayList<>();
+        for (PublishedField field : definition.parameters()) {
+            FieldAccessDecision action = definition.actionFields().get(field.code());
+            FieldAccessDecision update = definition.updateFields().get(field.code());
+            String mask = action.maskStrategy() == null || action.maskStrategy().isBlank() ? update.maskStrategy() : action.maskStrategy();
+            if ("SECRET".equals(field.type())) mask = "FULL";
+            FieldAccessDecision intersection = new FieldAccessDecision(field.code(), "PAGE", true, true, mask,
+                    action.contributingRoleIds(), "必须同时满足自定义动作与标准编辑字段权限");
+            decisions.put(field.code(), intersection);
+            for (JsonNode configured : source.published().configuration().configuration().path("fields")) {
+                if (!field.code().equals(configured.path("code").asText())) continue;
+                com.fasterxml.jackson.databind.node.ObjectNode parameter = configured.deepCopy();
+                com.fasterxml.jackson.databind.node.ObjectNode fieldConfig = field.config().deepCopy();
+                fieldConfig.remove("defaultValue");
+                parameter.put("configJson", fieldConfig.toString());
+                parameter.set("access", objectMapper.valueToTree(intersection));
+                parameters.add(parameter);
+                break;
+            }
+        }
+        record = record.withFields(values, organizationLabels(parameterAccess, record.ownerMemberId(), record.departmentId(),
+                record.participantMemberIds(), values), fieldPresentation(actor, parameterAccess, values, decisions), List.of());
+        // 确认规则同样来自实际来源；不能继续沿用接收方同编码动作的确认配置。
+        JsonNode actionConfig = parseConfig(definition.action().path("configJson").asText("{}"));
+        return new RuntimeManualActionContext(code, definition.action().path("name").asText(), record, parameters,
+                actionConfig.path("confirmation").asBoolean(false), actionConfig.path("confirmationText").asText(""));
+    }
+
+    private record ManualActionDefinition(RecordAccess access, JsonNode action, List<PublishedField> parameters,
+                                          Map<String, FieldAccessDecision> actionFields,
+                                          Map<String, FieldAccessDecision> updateFields) {
     }
 
     private RuntimeRecordView executeManualDirect(
@@ -1155,15 +1688,15 @@ public class RuntimeDataService {
             recordVersionConflict(context, moduleCode, recordId, request.version(), null, traceId);
             throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
         }
-        replaceValues(access.sourceContext(), recordId, published.fields(), normalizedValues);
+        replaceValues(access.sourceContext(), moduleCode, recordId, published.fields(), normalizedValues);
         replaceParticipants(access.sourceContext(), recordId, ownership.participantMemberIds());
         ruleIndexService.syncIndexes(access.sourceContext(), published.configuration(), recordId, normalizedValues);
 
         Map<String, Object> auditDetail = new LinkedHashMap<>();
         auditDetail.put("moduleCode", moduleCode);
         auditDetail.put("configVersionId", published.configuration().versionId());
-        auditDetail.put("beforeFields", before);
-        auditDetail.put("afterFields", normalizedValues);
+        auditDetail.put("beforeFields", redactSecrets(before, published.fields()));
+        auditDetail.put("afterFields", redactSecrets(normalizedValues, published.fields()));
         auditDetail.put("participantMemberIds", ownership.participantMemberIds());
         auditDetail.put("actorTenantId", context.tenantId());
         auditDetail.put("dataTenantId", record.getTenantId());
@@ -1212,9 +1745,111 @@ public class RuntimeDataService {
                 recordService.selectById(recordId), access.published(), access.sourceContext(), access.share()));
     }
 
-    /** Applies a published Flow node writeback against the same module permission and field policy model as pages. */
-    @Transactional(noRollbackFor = DomainException.class)
-    public RuntimeRecordView applyFlowWriteback(
+    /**
+     * 自动数据节点在独立事务内进入统一动作执行器。业务写入先提交，流程推进失败后用同一幂等键重放，
+     * 不会再次创建或更新数据；Flow 内部动作不再次解析同一 Flow 绑定，避免自触发循环。
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BusinessAction.Result<RuntimeRecordView> applyFlowAutomaticAction(
+            AuthenticatedContext context, String operation, String moduleCode, Long recordId, String title,
+            Map<String, Object> fieldUpdates, Long frozenModuleVersionId,
+            List<FlowAutomaticActionPolicy.FieldBinding> frozenFields,
+            BusinessAction.Options options, String traceId) {
+        String action = operation == null ? "" : operation.strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("CREATE", "UPDATE").contains(action)) {
+            throw new DomainException("FLOW_AUTOMATIC_OPERATION_INVALID", "自动业务节点只支持新建或更新数据",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        PublishedModule published = published(context, moduleCode);
+        verifyFlowAutomaticSnapshot(published, frozenModuleVersionId, frozenFields);
+        Map<String, JsonNode> requested = new LinkedHashMap<>();
+        (fieldUpdates == null ? Map.<String, Object>of() : fieldUpdates)
+                .forEach((code, value) -> requested.put(code, objectMapper.valueToTree(value)));
+        if ("CREATE".equals(action)) {
+            if (title == null || title.isBlank()) {
+                throw new DomainException("FLOW_AUTOMATIC_TITLE_REQUIRED", "新建数据节点必须得到非空标题",
+                        HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+            CreateRuntimeRecordRequest request = new CreateRuntimeRecordRequest(title.strip(), null, "ACTIVE",
+                    context.memberId(), null, List.of(), requested);
+            validateActionRequest(request);
+            BusinessAction.Input input = new BusinessAction.Input(context, context.tenantId(),
+                    published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                    action, null, null, request, options, traceId);
+            return protectActionReplay(context, moduleCode, action,
+                    actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
+                            () -> null, () -> { }, () -> createDirect(context, moduleCode, request, traceId)), traceId);
+        }
+        if (recordId == null) {
+            throw new DomainException("FLOW_AUTOMATIC_RECORD_REQUIRED", "更新数据节点没有得到目标记录",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        RecordAccess access = requireRecordAccess(context, moduleCode, "UPDATE", recordId, true, traceId);
+        BusinessRecord record = access.record();
+        Map<String, JsonNode> merged = new LinkedHashMap<>(readRawValues(recordId, access.published().fields()));
+        requested.forEach((code, value) -> {
+            if (empty(value)) merged.remove(code);
+            else merged.put(code, value);
+        });
+        UpdateRuntimeRecordRequest request = new UpdateRuntimeRecordRequest(record.getTitle(), record.getRecordNumber(),
+                record.getStatus(), record.getOwnerMemberId(), record.getDepartmentId(), participantIds(recordId),
+                merged, record.getVersion());
+        validateActionRequest(request);
+        BusinessAction.Input input = new BusinessAction.Input(context, access.sourceContext().tenantId(),
+                published.configuration().moduleId(), moduleCode, published.configuration().versionId(),
+                action, recordId, record.getVersion(), request, options, traceId);
+        return protectActionReplay(context, moduleCode, action,
+                actionControl.execute(input, RuntimeRecordView.class, published.configuration().configuration(),
+                        () -> null, () -> { }, () -> updateDirect(context, moduleCode, recordId, request, traceId)), traceId);
+    }
+
+    private void verifyFlowAutomaticSnapshot(PublishedModule published, Long versionId,
+                                             List<FlowAutomaticActionPolicy.FieldBinding> bindings) {
+        if (versionId == null || !Objects.equals(versionId, published.configuration().versionId())) {
+            throw new DomainException("FLOW_AUTOMATIC_MODULE_CHANGED",
+                    "自动业务节点使用的模块版本已变化，请检查并重新发布流程", HttpStatus.CONFLICT);
+        }
+        Map<String, PublishedField> current = published.fields().stream().collect(java.util.stream.Collectors.toMap(
+                PublishedField::code, field -> field, (left, right) -> left, LinkedHashMap::new));
+        for (FlowAutomaticActionPolicy.FieldBinding frozen : bindings == null ? List.<FlowAutomaticActionPolicy.FieldBinding>of() : bindings) {
+            PublishedField field = current.get(frozen.code());
+            if (field == null || !Objects.equals(field.id(), frozen.id()) || !Objects.equals(field.type(), frozen.fieldType())
+                    || !Objects.equals(field.dictionaryId(), frozen.dictionaryId())
+                    || !Objects.equals(field.referenceModuleId(), frozen.referenceModuleId())) {
+                throw new DomainException("FLOW_AUTOMATIC_FIELD_CHANGED",
+                        "自动业务节点字段“" + frozen.name() + "”已变化，请检查并重新发布流程", HttpStatus.CONFLICT);
+            }
+        }
+    }
+
+    /** 兼容旧字段回写配置，但写入同样必须经过统一动作、幂等和可靠事件。 */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BusinessAction.Result<RuntimeRecordView> applyFlowWritebackAction(
+            AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
+            String expectedCurrentStatus, String targetStatus, Map<String, Object> fieldUpdates,
+            BusinessAction.Options options, String traceId) {
+        String action = actionCode == null ? "" : actionCode.strip().toUpperCase(Locale.ROOT);
+        if (action.isBlank()) {
+            throw new DomainException("FLOW_WRITEBACK_ACTION_REQUIRED",
+                    "字段回写节点必须配置业务动作", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        RecordAccess access = requireRecordAccess(context, moduleCode, action, recordId, true, traceId);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("expectedCurrentStatus", expectedCurrentStatus);
+        payload.put("targetStatus", targetStatus);
+        payload.put("fieldUpdates", fieldUpdates == null ? Map.of() : fieldUpdates);
+        BusinessAction.Input input = new BusinessAction.Input(context, access.sourceContext().tenantId(),
+                access.published().configuration().moduleId(), moduleCode,
+                access.published().configuration().versionId(), action, recordId, access.record().getVersion(),
+                payload, options, traceId);
+        return protectActionReplay(context, moduleCode, action,
+                actionControl.execute(input, RuntimeRecordView.class,
+                        access.published().configuration().configuration(), () -> null, () -> { },
+                        () -> applyFlowWritebackDirect(context, moduleCode, recordId, action,
+                                expectedCurrentStatus, targetStatus, fieldUpdates, traceId)), traceId);
+    }
+
+    private RuntimeRecordView applyFlowWritebackDirect(
             AuthenticatedContext context, String moduleCode, Long recordId, String actionCode,
             String expectedCurrentStatus, String targetStatus, Map<String, Object> fieldUpdates,
             String traceId) {
@@ -1263,6 +1898,7 @@ public class RuntimeDataService {
             try {
                 JsonNode normalized = normalize(access.sourceContext(), field, value);
                 validateReferenceValue(access.sourceContext(), field, normalized);
+                if (!Objects.equals(before.get(code), normalized)) validateActorReference(context, field, normalized, traceId);
                 merged.put(code, normalized);
             } catch (IllegalArgumentException exception) {
                 errors.add(code + ": " + exception.getMessage());
@@ -1284,7 +1920,7 @@ public class RuntimeDataService {
         if (recordService.updateById(record) != 1) {
             throw new DomainException("RECORD_VERSION_CONFLICT", "业务数据已被其他操作修改", HttpStatus.CONFLICT);
         }
-        replaceValues(access.sourceContext(), recordId, published.fields(), merged);
+        replaceValues(access.sourceContext(), moduleCode, recordId, published.fields(), merged);
         ruleIndexService.syncIndexes(access.sourceContext(), published.configuration(), recordId, merged);
         Long auditEventId = auditRecorder.recordWithPermissionSnapshot(
                 traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
@@ -1736,6 +2372,10 @@ public class RuntimeDataService {
                 status = "INVALID";
                 message = "来源字段不存在";
                 issues.add(targetField.name() + "：配置的来源字段不存在，请重新选择");
+            } else if ("SECRET".equals(sourceFields.get(sourceCode).type()) && !"SECRET".equals(targetField.type())) {
+                status = "DENIED";
+                message = "密码/密钥只能转化到同类受保护字段";
+                issues.add(targetField.name() + "：不能将密码/密钥转化到普通字段");
             } else if (sourceAccess.get(sourceCode) == null || !sourceAccess.get(sourceCode).readable()
                     || sourceAccess.get(sourceCode).maskStrategy() != null) {
                 status = "DENIED";
@@ -1769,7 +2409,10 @@ public class RuntimeDataService {
             }
             mappings.add(new RuntimeRecordConversionMapping(targetField.code(), targetField.name(),
                     targetField.required(), sourceCode, sourceFields.containsKey(sourceCode)
-                            ? sourceFields.get(sourceCode).name() : null, value, status, message));
+                            ? sourceFields.get(sourceCode).name() : null,
+                    value != null && ("SECRET".equals(targetField.type())
+                            || sourceFields.containsKey(sourceCode) && "SECRET".equals(sourceFields.get(sourceCode).type()))
+                            ? TextNode.valueOf("***") : value, status, message));
         }
         if (issues.isEmpty()) {
             try {
@@ -2151,7 +2794,7 @@ public class RuntimeDataService {
         detail.put("toState", toState);
         detail.put("actorTenantId", context.tenantId());
         detail.put("dataTenantId", record.getTenantId());
-        detail.put("snapshot", lifecycleSnapshot(record, snapshotFields));
+        detail.put("snapshot", lifecycleSnapshot(record, redactSecrets(snapshotFields, published.fields())));
         auditRecorder.recordWithPermissionSnapshot(traceId, context.accountId(), context.systemId(), context.tenantId(),
                 context.memberId(), eventCode, "BUSINESS_RECORD", record.getId().toString(), "SUCCESS",
                 permissionSnapshot(context, moduleCode, action, "PAGE"), detail);
@@ -2277,27 +2920,17 @@ public class RuntimeDataService {
     private RecordAccess requireRecordAccess(
             AuthenticatedContext context, String moduleCode, String actionCode,
             Long recordId, boolean activeOnly, String traceId) {
-        return requireRecordAccess(context, moduleCode, actionCode, recordId, activeOnly, traceId, false);
+        // 写事务内的预校验、物理执行和审批恢复都重读当前授权及范围值；只读页面不持有写事务锁。
+        boolean currentRead = org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()
+                && !org.springframework.transaction.support.TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+        return requireRecordAccess(context, moduleCode, actionCode, recordId, activeOnly, traceId, currentRead);
     }
 
     private RecordAccess requireRecordAccess(
             AuthenticatedContext context, String moduleCode, String actionCode,
             Long recordId, boolean activeOnly, String traceId, boolean currentRead) {
         requireAction(context, moduleCode, actionCode, traceId);
-        PublishedModule currentPublished = published(context, moduleCode);
-        LambdaQueryWrapper<BusinessRecord> ownBoundary = activeOnly
-                ? boundary(context, currentPublished.configuration().moduleId())
-                : baseBoundary(context, currentPublished.configuration().moduleId());
-        BusinessRecord own = recordService.selectList(ownBoundary.eq(BusinessRecord::getId, recordId).last(currentRead, "FOR SHARE"))
-                .stream().findFirst().orElse(null);
-        if (own != null) {
-            if (!withinScope(context, moduleCode, actionCode, recordId, currentPublished.configuration().moduleId(), currentRead)) {
-                deny(context, moduleCode, actionCode, traceId,
-                        Map.of("recordId", recordId, "reason", "DATA_SCOPE_DENIED"));
-            }
-            return new RecordAccess(own, currentPublished, context, null);
-        }
-
+        // 先确认真实记录归属；来源私有模块不要求接收方另建同编码配置。
         BusinessRecord sharedRecord = recordService.selectList(Wrappers.<BusinessRecord>lambdaQuery()
                         .eq(BusinessRecord::getSystemId, context.systemId())
                         .eq(BusinessRecord::getId, recordId).last(currentRead, "FOR SHARE"))
@@ -2308,19 +2941,23 @@ public class RuntimeDataService {
         }
         ConfiguredModule sourceModule = moduleService.selectById(sharedRecord.getModuleId());
         if (sourceModule == null || !context.systemId().equals(sourceModule.getSystemId())
+                || !"ACTIVE".equals(sourceModule.getStatus())
                 || !moduleCode.equalsIgnoreCase(sourceModule.getCode())) {
             throw new DomainException("RECORD_NOT_FOUND", "业务数据不存在", HttpStatus.NOT_FOUND);
         }
-        BizTenantShare share = tenantShareService.selectList(Wrappers.<BizTenantShare>lambdaQuery()
-                        .eq(BizTenantShare::getSystemId, context.systemId())
-                        .eq(BizTenantShare::getSourceTenantId, sharedRecord.getTenantId())
-                        .eq(BizTenantShare::getTargetTenantId, context.tenantId())
-                        .eq(BizTenantShare::getRecordId, recordId).last(currentRead, "FOR SHARE"))
-                .stream().findFirst().orElse(null);
-        String shareStatus = effectiveShareStatus(share);
-        if (share == null || !"ACTIVE".equals(shareStatus) || !shareAllows(share, actionCode)) {
-            if (share != null) recordShareUsage(context, share, actionCode,
-                    share == null ? "NOT_FOUND" : (!"ACTIVE".equals(shareStatus) ? shareStatus : "ACTION_DENIED"));
+        if (context.tenantId().equals(sharedRecord.getTenantId())) {
+            PublishedModule ownPublished = published(context, moduleCode);
+            if (!sourceModule.getId().equals(ownPublished.configuration().moduleId())) {
+                throw new DomainException("RECORD_NOT_FOUND", "业务数据不存在", HttpStatus.NOT_FOUND);
+            }
+            if (!withinScope(context, moduleCode, actionCode, recordId, sourceModule.getId(), currentRead)) {
+                deny(context, moduleCode, actionCode, traceId,
+                        Map.of("recordId", recordId, "reason", "DATA_SCOPE_DENIED"));
+            }
+            return new RecordAccess(sharedRecord, ownPublished, context, null);
+        }
+        BizTenantShare share = matchingShare(context, moduleCode, sharedRecord, actionCode, currentRead);
+        if (share == null || !sharedSourceMetadata.activeTenantPair(context, sharedRecord.getTenantId())) {
             throw new DomainException("RECORD_NOT_FOUND", "业务数据不存在或共享授权已失效", HttpStatus.NOT_FOUND);
         }
         if (!withinSharedScope(context, moduleCode, actionCode, sharedRecord, currentRead)) {
@@ -2329,7 +2966,11 @@ public class RuntimeDataService {
                     Map.of("recordId", recordId, "shareId", share.getId(), "reason", "DATA_SCOPE_DENIED"));
         }
         AuthenticatedContext sourceContext = tenantContext(context, sharedRecord.getTenantId());
-        return new RecordAccess(sharedRecord, published(sourceContext, moduleCode), sourceContext, share);
+        PublishedModule sourcePublished = published(sourceContext, moduleCode);
+        if (!sourceModule.getId().equals(sourcePublished.configuration().moduleId())) {
+            throw new DomainException("SHARE_CONFIGURATION_CONFLICT", "共享记录与来源发布模块不一致", HttpStatus.CONFLICT);
+        }
+        return new RecordAccess(sharedRecord, sourcePublished, sourceContext, share);
     }
 
     private boolean withinSharedScope(
@@ -2345,6 +2986,20 @@ public class RuntimeDataService {
                 .eq(BusinessRecord::getId, record.getId());
         applyDataScope(query, context, moduleCode, actionCode);
         return !recordService.selectList(query.last(currentRead, "FOR SHARE")).isEmpty();
+    }
+
+    /** 每个动作独立匹配授权；重叠范围不得把不匹配授权的动作合并到此记录。 */
+    private BizTenantShare matchingShare(AuthenticatedContext actor, String code, BusinessRecord record,
+                                        String action, boolean currentRead) {
+        return tenantShareService.selectList(Wrappers.<BizTenantShare>lambdaQuery()
+                .eq(BizTenantShare::getSystemId, actor.systemId())
+                .eq(BizTenantShare::getSourceTenantId, record.getTenantId())
+                .eq(BizTenantShare::getTargetTenantId, actor.tenantId())
+                .eq(BizTenantShare::getModuleId, record.getModuleId())
+                .eq(BizTenantShare::getStatus, "ACTIVE").orderByAsc(BizTenantShare::getId)
+                .last(currentRead, "FOR SHARE")).stream()
+                .filter(share -> shareAllows(share, action) && tenantShareScope.matches(actor, share, record, code, currentRead))
+                .findFirst().orElse(null);
     }
 
     private List<BizTenantShare> activeTargetShares(AuthenticatedContext context) {
@@ -2397,10 +3052,7 @@ public class RuntimeDataService {
     }
 
     private String effectiveShareStatus(BizTenantShare share) {
-        if (share == null) return "MISSING";
-        if (!"ACTIVE".equals(share.getStatus())) return share.getStatus();
-        if (share.getExpiresAt() != null && !share.getExpiresAt().isAfter(LocalDateTime.now())) return "EXPIRED";
-        return "ACTIVE";
+        return tenantShareScope.status(share);
     }
 
     private RuntimeTenantShareView shareView(String moduleCode, BizTenantShare share) {
@@ -2507,6 +3159,36 @@ public class RuntimeDataService {
         });
     }
 
+    /** 冻结来源授予时的共享权限上限，沿用原运行查询的角色和组织范围定义。 */
+    public JsonNode sourceShareScopeSnapshot(AuthenticatedContext context, String moduleCode) {
+        requireAction(context, moduleCode, "SHARE", "range-share-scope");
+        List<DataScopeTerm> terms = matchingTerms(context, moduleCode, "SHARE");
+        var clauses = objectMapper.createArrayNode();
+        if (terms.stream().anyMatch(term -> "ALL".equals(term.type()))) {
+            clauses.addObject().put("type", "ALL");return clauses;
+        }
+        Long department = currentDepartmentId(context);
+        for (DataScopeTerm term : terms) {
+            String type;List<Long> ids;
+            switch (term.type()) {
+                case "SELF" -> { type = "OWNER";ids = context.memberId() == null ? List.of() : List.of(context.memberId()); }
+                case "SELF_AND_SUBORDINATES" -> { type = "OWNER";ids = organizationRelationRepository.subordinateSystemMemberIds(context.tenantId(), context.tenantMemberId()); }
+                case "CREATED_BY_SELF" -> { type = "CREATOR";ids = context.memberId() == null ? List.of() : List.of(context.memberId()); }
+                case "DEPARTMENT" -> { type = "DEPARTMENT";ids = department == null ? List.of() : List.of(department); }
+                case "DEPARTMENT_AND_DESCENDANTS" -> { type = "DEPARTMENT";ids = descendantDepartmentIds(context, department); }
+                case "SPECIFIED_DEPARTMENTS" -> { type = "DEPARTMENT";ids = longValues(term.condition(), "departmentIds"); }
+                case "SPECIFIED_MEMBERS" -> { type = "OWNER";ids = longValues(term.condition(), "memberIds"); }
+                case "PARTICIPATED" -> {
+                    if (context.memberId() != null) clauses.addObject().put("type", "PARTICIPATED").put("memberId", context.memberId());
+                    continue;
+                }
+                default -> { continue; }
+            }
+            if (!ids.isEmpty()) { var clause = clauses.addObject().put("type", type);clause.set("ids", objectMapper.valueToTree(ids)); }
+        }
+        return clauses;
+    }
+
     private List<DataScopeTerm> matchingTerms(AuthenticatedContext context, String moduleCode, String actionCode) {
         List<DataScopeTerm> result = new ArrayList<>();
         context.dataScopes().forEach((key, expression) -> {
@@ -2586,18 +3268,39 @@ public class RuntimeDataService {
         Map<String, FieldAccessDecision> access = fieldPolicyResolver.resolve(
                 context, moduleCode, actionCode, "PAGE", fields.stream().map(PublishedField::code).toList());
         Map<String, JsonNode> normalized = new LinkedHashMap<>();
+        Map<String, JsonNode> existing = recordId != null && "UPDATE".equalsIgnoreCase(actionCode)
+                ? readRawValues(recordId, fields) : Map.of();
         for (PublishedField field : fields) {
             boolean readOnly = field.type().startsWith("SYSTEM_") || field.config().path("readOnly").asBoolean(false);
             if (readOnly) {
                 if (submitted.containsKey(field.code())) {
                     errors.add(field.code() + ": 只读字段由系统维护，不能写入");
                 }
+                if (existing.containsKey(field.code())) normalized.put(field.code(), existing.get(field.code()));
+                continue;
+            }
+            if (!access.get(field.code()).writable()) {
+                if (submitted.containsKey(field.code())) errors.add(field.code() + ": 当前页面渠道没有字段写入权限");
+                // 不可写字段的原值参与来源业务规则校验，但不回显给调用方。
+                if (existing.containsKey(field.code())) normalized.put(field.code(), existing.get(field.code()));
+                continue;
+            }
+            // 导入和局部动作只提交映射字段；更新时遗漏的可写字段必须保留原值，不能被批量导入静默清空。
+            if ("UPDATE".equalsIgnoreCase(actionCode) && !submitted.containsKey(field.code())
+                    && existing.containsKey(field.code())) {
+                normalized.put(field.code(), existing.get(field.code()));
                 continue;
             }
             JsonNode value = submitted.get(field.code());
+            // 编辑及局部动作不预填密钥；遗漏键保留原值，显式null才按清空校验。
+            if ("SECRET".equals(field.type()) && !submitted.containsKey(field.code()) && existing.containsKey(field.code())) {
+                normalized.put(field.code(), existing.get(field.code()));
+                continue;
+            }
             boolean explicitJsonNull = "JSON".equals(field.type()) && "NULL".equals(field.config().path("jsonSchema").path("type").asText())
                     && value != null && value.isNull();
-            if (empty(value) && !explicitJsonNull && "CREATE".equalsIgnoreCase(actionCode)) {
+            // 默认值只补遗漏输入；显式清空必须保留，尤其不能覆盖审批节点已批准的 null。
+            if (empty(value) && !explicitJsonNull && "CREATE".equalsIgnoreCase(actionCode) && !submitted.containsKey(field.code())) {
                 value = configuredDefault(field);
             }
             if (empty(value) && !explicitJsonNull) {
@@ -2606,17 +3309,16 @@ public class RuntimeDataService {
                 }
                 continue;
             }
-            if (!access.get(field.code()).writable()) {
-                errors.add(field.code() + ": 当前页面渠道没有字段写入权限");
-                continue;
-            }
             try {
-                JsonNode normalizedValue = normalize(validationContext, field, value);
+                JsonNode normalizedValue = normalize(validationContext, field, value, moduleCode, recordId);
                 if (empty(normalizedValue) && !explicitJsonNull) {
                     if (field.required()) throw new IllegalArgumentException("必填字段不能为空");
                     continue;
                 }
                 validateReferenceValue(validationContext, field, normalizedValue);
+                if (!Objects.equals(existing.get(field.code()), normalizedValue)) {
+                    validateActorReference(context, field, normalizedValue, traceId);
+                }
                 normalized.put(field.code(), normalizedValue);
             } catch (IllegalArgumentException exception) {
                 errors.add(field.code() + ": " + exception.getMessage());
@@ -2634,6 +3336,107 @@ public class RuntimeDataService {
             throw new DomainException("FIELD_VALIDATION_FAILED", String.join("；", errors), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return normalized;
+    }
+
+    /**
+     * 导入文件允许使用成员姓名/工号、部门名称/编码、关联记录编号/标题和选项名称；
+     * 解析结果必须唯一，避免让业务用户查找数据库内部 ID。
+     */
+    private Map<String, JsonNode> resolveImportDisplayValues(
+            AuthenticatedContext context, List<PublishedField> fields, Map<String, JsonNode> submitted) {
+        Map<String, PublishedField> byCode = new LinkedHashMap<>();
+        fields.forEach(field -> byCode.put(field.code(), field));
+        Map<String, JsonNode> resolved = new LinkedHashMap<>();
+        submitted.forEach((code, value) -> {
+            PublishedField field = byCode.get(code);
+            resolved.put(code, field == null ? value : resolveImportDisplayValue(context, field, value));
+        });
+        return resolved;
+    }
+
+    private JsonNode resolveImportDisplayValue(
+            AuthenticatedContext context, PublishedField field, JsonNode value) {
+        if (value == null || value.isNull()) return value;
+        if ("MEMBER".equals(field.type()) && value.isTextual() && !numeric(value.textValue())) {
+            String key = value.textValue().strip();
+            Set<Long> tenantMembers = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                            .eq(SystemTenantMember::getSystemId, context.systemId())
+                            .eq(SystemTenantMember::getTenantId, context.tenantId())
+                            .eq(SystemTenantMember::getStatus, "ACTIVE"))
+                    .stream().map(SystemTenantMember::getSystemMemberId).collect(java.util.stream.Collectors.toSet());
+            List<SystemMember> matches = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                            .eq(SystemMember::getSystemId, context.systemId())
+                            .eq(SystemMember::getStatus, "ACTIVE")
+                            .and(query -> query.eq(SystemMember::getDisplayName, key)
+                                    .or().eq(SystemMember::getEmployeeNumber, key)))
+                    .stream().filter(member -> tenantMembers.contains(member.getId())).toList();
+            return LongNode.valueOf(uniqueImportTarget(matches.stream().map(SystemMember::getId).toList(),
+                    "成员姓名或工号", key));
+        }
+        if ("DEPARTMENT".equals(field.type()) && value.isTextual() && !numeric(value.textValue())) {
+            String key = value.textValue().strip();
+            List<Long> matches = departmentService.selectList(Wrappers.<SystemDepartment>lambdaQuery()
+                            .eq(SystemDepartment::getSystemId, context.systemId())
+                            .eq(SystemDepartment::getTenantId, context.tenantId())
+                            .eq(SystemDepartment::getStatus, "ACTIVE")
+                            .and(query -> query.eq(SystemDepartment::getName, key)
+                                    .or().eq(SystemDepartment::getCode, key)))
+                    .stream().map(SystemDepartment::getId).toList();
+            return LongNode.valueOf(uniqueImportTarget(matches, "部门名称或编码", key));
+        }
+        if ("REFERENCE".equals(field.type()) && value.isTextual() && !numeric(value.textValue())) {
+            if (field.referenceModuleId() == null) throw new IllegalArgumentException("关联字段未配置目标模块");
+            String key = value.textValue().strip();
+            List<Long> matches = recordService.selectList(boundary(context, field.referenceModuleId())
+                            .and(query -> query.eq(BusinessRecord::getRecordNumber, key)
+                                    .or().eq(BusinessRecord::getTitle, key)))
+                    .stream().map(BusinessRecord::getId).toList();
+            return LongNode.valueOf(uniqueImportTarget(matches, "关联记录编号或标题", key));
+        }
+        if (Set.of("SINGLE_SELECT", "STATUS").contains(field.type()) && value.isTextual()) {
+            return TextNode.valueOf(resolveImportOption(context, field, value.textValue()));
+        }
+        if ("MULTI_SELECT".equals(field.type()) && value.isArray()) {
+            ArrayNode result = objectMapper.createArrayNode();
+            value.forEach(item -> result.add(item.isTextual()
+                    ? resolveImportOption(context, field, item.textValue()) : item.asText()));
+            return result;
+        }
+        return value;
+    }
+
+    private String resolveImportOption(AuthenticatedContext context, PublishedField field, String raw) {
+        String submitted = raw == null ? "" : raw.strip();
+        if (field.dictionaryId() != null) {
+            List<JsonNode> items = dictionaryConfigurationService.runtime(context, field.dictionaryId(), null).items();
+            List<String> codes = items.stream().filter(item -> "ACTIVE".equals(item.path("status").asText()))
+                    .filter(item -> submitted.equals(item.path("code").asText())
+                            || submitted.equals(item.path("label").asText()))
+                    .map(item -> item.path("code").asText()).distinct().toList();
+            if (codes.size() == 1) return codes.getFirst();
+            if (codes.isEmpty()) throw new IllegalArgumentException("选项名称或编码不存在：" + submitted);
+            throw new IllegalArgumentException("选项名称不唯一，请改用编码：" + submitted);
+        }
+        List<String> values = new ArrayList<>();
+        field.config().path("options").forEach(item -> {
+            String code = item.path("value").asText(item.path("code").asText());
+            if (submitted.equals(code) || submitted.equals(item.path("label").asText())) values.add(code);
+        });
+        List<String> unique = values.stream().filter(item -> !item.isBlank()).distinct().toList();
+        if (unique.size() == 1) return unique.getFirst();
+        if (unique.isEmpty()) throw new IllegalArgumentException("选项名称或编码不存在：" + submitted);
+        throw new IllegalArgumentException("选项名称不唯一，请改用编码：" + submitted);
+    }
+
+    private Long uniqueImportTarget(List<Long> ids, String label, String value) {
+        List<Long> unique = ids.stream().filter(Objects::nonNull).distinct().toList();
+        if (unique.size() == 1) return unique.getFirst();
+        if (unique.isEmpty()) throw new IllegalArgumentException(label + "不存在：" + value);
+        throw new IllegalArgumentException(label + "不唯一，请改用唯一编码：" + value);
+    }
+
+    private boolean numeric(String value) {
+        return value != null && value.strip().matches("[1-9][0-9]*");
     }
 
     private JsonNode configuredDefault(PublishedField field) {
@@ -2689,17 +3492,54 @@ public class RuntimeDataService {
         }
     }
 
+    /** 引用归属校验不能代替实际操作者的目标记录授权；保持原引用不扩大其读取权限。 */
+    private void validateActorReference(AuthenticatedContext actor, PublishedField field, JsonNode value, String traceId) {
+        if (!"REFERENCE".equals(field.type())) return;
+        ConfiguredModule target = moduleService.selectById(field.referenceModuleId());
+        if (target == null || !actor.systemId().equals(target.getSystemId()) || !"ACTIVE".equals(target.getStatus())) {
+            throw new IllegalArgumentException("关联目标模块不可用");
+        }
+        try {
+            requireRecordAccess(actor, target.getCode(), "LIST", value.longValue(), true, traceId);
+            requireRecordAccess(actor, target.getCode(), "DETAIL", value.longValue(), true, traceId);
+        } catch (DomainException exception) {
+            if (exception.status() != HttpStatus.FORBIDDEN && exception.status() != HttpStatus.NOT_FOUND) throw exception;
+            throw new IllegalArgumentException("没有选择该关联记录的权限或共享授权已失效");
+        }
+    }
+
     private JsonNode normalize(AuthenticatedContext context, PublishedField field, JsonNode value) {
+        return normalize(context, field, value, null, null);
+    }
+
+    private JsonNode normalize(
+            AuthenticatedContext context, PublishedField field, JsonNode value,
+            String moduleCode, Long recordId) {
         return switch (field.type()) {
             case "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD" ->
                     TextFieldProtocol.normalize(field.type(), field.config(), value);
             case "RICH_TEXT", "JSON" -> StructuredContentFieldProtocol.normalize(field.type(), field.config(), value);
+            case "SECRET" -> com.unique.unexamine.moduleconfig.manage.SecretFieldProtocol.normalize(field.config(), value);
             case "SINGLE_SELECT", "STATUS" -> {
                 if (!value.isTextual()) {
                     throw new IllegalArgumentException("必须是选项值");
                 }
                 validateOption(context, field, value.textValue());
                 yield TextNode.valueOf(value.textValue());
+            }
+            case "MULTI_SELECT" -> {
+                if (!value.isArray()) throw new IllegalArgumentException("必须是多选值列表");
+                if (field.required() && value.isEmpty()) throw new IllegalArgumentException("必填字段至少选择一项");
+                // 保存去重后的选项编码；每一项都校验实际来源当前发布字典，不能仅校验显示名称。
+                Set<String> selected = new LinkedHashSet<>();
+                for (JsonNode item : value) {
+                    if (!item.isTextual()) throw new IllegalArgumentException("多选项必须是有效选项值");
+                    validateOption(context, field, item.textValue());
+                    selected.add(item.textValue());
+                }
+                ArrayNode normalized = objectMapper.createArrayNode();
+                selected.forEach(normalized::add);
+                yield normalized;
             }
             case "NUMBER", "MONEY" -> {
                 if (value.isNumber()) {
@@ -2728,11 +3568,7 @@ public class RuntimeDataService {
                 if (!value.isTextual()) {
                     throw new IllegalArgumentException("必须是日期时间");
                 }
-                try {
-                    yield TextNode.valueOf(LocalDateTime.parse(value.textValue()).toString());
-                } catch (DateTimeParseException exception) {
-                    throw new IllegalArgumentException("日期时间格式不正确");
-                }
+                yield TextNode.valueOf(com.unique.unexamine.moduleconfig.manage.DateTimeFieldProtocol.normalize(value.textValue()));
             }
             case "BOOLEAN" -> {
                 if (!value.isBoolean()) {
@@ -2745,6 +3581,30 @@ public class RuntimeDataService {
                     throw new IllegalArgumentException("必须是有效 ID");
                 }
                 yield LongNode.valueOf(value.longValue());
+            }
+            case "ATTACHMENT", "IMAGE", "FILE" -> {
+                if (!value.canConvertToLong() || value.longValue() < 1) {
+                    throw new IllegalArgumentException("必须选择已上传并通过安全扫描的文件");
+                }
+                validateFileValue(context, field, value.longValue(), moduleCode, recordId);
+                yield LongNode.valueOf(value.longValue());
+            }
+            case "FILE_GROUP" -> {
+                if (!value.isArray()) throw new IllegalArgumentException("必须是文件列表");
+                int maximum = Math.max(1, Math.min(50,
+                        field.config().path("maxFiles").asInt(field.config().path("maxCount").asInt(10))));
+                if (value.size() > maximum) throw new IllegalArgumentException("最多选择 " + maximum + " 个文件");
+                LinkedHashSet<Long> ids = new LinkedHashSet<>();
+                value.forEach(item -> {
+                    if (!item.canConvertToLong() || item.longValue() < 1) {
+                        throw new IllegalArgumentException("文件列表包含无效文件");
+                    }
+                    validateFileValue(context, field, item.longValue(), moduleCode, recordId);
+                    ids.add(item.longValue());
+                });
+                ArrayNode normalizedFiles = objectMapper.createArrayNode();
+                ids.forEach(normalizedFiles::add);
+                yield normalizedFiles;
             }
             case "CASCADE" -> {
                 if (field.dictionaryId() == null) throw new IllegalArgumentException("级联字段尚未绑定发布字典");
@@ -2836,8 +3696,16 @@ public class RuntimeDataService {
     }
 
     private void replaceValues(
-            AuthenticatedContext context, Long recordId, List<PublishedField> fields, Map<String, JsonNode> values) {
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            List<PublishedField> fields, Map<String, JsonNode> values) {
         List<Long> currentFieldIds = fields.stream().map(PublishedField::id).toList();
+        Map<Long, PublishedField> fieldsById = new HashMap<>();
+        fields.forEach(field -> fieldsById.put(field.id(), field));
+        List<BusinessRecordValue> previousFileValues = currentFieldIds.isEmpty() ? List.of()
+                : valueMapper.selectList(Wrappers.<BusinessRecordValue>lambdaQuery()
+                        .eq(BusinessRecordValue::getRecordId, recordId)
+                        .in(BusinessRecordValue::getFieldId, currentFieldIds)).stream()
+                .filter(item -> isFileField(item.getValueType())).toList();
         if (!currentFieldIds.isEmpty()) {
             valueMapper.delete(Wrappers.<BusinessRecordValue>lambdaQuery()
                     .eq(BusinessRecordValue::getRecordId, recordId)
@@ -2848,6 +3716,7 @@ public class RuntimeDataService {
                     .eq(BizRecordRelation::getSourceRecordId, recordId)
                     .in(BizRecordRelation::getFieldId, currentFieldIds));
         }
+        removeManagedFileReferences(moduleCode, recordId, previousFileValues, fieldsById);
         Map<String, PublishedField> byCode = new HashMap<>();
         fields.forEach(field -> byCode.put(field.code(), field));
         values.forEach((code, value) -> {
@@ -2862,6 +3731,11 @@ public class RuntimeDataService {
                 relation.setTargetRecordId(value.longValue());
                 relation.setRelationOrder(0);
                 relationMapper.insert(relation);
+            }
+            if (isFileField(field.type())) {
+                for (Long fileId : fileIds(field.type(), value)) {
+                    addManagedFileReference(context, moduleCode, recordId, field, fileId);
+                }
             }
         });
     }
@@ -2879,8 +3753,11 @@ public class RuntimeDataService {
             case "DATE" -> stored.setValueDate(LocalDate.parse(value.textValue()));
             case "DATETIME" -> stored.setValueDatetime(LocalDateTime.parse(value.textValue()));
             case "BOOLEAN" -> stored.setValueBoolean(value.booleanValue());
-            case "RICH_TEXT", "JSON" -> stored.setValueJson(value.toString());
+            case "RICH_TEXT", "JSON", "MULTI_SELECT" -> stored.setValueJson(value.toString());
+            case "SECRET" -> stored.setValueText(secretCipher.encrypt(value.textValue(), "record:" + recordId + ":field:" + field.id()));
             case "MEMBER", "DEPARTMENT", "REFERENCE" -> stored.setValueReferenceId(value.longValue());
+            case "ATTACHMENT", "IMAGE", "FILE" -> stored.setValueFileId(value.longValue());
+            case "FILE_GROUP" -> stored.setValueJson(value.toString());
             case "CASCADE" -> {
                 if (value.isArray()) stored.setValueJson(value.toString());
                 else stored.setValueReferenceId(value.longValue());
@@ -2912,12 +3789,22 @@ public class RuntimeDataService {
 
     private RuntimeRecordView view(AuthenticatedContext context, String moduleCode, String actionCode,
                                    List<String> channels, RecordAccess access) {
+        Map<String, FieldAccessDecision> decisions = protectSecretDecisions(context, moduleCode, actionCode, channels,
+                access.published().fields(), fieldPolicyResolver.resolveIntersection(context, moduleCode, actionCode, channels,
+                        access.published().fields().stream().map(PublishedField::code).toList()));
+        return view(context, moduleCode, actionCode, channels, access, decisions);
+    }
+
+    /** 详情与审批共用同一读取路径；调用方可收紧字段决策，隐藏字段在解密和查名称前已排除。 */
+    private RuntimeRecordView view(AuthenticatedContext context, String moduleCode, String actionCode,
+                                   List<String> channels, RecordAccess access, Map<String, FieldAccessDecision> decisions) {
         BusinessRecord record = access.record();
         PublishedModule published = access.published();
         List<Long> participantIds = participantMapper.selectList(Wrappers.<BusinessRecordParticipant>lambdaQuery()
                         .eq(BusinessRecordParticipant::getRecordId, record.getId())
                         .orderByAsc(BusinessRecordParticipant::getSystemMemberId))
                 .stream().map(BusinessRecordParticipant::getSystemMemberId).toList();
+        Map<String, JsonNode> visibleValues = readProtectedValues(record, published.fields(), decisions);
         return new RuntimeRecordView(
                 record.getId(), record.getRecordNumber(), record.getTitle(), record.getStatus(), record.getOwnerMemberId(),
                 record.getDepartmentId(), record.getCreatedByMemberId(), record.getUpdatedByMemberId(),
@@ -2929,7 +3816,692 @@ public class RuntimeDataService {
                 access.share() == null ? null : effectiveShareStatus(access.share()),
                 access.share() == null ? List.of() : shareActions(access.share()),
                 access.share() == null ? null : access.share().getExpiresAt(),
-                readProtectedValues(context, moduleCode, actionCode, channels, record, published.fields()));
+                organizationLabels(access, record.getOwnerMemberId(), record.getDepartmentId(), participantIds, visibleValues),
+                fieldPresentation(context, access, visibleValues, decisions),
+                recordActions(context, moduleCode, access),
+                visibleValues);
+    }
+
+    /** 来源动作投影不借接收方定义；这里只判断可用性，执行时公共入口仍重新验证。 */
+    private List<RuntimeRecordAction> recordActions(AuthenticatedContext actor, String moduleCode, RecordAccess access) {
+        Set<String> recordCodes = Set.of("DETAIL", "UPDATE", "ARCHIVE", "DELETE", "RESTORE", "TRANSFER", "CONVERT", "SHARE");
+        BusinessRecord record = access.record();
+        boolean active = !Boolean.TRUE.equals(record.getArchived()) && !Boolean.TRUE.equals(record.getDeleted());
+        List<RuntimeRecordAction> result = new ArrayList<>();
+        for (JsonNode action : access.published().configuration().configuration().path("actions")) {
+            String code = action.path("code").asText();
+            boolean custom = "CUSTOM".equals(action.path("actionType").asText());
+            if ((!custom && !recordCodes.contains(code)) || !"ACTIVE".equals(action.path("status").asText())
+                    || action.path("id").asLong(0) <= 0 || !action.path("version").canConvertToInt()) continue;
+            if ((custom || Set.of("UPDATE", "ARCHIVE", "TRANSFER", "CONVERT", "SHARE").contains(code)) && !active) continue;
+            if ("DELETE".equals(code) && Boolean.TRUE.equals(record.getDeleted())) continue;
+            if ("RESTORE".equals(code) && active) continue;
+            if ("SHARE".equals(code) && (access.share() != null || !actor.tenantId().equals(record.getTenantId()))) continue;
+            if (!recordActionAllowed(actor, moduleCode, code, access)) continue;
+            JsonNode config = parseConfig(action.path("configJson").asText("{}"));
+            if (custom) {
+                if (!recordActionAllowed(actor, moduleCode, "UPDATE", access)
+                        || !"UPDATE_FIELDS".equals(config.path("operation").asText())
+                        || !config.path("parameterFieldCodes").isArray() || config.path("parameterFieldCodes").isEmpty()
+                        || config.path("parameterFieldCodes").size() > 20) continue;
+                Set<String> parameters = new LinkedHashSet<>();
+                config.path("parameterFieldCodes").forEach(p -> parameters.add(p.asText()));
+                if (parameters.size() != config.path("parameterFieldCodes").size()) continue;
+                List<PublishedField> fields = access.published().fields().stream().filter(f -> parameters.contains(f.code())).toList();
+                if (fields.size() != parameters.size() || fields.stream().anyMatch(f -> f.type().startsWith("SYSTEM_")
+                        || f.config().path("readOnly").asBoolean(false))) continue;
+                Map<String, FieldAccessDecision> customFields = fieldPolicyResolver.resolve(actor, moduleCode, code, "PAGE", List.copyOf(parameters));
+                Map<String, FieldAccessDecision> updateFields = fieldPolicyResolver.resolve(actor, moduleCode, "UPDATE", "PAGE", List.copyOf(parameters));
+                if (parameters.stream().anyMatch(p -> !customFields.get(p).writable() || !updateFields.get(p).writable())) continue;
+            }
+            com.fasterxml.jackson.databind.node.ObjectNode presentation = objectMapper.createObjectNode();
+            presentation.put("confirmation", config.path("confirmation").asBoolean(false));
+            presentation.put("confirmationText", config.path("confirmationText").asText(""));
+            result.add(new RuntimeRecordAction(action.path("id").asLong(), code, action.path("name").asText(),
+                    action.path("actionType").asText(), action.path("location").asText(), action.path("status").asText(),
+                    presentation.toString(), action.path("version").asInt()));
+        }
+        return result;
+    }
+
+    /** 有效记录边界已经确定，按当前操作者范围校验；ALL 范围无需重复读同一记录。 */
+    private boolean recordActionAllowed(AuthenticatedContext actor, String moduleCode, String code, RecordAccess access) {
+        if (!permissionChecker.allows(actor, "MODULE", moduleCode, code)
+                || (access.share() != null && matchingShare(actor, moduleCode, access.record(), code, false) == null)) return false;
+        if (matchingTerms(actor, moduleCode, code).stream().anyMatch(term -> "ALL".equals(term.type()))) return true;
+        return withinSharedScope(actor, moduleCode, code, access.record());
+    }
+
+    /** 描述绑定实际来源配置；隐藏字段无描述，脱敏字段不再查字典或关联对象。 */
+    private Map<String, RuntimeFieldPresentation> fieldPresentation(
+            AuthenticatedContext actor, RecordAccess access, Map<String, JsonNode> visibleValues,
+            Map<String, FieldAccessDecision> decisions) {
+        Map<String, RuntimeFieldPresentation> result = new LinkedHashMap<>();
+        Map<Long, List<JsonNode>> dictionaries = new HashMap<>();
+        for (PublishedField field : access.published().fields()) {
+            FieldAccessDecision decision = decisions.get(field.code());
+            if (decision == null || !decision.readable()) continue;
+            JsonNode value = visibleValues.get(field.code());
+            String text = null;
+            if (decision.maskStrategy() != null && !decision.maskStrategy().isBlank()) {
+                text = value == null || value.isNull() ? "未填写" : value.asText();
+            } else if ("SECRET".equals(field.type())) {
+                // 具体字段的明文授权已在读取前校验；可信展示文本使公共详情不会再退回默认脱敏。
+                text = value == null || value.isNull() ? "未填写" : value.asText();
+            } else if (Set.of("SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE").contains(field.type())) {
+                if (value == null || value.isNull()) {
+                    text = "未填写";
+                } else {
+                    List<JsonNode> items = field.dictionaryId() == null ? new ArrayList<>()
+                            : dictionaries.computeIfAbsent(field.dictionaryId(), id -> {
+                                try {
+                                    return dictionaryConfigurationService.publishedDisplayItems(access.sourceContext(), id);
+                                } catch (DomainException unavailable) {
+                                    return List.of(); // 来源字典失效不阻止其他可读字段显示，也不回退到接收方字典。
+                                }
+                            });
+                    if (field.dictionaryId() == null) field.config().path("options").forEach(items::add);
+                    if ("MULTI_SELECT".equals(field.type()) && value.isArray()) {
+                        List<String> labels = new ArrayList<>();
+                        for (JsonNode selected : value) labels.add(optionDisplay(items, selected));
+                        text = labels.isEmpty() ? "未填写" : String.join("、", labels);
+                    } else text = "CASCADE".equals(field.type()) ? cascadeDisplay(items, value) : optionDisplay(items, value);
+                }
+            } else if ("REFERENCE".equals(field.type())) {
+                text = referenceDisplay(actor, access, field, value);
+            } else if (isFileField(field.type())) {
+                text = fileDisplay(actor, access.sourceContext(), field.type(), value);
+            }
+            JsonNode configured = null;
+            for (JsonNode candidate : access.published().configuration().configuration().path("fields")) {
+                if (field.code().equals(candidate.path("code").asText())) { configured = candidate; break; }
+            }
+            Long fieldId = configured != null && configured.path("id").asLong(0) > 0 ? configured.path("id").asLong() : null;
+            Integer order = configured == null || !configured.path("sortOrder").isInt() ? null : configured.path("sortOrder").asInt();
+            result.put(field.code(), new RuntimeFieldPresentation(field.name(), field.type(), text, fieldId, order));
+        }
+        return result;
+    }
+
+    /** 文件展示只返回当前有权读取的业务文件名，永不把内部文件 ID 当业务值显示。 */
+    private String fileDisplay(
+            AuthenticatedContext actor, AuthenticatedContext sourceContext, String fieldType, JsonNode value) {
+        if (value == null || value.isNull() || (value.isArray() && value.isEmpty())) return "未上传";
+        boolean allowed = permissionChecker.allows(actor, "FILE", "OBJECT", "VIEW")
+                || permissionChecker.allows(actor, "FILE", "*", "VIEW")
+                || permissionChecker.allows(actor, "FILE", "OBJECT", "MANAGE")
+                || permissionChecker.allows(actor, "FILE", "*", "MANAGE");
+        if (!allowed) return "附件不可用";
+        List<String> names = new ArrayList<>();
+        for (Long fileId : fileIds(fieldType, value)) {
+            FileObject file = fileObjectService.selectById(fileId);
+            if (file == null || "DELETED".equals(file.getStatus())
+                    || !Objects.equals(file.getPlatformId(), sourceContext.platformId())
+                    || !Objects.equals(file.getSystemId(), sourceContext.systemId())
+                    || !Objects.equals(file.getTenantId(), sourceContext.tenantId())) {
+                names.add("文件已失效");
+            } else names.add(file.getOriginalName());
+        }
+        if (names.isEmpty()) return "未上传";
+        return names.size() == 1 ? names.getFirst() : names.size() + " 个文件：" + String.join("、", names);
+    }
+
+    /** 历史选项只解释当前已发布名称；未知值不显示内部代码。 */
+    private String optionDisplay(List<JsonNode> items, JsonNode value) {
+        for (JsonNode item : items) {
+            if (value.asText().equals(item.path("value").asText(item.path("code").asText()))) {
+                return item.path("label").asText("选项名称不可用")
+                        + ("DISABLED".equals(item.path("status").asText()) ? "（已停用）" : "");
+            }
+        }
+        return "选项已失效";
+    }
+
+    /** FINAL 保存方式补齐已发布父路径，PATH 保持路径顺序；异常路径不泄露内部 ID。 */
+    private String cascadeDisplay(List<JsonNode> items, JsonNode value) {
+        Map<Long, JsonNode> byId = new HashMap<>();
+        items.forEach(item -> byId.put(item.path("id").asLong(-1), item));
+        List<Long> path = new ArrayList<>();
+        if (value.isArray()) {
+            for (JsonNode id : value) {
+                if (!id.isIntegralNumber()) return "层级选项已失效";
+                path.add(id.longValue());
+            }
+        } else if (value.isIntegralNumber()) {
+            JsonNode cursor = byId.get(value.longValue());
+            Set<Long> visited = new LinkedHashSet<>();
+            while (cursor != null) {
+                long id = cursor.path("id").asLong(-1);
+                if (!visited.add(id)) return "层级选项已失效";
+                path.addFirst(id);
+                if (cursor.path("parentId").isNull()) break;
+                cursor = byId.get(cursor.path("parentId").asLong(-1));
+                if (cursor == null) return "层级选项已失效";
+            }
+        }
+        if (path.isEmpty()) return "层级选项已失效";
+        List<String> labels = new ArrayList<>();
+        for (Long id : path) {
+            JsonNode item = byId.get(id);
+            if (item == null) return "层级选项已失效";
+            labels.add(item.path("label").asText("层级名称不可用")
+                    + ("DISABLED".equals(item.path("status").asText()) ? "（已停用）" : ""));
+        }
+        return String.join(" / ", labels);
+    }
+
+    /** 父记录可读不授予关联记录权限；原操作者仍须同时满足目标 LIST、DETAIL、共享及数据范围。 */
+    private String referenceDisplay(AuthenticatedContext actor, RecordAccess parent, PublishedField field, JsonNode value) {
+        if (value == null || value.isNull()) return "未填写";
+        if (!value.isIntegralNumber() || field.referenceModuleId() == null) return "关联记录不可用";
+        ConfiguredModule target = moduleService.selectById(field.referenceModuleId());
+        if (target == null || !actor.systemId().equals(target.getSystemId()) || !"ACTIVE".equals(target.getStatus())
+                || moduleIdentifierIntegrity.hasActiveConflict(target)) return "关联记录不可用";
+        if (!permissionChecker.allows(actor, "MODULE", target.getCode(), "LIST")
+                || !permissionChecker.allows(actor, "MODULE", target.getCode(), "DETAIL")) return "无权查看关联记录";
+        BusinessRecord candidate = recordService.selectList(boundary(parent.sourceContext(), target.getId())
+                .eq(BusinessRecord::getId, value.longValue())).stream().findFirst().orElse(null);
+        if (candidate == null) return "关联记录不可用";
+        if (actor.tenantId().equals(candidate.getTenantId())) {
+            if (!withinScope(actor, target.getCode(), "LIST", candidate.getId(), target.getId())
+                    || !withinScope(actor, target.getCode(), "DETAIL", candidate.getId(), target.getId())) {
+                return "无权查看关联记录";
+            }
+        } else {
+            boolean shared = sharedSourceMetadata.activeTenantPair(actor, candidate.getTenantId())
+                    && matchingShare(actor, target.getCode(), candidate, "LIST", false) != null
+                    && matchingShare(actor, target.getCode(), candidate, "DETAIL", false) != null;
+            if (!shared || !withinSharedScope(actor, target.getCode(), "LIST", candidate)
+                    || !withinSharedScope(actor, target.getCode(), "DETAIL", candidate)) return "无权查看关联记录";
+        }
+        return candidate.getTitle() == null || candidate.getTitle().isBlank() ? "未命名记录" : candidate.getTitle();
+    }
+
+    /** 名称仅来自已裁剪的字段和固定归属信息，防止隐藏字段通过标签旁路泄露。 */
+    private SystemPeopleDirectoryModels.Labels organizationLabels(
+            RecordAccess access, Long ownerId, Long departmentId, List<Long> participantIds,
+            Map<String, JsonNode> visibleValues) {
+        Set<Long> members = new LinkedHashSet<>(participantIds);
+        Set<Long> departments = new LinkedHashSet<>();
+        if (ownerId != null) members.add(ownerId);
+        if (departmentId != null) departments.add(departmentId);
+        access.published().fields().forEach(field -> {
+            JsonNode value = visibleValues.get(field.code());
+            // 脱敏后文本、不可读字段和非法引用不会触发组织名称解析。
+            if (value == null || !value.isIntegralNumber()) return;
+            if (Set.of("MEMBER", "SYSTEM_CREATED_BY", "SYSTEM_UPDATED_BY").contains(field.type())) {
+                members.add(value.longValue());
+            } else if ("DEPARTMENT".equals(field.type())) {
+                departments.add(value.longValue());
+            }
+        });
+        return peopleDirectoryService.recordLabels(access.sourceContext(), members, departments);
+    }
+
+    /** 只能以已授权记录解析来源组织；不接受客户端指定来源租户或借用其权限。 */
+    @Transactional(readOnly = true)
+    public SystemPeopleDirectoryModels.Directory organizationOptions(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String actionCode,
+            String fieldCode, String traceId) {
+        String action = actionCode == null ? "UPDATE" : actionCode.strip().toUpperCase(Locale.ROOT);
+        RecordAccess access = requireRecordAccess(actor, moduleCode, action, recordId, true, traceId);
+        boolean standard = Set.of("UPDATE", "TRANSFER").contains(action);
+        Set<String> parameters = new LinkedHashSet<>();
+        if (!standard) {
+            requireRecordAccess(actor, moduleCode, "UPDATE", recordId, true, traceId);
+            JsonNode configuredAction = findPublishedAction(access.published(), action);
+            JsonNode config = parseConfig(configuredAction.path("configJson").asText("{}"));
+            if (!"CUSTOM".equals(configuredAction.path("actionType").asText())
+                    || !"ACTIVE".equals(configuredAction.path("status").asText())
+                    || !"UPDATE_FIELDS".equals(config.path("operation").asText())) {
+                throw new DomainException("MANUAL_ACTION_NOT_AVAILABLE", "该动作不能选择记录组织字段", HttpStatus.CONFLICT);
+            }
+            config.path("parameterFieldCodes").forEach(value -> parameters.add(value.asText()));
+        }
+        boolean members = standard && fieldCode == null;
+        boolean departments = standard && fieldCode == null;
+        List<PublishedField> candidates = access.published().fields().stream()
+                .filter(field -> fieldCode == null || field.code().equals(fieldCode))
+                .filter(field -> standard || parameters.contains(field.code())).toList();
+        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolve(
+                actor, moduleCode, "UPDATE", "PAGE", candidates.stream().map(PublishedField::code).toList());
+        Map<String, FieldAccessDecision> actionDecisions = standard ? decisions : fieldPolicyResolver.resolve(
+                actor, moduleCode, action, "PAGE", candidates.stream().map(PublishedField::code).toList());
+        for (PublishedField field : candidates) {
+            if (!Set.of("MEMBER", "DEPARTMENT").contains(field.type()) || field.config().path("readOnly").asBoolean(false)
+                    || !decisions.get(field.code()).writable() || !actionDecisions.get(field.code()).writable()) continue;
+            members |= "MEMBER".equals(field.type());
+            departments |= "DEPARTMENT".equals(field.type());
+        }
+        if (!members && !departments) {
+            deny(actor, moduleCode, action, traceId, Map.of("recordId", recordId, "reason", "ORGANIZATION_FIELD_NOT_WRITABLE"));
+        }
+        return peopleDirectoryService.recordOptions(access.sourceContext(), members, departments);
+    }
+
+    /** 编辑读取采用 UPDATE 字段策略；来源配置固定由已授权记录决定。 */
+    @Transactional(readOnly = true)
+    public RuntimeRecordEditContext editContext(AuthenticatedContext actor, String moduleCode, Long recordId, String traceId) {
+        RecordAccess access = requireRecordAccess(actor, moduleCode, "UPDATE", recordId, true, traceId);
+        return new RuntimeRecordEditContext(view(actor, moduleCode, "UPDATE", List.of("PAGE"), access),
+                publicationService.recordEditConfiguration(actor, moduleCode, access.published().configuration()));
+    }
+
+    /** 审批候选表单使用真实来源记录和当前处理人权限；不将待生效值写成正式数据。 */
+    @Transactional(readOnly = true)
+    public RuntimeRecordEditContext approvalEditContext(AuthenticatedContext actor, BusinessAction.Input input,
+            JsonNode originalConfiguration, Map<String, Object> nodePolicy, String traceId) {
+        NodeFormAccess node = nodeFormAccess(actor, input, originalConfiguration, nodePolicy, traceId);
+        ObjectNode configuration = objectMapper.createObjectNode();
+        ArrayNode fields = objectMapper.createArrayNode();
+        node.access().published().configuration().configuration().path("fields").forEach(field -> {
+            String code = field.path("code").asText();
+            if (node.fields().stream().noneMatch(candidate -> candidate.code().equals(code))) return;
+            ObjectNode guarded = field.deepCopy();
+            ObjectNode config = (ObjectNode) parseConfig(field.path("configJson").asText("{}"));
+            config.remove("defaultValue");
+            guarded.put("configJson", config.toString());
+            guarded.set("access", objectMapper.valueToTree(node.decisions().get(code)));
+            if (requiredAtNode(nodePolicy, code)) guarded.put("required", true);
+            fields.add(guarded);
+        });
+        configuration.set("fields", fields);
+        configuration.put("readOnlyAtNode", node.fields().stream().noneMatch(field -> node.decisions().get(field.code()).writable()));
+        // 文件暂不通过数值补丁写入，待公共受保护上传输入接通后再开放，避免旁路附件权限。
+        configuration.put("fileInputsPending", nodePolicy.get("editable") instanceof List<?> requested
+                && node.access().published().fields().stream().anyMatch(field -> requested.contains(field.code())
+                && Set.of("ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP").contains(field.type())));
+        RuntimeModuleConfiguration source = node.access().published().configuration();
+        Map<String, JsonNode> visible = new LinkedHashMap<>();
+        for (PublishedField field : node.fields()) {
+            FieldAccessDecision decision = node.decisions().get(field.code());
+            // 保护文本不能作为编辑初值，否则未改动的脱敏值会覆盖真实值。
+            JsonNode value = node.candidate().get(field.code());
+            if ("SECRET".equals(field.type()) || decision.maskStrategy() != null && !decision.maskStrategy().isBlank()) {
+                // 只读展示采用保护值；可替换输入仍不预填，不能把脱敏内容回传成修改。
+                if (!decision.writable() && value != null) visible.put(field.code(), fieldPolicyResolver.protect(value, decision));
+                continue;
+            }
+            if (value != null) visible.put(field.code(), value);
+        }
+        RuntimeRecordView candidate;
+        if (input.recordId() == null) {
+            candidate = proposedView(actor, input, node.access(), visible, node.decisions());
+        } else {
+            RuntimeRecordView current = view(actor, input.moduleCode(), node.permissionAction(), List.of("PAGE", "FLOW"),
+                    node.access(), node.decisions());
+            List<Long> participants = participantIds(input.recordId());
+            candidate = current.withFields(visible,
+                    organizationLabels(node.access(), current.ownerMemberId(), current.departmentId(), participants, visible),
+                    fieldPresentation(actor, node.access(), visible, node.decisions()), List.of());
+        }
+        return new RuntimeRecordEditContext(candidate, new RuntimeModuleConfiguration(source.moduleId(), source.versionId(),
+                source.versionNumber(), source.publicationVersion(), configuration));
+    }
+
+    /** 只验证显式修改的补丁；遗漏保留原候选值，清空保留 null，节点必填在合并后判断。 */
+    @Transactional(readOnly = true)
+    public Map<String, JsonNode> validateApprovalFields(AuthenticatedContext actor, BusinessAction.Input input,
+            JsonNode originalConfiguration, Map<String, Object> nodePolicy, Map<String, JsonNode> submitted, String traceId) {
+        NodeFormAccess node = nodeFormAccess(actor, input, originalConfiguration, nodePolicy, traceId);
+        Set<String> eligible = node.fields().stream().filter(field -> node.decisions().get(field.code()).writable())
+                .map(PublishedField::code).collect(java.util.stream.Collectors.toSet());
+        if (!eligible.containsAll(submitted.keySet())) throw new DomainException("FLOW_NODE_FIELD_DENIED",
+                "提交包含当前节点不可编辑、无权限或已失效的字段", HttpStatus.FORBIDDEN);
+        List<PublishedField> changed = node.fields().stream().filter(field -> submitted.containsKey(field.code())).toList();
+        Map<String, JsonNode> normalized = validateFields(actor, node.access().sourceContext(), input.moduleCode(),
+                "UPDATE", changed, submitted, traceId, input.recordId());
+        Map<String, JsonNode> patch = new LinkedHashMap<>();
+        submitted.keySet().forEach(code -> patch.put(code, normalized.getOrDefault(code,
+                com.fasterxml.jackson.databind.node.NullNode.instance)));
+        Map<String, JsonNode> merged = new LinkedHashMap<>(node.candidate());
+        merged.putAll(patch);
+        for (PublishedField field : node.requiredFields()) {
+            if (empty(merged.get(field.code()))) {
+                FieldAccessDecision decision = node.decisions().get(field.code());
+                String message = decision.readable() && decision.writable() ? "请填写节点必填字段：" + field.name()
+                        : "当前节点仍有未补充的必填内容，当前权限不能编辑，请联系有权处理人或管理员调整配置";
+                throw new DomainException("FLOW_NODE_FIELD_REQUIRED", message, HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+        }
+        return patch;
+    }
+
+    /** 自动审批只核对既有候选，不创建补丁；原动作授权和全部必填约束不能随自动处理消失。 */
+    @Transactional(readOnly = true, noRollbackFor = DomainException.class)
+    public void validateAutomaticApproval(AuthenticatedContext actor, BusinessAction.Input candidate,
+            JsonNode configuration, Map<String, Object> policy, String traceId) {
+        authorizeActionProgress(actor, candidate, null, traceId);
+        NodeFormAccess node = nodeFormAccess(actor, candidate, configuration, policy, traceId, true);
+        for (PublishedField field : node.requiredFields()) {
+            if (empty(node.candidate().get(field.code()))) {
+                throw new DomainException("FLOW_NODE_FIELD_REQUIRED",
+                        "超时自动同意未执行：候选内容仍有必填项，请由有权处理人补充后审批", HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+        }
+    }
+
+    /** 人工同意后的候选只以绑定实例的密文留作再次核验，不在动作响应或日志返回字段内容。 */
+    @Transactional(readOnly = true, noRollbackFor = DomainException.class)
+    public String sealApprovalCandidate(AuthenticatedContext actor, BusinessAction.Input candidate,
+            JsonNode configuration, String binding, String traceId) {
+        return secretCipher.encrypt(approvalCandidateState(actor, candidate, configuration, traceId).toString(), binding);
+    }
+
+    /** 全部字段及正式记录版本一致才允许沿用审批事实；密钥与数据归属异常不降级为相同。 */
+    @Transactional(readOnly = true, noRollbackFor = DomainException.class)
+    public boolean approvalCandidateUnchanged(AuthenticatedContext actor, BusinessAction.Input candidate,
+            JsonNode configuration, String seal, String binding, String traceId) {
+        try {
+            return objectMapper.readTree(secretCipher.decrypt(seal, binding))
+                    // JSON持久化往返会把小Long/Decimal还原为不同JsonNode类型，两边必须按同一传输协议核对。
+                    .equals(objectMapper.readTree(approvalCandidateState(actor, candidate, configuration, traceId).toString()));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException invalid) {
+            throw new DomainException("FLOW_REPEAT_APPROVAL_EVIDENCE_INVALID", "原审批候选记录无法核验，请重新人工审批", HttpStatus.CONFLICT);
+        }
+    }
+
+    /** 来源权限与发布版本仍走公共入口；实例锁等待之后核对正式记录当前版本，拒绝旧RR候选。 */
+    private JsonNode approvalCandidateState(AuthenticatedContext actor, BusinessAction.Input candidate,
+            JsonNode configuration, String traceId) {
+        authorizeActionProgress(actor, candidate, null, traceId);
+        NodeFormAccess node = nodeFormAccess(actor, candidate, configuration, Map.of(), traceId, true);
+        ObjectNode state = objectMapper.createObjectNode();
+        state.put("moduleId", candidate.moduleId());
+        state.put("configVersionId", candidate.configVersionId());
+        state.put("dataTenantId", candidate.dataTenantId());
+        state.set("payload", objectMapper.valueToTree(candidate.payload()));
+        state.set("fields", objectMapper.valueToTree(node.candidate()));
+        if (candidate.recordId() != null) {
+            BusinessRecord current = recordService.selectList(Wrappers.<BusinessRecord>lambdaQuery()
+                    .eq(BusinessRecord::getId, candidate.recordId()).last("FOR SHARE")).stream().findFirst()
+                    .orElseThrow(() -> new DomainException("RECORD_NOT_FOUND", "原业务记录不存在", HttpStatus.NOT_FOUND));
+            if (!Objects.equals(current.getVersion(), node.access().record().getVersion())) {
+                throw new DomainException("RECORD_VERSION_CONFLICT", "正式记录在等待审批期间已变化，请重新核对", HttpStatus.CONFLICT);
+            }
+            state.put("recordId", current.getId());
+            state.put("recordVersion", current.getVersion());
+        }
+        return state;
+    }
+
+    /** 合法只读处理人可确认候选；节点配置不能授予编辑权限，必填约束也不能随失权消失。 */
+    private NodeFormAccess nodeFormAccess(AuthenticatedContext actor, BusinessAction.Input input,
+            JsonNode originalConfiguration, Map<String, Object> nodePolicy, String traceId) {
+        return nodeFormAccess(actor, input, originalConfiguration, nodePolicy, traceId, false);
+    }
+
+    /** 自动核对采用原动作授权，不要求发起人另外拥有人工填写的 UPDATE 或 DETAIL 权限。 */
+    private NodeFormAccess nodeFormAccess(AuthenticatedContext actor, BusinessAction.Input input,
+            JsonNode originalConfiguration, Map<String, Object> nodePolicy, String traceId, boolean automatic) {
+        RecordAccess access;
+        String permissionAction = "UPDATE";
+        if (automatic) {
+            permissionAction = input.actionCode();
+            access = input.recordId() == null ? proposedRecordAccess(actor, input, permissionAction, traceId)
+                    : requireRecordAccess(actor, input.moduleCode(), permissionAction, input.recordId(), false, traceId);
+        } else try {
+            access = input.recordId() == null ? proposedRecordAccess(actor, input, "UPDATE", traceId)
+                    : requireRecordAccess(actor, input.moduleCode(), "UPDATE", input.recordId(), true, traceId);
+        } catch (DomainException exception) {
+            if (exception.status() != HttpStatus.FORBIDDEN) throw exception;
+            permissionAction = "DETAIL";
+            access = input.recordId() == null ? proposedRecordAccess(actor, input, "DETAIL", traceId)
+                    : requireRecordAccess(actor, input.moduleCode(), "DETAIL", input.recordId(), false, traceId);
+        }
+        if (!Objects.equals(input.moduleId(), access.published().configuration().moduleId())
+                || !Objects.equals(input.configVersionId(), access.published().configuration().versionId())
+                || !Objects.equals(input.dataTenantId(), access.record().getTenantId())) {
+            throw new DomainException("ACTION_CONFIGURATION_VERSION_CONFLICT", "业务发布配置或记录来源已变化，不能提交旧节点表单", HttpStatus.CONFLICT);
+        }
+        Set<String> parameters = null;
+        if (!Set.of("CREATE", "UPDATE").contains(input.actionCode())) {
+            JsonNode action = null;
+            for (JsonNode publishedAction : originalConfiguration.path("actions")) {
+                if (input.actionCode().equals(publishedAction.path("code").asText())) action = publishedAction;
+            }
+            JsonNode config = action == null ? objectMapper.createObjectNode() : parseConfig(action.path("configJson").asText("{}"));
+            if (action == null || !"CUSTOM".equals(action.path("actionType").asText())
+                    || !"UPDATE_FIELDS".equals(config.path("operation").asText()) || !config.path("parameterFieldCodes").isArray()) {
+                throw new DomainException("FLOW_NODE_FORM_NOT_AVAILABLE", "当前业务动作尚未接通节点表单提交", HttpStatus.CONFLICT);
+            }
+            parameters = new LinkedHashSet<>();
+            for (JsonNode code : config.path("parameterFieldCodes")) parameters.add(code.asText());
+        }
+        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(actor, input.moduleCode(),
+                permissionAction, List.of("PAGE", "FLOW"), access.published().fields().stream().map(PublishedField::code).toList());
+        List<PublishedField> visibleFields = new ArrayList<>();
+        List<PublishedField> candidateFields = new ArrayList<>();
+        List<PublishedField> requiredFields = new ArrayList<>();
+        for (PublishedField field : access.published().fields()) {
+            FieldAccessDecision decision = decisions.get(field.code());
+            boolean configured = com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.allowsEdit(nodePolicy, field.code())
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.matchesBinding(nodePolicy, field.id(), field.code(),
+                    field.type(), field.dictionaryId(), field.referenceModuleId())
+                    && (parameters == null || parameters.contains(field.code()));
+            // 内部必填候选只参与服务端检查，不向失权处理人返回未授权值。
+            if (configured || automatic || requiredAtNode(nodePolicy, field.code())
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.allowsEdit(nodePolicy, field.code())
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.matchesBinding(nodePolicy, field.id(), field.code(),
+                    field.type(), field.dictionaryId(), field.referenceModuleId())) {
+                candidateFields.add(field);
+                // CUSTOM 的参数仅限制可写补丁，不能删除冻结节点的必填约束；非参数候选只在服务端核对。
+                if (field.required() || requiredAtNode(nodePolicy, field.code())) requiredFields.add(field);
+            }
+            boolean permitted = configured && decision.readable() && !field.type().startsWith("SYSTEM_")
+                    && !field.config().path("readOnly").asBoolean(false)
+                    && !Set.of("ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP").contains(field.type());
+            if (permitted) {
+                visibleFields.add(field);
+                decisions.put(field.code(), new FieldAccessDecision(field.code(), "PAGE∩FLOW", true,
+                        "UPDATE".equals(permissionAction) && decision.writable(), decision.maskStrategy(),
+                        decision.contributingRoleIds(), "UPDATE".equals(permissionAction) && decision.writable()
+                        ? decision.reason() : "当前节点仅可核对，未授予编辑权限"));
+            }
+            else decisions.put(field.code(), new FieldAccessDecision(field.code(), "PAGE∩FLOW", false, false,
+                    null, decision.contributingRoleIds(), "当前节点不可编辑"));
+            if (permitted && "SECRET".equals(field.type())) decisions.put(field.code(), new FieldAccessDecision(
+                    field.code(), "PAGE∩FLOW", true, "UPDATE".equals(permissionAction) && decision.writable(),
+                    "FULL", decision.contributingRoleIds(), "密钥不预填，仅允许有权处理人替换"));
+        }
+        Map<String, JsonNode> candidate = input.recordId() == null ? new LinkedHashMap<>()
+                : new LinkedHashMap<>(readRawValues(input.recordId(), candidateFields));
+        JsonNode payload = objectMapper.valueToTree(input.payload());
+        JsonNode submitted = payload.path(Set.of("CREATE", "UPDATE").contains(input.actionCode()) ? "fields" : "values");
+        if (submitted.isObject()) for (PublishedField field : candidateFields) {
+            if (submitted.has(field.code())) candidate.put(field.code(), submitted.get(field.code()));
+            else if ("CREATE".equals(input.actionCode())) {
+                // 原新建已校验过的发布默认值也是待生效候选；批准的显式 null 不再进入此分支。
+                JsonNode value = configuredDefault(field);
+                if (!empty(value)) candidate.put(field.code(), normalize(access.sourceContext(), field, value));
+            }
+        }
+        if (nodePolicy.get("required") instanceof List<?> required) for (Object code : required) {
+            if (access.published().fields().stream().noneMatch(field -> field.code().equals(code)
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.allowsEdit(nodePolicy, field.code())
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.matchesBinding(nodePolicy, field.id(), field.code(),
+                    field.type(), field.dictionaryId(), field.referenceModuleId()))) {
+                throw new DomainException("ACTION_CONFIGURATION_VERSION_CONFLICT", "节点必填字段的冻结配置已失效，不能继续提交", HttpStatus.CONFLICT);
+            }
+        }
+        if (automatic && nodePolicy.get("editable") instanceof List<?> editable) for (Object code : editable) {
+            if (access.published().fields().stream().noneMatch(field -> field.code().equals(code)
+                    && com.unique.unexamine.flow.manage.FlowNodeFieldPolicy.matchesBinding(nodePolicy, field.id(), field.code(),
+                    field.type(), field.dictionaryId(), field.referenceModuleId()))) {
+                throw new DomainException("ACTION_CONFIGURATION_VERSION_CONFLICT", "节点字段的冻结配置已失效，不能自动同意", HttpStatus.CONFLICT);
+            }
+        }
+        return new NodeFormAccess(access, permissionAction, visibleFields, decisions, candidate, requiredFields);
+    }
+
+    private boolean requiredAtNode(Map<String, Object> policy, String code) {
+        return policy.get("required") instanceof List<?> required && required.contains(code);
+    }
+
+    /** 候选值仅供服务端合并和必填校验；对外视图在返回前重新裁剪。 */
+    private record NodeFormAccess(RecordAccess access, String permissionAction, List<PublishedField> fields,
+                                  Map<String, FieldAccessDecision> decisions, Map<String, JsonNode> candidate,
+                                  List<PublishedField> requiredFields) {}
+
+    /** 任务字段已经按冻结身份与当前权限校验；目录仍由实际来源发布字段决定。 */
+    @Transactional(readOnly = true)
+    public DictionaryModels.RuntimeDictionary approvalFieldDictionary(AuthenticatedContext actor,
+            BusinessAction.Input input, JsonNode configuration, Map<String, Object> policy,
+            String fieldCode, Long parentId, String traceId) {
+        NodeFormAccess node = nodeFormAccess(actor, input, configuration, policy, traceId);
+        PublishedField field = requireNodeOptionField(node, fieldCode);
+        if (!Set.of("SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE").contains(field.type()) || field.dictionaryId() == null) {
+            throw new DomainException("FIELD_DICTIONARY_NOT_AVAILABLE", "该字段没有可选择的字典", HttpStatus.CONFLICT);
+        }
+        return dictionaryConfigurationService.runtime(node.access().sourceContext(), field.dictionaryId(), parentId);
+    }
+
+    /** 无正式 ID 的新建审批也走同一关联目标授权，不查询占位数据。 */
+    @Transactional(readOnly = true)
+    public List<RuntimeReferenceOption> approvalReferenceOptions(AuthenticatedContext actor,
+            BusinessAction.Input input, JsonNode configuration, Map<String, Object> policy,
+            String fieldCode, String search, String traceId) {
+        NodeFormAccess node = nodeFormAccess(actor, input, configuration, policy, traceId);
+        return referenceOptions(actor, node.access(), requireNodeOptionField(node, fieldCode), search, traceId);
+    }
+
+    /** 组织候选来自已核验原新建或记录租户，客户端不能指定其他成员目录。 */
+    @Transactional(readOnly = true)
+    public SystemPeopleDirectoryModels.Directory approvalOrganizationOptions(AuthenticatedContext actor,
+            BusinessAction.Input input, JsonNode configuration, Map<String, Object> policy,
+            String fieldCode, String traceId) {
+        NodeFormAccess node = nodeFormAccess(actor, input, configuration, policy, traceId);
+        PublishedField field = requireNodeOptionField(node, fieldCode);
+        if (!Set.of("MEMBER", "DEPARTMENT").contains(field.type())) {
+            throw new DomainException("FLOW_NODE_FIELD_DENIED", "该字段不能选择组织成员", HttpStatus.FORBIDDEN);
+        }
+        return peopleDirectoryService.recordOptions(node.access().sourceContext(), "MEMBER".equals(field.type()),
+                "DEPARTMENT".equals(field.type()));
+    }
+
+    private PublishedField requireNodeOptionField(NodeFormAccess node, String code) {
+        return node.fields().stream().filter(field -> field.code().equals(code) && node.decisions().get(code).writable()).findFirst()
+                .orElseThrow(() -> new DomainException("FLOW_NODE_FIELD_DENIED", "该字段当前不可编辑，不能读取来源选项", HttpStatus.FORBIDDEN));
+    }
+
+    /** 单选、状态和级联只能读取该记录可写字段实际绑定的来源字典。 */
+    @Transactional(readOnly = true)
+    public DictionaryModels.RuntimeDictionary fieldDictionary(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String fieldCode, Long parentId, String traceId) {
+        return fieldDictionary(actor, moduleCode, recordId, fieldCode, parentId, "UPDATE", traceId);
+    }
+
+    /** 手动动作选项还必须属于实际来源动作参数，同时满足自定义动作和标准编辑权限。 */
+    @Transactional(readOnly = true)
+    public DictionaryModels.RuntimeDictionary fieldDictionary(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String fieldCode, Long parentId,
+            String actionCode, String traceId) {
+        RecordAccess access = optionRecordAccess(actor, moduleCode, recordId, fieldCode, actionCode, traceId);
+        PublishedField field = requireWritableOptionField(actor, moduleCode, fieldCode, access, traceId);
+        if (!Set.of("SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE").contains(field.type()) || field.dictionaryId() == null) {
+            throw new DomainException("FIELD_DICTIONARY_NOT_AVAILABLE", "该字段没有可选择的字典", HttpStatus.CONFLICT);
+        }
+        return dictionaryConfigurationService.runtime(access.sourceContext(), field.dictionaryId(), parentId);
+    }
+
+    /** 引用仍须来源同租户，并分别校验实际操作者的目标列表、详情、范围和共享限制。 */
+    @Transactional(readOnly = true)
+    public List<RuntimeReferenceOption> referenceOptions(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String fieldCode, String search, String traceId) {
+        return referenceOptions(actor, moduleCode, recordId, fieldCode, search, "UPDATE", traceId);
+    }
+
+    /** 关联参数沿用实际来源绑定，动作参数限制不能被选项接口绕过。 */
+    @Transactional(readOnly = true)
+    public List<RuntimeReferenceOption> referenceOptions(
+            AuthenticatedContext actor, String moduleCode, Long recordId, String fieldCode, String search,
+            String actionCode, String traceId) {
+        RecordAccess access = optionRecordAccess(actor, moduleCode, recordId, fieldCode, actionCode, traceId);
+        PublishedField field = requireWritableOptionField(actor, moduleCode, fieldCode, access, traceId);
+        return referenceOptions(actor, access, field, search, traceId);
+    }
+
+    /** 实际行和待审批新建行共用关联查询与目标范围校验。 */
+    private List<RuntimeReferenceOption> referenceOptions(AuthenticatedContext actor, RecordAccess access,
+            PublishedField field, String search, String traceId) {
+        if (!"REFERENCE".equals(field.type()) || field.referenceModuleId() == null) {
+            throw new DomainException("FIELD_REFERENCE_NOT_AVAILABLE", "该字段没有关联目标模块", HttpStatus.CONFLICT);
+        }
+        ConfiguredModule target = moduleService.selectById(field.referenceModuleId());
+        if (target == null || !actor.systemId().equals(target.getSystemId()) || !"ACTIVE".equals(target.getStatus())) {
+            throw new DomainException("FIELD_REFERENCE_NOT_AVAILABLE", "关联目标模块不可用", HttpStatus.CONFLICT);
+        }
+        if (moduleIdentifierIntegrity.hasActiveConflict(target)) return List.of();
+        // 缺少目标权限时没有可选项，但不能阻止用户编辑父记录的其他合法字段。
+        if (!permissionChecker.allows(actor, "MODULE", target.getCode(), "LIST")
+                || !permissionChecker.allows(actor, "MODULE", target.getCode(), "DETAIL")) return List.of();
+        String term = search == null ? "" : search.strip();
+        if (term.length() > 200) throw new DomainException("SEARCH_INVALID", "搜索内容不能超过 200 字", HttpStatus.BAD_REQUEST);
+        List<RuntimeReferenceOption> result = new ArrayList<>();
+        for (BusinessRecord candidate : recordService.selectList(boundary(access.sourceContext(), field.referenceModuleId())
+                .like(!term.isEmpty(), BusinessRecord::getTitle, term)
+                .orderByDesc(BusinessRecord::getUpdatedAt).orderByDesc(BusinessRecord::getId))) {
+            try {
+                validateActorReference(actor, field, LongNode.valueOf(candidate.getId()), traceId);
+                result.add(new RuntimeReferenceOption(candidate.getId(), candidate.getTitle(), candidate.getRecordNumber()));
+                if (result.size() == 50) break;
+            } catch (IllegalArgumentException ignored) {
+                // 被目标范围或共享限制排除的记录不回显名称，也不借来源成员权限填充选项。
+            }
+        }
+        return result;
+    }
+
+    /** 来源参数目录只由已授权记录与发布动作决定，客户端不能指定其他目录。 */
+    private RecordAccess optionRecordAccess(AuthenticatedContext actor, String moduleCode, Long recordId,
+                                            String fieldCode, String actionCode, String traceId) {
+        String code = actionCode == null ? "UPDATE" : actionCode.strip().toUpperCase(Locale.ROOT);
+        if ("UPDATE".equals(code)) return requireRecordAccess(actor, moduleCode, code, recordId, true, traceId);
+        ManualActionDefinition definition = manualActionDefinition(actor, moduleCode, recordId, code, traceId);
+        if (definition.parameters().stream().noneMatch(field -> field.code().equals(fieldCode))) {
+            deny(actor, moduleCode, code, traceId, Map.of("recordId", recordId, "reason", "OPTION_NOT_ACTION_PARAMETER"));
+        }
+        return definition.access();
+    }
+
+    /** 不可写、只读或不存在的字段不能用选择接口旁路读取来源目录。 */
+    private PublishedField requireWritableOptionField(
+            AuthenticatedContext actor, String moduleCode, String fieldCode, RecordAccess access, String traceId) {
+        PublishedField field = access.published().fields().stream().filter(item -> item.code().equals(fieldCode)).findFirst().orElse(null);
+        FieldAccessDecision decision = field == null ? null : fieldPolicyResolver.resolve(actor, moduleCode,
+                "UPDATE", "PAGE", List.of(fieldCode)).get(fieldCode);
+        if (field == null || field.type().startsWith("SYSTEM_") || field.config().path("readOnly").asBoolean(false)
+                || decision == null || !decision.writable()) {
+            deny(actor, moduleCode, "UPDATE", traceId, Map.of("recordId", access.record().getId(), "reason", "OPTION_FIELD_NOT_WRITABLE"));
+        }
+        return field;
+    }
+
+    /** 审计仅记录密码字段有值或已清空，不把可恢复明文复制到历史、快照和动作日志。 */
+    private Map<String, JsonNode> redactSecrets(Map<String, JsonNode> values, List<PublishedField> fields) {
+        Set<String> codes = fields.stream().filter(field -> "SECRET".equals(field.type()))
+                .map(PublishedField::code).collect(java.util.stream.Collectors.toSet());
+        Map<String, JsonNode> protectedValues = new LinkedHashMap<>();
+        values.forEach((code, value) -> protectedValues.put(code, codes.contains(code) && value != null && !value.isNull()
+                ? TextNode.valueOf("***") : value));
+        return protectedValues;
+    }
+
+    /** 只有详情的每个适用渠道、每个贡献角色都明确授权该字段时才能解密；写回执始终脱敏。 */
+    private Map<String, FieldAccessDecision> protectSecretDecisions(AuthenticatedContext context, String moduleCode,
+            String actionCode, List<String> channels, List<PublishedField> fields,
+            Map<String, FieldAccessDecision> decisions) {
+        Map<String, FieldAccessDecision> protectedDecisions = new LinkedHashMap<>(decisions);
+        for (PublishedField field : fields) {
+            if (!"SECRET".equals(field.type())) continue;
+            FieldAccessDecision decision = decisions.get(field.code());
+            if (decision == null || !decision.readable()) continue;
+            boolean explicitRead = "DETAIL".equals(actionCode) && channels.stream().allMatch(channel ->
+                    fieldPolicyResolver.explicitSecretReadable(context, moduleCode, channel, decision));
+            if (!explicitRead) protectedDecisions.put(field.code(), new FieldAccessDecision(field.code(), decision.channel(),
+                    true, decision.writable(), "FULL", decision.contributingRoleIds(), "密码/密钥默认脱敏"));
+        }
+        return protectedDecisions;
     }
 
     private Map<String, JsonNode> readRawValues(Long recordId, List<PublishedField> fields) {
@@ -2942,16 +4514,23 @@ public class RuntimeDataService {
         return result;
     }
 
-    private Map<String, JsonNode> readProtectedValues(AuthenticatedContext context, String moduleCode,
-                                                       String actionCode, List<String> channels, BusinessRecord record,
-                                                       List<PublishedField> fields) {
-        Map<String, JsonNode> raw = readRawValues(record.getId(), fields);
+    private Map<String, JsonNode> readProtectedValues(BusinessRecord record, List<PublishedField> fields,
+                                                     Map<String, FieldAccessDecision> decisions) {
+        // 默认脱敏读取不需要解密；失权字段也不能因其密文异常阻断其他正常数据读取。
+        List<PublishedField> readableFields = fields.stream().filter(field -> decisions.get(field.code()) != null
+                && decisions.get(field.code()).readable()).toList();
+        List<PublishedField> decryptedFields = readableFields.stream().filter(field -> !"SECRET".equals(field.type())
+                || decisions.get(field.code()).maskStrategy() == null || decisions.get(field.code()).maskStrategy().isBlank()).toList();
+        Map<String, JsonNode> raw = readRawValues(record.getId(), decryptedFields);
+        Set<Long> maskedSecrets = readableFields.stream().filter(field -> "SECRET".equals(field.type())
+                && !decryptedFields.contains(field)).map(PublishedField::id).collect(java.util.stream.Collectors.toSet());
+        if (!maskedSecrets.isEmpty()) valueMapper.selectList(Wrappers.<BusinessRecordValue>lambdaQuery()
+                        .eq(BusinessRecordValue::getRecordId, record.getId()).in(BusinessRecordValue::getFieldId, maskedSecrets))
+                .forEach(value -> raw.put(value.getFieldCode(), TextNode.valueOf("***")));
         fields.stream().filter(field -> field.type().startsWith("SYSTEM_")).forEach(field -> {
             JsonNode value = systemFieldValue(record, field.type());
             if (value != null) raw.put(field.code(), value);
         });
-        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
-                context, moduleCode, actionCode, channels, fields.stream().map(PublishedField::code).toList());
         Map<String, JsonNode> result = new LinkedHashMap<>();
         raw.forEach((code, value) -> {
             JsonNode protectedValue = fieldPolicyResolver.protect(value, decisions.get(code));
@@ -3010,9 +4589,10 @@ public class RuntimeDataService {
             change.setAuditEventId(auditEventId);
             change.setFieldCode(code);
             change.setValueType(field == null ? "UNKNOWN" : field.type());
-            change.setBeforeValueJson(toJsonValue(beforeValue));
-            change.setAfterValueJson(toJsonValue(afterValue));
-            boolean sensitive = (field != null && field.config().path("sensitive").asBoolean(false))
+            boolean secret = field != null && "SECRET".equals(field.type());
+            change.setBeforeValueJson(toJsonValue(secret && beforeValue != null ? TextNode.valueOf("***") : beforeValue));
+            change.setAfterValueJson(toJsonValue(secret && afterValue != null ? TextNode.valueOf("***") : afterValue));
+            boolean sensitive = secret || (field != null && field.config().path("sensitive").asBoolean(false))
                     || fieldPolicyResolver.isSensitive(context, moduleCode, code);
             change.setSensitivity(sensitive ? "SENSITIVE" : "NORMAL");
             fieldChangeService.insert(change);
@@ -3028,6 +4608,10 @@ public class RuntimeDataService {
     }
 
     private JsonNode fromStoredValue(BusinessRecordValue value) {
+        if ("SECRET".equals(value.getValueType())) {
+            return TextNode.valueOf(secretCipher.decrypt(value.getValueText(),
+                    "record:" + value.getRecordId() + ":field:" + value.getFieldId()));
+        }
         if (value.getValueText() != null) {
             return TextNode.valueOf(value.getValueText());
         }
@@ -3053,12 +4637,132 @@ public class RuntimeDataService {
         if (value.getValueReferenceId() != null) {
             return LongNode.valueOf(value.getValueReferenceId());
         }
+        if (value.getValueFileId() != null) {
+            return LongNode.valueOf(value.getValueFileId());
+        }
         return objectMapper.nullNode();
     }
 
     private boolean empty(JsonNode value) {
-        return value == null || value.isNull() || (value.isTextual() && value.textValue().isBlank());
+        return value == null || value.isNull() || (value.isTextual() && value.textValue().isBlank())
+                || (value.isArray() && value.isEmpty());
     }
+
+    /** 文件字段只接受当前安全域内已完成扫描的文件；编辑时允许继续使用该记录已经引用的文件。 */
+    private void validateFileValue(
+            AuthenticatedContext context, PublishedField field, Long fileId,
+            String moduleCode, Long recordId) {
+        boolean referencePermission = permissionChecker.allows(context, "FILE", "OBJECT", "REFERENCE")
+                || permissionChecker.allows(context, "FILE", "*", "REFERENCE")
+                || permissionChecker.allows(context, "FILE", "OBJECT", "MANAGE")
+                || permissionChecker.allows(context, "FILE", "*", "MANAGE");
+        if (!referencePermission) throw new IllegalArgumentException("当前账号没有文件引用权限");
+        FileObject file = fileObjectService.selectById(fileId);
+        boolean sameContext = file != null && Objects.equals(file.getPlatformId(), context.platformId())
+                && Objects.equals(file.getSystemId(), context.systemId())
+                && Objects.equals(file.getTenantId(), context.tenantId());
+        if (!sameContext || !"ACTIVE".equals(file.getStatus()) || !"CLEAN".equals(file.getScanStatus())) {
+            throw new IllegalArgumentException("文件不存在、未通过安全扫描或不属于当前业务空间");
+        }
+        if ("IMAGE".equals(field.type()) && !file.getContentType().startsWith("image/")) {
+            throw new IllegalArgumentException("图片字段只能选择图片文件");
+        }
+        long maximumBytes = Math.max(1L, Math.min(1024L, field.config().path("maxSizeMb").asLong(50L)))
+                * 1024L * 1024L;
+        if (file.getSizeBytes() > maximumBytes) {
+            throw new IllegalArgumentException("文件超过字段配置的 " + (maximumBytes / 1024L / 1024L) + " MB 限制");
+        }
+        JsonNode allowedTypes = field.config().path("allowedTypes");
+        if (allowedTypes.isArray() && !allowedTypes.isEmpty()) {
+            String contentType = file.getContentType().toLowerCase(Locale.ROOT);
+            String fileName = file.getOriginalName().toLowerCase(Locale.ROOT);
+            boolean accepted = false;
+            for (JsonNode item : allowedTypes) {
+                String rule = item.asText().strip().toLowerCase(Locale.ROOT);
+                if (rule.isBlank()) continue;
+                accepted = rule.startsWith(".") ? fileName.endsWith(rule)
+                        : rule.endsWith("/*") ? contentType.startsWith(rule.substring(0, rule.length() - 1))
+                        : contentType.equals(rule);
+                if (accepted) break;
+            }
+            if (!accepted) throw new IllegalArgumentException("文件类型不符合字段允许的类型");
+        }
+        boolean uploadedByActor = Objects.equals(file.getUploadedByAccountId(), context.accountId());
+        boolean alreadyReferenced = recordId != null && moduleCode != null && fileReferenceService.selectList(
+                        Wrappers.<FileReference>lambdaQuery().eq(FileReference::getFileId, fileId)
+                                .eq(FileReference::getOwnerType, "BUSINESS_RECORD")
+                                .eq(FileReference::getOwnerId, moduleCode + ":" + recordId)
+                                .eq(FileReference::getFieldCode, field.code()))
+                .stream().anyMatch(reference -> Objects.equals(reference.getSystemId(), context.systemId())
+                        && Objects.equals(reference.getTenantId(), context.tenantId()));
+        if (!uploadedByActor && !alreadyReferenced) {
+            throw new IllegalArgumentException("只能选择本人上传或当前记录已经引用的文件");
+        }
+    }
+
+    private boolean isFileField(String type) {
+        return Set.of("ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP").contains(type);
+    }
+
+    private List<Long> fileIds(String type, JsonNode value) {
+        if (value == null || value.isNull()) return List.of();
+        if (!"FILE_GROUP".equals(type)) return List.of(value.longValue());
+        List<Long> ids = new ArrayList<>();
+        value.forEach(item -> ids.add(item.longValue()));
+        return ids;
+    }
+
+    private void removeManagedFileReferences(
+            String moduleCode, Long recordId, List<BusinessRecordValue> values,
+            Map<Long, PublishedField> fieldsById) {
+        String ownerId = moduleCode + ":" + recordId;
+        for (BusinessRecordValue value : values) {
+            PublishedField field = fieldsById.get(value.getFieldId());
+            if (field == null) continue;
+            JsonNode previous = fromStoredValue(value);
+            for (Long fileId : fileIds(field.type(), previous)) {
+                fileReferenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                        .eq(FileReference::getFileId, fileId)
+                        .eq(FileReference::getOwnerType, "BUSINESS_RECORD")
+                        .eq(FileReference::getOwnerId, ownerId)
+                        .eq(FileReference::getFieldCode, field.code()))
+                        .forEach(reference -> fileReferenceService.deleteById(reference.getId()));
+            }
+        }
+    }
+
+    private void addManagedFileReference(
+            AuthenticatedContext context, String moduleCode, Long recordId,
+            PublishedField field, Long fileId) {
+        String ownerId = moduleCode + ":" + recordId;
+        boolean exists = !fileReferenceService.selectList(Wrappers.<FileReference>lambdaQuery()
+                .eq(FileReference::getFileId, fileId).eq(FileReference::getOwnerType, "BUSINESS_RECORD")
+                .eq(FileReference::getOwnerId, ownerId).eq(FileReference::getFieldCode, field.code())).isEmpty();
+        if (exists) return;
+        FileReference reference = new FileReference();
+        reference.setFileId(fileId);
+        reference.setContextType(context.systemId() == null ? "PLATFORM" : "SYSTEM");
+        reference.setSystemId(context.systemId());
+        reference.setTenantId(context.tenantId());
+        reference.setOwnerType("BUSINESS_RECORD");
+        reference.setOwnerId(ownerId);
+        reference.setFieldCode(field.code());
+        reference.setReferenceType("IMAGE".equals(field.type()) ? "IMAGE" : "ATTACHMENT");
+        reference.setCreatedByAccountId(context.accountId());
+        fileReferenceService.insert(reference);
+    }
+
+    /** 记录字段保存的文件只能通过记录编辑替换，附件面板不能绕过必填校验直接删除。 */
+    @Transactional(readOnly = true)
+    public boolean isManagedAttachmentValue(
+            String moduleCode, Long recordId, String fieldCode, Long fileId) {
+        if (moduleCode == null || recordId == null || fieldCode == null || fileId == null) return false;
+        return valueMapper.selectList(Wrappers.<BusinessRecordValue>lambdaQuery()
+                        .eq(BusinessRecordValue::getRecordId, recordId)
+                        .eq(BusinessRecordValue::getFieldCode, fieldCode))
+                .stream().anyMatch(value -> fileIds(value.getValueType(), fromStoredValue(value)).contains(fileId));
+    }
+
 
     private String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.strip();
@@ -3077,7 +4781,11 @@ public class RuntimeDataService {
     }
 
     private record QueryAccessPolicy(
-            Set<String> queryableFields, Set<String> searchableFields, Set<String> builtInFields) {
+            Set<String> queryableFields, Map<String, Set<String>> searchableFields, Set<String> builtInFields,
+            List<RuntimeListQueryField> fields) {
+    }
+
+    private record ListQueryAccess(PublishedModule currentPublished, List<RecordAccess> records) {
     }
 
     private record Ownership(Long ownerMemberId, Long departmentId, List<Long> participantMemberIds) {

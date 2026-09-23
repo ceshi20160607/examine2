@@ -1,0 +1,220 @@
+{
+  "step": "B12.1",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R2951",
+    "R0343"
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V47__application_provider_connection.sql",
+    "projects/unexamine/db/migration/V47__application_provider_connection.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/tools/base-codegen.json",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderConnection.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderConnectionMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderConnectionBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderConnectionMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderSecret.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderSecretMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderSecretBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderSecretMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderRoute.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderRouteMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderRouteBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderRouteMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderEvent.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderEventMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderEventBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderEventMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderManagementController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderCallbackController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/WeComCallbackCodec.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationSecretCipher.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationFilter.java",
+    "projects/unexamine/frontend/src/product/components/ApplicationProviderConnections.vue",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+    "projects/unexamine/frontend/src/product/types.ts"
+  ],
+  "checks_actual_results": [
+    "官方能力矩阵分别记录企业微信、飞书、钉钉、微信公众号和微信小程序边界；没有虚构通用“微信自建应用”，B12.1 只开放已实现的企业微信内部自建应用。",
+    "V47 在实际 MySQL 8.4 增量创建连接、版本化密钥、事件路由和事件收件箱四张表；表和字段中文备注完整，新增时间字段使用 *_time；Flyway 47 已成功应用。",
+    "Template Base 从实际 schema 确定性生成 18 个模块、165 张表和 660 个 Base 文件；手写 manage 业务层承载连接、诊断和渠道协议。",
+    "平台和系统复用同一个应用管理页；企业微信连接使用 CorpID、AgentID、事件和已发布 Flow 授权选择器及生成按钮，没有 JSON 输入。",
+    "密钥以 connection/purpose/version 绑定的 AES-GCM 密文版本保存；详情、事件、调用和审计只返回引用、版本与尾号，验收未发现明文。",
+    "独立 Node 加密向量完成企业微信 GET URL 校验及 POST 事件验签解密；伪造签名和超过五分钟时间戳被拒绝。",
+    "同一 provider event 重放两次只保留一条事件、一条成功应用调用和一个 Flow 实例；实际执行复用既有应用权限、限流、IP 和发布授权边界。",
+    "停用连接后公开回调立即拒绝；验收清理后连接、应用和 Flow 均停用，应用调用没有 PENDING。",
+    "B11.2 完整外部应用安全回归五项通过；JDK21 test-compile/package、前端 vue-tsc/生产构建、脚本编译、git diff --check 和后端健康检查通过。",
+    "普通平台管理页读回显示五种官方产品形态、本地/外部验证边界、命名路由、安全密钥引用和真实回调记录；修复回调地址挤压后 1440 宽度无横向溢出。",
+    "仅复用现有 backend、MySQL、共享 Redis 和原生 Vite，没有启动第二套项目栈。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/application-provider-capability-matrix.md",
+    "projects/unexamine/ai/evidence/application-provider-wecom-acceptance.py",
+    "projects/unexamine/ai/evidence/application-provider-wecom-facts.json",
+    "projects/unexamine/ai/evidence/application-provider-wecom-page-readback.json"
+  ],
+  "permission_or_failure_result": "企业微信公开回调只有在连接已启用、签名和时间有效、CorpID 匹配且当前应用发布授权仍有效时才进入既有应用网关；伪造、过期、停用和重复事件不会产生重复业务写入。",
+  "remaining": "B12 仍需完成企业微信身份映射、授权消息/深链与真实租户联通，以及飞书、钉钉和确定后的微信公众号/小程序产品协议；R0343 的企业微信/钉钉登录身份源也未完成。外部凭据和公网回调控制权保持 blocked_external。",
+  "next_step": "B12.2",
+  "next_scope": "在共用 provider 连接契约上补齐企业微信成员身份映射、可授权的应用消息/业务深链和失败撤销；所有本地可验证行为完成，真实企业微信 API 调用继续标 blocked_external，不扩大到飞书或钉钉。",
+  "integrated_verification": "结构化连接、版本化密钥、本地协议诊断、公开回调安全、事件幂等、既有应用授权到 Flow 的真实调用、停用撤销、普通页面和旧应用安全回归均通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T20:03:12.996902+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V47__application_provider_connection.sql",
+      "sha256": "8cac7100175c2d992dcee4c3d595db9bf7948dd097ee8efdead582ecb3931cbc"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V47__application_provider_connection.sql",
+      "sha256": "8cac7100175c2d992dcee4c3d595db9bf7948dd097ee8efdead582ecb3931cbc"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "d5509e106f0ad5f804815596b3c5c67db9768ed28dd849e0fce1968c3cd95b47"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "e6f7e29da076f206ece4ad2be8f07c29093e16dbfe4440d5cb8c27d198ef71fc"
+    },
+    {
+      "path": "projects/unexamine/tools/base-codegen.json",
+      "sha256": "47a2e47c2edfd1872f3cbe9ac22fb9549824e91c790db6eb818f5d379ac8bf87"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "fb6053603e15ca2d8348c0e73b875d7d361ed145863426f6c7b8a7fa917bc420"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderConnection.java",
+      "sha256": "92cffd4a1e571bbf04562a70af1311c62b7830fa2727ad6bbf3c80104641b6ba"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderConnectionMapper.java",
+      "sha256": "154ca4345424e9ecb59f128418af7c52c56a2a81ab7aa5908b4bdb3ee281b53f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderConnectionBaseService.java",
+      "sha256": "17df4d9b0694ada872e519d80adbf52bac5a0be65df7a01dd3aef4df91240f67"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderConnectionMapper.xml",
+      "sha256": "03fcbf4cc0d1a61b7796b50f82dac66ff95d100b55af4b0da9a3e68ed457ff24"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderSecret.java",
+      "sha256": "5127adb8e85b5f7f1f5818e51ef1346736d10c20eb0588f7b2519b955b1bf535"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderSecretMapper.java",
+      "sha256": "3bd890689de87c4e41800eff2117c003d72a9ec09c19bbc8eed45aca09d85758"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderSecretBaseService.java",
+      "sha256": "21f75b0e4ed21f83f3dad892d35ba18c58cd7478f95f42dd124aad41fe95d5b5"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderSecretMapper.xml",
+      "sha256": "09304065d99f47ba67e4c4e2427f6094bf19bbdf0be39e9edae868f021292177"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderRoute.java",
+      "sha256": "bfb4e6cee923464c16b2c50a3e0a91f27af6a6f1ad8e8d7719ea6a0d69d108ec"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderRouteMapper.java",
+      "sha256": "b8a59ac2fee88e2fce1cf0a10c3070e4b9ea462a372cbb1ad4680cf5ee2a7838"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderRouteBaseService.java",
+      "sha256": "0b00f28b4505a517da07b90de8ee574e674cc05cf26a144c075b2c75f9753097"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderRouteMapper.xml",
+      "sha256": "b6f6d0f1c6ee8b1afc36097dc1cf256270001b5e94ede425532f085f7d9b86c1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/entity/AppProviderEvent.java",
+      "sha256": "9c3c7a4e0c33a01d148fd6130b977556e792845ff7474cd4f8c87f30838a12f6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/mapper/AppProviderEventMapper.java",
+      "sha256": "25caba732e90854b29d87c1188c7461159c8085a709eca806adc821e55b5fcf7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/base/service/AppProviderEventBaseService.java",
+      "sha256": "866c9a2716919060828f7d0e8f0ddc6dfcc4ba4e27a6d31fe496e02393f58985"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/application/base/AppProviderEventMapper.xml",
+      "sha256": "0fb34f9dc8d4e465b9a52e6e410cd4eec4630723014b4432f4b02736e1e4be4d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderModels.java",
+      "sha256": "8fd425e5556586ed9d170bbad0a1bd9303ed91aa7c1d5942317a69776e277fa9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderService.java",
+      "sha256": "fb4e88fd72f3b23eabf99f4fac22e6fe9c33a3da257828a0a7bcfe6257ecf149"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderManagementController.java",
+      "sha256": "1909f7af934837d8ea186506ff982b32989960806c286b0f4a48dcc1f431dba7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationProviderCallbackController.java",
+      "sha256": "7beee6e2a5192b5180d06270939c72cc94860c8e8cea3f76f048b95977a55155"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/WeComCallbackCodec.java",
+      "sha256": "ad9d8bccf16d60ac060c8f2d24550e49c57d99df4e7412d077243c90a0317fdd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationSecretCipher.java",
+      "sha256": "519af6b559eded1408030b00cd10794ac3cfeb657d11f21a631230070c91229f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationFilter.java",
+      "sha256": "54d27d941f6b527c5f5a88271aedfec087db02d0eef6640cf6e9bec58409585c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/ApplicationProviderConnections.vue",
+      "sha256": "0aaaa6ea618e0a70a41a1e974a79299022f55a82357b2648ade439c4148d76d9"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "c69e51e13855e65e419fdb7978bba2f59988538c9e23caaaa258b3cb48f5fc04"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "7006e9a9a9c97bb4bf06051b76a348ce8319507b203e59e8bdbc2b7de7b957cf"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/application-provider-capability-matrix.md",
+      "sha256": "cc6a417d13613854465191be6c19b50eabbcdc77180974db1b34881a1c817661"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-provider-wecom-acceptance.py",
+      "sha256": "017a07bf66bebc84f6a9b7cbb5d321a02a166c9eb33c3ead4c310f4dd24dd2fb"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-provider-wecom-facts.json",
+      "sha256": "f2e7e1680bfb6e1d2a757d97f103ea4f442e5c0049e8327e2812a818e9ae7754"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-provider-wecom-page-readback.json",
+      "sha256": "3c14a4dd67fb2702fd7286fc4658b7cce413c96c43b20d89c0357b30f008ab91"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-external-security-facts.json",
+      "sha256": "ee02fe2ce1dfeda898fc9738b7d9068d013e4522651d616949c23dd06e5e98b6"
+    }
+  ]
+}

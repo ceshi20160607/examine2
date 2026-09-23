@@ -1,0 +1,116 @@
+{
+  "step": "B11.2",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "external-signature-replay-idempotency",
+      "result": "PASS",
+      "successRequestId": "f63fd0294d0441f99da88a34bd2dcd5c",
+      "replay": {
+        "code": "APPLICATION_REPLAY_DETECTED",
+        "requestId": "953bb687059a434e80148a4d90d52cf6"
+      },
+      "idempotencyConflict": {
+        "code": "APPLICATION_IDEMPOTENCY_CONFLICT",
+        "requestId": "40d69bb5d4d148cbaadb8b94291dd035"
+      },
+      "expiredTimestamp": {
+        "code": "APPLICATION_TIMESTAMP_EXPIRED",
+        "requestId": "ee572a497a6a4136bd9f6dd26b0c4780"
+      },
+      "tamperedPayload": {
+        "code": "APPLICATION_SIGNATURE_INVALID",
+        "requestId": "d24dda0406624d48a4092757943d621e"
+      }
+    },
+    {
+      "case": "limit-rotate-expire-disable-enable",
+      "result": "PASS",
+      "rateLimit": {
+        "code": "APPLICATION_RATE_LIMITED",
+        "requestId": "a234605c801d46b0943134d01ad65415"
+      },
+      "revokedCredential": {
+        "code": "APPLICATION_CREDENTIAL_INACTIVE",
+        "requestId": "75adf791ecd74a309a41b72a14408116"
+      },
+      "expiredCredential": {
+        "code": "APPLICATION_CREDENTIAL_INACTIVE",
+        "requestId": "e6fae60b47f74a589d12bd8b3688f49f"
+      },
+      "disabledApplication": {
+        "code": "APPLICATION_DISABLED",
+        "requestId": "26b819ce83ed4347975a1bf00eade54c"
+      },
+      "newCredentialVersions": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "case": "system-ip-scope-field-failure-policy",
+      "result": "PASS",
+      "ipDenied": {
+        "code": "APPLICATION_SOURCE_IP_DENIED",
+        "requestId": "5c429ccfe31345eaa3c2391297698af3"
+      },
+      "scopeDenied": {
+        "code": "APPLICATION_DATA_SCOPE_EXPANSION",
+        "requestId": "eaac0fa9c74346d59dbdfb0752ba8a03"
+      },
+      "fieldDenied": [
+        {
+          "code": "APPLICATION_FIELD_WRITE_DENIED",
+          "requestId": "7381726379e64a8ebe71deb7db68e933"
+        },
+        {
+          "code": "APPLICATION_FIELD_WRITE_DENIED",
+          "requestId": "48b9cd344d4a417da352fab6a073aad0"
+        }
+      ],
+      "autoDisabled": true,
+      "reEnabledCredentialVersion": 2,
+      "createdRecordIds": [
+        259,
+        260
+      ]
+    },
+    {
+      "case": "create-copy-edit-disable-delete-history",
+      "result": "PASS",
+      "copiedApplicationId": 49,
+      "independentCredential": true,
+      "editedPresetIcon": "message",
+      "deletedHiddenFromList": true,
+      "preservedGrantCount": 1,
+      "preservedCredentialCount": 1,
+      "deleteAuditCount": 1
+    },
+    {
+      "case": "safe-call-history",
+      "result": "PASS",
+      "platformLogCount": 10,
+      "systemLogCount": 6,
+      "secretOrRawCredentialExposed": false
+    }
+  ],
+  "cleanup": {
+    "system_application_disabled": true,
+    "platform_application_disabled": true,
+    "module_disabled": true,
+    "platform_flow_disabled": true,
+    "records_deleted": true
+  },
+  "credential_expiry_test_setup": "仅对本次随机临时凭证通过数据库将 expires_at 调整到过去，用于触发不可伪造的过期边界；产品签发、轮换、停用和重新启用均通过真实接口。",
+  "platform_application_id": 47,
+  "platform_flow_id": 204,
+  "system_application_id": 48,
+  "module_id": 80,
+  "module_code": "external_module_cca6352bb9",
+  "record_ids": [
+    259,
+    260
+  ],
+  "checked_time": "2026-09-20T21:10:14.980542+08:00"
+}

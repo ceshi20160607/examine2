@@ -46,6 +46,9 @@ public class FileStorageBackend {
     @TableField("bucket_name")
     private String bucketName;
 
+    /**
+     * 对象存储访问凭证密文，仅服务端解密，接口不得回传
+     */
     @TableField("credential_ref")
     private String credentialRef;
 

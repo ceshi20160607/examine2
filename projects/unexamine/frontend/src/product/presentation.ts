@@ -1,4 +1,5 @@
 import { statusTone, type StatusTone } from './responsive'
+import { fieldTypes } from './field-capabilities'
 
 const STATUS_LABELS: Record<string, string> = {
   ACTIVE: '启用',
@@ -112,7 +113,7 @@ export function dashboardComponentLabel(componentType?: string | null) {
 
 export function fieldTypeLabel(fieldType?: string | null) {
   const normalized = String(fieldType || '').trim().toUpperCase()
-  return FIELD_TYPE_LABELS[normalized] || '通用内容'
+  return FIELD_TYPE_LABELS[normalized] || fieldTypes.find(field => field.type === normalized)?.name || '通用内容'
 }
 
 export function actionLabel(action?: string | null) {

@@ -11,7 +11,7 @@ import java.util.List;
 @Component
 public class PrintPdfRenderer {
     public byte[] render(String documentTitle, String pageSize, String orientation,
-                         List<PrintModels.PreviewPage> pages) {
+                         Integer offsetXmm, Integer offsetYmm, List<PrintModels.PreviewPage> pages) {
         int width = "A5".equals(pageSize) ? 420 : 595;
         int height = "A5".equals(pageSize) ? 595 : 842;
         if ("LANDSCAPE".equals(orientation)) {
@@ -33,7 +33,8 @@ public class PrintPdfRenderer {
             int contentObject = 5 + index * 2;
             objects.add("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + width + " " + height + "] "
                     + "/Resources << /Font << /F1 3 0 R >> >> /Contents " + contentObject + " 0 R >>");
-            byte[] stream = content(documentTitle, pages.get(index), width, height)
+            byte[] stream = content(documentTitle, pages.get(index), width, height,
+                            millimetres(offsetXmm), millimetres(offsetYmm))
                     .getBytes(StandardCharsets.US_ASCII);
             objects.add("<< /Length " + stream.length + " >>\nstream\n"
                     + new String(stream, StandardCharsets.US_ASCII) + "\nendstream");
@@ -57,25 +58,33 @@ public class PrintPdfRenderer {
         return output.toByteArray();
     }
 
-    private String content(String documentTitle, PrintModels.PreviewPage page, int width, int height) {
+    /** 套打偏移以毫米配置；正数向右、向下，预览和 PDF 使用同一方向。 */
+    private String content(String documentTitle, PrintModels.PreviewPage page, int width, int height,
+                           int offsetX, int offsetY) {
         StringBuilder content = new StringBuilder();
-        text(content, 18, 42, height - 46, documentTitle);
-        text(content, 11, 42, height - 70, safe(page.header()));
-        text(content, 10, 42, height - 92,
+        text(content, 18, 42 + offsetX, height - 46 - offsetY, documentTitle);
+        text(content, 11, 42 + offsetX, height - 70 - offsetY, safe(page.header()));
+        text(content, 10, 42 + offsetX, height - 92 - offsetY,
                 "单号：" + safe(page.recordNumber()) + "    标题：" + safe(page.recordTitle()));
-        int y = height - 124;
+        int y = height - 124 - offsetY;
         for (PrintModels.PageField field : page.fields()) {
             String prefix = field.detail() ? "明细 · " : "";
-            text(content, 10, 52, y, prefix + field.name() + "（" + field.code() + "）：" + safe(field.value()));
+            text(content, 10, 52 + offsetX, y,
+                    prefix + field.name() + "（" + field.code() + "）：" + safe(field.value()));
             y -= 22;
         }
         if (page.signatureLabel() != null && !page.signatureLabel().isBlank()) {
-            text(content, 10, Math.max(42, width - 220), 72, page.signatureLabel() + "：________________");
+            text(content, 10, Math.max(42, width - 220 + offsetX), 72 - offsetY,
+                    page.signatureLabel() + "：________________");
         }
-        text(content, 9, 42, 36, safe(page.footer()));
-        text(content, 9, Math.max(42, width - 110), 36,
+        text(content, 9, 42 + offsetX, 36 - offsetY, safe(page.footer()));
+        text(content, 9, Math.max(42, width - 110 + offsetX), 36 - offsetY,
                 "第 " + page.pageNumber() + " / " + page.pageCount() + " 页");
         return content.toString();
+    }
+
+    private int millimetres(Integer value) {
+        return value == null ? 0 : (int) Math.round(value * 72d / 25.4d);
     }
 
     private void text(StringBuilder content, int size, int x, int y, String value) {

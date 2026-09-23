@@ -1,6 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.unique.unexamine.foundation.manage.control.BusinessActionMapper">
+  <!-- 按服务端内部 START/outbox 关联筛选本人申请；游标仅控制分页，不能替代逐项权限和共享校验。 -->
+  <select id="ownFlowEvents" resultType="com.unique.unexamine.foundation.base.entity.CoreEventOutbox">
+    SELECT e.* FROM core_event_outbox e
+    JOIN flow_action a ON a.idempotency_key = CONCAT('business-action:', e.aggregate_id)
+      AND a.action_code = 'START'
+    JOIN flow_instance f ON f.id = a.instance_id AND f.started_by_account_id = a.acted_by_account_id
+    WHERE e.aggregate_type = 'BUSINESS_ACTION' AND e.system_id = #{actor.systemId}
+      AND JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.action.actor.accountId')) = #{actor.accountId}
+      AND JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.action.actor.systemId')) = #{actor.systemId}
+      AND JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.action.actor.tenantId')) = #{actor.tenantId}
+      AND JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.action.actor.memberId')) = #{actor.memberId}
+      AND JSON_UNQUOTE(JSON_EXTRACT(e.payload_json, '$.action.actor.tenantMemberId')) = #{actor.tenantMemberId}
+    <if test="cursor != null">AND e.id &lt; #{cursor}</if>
+    ORDER BY e.id DESC LIMIT #{pageSize}
+  </select>
+  <!-- 用保留的内部 START 标识恢复原动作；手动发起接口禁止使用该前缀，业务快照不作为授权来源。 -->
+  <select id="boundFlowEvent" resultType="com.unique.unexamine.foundation.base.entity.CoreEventOutbox">
+    SELECT e.* FROM flow_action a
+    JOIN flow_instance f ON f.id = a.instance_id AND f.started_by_account_id = a.acted_by_account_id
+    JOIN core_event_outbox e ON e.aggregate_type = 'BUSINESS_ACTION'
+      AND a.idempotency_key = CONCAT('business-action:', e.aggregate_id)
+    WHERE a.instance_id = #{instanceId} AND a.action_code = 'START'
+  </select>
   <insert id="claim">
     INSERT INTO core_idempotency_record
       (context_key, operation_code, idempotency_key, request_hash, status, response_code, locked_until, expires_at)

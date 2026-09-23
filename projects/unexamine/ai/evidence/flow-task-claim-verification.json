@@ -1,0 +1,150 @@
+{
+  "step": "B09.2c.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0914",
+    "R0943",
+    "R0945",
+    "R0974",
+    "R0975",
+    "R0976",
+    "R0989",
+    "R0992",
+    "R0968",
+    "R0916"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "97821d/29b145/d64d89 execution-context PASS after source and requirement review; direct TodoService dependency admitted within 240 estimated minutes; no schema/Base/time-column changes.",
+    "8dd8d7 Maven package BUILD SUCCESS, four meaningful policy boundary tests; f0deae final label delivery package PASS, 893348 final vue-tsc/Vite PASS; existing bundle warning retained.",
+    "23d10e actual HTTP concurrency one successful CLAIM and one 409 loser, same task; identical replay no SQL writes; unclaim restores same pool/task/deadline/jobs; same todo CLAIM calls shared entry; malicious input and unclaimed approval/form denied before writes.",
+    "18c96a original candidate todo reactivates with completed time cleared; ALL_SIGN+claim publication rejected without frozen writes; dynamic BEFORE_CURRENT inherits claim and restores original claimant with remaining-clock semantics; real worker transfer clears claim; system claimed form completion executes original CREATE once; single-candidate claim and legacy direct behavior verified.",
+    "3efe23 actual GUI switch/mode blocking/save/reenter/publish V2; V1 remains claim-required and V2 actual direct approval; temporary design permissions precisely revoked before ordinary runtime.",
+    "124a92/f9ba19/d55856 ordinary GUI claim/unclaim/claim on exact original task and pool without clock/job reset; inspected 1280x720 Chinese modal; correct candidate/handler labels and no JSON configuration.",
+    "c3233f same-backend restart preserves exact claimed task/time/owner/pool/jobs/frozen policy; f4a25c ordinary GUI required opinion then actual instance216 completion and own-result heading; 814fa8 completed restart exact state/frozen versions/source-once.",
+    "cf4f05 cleanup PASS, owned account99/System101/role9/link10/Module65/flows107-111 disabled/revoked, record222 archived through actual business API, no owned unfinished tasks/jobs/executions/todos; role114 restored; golden151/154/170 and Module51 formal4 unchanged.",
+    "771eb5 git diff --check PASS; existing line-ending warnings retained; failed build and harness expectations preserved with precise guarded continuation, no reset/repeated approval for clean reports."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-task-claim-facts.json",
+    "projects/unexamine/ai/evidence/flow-task-claim-acceptance.py"
+  ],
+  "permission_or_failure_result": "实际未领取APP及表单409 CLAIM_REQUIRED，携带业务修改的CLAIM422 INPUT_INVALID，无全表业务写入；真实并发失败方409 ALREADY_CLAIMED；他人取消或转交后取消403 UNCLAIM_DENIED；空白必填意见422 REASON_REQUIRED；冻结规则与当前身份共用守卫。初次构建因Base无update(wrapper)失败，改manage使用现有Mapper；Todo动作属性/暂停剩余期限/时区与SQL意见列的验收脚本误判保留并精确续验，不通过改哈希或状态掩盖。",
+  "remaining": "仅领取/取消领取局部贡献。代理、委托、加减签、会签比例、真实退回重提、附件/评论/催办、PREVIOUS_HANDLER复用事实及全部产品需求仍须完成；显式超时/重复自动处理独立规则不等于人工已领取。RETURN仍为终态RETURNED，仅修正误导的退回上一步标签。",
+  "next_step": "B09.2c.3",
+  "integrated_verification": "19真实case groups贯穿冻结配置、当前身份、任务领取、并发、待办、动态暂停、worker、系统表单来源一次、普通GUI及两种重启状态和精确清理。",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T07:20:36.908482+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+      "sha256": "3410941f884ad98b7ae84bf4a64a6bb5c9835839bab1c60c3c7c37ac62ceade2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "1167ade8989e8c47208e5b19e85e069e45ba9003cd0fbdaab89b5405df2edec9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "aa417af67687b34f44f4e5d9a8e146c08a5ff94cab576dde3aae1331cdd9ac24"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+      "sha256": "bda362c181a8766345e97a1076058b181f0d1562294ce4609eff5329d71969db"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+      "sha256": "055954323792576cc084aa13d31080c8ba1f79ea76839513e03f3faeaec5b3a0"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "bb066eb8182a365d8b77c11f6918a3ff986c4ea2e01c3db8f61191b7d5609252"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "5d1f678a928b5da3a62af5cdf756a818a625f1ca28a004c73870ff4c25c218b6"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-acceptance.py",
+      "sha256": "92900d97d0afd954d05f9d8424f9ec891b3bbe2dc9fa74c22ec7579bcc28b4b4"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-api-initial.log",
+      "sha256": "ebd4796efa5c9b91fa4975c3b69cfb17af206879484a7bb51c48b2987f1e5a31"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-api-more-continue.log",
+      "sha256": "ab8da92d378e75beeda46415d4fa32337ce7a0c529e0a549f5bf8aec0d50370f"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-api-more.log",
+      "sha256": "00bd12e4f49ab4e6d2617b6aedf26fd21093baeadf14e66c50bb9f6af8560e27"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-api.log",
+      "sha256": "591d1850719cfba13873717a7f4a40dd1819586d75ccfe24390d16bbf1a44d4a"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-backend-build.log",
+      "sha256": "7491bd267660b3aa01cc89aedfbd78a5b8218ffb792060d205e9b7f8b09ba8e6"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-backend-delivery-build.log",
+      "sha256": "cb7716655455d9ac743fef5faa6bcaf063812d0b0c9f281b67def689ef4f1efb"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-backend-final-build.log",
+      "sha256": "199e775a4a85a1d9a73b24710eb71f78d76c54e8578ed162450eb1f085933d23"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-cleanup.log",
+      "sha256": "e9ba23ee87b1e3c5d374310617a0c45ad76f6289a59890e81b61813fa80cc994"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-clock-initial.log",
+      "sha256": "77af1613d5c230e2ce6abd32ba1252d6512ee78b3a63d08bae3fc92bb5b84144"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-dependency-entry.json",
+      "sha256": "e8aa22dc77ba76ce31cc91c4c04943c0e2701adbf07e82c726f095b382157161"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-entry.json",
+      "sha256": "3355e789f1cf73405d5cc0fc14904574d043cca575189c739455f88fcb84ae4c"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-facts.json",
+      "sha256": "b422d0ed1f01ba9e019b8da439483715af41cb88d4b394fdc3cccc97e61cf68a"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-frontend-build.log",
+      "sha256": "9d74013a432f4446f9d10ceb87dbb68e3fab5a7f0e1cbe71d295903f5f251237"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-frontend-delivery-build.log",
+      "sha256": "4face2d39709513f283df752d9d5ca3f9322213f026be2749112bd7651ab384f"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-requirement-entry.json",
+      "sha256": "119cf011bde3d63d5e95ad88dadb64a4db923b1197e2a620753d2d8b0348fff7"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-restart.log",
+      "sha256": "3e6a14c1dcffd168856dfe0c581bd50f875a9c484578c920da45d576e068445d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-task-claim-shared-entry.json",
+      "sha256": "3355e789f1cf73405d5cc0fc14904574d043cca575189c739455f88fcb84ae4c"
+    }
+  ]
+}

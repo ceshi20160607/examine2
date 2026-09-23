@@ -31,6 +31,12 @@ public class TodoController {
         return ApiResult.ok(service.list(AuthenticationContextHolder.require(), status, type));
     }
 
+    /** 打开实际审批目标前重新检查当前成员权限，不直接信任待办里的旧地址。 */
+    @PostMapping("/{todoId}/open")
+    public ApiResult<TodoModels.OpenResult> open(@PathVariable Long todoId) {
+        return ApiResult.ok(service.open(AuthenticationContextHolder.require(), todoId));
+    }
+
     @PostMapping("/{todoId}/actions")
     public ApiResult<TodoModels.HandleResult> handle(
             @PathVariable Long todoId, @Valid @RequestBody TodoModels.HandleRequest body,

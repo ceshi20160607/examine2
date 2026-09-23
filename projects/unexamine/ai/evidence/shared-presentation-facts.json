@@ -1,0 +1,200 @@
+{
+  "step": "B07.4b.2c.2b.1",
+  "status": "verified_contribution",
+  "record_id": 151,
+  "cases": [
+    {
+      "case": "ordinary_LIST_source_names_and_bound_labels_no_source_membership",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "DETAIL_source_presentation_and_own_tenant_display",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "mask_and_replay_never_restore_dictionary_reference_values",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "target_without_DETAIL_parent_remains_readable",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "target_data_scope_checked_for_original_actor",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "source_private_target_name_not_disclosed",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "revoked_target_and_replay_remove_target_label",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    },
+    {
+      "case": "revoked_parent_not_readable_or_replayable",
+      "evidence": "Assertions completed in actual acceptance try before standalone finally cleanup exception; full response snapshots not retained"
+    }
+  ],
+  "original_role": {
+    "id": 114,
+    "code": "role_072e45a64f",
+    "name": "正式扩展共享验收·extension_accept_4a356e1ce2",
+    "description": null,
+    "builtIn": false,
+    "status": "ACTIVE",
+    "permissions": [
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "actionCode": "UPDATE",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "LIST",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      },
+      {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_target_4a356e1ce2",
+        "actionCode": "DETAIL",
+        "dataScopeType": "ALL",
+        "dataScopeJson": null
+      }
+    ],
+    "fieldPolicies": [
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "choice",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "city",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "related",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": true,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "fieldCode": "hidden",
+        "channel": "PAGE",
+        "readable": false,
+        "writable": false,
+        "maskStrategy": null
+      },
+      {
+        "resourceCode": "extension_target_4a356e1ce2",
+        "fieldCode": "subject",
+        "channel": "PAGE",
+        "readable": true,
+        "writable": false,
+        "maskStrategy": null
+      }
+    ],
+    "version": 1
+  },
+  "identity": {
+    "account_id": 73,
+    "system_id": 75,
+    "username": "presentation_reader_f130b6d0c5b5"
+  },
+  "checked_time": "2026-09-18T15:36:57.200634+08:00",
+  "cleanup_failure": {
+    "reason": "Final cleanup used nonexistent auth_account table/sys_member_role status. Whole try completed without exception; finally failed before its final JSON save, so full response snapshots were lost. No business cases rerun; recover exact branch evidence from command exit traceback, current DB and ordinary page.",
+    "resolved": true
+  },
+  "record_readback": [
+    [
+      "151",
+      "45",
+      "77",
+      "4",
+      "71"
+    ]
+  ],
+  "shares_readback": [
+    [
+      "14",
+      "149",
+      "77",
+      "57",
+      "ACTIVE",
+      "2"
+    ],
+    [
+      "15",
+      "151",
+      "77",
+      "57",
+      "ACTIVE",
+      "2"
+    ]
+  ],
+  "closed_api_identity": [
+    [
+      "73",
+      "DISABLED"
+    ]
+  ],
+  "source_memberships": [
+    [
+      "0"
+    ]
+  ],
+  "page_role114": "Original parent LIST+UPDATE/no DETAIL restored after actual ordinary LIST+DETAIL page; page refresh through normal card required before subsequent use",
+  "role114_restored_original": true,
+  "record_values_readback": [
+    [
+      "choice",
+      "7372635F74776F"
+    ],
+    [
+      "city",
+      "5B31355D"
+    ],
+    [
+      "hidden",
+      "E6ADA3E5BC8FE689A9E5B195E7A781E69C89E580BCE4B88DE5BE97E4B8A2E5A4B1"
+    ],
+    [
+      "related",
+      "313439"
+    ],
+    [
+      "subject",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F"
+    ]
+  ]
+}

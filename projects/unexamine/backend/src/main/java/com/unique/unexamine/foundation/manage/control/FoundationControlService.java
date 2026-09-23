@@ -72,6 +72,7 @@ public class FoundationControlService {
     private final ObjectProvider<RuntimeDataCommandExtension> runtimeCommands;
     private final ObjectProvider<com.unique.unexamine.flow.manage.BusinessActionFlowExtension> businessFlows;
     private final ObjectProvider<BusinessActionApprovalCoordinator> approvals;
+    private final BusinessActionValueProtection valueProtection;
 
     public FoundationControlService(CoreIdempotencyRecordBaseService idempotencyService,
                                     CoreEventOutboxBaseService outboxService,
@@ -87,7 +88,8 @@ public class FoundationControlService {
                                     BusinessActionMapper actionMapper,
                                     ObjectProvider<RuntimeDataCommandExtension> runtimeCommands,
                                     ObjectProvider<com.unique.unexamine.flow.manage.BusinessActionFlowExtension> businessFlows,
-                                    ObjectProvider<BusinessActionApprovalCoordinator> approvals) {
+                                    ObjectProvider<BusinessActionApprovalCoordinator> approvals,
+                                    BusinessActionValueProtection valueProtection) {
         this.idempotencyService = idempotencyService;
         this.outboxService = outboxService;
         this.cacheEpochService = cacheEpochService;
@@ -104,6 +106,7 @@ public class FoundationControlService {
         this.runtimeCommands = runtimeCommands;
         this.businessFlows = businessFlows;
         this.approvals = approvals;
+        this.valueProtection = valueProtection;
     }
 
     @Transactional
@@ -240,7 +243,7 @@ public class FoundationControlService {
         return result;
     }
 
-    /** Business writes, their result and their completion event share this transaction. */
+    /** 业务写入、回执和可靠事件同一事务；敏感提交值仅在加密副本中持久化。 */
     @Transactional
     public <T> BusinessAction.Result<T> execute(
             BusinessAction.Input input, Class<T> resultType, JsonNode effectiveConfiguration,
@@ -293,7 +296,6 @@ public class FoundationControlService {
         T value = null;
         if (mode == BusinessAction.Mode.FLOW_ONLY || mode == BusinessAction.Mode.AFTER_APPROVAL) {
             validateDeferred.run();
-            flowInstanceId = businessFlows.getObject().start(input, binding, record.getId(), Map.of());
         } else {
             value = business.get();
         }
@@ -314,11 +316,25 @@ public class FoundationControlService {
             payload.put("approvalStatus", "PENDING_APPROVAL");
             payload.put("configurationSnapshot", effectiveConfiguration.deepCopy());
         }
-        event.setPayloadJson(actionJson(payload));
+        var protectedPayload = valueProtection.protect(
+                (com.fasterxml.jackson.databind.node.ObjectNode) actionJsonMapper.valueToTree(payload),
+                valueProtection.secretFields(effectiveConfiguration));
+        event.setPayloadJson(actionJson(protectedPayload));
         event.setStatus("PENDING");
         event.setAvailableAt(LocalDateTime.now());
         event.setRetryCount(0);
         outboxService.insert(event);
+        if (mode == BusinessAction.Mode.FLOW_ONLY || mode == BusinessAction.Mode.AFTER_APPROVAL) {
+            // 初次异常通知和自动节点也要恢复可信原动作；先持久化事件，再启动流程，均在同一事务内。
+            // 未提交事件不会被分发；启动失败时事件、流程和幂等占用一起回滚。
+            flowInstanceId = businessFlows.getObject().start(
+                    valueProtection.flowInput(protectedPayload), binding, record.getId(), Map.of());
+            protectedPayload.put("flowInstanceId", flowInstanceId);
+            event.setPayloadJson(actionJson(protectedPayload));
+            if (outboxService.updateById(event) != 1) {
+                throw new DomainException("ACTION_FLOW_ORIGIN_CONFLICT", "审批关联保存冲突，业务动作已回滚", HttpStatus.CONFLICT);
+            }
+        }
         BusinessAction.Result<T> result = new BusinessAction.Result<>(record.getId(), event.getId(), key,
                 mode == BusinessAction.Mode.AFTER_APPROVAL ? "PENDING_APPROVAL"
                         : mode == BusinessAction.Mode.FLOW_ONLY ? "FLOW_STARTED" : "COMPLETED", false, mode, value, flowInstanceId);
@@ -361,10 +377,16 @@ public class FoundationControlService {
             String businessStatus = mode == BusinessAction.Mode.AFTER_APPROVAL
                     ? payload.path("approvalStatus").asText("PENDING_APPROVAL")
                     : mode == BusinessAction.Mode.FLOW_ONLY ? "FLOW_STARTED" : "COMPLETED";
+            // 待审批动作尚无执行结果，允许业务记录为空；混用 long 与 null 的三元表达式会触发自动拆箱。
+            Long resultRecordId = null;
+            if (Set.of("CONVERT", "CONVERSION_UNLINK").contains(original.path("actionCode").asText())) {
+                if (original.path("recordId").isNumber()) resultRecordId = original.path("recordId").longValue();
+            } else if (payload.path("result").path("id").isNumber()) {
+                resultRecordId = payload.path("result").path("id").longValue();
+            }
             return new BusinessAction.Delivery(actionId, original.path("actionCode").asText(), mode, status, instanceId,
                     businessStatus, payload.path("errorCode").asText(null), payload.path("errorMessage").asText(null),
-                    Set.of("CONVERT", "CONVERSION_UNLINK").contains(original.path("actionCode").asText()) ? original.path("recordId").longValue()
-                            : payload.path("result").path("id").isNumber() ? payload.path("result").path("id").longValue() : null);
+                    resultRecordId);
         } catch (JsonProcessingException exception) {
             throw new DomainException("ACTION_RESULT_INVALID", "操作结果暂时无法读取", HttpStatus.CONFLICT);
         }

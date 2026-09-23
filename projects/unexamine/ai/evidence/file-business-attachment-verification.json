@@ -1,0 +1,186 @@
+{
+  "step": "B13.1",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0998",
+    "R1000",
+    "R1001",
+    "R1002",
+    "R1003",
+    "R1004",
+    "R1005",
+    "R1006",
+    "R1007",
+    "R1009",
+    "R1011",
+    "R1012",
+    "R1013",
+    "R1014"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/pom.xml",
+    "projects/unexamine/backend/src/main/resources/application.yml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/BusinessAttachmentController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/ManagedObjectStore.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/db/migration/V49__file_storage_credential_capacity.sql",
+    "projects/unexamine/db/update/V49__file_storage_credential_capacity.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/db/init.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/frontend/src/product/components/BusinessAttachmentsPanel.vue",
+    "projects/unexamine/frontend/src/product/components/FieldValueDisplay.vue",
+    "projects/unexamine/frontend/src/product/components/RuntimeAttachmentFieldInput.vue",
+    "projects/unexamine/frontend/src/product/views/FileWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/file.ts",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/ai/evidence/file-business-attachment-acceptance.py",
+    "projects/unexamine/ai/evidence/file-storage-boundary-acceptance.py",
+    "projects/unexamine/ai/evidence/file-access-revocation-acceptance.py"
+  ],
+  "checks_actual_results": [
+    "文件上传统一进入可续传、确定偏移、分片摘要和整文件摘要链路；相同分片重放幂等，不同内容重放、错误摘要、未完成提交和超限文件均被拒绝，失败或取消分片被回收且不生成可引用文件。",
+    "业务空间容量同时统计有效文件与未完成会话预留；真实API达到5GB边界后拒绝继续预留，逐一取消后reservedBytes恢复原值，页面显示单文件上限、剩余容量和当前存储。",
+    "本地存储与S3兼容对象存储复用同一file_object、扫描、引用、权限和删除链；对象存储配置使用命名字段，密钥AES-GCM加密且不回传，启用前真实PUT/GET/DELETE探测通过，停用后新上传回退本地而旧文件仍按原后端读取。",
+    "ATTACHMENT、IMAGE、FILE和FILE_GROUP进入真实记录保存事务；单文件写value_file_id，多文件写受限数组，同事务同步精确模块/记录/字段引用，必填、数量、图片MIME、字段允许类型和字段大小由服务端复核。",
+    "普通页面列表、概览和附件页显示文件名而非内部ID；编辑表单使用命名选择控件，显示字段大小、文件数量、当前存储和剩余容量，没有JSON输入；图片字段真实加载鉴权缩略图。",
+    "附件详情按字段权限只读展示预览和下载，提示通过记录编辑替换；预览失败明确引导下载，受记录字段管理的引用不能绕过必填校验从附件面板删除，被引用文件也不能静默删除。",
+    "真实API/DB/文件系统覆盖创建、替换、引用、删除保护、跨租户404和普通成员读取；发布角色撤销DOWNLOAD后，同一成员会话立即403，临时账号、角色、会话、对象后端和字节均精确收尾。",
+    "JDK21 Maven package、前端vue-tsc/Vite生产构建、Python验收脚本编译、git diff --check、Flyway V49和后端健康检查通过；普通页面1440宽无横向溢出，完整刷新后新增控制台错误/警告为0。",
+    "只重启原unexamine-golden-backend；复用原unexamine-mysql-1、共享redis和单个原生Vite，unexamine-redis-1保持停止，没有新增项目服务或重复容器。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/file-business-attachment-facts.json",
+    "projects/unexamine/ai/evidence/file-storage-boundary-facts.json",
+    "projects/unexamine/ai/evidence/file-access-revocation-facts.json",
+    "projects/unexamine/ai/evidence/file-business-attachment-page-readback.json"
+  ],
+  "permission_or_failure_result": "当前系统/租户、FILE动作、目标记录、字段渠道和当前成员权限逐层复核；跨租户文件返回404，撤销下载立即403，错误类型不能绑定记录，必填文件不能清空，未完成/超配额会话不能提交，被引用文件和受记录字段管理的引用不能直接删除。",
+  "remaining": "B13.2导入导出、B13.3可视化打印、B12.5微信产品选择和真实外部租户凭据验收，以及后续全部有效需求仍保留；B13.1不替代这些范围。",
+  "next_step": "B13.2",
+  "next_scope": "复用已完成的受控文件、生成文件和权限链，实现导入模板、字段映射、预演、执行、错误行与导出下载的完整普通页面流程，不另建文件服务。",
+  "integrated_verification": "本地与对象存储、分片/配额/类型、真实记录字段、引用删除、缩略图、跨上下文、撤权、普通页面和现有服务组合全部通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T22:51:45.189777+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/pom.xml",
+      "sha256": "5d6e2bee738179e8fa084278c000c7815bf992e43b104efff44fd6caa1e25703"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/application.yml",
+      "sha256": "bba3a53fbada3e06df12165ae8a2e83c9a8bf51e418fb4bde263a8a31956fdef"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+      "sha256": "d953844aa85bfba3ac68683ad275c7e711069554c5647e9e475716c6f0ee77b5"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/BusinessAttachmentController.java",
+      "sha256": "454f90d6127904908557a5989aae6ac29ed36cf7b67852cf829bf6a5286f25a9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileController.java",
+      "sha256": "fcfd485e0292108a139ac08e7be15561341ce357b3d2f8f952af73f38a01bab9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileModels.java",
+      "sha256": "b767393013131f0036bef4820f4581fcdfd459bd5bdc2bf4b603a2592bf28c8d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+      "sha256": "57bd4fc6365e2c5209b13c0871986bcbf8e54203cdb0abf7ae41d79f9344973f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/ManagedObjectStore.java",
+      "sha256": "754379d13fa5960dbad82a588cd030d5649d82e615bfd4061560cce2b2351798"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "d62ae609e3f9805892fe54d835a00022a49d18a8da7224b17954cf1a56e3f127"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V49__file_storage_credential_capacity.sql",
+      "sha256": "4379d41dd849d2eb1fc170e41b99719c497628e0adab2a7042034fc69afa9833"
+    },
+    {
+      "path": "projects/unexamine/db/update/V49__file_storage_credential_capacity.sql",
+      "sha256": "4379d41dd849d2eb1fc170e41b99719c497628e0adab2a7042034fc69afa9833"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "5ae3bbb6608129dc8df1430590fe408d6a1658c5e594914d505cbc610c162700"
+    },
+    {
+      "path": "projects/unexamine/db/init.sql",
+      "sha256": "5e3fc7c7365f9f722038ef29a3c7cc1eb20715d4cb2705f0a64300a7af1edf8f"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "cf65dcc5e36fa04eaff66f89908f4102ee4ebbe8db605e0d5f3b555c8e1d88da"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/BusinessAttachmentsPanel.vue",
+      "sha256": "1e3b6c74f4c8da225ac2b4be884be9aa9db60fbe160bf7bb0ad7037b4da77e5e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FieldValueDisplay.vue",
+      "sha256": "c6d615a0f00640fe83b1f6ca18d863566a57bc0764e4329e832e2ae427257998"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeAttachmentFieldInput.vue",
+      "sha256": "7deb93a92b80066dc26da0816a33262b9ce242c133415e8d417fdc916a4bfa20"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FileWorkspaceView.vue",
+      "sha256": "a12e855479ecd2685c3964ecc27db615c52ad8b8e21988b156c48b87d8d98c69"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "5c58b25b046d88e8368fcdea02c501d85bada4f22a3650e2e24285696d705236"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/file.ts",
+      "sha256": "fa80c612a8bd63c1f3e0583e62d41abeea7f7ad84010acb50d8af146ddb9ad2a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "d747bbcc5d93a1cd935f78294512fd015434aa67a9662d2a47d6fae570156302"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-business-attachment-acceptance.py",
+      "sha256": "ca652def4e501192ef94679e4a8caaf63d4f59daef8dab2082276433b656f937"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-storage-boundary-acceptance.py",
+      "sha256": "8b6358a686f501deb267aa35a8bf32d09e70e06997c4c77c7ddb9489e77c9e50"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-access-revocation-acceptance.py",
+      "sha256": "fe5dd8a42690eb182d8ab32df44252a71ce1275c7233640a9507e3dc48559c36"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/file-business-attachment-facts.json",
+      "sha256": "709d701498040af8afb55a98a4d0be53d97c4e2b68487c9db47a827b4042312d"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-storage-boundary-facts.json",
+      "sha256": "c3b455a250366bef1534fd7dd5963ed5c6fdafaaa7af03d222aee2046d9a2875"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-access-revocation-facts.json",
+      "sha256": "4ec35fcda0f76b83b4c119421fb9744ccf033791d450e29e83692af50e71fa66"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/file-business-attachment-page-readback.json",
+      "sha256": "5e646d74a80b4b082967bb7333b9587a351179b446114e75451116c2774d860b"
+    }
+  ]
+}

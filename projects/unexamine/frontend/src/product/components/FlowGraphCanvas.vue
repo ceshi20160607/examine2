@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, watch } from 'vue'
 import {
   Handle, MarkerType, Position, VueFlow,
-  type Connection, type Edge, type EdgeMouseEvent, type Node, type NodeDragEvent, type NodeMouseEvent,
+  type Connection, type Edge, type EdgeMouseEvent, type Node, type NodeDragEvent, type NodeMouseEvent, type VueFlowStore,
 } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -12,12 +12,15 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
 import '@vue-flow/minimap/dist/style.css'
 import type { FlowEdgeInput, FlowIssue, FlowNodeInput, FlowNodeType } from '../types'
+import { bindingCondition, conditionFieldCodes, conditionSummary, isConditionGroup,
+  type ConditionField, type ConditionNode } from '../conditions'
 
 const props = defineProps<{
   modelValue: FlowNodeInput[]
   edges: FlowEdgeInput[]
   issues: FlowIssue[]
   editable: boolean
+  conditionFields?: ConditionField[]
 }>()
 const emit = defineEmits<{
   'update:modelValue': [nodes: FlowNodeInput[]]
@@ -30,14 +33,23 @@ interface GraphSnapshot { nodes: FlowNodeInput[]; edges: FlowEdgeInput[] }
 
 const canvasNodes = shallowRef<Node[]>([])
 const canvasEdges = shallowRef<Edge[]>([])
+const viewport = shallowRef<VueFlowStore>()
 const undoStack = ref<GraphSnapshot[]>([])
 const redoStack = ref<GraphSnapshot[]>([])
 const restoring = ref(false)
 
 const nodeLabels: Record<FlowNodeType, string> = {
   START: '开始', END: '结束', APPROVAL: '审批', GATEWAY: '条件', SUBFLOW: '子流程',
-  FORM_TASK: '表单', NOTIFICATION: '通知', UPDATE_FIELD: '回写', WAIT_TIMER: '等待',
+  FORM_TASK: '表单', CC: '抄送', NOTIFICATION: '通知', MESSAGE: '消息', UPDATE_FIELD: '回写', DATA_ACTION: '数据动作',
+  WAIT: '等待', TIMER: '定时器', WAIT_TIMER: '等待（旧版）',
   WEBHOOK: '服务', EXTERNAL: '外部', AI: 'AI',
+}
+
+function nodeLabel(node: FlowNodeInput | undefined) {
+  if (!node) return '节点'
+  if (node.nodeType !== 'GATEWAY') return nodeLabels[node.nodeType]
+  return ({ EXCLUSIVE: '条件分支', PARALLEL: '并行网关', INCLUSIVE: '包容网关', MERGE: '汇合网关' } as Record<string, string>)[
+    String(node.config.gatewayMode || 'EXCLUSIVE').toUpperCase()] || '条件分支'
 }
 
 const canUndo = computed(() => undoStack.value.length > 0)
@@ -118,7 +130,7 @@ function syncCanvas() {
     source: edge.sourceNodeKey,
     target: edge.targetNodeKey,
     type: 'smoothstep',
-    label: edge.conditionExpression || (edge.priorityOrder ? `优先级 ${edge.priorityOrder}` : '继续'),
+    label: conditionLabel(edge),
     markerEnd: MarkerType.ArrowClosed,
     animated: false,
     selectable: true,
@@ -126,7 +138,23 @@ function syncCanvas() {
   }))
 }
 
-watch(() => [props.modelValue, props.edges, props.editable], syncCanvas, { deep: true, immediate: true })
+function conditionLabel(edge: FlowEdgeInput) {
+  if (edge.config.condition === undefined && !edge.conditionExpression) return edge.priorityOrder ? `默认路径 · 顺序 ${edge.priorityOrder}` : '继续'
+  const fields = props.conditionFields || []
+  try {
+    const condition = bindingCondition(edge.config.condition as ConditionNode | undefined, edge.conditionExpression)
+    if (!conditionFieldCodes(condition).every(code => fields.some(field => field.code === code))) return '业务条件（字段待确认）'
+    const labels = (node: ConditionNode): ConditionNode => {
+      if (isConditionGroup(node)) return { ...node, conditions: node.conditions.map(labels) }
+      const field = fields.find(field => field.code === node.field)
+      const options: Array<{ value?: string; code?: string; label?: string }> = JSON.parse(field?.configJson || '{}').options || []
+      const label = (value: unknown) => options.find(option => (option.value ?? option.code) === value)?.label || value
+      return { ...node, ...('value' in node ? { value: Array.isArray(node.value) ? node.value.map(label) : label(node.value) } : {}) }
+    }
+    return conditionSummary(labels(condition), fields)
+  } catch { return '业务条件（原配置待确认）' }
+}
+watch(() => [props.modelValue, props.edges, props.editable, props.conditionFields], syncCanvas, { deep: true, immediate: true })
 
 function selectNode(event: NodeMouseEvent) {
   emit('select-node', event.node.id)
@@ -168,7 +196,13 @@ function nodeClass(nodeKey: string) {
   return node ? [`flow-visual-node--${node.nodeType.toLowerCase()}`, { invalid: nodeIssues(nodeKey).length > 0 }] : []
 }
 
-defineExpose({ checkpoint, undo, redo, clearHistory })
+async function fitView() {
+  // 自动布局后先同步节点位置，再适配视口，避免节点移出当前画布。
+  await nextTick()
+  await viewport.value?.fitView({ padding: 0.12, maxZoom: 1 })
+}
+
+defineExpose({ checkpoint, undo, redo, clearHistory, fitView })
 </script>
 
 <template>
@@ -195,6 +229,7 @@ defineExpose({ checkpoint, undo, redo, clearHistory })
       :fit-view-on-init="true"
       :default-edge-options="{ type: 'smoothstep', markerEnd: MarkerType.ArrowClosed }"
       @node-click="selectNode"
+      @init="viewport = $event"
       @edge-click="selectEdge"
       @node-drag-start="checkpoint"
       @node-drag-stop="dragStop"
@@ -208,7 +243,7 @@ defineExpose({ checkpoint, undo, redo, clearHistory })
       <template #node-business="{ id, selected }">
         <Handle v-if="domainNode(id)?.nodeType !== 'START'" type="target" :position="Position.Left" />
         <div :class="['flow-visual-node', ...nodeClass(id), { active: selected }]">
-          <span>{{ domainNode(id) ? nodeLabels[domainNode(id)!.nodeType] : '节点' }}</span>
+          <span>{{ nodeLabel(domainNode(id)) }}</span>
           <strong>{{ domainNode(id)?.name }}</strong>
           <em v-if="nodeIssues(id).length">{{ nodeIssues(id).length }} 项待处理</em>
         </div>

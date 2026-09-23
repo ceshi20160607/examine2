@@ -127,7 +127,7 @@ onMounted(load)
 
     <a-drawer v-model:open="editorOpen" width="680" title="消息模板配置">
       <a-form layout="vertical">
-        <div class="form-grid three"><a-form-item label="模板编码" required><a-input v-model:value="form.code" :disabled="!!selected" /></a-form-item><a-form-item label="业务名称" required><a-input v-model:value="form.name" /></a-form-item><a-form-item label="送达渠道"><a-select v-model:value="form.channel" :disabled="!!selected" :options="[{ value:'IN_APP', label:'站内消息' },{ value:'EMAIL', label:'站内 + 邮件' },{ value:'SMS', label:'站内 + 短信' },{ value:'WEBHOOK', label:'站内 + Webhook' }]" /></a-form-item></div>
+        <div class="form-grid three"><a-form-item label="模板编码" required><a-input v-model:value="form.code" :disabled="!!selected" /></a-form-item><a-form-item label="业务名称" required><a-input v-model:value="form.name" /></a-form-item><a-form-item label="送达渠道"><a-select v-model:value="form.channel" :disabled="!!selected" :options="[{ value:'IN_APP', label:'站内消息' },{ value:'EMAIL', label:'站内 + 邮件' },{ value:'SMS', label:'站内 + 短信' },{ value:'WEBHOOK', label:'站内 + Webhook' },{ value:'WECOM', label:'站内 + 企业微信应用消息' },{ value:'FEISHU', label:'站内 + 飞书应用消息' },{ value:'DINGTALK', label:'站内 + 钉钉应用消息' }]" /></a-form-item></div>
         <a-form-item label="消息标题"><a-input v-model:value="form.subjectTemplate" placeholder="例如：流程 {{title}} 已更新" /></a-form-item>
         <a-form-item label="消息正文" required><a-textarea v-model:value="form.contentTemplate" :rows="4" /></a-form-item>
         <a-form-item label="可替换内容"><a-select v-model:value="form.requiredVariables" mode="tags" placeholder="输入变量名后回车，例如 title、actor" /></a-form-item>

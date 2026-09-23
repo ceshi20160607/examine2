@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ApiError, api } from '../api'
 import { buildReportDefinition } from '../report'
 import { versionLabel } from '../presentation'
-import type { ReportMetadata, ReportPreview, ReportResult } from '../types'
+import type { ReportFieldMetadata, ReportMetadata, ReportPreview, ReportResult, RuntimeListQueryField } from '../types'
 
 const props = defineProps<{ token?: string; sourceId?: number; initialDefinition?: Record<string, unknown> }>()
 const emit = defineEmits<{ definition: [value: Record<string, unknown>] }>()
@@ -12,6 +12,8 @@ const preview = ref<ReportPreview>()
 const published = ref<ReportResult>()
 const loading = ref(false)
 const error = ref('')
+const queryFields = reactive<Record<string, RuntimeListQueryField[]>>({})
+let queryFieldsRequest = 0
 
 function objects(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(item => item && typeof item === 'object') as Record<string, unknown>[] : []
@@ -26,41 +28,119 @@ function qualified(value: Record<string, unknown>): string {
 const initial = props.initialDefinition || {}
 const initialModules = objects(initial.modules)
 const initialRelation = objects(initial.relations)[0] || {}
+const initialThirdRelation = objects(initial.relations)[1] || {}
 const initialMetric = object(initial.metric)
 const initialDimension = object(initial.dimension)
-const initialFilter = objects(initial.filters)[0] || {}
+const initialFilters = objects(initial.filters)
 const initialSort = object(initial.sort)
 const initialTime = object(initial.timeField)
 const form = reactive({
   primaryModuleCode: String(initialModules[0]?.moduleCode || ''),
   relatedModuleCode: String(initialModules[1]?.moduleCode || ''),
+  thirdModuleCode: String(initialModules[2]?.moduleCode || ''),
   relationType: String(initialRelation.relationType || 'REFERENCE') as 'REFERENCE' | 'SUBTABLE' | 'CASCADE',
   joinType: String(initialRelation.joinType || 'INNER') as 'INNER' | 'LEFT',
   primaryRelationField: String(initialRelation.leftField || 'id'),
   relatedRelationField: String(initialRelation.rightField || ''),
+  thirdRelationParentAlias: String(initialThirdRelation.leftAlias || 'primary') as 'primary' | 'related',
+  thirdRelationType: String(initialThirdRelation.relationType || 'REFERENCE') as 'REFERENCE' | 'SUBTABLE' | 'CASCADE',
+  thirdJoinType: String(initialThirdRelation.joinType || 'INNER') as 'INNER' | 'LEFT',
+  thirdParentField: String(initialThirdRelation.leftField || 'id'),
+  thirdRelationField: String(initialThirdRelation.rightField || ''),
   outputFields: objects(initial.outputFields).map(qualified).filter(Boolean),
   metricOperation: String(initialMetric.operation || 'COUNT') as 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX',
   metricField: qualified(initialMetric),
   dimensionType: String(initialDimension.type || 'STATUS') as 'FIELD' | 'TIME' | 'PERSON' | 'DEPARTMENT' | 'STATUS',
   dimensionField: qualified(initialDimension),
-  filterField: qualified(initialFilter), filterOperator: String(initialFilter.operator || 'EQ'),
-  filterValue: String(initialFilter.value || ''), sortField: qualified(initialSort),
+  filters: initialFilters.map(filter => ({ field: qualified(filter), operator: String(filter.operator || 'EQ'),
+    value: String(filter.value ?? '') })),
+  sortField: qualified(initialSort),
   sortDirection: String(initialSort.direction || 'DESC') as 'ASC' | 'DESC',
   timeField: qualified(initialTime), timeFrom: String(initialTime.from || ''), timeTo: String(initialTime.to || ''),
   maxScanRows: Number(initial.maxScanRows || 500), limit: Number(initial.limit || 20),
 })
 
 const primary = computed(() => metadata.value?.modules.find(item => item.moduleCode === form.primaryModuleCode))
-const related = computed(() => metadata.value?.modules.find(item => item.moduleCode === form.relatedModuleCode))
+const related = computed(() => form.relatedModuleCode && form.relatedModuleCode !== form.primaryModuleCode
+  ? metadata.value?.modules.find(item => item.moduleCode === form.relatedModuleCode) : undefined)
+const third = computed(() => related.value && form.thirdModuleCode
+  && ![form.primaryModuleCode, form.relatedModuleCode].includes(form.thirdModuleCode)
+  ? metadata.value?.modules.find(item => item.moduleCode === form.thirdModuleCode) : undefined)
 const primaryFields = computed(() => primary.value?.fields.filter(field => field.readable) || [])
 const relatedFields = computed(() => related.value?.fields.filter(field => field.readable) || [])
+const thirdFields = computed(() => third.value?.fields.filter(field => field.readable) || [])
 const fieldOptions = computed(() => [
   ...primaryFields.value.map(field => ({ value: `primary.${field.code}`, label: `主模块 · ${field.name}`, field })),
   ...relatedFields.value.map(field => ({ value: `related.${field.code}`, label: `关联模块 · ${field.name}`, field })),
+  ...thirdFields.value.map(field => ({ value: `third.${field.code}`, label: `第三模块 · ${field.name}`, field })),
 ])
-const indexedOptions = computed(() => fieldOptions.value.filter(option => option.field.indexed))
-const numericOptions = computed(() => fieldOptions.value.filter(option =>
+const valueFieldOptions = computed(() => fieldOptions.value.filter(option => option.field.fieldType !== 'SUBTABLE'))
+const thirdParentFields = computed(() => form.thirdRelationParentAlias === 'related' ? relatedFields.value : primaryFields.value)
+function relationSources(sourceFields: ReportFieldMetadata[], sourceId: number | undefined,
+  targetFields: ReportFieldMetadata[], targetId: number | undefined, relationType: string) {
+  if (relationType === 'SUBTABLE') return sourceFields.filter(field => field.readable
+    && field.fieldType === 'SUBTABLE' && field.referenceModuleId === targetId
+    && targetFields.some(target => target.readable && target.fieldType === 'REFERENCE'
+      && target.referenceModuleId === sourceId))
+  if (relationType !== 'REFERENCE') return []
+  return sourceFields.filter(field => field.readable && (
+    (field.fieldType === 'REFERENCE' && field.referenceModuleId === targetId)
+    || (field.code === 'id' && targetFields.some(target => target.readable
+      && target.fieldType === 'REFERENCE' && target.referenceModuleId === sourceId))))
+}
+function relationTargets(sourceFieldCode: string, sourceFields: ReportFieldMetadata[],
+  sourceId: number | undefined, targetFields: ReportFieldMetadata[], targetId: number | undefined,
+  relationType: string) {
+  const source = sourceFields.find(field => field.code === sourceFieldCode)
+  if (relationType === 'SUBTABLE' && source?.fieldType === 'SUBTABLE'
+    && source.referenceModuleId === targetId) {
+    return targetFields.filter(field => field.readable && field.fieldType === 'REFERENCE'
+      && field.referenceModuleId === sourceId)
+  }
+  if (relationType !== 'REFERENCE') return []
+  if (source?.fieldType === 'REFERENCE' && source.referenceModuleId === targetId) {
+    return targetFields.filter(field => field.code === 'id')
+  }
+  if (source?.code === 'id') {
+    return targetFields.filter(field => field.readable && field.fieldType === 'REFERENCE'
+      && field.referenceModuleId === sourceId)
+  }
+  return []
+}
+const primaryRelationOptions = computed(() => relationSources(primaryFields.value, primary.value?.moduleId,
+  relatedFields.value, related.value?.moduleId, form.relationType))
+const relatedRelationOptions = computed(() => relationTargets(form.primaryRelationField, primaryFields.value,
+  primary.value?.moduleId, relatedFields.value, related.value?.moduleId, form.relationType))
+const thirdParent = computed(() => form.thirdRelationParentAlias === 'related' ? related.value : primary.value)
+const thirdParentRelationOptions = computed(() => relationSources(thirdParentFields.value, thirdParent.value?.moduleId,
+  thirdFields.value, third.value?.moduleId, form.thirdRelationType))
+const thirdRelationOptions = computed(() => relationTargets(form.thirdParentField, thirdParentFields.value,
+  thirdParent.value?.moduleId, thirdFields.value, third.value?.moduleId, form.thirdRelationType))
+const indexedOptions = computed(() => valueFieldOptions.value.filter(option => option.field.indexed))
+const filterOptions = computed(() => valueFieldOptions.value.filter(option => {
+  const [alias, code] = option.value.split('.')
+  return (queryFields[alias || ''] || []).some(field => field.code === code
+    && (field.searchable || option.field.builtIn))
+}))
+const numericOptions = computed(() => valueFieldOptions.value.filter(option =>
   ['NUMBER', 'DECIMAL', 'INTEGER', 'LONG', 'MONEY', 'PERCENT'].includes(option.field.fieldType)))
+const dimensionOptions = computed(() => valueFieldOptions.value.filter(option => {
+  const type = option.field.fieldType
+  if (form.dimensionType === 'TIME') return ['DATE', 'DATETIME'].includes(type)
+  if (form.dimensionType === 'PERSON') return ['MEMBER', 'PERSON', 'USER', 'SYSTEM_CREATED_BY', 'SYSTEM_UPDATED_BY'].includes(type)
+  if (form.dimensionType === 'DEPARTMENT') return type === 'DEPARTMENT'
+  if (form.dimensionType === 'STATUS') return ['STATUS', 'SELECT', 'SINGLE_SELECT', 'CASCADE'].includes(type)
+  return true
+}))
+const activeResult = computed(() => preview.value?.sampleResult || published.value)
+function outputLabel(field: string) {
+  return fieldOptions.value.find(option => option.value === field)?.label || '原字段当前不可用'
+}
+function resultText(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '未设置'
+  if (Array.isArray(value)) return value.map(resultText).join('、')
+  return typeof value === 'object' ? '结构化值' : String(value)
+}
 
 const relationLabels: Record<string, string> = { REFERENCE: '关联字段', SUBTABLE: '明细数据', CASCADE: '级联关系' }
 const joinLabels: Record<string, string> = { INNER: '只保留双方匹配的数据', LEFT: '保留主模块全部数据' }
@@ -71,7 +151,53 @@ const operatorLabels: Record<string, string> = { EQ: '等于', NE: '不等于', 
 function emitDefinition() {
   emit('definition', buildReportDefinition(form))
 }
+function addFilter() { form.filters.push({ field: '', operator: 'EQ', value: '' }) }
+function filterType(field: string) { return fieldOptions.value.find(option => option.value === field)?.field.fieldType }
+function filterDescriptor(field: string) {
+  const [alias, code] = field.split('.')
+  return (queryFields[alias || ''] || []).find(item => item.code === code)
+}
+function filterOperators(field: string) {
+  return (filterDescriptor(field)?.operators || ['EQ', 'NE', 'EMPTY', 'NOT_EMPTY'])
+    .map(value => ({ value, label: operatorLabels[value] || value }))
+}
+function choiceFilter(field: string) {
+  return ['MEMBER', 'DEPARTMENT', 'REFERENCE', 'SINGLE_SELECT', 'STATUS', 'CASCADE', 'BOOLEAN']
+    .includes(filterType(field) || '')
+}
+function filterChoices(field: string, selected: string) {
+  const options = filterType(field) === 'BOOLEAN'
+    ? [{ value: 'true', label: '是' }, { value: 'false', label: '否' }]
+    : filterDescriptor(field)?.options || []
+  return selected && !options.some(option => option.value === selected)
+    ? [...options, { value: selected, label: '原筛选值当前不可用', disabled: true }] : options
+}
 watch(form, emitDefinition, { deep: true, immediate: true })
+watch(() => form.primaryModuleCode, code => {
+  if (form.relatedModuleCode === code) form.relatedModuleCode = ''
+  if (form.thirdModuleCode === code) form.thirdModuleCode = ''
+})
+watch(() => form.relatedModuleCode, code => {
+  if (!code || form.thirdModuleCode === code) form.thirdModuleCode = ''
+})
+watch(() => [form.primaryModuleCode, form.relatedModuleCode, form.thirdModuleCode, props.token], async values => {
+  const request = ++queryFieldsRequest
+  Object.keys(queryFields).forEach(alias => delete queryFields[alias])
+  if (!props.token) return
+  await Promise.all(values.slice(0, 3).map(async (code, index) => {
+    if (index === 2 && !form.relatedModuleCode) return
+    if (!code) return
+    const alias = ['primary', 'related', 'third'][index] || ''
+    try {
+      const fields = await api<RuntimeListQueryField[]>(
+        `/api/runtime/modules/${encodeURIComponent(code)}/records/query-fields`, {}, props.token)
+      if (request === queryFieldsRequest) queryFields[alias] = fields
+    } catch (cause) {
+      if (request === queryFieldsRequest) error.value = cause instanceof ApiError
+        ? cause.message : '无法读取当前权限下的筛选字段'
+    }
+  }))
+}, { immediate: true })
 
 async function loadMetadata() {
   if (!props.token) return
@@ -119,15 +245,39 @@ onMounted(loadMetadata)
     </div>
     <div v-if="form.relatedModuleCode" class="report-relation-box">
       <strong>模块关系</strong>
+      <a-alert v-if="!primaryRelationOptions.length" type="warning" show-icon message="这两个模块尚无可读的关联字段；请先在模块字段中配置并发布关联。" />
       <div class="form-grid form-grid--three"><a-form-item label="关系类型"><a-select v-model:value="form.relationType" :options="metadata?.relationTypes.map(value => ({ value, label: relationLabels[value] || '业务关联' }))" /></a-form-item><a-form-item label="数据保留方式"><a-select v-model:value="form.joinType" :options="['INNER','LEFT'].map(value => ({ value, label: joinLabels[value] }))" /></a-form-item><span /></div>
-      <div class="form-grid"><a-form-item label="主模块关联字段"><a-select v-model:value="form.primaryRelationField" show-search :options="primaryFields.filter(field => field.indexed).map(field => ({ value: field.code, label: field.name }))" /></a-form-item><a-form-item label="关联模块关联字段"><a-select v-model:value="form.relatedRelationField" show-search :options="relatedFields.filter(field => field.indexed).map(field => ({ value: field.code, label: field.name }))" /></a-form-item></div>
+      <div class="form-grid"><a-form-item label="主模块关联字段"><a-select v-model:value="form.primaryRelationField" show-search :options="primaryRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item><a-form-item label="关联模块关联字段"><a-select v-model:value="form.relatedRelationField" show-search :options="relatedRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item></div>
     </div>
-    <a-form-item label="显式输出字段（未选择和无权字段不会返回）"><a-select v-model:value="form.outputFields" mode="multiple" show-search :options="fieldOptions" /></a-form-item>
+    <div v-if="form.relatedModuleCode" class="report-relation-box">
+      <strong>第三模块（可选）</strong>
+      <a-form-item label="第三模块"><a-select v-model:value="form.thirdModuleCode" allow-clear show-search
+        :options="metadata?.modules.filter(item => ![form.primaryModuleCode, form.relatedModuleCode].includes(item.moduleCode)).map(item => ({ value: item.moduleCode, label: `${item.moduleName} · ${versionLabel(item.versionNumber)}` }))" /></a-form-item>
+      <template v-if="form.thirdModuleCode">
+        <a-alert v-if="!thirdParentRelationOptions.length" type="warning" show-icon message="第三模块与所选来源模块尚无可读的关联字段。" />
+        <div class="form-grid form-grid--three"><a-form-item label="关联到"><a-select v-model:value="form.thirdRelationParentAlias" :options="[{ value: 'primary', label: '主模块' }, { value: 'related', label: '第二模块' }]" /></a-form-item><a-form-item label="关系类型"><a-select v-model:value="form.thirdRelationType" :options="metadata?.relationTypes.map(value => ({ value, label: relationLabels[value] || '业务关联' }))" /></a-form-item><a-form-item label="数据保留方式"><a-select v-model:value="form.thirdJoinType" :options="['INNER','LEFT'].map(value => ({ value, label: joinLabels[value] }))" /></a-form-item></div>
+        <div class="form-grid"><a-form-item label="来源关联字段"><a-select v-model:value="form.thirdParentField" show-search :options="thirdParentRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item><a-form-item label="第三模块关联字段"><a-select v-model:value="form.thirdRelationField" show-search :options="thirdRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item></div>
+      </template>
+    </div>
+    <a-form-item label="显式输出字段（未选择和无权字段不会返回）"><a-select v-model:value="form.outputFields" mode="multiple" show-search :options="valueFieldOptions" /></a-form-item>
     <div class="form-grid form-grid--three"><a-form-item label="统计方式"><a-select v-model:value="form.metricOperation" :options="metadata?.metricOperations.map(value => ({ value, label: metricLabels[value] || '统计' }))" /></a-form-item><a-form-item label="统计字段"><a-select v-model:value="form.metricField" allow-clear show-search :disabled="form.metricOperation === 'COUNT'" :options="numericOptions" /></a-form-item><a-form-item label="明细展示条数"><a-input-number v-model:value="form.limit" :min="1" :max="50" /></a-form-item></div>
-    <div class="form-grid"><a-form-item label="分组方式"><a-select v-model:value="form.dimensionType" :options="metadata?.dimensionTypes.map(value => ({ value, label: dimensionLabels[value] || '业务字段' }))" /></a-form-item><a-form-item label="分组字段"><a-select v-model:value="form.dimensionField" allow-clear show-search :options="fieldOptions" /></a-form-item></div>
-    <div class="form-grid form-grid--three"><a-form-item label="固定筛选字段"><a-select v-model:value="form.filterField" allow-clear show-search :options="indexedOptions" /></a-form-item><a-form-item label="判断条件"><a-select v-model:value="form.filterOperator" :options="['EQ','NE','CONTAINS','GT','GTE','LT','LTE','EMPTY','NOT_EMPTY'].map(value => ({ value, label: operatorLabels[value] }))" /></a-form-item><a-form-item label="筛选值"><a-input v-model:value="form.filterValue" /></a-form-item></div>
+    <div class="form-grid"><a-form-item label="分组方式"><a-select v-model:value="form.dimensionType" :options="metadata?.dimensionTypes.map(value => ({ value, label: dimensionLabels[value] || '业务字段' }))" /></a-form-item><a-form-item label="分组字段"><a-select v-model:value="form.dimensionField" allow-clear show-search :options="dimensionOptions" /></a-form-item></div>
+    <div class="panel-title"><strong>固定筛选条件</strong><a-button size="small" @click="addFilter">添加条件</a-button></div>
+    <div v-for="(filter, index) in form.filters" :key="index" class="form-grid form-grid--three">
+      <a-form-item label="筛选字段"><a-select v-model:value="filter.field" show-search :options="filterOptions" @change="filter.value = ''; filter.operator = 'EQ'" /></a-form-item>
+      <a-form-item label="判断条件"><a-select v-model:value="filter.operator" :options="filterOperators(filter.field)" /></a-form-item>
+      <a-form-item label="筛选值">
+        <span v-if="['EMPTY','NOT_EMPTY'].includes(filter.operator)">无需填写</span>
+        <a-select v-else-if="choiceFilter(filter.field)" v-model:value="filter.value" show-search option-filter-prop="label"
+          :options="filterChoices(filter.field, filter.value)" placeholder="选择当前授权数据中的值" />
+        <a-date-picker v-else-if="filterType(filter.field) === 'DATE'" v-model:value="filter.value" value-format="YYYY-MM-DD" style="width:100%" />
+        <a-date-picker v-else-if="filterType(filter.field) === 'DATETIME'" v-model:value="filter.value" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" />
+        <a-input v-else v-model:value="filter.value" :type="['NUMBER','DECIMAL','INTEGER','LONG','MONEY','PERCENT'].includes(filterType(filter.field) || '') ? 'number' : 'text'" />
+        <a-button size="small" @click="form.filters.splice(index, 1)">移除</a-button>
+      </a-form-item>
+    </div>
     <div class="form-grid form-grid--three"><a-form-item label="默认排序字段"><a-select v-model:value="form.sortField" allow-clear show-search :options="indexedOptions" /></a-form-item><a-form-item label="排序方向"><a-select v-model:value="form.sortDirection" :options="[{ value: 'ASC', label: '从小到大' }, { value: 'DESC', label: '从大到小' }]" /></a-form-item><a-form-item label="最多统计行数"><a-input-number v-model:value="form.maxScanRows" :min="1" :max="metadata?.maximumScanRows || 1000" /></a-form-item></div>
-    <div class="form-grid form-grid--three"><a-form-item label="时间字段"><a-select v-model:value="form.timeField" allow-clear show-search :options="indexedOptions.filter(option => ['DATE','DATETIME'].includes(option.field.fieldType))" /></a-form-item><a-form-item label="开始"><a-input v-model:value="form.timeFrom" placeholder="2026-01-01" /></a-form-item><a-form-item label="结束"><a-input v-model:value="form.timeTo" placeholder="2026-12-31" /></a-form-item></div>
+    <div class="form-grid form-grid--three"><a-form-item label="时间字段"><a-select v-model:value="form.timeField" allow-clear show-search :options="indexedOptions.filter(option => ['DATE','DATETIME'].includes(option.field.fieldType))" /></a-form-item><a-form-item label="开始"><a-input v-model:value="form.timeFrom" type="date" /></a-form-item><a-form-item label="结束"><a-input v-model:value="form.timeTo" type="date" /></a-form-item></div>
     <div v-if="sourceId" class="form-actions"><a-button :loading="loading" @click="previewDraft">预览草稿计划与样例</a-button><a-button :loading="loading" @click="executePublished">执行已发布版本</a-button></div>
 
     <section v-if="preview" class="report-plan-panel">
@@ -136,5 +286,20 @@ onMounted(loadMetadata)
       <template v-if="preview.sampleResult"><div class="report-result-summary"><article><small>授权聚合值</small><strong>{{ preview.sampleResult.value ?? '无结果' }}</strong></article><article><small>权限内下钻</small><strong>{{ preview.sampleResult.items.length }} 条</strong></article><article><small>预计聚合行</small><strong>{{ preview.sampleResult.queryPlan.estimatedRows }}</strong></article></div><p>{{ preview.sampleResult.metricDefinition }}</p></template>
     </section>
     <section v-if="published" class="report-plan-panel"><div class="panel-title"><strong>已发布 · {{ versionLabel(published.dataSourceVersionNumber) }}</strong><a-tag color="blue">固定统计口径</a-tag></div><div class="report-result-summary"><article><small>统计结果</small><strong>{{ published.value ?? '无结果' }}</strong></article><article><small>明细记录</small><strong>{{ published.items.length }}</strong></article><article><small>运行状态</small><strong>可用</strong></article></div><p>{{ published.metricDefinition }}</p></section>
+    <section v-if="activeResult" class="report-plan-panel">
+      <div class="panel-title"><strong>分组与授权明细</strong><span>仅显示当前请求可见的字段和记录</span></div>
+      <table v-if="activeResult.groups.length" class="report-data-table"><thead><tr><th>分组</th><th>统计值</th><th>记录数</th></tr></thead>
+        <tbody><tr v-for="(group, index) in activeResult.groups" :key="index"><td>{{ group.label }}</td><td>{{ resultText(group.value) }}</td><td>{{ group.rowCount }}</td></tr></tbody></table>
+      <div v-if="activeResult.items.length" class="report-table-scroll"><table class="report-data-table"><thead><tr><th>记录</th><th v-for="field in activeResult.sourceFields" :key="field">{{ outputLabel(field) }}</th></tr></thead>
+        <tbody><tr v-for="(item, index) in activeResult.items" :key="String(item.id || index)"><td><a v-if="item.route" :href="String(item.route)">{{ item.title }}</a><span v-else>{{ item.title }}</span></td><td v-for="field in activeResult.sourceFields" :key="field">{{ resultText(object(item.fields)[field]) }}</td></tr></tbody></table></div>
+      <a-empty v-if="!activeResult.groups.length && !activeResult.items.length" description="当前授权范围内没有匹配记录" />
+    </section>
   </section>
 </template>
+
+<style scoped>
+.report-table-scroll { overflow-x: auto; }
+.report-data-table { width: 100%; border-collapse: collapse; margin-top: 12px; text-align: left; }
+.report-data-table th, .report-data-table td { padding: 10px 12px; border-bottom: 1px solid #e5eaf0; white-space: nowrap; }
+.report-data-table th { background: #f7f9fc; font-weight: 600; }
+</style>

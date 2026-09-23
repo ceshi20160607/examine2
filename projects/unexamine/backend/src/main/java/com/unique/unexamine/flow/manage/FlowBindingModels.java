@@ -25,7 +25,14 @@ public final class FlowBindingModels {
             @Size(max = 2000) String conditionExpression,
             JsonNode condition,
             Boolean mutuallyExclusive,
-            Boolean replaceExisting) {
+            Boolean replaceExisting,
+            ScheduleConfig schedule) {
+        public PublishBindingRequest(Long moduleId, Long actionId, String triggerEvent, Long flowId,
+                String executionMode, Integer priorityOrder, String conditionExpression, JsonNode condition,
+                Boolean mutuallyExclusive, Boolean replaceExisting) {
+            this(moduleId, actionId, triggerEvent, flowId, executionMode, priorityOrder, conditionExpression,
+                    condition, mutuallyExclusive, replaceExisting, null);
+        }
     }
 
     public record ResolveBindingRequest(
@@ -51,6 +58,7 @@ public final class FlowBindingModels {
             String conditionExpression,
             JsonNode condition,
             boolean mutuallyExclusive,
+            ScheduleConfig schedule,
             String status,
             Integer version,
             LocalDateTime updatedAt) {
@@ -80,4 +88,16 @@ public final class FlowBindingModels {
     public record PreviewConditionRequest(@NotNull Long moduleId, @NotBlank String triggerEvent,
                                           @NotNull JsonNode condition, Map<String, Object> variables) { }
     public record ConditionPreview(boolean matched, List<ConditionResult> conditions) { }
+
+    /** 结构化周期配置；无字段承载 cron、JSON 或内部作业类型。 */
+    public record ScheduleConfig(Integer schemaVersion, String scheduleMode, Integer intervalValue,
+                                 String intervalUnit, String dailyTime, Integer weekDay,
+                                 String misfirePolicy, String timezone) { }
+
+    /** 普通绑定页展示的安全事件投递摘要，不包含原始业务字段和值。 */
+    public record EventDeliveryView(Long id, Long moduleId, String eventType, String sourceType, String sourceId,
+                                    String status, Integer retryCount, Long flowInstanceId, String lastError,
+                                    String occurredTime, LocalDateTime availableTime, LocalDateTime publishedTime,
+                                    String deliveryResult, String actionCode, String errorCategory,
+                                    String ruleName, Long recordId) { }
 }

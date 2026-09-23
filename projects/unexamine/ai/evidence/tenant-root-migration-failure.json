@@ -1,0 +1,15 @@
+{
+  "failed_migration": [
+    "42",
+    "42",
+    "V42__tenant_default_organization_repair.sql",
+    "0"
+  ],
+  "failure_code": 1064,
+  "sql_state": "42000",
+  "failed_stage": "first INSERT parsing; alias system",
+  "source_fix": "Use system_definition alias in canonical db/update SQL; regenerated mirrors with db-prepare.",
+  "repair_scope": "Only failed42 row; no successful migration checksum changed; failed first statement has no partial data writes.",
+  "successful_history_and_business_rows_unchanged": true,
+  "corrected_sql_mysql_transaction_rollback_verification": "passed; both statements execute and all department/membership rows unchanged after rollback"
+}

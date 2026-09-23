@@ -1,0 +1,206 @@
+{
+  "step": "B14.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1262",
+    "R1264",
+    "R1268",
+    "R1269",
+    "R1271",
+    "R1273",
+    "R1276",
+    "R1277",
+    "R1279",
+    "R1283",
+    "R1293",
+    "R1297",
+    "R1299",
+    "R1300",
+    "R1301",
+    "R1302",
+    "R1303",
+    "R1304",
+    "R1305",
+    "R1306",
+    "R1308",
+    "R1310",
+    "R1311",
+    "R1312",
+    "R1320",
+    "R1322",
+    "R1323",
+    "R1324"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLog.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLogMaterial.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLogComment.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogMaterialMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogCommentMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogMaterialBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogCommentBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/BusinessAttachmentController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogMaterialMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogCommentMapper.xml",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+    "projects/unexamine/db/update/V52__work_log_business_flow.sql",
+    "projects/unexamine/db/migration/V52__work_log_business_flow.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/work-log.ts",
+    "projects/unexamine/frontend/src/product/views/WorkLogsView.vue",
+    "projects/unexamine/tools/base-codegen.json",
+    "projects/unexamine/ai/evidence/work-log-acceptance.py"
+  ],
+  "checks_actual_results": [
+    "V52 增量迁移为日志补齐结构化字段，并新增素材快照和评论表；表及字段均有中文备注，新增时间字段统一使用 *_time。Base 生成器连续两次得到一致输出：18 个模块、169 张表、676 个生成文件，手写 Manage 业务未被覆盖。",
+    "真实 API 验收 5 组通过：手工结构化日志与素材选择、SELF 拒绝后按角色共享、显式提交与筛选和提交后锁定、第二成员查看反馈与作者写权限、数据库版本/素材/评论/附件读回，以及同一后端重启后的持久化。",
+    "任务完成或后续状态变化不会自动创建日志，也不会改写已提交日志；素材只保存用户主动选择的来源快照，不会自动写入正文。",
+    "日志支持草稿、编辑、提交、撤回、恢复草稿、补写、评论、管理反馈和不可变版本；通用更新接口不能绕过显式状态动作。",
+    "可见范围支持仅本人、上级、项目成员、团队和指定角色，并继续叠加系统权限；作者始终可见，其他成员需具备查看他人日志权限，越权读取与修改均被拒绝。",
+    "日志附件复用公共受控文件链，查看沿用日志可见范围，写入仅允许作者在未提交状态执行，新增与移除保留工作日志审计。",
+    "工作日志页面沿用公共工作页骨架，列表/筛选/空状态、结构化抽屉、命名项目/任务/业务/素材/角色选择器清晰；页面不要求手写 JSON 或内部 ID。",
+    "JDK 21 Maven package、前端 vue-tsc/Vite 生产构建、work-log.ts 2 个行为测试、Python 验收脚本编译、workspace-validate 和 git diff --check 通过。",
+    "现有定向 Spring HTTP 测试已同步新接口，但 Windows 主机在应用上下文启动前遇到既有 FlowWebhookDeliveryService loopback IOException；该失败没有进入日志测试逻辑，日志主链改用当前 Linux 容器、真实 MySQL/Redis/API/数据库/重启读回完成验收。",
+    "临时账号 2 个、角色 2 个、会话与临时系统已精确停用；业务证据保留，facts 未保存访问令牌；仍只有一个项目后端、一个 MySQL、共享 Redis 和一个原生 Vite。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/work-log-facts.json",
+    "projects/unexamine/ai/evidence/work-log-page-readback.json"
+  ],
+  "permission_or_failure_result": "普通成员日志写入只允许作者本人；其他成员仅在日志范围与系统权限同时允许时查看或反馈。SELF 越权读取、他人修改和提交后修改均已通过真实拒绝结果验证。",
+  "remaining": "AI 根据素材生成文字建议与人工确认归 B16；团队提交统计及跨对象日/周/月统计归 B15；审批/Flow/工作任务/联系数据待办聚合、来源去重与完成同步，以及消息模板/渠道/收件范围/已读深链/失败处理归 B14.3。跨包后台完整配置和 B12 外部渠道阻塞继续保留。",
+  "next_step": "B14.3",
+  "next_scope": "运行 B14.3 execution-context，先核对现有 TodoService/MessageService、系统待办/消息页和 Flow/任务/业务联系来源；只收口多来源待办聚合去重完成同步，以及模板化消息、已读未读、权限复验深链和失败状态。",
+  "integrated_verification": "用户可在统一工作页手工新建或补写结构化日志，主动选择有权素材和关联对象，保存草稿、提交、撤回、评论反馈并查看版本；可见范围、附件、任务不改写日志、数据库与重启持久化已组合通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-21T02:18:00+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "04751f2e8d22761e4bd08d0da7b0ec6a14e1a763c7a7490f500dfc6a55c291f6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLog.java",
+      "sha256": "242d74f213de5e9537bc98946a759a5cbaa640876957c8fa64c2466415300335"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLogMaterial.java",
+      "sha256": "3c30146467d6243b65f847c9d113a940620cca60e0f04f8b6ad0655d98100520"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/entity/WorkLogComment.java",
+      "sha256": "385617e9d04f6d02f8c736697f5ef2d7b6f894e88594a6b2c779b2f40bb2a061"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogMaterialMapper.java",
+      "sha256": "ba765fd32f9fc762bd00a3d53a6f11b7e0a21192c9015580cfb0e9cee7156fb7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/mapper/WorkLogCommentMapper.java",
+      "sha256": "cd30b642ca51f6887c4193523b369b1a54e4e154edca9e83e4d1cffadd88e292"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogMaterialBaseService.java",
+      "sha256": "3cc0ca9ec3868809d52f9b77edb66fbcd470bb53debecccdf13e3fbb0ee31500"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/base/service/WorkLogCommentBaseService.java",
+      "sha256": "237ab110275f46726a621b9eb5148a5238c076ed5b914ab0c188f15bf6c73eea"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogController.java",
+      "sha256": "ba979c2a4ab17124159f046679341fc4943745c2a87341ba728b9cbf1eba8398"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogModels.java",
+      "sha256": "f1d2bcafba03cc434690041624e82a3d924cda21ecc5970861cd8bb33d60e15a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkLogService.java",
+      "sha256": "969c2732f4e1e59827f4c31ccdc5aa87cab8241fdc92f1e38a1c04a61246273e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/BusinessAttachmentController.java",
+      "sha256": "d71fa8269fcacbaedf88ee4d8528fb49cbc368744759dc1aaa4c6d041ede6ea3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileModels.java",
+      "sha256": "bf1720c186cf4b938047aea2baeb904862cead7354f94833da5d4bd393277ed6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+      "sha256": "aa74c329b189f11065dedeeee77ecd162a5b9a3fac27b468fcb5b3d8d2d849b9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogMapper.xml",
+      "sha256": "849e1c6f1de0973628529f9d325be0a1f69f6e6ffb52744d352f4a588c6dd69a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogMaterialMapper.xml",
+      "sha256": "faaf63e7e0bb739d6beafe45939bf8f57ddd40354e22b74eae58906d474cb915"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/work/base/WorkLogCommentMapper.xml",
+      "sha256": "4c110d2c2b2231ed292c4bcc559d4955430eba67d968e1d79ebdc53ae2c623bd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+      "sha256": "495bce0fbd3fb6cecb2cce29575c9ac37f6a4c0da4c03fe0065fa486fbab62ac"
+    },
+    {
+      "path": "projects/unexamine/db/update/V52__work_log_business_flow.sql",
+      "sha256": "932b091a49b9503c58472fc8b9de4304cc0a8da69130f647e9bc12cecbc10a73"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V52__work_log_business_flow.sql",
+      "sha256": "932b091a49b9503c58472fc8b9de4304cc0a8da69130f647e9bc12cecbc10a73"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "50a9ac747faa5be9e2db4c76abe3ff4c5cdd70fde2732048bb94c39beb02051d"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "cbdc289c31e4cf8372c8e749c977fea5d06a84617d614a6831b782a4356368b6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "264b5a1b3c0f6f49cf5ca0cdbbeb6d68ded0370cee6bd8125ed178b574be4f1d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/work-log.ts",
+      "sha256": "079cedc1cee7726d046bd12e87b36e2c02c7241467122d57c32876f17ff848fd"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/WorkLogsView.vue",
+      "sha256": "ff39d8aca80482fbab3e5d5b2069aba8b65d1d4af0133a772b43095b46e553a1"
+    },
+    {
+      "path": "projects/unexamine/tools/base-codegen.json",
+      "sha256": "b3b536a16a68619aeb08346e4f2cbacfe79f26db74ba874c69110e2737849e78"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/work-log-acceptance.py",
+      "sha256": "57e000cb6accad6e01ad00b90d0ab3827aefb5c43cc9a96f653e85d9da01aa31"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/work-log-facts.json",
+      "sha256": "4fe18be048c54419fd26edb174cd46bdba9aacf117c48ef1cdeba05b1717831f"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/work-log-page-readback.json",
+      "sha256": "f24247d6b08d1f9f59848d255865fd47aa4e620cc624642c5e9e5c8ef194991d"
+    }
+  ]
+}

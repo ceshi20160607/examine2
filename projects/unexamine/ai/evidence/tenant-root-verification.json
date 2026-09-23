@@ -1,0 +1,75 @@
+{
+  "step": "B03.1a",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T11:59:48.175815+08:00",
+  "source_rows": [
+    "R0310",
+    "R0382",
+    "R0602",
+    "R0605",
+    "R0614",
+    "R1172"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemBootstrapService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemAdministrationService.java",
+    "projects/unexamine/db/update/V42__tenant_default_organization_repair.sql",
+    "projects/unexamine/db/migration/V42__tenant_default_organization_repair.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql"
+  ],
+  "checks_actual_results": [
+    "Previous public addMember409 ROOT_DEPARTMENT_MISSING in recipient57 proved missing non-main tenant organization. Source createTenant omitted root/creator department while main bootstrap already populated both.",
+    "Main bootstrap and createTenant now reuse one default root initializer in the caller transaction; createTenant assigns creator department and audit rootDepartmentId. No lazy authorization/reading writes, Base or table rewrite.",
+    "Canonical new db/update V42 prepared deterministically into migration/update.sql/final.sql by tb db-prepare. Existing successful V36/V41 history untouched. Native JDK21 Maven package passed, current existing backend health UP/schema42.",
+    "First V42 actual MySQL parse failed1064 on alias system before its first INSERT. Fixed canonical alias system_definition; corrected both statements passed actual MySQL transaction/rollback with unchanged snapshots. Removed only owned failed42 history row after confirming no valid checksums or department/membership changes; current Flyway42 succeeded.",
+    "Deployment preserved all existing departments and previously assigned membership rows, including manual recipient57 root75. Synthetic-only empty tenants simulated legacy missing root, multiple roots and disabled root; public creation on current code initially generated roots before test-only legacy setup. No old-backend baseline artificially claimed.",
+    "Actual V42 repaired the missing-root fixture62 and valid creator department/version once; manual roots/existing assignments preserved, multiple63 and disabled64 snapshots unchanged. No arbitrary root selection/reactivation.",
+    "Public createTenant65 auto root/creator department; username-only registration (no email/SMS) maintained main bootstrap, default public addMember with no department configured persisted and plain member entered tenant65.",
+    "Second actual V42 via existing mysql stdin changed no department/membership rows, proving idempotence. Temporary fixture accounts/sessions/empty registered system disabled, four owned random tenants disabled through public API, cleanup errors0/audit preserved.",
+    "Old mounted-JAR auth requests timed out after package replacement. Predeployment SQL snapshot preserved; complete backend restart and stable health used before acceptance. Tests resumed failed empty preparation only; accepted business cases were not recreated."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/tenant-root-facts.json",
+    "projects/unexamine/ai/evidence/tenant-root-predeployment-readback.json",
+    "projects/unexamine/ai/evidence/tenant-root-migration-failure.json",
+    "projects/unexamine/ai/evidence/shared-actor-before-root-department.json"
+  ],
+  "permission_or_failure_result": "Default public tenant/member onboarding works with shared atomic bootstrap. Safe repair tested on missing/multiple/disabled roots and existing assignments; repeat no changes. Failed migration source cause corrected and only failed journal row repaired; no success-checksum bypass.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemBootstrapService.java",
+      "sha256": "3b614d28d8c796e60c0e7a1d971ae836924026ac01066e51267b39bb9c2bd531"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemAdministrationService.java",
+      "sha256": "25f77d2d2d42a10128c9d6ac93b6d54fc155a7fffc6a9bbbe940ab3b948d48cc"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V36__backfill_system_root_department.sql",
+      "sha256": "0505b007cc540a2fa769166d76b6710438b66447c55ba34e3b26544d87e99cc9"
+    },
+    {
+      "path": "projects/unexamine/db/update/V42__tenant_default_organization_repair.sql",
+      "sha256": "5ace3ab7d5585819dab78a375eecd6a1199c844de385237ab9bd025e62e08528"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V42__tenant_default_organization_repair.sql",
+      "sha256": "0a5d8975469b7a30a007f0c8c99cba0a070a62cb4553ff7044042044427cfc84"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "2effca57f774a92d7649e143e5bb5d614a146177394ef775bf9fc51f448a8e6d"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "85c716652fc8e9c5d5451d43048f69d6b580e367d33f707365a78de64e67ea25"
+    }
+  ],
+  "remaining": [
+    "B03.1/B03 registration recovery/invitation/mapping/full organization/roles/tenant migrations and platform organization remain unverified.",
+    "Legacy ambiguous or disabled roots remain for explicit organization management, safely excluded from default backfill; no arbitrary choice.",
+    "B07.4b.2c organization labels and full field/channel restrictions; B07.4c range sharing; all other existing requirements remain."
+  ],
+  "next_step": "B07.4b.2c"
+}

@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -95,6 +96,38 @@ public class SystemPeopleDirectoryService {
                         fullDepartmentName(item, departmentById), memberCounts.getOrDefault(item.getId(), 0)))
                 .toList();
         return new SystemPeopleDirectoryModels.Directory(departmentViews, people, latestVersion(context));
+    }
+
+    /** 仅解析服务端已授权记录引用的名称；调用方须先裁剪不可读及脱敏字段。 */
+    @Transactional(readOnly = true)
+    public SystemPeopleDirectoryModels.Labels recordLabels(
+            AuthenticatedContext dataContext, Set<Long> memberIds, Set<Long> departmentIds) {
+        Map<Long, String> members = memberIds.isEmpty() ? Map.of() : memberService.selectList(
+                        Wrappers.<SystemMember>lambdaQuery().eq(SystemMember::getSystemId, dataContext.systemId())
+                                .in(SystemMember::getId, memberIds)).stream()
+                .collect(Collectors.toMap(SystemMember::getId, SystemMember::getDisplayName));
+        Map<Long, String> departments = departmentIds.isEmpty() ? Map.of() : departmentService.selectList(
+                        Wrappers.<SystemDepartment>lambdaQuery().eq(SystemDepartment::getSystemId, dataContext.systemId())
+                                .eq(SystemDepartment::getTenantId, dataContext.tenantId())
+                                .in(SystemDepartment::getId, departmentIds)).stream()
+                .collect(Collectors.toMap(SystemDepartment::getId, SystemDepartment::getName));
+        return new SystemPeopleDirectoryModels.Labels(members, departments);
+    }
+
+    /** 记录写动作已授权后提供组织选项；不开放账号、角色、上级关系等通讯录信息。 */
+    @Transactional(readOnly = true)
+    public SystemPeopleDirectoryModels.Directory recordOptions(
+            AuthenticatedContext dataContext, boolean includeMembers, boolean includeDepartments) {
+        SystemPeopleDirectoryModels.Directory directory = directory(dataContext, null);
+        List<SystemPeopleDirectoryModels.Person> people = includeMembers ? directory.people().stream()
+                .filter(person -> person.accountId() != null)
+                .map(person -> new SystemPeopleDirectoryModels.Person(person.tenantMemberId(), person.systemMemberId(),
+                        null, person.displayName(), null, person.departmentId(), person.departmentName(),
+                        null, null, null, List.of(), false)).toList() : List.of();
+        List<SystemPeopleDirectoryModels.Department> departments = includeDepartments ? directory.departments().stream()
+                .map(item -> new SystemPeopleDirectoryModels.Department(item.id(), item.parentId(), item.name(),
+                        item.fullName(), 0)).toList() : List.of();
+        return new SystemPeopleDirectoryModels.Directory(departments, people, directory.permissionVersion());
     }
 
     private SystemPeopleDirectoryModels.Person person(

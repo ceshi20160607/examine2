@@ -124,6 +124,25 @@ public class ChannelFieldPolicyResolver {
                 .stream().anyMatch(policy -> policy.getMaskStrategy() != null && !policy.getMaskStrategy().isBlank());
     }
 
+    /** 密钥明文不能由通配管理员权限隐式获得；每个贡献角色须对具体字段和渠道明确授权。 */
+    public boolean explicitSecretReadable(AuthenticatedContext context, String resourceCode,
+            String channel, FieldAccessDecision decision) {
+        if (!decision.readable() || decision.contributingRoleIds().isEmpty()
+                || decision.maskStrategy() != null && !decision.maskStrategy().isBlank()) return false;
+        List<AuthorizationFieldPolicy> policies = fieldPolicyService.selectList(
+                Wrappers.<AuthorizationFieldPolicy>lambdaQuery()
+                        .eq(AuthorizationFieldPolicy::getContextType, "SYSTEM")
+                        .eq(AuthorizationFieldPolicy::getSystemId, context.systemId())
+                        .eq(AuthorizationFieldPolicy::getTenantId, context.tenantId())
+                        .in(AuthorizationFieldPolicy::getRoleId, decision.contributingRoleIds())
+                        .eq(AuthorizationFieldPolicy::getResourceCode, resourceCode)
+                        .eq(AuthorizationFieldPolicy::getFieldCode, decision.fieldCode())
+                        .eq(AuthorizationFieldPolicy::getChannel, normalizeChannel(channel)));
+        return decision.contributingRoleIds().stream().allMatch(role -> policies.stream().anyMatch(policy ->
+                role.equals(policy.getRoleId()) && Boolean.TRUE.equals(policy.getReadable())
+                        && (policy.getMaskStrategy() == null || policy.getMaskStrategy().isBlank())));
+    }
+
     public JsonNode protect(JsonNode value, FieldAccessDecision decision) {
         if (!decision.readable()) {
             return null;

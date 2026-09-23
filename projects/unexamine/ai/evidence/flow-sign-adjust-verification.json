@@ -1,0 +1,159 @@
+{
+  "step": "B09.2c.3",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0914",
+    "R0916",
+    "R0938",
+    "R0943",
+    "R0945",
+    "R0979",
+    "R0980",
+    "R0989",
+    "R0992",
+    "R0968"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/todo.ts"
+  ],
+  "checks_actual_results": [
+    "21e3cf/31270f engineering entry PASS after direct frozen-node/task/candidate/clock review and actual Todo GUI dependency review; assessed240 minutes, no Base/schema/newtimefield or framework changes.",
+    "760038 Maven test+package exit0, five policy boundary tests zero failures; cfadff final label delivery package exit0. b6f8b8 final vue-tsc/Vite build PASS after common Todo shortcut change, existing bundle warning retained.",
+    "3aba0c actual API8 groups: claim prerequisite, bad reason/domain/business input/duplicate/self guards, OR same-task authorized pool sync and later newcandidate claim/removedcandidate denied; idempotent replay stable and changed-target samekey409.",
+    "Actual system ALL_SIGN preserves earlier approved task/form facts, new pending Task and timeoutjob exact inherited deadline; removal only unfinished cancels its job, readd new Task requires actual approval after original handler; originalCREATE record223 fields8/true exactlyonce.",
+    "Actual platform SEQUENTIAL queued root task cancelled, newly added task sequence3 after historical max2, staysQUEUED with no new deadline before activation; original handler approves then only appended user handles. Legacy absent policy keeps four and direct add403.",
+    "073267 actual Chinese GUI six operation/opinion controls, disableADD save/reenter/publishV2; in-flight222V1 exactDBstate unchanged, newV2 forbiddenADD403/no writes and actual completion; precisely revoke temporary designer rights then re-login ordinary.",
+    "Actual ordinary Todo showed CLAIM/rawcode and duplicate simplified dialog; admitted reviewed direct dependency and routed FLOW_TASK quickactions through original authorized Todo.open into public runtime222/task321. Actual Chinese领取 button navigated trusted instance/task, no form/policy duplicate implementation.",
+    "ec7a08 blank GUI opinion zero checked SQL writes; actual PersonSelect add101/requiredChineseopinion,1280x720 modal inspected, e4fcf1 exact task321/version+1/claimtime/deadline/jobs retained. 0510a9 controlled pending restart exactDBstate/View/pool/frozen-policy retained, GUI reload ordinary222 then remove101 via actual selector db360d exacttask/version+2/sameclock/HEXopinions.",
+    "6d1a94 actual ordinaryAPP complete222 once; CUA own exact instance heading remainscompleted and V1 afteraction. dc14e6 completed restart exactDBstate/frozenversions/sourceonce, precise cleanup PASS and no owned unfinishedtask/job/execution/todo; Module66 disabled, record223 API archived, account100/101/System102/103/role10 owned links revoked, role114 restored, golden records151/154/170 and Module51 formal4 unchanged.",
+    "39f6c5 git diff --check PASS; source freshness hashes below. Failed error-code/view-lookup/snapshot-column expectations retained and corrected by exact guarded continuation, no successful sign change or approval repeated."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-sign-adjust-facts.json",
+    "projects/unexamine/ai/evidence/flow-sign-adjust-acceptance.py"
+  ],
+  "permission_or_failure_result": "未领取加签409CLAIM_REQUIRED；冻结禁用加签403OPERATION_DISABLED；空意见422REASON_REQUIRED；业务修改或混域/本人目标422；重复参与人或移已完成事实409；移除后原成员CLAIM403CLAIM_CANDIDATE_DENIED且read403VIEW_DENIED；同键改目标409IDEMPOTENCY_CONFLICT；检查实例/变量/task/action/history/jobs/execution无写入。GUI先撤回设计权限再普通账号。",
+  "remaining": "同节点加减签局部贡献，整个产品未完成。流程全局高级加签开关/通知消费、代理委托、会签比例、真实退回重提及其它完整需求仍保留；现有公共动作历史同名重复与开始到待审批误导明确为下一子步骤，不伪称修复。未完成旧终态ACTIVE迁移或跨组织字段渠道全面验收。",
+  "next_step": "B09.2c.4",
+  "integrated_verification": "15真实case groups贯穿显式冻结按钮、三审批模式、领取候选授权、真实来源表单一次、普通待办统一入口/GUI选人、重启及精确清理。",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T07:43:50.768728+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicy.java",
+      "sha256": "84f65e0be263f5d9df5bf7004bf0a283a4a18b8a27d1de518316643732007862"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "d560cb321c13902fc49ae5ad695e0bc33aadd62427ddaa121d74924fef110f47"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowManualOperationPolicyTest.java",
+      "sha256": "3974838aad23f30590b9947ecad948ceee76d2d5ea22113adc857df672d9848c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "18dcf9e061015f07fd441d250287031d38d634035ea2059f6e726a6712195e48"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "5c23073735033b9df32cae9bda8258aa119f9dd046e696b522ceec3d60db9e26"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/TodoWorkspaceView.vue",
+      "sha256": "b62f8e255ba1d4275a4bdd5afcdeb7910aae0193cb99f8d0e0ae61d4d85cd114"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/todo.ts",
+      "sha256": "be57b207db509e4267cc627e0fbf2d09a3598e6e4d9a542df1d3f4a20ffff6e8"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-acceptance.py",
+      "sha256": "890d3cf933c2aa9d6770dbe6470580cb4eed03dba28b69d6dc2d6753dec10aa7"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-api-initial.log",
+      "sha256": "41e0a788a8252669af4744202b61ba9db7b7f72510844e07406ee6ebc628a38b"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-api-resume-initial.log",
+      "sha256": "68326196c18d6f41ac44e55fa0a7941e4f8e403eb3d9e3c3e9d3a8b77968458f"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-api.log",
+      "sha256": "1b392a03515ad1f8d79ac51f0ea06f0734c4b3cb4f5e32f479eb33785bf5765b"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-backend-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-backend-delivery-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-cleanup.log",
+      "sha256": "e9ba23ee87b1e3c5d374310617a0c45ad76f6289a59890e81b61813fa80cc994"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-completed-restart.log",
+      "sha256": "055106eac088237a244acbb9625836b2b93e34723ae4034528f286ec50b16165"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-entry.json",
+      "sha256": "3c59a739f59f51c9bc14acf7b5c77077ccf5a57a33d2a5c31395ea7ac88769db"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-facts.json",
+      "sha256": "50bdaed591e1d5568d56965adc7ed6ecd940ba10ff6d560628b006dde04350f3"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-frontend-build.log",
+      "sha256": "3c67f2fd761774948e3702b6d0a7d669a1bb1ba3265c0aa6a10dbf443706cdce"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-frontend-delivery-build.log",
+      "sha256": "c69d7b244bf0b29effc20b83ddd429956a87303d3e22e34675f4a5839e426285"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-frontend-final-build.log",
+      "sha256": "d2fdaabfe74b6496fd4d2a254fbe881af1212ef50b2fc9284fd5bb9cb5fbee59"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-gui-added.log",
+      "sha256": "3db458994ba947cec8bf7e377a7cb9520fe222a1f67e3de5fbf9580632992baf"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-gui-policy.log",
+      "sha256": "044f2422f799b702c2f205b56c1051f60b6c6b2bd62747c491fcee9bbe6ff347"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-pending-restart.log",
+      "sha256": "ddac39afb90b8b0f00fc47eed5a04494e8ca98503dad91764907da80d558e03f"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-prepare.log",
+      "sha256": "2770b0bc1af74bb94ded671ba21a18bb196ec0a15812bbf6d9d14b1538191563"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-shared-entry.json",
+      "sha256": "3c59a739f59f51c9bc14acf7b5c77077ccf5a57a33d2a5c31395ea7ac88769db"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-sign-adjust-todo-entry.json",
+      "sha256": "920f2bcbaf7d88f78f8e36ad9dbfe92c99da7a4119f1beee7657a620f49b8139"
+    },
+    {
+      "path": "projects/unexamine/backend/target/surefire-reports/com.unique.unexamine.flow.manage.FlowManualOperationPolicyTest.txt",
+      "sha256": "76ded26d5ad9bca03cca55b986d4c24da6967917f32dc2ac26fddca667afb87d"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "ok": true,
+  "mode": "bounded_steps",
+  "activeProject": "projects/unexamine",
+  "controlSource": "projects/unexamine/ai/planning/execution-control.json",
+  "stateSource": "projects/unexamine/ai/planning/spark-state.json",
+  "planSource": "projects/unexamine/ai/planning/spark-execution-plan.md",
+  "requirementSource": "docs/user_requirement.md",
+  "requirementSha256": "7d74e05d17cf5b987b31fc587fb80d649f7251a38fbc6d670e4884f9679bd219",
+  "step": "B10.1b",
+  "reason": "The common branch execution and join skeleton is verified. Add the child-flow contract next so later automatic nodes can share durable parent/child waiting, failure recovery and exactly-once resume semantics.",
+  "prerequisiteSteps": [
+    "B10.1a"
+  ],
+  "requirements": [
+    {
+      "id": "R0880",
+      "line": 880,
+      "section": "5.12",
+      "text": "�ڵ����ͣ�",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0890",
+      "line": 890,
+      "section": "5.12",
+      "text": "- �����̡�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0939",
+      "line": 939,
+      "section": "5.12",
+      "text": "- ���̽ڵ㱣��ڵ����͡�������ʽ����������Դ���ⲿ�ڵ����á����������á�",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0942",
+      "line": 942,
+      "section": "5.12",
+      "text": "- ����ʵ������ʱ��Ҫ��ģ��汾�Ľڵ㡢���ߡ��������ֶ�Ȩ�޺͸߼����ø��Ƴ����п��ա�",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0945",
+      "line": 945,
+      "section": "5.12",
+      "text": "- ������־����ÿһ�νڵ���롢�������ܾ���ת�졢��ǩ���ӽڵ㡢���ء���ֹ��",
+      "status": "in_progress"
+    },
+    {
+      "id": "R0991",
+      "line": 991,
+      "section": "5.12",
+      "text": "- �����̲��ܿ�ס�����̡�",
+      "status": "unverified"
+    },
+    {
+      "id": "R0992",
+      "line": 992,
+      "section": "5.12",
+      "text": "- ����״̬�仯Ҫд��־��",
+      "status": "in_progress"
+    }
+  ],
+  "entryFiles": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "30060169cb3c74ead05fda781e09b74520adc98038b8a5802f79f7ac9b5d4963"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "e3df4aa07e889a9c6cf68a64d615f5ea32f90173861395c668707554b9a637d2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "c6658dd5213511df2966c45212ffb9fe5dc5ed833b35575077d090f40bb43493"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowInstanceGraphService.java",
+      "sha256": "aa7576f739f71ab147e6aae742d0688207c54f1f41ca549ef9f74bfc0ec16124"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "e7a9e785d3ef06b0d560688925c3d3a01ee394512629a79e83e5dab1c70446d1"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "0dd7d109da623ccbfae15bf831e9fb540276cff0b5ccde16c7d3258c9a1accf6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "fd1d1d90d1a56953b8de50d1914454611caf16a22966234adf85d01baa9f08ad"
+    }
+  ],
+  "acceptance": [
+    "Design a SUBFLOW node with a published child-flow selector and typed input/output mappings through structured Chinese controls; users never write flow IDs or JSON.",
+    "Reject self references, unavailable or cross-scope children and direct/indirect subflow cycles at publication; a running parent uses the frozen child version and mapping.",
+    "Persist an inspectable parent-instance, parent-execution and child-instance relationship. Parent waiting and child success resume are restart-safe and exactly once; child failure is visible and can be retried or recovered without silently completing the parent.",
+    "Show child relation, waiting, completion and failure reasons in runtime/history; verify actual API, database, ordinary GUI, failure/retry, same-backend restart and exact cleanup without adding another workflow engine or scheduler."
+  ],
+  "environment": "Reuse running shared redis:6379 with its existing authentication; project unexamine-redis-1 MUST stay stopped. Existing unexamine-mysql-1:33077 and same unexamine-golden-backend:18080 (existing network/jar/business-files mounts), one native Vite:15173. Backend healthy/preflight5/schema43. Do not full compose up, create duplicate frontend/backend/cache environments, use Testcontainers or change unrelated dm8/es8104. JDK21 native focused compile/tests work. Prefer current services and readback for this completion effort; preserve credentials internally, never write them to evidence.",
+  "policy": {
+    "authority": "�� AGENTS.md �͵�ǰ�������������涨ִ����Լ��docs/user_requirement.md ��Ψһ��Ʒ����Դ��spark-* ·���������������ã���ָ��ģ�͡�",
+    "model": "ʹ�õ�ǰ�Ựģ�ͣ�ί�ɷ�֧�̳е�ǰģ�ͣ����ٷ��� Spark ģ�͡�",
+    "taskAllocation": "�� state.task_packet ���ҵ���������������������������ʵʣ�๤�ڣ�Ԥ���ܹ��ڲ����� 240 ���ӣ�����ʵ�ʼ�ʱ�������Ǽ�����Լ�ȶ�������������ܡ�������д���ļ�������ʵ��ǰ��֤�ݡ�Ǩ��/����/������Դ�ͺϲ�˳�򣻹����ļ���ͬһ���моߴ��С�",
+    "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
+    "scope": "ֻչ����ǰԭ�ġ�����ļ���ֱ�����������������޸ĺ�ȫ��δ������󣬲�������ƻ�滮ȫ��Ŀ��",
+    "dependencies": "ÿ�� current_scope ��ʽ�г� prerequisite_steps��ǰ�ò��� verified �Ҷ�Ӧ֤�ݴ��ڲſ�ʵʩ������ʵ�ֱ仯ʱ������֤��Ӱ����Ϊ��������ʷ��֤���ɵ�ǰ��ɡ�",
+    "checkpoint": "��д��ʵҵ����֤��¼������ execution-verify --workspace workspace.json --receipt <��¼·��>��У��ͨ�������׼ȷ�ϵ㼰��һ���跶Χ���ṹ/��ϣͨ�����ܴ���ҳ�桢API���־û���Ȩ�޺�ʧ�ܽ����",
+    "loop": "ÿ�μ���������µ��� entry��ʵʩ��׼��������ڵ���һ��ִ�в��裻�����޼�¼���ŵ����⡣����������ɺ��������������֤���γ����ս��ۣ���׼����һ�������򵥲���ɻ�������ѹ���ȴ��û���������",
+    "blockers": "�ⲿ������¼������������������������з���ѡ�������ִ�в��裻���������������������Ϊ��ɡ�",
+    "stopping": "���� template_base/agents/workflow.json ����ʵֹͣ����������ȫ����������ڱ��ֽ���Ϊȫ����Ч������������ʵ����ͨ��������ȡ�������������",
+    "consumption": "�����¼����ʵ�����ģ��������޸ġ�ʧ�ܻ��ɵ㲻�ظ���ͨ�����ԡ����� token ʹ�û򵥲������Ϊֹͣ������",
+    "wakeAdapter": "�ⲿ������ֻ���ù�����ڣ�����ѡ�񡢷�Χ���ϵ㡢���������վ�������Ŀ�ļ������ڶ�ʱ��ʾ�︴��һ�׹���"
+  },
+  "continuous": true,
+  "stoppingPolicySource": "template_base/agents/workflow.json#executionLoop",
+  "openBlockers": [],
+  "completionCredit": false,
+  "note": "Context and artifact checks do not prove actual business behavior or whole-product completion."
+}

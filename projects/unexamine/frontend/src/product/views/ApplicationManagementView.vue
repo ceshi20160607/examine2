@@ -9,6 +9,7 @@ import { productDateTime } from '../presentation'
 import { allowsPermission } from '../permissions'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import ModuleContextBanner from '../components/ModuleContextBanner.vue'
+import ApplicationProviderConnections from '../components/ApplicationProviderConnections.vue'
 import { moduleAdminTarget, queryText } from '../module-navigation'
 import type {
   ApplicationCreateResult,
@@ -16,6 +17,7 @@ import type {
   ApplicationCallResult,
   ApplicationConfigurationExport,
   ApplicationCredentialSecret,
+  ApplicationIdentityCatalog,
   ApplicationPublicationCheck,
   ApplicationPublishResult,
   ApplicationResourceField,
@@ -48,6 +50,13 @@ interface CallbackForm {
   maxAttempts: number
 }
 
+interface IdentityMappingForm {
+  id?: number
+  sourceTenantMemberId?: number
+  targetTenantMemberId?: number
+  enabled: boolean
+}
+
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
 const route = useRoute()
 const router = useRouter()
@@ -68,6 +77,8 @@ const importConfiguration = ref<ApplicationConfigurationExport>()
 const copyOpen = ref(false)
 const draftOpen = ref(false)
 const rollbackOpen = ref(false)
+const credentialOpen = ref(false)
+const credentialAction = ref<'rotate' | 'enable'>('rotate')
 const secretOpen = ref(false)
 const issuedSecret = ref<ApplicationCredentialSecret>()
 const callLogs = ref<ApplicationCallLogView[]>([])
@@ -75,13 +86,24 @@ const latestCall = ref<ApplicationCallResult>()
 const callOpen = ref(false)
 const callBusy = ref(false)
 const publicationCheck = ref<ApplicationPublicationCheck>()
-const createForm = reactive({ code: '', name: '', description: '', applicationType: 'SERVICE' })
-const importForm = reactive({ code: '', name: '' })
-const copyForm = reactive({ code: '', name: '' })
+const iconOptions = [
+  { value: 'api', label: '接口服务', glyph: '⌘' },
+  { value: 'link', label: '连接器', glyph: '↗' },
+  { value: 'workflow', label: '业务流程', glyph: '◇' },
+  { value: 'database', label: '数据服务', glyph: '▤' },
+  { value: 'robot', label: '自动化', glyph: '✦' },
+  { value: 'message', label: '消息应用', glyph: '●' },
+]
+const createForm = reactive({ code: '', name: '', description: '', applicationType: 'SERVICE', iconCode: 'api', credentialValidityDays: 365 })
+const importForm = reactive({ code: '', name: '', credentialValidityDays: 365 })
+const copyForm = reactive({ code: '', name: '', credentialValidityDays: 365 })
 const rollbackForm = reactive({ targetVersionId: 0, reason: '' })
-const draftForm = reactive({ name: '', description: '', applicationType: 'SERVICE' })
+const credentialForm = reactive({ validityDays: 365 })
+const draftForm = reactive({ name: '', description: '', applicationType: 'SERVICE', iconCode: 'api' })
 const grantForms = ref<GrantForm[]>([])
 const callbackForms = ref<CallbackForm[]>([])
+const identityCatalog = ref<ApplicationIdentityCatalog>({ sourceMembers: [], targetMembers: [] })
+const identityMappingForms = ref<IdentityMappingForm[]>([])
 const applicationFilter = ref<'ACTIVE' | 'ALL'>('ACTIVE')
 const showTechnical = ref(false)
 const callForm = reactive({
@@ -114,6 +136,28 @@ function retainVisibleSelection() {
 watch(requestedModule, value => switchModuleFilter(Boolean(value)))
 const displayGrants = computed(() => selected.value?.publishedGrants.length
   ? selected.value.publishedGrants : selected.value?.grants || [])
+const displayIdentityMappings = computed(() => selected.value?.publishedIdentityMappings.length
+  ? selected.value.publishedIdentityMappings : selected.value?.identityMappings || [])
+const integrationGrant = computed(() => displayGrants.value.find(grant => grantChannels(grant.rateLimit).includes('EXTERNAL')))
+const integrationExample = computed(() => {
+  const grant = integrationGrant.value
+  if (!grant) return ''
+  const fields = Object.fromEntries(grant.fields.filter(field => field.writable).map(field => [field.fieldCode, `<${fieldName(grant.resourceType, grant.resourceId, field.fieldCode)}>`]))
+  const payload = grant.resourceType === 'FLOW' ? { title: '外部系统发起', variables: {} }
+    : grant.actionCode === 'DETAIL' ? { recordId: 123 }
+      : grant.actionCode === 'LIST' ? { search: '', pageSize: 20 }
+        : grant.actionCode === 'UPDATE' ? { recordId: 123, version: 0, title: '更新后的标题', fields }
+          : { title: '新建记录', fields }
+  return JSON.stringify({
+    resourceType: grant.resourceType,
+    resourceId: grant.resourceId,
+    actionCode: grant.actionCode,
+    targetSystemId: grant.targetSystemId,
+    targetTenantId: grant.targetTenantId,
+    requestedDataScope: grant.dataScope,
+    payload,
+  }, null, 2)
+})
 const availableCallGrants = computed(() => displayGrants.value.filter(grant =>
   grantChannels(grant.rateLimit).includes(callForm.accessMode)))
 const selectedCallGrant = computed(() => availableCallGrants.value.find(item => item.id === callForm.grantId))
@@ -123,6 +167,14 @@ const writableCallFields = computed(() => {
   const writable = new Set(selectedCallGrant.value?.fields.filter(field => field.writable).map(field => field.fieldCode) || [])
   return selectedCallResource.value?.fields.filter(field => writable.has(field.code)) || []
 })
+const sourceIdentityOptions = computed(() => identityCatalog.value.sourceMembers.map(item => ({
+  value: item.tenantMemberId,
+  label: `${item.systemName} / ${item.tenantName} / ${item.memberName}${item.employeeNumber ? `（${item.employeeNumber}）` : ''}`,
+})))
+const targetIdentityOptions = computed(() => identityCatalog.value.targetMembers.map(item => ({
+  value: item.tenantMemberId,
+  label: `${item.memberName}${item.employeeNumber ? `（${item.employeeNumber}）` : ''} · ${item.tenantName}`,
+})))
 
 function switchApplicationFilter(value: string) {
   applicationFilter.value = value === 'ALL' ? 'ALL' : 'ACTIVE'
@@ -139,6 +191,10 @@ function actionLabel(value: string) {
 
 function credentialStatusLabel(value: string) {
   return ({ ACTIVE: '当前有效', REVOKED: '已失效', EXPIRED: '已过期' } as Record<string, string>)[value] || value
+}
+
+function iconGlyph(code?: string) {
+  return iconOptions.find(item => item.value === code)?.glyph || '⌘'
 }
 
 function callStatusLabel(value: string) {
@@ -245,6 +301,10 @@ function newCallback(): CallbackForm {
   }
 }
 
+function newIdentityMapping(): IdentityMappingForm {
+  return { sourceTenantMemberId: undefined, targetTenantMemberId: undefined, enabled: true }
+}
+
 async function load(preferredId?: number) {
   if (!token.value || !can('VIEW')) return
   loading.value = true
@@ -259,7 +319,7 @@ async function load(preferredId?: number) {
       ? preferredId : selected.value && visibleRows.value.some(item => item.id === selected.value?.id)
         ? selected.value.id : visibleRows.value[0]?.id
     selected.value = id ? await api<ApplicationView>(`/api/applications/${id}`, {}, token.value) : undefined
-    await loadCalls()
+    await Promise.all([loadCalls(), loadIdentityCatalog()])
   } catch (error) {
     message.error(describeError(error))
   } finally { loading.value = false }
@@ -269,7 +329,7 @@ async function selectApplication(id: number) {
   if (!token.value) return
   try {
     selected.value = await api<ApplicationView>(`/api/applications/${id}`, {}, token.value)
-    await loadCalls()
+    await Promise.all([loadCalls(), loadIdentityCatalog()])
     publicationCheck.value = undefined
   } catch (error) { message.error(describeError(error)) }
 }
@@ -281,6 +341,15 @@ async function loadCalls() {
   }
   callLogs.value = await api<ApplicationCallLogView[]>(
     `/api/applications/${selected.value.id}/calls`, {}, token.value)
+}
+
+async function loadIdentityCatalog() {
+  if (!token.value || !selected.value || props.context !== 'system') {
+    identityCatalog.value = { sourceMembers: [], targetMembers: [] }
+    return
+  }
+  identityCatalog.value = await api<ApplicationIdentityCatalog>(
+    `/api/applications/${selected.value.id}/identity-catalog`, {}, token.value)
 }
 
 function openCallTester(credential?: ApplicationCredentialSecret) {
@@ -396,7 +465,7 @@ function generatedCode(prefix: string, name: string) {
 }
 
 function openCreate() {
-  Object.assign(createForm, { code: '', name: '', description: '', applicationType: 'SERVICE' })
+  Object.assign(createForm, { code: '', name: '', description: '', applicationType: 'SERVICE', iconCode: 'api', credentialValidityDays: 365 })
   createOpen.value = true
 }
 
@@ -410,6 +479,8 @@ async function createApplication() {
         code: createForm.code.trim(), name: createForm.name.trim(),
         description: createForm.description.trim() || undefined,
         applicationType: createForm.applicationType,
+        iconCode: createForm.iconCode,
+        credentialValidityDays: createForm.credentialValidityDays,
       }),
     }, token.value)
     createOpen.value = false
@@ -438,6 +509,7 @@ async function readImportFile(event: Event) {
     Object.assign(importForm, {
       code: `${configuration.sourceCode}_import`,
       name: `${configuration.sourceName}（导入）`,
+      credentialValidityDays: 365,
     })
     importOpen.value = true
   } catch (error) { message.error(describeError(error)) }
@@ -454,6 +526,8 @@ async function importApplication() {
         code: importForm.code.trim(), name: importForm.name.trim(),
         description: configuration.description,
         applicationType: configuration.applicationType,
+        iconCode: configuration.iconCode || 'api',
+        credentialValidityDays: importForm.credentialValidityDays,
         callbacks: configuration.callbacks,
         grants: configuration.grants,
       }),
@@ -486,7 +560,7 @@ async function exportApplication() {
 
 function openCopy() {
   if (!selected.value) return
-  Object.assign(copyForm, { code: `${selected.value.code}_copy`, name: `${selected.value.name}（副本）` })
+  Object.assign(copyForm, { code: `${selected.value.code}_copy`, name: `${selected.value.name}（副本）`, credentialValidityDays: 365 })
   copyOpen.value = true
 }
 
@@ -496,7 +570,10 @@ async function copyApplication() {
   busy.value = 'copy'
   try {
     const result = await api<ApplicationCreateResult>(`/api/applications/${selected.value.id}/copy`, {
-      method: 'POST', body: JSON.stringify({ code: copyForm.code.trim(), name: copyForm.name.trim() }),
+      method: 'POST', body: JSON.stringify({
+        code: copyForm.code.trim(), name: copyForm.name.trim(),
+        credentialValidityDays: copyForm.credentialValidityDays,
+      }),
     }, token.value)
     copyOpen.value = false
     issuedSecret.value = result.issuedCredential
@@ -512,6 +589,7 @@ function openDraft() {
     name: selected.value.name,
     description: selected.value.description || '',
     applicationType: selected.value.applicationType,
+    iconCode: selected.value.iconCode,
   })
   grantForms.value = selected.value.grants.map(grant => ({
     accessChannels: grantChannels(grant.rateLimit),
@@ -535,6 +613,12 @@ function openDraft() {
     signingSecretRef: callback.signingSecretRef,
     timeoutMillis: callback.timeoutMillis,
     maxAttempts: callback.maxAttempts,
+  }))
+  identityMappingForms.value = selected.value.identityMappings.map(identity => ({
+    id: identity.id,
+    sourceTenantMemberId: identity.sourceTenantMemberId,
+    targetTenantMemberId: identity.targetTenantMemberId,
+    enabled: identity.status === 'ACTIVE',
   }))
   draftOpen.value = true
 }
@@ -582,11 +666,26 @@ async function saveDraft() {
         maxAttempts: callback.maxAttempts,
       }
     })
+    const identityMappings = identityMappingForms.value.map((identity, index) => {
+      if (!identity.sourceTenantMemberId || !identity.targetTenantMemberId) {
+        throw new Error(`第 ${index + 1} 项跨系统身份映射没有选择完整的来源成员和目标成员`)
+      }
+      return {
+        id: identity.id,
+        sourceTenantMemberId: identity.sourceTenantMemberId,
+        targetTenantMemberId: identity.targetTenantMemberId,
+        enabled: identity.enabled,
+      }
+    })
+    if (new Set(identityMappings.map(item => item.sourceTenantMemberId)).size !== identityMappings.length) {
+      throw new Error('同一来源成员只能配置一个目标执行身份')
+    }
     selected.value = await api<ApplicationView>(`/api/applications/${selected.value.id}/draft`, {
       method: 'PUT', body: JSON.stringify({
         expectedVersion: selected.value.version,
         name: draftForm.name.trim(), description: draftForm.description.trim() || undefined,
-        applicationType: draftForm.applicationType, grants, callbacks,
+        applicationType: draftForm.applicationType, iconCode: draftForm.iconCode, grants, callbacks,
+        identityMappings,
       }),
     }, token.value)
     draftOpen.value = false
@@ -616,14 +715,21 @@ async function publishApplication() {
   } catch (error) { message.error(describeError(error)) } finally { busy.value = '' }
 }
 
+function openCredentialIssue(action: 'rotate' | 'enable') {
+  credentialAction.value = action
+  credentialForm.validityDays = 365
+  credentialOpen.value = true
+}
+
 async function rotateCredential() {
   if (!token.value || !selected.value || !can('ROTATE')) return
   busy.value = 'rotate'
   try {
     const result = await api<ApplicationRotateResult>(`/api/applications/${selected.value.id}/credentials`, {
-      method: 'POST', body: '{}',
+      method: 'POST', body: JSON.stringify({ validityDays: credentialForm.validityDays }),
     }, token.value)
     issuedSecret.value = result.issuedCredential
+    credentialOpen.value = false
     secretOpen.value = true
     await load(result.application.id)
     message.success('新凭证版本已生效，旧凭证已撤销')
@@ -647,13 +753,19 @@ async function enableApplication() {
   busy.value = 'enable'
   try {
     const result = await api<ApplicationRotateResult>(`/api/applications/${selected.value.id}/enable`, {
-      method: 'POST', body: '{}',
+      method: 'POST', body: JSON.stringify({ validityDays: credentialForm.validityDays }),
     }, token.value)
     issuedSecret.value = result.issuedCredential
+    credentialOpen.value = false
     secretOpen.value = true
     await load(result.application.id)
     message.success('应用已恢复启用，并签发新的凭证版本')
   } catch (error) { message.error(describeError(error)) } finally { busy.value = '' }
+}
+
+async function submitCredentialIssue() {
+  if (credentialAction.value === 'rotate') await rotateCredential()
+  else await enableApplication()
 }
 
 function openRollback() {
@@ -701,6 +813,12 @@ async function copySecret(value?: string) {
   message.success('已复制；关闭窗口后页面不会再次展示明文')
 }
 
+async function copyIntegrationExample() {
+  if (!integrationExample.value) return
+  await navigator.clipboard.writeText(integrationExample.value)
+  message.success('调用示例已复制；签名仍需由接入方使用本地保存的 Secret 计算')
+}
+
 onMounted(() => load())
 </script>
 
@@ -722,7 +840,7 @@ onMounted(() => load())
         <div class="panel-title"><strong>应用</strong><a-segmented size="small" :value="applicationFilter" :options="[{ value: 'ACTIVE', label: '可用' }, { value: 'ALL', label: '全部' }]" @change="switchApplicationFilter(String($event))" /></div>
         <a-spin :spinning="loading">
           <button v-for="item in visibleRows" :key="item.id" :class="['application-list__item', { active: selected?.id === item.id }]" @click="selectApplication(item.id)">
-            <span><strong>{{ item.name }}</strong><small>{{ item.description || applicationTypeLabel(item.applicationType) }}</small></span>
+            <span class="application-list__identity"><span class="application-icon">{{ iconGlyph(item.iconCode) }}</span><span><strong>{{ item.name }}</strong><small>{{ item.description || applicationTypeLabel(item.applicationType) }}</small></span></span>
             <a-tag :color="applicationStatusColor(item.status)">{{ applicationStatusLabel(item.status) }}</a-tag>
           </button>
           <a-empty v-if="!loading && !visibleRows.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="moduleOnly ? '当前模块尚未关联应用' : applicationFilter === 'ACTIVE' ? '当前没有可用应用' : '当前还没有应用'" />
@@ -731,7 +849,7 @@ onMounted(() => load())
 
       <main v-if="selected" class="application-detail">
         <section class="panel-card application-hero">
-          <div><p class="eyebrow">{{ context === 'platform' ? '平台应用' : '系统应用' }}</p><h2>{{ selected.name }}</h2><p>{{ selected.description || '暂无应用说明' }}</p><span><a-tag :color="applicationStatusColor(selected.status)">{{ applicationStatusLabel(selected.status) }}</a-tag><a-tag>{{ applicationTypeLabel(selected.applicationType) }}</a-tag><a-tag v-if="selected.currentVersionId" color="purple">已发布</a-tag></span></div>
+          <div class="application-hero__identity"><span class="application-icon application-icon--large">{{ iconGlyph(selected.iconCode) }}</span><div><p class="eyebrow">{{ context === 'platform' ? '平台应用' : '系统应用' }}</p><h2>{{ selected.name }}</h2><p>{{ selected.description || '暂无应用说明' }}</p><span><a-tag :color="applicationStatusColor(selected.status)">{{ applicationStatusLabel(selected.status) }}</a-tag><a-tag>{{ applicationTypeLabel(selected.applicationType) }}</a-tag><a-tag v-if="selected.currentVersionId" color="purple">已发布</a-tag></span></div></div>
           <div class="application-actions">
             <a-button v-if="can('MANAGE') && selected.status !== 'DISABLED'" @click="openDraft">配置草稿</a-button>
             <a-button v-if="can('MANAGE')" @click="openCopy">复制</a-button>
@@ -739,9 +857,9 @@ onMounted(() => load())
             <a-button v-if="can('PUBLISH') && selected.status !== 'DISABLED'" type="primary" :loading="busy === 'publish'" @click="publishApplication">检查并发布</a-button>
             <a-button v-if="can('PUBLISH') && selected.status === 'ACTIVE' && selected.versions.some(version => !version.current)" :loading="busy === 'rollback'" @click="openRollback">版本回滚</a-button>
             <a-button v-if="selected.status === 'ACTIVE'" @click="openCallTester()"><ApiOutlined />接入调试</a-button>
-            <a-popconfirm v-if="can('ROTATE') && selected.status === 'ACTIVE'" title="新凭证生效后旧凭证会立即撤销，确认轮换？" @confirm="rotateCredential"><a-button :loading="busy === 'rotate'"><KeyOutlined />轮换凭证</a-button></a-popconfirm>
+            <a-button v-if="can('ROTATE') && selected.status === 'ACTIVE'" :loading="busy === 'rotate'" @click="openCredentialIssue('rotate')"><KeyOutlined />轮换凭证</a-button>
             <a-popconfirm v-if="can('DISABLE') && selected.status !== 'DISABLED'" title="停用后新调用立即拒绝，配置和历史不会删除。确认停用？" @confirm="disableApplication"><a-button danger :loading="busy === 'disable'">停用</a-button></a-popconfirm>
-            <a-button v-if="can('MANAGE') && selected.status === 'DISABLED'" type="primary" :loading="busy === 'enable'" @click="enableApplication">重新启用</a-button>
+            <a-button v-if="can('MANAGE') && selected.status === 'DISABLED'" type="primary" :loading="busy === 'enable'" @click="openCredentialIssue('enable')">重新启用</a-button>
             <a-popconfirm v-if="can('MANAGE') && selected.status === 'DISABLED'" title="删除后应用不再出现在列表中，凭证失效；安全审计和历史调用仍保留。确认删除？" @confirm="deleteApplication"><a-button danger :loading="busy === 'delete'">删除</a-button></a-popconfirm>
           </div>
         </section>
@@ -753,6 +871,7 @@ onMounted(() => load())
         <section class="application-summary-grid">
           <article class="panel-card"><small>作用范围</small><strong>{{ selected.contextType === 'SYSTEM' ? '当前系统' : '整个平台' }}</strong><span>{{ selected.contextType === 'SYSTEM' ? '只允许当前系统资源' : '只允许平台资源' }}</span></article>
           <article class="panel-card"><small>当前发布授权</small><strong>{{ displayGrants.length }} 项</strong><span>资源、动作、字段和数据范围</span></article>
+          <article v-if="context === 'system'" class="panel-card"><small>跨系统身份</small><strong>{{ displayIdentityMappings.filter(item => item.status === 'ACTIVE').length }} 项</strong><span>来源成员映射到本系统执行成员</span></article>
           <article class="panel-card"><small>凭证版本</small><strong>{{ selected.credentials.length }} 个</strong><span>{{ selected.credentials.filter(item => item.status === 'ACTIVE').length }} 个当前有效</span></article>
           <article class="panel-card"><small>发布历史</small><strong>{{ selected.versions.length }} 版</strong><span>不可变授权快照</span></article>
           <article class="panel-card"><small>受控调用</small><strong>{{ callLogs.length }} 次</strong><span>签名、权限快照和业务来源</span></article>
@@ -762,12 +881,33 @@ onMounted(() => load())
           <div class="panel-title"><strong>可访问资源</strong><a-tag>按权限开放</a-tag></div>
           <div v-if="displayGrants.length" class="application-grants">
             <article v-for="grant in displayGrants" :key="grant.id">
-              <div><a-tag color="blue">{{ grant.targetType === 'SYSTEM' ? '当前系统' : '平台' }}</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('INTERNAL')" color="cyan">系统内访问</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('EXTERNAL')" color="purple">外部访问</a-tag><strong>{{ resourceName(grant.resourceType, grant.resourceId) }}</strong><a-tag color="green">{{ actionLabel(grant.actionCode) }}</a-tag></div>
+              <div><a-tag color="blue">{{ grant.targetType === 'SYSTEM' ? '当前系统' : '平台' }}</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('INTERNAL')" color="cyan">系统内访问</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('EXTERNAL')" color="purple">外部访问</a-tag><strong>{{ resourceName(grant.resourceType, grant.resourceId) }}</strong><a-tag v-if="grant.resourceVersionNumber" color="gold">固定 {{ grant.resourceType === 'FLOW' ? 'Flow' : '模块' }} V{{ grant.resourceVersionNumber }}</a-tag><a-tag color="green">{{ actionLabel(grant.actionCode) }}</a-tag></div>
               <p>{{ grant.fields.length ? `可返回 ${grant.fields.filter(field => field.readable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、') || '无'}${grant.fields.some(field => field.writable) ? `；可填写 ${grant.fields.filter(field => field.writable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、')}` : ''}` : '流程输入按固定协议校验' }} · {{ settingNumber(grant.rateLimit.maxRequests, 0) }} 次 / {{ settingNumber(grant.rateLimit.windowSeconds, 0) }} 秒 · {{ settingNumber(grant.rateLimit.failureDisableThreshold, 5) }} 次目标执行失败自动停用</p>
             </article>
           </div>
           <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未配置资源动作授权，不能发布" />
         </section>
+
+        <section v-if="context === 'system'" class="panel-card application-section">
+          <div class="panel-title"><strong>跨系统执行身份</strong><a-tag>{{ displayIdentityMappings.length }}</a-tag></div>
+          <a-alert type="info" show-icon message="发布版本固定 A 系统来源成员与 B 系统执行成员" description="调用时仍会检查映射开关、双方成员状态，以及目标成员当前角色、字段权限和数据范围；停用后立即拒绝新调用。" />
+          <div v-if="displayIdentityMappings.length" class="application-grants application-identity-list">
+            <article v-for="identity in displayIdentityMappings" :key="identity.id">
+              <div><a-tag color="cyan">{{ identity.sourceSystemName }}</a-tag><strong>{{ identity.sourceMemberName }}</strong><span>（{{ identity.sourceTenantName }}）</span><span>→</span><a-tag color="blue">{{ identity.targetSystemName }}</a-tag><strong>{{ identity.targetMemberName }}</strong><span>（{{ identity.targetTenantName }}）</span><a-tag :color="identity.status === 'ACTIVE' ? 'green' : 'red'">{{ identity.status === 'ACTIVE' ? '调用有效' : '已停用' }}</a-tag></div>
+            </article>
+          </div>
+          <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未开放其他系统成员调用；当前系统内调用仍使用登录身份" />
+        </section>
+
+        <ApplicationProviderConnections
+          :key="selected.id"
+          :application-id="selected.id"
+          :token="token || ''"
+          :published-grants="selected.publishedGrants"
+          :resources="resources"
+          :can-manage="can('MANAGE')"
+          :application-active="selected.status === 'ACTIVE'"
+        />
 
         <a-button class="application-technical-toggle" @click="showTechnical = !showTechnical">{{ showTechnical ? '收起技术接入详情' : '查看技术接入详情' }}</a-button>
         <template v-if="showTechnical">
@@ -775,7 +915,7 @@ onMounted(() => load())
           <article class="panel-card application-section">
             <div class="panel-title"><strong>凭证引用与版本</strong><SafetyCertificateOutlined /></div>
             <div v-for="credential in selected.credentials" :key="credential.id" class="application-row">
-              <span><strong>凭证 V{{ credential.credentialVersion }}</strong><small>{{ credential.clientId }} · {{ credential.secretReference }} · 密钥尾号 {{ credential.secretHint }}</small></span><a-tag :color="credential.status === 'ACTIVE' ? 'green' : 'default'">{{ credentialStatusLabel(credential.status) }}</a-tag>
+              <span><strong>凭证 V{{ credential.credentialVersion }}</strong><small>{{ credential.clientId }} · {{ credential.secretReference }} · 密钥尾号 {{ credential.secretHint }}</small><small>{{ productDateTime(credential.validFrom) }} 生效 · {{ credential.expiresAt ? `${productDateTime(credential.expiresAt)} 失效` : '未设置失效时间' }}</small></span><a-tag :color="credential.status === 'ACTIVE' ? 'green' : 'default'">{{ credentialStatusLabel(credential.status) }}</a-tag>
             </div>
           </article>
           <article class="panel-card application-section">
@@ -783,6 +923,21 @@ onMounted(() => load())
             <div v-for="callback in selected.callbacks" :key="callback.id" class="application-row"><span><strong>{{ callback.callbackType }} · {{ callback.url }}</strong><small>{{ callback.eventCodes.join(', ') }} · {{ callback.timeoutMillis }}ms / {{ callback.maxAttempts }} 次</small></span></div>
             <a-empty v-if="!selected.callbacks.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="当前应用未配置回调" />
           </article>
+        </section>
+
+        <section v-if="integrationGrant" class="panel-card application-section application-integration-guide">
+          <div class="panel-title"><strong>外部系统接入说明</strong><a-button size="small" @click="copyIntegrationExample"><CopyOutlined />复制请求体</a-button></div>
+          <a-steps size="small" :current="-1" :items="[
+            { title: '准备请求', description: '按下方固定资源、动作和范围生成 JSON' },
+            { title: '计算签名', description: 'clientId、毫秒时间戳、nonce、幂等键和请求体 SHA-256 依次换行后用 Secret 做 HMAC-SHA256' },
+            { title: '发送调用', description: 'POST /api/application-access/v1/calls，并携带五个 X-App-* 请求头' },
+          ]" />
+          <div class="application-integration-grid">
+            <div><strong>必填请求头</strong><ul><li>X-App-Client-Id</li><li>X-App-Timestamp（当前毫秒，五分钟内）</li><li>X-App-Nonce（每次唯一）</li><li>X-App-Idempotency-Key（同一业务请求保持一致）</li><li>X-App-Signature（小写十六进制）</li></ul></div>
+            <div><strong>常见拒绝原因</strong><ul><li>时间过期：校准调用服务器时间</li><li>签名错误：保持请求体字节与签名时完全一致</li><li>Nonce 重复：每次重试生成新 Nonce</li><li>来源 IP 拒绝：检查当前授权的出口 IP</li><li>限流或越权：降低频率，检查字段和数据范围</li><li>凭证失效：使用最新一次轮换或重新启用签发的凭证</li></ul></div>
+          </div>
+          <a-alert type="info" show-icon message="示例由当前发布授权自动生成" description="页面不会再次读取或展示 Client Secret；接入方应在自己的密钥存储中完成签名。" />
+          <pre>{{ integrationExample }}</pre>
         </section>
 
         <section class="application-two-columns">
@@ -814,17 +969,17 @@ onMounted(() => load())
   </div>
 
   <a-modal v-model:open="createOpen" title="新建受控访问应用" :confirm-loading="busy === 'create'" @ok="createApplication">
-    <a-form layout="vertical"><a-form-item label="应用名称" required><a-input v-model:value="createForm.name" placeholder="例如：客户服务连接器" /></a-form-item><a-form-item label="应用类型" required><a-select v-model:value="createForm.applicationType" :options="[{ value: 'SERVICE', label: '服务调用' }, { value: 'WEBHOOK', label: '事件回调' }]" /></a-form-item><a-form-item label="说明"><a-textarea v-model:value="createForm.description" :rows="3" /></a-form-item><a-alert type="info" show-icon message="创建时生成首个访问凭证" description="密钥明文只在创建结果中显示一次；详情页之后只保留安全引用、状态和尾号。" /></a-form>
+    <a-form layout="vertical"><a-form-item label="应用名称" required><a-input v-model:value="createForm.name" placeholder="例如：客户服务连接器" /></a-form-item><div class="form-grid"><a-form-item label="应用类型" required><a-select v-model:value="createForm.applicationType" :options="[{ value: 'SERVICE', label: '服务调用' }, { value: 'WEBHOOK', label: '事件回调' }]" /></a-form-item><a-form-item label="首个凭证有效期" required><a-input-number v-model:value="createForm.credentialValidityDays" :min="1" :max="3650" style="width:100%" addon-after="天" /></a-form-item></div><a-form-item label="应用图标" required><a-radio-group v-model:value="createForm.iconCode"><a-radio-button v-for="item in iconOptions" :key="item.value" :value="item.value"><span class="application-icon-choice">{{ item.glyph }} {{ item.label }}</span></a-radio-button></a-radio-group></a-form-item><a-form-item label="说明"><a-textarea v-model:value="createForm.description" :rows="3" /></a-form-item><a-alert type="info" show-icon message="创建时生成首个访问凭证" description="密钥明文只在创建结果中显示一次；详情页之后只保留安全引用、状态、有效期和尾号。" /></a-form>
   </a-modal>
 
   <a-modal v-model:open="copyOpen" title="复制为新应用草稿" :confirm-loading="busy === 'copy'" @ok="copyApplication">
     <a-alert type="info" show-icon message="复制授权配置，不复制调用历史和凭证明文" style="margin-bottom:16px" />
-    <a-form layout="vertical"><a-form-item label="新应用名称" required><a-input v-model:value="copyForm.name" /></a-form-item><a-alert type="info" show-icon message="新应用会签发独立凭证，保存后仍需检查并发布。" /></a-form>
+    <a-form layout="vertical"><a-form-item label="新应用名称" required><a-input v-model:value="copyForm.name" /></a-form-item><a-form-item label="新凭证有效期" required><a-input-number v-model:value="copyForm.credentialValidityDays" :min="1" :max="3650" style="width:100%" addon-after="天" /></a-form-item><a-alert type="info" show-icon message="新应用会签发独立凭证，保存后仍需检查并发布。" /></a-form>
   </a-modal>
 
   <a-modal v-model:open="importOpen" title="导入应用配置" :confirm-loading="busy === 'import'" @ok="importApplication">
     <a-alert type="info" show-icon message="导入为独立草稿，不携带凭证和调用历史" description="资源、动作、字段和数据范围会重新按当前系统校验，导入后需要检查并发布。" style="margin-bottom:16px" />
-    <a-form layout="vertical"><a-form-item label="新应用名称" required><a-input v-model:value="importForm.name" /></a-form-item><a-descriptions v-if="importConfiguration" size="small" bordered :column="1"><a-descriptions-item label="来源应用">{{ importConfiguration.sourceName }}</a-descriptions-item><a-descriptions-item label="资源授权">{{ importConfiguration.grants.length }} 项</a-descriptions-item><a-descriptions-item label="结果回调">{{ importConfiguration.callbacks.length }} 项</a-descriptions-item></a-descriptions></a-form>
+    <a-form layout="vertical"><a-form-item label="新应用名称" required><a-input v-model:value="importForm.name" /></a-form-item><a-form-item label="新凭证有效期" required><a-input-number v-model:value="importForm.credentialValidityDays" :min="1" :max="3650" style="width:100%" addon-after="天" /></a-form-item><a-descriptions v-if="importConfiguration" size="small" bordered :column="1"><a-descriptions-item label="来源应用">{{ importConfiguration.sourceName }}</a-descriptions-item><a-descriptions-item label="资源授权">{{ importConfiguration.grants.length }} 项</a-descriptions-item><a-descriptions-item label="结果回调">{{ importConfiguration.callbacks.length }} 项</a-descriptions-item></a-descriptions></a-form>
   </a-modal>
 
   <a-modal v-model:open="rollbackOpen" title="从历史版本恢复" :confirm-loading="busy === 'rollback'" @ok="rollbackApplication">
@@ -833,7 +988,7 @@ onMounted(() => load())
   </a-modal>
 
   <a-modal v-model:open="draftOpen" title="配置应用草稿" width="920px" :confirm-loading="busy === 'draft'" @ok="saveDraft">
-    <a-form layout="vertical"><div class="form-grid"><a-form-item label="应用名称" required><a-input v-model:value="draftForm.name" /></a-form-item><a-form-item label="应用类型" required><a-select v-model:value="draftForm.applicationType" :options="[{ value: 'SERVICE', label: '服务调用' }, { value: 'WEBHOOK', label: '事件回调' }]" /></a-form-item></div><a-form-item label="说明"><a-textarea v-model:value="draftForm.description" :rows="2" /></a-form-item></a-form>
+    <a-form layout="vertical"><div class="form-grid"><a-form-item label="应用名称" required><a-input v-model:value="draftForm.name" /></a-form-item><a-form-item label="应用类型" required><a-select v-model:value="draftForm.applicationType" :options="[{ value: 'SERVICE', label: '服务调用' }, { value: 'WEBHOOK', label: '事件回调' }]" /></a-form-item></div><a-form-item label="应用图标" required><a-radio-group v-model:value="draftForm.iconCode"><a-radio-button v-for="item in iconOptions" :key="item.value" :value="item.value">{{ item.glyph }} {{ item.label }}</a-radio-button></a-radio-group></a-form-item><a-form-item label="说明"><a-textarea v-model:value="draftForm.description" :rows="2" /></a-form-item></a-form>
     <div class="draft-section-heading"><div><strong>资源动作授权</strong><small>{{ context === 'platform' ? '只能选择已经发布的平台能力' : '范围固定为当前系统和租户，请从已发布业务资源中选择' }}</small></div><a-button size="small" @click="grantForms.push(newGrant())">增加授权</a-button></div>
     <section v-for="(grant, index) in grantForms" :key="index" class="application-draft-card">
       <div class="application-draft-card__heading"><strong>授权 {{ index + 1 }}</strong><a-button v-if="grantForms.length > 1" type="link" danger @click="grantForms.splice(index, 1)">移除</a-button></div>
@@ -844,13 +999,27 @@ onMounted(() => load())
       <a-form-item v-if="grant.accessChannels.includes('EXTERNAL')" label="允许来源 IP" required><a-select v-model:value="grant.allowedIps" mode="tags" :open="false" placeholder="输入 IP 后按回车，可添加多个" /><small>本机调试使用 127.0.0.1；生产环境请填写调用方固定出口 IP。</small></a-form-item>
       <div class="form-grid"><a-form-item label="目标执行失败停用阈值" required><a-input-number v-model:value="grant.failureDisableThreshold" :min="1" :max="1000" style="width:100%" addon-after="次" /><small>签名、重放、IP 和越权拒绝不计入，防止攻击者触发停用。</small></a-form-item><a-form-item label="失败统计窗口" required><a-input-number v-model:value="grant.failureWindowSeconds" :min="10" :max="604800" style="width:100%" addon-after="秒" /><small>窗口内达到阈值会停用应用并撤销有效凭证。</small></a-form-item></div>
     </section>
+    <template v-if="context === 'system'">
+      <div class="draft-section-heading"><div><strong>跨系统执行身份</strong><small>可选；从同平台其他系统的来源成员，映射到当前系统租户的真实执行成员</small></div><a-button size="small" :disabled="!sourceIdentityOptions.length || !targetIdentityOptions.length" @click="identityMappingForms.push(newIdentityMapping())">增加映射</a-button></div>
+      <a-alert type="info" show-icon message="全程使用成员名称选择" description="发布后固定来源和目标关系；每次调用重新读取目标成员的当前角色、字段权限和数据范围。无需填写系统编号、成员编号或 JSON。" style="margin-bottom:12px" />
+      <section v-for="(identity, index) in identityMappingForms" :key="identity.id || `new-${index}`" class="application-draft-card">
+        <div class="application-draft-card__heading"><strong>身份映射 {{ index + 1 }}</strong><span><a-switch v-model:checked="identity.enabled" checked-children="启用" un-checked-children="停用" /><a-button type="link" danger @click="identityMappingForms.splice(index, 1)">移除并停用</a-button></span></div>
+        <div class="form-grid"><a-form-item label="允许调用的来源成员" required><a-select v-model:value="identity.sourceTenantMemberId" show-search option-filter-prop="label" placeholder="选择其他系统中的成员" :options="sourceIdentityOptions" /></a-form-item><a-form-item label="在当前系统中执行为" required><a-select v-model:value="identity.targetTenantMemberId" show-search option-filter-prop="label" placeholder="选择当前租户成员" :options="targetIdentityOptions" /></a-form-item></div>
+      </section>
+      <a-empty v-if="!identityMappingForms.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="未配置跨系统调用；不影响当前系统内调用和外部凭证调用" />
+    </template>
     <div class="draft-section-heading"><div><strong>结果回调</strong><small>可选；保存密钥引用，不保存回调密钥明文</small></div><a-button size="small" @click="callbackForms.push(newCallback())">增加回调</a-button></div>
     <section v-for="(callback, index) in callbackForms" :key="index" class="application-draft-card"><div class="application-draft-card__heading"><strong>回调 {{ index + 1 }}</strong><a-button type="link" danger @click="callbackForms.splice(index, 1)">移除</a-button></div><div class="form-grid"><a-form-item label="回调类型"><a-select v-model:value="callback.callbackType" :options="[{ value: 'RESULT', label: '调用结果' }, { value: 'EVENT', label: '业务事件' }]" /></a-form-item><a-form-item label="HTTPS 地址" required><a-input v-model:value="callback.url" placeholder="https://..." /></a-form-item></div><a-form-item label="触发时机" required><a-select v-model:value="callback.eventCodes" mode="multiple" :options="[{value:'APPLICATION.CALL.COMPLETED',label:'调用成功完成'},{value:'APPLICATION.CALL.FAILED',label:'调用失败'}]" /></a-form-item><a-form-item label="签名密钥引用" required><a-input v-model:value="callback.signingSecretRef" placeholder="从密钥管理中选择或粘贴引用" /></a-form-item><div class="form-grid"><a-form-item label="超时时间"><a-input-number v-model:value="callback.timeoutMillis" :min="100" :max="60000" style="width:100%" addon-after="毫秒" /></a-form-item><a-form-item label="失败重试"><a-input-number v-model:value="callback.maxAttempts" :min="1" :max="10" style="width:100%" addon-after="次" /></a-form-item></div></section>
   </a-modal>
 
+  <a-modal v-model:open="credentialOpen" :title="credentialAction === 'rotate' ? '轮换访问凭证' : '重新启用并签发凭证'" :confirm-loading="busy === credentialAction" @ok="submitCredentialIssue">
+    <a-alert :type="credentialAction === 'rotate' ? 'warning' : 'info'" show-icon :message="credentialAction === 'rotate' ? '新凭证生效后，旧凭证立即撤销' : '应用恢复启用后，只接受本次新签发的凭证'" description="Secret 明文只在完成后显示一次，请在关闭结果窗口前保存。" style="margin-bottom:16px" />
+    <a-form layout="vertical"><a-form-item label="凭证有效期" required><a-input-number v-model:value="credentialForm.validityDays" :min="1" :max="3650" style="width:100%" addon-after="天" /><small>到期后请求会被拒绝；可提前轮换，新旧凭证不会同时有效。</small></a-form-item></a-form>
+  </a-modal>
+
   <a-modal v-model:open="secretOpen" title="一次性凭证明文" :footer="null" :mask-closable="false" @after-close="issuedSecret = undefined">
     <a-alert type="warning" show-icon message="请立即保存，关闭后无法再次查看 secret 明文" description="详情页只会保留 clientId、密钥尾号、版本和状态。" />
-    <a-descriptions v-if="issuedSecret" bordered :column="1" class="application-secret"><a-descriptions-item label="凭证版本">V{{ issuedSecret.credentialVersion }}</a-descriptions-item><a-descriptions-item label="密钥引用"><code>{{ issuedSecret.secretReference }}</code></a-descriptions-item><a-descriptions-item label="Client ID"><code>{{ issuedSecret.clientId }}</code></a-descriptions-item><a-descriptions-item label="Client Secret"><div class="secret-value"><code>{{ issuedSecret.clientSecret }}</code><a-button size="small" @click="copySecret(issuedSecret.clientSecret)"><CopyOutlined />复制</a-button></div></a-descriptions-item></a-descriptions>
+    <a-descriptions v-if="issuedSecret" bordered :column="1" class="application-secret"><a-descriptions-item label="凭证版本">V{{ issuedSecret.credentialVersion }}</a-descriptions-item><a-descriptions-item label="有效时间">{{ productDateTime(issuedSecret.validFrom) }} 至 {{ productDateTime(issuedSecret.expiresAt) }}</a-descriptions-item><a-descriptions-item label="密钥引用"><code>{{ issuedSecret.secretReference }}</code></a-descriptions-item><a-descriptions-item label="Client ID"><code>{{ issuedSecret.clientId }}</code></a-descriptions-item><a-descriptions-item label="Client Secret"><div class="secret-value"><code>{{ issuedSecret.clientSecret }}</code><a-button size="small" @click="copySecret(issuedSecret.clientSecret)"><CopyOutlined />复制</a-button></div></a-descriptions-item></a-descriptions>
     <div class="modal-result-actions"><a-button v-if="issuedSecret && selected?.status === 'ACTIVE'" @click="openCallTester(issuedSecret)"><ApiOutlined />带入本次密钥调试</a-button><a-button type="primary" @click="secretOpen = false">我已安全保存</a-button></div>
   </a-modal>
 

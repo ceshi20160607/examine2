@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +84,12 @@ public class RuntimeRuleIndexService {
             for (JsonNode definition : definitions) {
                 long fieldId = definition.path("fieldId").asLong();
                 String fieldCode = fieldCode(configuration.configuration().path("fields"), fieldId);
+                // 历史发布快照也不能把密码值复制到可查询的明文投影。
+                for (JsonNode configured : configuration.configuration().path("fields")) {
+                    if (configured.path("id").asLong() == fieldId && "SECRET".equals(configured.path("fieldType").asText())) {
+                        throw new DomainException("SECRET_INDEX_FORBIDDEN", "密码/密钥不能写入查询索引", HttpStatus.CONFLICT);
+                    }
+                }
                 JsonNode value = values.get(fieldCode);
                 if (missing(value)) missing = true;
                 parts.add(fieldCode + "=" + canonical(value));
@@ -149,11 +156,12 @@ public class RuntimeRuleIndexService {
             String fieldCode = fieldCode(configuration.configuration().path("fields"),
                     definitions.get(0).path("fieldId").asLong());
             return new DomainException("UNIQUE_RULE_VIOLATION",
-                    fieldCode + ": 已存在相同值，请填写唯一内容", HttpStatus.CONFLICT);
+                    fieldCode + ": 已存在相同值，请填写唯一内容", HttpStatus.CONFLICT,
+                    anomalyDetails("UNIQUE_RULE", index));
         }
         return new DomainException("UNIQUE_RULE_VIOLATION",
                 "唯一规则 “" + index.path("name").asText(index.path("code").asText()) + "” 已存在相同值",
-                HttpStatus.CONFLICT);
+                HttpStatus.CONFLICT, anomalyDetails("UNIQUE_RULE", index));
     }
 
     public void clearIndexes(Long recordId) {
@@ -165,7 +173,20 @@ public class RuntimeRuleIndexService {
     private void reject(JsonNode rule, String message) {
         throw new DomainException("BUSINESS_RULE_REJECTED",
                 message == null || message.isBlank() ? "业务规则 “" + rule.path("name").asText() + "” 未通过" : message,
-                HttpStatus.UNPROCESSABLE_ENTITY);
+                HttpStatus.UNPROCESSABLE_ENTITY, anomalyDetails("BUSINESS_RULE", rule));
+    }
+
+    /** 只附带已发布规则身份，不把参与校验的字段值写入异常事实。 */
+    private Map<String, Object> anomalyDetails(String anomalyType, JsonNode definition) {
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("anomalyType", anomalyType);
+        long id = definition.path("id").asLong(0);
+        if (id > 0) details.put("ruleId", id);
+        String code = definition.path("code").asText("").strip();
+        if (!code.isEmpty()) details.put("ruleCode", code);
+        String name = definition.path("name").asText(code).strip();
+        if (!name.isEmpty()) details.put("ruleName", name);
+        return details;
     }
 
     private String fieldCode(JsonNode fields, long fieldId) {

@@ -1,0 +1,73 @@
+{
+  "step": "B07.4b.2c.2a",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T14:48:35.877267+08:00",
+  "source_rows": [
+    "R2888",
+    "R2889",
+    "R2890",
+    "R1172"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordEditContext.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeReferenceOption.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "Actual existing three-tenant publications resolve source77 record147 edit configuration/field order/typed dictionaries and reference ownership, not recipient57 configuration. This demonstrates bounded source-context resolution, NOT legitimate base+tenant extension completeness; same-code physical module publishing exposed missing B04 protection.",
+    "Actual ordinary actor68 onlyrecipient57: field dictionary/cascade calls choose bound source IDs; unrestricted foreign-source dictionary still404; hidden/readonly option fields403; unshared record404; readonly UPDATE403; target SELF returns no options. Recipient dictionary/cascade/reference values and unshared source target writes422 leave DB unchanged.",
+    "Actual UPDATE-without-DETAIL source edit-context succeeds while ordinary DETAIL403. Real source UPDATE persisted choice/cascade/reference and preserved hidden value with original actor/source ownership.",
+    "Initial no-target-DETAIL reference-options403 would block unrelated form edits. Corrected to no options, retaining changed-reference authorization. Directed new ordinary actor70 got empty options, forged private reference422/no changes, unrelated parent edit200 retaining original reference. Prior no-target case retained as superseded behavior, not falsely counted current.",
+    "Ordinary browser69 onlyrecipient57/role110 LIST+UPDATE without source DETAIL entered normal platform card; real list row entry and source form showed source field order/names/dictionary/cascade and only authorized reference. Save persisted record147/version3/actual member101/source77, hidden unchanged and audit actor69/tenant57/dataTenant77/share13. Save did not borrow/request DETAIL.",
+    "After source share13 publicly revoked with new edit open, UI save denied, exact record revision/all values unchanged; editor/options closed and list count0. Shared source-only catalogs cannot bypass revoked parent authorization.",
+    "Native JDK21 Maven package passed, existing backend healthUP/schema42. Frontend vue-tsc/Vite finalbuild passed after correcting three actual type errors and observed UPDATE-only row-entry gap. Existing large bundle warning retained. No additional environment, schema/Base edit, external messages or repeated full-suite tests.",
+    "Fixture records/identities remain explicitly scoped for immediate common configuration prerequisite baseline; cleanup status is not falsely declared complete. Same-code active configurations and typed-extension model gap retained as blocking product facts."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/shared-catalog-facts.json",
+    "projects/unexamine/ai/evidence/shared-catalog-page-readback.json",
+    "projects/unexamine/ai/evidence/shared-catalog-revoke-readback.json"
+  ],
+  "permission_or_failure_result": "Bounded record edit/options and current identity/private/range/write/revoke API+database+browser verified. Discovered main-module shadow and missing formal extension typed bindings prevent claiming full2c.2 or B04 completeness.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "548d6fe3c984779fcc80c2059451eceb416b1d8286afb840d3faaf2fd87b8eb5"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataController.java",
+      "sha256": "b3a61ee59a451c5548e8c0023ee6b39c1f24979291baa338738d5dfe9149222f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordEditContext.java",
+      "sha256": "37c9834111d07a97eff02ed348f9a3451ded29ad355486f3cf2e4b0f0780ce61"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeReferenceOption.java",
+      "sha256": "17ee0b14940b2b977b0f2d292090c5d08e73fef6c43d95c627c4b02b4d18ea6d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "522f886b005dbdfa21b55d8a58adc3188e2dd5d3f756bb684efa619bc8077c24"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "627e1f760e9a78d96b7b38133c235ed00f92ae96c071526a9eec0b0bdb8c30fe"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "b44cc32275215524d319aae4e450f00ab4bd811e677b9bc9c703168acf2ccd50"
+    }
+  ],
+  "remaining": [
+    "B07.4b.2c.2 stays in progress: legitimate base+tenant extensions, source LIST/DETAIL labels and typed CUSTOM catalogs, full B05 families.",
+    "B04.1a protects main module identifiers and adds typed dictionary/reference bindings through existing TenantExtensionService; do not merely deduplicate invalid replacements.",
+    "B07.4b.2c.3 external starter Flow viewing; B07.4c range sharing and all remaining approval/application/platform demands.",
+    "Close exact current test identities/records/shares and owned fixtures after immediate prerequisite baseline; preserve audit/configuration history."
+  ],
+  "next_step": "B04.1a"
+}

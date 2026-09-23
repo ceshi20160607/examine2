@@ -13,9 +13,10 @@ describe('project task presentation', () => {
     expect(result.flatMap(group => group.tasks).map(item => item.id)).toEqual([7])
   })
 
-  it('offers only legal primary lifecycle actions', () => {
+  it('does not bypass completion acceptance or reopen actions through generic updates', () => {
     expect(nextTaskAction('TODO')).toEqual({ status: 'IN_PROGRESS', label: '开始任务' })
-    expect(nextTaskAction('IN_PROGRESS')).toEqual({ status: 'COMPLETED', label: '完成任务' })
-    expect(nextTaskAction('COMPLETED')).toEqual({ status: 'IN_PROGRESS', label: '重新打开' })
+    expect(nextTaskAction('IN_PROGRESS')).toBeUndefined()
+    expect(nextTaskAction('WAITING_CONFIRMATION')).toBeUndefined()
+    expect(nextTaskAction('COMPLETED')).toBeUndefined()
   })
 })

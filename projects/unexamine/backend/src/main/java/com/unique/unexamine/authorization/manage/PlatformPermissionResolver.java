@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.entity.PlatformMemberRole;
 import com.unique.unexamine.platform.base.entity.PlatformRolePermission;
+import com.unique.unexamine.platform.base.entity.PlatformRole;
 import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
 import com.unique.unexamine.platform.base.service.PlatformMemberRoleBaseService;
 import com.unique.unexamine.platform.base.service.PlatformRolePermissionBaseService;
+import com.unique.unexamine.platform.base.service.PlatformRoleBaseService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,14 +23,17 @@ public class PlatformPermissionResolver {
     private final PlatformMemberBaseService memberService;
     private final PlatformMemberRoleBaseService memberRoleService;
     private final PlatformRolePermissionBaseService permissionService;
+    private final PlatformRoleBaseService roleService;
 
     public PlatformPermissionResolver(
             PlatformMemberBaseService memberService,
             PlatformMemberRoleBaseService memberRoleService,
-            PlatformRolePermissionBaseService permissionService) {
+            PlatformRolePermissionBaseService permissionService,
+            PlatformRoleBaseService roleService) {
         this.memberService = memberService;
         this.memberRoleService = memberRoleService;
         this.permissionService = permissionService;
+        this.roleService = roleService;
     }
 
     @Transactional(readOnly = true)
@@ -48,6 +53,11 @@ public class PlatformPermissionResolver {
         if (roleIds.isEmpty()) {
             return new ResolvedPermissions(List.of(), List.of(), Map.of());
         }
+        // 停用角色的历史成员关联保留，但不再贡献有效授权。
+        roleIds = roleService.selectList(Wrappers.<PlatformRole>lambdaQuery()
+                        .eq(PlatformRole::getPlatformId, platformId).eq(PlatformRole::getStatus, "ACTIVE")
+                        .in(PlatformRole::getId, roleIds)).stream().map(PlatformRole::getId).distinct().sorted().toList();
+        if (roleIds.isEmpty()) return new ResolvedPermissions(List.of(), List.of(), Map.of());
         List<PlatformRolePermission> rows = permissionService.selectList(
                 Wrappers.<PlatformRolePermission>lambdaQuery()
                         .eq(PlatformRolePermission::getPlatformId, platformId)

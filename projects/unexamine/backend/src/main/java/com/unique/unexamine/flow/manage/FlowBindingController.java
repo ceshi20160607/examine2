@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/flow-bindings")
 public class FlowBindingController {
     private final FlowBindingService service;
+    private final FlowTriggerEventService events;
 
-    public FlowBindingController(FlowBindingService service) {
+    public FlowBindingController(FlowBindingService service, FlowTriggerEventService events) {
         this.service = service;
+        this.events = events;
     }
 
     @GetMapping
@@ -46,6 +48,15 @@ public class FlowBindingController {
     public ApiResult<java.util.List<FlowBindingModels.ConditionField>> conditionFields(
             @RequestParam Long moduleId, @RequestParam String triggerEvent) {
         return ApiResult.ok(service.conditionFields(AuthenticationContextHolder.require(), moduleId, triggerEvent));
+    }
+
+    @GetMapping("/events")
+    public ApiResult<java.util.List<FlowBindingModels.EventDeliveryView>> events(
+            @RequestParam Long moduleId, @RequestParam String triggerEvent) {
+        var context = AuthenticationContextHolder.require();
+        // 复用绑定列表的模块范围和查看权限校验，不开放任意发件箱查询。
+        service.list(context, moduleId, null, triggerEvent);
+        return ApiResult.ok(events.recent(context, moduleId, triggerEvent));
     }
 
     @PostMapping("/preview-condition")

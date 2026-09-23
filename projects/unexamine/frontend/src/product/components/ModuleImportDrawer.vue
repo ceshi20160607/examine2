@@ -3,10 +3,10 @@ import { DownloadOutlined, PlayCircleOutlined, ReloadOutlined, RollbackOutlined,
 import { message } from 'ant-design-vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { api, ApiError } from '../api'
-import { authorizedBlob, fileScanLabel, importRowLabel, parseCsvHeaders, referenceToAccount, saveBlob, uploadControlledFile } from '../file'
+import { authorizedBlob, fileScanLabel, importRowLabel, referenceToAccount, saveBlob, uploadControlledFile } from '../file'
 import { productDateTime, productStatus } from '../presentation'
 import { systemContext, systemTokens } from '../session'
-import type { ControlledFileView, ImportBatchView, ImportRowView, ImportTemplateView } from '../types'
+import type { ControlledFileView, ImportBatchView, ImportRowView, ImportSourceHeadersView, ImportTemplateView } from '../types'
 
 const props = defineProps<{ open: boolean; moduleCode: string; moduleName?: string }>()
 const emit = defineEmits<{ 'update:open': [value: boolean]; recordsChanged: [] }>()
@@ -19,6 +19,7 @@ const sourceFile = ref<ControlledFileView>()
 const sourceHeaders = ref<string[]>([])
 const mapping = ref<Record<string, string>>({})
 const conflictPolicy = ref<'ERROR' | 'SKIP' | 'UPDATE'>('ERROR')
+const matchFieldCode = ref('recordNumber')
 const template = ref<ImportTemplateView>()
 const current = ref<ImportBatchView>()
 const history = ref<ImportBatchView[]>([])
@@ -26,10 +27,13 @@ const error = ref('')
 let pollTimer: number | undefined
 
 const targetOptions = computed(() => (template.value?.columns || []).map(column => ({
-  value: column.code, label: `${column.name}${column.required ? '（必填）' : ''}`,
+  value: column.code, label: `${column.name}${column.required ? '（必填）' : ''}${column.uniqueMatch ? '（可匹配）' : ''}`,
 })))
+const matchOptions = computed(() => (template.value?.columns || []).filter(column => column.uniqueMatch)
+  .map(column => ({ value: column.code, label: column.name })))
 const mappedTargets = computed(() => Object.values(mapping.value).filter(Boolean))
-const canPreview = computed(() => sourceFile.value?.scanStatus === 'CLEAN' && mappedTargets.value.includes('title'))
+const canPreview = computed(() => sourceFile.value?.scanStatus === 'CLEAN' && mappedTargets.value.includes('title')
+  && (conflictPolicy.value === 'ERROR' || mappedTargets.value.includes(matchFieldCode.value)))
 const terminal = new Set(['COMPLETED', 'COMPLETED_WITH_ERRORS', 'ROLLED_BACK', 'ROLLBACK_PARTIAL'])
 
 async function load() {
@@ -52,15 +56,7 @@ async function selectSource(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
-  if (!file.name.toLowerCase().endsWith('.csv')) { message.error('当前导入入口仅接受 CSV 文件'); input.value = ''; return }
-  sourceHeaders.value = parseCsvHeaders(await file.text())
-  if (!sourceHeaders.value.length) { message.error('CSV 表头不能为空'); input.value = ''; return }
-  const automatic: Record<string, string> = {}
-  sourceHeaders.value.forEach((header, index) => {
-    if (template.value?.columns.some(column => column.code === header)) automatic[header] = header
-    else if (index === 0 && !Object.values(automatic).includes('title')) automatic[header] = 'title'
-  })
-  mapping.value = automatic
+  if (!/\.(xlsx|xls|csv)$/i.test(file.name)) { message.error('请选择 Excel（.xlsx/.xls）或 CSV 文件'); input.value = ''; return }
   uploading.value = true
   uploadProgress.value = 0
   try {
@@ -69,6 +65,18 @@ async function selectSource(event: Event) {
       uploaded = await referenceToAccount(uploaded.id, systemContext.value.accountId, token.value)
     }
     sourceFile.value = uploaded
+    if (uploaded.scanStatus === 'CLEAN') {
+      const source = await api<ImportSourceHeadersView>(
+        `/api/runtime/modules/${props.moduleCode}/imports/sources/${uploaded.id}/headers`, {}, token.value)
+      sourceHeaders.value = source.headers
+      const automatic: Record<string, string> = {}
+      sourceHeaders.value.forEach((header, index) => {
+        const target = template.value?.columns.find(column => column.code === header || column.name === header)
+        if (target) automatic[header] = target.code
+        else if (index === 0 && !Object.values(automatic).includes('title')) automatic[header] = 'title'
+      })
+      mapping.value = automatic
+    }
     message.success(uploaded.scanStatus === 'CLEAN' ? '导入文件已扫描并保存引用' : '导入文件未通过扫描，不能预演')
   } catch (reason) { message.error(reason instanceof ApiError ? reason.message : '导入文件上传失败') }
   finally { uploading.value = false; input.value = '' }
@@ -95,7 +103,8 @@ async function preview() {
     current.value = await api<ImportBatchView>(`/api/runtime/modules/${props.moduleCode}/imports/preview`, {
       method: 'POST', body: JSON.stringify({
         sourceFileId: sourceFile.value.id, columnMapping: mapping.value,
-        conflictPolicy: conflictPolicy.value, mappingName: `${sourceFile.value.originalName} 导入映射`,
+        conflictPolicy: conflictPolicy.value, matchFieldCode: matchFieldCode.value,
+        mappingName: `${sourceFile.value.originalName} 导入映射`,
       }),
     }, token.value)
     message.success(`预演完成：${current.value.validRows} 行可执行，${current.value.failedRows} 行错误`)
@@ -158,10 +167,11 @@ function openBatch(id: number) {
   if (current.value && !terminal.has(current.value.status) && current.value.status !== 'PREVIEWED') schedulePoll()
 }
 
-function downloadTemplate() {
-  if (!template.value) return
-  saveBlob(new Blob([`\uFEFF${template.value.csvHeader}\n${template.value.sampleRow}\n`], { type: 'text/csv;charset=utf-8' }),
-    `${props.moduleCode}-import-template.csv`)
+async function downloadTemplate() {
+  try {
+    const blob = await authorizedBlob(`/api/runtime/modules/${props.moduleCode}/imports/template.xlsx`, token.value)
+    saveBlob(blob, `${props.moduleCode}-import-template.xlsx`)
+  } catch (reason) { message.error(reason instanceof ApiError ? reason.message : 'Excel 模板下载失败') }
 }
 
 async function downloadErrors() {
@@ -200,9 +210,9 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
       <section><span>3</span><strong>后台执行或回滚</strong><small>每行重新校验权限与版本，避免覆盖后续修改</small></section>
     </div>
     <div class="import-toolbar">
-      <a-button @click="downloadTemplate"><DownloadOutlined />下载 CSV 模板</a-button>
-      <label class="ant-btn file-upload-button" for="module-import-file"><UploadOutlined />选择 CSV 文件</label>
-      <input id="module-import-file" class="visually-hidden" type="file" accept=".csv,text/csv" @change="selectSource" />
+      <a-button @click="downloadTemplate"><DownloadOutlined />下载 Excel 模板</a-button>
+      <label class="ant-btn file-upload-button" for="module-import-file"><UploadOutlined />选择 Excel / CSV</label>
+      <input id="module-import-file" class="visually-hidden" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" @change="selectSource" />
       <a-tag v-if="sourceFile" :color="sourceFile.scanStatus === 'CLEAN' ? 'green' : 'red'">{{ sourceFile.originalName }} · {{ fileScanLabel(sourceFile.scanStatus) }}</a-tag>
     </div>
     <a-progress v-if="uploading" :percent="uploadProgress" status="active" />
@@ -210,7 +220,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
     <template v-if="sourceHeaders.length">
       <a-divider>字段映射</a-divider>
       <div class="import-mapping-grid"><div v-for="source in sourceHeaders" :key="source"><code>{{ source }}</code><span>→</span><a-select :value="mapping[source]" allow-clear placeholder="忽略此列" :options="mappingOptions(source)" @change="setMapping(source, $event)" /></div></div>
-      <div class="import-preview-actions"><a-radio-group v-model:value="conflictPolicy" button-style="solid"><a-radio-button value="ERROR">编号冲突报错</a-radio-button><a-radio-button value="SKIP">跳过已有记录</a-radio-button><a-radio-button value="UPDATE">更新已有记录</a-radio-button></a-radio-group><a-button type="primary" :disabled="!canPreview" :loading="loading" @click="preview">开始预演</a-button></div>
+      <div class="import-preview-actions"><a-select v-model:value="matchFieldCode" :options="matchOptions" style="min-width:190px" placeholder="选择唯一匹配字段" /><a-radio-group v-model:value="conflictPolicy" button-style="solid"><a-radio-button value="ERROR">重复时报错</a-radio-button><a-radio-button value="SKIP">跳过已有记录</a-radio-button><a-radio-button value="UPDATE">更新已有记录</a-radio-button></a-radio-group><a-button type="primary" :disabled="!canPreview" :loading="loading" @click="preview">开始预演</a-button></div>
     </template>
 
     <template v-if="current">

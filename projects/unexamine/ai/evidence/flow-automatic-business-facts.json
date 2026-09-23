@@ -1,0 +1,204 @@
+{
+  "step": "B10.2a",
+  "status": "passed",
+  "code": "automatic_27c3339a6e",
+  "flows": [
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163
+  ],
+  "instances": [
+    260,
+    261,
+    262,
+    263
+  ],
+  "records": [
+    228,
+    229
+  ],
+  "cases": [
+    {
+      "case": "publication-rejects-raw-action-duplicate-type-and-future-reference",
+      "result": "发布校验拒绝自定义动作代码、重复目标字段、错误固定值类型及不在当前节点之前的节点结果。"
+    },
+    {
+      "case": "structured-current-record-update",
+      "result": "字段更新节点按业务字段选择和值来源更新当前记录，历史只公开模块、记录、字段名称与动作结果。",
+      "instanceId": 261,
+      "recordId": 228
+    },
+    {
+      "case": "create-then-update-prior-node-result",
+      "result": "同一次推进中新建记录结果立即成为后续更新目标，最终只有一条版本为 1 的记录，发布快照冻结模块版本和字段身份。",
+      "instanceId": 262,
+      "recordId": 229,
+      "flowVersionId": 166
+    },
+    {
+      "case": "runtime-value-is-revalidated-and-visible-as-incident",
+      "result": "服务端不信任启动变量；错误数字值没有产生记录，实例进入异常中心并保留可处理事件。",
+      "instanceId": 263,
+      "errorCode": "FIELD_VALIDATION_FAILED"
+    },
+    {
+      "case": "same-backend-restart-keeps-business-results-actions-and-incident",
+      "result": "同一后端容器重启后，完成实例、自动动作历史、业务记录和失败事件均可读。"
+    },
+    {
+      "case": "flow-start-and-common-action-idempotency",
+      "result": "相同启动键返回原实例；当前记录版本不增加，自动新建记录不重复。"
+    },
+    {
+      "case": "common-action-control-and-reliable-outbox",
+      "result": "每个已提交自动写入都有一条完成的公共幂等记录及可靠 outbox；写入前失败没有残留伪成功。",
+      "counts": {
+        "bootstrap": 1,
+        "current": 1,
+        "chain": 2,
+        "failure": 0
+      }
+    },
+    {
+      "case": "ordinary-gui-structured-configuration-and-readable-result",
+      "result": "普通设计页不用填写 JSON、动作代码、字段编码或记录 ID；运行页以中文展示新建/更新目标、记录号和字段数量。"
+    }
+  ],
+  "module_baseline": {
+    "moduleId": 51,
+    "moduleCode": "flow_condition_accept_20260918",
+    "configVersionId": 94,
+    "activeRecordCount": 4
+  },
+  "checked_time": "2026-09-19T12:36:00.610429+08:00",
+  "fixtures": {
+    "bootstrap": {
+      "flow": 160,
+      "instance": 260,
+      "record": 228,
+      "key": "automatic_27c3339a6e_bootstrap",
+      "body": {
+        "flowId": 160,
+        "title": "自动创建业务夹具",
+        "businessType": "MODULE:flow_condition_accept_20260918",
+        "businessId": null,
+        "businessSnapshot": {},
+        "variables": {},
+        "idempotencyKey": "automatic_27c3339a6e_bootstrap"
+      }
+    },
+    "current": {
+      "flow": 161,
+      "instance": 261,
+      "record": 228,
+      "key": "automatic_27c3339a6e_current",
+      "body": {
+        "flowId": 161,
+        "title": "更新当前业务记录",
+        "businessType": "MODULE:flow_condition_accept_20260918",
+        "businessId": "228",
+        "businessSnapshot": {},
+        "variables": {
+          "score": 42
+        },
+        "idempotencyKey": "automatic_27c3339a6e_current"
+      }
+    },
+    "chain": {
+      "flow": 162,
+      "instance": 262,
+      "record": 229,
+      "key": "automatic_27c3339a6e_chain",
+      "body": {
+        "flowId": 162,
+        "title": "自动新增更新链",
+        "businessType": "MODULE:flow_condition_accept_20260918",
+        "businessId": null,
+        "businessSnapshot": {},
+        "variables": {
+          "score": 66
+        },
+        "idempotencyKey": "automatic_27c3339a6e_chain"
+      }
+    },
+    "failure": {
+      "flow": 163,
+      "instance": 263,
+      "key": "automatic_27c3339a6e_failure",
+      "body": {
+        "flowId": 163,
+        "title": "自动动作受控失败",
+        "businessType": "MODULE:flow_condition_accept_20260918",
+        "businessId": null,
+        "businessSnapshot": {},
+        "variables": {
+          "score": "not-a-number"
+        },
+        "idempotencyKey": "automatic_27c3339a6e_failure"
+      },
+      "incident": 20
+    }
+  },
+  "prepared": true,
+  "verified": true,
+  "gui_observed": {
+    "designer": {
+      "flowId": 162,
+      "palette": [
+        "字段更新",
+        "新建/更新数据"
+      ],
+      "structuredControls": [
+        "数据动作",
+        "目标模块",
+        "目标记录来源",
+        "前序数据节点",
+        "新记录标题来源",
+        "字段赋值",
+        "异常策略"
+      ],
+      "rawJsonInput": false,
+      "businessActionCodeInput": false,
+      "physicalRecordIdInput": false,
+      "fieldCodeInput": false,
+      "observation": "实际画布可见新建和更新两个数据节点；字段、来源和前序节点均为中文选择控件。"
+    },
+    "runtime": {
+      "instanceId": 262,
+      "status": "已完成",
+      "automaticHistoryCount": 2,
+      "readableHistory": [
+        "新建审批业务条件验收记录",
+        "更新审批业务条件验收记录"
+      ],
+      "fieldValuesExposed": false,
+      "observation": "统一工作区布局下可直接看到流程状态、节点、关联业务以及两条自动动作结果。"
+    }
+  },
+  "cleanup": {
+    "failureTerminated": true,
+    "recordsLogicallyDeleted": [
+      228,
+      229
+    ],
+    "unfinishedTasks": 0,
+    "unfinishedJobs": 0,
+    "activeExecutions": 0,
+    "moduleVersionUnchanged": true,
+    "activeRecordCountRestored": 4,
+    "flowsDisabled": [
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163
+    ]
+  },
+  "business_verification": "passed"
+}

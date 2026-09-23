@@ -1,0 +1,105 @@
+{
+  "step": "B10.2c.1",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0880",
+    "R0897",
+    "R0898",
+    "R0939",
+    "R0942",
+    "R0945",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowWaitTimerPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowWaitTimerPolicyTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/flow-designer.ts",
+    "projects/unexamine/frontend/src/product/flow-designer.test.ts",
+    "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "执行入口在实现前通过；复用既有 FlowJob 与同一前端、后端、MySQL、共享 Redis，没有建立第二套调度服务或容器。",
+    "设计器把等待与定时器拆成独立节点；等待只填正整数和分钟、小时、天，定时器只选恢复日期时间，普通用户不填写 ISO 时长、JSON 或内部作业代码。",
+    "发布检查真实拒绝小数等待、超过一年和过去的恢复时间；发布快照冻结 schemaVersion、模式、标准分钟数或恢复时间，旧 WAIT_TIMER 只保留兼容读取。",
+    "十分钟等待的相同启动键只生成一个实例和一个 TIMER 作业；强制到期后只完成一次、只写一条安排历史和一条恢复历史，活动执行归零。",
+    "等待期间终止实例会把未到期 TIMER 作业改为 CANCELLED，后台扫描不能继续推进。",
+    "绝对定时器在目标时间前保持 PENDING；同一后端容器重启后仍可读，强制到期只恢复一次；第二次重启及启动回放后作业、执行和历史保持且不重复。",
+    "普通设计器页面实际显示等待数字/单位与定时器日期时间控件及可见发布检查；运行页显示等待时间、无需人工处理、准确下一步、30 分钟计划、等待历史和待执行后台作业。",
+    "页面验收发现并修复等待态误显示“审批人处理”的文案；复验显示“等待时长结束后自动继续”。",
+    "验收夹具精确清理：6 个随机流程停用，4 个实例均无活动 TIMER 作业，遗留 PENDING/RUNNING/SUSPENDED 作业为 0。",
+    "FlowWaitTimerPolicyTest 与 FlowMessageNodePolicyTest 通过并生成后端包；前端定向 5 项和生产构建已通过，只有既有包体积提示；定向 diff check 无内容错误，仅既有行尾规范提示。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-wait-timer-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-wait-timer-facts.json",
+    "projects/unexamine/ai/evidence/flow-wait-timer-page-readback.json"
+  ],
+  "permission_or_failure_result": "等待与定时器只消费发布时冻结配置，以实例和执行主键形成作业幂等键；数据库唯一约束、实例后作业行锁和单事务完成阻止重复恢复，终止统一取消未执行作业。",
+  "remaining": "本子步骤只完成等待和定时器。周期、导入完成、数据异常事件的实际分发与调度仍在 B10.2c.2；Webhook、外部节点、受控应用、渠道及其他完整产品需求仍须完成。",
+  "next_step": "B10.2c.2",
+  "next_scope": "补齐周期、导入完成和数据异常的真实事件入口、当前发布绑定匹配、条件/优先级/互斥、稳定事件幂等、周期下一次计划、可读页面与重启验收。",
+  "integrated_verification": "6 组真实事实覆盖发布拒绝、结构化冻结、启动重放、到期恢复、终止取消、两次重启；另有普通浏览器、API/数据库、worker、定向测试、打包、前端生产构建和精确清理。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T14:19:20.591356+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowWaitTimerPolicy.java",
+      "sha256": "bbdcdb6ea6f05f9dc96017be5e5a2b4e5056ae802f682ce5e01bfef3182800e8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "4c36ec25f8b807eb866bc848d7982b8de9421b0cff4bf06bbf882abc94a9911e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "d5ccb7723d9356c6eafc63f5bc1e8fc65d0d3116a02568225b8dcbb08b4ac2c1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowWaitTimerPolicyTest.java",
+      "sha256": "c788f7b14b6ded84b1ac44716503a9a3f097cb8a5fb3c4190badd5a6793a610f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "e96b79286b7df2fb4475e26966692f959a8e383eddc7830e6e4d0293bacbb757"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/flow-designer.ts",
+      "sha256": "07b99a44e8152dfb804a752df41895a1bb8fc8cf4c957a5115492a198ac240f7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/flow-designer.test.ts",
+      "sha256": "0bdce7052b8c3035c55759fbd80d9435a03278e453d31e2ff6e6e90bfd5dc0d9"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+      "sha256": "8bdaec4f3779e12fa3c23671bd0ebc176796f4fcc72cebbc5e248323a1a57af2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "067d02f9809d8af372cf1c95b0afe353bb865ec67f0496daa53efda02cc48f92"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "2cf7fc88a3bbdf426024db1c295d446580261a69e10d3d386d1cfbd5728c2dce"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-wait-timer-acceptance.py",
+      "sha256": "6928e666c11b762cd04dc9c667f04527982b6fcee1f0877c83fee0a2983b485e"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-wait-timer-facts.json",
+      "sha256": "63efd273fa0c84b27c67c00ab3d7a2cd90c7960d1edd80f29acef735abf721af"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-wait-timer-page-readback.json",
+      "sha256": "2f133207c67333cbe19670ad839fd3bd53847f42809db68357ba24a0046d3072"
+    }
+  ]
+}

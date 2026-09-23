@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 同系统跨租户记录及动态模块范围共享授权，不改变数据所有权 Mapper 接口
  * </p>
  *
  * @author Template Base

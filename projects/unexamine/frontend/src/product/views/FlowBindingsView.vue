@@ -12,7 +12,7 @@ import ConditionGroupEditor from '../components/ConditionGroupEditor.vue'
 import ConditionValueInput from '../components/ConditionValueInput.vue'
 import { bindingCondition, emptyCondition, conditionFieldCodes, conditionIssues, conditionSummary, type ConditionField } from '../conditions'
 import { moduleAdminTarget, queryText, selectContextModule } from '../module-navigation'
-import type { ConfiguredAction, FlowBindingList, FlowBindingResolution, FlowBindingView, FlowDefinitionView, RuntimeModuleCatalogItem, RuntimeModuleConfiguration, RuntimeRecord } from '../types'
+import type { ConfiguredAction, FlowBindingEventDelivery, FlowBindingList, FlowBindingResolution, FlowBindingView, FlowDefinitionView, FlowScheduleConfig, RuntimeModuleCatalogItem, RuntimeModuleConfiguration, RuntimeRecord } from '../types'
 
 const token = computed(() => systemTokens.value?.accessToken)
 const route = useRoute()
@@ -33,17 +33,23 @@ const form = reactive({
   priorityOrder: 0,
   mutuallyExclusive: true,
 })
+const schedule = reactive<FlowScheduleConfig>({
+  scheduleMode: 'INTERVAL', intervalValue: 1, intervalUnit: 'DAY',
+  dailyTime: '09:00', weekDay: 1, misfirePolicy: 'FIRE_ONCE',
+})
 const condition = ref(emptyCondition())
 const conditionFields = ref<ConditionField[]>([])
 const sampleValues = reactive<Record<string, unknown>>({})
 const sampleRecords = ref<RuntimeRecord[]>([])
+const eventDeliveries = ref<FlowBindingEventDelivery[]>([])
 const sampleRecordId = ref<number>()
 const pointLoading = ref(false)
 const pointReady = ref(false)
 const savedSnapshot = ref('')
 const preview = ref<{ matched: boolean; conditions: Array<{ field: string; operator: string; matched: boolean }> }>()
-function snapshot() { return JSON.stringify({ actionId: form.actionId, mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value }) }
+function snapshot() { return JSON.stringify({ actionId: form.actionId, mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value, schedule: form.triggerEvent === 'SCHEDULED' ? schedule : undefined }) }
 const dirty = computed(() => Boolean(savedSnapshot.value && savedSnapshot.value !== snapshot()))
+const reliableEvent = computed(() => ['SCHEDULED', 'IMPORT_COMPLETED', 'EXCEPTION'].includes(form.triggerEvent))
 const testFields = computed(() => conditionFields.value.filter(field => conditionFieldCodes(condition.value).includes(field.code)))
 const issues = computed(() => conditionIssues(condition.value, conditionFields.value))
 const activePublished = computed(() => bindings.value.currentTenant.find(row => row.status === 'ACTIVE') || bindings.value.inheritedDefaults.find(row => row.status === 'ACTIVE'))
@@ -95,6 +101,28 @@ function eventLabel(event: string) {
     SCHEDULED: '定时触发', APPLICATION: '应用调用', IMPORT_COMPLETED: '导入完成', EXCEPTION: '异常时' } as Record<string, string>)[event] || event
 }
 
+function eventDeliveryStatus(row: FlowBindingEventDelivery) {
+  if (row.status === 'FAILED') return '等待自动重试'
+  if (row.status === 'PENDING') return row.eventType === 'SCHEDULED' && row.availableTime
+    ? `计划于 ${new Date(row.availableTime).toLocaleString()}执行` : '等待投递'
+  if (row.deliveryResult === 'MISFIRE_SKIPPED') return '错过后已按配置跳过'
+  if (row.deliveryResult === 'STALE_SCHEDULE') return '旧计划已失效，未启动流程'
+  return row.flowInstanceId ? `已启动流程实例 ${row.flowInstanceId}` : '没有命中绑定，已安全结束'
+}
+
+function eventSourceLabel(row: FlowBindingEventDelivery) {
+  if (row.eventType === 'SCHEDULED') return '周期计划'
+  if (row.sourceType === 'MODULE_VALIDATION') return row.actionCode === 'UPDATE' ? '模块编辑校验' : '模块新建校验'
+  return `导入批次 ${row.sourceId}`
+}
+
+function eventBusinessSummary(row: FlowBindingEventDelivery) {
+  if (row.sourceType !== 'MODULE_VALIDATION') return ''
+  const action = row.actionCode === 'UPDATE' ? '编辑' : '新建'
+  const record = row.recordId ? ` · 记录 ${row.recordId}` : ''
+  return `${action} · ${row.ruleName || '已发布业务规则'} · ${row.errorCategory || '业务校验未通过'}${record}`
+}
+
 function modeLabel(mode: string) {
   return ({ DIRECT: '直接保存', AFTER_EXECUTION: '保存后启动流程', AFTER_APPROVAL: '审批通过后保存', FLOW_ONLY: '仅启动流程' } as Record<string, string>)[mode] || mode
 }
@@ -108,6 +136,14 @@ function actionName(id?: number) {
   return manualActions.value.find(item => item.id === id)?.name || '手动动作'
 }
 
+function scheduleSummary(value?: FlowScheduleConfig) {
+  if (!value) return ''
+  const misfire = value.misfirePolicy === 'SKIP' ? '错过后跳过' : '错过后补执行一次'
+  if (value.scheduleMode === 'DAILY') return `每天 ${value.dailyTime} · ${misfire}`
+  if (value.scheduleMode === 'WEEKLY') return `每周${['一','二','三','四','五','六','日'][(value.weekDay || 1) - 1]} ${value.dailyTime} · ${misfire}`
+  return `每隔 ${value.intervalValue} ${({ MINUTE: '分钟', HOUR: '小时', DAY: '天' } as Record<string,string>)[value.intervalUnit || 'DAY']} · ${misfire}`
+}
+
 async function loadCatalog() {
   if (!token.value) return
   loading.value = true
@@ -118,9 +154,11 @@ async function loadCatalog() {
     ])
     const flowRows = await Promise.all(flowSummaries.map(flow =>
       api<FlowDefinitionView>(`/api/flows/${flow.id}`, {}, token.value)))
-    modules.value = moduleRows
+    // 共享记录由来源模块控制触发规则，接收工作空间不能发布来源绑定。
+    const configurable = moduleRows.filter(module => module.configurationMode !== 'SHARED_RECORDS')
+    modules.value = configurable
     flows.value = flowRows
-    form.moduleId = selectContextModule(moduleRows, queryText(route.query.module))?.moduleId
+    form.moduleId = selectContextModule(configurable, queryText(route.query.module))?.moduleId
     await loadBindings()
     syncModuleRoute()
   } catch (error) {
@@ -134,9 +172,10 @@ async function loadBindings() {
   pointReady.value = false
   bindings.value = { currentTenant: [], inheritedDefaults: [] }
   manualActions.value = []
-  conditionFields.value = []; sampleRecords.value = []; savedSnapshot.value = ''
+  conditionFields.value = []; sampleRecords.value = []; eventDeliveries.value = []; savedSnapshot.value = ''
   useSample(); condition.value = emptyCondition()
-  form.flowId = undefined; form.executionMode = 'DIRECT'; form.priorityOrder = 0; form.mutuallyExclusive = true
+  form.flowId = undefined; form.executionMode = reliableEvent.value ? 'FLOW_ONLY' : 'DIRECT'; form.priorityOrder = 0; form.mutuallyExclusive = true
+  Object.assign(schedule, { scheduleMode: 'INTERVAL', intervalValue: 1, intervalUnit: 'DAY', dailyTime: '09:00', weekDay: 1, misfirePolicy: 'FIRE_ONCE' })
   if (!token.value || !form.moduleId || !can('VIEW')) return
   const moduleId = form.moduleId, triggerEvent = form.triggerEvent
   pointLoading.value = true
@@ -149,22 +188,28 @@ async function loadBindings() {
     } else form.actionId = undefined
     const scopedActionId = form.actionId
     const actionQuery = triggerEvent === 'MANUAL' && form.actionId ? `&actionId=${form.actionId}` : ''
-    const [result, fields] = await Promise.all([
+    const [result, fields, deliveries] = await Promise.all([
       triggerEvent === 'MANUAL' && !form.actionId
         ? Promise.resolve({ currentTenant: [], inheritedDefaults: [] } as FlowBindingList)
         : api<FlowBindingList>(`/api/flow-bindings?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}${actionQuery}`, {}, token.value),
       api<ConditionField[]>(`/api/flow-bindings/condition-fields?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}`, {}, token.value),
+      ['SCHEDULED', 'IMPORT_COMPLETED', 'EXCEPTION'].includes(triggerEvent)
+        ? api<FlowBindingEventDelivery[]>(`/api/flow-bindings/events?moduleId=${moduleId}&triggerEvent=${encodeURIComponent(triggerEvent)}`, {}, token.value)
+        : Promise.resolve([]),
     ])
     if (form.moduleId !== moduleId || form.triggerEvent !== triggerEvent || form.actionId !== scopedActionId) return
-    bindings.value = result; conditionFields.value = fields
+    bindings.value = result; conditionFields.value = fields; eventDeliveries.value = deliveries
     pointReady.value = true
     const current = activePublished.value
     if (current) {
-      form.flowId = current.flowId; form.executionMode = current.executionMode; form.priorityOrder = current.priorityOrder; form.mutuallyExclusive = current.mutuallyExclusive
+      form.flowId = current.flowId
+      form.executionMode = reliableEvent.value ? 'FLOW_ONLY' : current.executionMode
+      form.priorityOrder = current.priorityOrder; form.mutuallyExclusive = current.mutuallyExclusive
       condition.value = bindingCondition(current.condition, current.conditionExpression)
+      if (current.schedule) Object.assign(schedule, current.schedule)
     }
     savedSnapshot.value = snapshot()
-    if (module && allowsPermission(systemContext.value?.permissions, 'MODULE', module.moduleCode, 'LIST')) {
+    if (!reliableEvent.value && module && allowsPermission(systemContext.value?.permissions, 'MODULE', module.moduleCode, 'LIST')) {
       const result = await api<{ records: RuntimeRecord[] }>(`/api/runtime/modules/${module.moduleCode}/records?page=1&pageSize=20`, {}, token.value)
       if (form.moduleId === moduleId && form.triggerEvent === triggerEvent) sampleRecords.value = result.records
     }
@@ -184,9 +229,10 @@ async function publish(replaceExisting = false) {
         flowId: form.flowId, triggerEvent: form.triggerEvent,
         executionMode: form.executionMode, priorityOrder: form.priorityOrder,
         condition: condition.value, mutuallyExclusive: form.mutuallyExclusive,
+        schedule: form.triggerEvent === 'SCHEDULED' ? { ...schedule } : undefined,
       }, replaceExisting)),
     }, token.value)
-    message.success(saved.executionMode === 'DIRECT' ? '已发布直接保存配置，不启动流程' : `已发布${eventLabel(saved.triggerEvent)}配置，固定使用流程${versionLabel(saved.flowVersionNumber)}`)
+    message.success(saved.executionMode === 'DIRECT' ? '已发布直接保存配置，不启动流程' : `已发布${eventLabel(saved.triggerEvent)}配置，当前使用流程${versionLabel(saved.flowVersionNumber)}；新动作读取最新发布版本`)
     resolution.value = undefined
     await loadBindings()
   } catch (error) {
@@ -260,6 +306,25 @@ onMounted(loadCatalog)
           <a-form-item label="触发事件" required>
             <a-select :value="form.triggerEvent" @update:value="changePoint(form.moduleId,$event)" :options="['CREATE','UPDATE','DELETE','TRANSFER','CONVERT','CONVERSION_UNLINK','STATUS_CHANGED','MANUAL','SCHEDULED','APPLICATION','IMPORT_COMPLETED','EXCEPTION'].map(value => ({ value, label: eventLabel(value) }))" />
           </a-form-item>
+          <a-alert v-if="form.triggerEvent === 'IMPORT_COMPLETED'" class="section-alert" type="info" show-icon message="每个导入批次结束后触发一次" description="导入结果先持久保存，再可靠启动流程；流程暂不可用不会回滚已完成的导入。" />
+          <a-alert v-else-if="form.triggerEvent === 'EXCEPTION'" class="section-alert" type="info" show-icon message="导入失败或模块业务校验未通过时触发" description="模块新建、编辑只记录已发布业务规则和唯一规则的拒绝；权限、并发和系统错误不会触发。原业务写入仍会回滚，流程暂不可用时由系统自动重试。" />
+          <template v-else-if="form.triggerEvent === 'SCHEDULED'">
+            <a-alert class="section-alert" type="info" show-icon message="按固定周期启动流程" description="系统保存下一次执行计划；停用或替换配置后，旧计划不会再启动流程。" />
+            <a-form-item label="执行周期" required>
+              <a-select v-model:value="schedule.scheduleMode" :options="[{value:'INTERVAL',label:'每隔一段时间'},{value:'DAILY',label:'每天'},{value:'WEEKLY',label:'每周'}]" />
+            </a-form-item>
+            <div v-if="schedule.scheduleMode === 'INTERVAL'" class="flow-binding-form__row">
+              <a-form-item label="间隔数" required><a-input-number v-model:value="schedule.intervalValue" :min="1" :precision="0" style="width:100%" /></a-form-item>
+              <a-form-item label="间隔单位" required><a-select v-model:value="schedule.intervalUnit" :options="[{value:'MINUTE',label:'分钟'},{value:'HOUR',label:'小时'},{value:'DAY',label:'天'}]" /></a-form-item>
+            </div>
+            <div v-else class="flow-binding-form__row">
+              <a-form-item v-if="schedule.scheduleMode === 'WEEKLY'" label="星期" required><a-select v-model:value="schedule.weekDay" :options="['一','二','三','四','五','六','日'].map((label,index)=>({value:index+1,label:`星期${label}`}))" /></a-form-item>
+              <a-form-item label="执行时间" required><a-input v-model:value="schedule.dailyTime" type="time" /></a-form-item>
+            </div>
+            <a-form-item label="服务中断期间错过执行" required>
+              <a-select v-model:value="schedule.misfirePolicy" :options="[{value:'FIRE_ONCE',label:'恢复后补执行一次'},{value:'SKIP',label:'跳过错过的执行'}]" />
+            </a-form-item>
+          </template>
           <a-form-item v-if="form.triggerEvent === 'MANUAL'" label="手动动作" required extra="动作来自模块的已发布配置；每个动作可独立设置条件和审批方式。">
             <a-select :value="form.actionId" placeholder="选择手动动作" :options="manualActions.map(item => ({ value: item.id, label: item.name }))" @update:value="changeManualAction" />
           </a-form-item>
@@ -268,16 +333,16 @@ onMounted(loadCatalog)
             <a-select v-model:value="form.flowId" placeholder="选择流程" :options="publishedFlows.map(item => ({ value: item.id, label: `${item.name} · ${versionLabel(item.versions.find(v => v.id === item.currentVersionId)?.versionNumber)}` }))" />
           </a-form-item>
           <div class="flow-binding-form__row">
-            <a-form-item label="执行方式"><a-select v-model:value="form.executionMode" :options="['AFTER_EXECUTION','DIRECT','AFTER_APPROVAL','FLOW_ONLY'].map(value => ({ value, label: modeLabel(value) }))" /></a-form-item>
+            <a-form-item label="执行方式"><a-select v-model:value="form.executionMode" :disabled="reliableEvent" :options="(reliableEvent ? ['FLOW_ONLY'] : ['AFTER_EXECUTION','DIRECT','AFTER_APPROVAL','FLOW_ONLY']).map(value => ({ value, label: modeLabel(value) }))" /></a-form-item>
             <a-form-item label="优先级"><a-input-number v-model:value="form.priorityOrder" :min="0" style="width:100%" /></a-form-item>
           </div>
-          <a-alert class="section-alert" type="info" show-icon :message="({DIRECT:'按正常业务保存，不启动流程。', AFTER_EXECUTION:'先保存业务数据，成功后启动流程；流程投递失败可以重试。', AFTER_APPROVAL:'先启动审批，通过前不保存业务数据。', FLOW_ONLY:'只启动流程，不保存本次业务变更。'} as Record<string,string>)[form.executionMode]" />
-          <a-form-item label="命中条件" extra="字段来自当前模块的发布版本，并受页面与流程字段权限限制。">
+          <a-alert class="section-alert" type="info" show-icon :message="reliableEvent ? '事件事实保存后可靠启动流程；重复投递不会重复创建实例。' : ({DIRECT:'按正常业务保存，不启动流程。', AFTER_EXECUTION:'先保存业务数据，成功后启动流程；流程投递失败可以重试。', AFTER_APPROVAL:'先启动审批，通过前不保存业务数据。', FLOW_ONLY:'只启动流程，不保存本次业务变更。'} as Record<string,string>)[form.executionMode]" />
+          <a-form-item label="命中条件" :extra="form.triggerEvent === 'SCHEDULED' ? '可按计划时间、周期方式和是否补执行组合条件。' : form.triggerEvent === 'EXCEPTION' ? '可先按异常来源区分导入失败和模块校验，再按动作、规则或导入统计组合条件。' : reliableEvent ? '可按导入结果、总行数、成功行数和失败行数组合条件。' : '字段来自当前模块的发布版本，并受页面与流程字段权限限制。'">
             <ConditionGroupEditor v-model="condition" :fields="conditionFields" />
           </a-form-item>
           <a-alert v-if="issues.length" type="warning" show-icon :message="issues[0]" />
           <a-checkbox v-model:checked="form.mutuallyExclusive">命中后不再寻找其他绑定</a-checkbox>
-          <a-button v-if="can('BIND_PUBLISH')" type="primary" block class="flow-binding-submit" :disabled="!pointReady || pointLoading || !form.moduleId || form.triggerEvent === 'MANUAL' && !form.actionId || form.executionMode !== 'DIRECT' && !form.flowId || issues.length > 0" :loading="busy === 'publish'" @click="publish(false)">发布动作配置</a-button>
+          <a-button v-if="can('BIND_PUBLISH')" type="primary" block class="flow-binding-submit" :disabled="!pointReady || pointLoading || !form.moduleId || form.triggerEvent === 'MANUAL' && !form.actionId || form.executionMode !== 'DIRECT' && !form.flowId || issues.length > 0" :loading="busy === 'publish'" @click="publish(false)">{{ reliableEvent ? '发布事件触发配置' : '发布动作配置' }}</a-button>
           <a-button v-if="dirty" block class="flow-binding-submit" @click="loadBindings">取消修改</a-button>
         </a-form>
       </section>
@@ -290,6 +355,7 @@ onMounted(loadCatalog)
               <div><a-tag :color="binding.scopeType === 'TENANT_OVERRIDE' ? 'purple' : 'blue'">{{ binding.scopeType === 'TENANT_OVERRIDE' ? '当前工作空间' : '系统公共' }}</a-tag><a-tag :color="binding.status === 'ACTIVE' ? 'green' : 'default'">{{ binding.status === 'ACTIVE' ? '启用' : '已停用' }}</a-tag></div>
               <strong>{{ binding.triggerEvent === 'MANUAL' ? actionName(binding.actionId) : eventLabel(binding.triggerEvent) }} → {{ binding.executionMode === 'DIRECT' ? '直接保存' : flowName(binding.flowId) }}</strong>
               <p>{{ modeLabel(binding.executionMode) }} · {{ binding.flowVersionNumber ? versionLabel(binding.flowVersionNumber) : '不启动流程' }} · 优先级 {{ binding.priorityOrder }}</p>
+              <small v-if="binding.schedule">周期：{{ scheduleSummary(binding.schedule) }}<br /></small>
               <small>条件：{{ conditionSummary(bindingCondition(binding.condition,binding.conditionExpression), conditionFields) }} · 已发布</small>
             </article>
           </div>
@@ -298,7 +364,7 @@ onMounted(loadCatalog)
 
         <section class="panel-card flow-binding-resolver">
           <div class="panel-title"><span><strong>真实解析验证</strong><small>按当前工作空间、触发点和业务条件验证最终流程</small></span></div>
-          <a-select :value="sampleRecordId" allow-clear placeholder="选择已有记录填入测试值" style="width:100%;margin-bottom:12px" :options="sampleRecords.map(record=>({value:record.id,label:record.title}))" @update:value="useSample" />
+          <a-select v-if="!reliableEvent" :value="sampleRecordId" allow-clear placeholder="选择已有记录填入测试值" style="width:100%;margin-bottom:12px" :options="sampleRecords.map(record=>({value:record.id,label:record.title}))" @update:value="useSample" />
           <a-form layout="vertical">
             <a-form-item v-for="field in testFields" :key="field.code" :label="field.name">
               <ConditionValueInput :field="field" :model-value="sampleValues[field.code]" @update:model-value="sampleValues[field.code]=$event; preview=undefined; resolution=undefined" />
@@ -315,6 +381,20 @@ onMounted(loadCatalog)
               <a-descriptions-item label="快照节点">{{ ((resolution.definitionSnapshot.nodes as unknown[]) || []).length }} 个</a-descriptions-item>
             </a-descriptions></template>
           </a-result>
+        </section>
+
+        <section v-if="reliableEvent" class="panel-card">
+          <div class="panel-title"><span><strong>{{ form.triggerEvent === 'SCHEDULED' ? '下一次执行与近期结果' : '近期事件触发结果' }}</strong><small>{{ form.triggerEvent === 'SCHEDULED' ? '显示下一次计划时间和实际启动结果' : form.triggerEvent === 'EXCEPTION' ? '显示导入失败和模块校验异常的脱敏投递结果，不展示字段原值' : '显示真实导入事件的可靠投递结果，不展示导入原始字段和值' }}</small></span><a-tag>{{ eventDeliveries.length }} 条</a-tag></div>
+          <div v-if="eventDeliveries.length" class="flow-binding-list">
+            <article v-for="row in eventDeliveries" :key="row.id">
+              <div><a-tag :color="row.status === 'PUBLISHED' ? 'green' : row.status === 'FAILED' ? 'orange' : 'blue'">{{ eventDeliveryStatus(row) }}</a-tag><a-tag>{{ eventSourceLabel(row) }}</a-tag></div>
+              <strong>{{ eventLabel(row.eventType) }}</strong>
+              <p v-if="eventBusinessSummary(row)">{{ eventBusinessSummary(row) }}</p>
+              <p>{{ row.occurredTime ? new Date(row.occurredTime).toLocaleString() : '等待记录时间' }}<template v-if="row.retryCount"> · 已重试 {{ row.retryCount }} 次</template></p>
+              <small v-if="row.lastError">{{ row.lastError }}</small>
+            </article>
+          </div>
+          <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="form.triggerEvent === 'SCHEDULED' ? '发布周期配置后，这里会显示下一次执行计划' : form.triggerEvent === 'EXCEPTION' ? '还没有导入失败或模块业务校验异常' : '还没有实际导入事件；完成一次导入后可在这里查看结果'" />
         </section>
       </main>
     </div>

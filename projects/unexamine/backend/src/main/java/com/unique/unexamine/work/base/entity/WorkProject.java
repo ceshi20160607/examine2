@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 工作项目
  * </p>
  *
  * @author Template Base
@@ -44,6 +44,48 @@ public class WorkProject {
 
     @TableField("`description`")
     private String description;
+
+    /**
+     * 客户名称
+     */
+    @TableField("customer_name")
+    private String customerName;
+
+    /**
+     * 内部部门名称
+     */
+    @TableField("internal_department_name")
+    private String internalDepartmentName;
+
+    /**
+     * 项目阶段
+     */
+    @TableField("stage")
+    private String stage;
+
+    /**
+     * 项目标签列表
+     */
+    @TableField("labels_json")
+    private String labelsJson;
+
+    /**
+     * 关联业务类型
+     */
+    @TableField("business_type")
+    private String businessType;
+
+    /**
+     * 关联业务记录标识
+     */
+    @TableField("business_id")
+    private String businessId;
+
+    /**
+     * 关联业务记录标题
+     */
+    @TableField("business_title")
+    private String businessTitle;
 
     @TableField("owner_account_id")
     private Long ownerAccountId;
@@ -137,6 +179,62 @@ public class WorkProject {
         this.description = description;
     }
 
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getInternalDepartmentName() {
+        return internalDepartmentName;
+    }
+
+    public void setInternalDepartmentName(String internalDepartmentName) {
+        this.internalDepartmentName = internalDepartmentName;
+    }
+
+    public String getStage() {
+        return stage;
+    }
+
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+
+    public String getLabelsJson() {
+        return labelsJson;
+    }
+
+    public void setLabelsJson(String labelsJson) {
+        this.labelsJson = labelsJson;
+    }
+
+    public String getBusinessType() {
+        return businessType;
+    }
+
+    public void setBusinessType(String businessType) {
+        this.businessType = businessType;
+    }
+
+    public String getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(String businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getBusinessTitle() {
+        return businessTitle;
+    }
+
+    public void setBusinessTitle(String businessTitle) {
+        this.businessTitle = businessTitle;
+    }
+
     public Long getOwnerAccountId() {
         return ownerAccountId;
     }
@@ -220,6 +318,13 @@ public class WorkProject {
             ", code = " + code +
             ", name = " + name +
             ", description = " + description +
+            ", customerName = " + customerName +
+            ", internalDepartmentName = " + internalDepartmentName +
+            ", stage = " + stage +
+            ", labelsJson = " + labelsJson +
+            ", businessType = " + businessType +
+            ", businessId = " + businessId +
+            ", businessTitle = " + businessTitle +
             ", ownerAccountId = " + ownerAccountId +
             ", ownerTenantMemberId = " + ownerTenantMemberId +
             ", startDate = " + startDate +

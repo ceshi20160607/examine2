@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.application.base.mapper.AppProviderEventMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.application.base.entity.AppProviderEvent">
+        <id column="id" property="id" />
+        <result column="connection_id" property="connectionId" />
+        <result column="provider_event_id" property="providerEventId" />
+        <result column="event_code" property="eventCode" />
+        <result column="sender_external_id" property="senderExternalId" />
+        <result column="payload_hash" property="payloadHash" />
+        <result column="status" property="status" />
+        <result column="application_call_id" property="applicationCallId" />
+        <result column="response_code" property="responseCode" />
+        <result column="received_time" property="receivedTime" />
+        <result column="processed_time" property="processedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, connection_id, provider_event_id, event_code, sender_external_id, payload_hash, `status`, application_call_id, response_code, received_time, processed_time
+    </sql>
+
+</mapper>

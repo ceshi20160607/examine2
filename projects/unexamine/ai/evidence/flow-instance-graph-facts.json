@@ -1,0 +1,396 @@
+{
+  "step": "B09.4a",
+  "status": "verified_contribution",
+  "code": "graph_93332d5eab",
+  "fields": {
+    "subject": {
+      "id": 242,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 61,
+      "code": "subject",
+      "name": "业务主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 243,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 61,
+      "code": "score",
+      "name": "业务数量",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 244,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 61,
+      "code": "enabled",
+      "name": "是否启用",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "flows": [
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95
+  ],
+  "actions": [
+    {
+      "idempotencyRecordId": 407,
+      "outboxId": 360,
+      "idempotencyKey": "graph_93332d5eab99a0002c8f67",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 171
+    },
+    {
+      "idempotencyRecordId": 408,
+      "outboxId": 361,
+      "idempotencyKey": "graph_93332d5eab7b9986e81c4c",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 172
+    },
+    {
+      "idempotencyRecordId": 409,
+      "outboxId": 362,
+      "idempotencyKey": "graph_93332d5eab773b6b0e993a",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 173
+    },
+    {
+      "idempotencyRecordId": 410,
+      "outboxId": 363,
+      "idempotencyKey": "graph_93332d5eabf47d78918c96",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 174
+    },
+    {
+      "idempotencyRecordId": 411,
+      "outboxId": 366,
+      "idempotencyKey": "graph_93332d5eab4a09551c1ed8",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 175
+    },
+    {
+      "idempotencyRecordId": 412,
+      "outboxId": 367,
+      "idempotencyKey": "graph_93332d5eab8d32f8139812",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 176
+    },
+    {
+      "idempotencyRecordId": 413,
+      "outboxId": 368,
+      "idempotencyKey": "graph_93332d5eab1e701949eac9",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 177
+    },
+    {
+      "idempotencyRecordId": 414,
+      "outboxId": 369,
+      "idempotencyKey": "graph_93332d5eab3b993d36a6c3",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 178
+    },
+    {
+      "idempotencyRecordId": 415,
+      "outboxId": 370,
+      "idempotencyKey": "graph_93332d5eabe5e8f13009f1",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 179
+    },
+    {
+      "idempotencyRecordId": 416,
+      "outboxId": 371,
+      "idempotencyKey": "graph_93332d5eab7e4abae9fcda",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 180
+    },
+    {
+      "idempotencyRecordId": 417,
+      "outboxId": 373,
+      "idempotencyKey": "graph_93332d5eab19e132ebc326",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 181
+    },
+    {
+      "idempotencyRecordId": 418,
+      "outboxId": 374,
+      "idempotencyKey": "graph_93332d5eabeac37ef8001c",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 182
+    }
+  ],
+  "platform_instances": [
+    183,
+    184,
+    185,
+    186
+  ],
+  "records": [
+    212,
+    213,
+    214,
+    215
+  ],
+  "cases": [
+    {
+      "case": "initial_or_sign_snapshot_missing_account_actual_409_no_formal_write_terminated_precise_failed_fixture",
+      "instance_ids": [
+        171,
+        172
+      ]
+    },
+    {
+      "case": "ordinary_source_add_all_sign_and_cc_real_candidate_timeout_once_formal_write_template_other_instance_history_unchanged",
+      "instance_id": 173
+    },
+    {
+      "case": "preview_no_mutation_same_request_replay_different_body_actor_stale_conflict_no_write",
+      "instance_id": 173
+    },
+    {
+      "case": "sql_oracle_initial_charset_mismatch_actual_cc_exists_verified_using_utf8_connection"
+    },
+    {
+      "case": "concurrent_current_instance_graph_versions_only_one_addition",
+      "instance_id": 175
+    },
+    {
+      "case": "current_permission_disabled_member_duplicate_people_invalid_type_position_unchanged",
+      "instance_id": 176
+    },
+    {
+      "case": "real_instance_lock_wait_revoked_add_permission_rechecked_after_acquisition_no_mutation",
+      "instance_id": 176
+    },
+    {
+      "case": "add_permission_does_not_grant_guessed_same_realm_instance_visibility",
+      "instance_id": 177
+    },
+    {
+      "case": "terminal_and_frozen_disallow_legacy_entry_strict_boolean_new_publication_not_inflight",
+      "instance_ids": [
+        173,
+        178,
+        176,
+        179
+      ]
+    },
+    {
+      "case": "same_backend_restart_persistent_graph_history_other_instance_exact_readback"
+    },
+    {
+      "case": "numeric_candidate_existing_storage_string_actual_422_branch_no_transition_no_formal_write",
+      "instance_id": 180
+    },
+    {
+      "case": "dynamic_sequential_frozen_branch_numeric_protocol_fix_actual_retry_once_formal_write",
+      "instance_id": 180
+    },
+    {
+      "case": "dynamic_assignee_currently_disabled_before_execution_exception_no_task_no_formal_write",
+      "instance_id": 181
+    },
+    {
+      "case": "changed_shared_numeric_storage_repeat_approval_typed_condition_genuine_human_current_fact_regression",
+      "instance_id": 182
+    },
+    {
+      "case": "gui_after_original_approval_dynamic_approval_pending_cc_not_yet_sent"
+    },
+    {
+      "case": "actual_gui_cc_one_selected_recipient_reason_raw_variable_not_expanded",
+      "instance_id": 183,
+      "message_id": 427
+    },
+    {
+      "case": "ordinary_gui_switch_saved_reopened_published_v2_frozen_v1_unchanged_existing_allowed_new_disallowed"
+    },
+    {
+      "case": "actual_gui_completion_stays_on_own_completed_instance_no_other_action_button"
+    },
+    {
+      "case": "actual_ordinary_platform_gui_preview_confirm_persistent_graph_two_real_approval_and_one_cc_other_instance_original"
+    },
+    {
+      "case": "final_numeric_storage_backend_restart_eight_system_platform_instance_graphs_history_exact_readback"
+    },
+    {
+      "case": "exact_fixture_role_identity_pending_jobs_tasks_cleanup_archives_golden_unchanged",
+      "records_archived": 4
+    }
+  ],
+  "api_started": true,
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "checked_time": "2026-09-19T05:38:43.964318+08:00",
+  "module_id": 61,
+  "registration": {
+    "account_id": 94,
+    "system_id": 96,
+    "username": "graph_93332d5eab_a184b6"
+  },
+  "api_member": 157,
+  "main_instance": 173,
+  "baseline_instance": 174,
+  "template_baseline": [
+    [
+      "94",
+      "1",
+      "21e0ccbbfc4379ac9ee2d0ddb5671079c5ec4ca77237319c4b26f40aabbe817f",
+      "{\"code\": \"graph_93332d5eab_913db4\", \"name\": \"?????????\", \"edges\": [{\"id\": 405, \"config\": {}, \"edgeKey\": \"edge_0\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"review\", \"conditionExpression\": null}, {\"id\": 406, \"config\": {}, \"edgeKey\": \"edge_1\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 563, \"name\": \"??\", \"config\": {\"moduleId\": 61}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 564, \"name\": \"??????\", \"config\": {\"approvalMode\": \"OR_SIGN\"}, \"nodeKey\": \"review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"220.000\", \"positionY\": \"100.000\", \"formPolicy\": {\"editable\": [\"subject\", \"score\", \"enabled\"], \"required\": [\"subject\"]}, \"timeoutPolicy\": {\"action\": \"REMIND\", \"timeoutMinutes\": 60}, \"assigneePolicy\": {\"type\": \"PERSON\", \"tenantMemberIds\": [74, 153]}, \"exceptionPolicy\": {}}, {\"id\": 565, \"name\": \"??\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"440.000\", \"positionY\": \"100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 89, \"systemId\": 54, \"tenantId\": 57, \"platformId\": 1, \"contextType\": \"SYSTEM\", \"formContext\": {\"fields\": [{\"id\": 242, \"code\": \"subject\", \"name\": \"????\", \"editable\": true, \"fieldType\": \"TEXT\", \"dictionaryId\": null, \"referenceModuleId\": null}, {\"id\": 243, \"code\": \"score\", \"name\": \"????\", \"editable\": true, \"fieldType\": \"NUMBER\", \"dictionaryId\": null, \"referenceModuleId\": null}, {\"id\": 244, \"code\": \"enabled\", \"name\": \"????\", \"editable\": true, \"fieldType\": \"BOOLEAN\", \"dictionaryId\": null, \"referenceModuleId\": null}], \"moduleId\": 61, \"moduleCode\": \"graph_93332d5eab\", \"moduleVersionId\": 109}, \"draftRevision\": 2, \"schemaVersion\": 1, \"conditionContext\": {\"fields\": [], \"moduleId\": 61, \"moduleCode\": \"graph_93332d5eab\", \"fieldBindings\": [], \"moduleVersionId\": 109}}"
+    ]
+  ],
+  "main_dynamic_node": "runtime_2da71c6d803d4f11aa2a41b7558b4254",
+  "retired_registrations": [
+    {
+      "account_id": 91,
+      "system_id": 93,
+      "username": "graph_93332d5eab_1286f1"
+    },
+    {
+      "account_id": 92,
+      "system_id": 94,
+      "username": "graph_93332d5eab_2b3566"
+    },
+    {
+      "account_id": 93,
+      "system_id": 95,
+      "username": "graph_93332d5eab_f2e149"
+    }
+  ],
+  "api_verified": true,
+  "restart_verified": true,
+  "extra_failed_instance": 180,
+  "extra_verified": true,
+  "gui_registration": {
+    "account_id": 95,
+    "system_id": 97,
+    "username": "graph_93332d5eab_gui"
+  },
+  "gui_account": 95,
+  "gui_platform_member": 93,
+  "ordinary_platform_role_baseline": [],
+  "platform_role_id": 5,
+  "ordinary_platform_link_id": 6,
+  "gui_flow": 95,
+  "gui_instance": 183,
+  "platform_baseline_instance": 184,
+  "gui_prepared": true,
+  "gui_template_v1_baseline": [
+    [
+      "103",
+      "1",
+      "46158d40fda80c4b1bcfa792c32774c6601457edf5f0d1e6253a55ea2333206e",
+      "7B22636F6465223A202267726170685F393333333264356561625F616132376465222C20226E616D65223A2022E699AEE9809AE9A1B5E99DA2E9858DE7BDAEE5BD93E5898DE5AE9EE4BE8BE5908EE7BBADE88A82E782B9222C20226564676573223A205B7B226964223A203433302C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203433312C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203539382C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B2272756E74696D6552756C6573223A207B22616C6C6F774164644E6F646573223A20747275657D7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203539392C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B39355D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203630302C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A2039352C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ]
+  ],
+  "selection_regression_instance": 185,
+  "gui_disabled_new_instance": 186,
+  "gui_template_v1_post_publish": [
+    [
+      "103",
+      "1",
+      "46158d40fda80c4b1bcfa792c32774c6601457edf5f0d1e6253a55ea2333206e",
+      "7B22636F6465223A202267726170685F393333333264356561625F616132376465222C20226E616D65223A2022E699AEE9809AE9A1B5E99DA2E9858DE7BDAEE5BD93E5898DE5AE9EE4BE8BE5908EE7BBADE88A82E782B9222C20226564676573223A205B7B226964223A203433302C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203433312C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203539382C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B2272756E74696D6552756C6573223A207B22616C6C6F774164644E6F646573223A20747275657D7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203539392C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B39355D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203630302C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A2039352C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ]
+  ],
+  "gui_verified": true,
+  "final_restart_verified": true,
+  "cleanup_verified": true,
+  "verified_time": "2026-09-19T05:39:54.908688+08:00"
+}

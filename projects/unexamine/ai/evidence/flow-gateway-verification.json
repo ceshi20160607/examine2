@@ -1,0 +1,92 @@
+{
+  "step": "B10.1a",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0880",
+    "R0887",
+    "R0888",
+    "R0889",
+    "R0939",
+    "R0940",
+    "R0942",
+    "R0945",
+    "R0992"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowGatewayPolicy.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+    "projects/unexamine/frontend/src/product/flow-designer.ts",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "Execution context passed before implementation. The existing flow version, execution, task, action and history storage were reused; no duplicate workflow engine, scheduler, backend, frontend or Redis service was added.",
+    "Publish validation rejected an unpaired or invalid split/merge topology. The designer exposes structured Chinese controls for conditional, parallel, inclusive and merge gateways, reciprocal pairing and typed edge conditions without a JSON editor.",
+    "Parallel routing created all branch executions. Inclusive routing froze every matching typed-condition branch and selected its one unconditional fallback only when no condition matched. Old gateways without gatewayMode remained exclusive-compatible.",
+    "Every branch execution persisted its parentExecutionId. Concurrent branch tasks advanced independently; a merge waited for the frozen selected branch count and continued downstream exactly once.",
+    "Same-key task replay, duplicate merge arrival and concurrent completion did not duplicate downstream execution, the join action or END execution. Split and join public history exposed counts and modes without condition values or variables.",
+    "The ordinary designer GUI showed gateway mode and paired merge selectors; the ordinary runtime GUI showed both branch executions, their parent chain, waiting 1/2, joined 2/2 and a single continuation.",
+    "Six isolated actual case groups covered invalid topology, old-version compatibility, parallel and inclusive routing, fallback behavior, concurrent completion/replay, ordinary GUI, two same-backend restarts and exact cleanup.",
+    "JDK21 backend compile/package and focused pure flow policy tests passed. Frontend vue-tsc, four flow-designer tests and the final production build passed. Packet git diff --check passed with existing CRLF normalization warnings only.",
+    "The legacy HTTP Testcontainers suite was intentionally not counted: its container bootstrap failed before product tests because the local environment could not establish a loopback connection; shared-service API/database/restart acceptance passed independently.",
+    "Cleanup disabled owned flows 136-140, left zero unfinished tasks, jobs and executions for owned instances 247-251, and preserved existing Module51."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/flow-gateway-acceptance.py",
+    "projects/unexamine/ai/evidence/flow-gateway-facts.json"
+  ],
+  "permission_or_failure_result": "Gateway publication and execution are server-authoritative. Invalid topology cannot publish; parallel edges cannot carry conditions; inclusive routing freezes the selected branch set; merge continuation is protected by the locked instance and a unique GATEWAY_JOIN idempotency key. Duplicate arrivals and action replay cannot mutate downstream state twice.",
+  "remaining": "This closes the bounded parallel, inclusive and merge gateway contribution. Subflow, remaining automatic business/notification/wait/webhook nodes, controlled applications, external channels and all other product requirements remain required.",
+  "next_step": "B10.1b",
+  "next_scope": "Implement the structured subflow contract: select a published child flow and typed input/output mappings without JSON, validate self/cyclic references, persist the parent-child execution relationship, wait and resume the parent exactly once across child success/failure/retry/restart, expose readable runtime status, and verify actual API/database/GUI/failure/restart/cleanup.",
+  "integrated_verification": "6 actual case groups, backend compile/package and focused tests, frontend type/tests/build, ordinary GUI, API/database readback, two same-container restarts and exact cleanup passed.",
+  "completion_credit": false,
+  "verified_time": "2026-09-19T11:08:52.525934+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowGatewayPolicy.java",
+      "sha256": "c3827275f3268cab17fa3070ba5726db4d57caf4b940b86a4b7d8d2df3d54fa6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "30060169cb3c74ead05fda781e09b74520adc98038b8a5802f79f7ac9b5d4963"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "e3df4aa07e889a9c6cf68a64d615f5ea32f90173861395c668707554b9a637d2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/FlowGraphCanvas.vue",
+      "sha256": "e13834234e71e4a20b5c8a8d18fcc80a46680ff5d0174ba4e0c630f112dda964"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/flow-designer.ts",
+      "sha256": "2aa42e53d803d61665042ffeab2cdff6f07bd195f9718d212d36898eed109183"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "fd1d1d90d1a56953b8de50d1914454611caf16a22966234adf85d01baa9f08ad"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "e7a9e785d3ef06b0d560688925c3d3a01ee394512629a79e83e5dab1c70446d1"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowRuntimeView.vue",
+      "sha256": "0dd7d109da623ccbfae15bf831e9fb540276cff0b5ccde16c7d3258c9a1accf6"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/flow-gateway-acceptance.py",
+      "sha256": "7cf7d2baf505dc333ac3c5f1757d26d3d5762b33d7d8ec729812b4d017c22801"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/flow-gateway-facts.json",
+      "sha256": "ab8e8494927e511c498ad5ecee64277ad94b598b2851782826fbf9732e83087f"
+    }
+  ]
+}

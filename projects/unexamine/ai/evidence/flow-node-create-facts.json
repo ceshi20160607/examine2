@@ -1,0 +1,1244 @@
+{
+  "step": "B09.1b.3",
+  "status": "verified_contribution",
+  "code": "node_create_3d570bbf3e",
+  "fields": {
+    "subject": {
+      "id": 204,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "subject",
+      "name": "事项主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 205,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "score",
+      "name": "优先分值",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 206,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "enabled",
+      "name": "是否紧急",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "occurred": {
+      "id": 207,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "occurred",
+      "name": "发生时间",
+      "fieldType": "DATETIME",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 3,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "day": {
+      "id": 208,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "day",
+      "name": "业务日期",
+      "fieldType": "DATE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 4,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "choices": {
+      "id": 209,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "choices",
+      "name": "事项标签",
+      "fieldType": "MULTI_SELECT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 11,
+      "referenceModuleId": null,
+      "sortOrder": 5,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "credential": {
+      "id": 210,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "credential",
+      "name": "业务密钥",
+      "fieldType": "SECRET",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 6,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "person": {
+      "id": 211,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "person",
+      "name": "关联成员",
+      "fieldType": "MEMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 7,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "department": {
+      "id": 212,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "department",
+      "name": "关联部门",
+      "fieldType": "DEPARTMENT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 8,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "related": {
+      "id": 213,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "related",
+      "name": "关联事项",
+      "fieldType": "REFERENCE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": 54,
+      "sortOrder": 9,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "city": {
+      "id": 214,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "city",
+      "name": "地区",
+      "fieldType": "CASCADE",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": 12,
+      "referenceModuleId": null,
+      "sortOrder": 10,
+      "status": "ACTIVE",
+      "configJson": "{\"maxDepth\":2,\"allowIntermediate\":false,\"saveMode\":\"PATH\"}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "locked": {
+      "id": 215,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "locked",
+      "name": "系统维护内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 11,
+      "status": "ACTIVE",
+      "configJson": "{\"readOnly\":true}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "hidden": {
+      "id": 216,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "hidden",
+      "name": "内部隐藏内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 12,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "flow_denied": {
+      "id": 217,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 55,
+      "code": "flow_denied",
+      "name": "流程渠道禁止内容",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 13,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "cases": [
+    {
+      "case": "isolated_create_binding_real_options_no_formal_record",
+      "module_id": 55,
+      "formal_count": 0
+    },
+    {
+      "case": "ordinary_gui_create_starts_approval_without_formal_row",
+      "instance_id": 96,
+      "formal_count": 0
+    },
+    {
+      "case": "ordinary_create_first_node_submission_no_formal_and_original_unchanged",
+      "instance_id": 96
+    },
+    {
+      "case": "ordinary_create_final_original_identity_exactly_one_formal_row",
+      "record_id": 177,
+      "formal_count": 1
+    },
+    {
+      "case": "create_virtual_options_typed_protected_snapshot_replay_and_final_once",
+      "record_id": 178,
+      "formal_count": 2
+    },
+    {
+      "case": "create_later_reject_produces_no_formal_row",
+      "instance_id": 98,
+      "formal_count": 2
+    },
+    {
+      "case": "original_create_permission_revoked_final_approval_no_formal_record",
+      "instance_id": 99,
+      "status": "CONFLICT",
+      "error_code": "PERMISSION_DENIED",
+      "formal_count": 2
+    },
+    {
+      "case": "create_secret_final_storage_and_changed_common_update_custom_task_options_integrated",
+      "record_id": 178,
+      "version": 2,
+      "formal_count": 2
+    },
+    {
+      "case": "create_omitted_uses_frozen_original_default_node_explicit_null_remains_cleared_on_final_save",
+      "record_id": 179,
+      "original_default": 17,
+      "final_field_empty": true,
+      "formal_count": 3
+    },
+    {
+      "case": "create_isolated_cleanup_original_role_and_golden_baselines_restored"
+    }
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "checked_time": "2026-09-19T02:14:01.337450+08:00",
+  "target_id": 54,
+  "preparation_failures": [
+    {
+      "chunk": "e36368",
+      "cause": "隔离字段请求漏sortOrder，真实400；按现有FieldRequest修正，不改产品校验，恢复target54继续不重复创建。"
+    }
+  ],
+  "target_record": 176,
+  "city": [
+    26,
+    27
+  ],
+  "module_id": 55,
+  "gui_flow": 32,
+  "api_flow": 33,
+  "prepared": true,
+  "gui_action": {
+    "outboxId": 254,
+    "idempotencyRecordId": 344,
+    "flowInstanceId": 96
+  },
+  "gui_original_intent": {
+    "actor": {
+      "roleIds": [
+        114
+      ],
+      "memberId": 101,
+      "mfaLevel": "NONE",
+      "systemId": 54,
+      "tenantId": 57,
+      "username": "shared_catalog_browser_j6ttb1j8r2g",
+      "accountId": 69,
+      "sessionId": 2217,
+      "dataScopes": {
+        "FLOW:SYSTEM:HANDLE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "FLOW:SYSTEM:VIEW_RUNTIME": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:CREATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_target_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_target_4a356e1ce2:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e_target:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e_target:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:SOURCE_FILL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:ACTION_TENANT_ACCEPT": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:ACTION_1B6DB1864661": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        }
+      },
+      "platformId": 1,
+      "displayName": "来源表单普通页面验收",
+      "permissions": [
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "HANDLE",
+          "resourceCode": "SYSTEM",
+          "resourceType": "FLOW"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "VIEW_RUNTIME",
+          "resourceCode": "SYSTEM",
+          "resourceType": "FLOW"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "ACTION_TENANT_ACCEPT",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "SOURCE_FILL",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "extension_target_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "extension_target_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "CREATE",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "node_create_3d570bbf3e_target",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "node_create_3d570bbf3e_target",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "ACTION_1B6DB1864661",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        }
+      ],
+      "tenantMemberId": 108
+    },
+    "options": {
+      "depth": 0,
+      "channel": "PAGE",
+      "causationId": null,
+      "idempotencyKey": "c33d9f48-05ba-49c1-abca-1030ce971165",
+      "applicationCode": "runtime"
+    },
+    "payload": {
+      "title": "普通页面新建审批验收",
+      "fields": {
+        "day": null,
+        "city": null,
+        "score": 10,
+        "person": null,
+        "choices": null,
+        "enabled": true,
+        "related": null,
+        "subject": "普通页面原新建申请",
+        "occurred": null,
+        "department": null,
+        "flow_denied": null
+      },
+      "status": "ACTIVE",
+      "departmentId": null,
+      "recordNumber": null,
+      "ownerMemberId": 101,
+      "participantMemberIds": []
+    },
+    "traceId": "a876a0d0eb0f40ebb05dcc4e34eaede3",
+    "moduleId": 55,
+    "recordId": null,
+    "actionCode": "CREATE",
+    "moduleCode": "node_create_3d570bbf3e",
+    "dataTenantId": 57,
+    "configVersionId": 98,
+    "expectedVersion": null
+  },
+  "gui_record": 177,
+  "api_action": {
+    "idempotencyRecordId": 345,
+    "outboxId": 256,
+    "idempotencyKey": "node_create_cdc019065438",
+    "status": "PENDING_APPROVAL",
+    "replayed": false,
+    "mode": "AFTER_APPROVAL",
+    "value": null,
+    "flowInstanceId": 97
+  },
+  "api_record": 178,
+  "api_verified": true,
+  "withdraw_action": {
+    "outboxId": 259,
+    "idempotencyRecordId": 347,
+    "flowInstanceId": 99
+  },
+  "withdraw_intent": {
+    "actor": {
+      "roleIds": [
+        114
+      ],
+      "memberId": 101,
+      "mfaLevel": "NONE",
+      "systemId": 54,
+      "tenantId": 57,
+      "username": "shared_catalog_browser_j6ttb1j8r2g",
+      "accountId": 69,
+      "sessionId": 2217,
+      "dataScopes": {
+        "FLOW:SYSTEM:HANDLE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "FLOW:SYSTEM:VIEW_RUNTIME": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:CREATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_target_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_target_4a356e1ce2:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e_target:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:node_create_3d570bbf3e_target:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:LIST": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:SOURCE_FILL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:DETAIL": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:UPDATE": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:extension_accept_4a356e1ce2:ACTION_TENANT_ACCEPT": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        },
+        "MODULE:shared_private_accept_4a356e1ce2:ACTION_1B6DB1864661": {
+          "mode": "ALL",
+          "terms": [
+            {
+              "type": "ALL",
+              "roleIds": [
+                114
+              ],
+              "condition": null
+            }
+          ]
+        }
+      },
+      "platformId": 1,
+      "displayName": "来源表单普通页面验收",
+      "permissions": [
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "HANDLE",
+          "resourceCode": "SYSTEM",
+          "resourceType": "FLOW"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "VIEW_RUNTIME",
+          "resourceCode": "SYSTEM",
+          "resourceType": "FLOW"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "ACTION_TENANT_ACCEPT",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "SOURCE_FILL",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "extension_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "extension_target_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "extension_target_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "CREATE",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "node_create_3d570bbf3e",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "node_create_3d570bbf3e_target",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "node_create_3d570bbf3e_target",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "ACTION_1B6DB1864661",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "DETAIL",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "LIST",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        },
+        {
+          "roleIds": [
+            114
+          ],
+          "actionCode": "UPDATE",
+          "resourceCode": "shared_private_accept_4a356e1ce2",
+          "resourceType": "MODULE"
+        }
+      ],
+      "tenantMemberId": 108
+    },
+    "options": {
+      "depth": 0,
+      "channel": "PAGE",
+      "causationId": null,
+      "idempotencyKey": "513d8226-4a6b-4ed9-902d-3893ebe35e99",
+      "applicationCode": "runtime"
+    },
+    "payload": {
+      "title": "原新建权限撤销验收",
+      "fields": {
+        "day": null,
+        "city": null,
+        "score": null,
+        "person": null,
+        "choices": null,
+        "enabled": false,
+        "related": null,
+        "subject": "待审批原申请不得越权落库",
+        "occurred": null,
+        "department": null,
+        "flow_denied": null
+      },
+      "status": "ACTIVE",
+      "departmentId": null,
+      "recordNumber": null,
+      "ownerMemberId": 101,
+      "participantMemberIds": []
+    },
+    "traceId": "caf35458a9b24c689e9fd40f263b39b1",
+    "moduleId": 55,
+    "recordId": null,
+    "actionCode": "CREATE",
+    "moduleCode": "node_create_3d570bbf3e",
+    "dataTenantId": 57,
+    "configVersionId": 98,
+    "expectedVersion": null
+  },
+  "original_create_revoked": true,
+  "withdraw_verified": true,
+  "integrated_verified": true,
+  "default_record": 179,
+  "defaults_verified": true,
+  "cleanup_verified": true,
+  "verified_time": "2026-09-19T02:16:13.588807+08:00",
+  "ordinary_ui_readback": "普通GUI原新建96/177，重新进入正式详情显示补充主题/0/否；99原CREATE撤销后已审批完成但CONFLICT不生成正式记录。",
+  "fixture_navigation_note": "准备脚本为target和main各显式发送groupName新建模式，产生同名不同ID分组；源码已有groupId选择既有组，普通设计器区分existing/new。只停用本次两个无其他模块的空验收组，不能把脚本重复新建误当运行壳层重复。详情关闭后同批点击新建被异步路由清理，稳定后打开成功；未在本包泛改路由，保留继续核查线索。"
+}

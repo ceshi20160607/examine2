@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "step": "B10.2c.2b",
+  "nextStep": "B10.2c.2c",
+  "artifactIntegrity": "passed",
+  "completionCredit": false,
+  "verified_time": "2026-09-20T15:57:37.212191+08:00",
+  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/flow-schedule-verification.json"
+}

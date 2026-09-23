@@ -16,6 +16,11 @@ public final class BusinessAction {
         public String effectiveKey() {
             return idempotencyKey == null ? UUID.randomUUID().toString() : idempotencyKey.strip();
         }
+
+        /** 将缺省请求标识固化一次，保证同一动作事务及其失败事实使用同一个稳定键。 */
+        public Options materialized() {
+            return new Options(effectiveKey(), channel, applicationCode, causationId, depth);
+        }
     }
 
     public record Input(AuthenticatedContext actor, Long dataTenantId, Long moduleId, String moduleCode,

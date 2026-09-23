@@ -27,4 +27,35 @@ describe('Cycle 49 structured report definition', () => {
       relations: [], metric: { operation: 'COUNT' }, dimension: {}, filters: [],
     })
   })
+
+  it('keeps a third module and multiple named filters in one bounded relation tree', () => {
+    const definition = buildReportDefinition({
+      primaryModuleCode: 'customers', relatedModuleCode: 'orders', thirdModuleCode: 'details',
+      primaryRelationField: 'id', relatedRelationField: 'customer_id',
+      thirdRelationParentAlias: 'related', thirdParentField: 'id', thirdRelationField: 'order_id',
+      outputFields: ['primary.title', 'related.amount', 'third.quantity'],
+      metricOperation: 'SUM', metricField: 'related.amount',
+      filters: [
+        { field: 'primary.status', operator: 'EQ', value: 'ACTIVE' },
+        { field: 'third.quantity', operator: 'GTE', value: '2' },
+      ],
+      maxScanRows: 1000, limit: 20,
+    })
+    expect(definition.modules).toHaveLength(3)
+    expect(definition.relations).toEqual([
+      expect.objectContaining({ leftAlias: 'primary', rightAlias: 'related' }),
+      expect.objectContaining({ leftAlias: 'related', rightAlias: 'third', leftField: 'id', rightField: 'order_id' }),
+    ])
+    expect(definition.filters).toEqual([
+      { alias: 'primary', fieldCode: 'status', operator: 'EQ', value: 'ACTIVE' },
+      { alias: 'third', fieldCode: 'quantity', operator: 'GTE', value: '2' },
+    ])
+  })
+
+  it('does not silently discard an unfinished fixed filter', () => {
+    const definition = buildReportDefinition({ primaryModuleCode: 'customers', outputFields: ['primary.title'],
+      metricOperation: 'COUNT', filters: [{ field: '', operator: 'EQ', value: 'ACTIVE' }],
+      maxScanRows: 100, limit: 20 })
+    expect(definition.filters).toEqual([{ alias: '', fieldCode: '', operator: 'EQ', value: 'ACTIVE' }])
+  })
 })

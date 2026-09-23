@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,30 @@ public class FileController {
         return ApiResult.ok(service.list(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
     }
 
+    @GetMapping("/policy")
+    public ApiResult<FileModels.StoragePolicyView> policy(HttpServletRequest request) {
+        return ApiResult.ok(service.policy(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
+    }
+
+    @GetMapping("/storage")
+    public ApiResult<List<FileModels.StorageBackendView>> storage(HttpServletRequest request) {
+        return ApiResult.ok(service.storageBackends(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
+    }
+
+    @PutMapping("/storage/object")
+    public ApiResult<FileModels.StorageBackendView> configureObjectStorage(
+            @Valid @RequestBody FileModels.ConfigureObjectStorageRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.configureObjectStorage(AuthenticationContextHolder.require(), input,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/storage/object/deactivate")
+    public ApiResult<FileModels.StorageBackendView> deactivateObjectStorage(HttpServletRequest request) {
+        return ApiResult.ok(service.deactivateObjectStorage(AuthenticationContextHolder.require(),
+                TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/{fileId}")
     public ApiResult<FileModels.FileView> detail(@PathVariable Long fileId, HttpServletRequest request) {
         return ApiResult.ok(service.detail(AuthenticationContextHolder.require(), fileId,
@@ -47,6 +72,45 @@ public class FileController {
             @Valid @RequestBody FileModels.StartUploadRequest input,
             HttpServletRequest request) {
         return ApiResult.ok(service.start(AuthenticationContextHolder.require(), input, TraceIdFilter.current(request)));
+    }
+
+    @GetMapping("/uploads/{sessionId}")
+    public ApiResult<FileModels.UploadSessionView> uploadStatus(
+            @PathVariable Long sessionId,
+            @RequestHeader("X-Upload-Token") String uploadToken,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.uploadStatus(AuthenticationContextHolder.require(), sessionId, uploadToken,
+                TraceIdFilter.current(request)));
+    }
+
+    @PutMapping(value = "/uploads/{sessionId}/chunks", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ApiResult<FileModels.UploadChunkView> uploadChunk(
+            @PathVariable Long sessionId,
+            @RequestParam Long offset,
+            @RequestHeader("X-Upload-Token") String uploadToken,
+            @RequestHeader("X-Chunk-Sha256") String chunkSha256,
+            @RequestBody byte[] content,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.uploadChunk(AuthenticationContextHolder.require(), sessionId, uploadToken,
+                offset, chunkSha256, content, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/uploads/{sessionId}/complete")
+    public ApiResult<FileModels.FileView> completeUpload(
+            @PathVariable Long sessionId,
+            @RequestHeader("X-Upload-Token") String uploadToken,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.completeUpload(AuthenticationContextHolder.require(), sessionId, uploadToken,
+                TraceIdFilter.current(request)));
+    }
+
+    @DeleteMapping("/uploads/{sessionId}")
+    public ApiResult<FileModels.UploadSessionView> cancelUpload(
+            @PathVariable Long sessionId,
+            @RequestHeader("X-Upload-Token") String uploadToken,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.cancelUpload(AuthenticationContextHolder.require(), sessionId, uploadToken,
+                TraceIdFilter.current(request)));
     }
 
     @PutMapping(value = "/uploads/{sessionId}/content", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)

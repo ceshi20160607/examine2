@@ -1,0 +1,86 @@
+{
+  "step": "B07.4b.2c.3",
+  "status": "verified_contribution",
+  "verified_at": "2026-09-18T18:15:49.777446+08:00",
+  "source_rows": [
+    "R0971",
+    "R0987",
+    "R0989",
+    "R2888",
+    "R2889",
+    "R2890",
+    "R2892",
+    "R1172"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/frontend/src/product/components/BusinessActionReceipt.vue",
+    "projects/unexamine/frontend/src/product/components/BusinessActionApprovalDrawer.vue",
+    "projects/unexamine/frontend/src/product/types.ts"
+  ],
+  "checks_actual_results": [
+    "Current original action-owned readonly progress GET moduleCode/actionId uses authoritative actionDelivery and actual internal START/outbox/instance association, real original actor/system/tenant/member, source data tenant/Flow version and businessType. No caller-supplied tenant/instance trust. Current actor permissions/share/range rechecked, CUSTOM additionally UPDATE; record optional only normal current DETAIL and PAGE field masks, no proposed payload or old snapshot.",
+    "Actual ordinary69 only recipient57 role114, zero source77 membership: genuine private47 action263 -> source63 WAITING and source154v4 unchanged. Current UPDATE/CUSTOM still authorized but DETAIL removed returns readable progress and no business data. Source root approves task; actual63 COMPLETED, businessEXECUTED and source154v5, DB/outbox/audit preserve actor69/tenant57/dataTenant77; protected private field unchanged.",
+    "Actual ordinary action264/source64 REJECTED: old source154v5 and last approved value retained; actual page shows rejection/current value, source approval comment/private fields/candidate configs absent. Current original UPDATE removal403, SELF action/update scope403, original CUSTOM removed from share404, genuine share expiry404, full share revoke404 and source77 disabled404 all clear loaded nodes/history/record; current role/share/source restored with deadline/revoked fields NULL, source data/history retained.",
+    "Actual ordinary69 zero source member INITIATOR action266/source66 enters EXCEPTION/PENDING_APPROVAL, never saves proposed source value; generic admin-handling progress no raw error/config/variables/candidates. FLOW_ONLY action269/source69 same initial exception readable, human business label flow initiated, source154v5 unchanged. Both own fixture instances closed by authorized source root via product API, snapshot/history preserved.",
+    "Actual pending CREATE control268/source68 has null businessId/no formal record, readonly progress WAITING recordnull then withdrawn. Actual source-own control267/source67 projection schema excludes source config/variables/raw errors, wrong module/action404 and arbitrary query instance62/sourceTenant57 cannot redirect association; manual62 has no internal business-action link and reserved manual START prefix422. General foreign source63/64 instance route404 even for recipient root with VIEW_RUNTIME; actual ordinary flow workspace blocked, no borrowed source role/catalog or write entry.",
+    "Actual current PAGE FULL field mask on ordinary progress shows *** with original value/protected fields absent, original role restored. Current cold browser page rehydrates own historical269, opens TERMINATED progress, current-code navigation to denied Flow and back restores progress entry without reload and closes old drawer. Independent actual-SFC/real-Vue memory renderer cases pass0 (no props, refresh, re-mount, module/identity revisions and null-flow negative). First long-lived old developer history page lacked new button, retained as cache inference; no unsupported product patch.",
+    "Actual pending receipt/progress exposed existing primitive long/null ternary NPE; fixed nullable result-record branch and reused same263, no duplicate submission. Initial synchronous deferred exception exposed outbox persisted after start; original event now saved before Flow start and returned instance bound afterward in same transaction, uncommitted event not dispatched and failure rolls everything back. Failed ordinary start65 rollback/no orphan/source154v5 verified, same failed intent retry ->66 success. No weaker snapshot/identity fallback.",
+    "Root JDK21 package/compile exit0 for justified common executor fixes; same mapped-JAR backend stopped before packages and final HTTP UP. Root final frontend vue-tsc+vite build exit0, existing chunk warning; agent strict SFC/checks and readonly review. Diff check0. Existing MySQL/backend/native Vite/shared Redis reused; no DDL/Base/generated entry edits, no new containers, no full test reruns.",
+    "Final normal ordinary typed DIRECT private CUSTOM after executor fix saved source154v6 exactly once with actor69/tenant57/source77 audit, protected hidden unchanged and no new Flow; common main/extension151v11/source-only field retained. All6 new synthetic Flow instances closed with history, original role114 sole108 assignment, source77 active/share17 ACTIVE null expiry/revocation. CREATE/CUSTOM bindings restored DIRECT via product API. Current20 directed actual business/page/API/DB groups passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/source-action-progress-facts.json",
+    "projects/unexamine/frontend/target/flow-receipt-review/restore-check.mjs"
+  ],
+  "permission_or_failure_result": "Bounded action-owned readonly source approval progress verified. Whole approval/product requirements incomplete; no general source Flow permission expansion.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "29d71045d39f7d26b811401094b8ee8d3b28db5159846124f151763e34db5394"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+      "sha256": "e3ce826cd013aa7069e84a39a53b673ca6f6481e732ee4670a772173a89f96e3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "851e499067bffdae34fb1500985842db03f9d2a05f82b03cbf3f5ec44e173b9f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+      "sha256": "8f7b3d2346e6d1312515dc863db72fafb25522cb9fc2d80671666860fc91bc10"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationControlService.java",
+      "sha256": "6ecee31f4f4e6781df206e1df5513990a9a91d2349c55872f30aaee844ee3b2e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "2656b70f64013a39ee4a2cd9d4744e2cad40929c976fb0d4c10f2a6c003d8643"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/BusinessActionReceipt.vue",
+      "sha256": "f7c4627690b9071b4f2a061645af130eb6029c91b719515da4945c27e9653220"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/BusinessActionApprovalDrawer.vue",
+      "sha256": "5522280f5e24bad7fa33d16750b67e72d8e28c8d5111c53a681388369e2d3d49"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "0daa22b99af9d3d4aa08cf2f3b739b1b4ab0c7753a610ee0b6c751177d7d818b"
+    }
+  ],
+  "remaining": [
+    "B07.4b.2c.3a keeps original-action my-applications directory and trusted notification/todo jumps; full graph/approval operation/explanation/module-designer anchoring and all B10 requirements remain open.",
+    "Observed shared API ISO-offset input rejection500 before mutation: B03.1c explicit next bounded prerequisite; early clock receipt unchanged.",
+    "B07.4b.2c.2b.5 source full fields/global consumers, full B04/B05/B06/B07.4c/R2807 and all platform/application requirements remain incomplete."
+  ],
+  "next_step": "B03.1c"
+}

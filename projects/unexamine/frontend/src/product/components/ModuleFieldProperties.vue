@@ -10,11 +10,14 @@ export interface FieldConfigurationForm {
   defaultValue?: unknown; placeholder: string; minLength?: number; maxLength?: number
   patternMode: string; customPattern: string; richTextMode: string; jsonSchema: JsonSchema
   currency: string; precision: number; maxDepth: number; allowIntermediate: boolean; saveMode: string
+  cascadeDisplayFieldCode: string; cascadeValueFieldCode: string; cascadeParentFieldCode: string
   sequenceCode: string; expression: string; modelCode: string; humanConfirmation: boolean; sensitive: boolean; readOnly: boolean; version: number
 }
 defineProps<{
   fieldForm: FieldConfigurationForm; editing?: boolean; fieldConfigurationIssue: string
   dictionaryOptions: Array<{ value: number; label: string }>; referenceModuleOptions: Array<{ value: number; label: string }>
+  cascadeDisplayOptions: Array<{ value: string; label: string }>; cascadeValueOptions: Array<{ value: string; label: string }>
+  cascadeParentOptions: Array<{ value: string; label: string }>; cascadeTargetError: string
   availableAiModels: Array<{ code: string; name: string; provider: string }>
 }>()
 const patternModeOptions = [
@@ -34,14 +37,14 @@ const patternModeOptions = [
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
         <template v-if="supportsTextConstraints(fieldForm.fieldType)">
           <a-alert v-if="builtInTextFormat(fieldForm.fieldType)" type="info" show-icon class="section-alert" :message="builtInTextFormat(fieldForm.fieldType)" />
-          <div class="form-grid"><a-form-item label="最短长度"><a-input-number v-model:value="fieldForm.minLength" :min="0" :max="100000" placeholder="不限" style="width:100%" /></a-form-item>
-            <a-form-item label="最长长度"><a-input-number v-model:value="fieldForm.maxLength" :min="1" :max="100000" placeholder="不限" style="width:100%" /></a-form-item></div>
+          <div class="form-grid"><a-form-item label="最短长度"><a-input-number v-model:value="fieldForm.minLength" :min="0" :max="fieldForm.fieldType === 'SECRET' ? 4096 : 100000" placeholder="不限" style="width:100%" /></a-form-item>
+            <a-form-item label="最长长度"><a-input-number v-model:value="fieldForm.maxLength" :min="1" :max="fieldForm.fieldType === 'SECRET' ? 4096 : 100000" placeholder="不限" style="width:100%" /></a-form-item></div>
           <a-form-item v-if="fieldForm.fieldType !== 'RICH_TEXT'" label="附加格式规则" extra="常用格式直接选择；只有特殊业务规则才需要自定义正则表达式。"><a-select v-model:value="fieldForm.patternMode" :options="patternModeOptions" /></a-form-item>
           <a-form-item v-if="fieldForm.patternMode === 'CUSTOM'" label="自定义正则表达式" required extra="按完整字段值校验，例如 ^VIP-[0-9]{6}$"><a-input v-model:value="fieldForm.customPattern" placeholder="输入完整匹配表达式" /></a-form-item>
         </template>
         <a-form-item v-if="fieldForm.fieldType === 'RICH_TEXT'" label="格式工具栏"><a-radio-group v-model:value="fieldForm.richTextMode"><a-radio value="BASIC">基础格式</a-radio><a-radio value="FULL">含列表、标题和链接</a-radio></a-radio-group></a-form-item>
         <a-form-item v-if="fieldForm.fieldType === 'JSON'" label="内容结构" extra="添加属性、选择类型和必填条件；支持嵌套属性组和多行列表。"><StructuredSchemaEditor v-model="fieldForm.jsonSchema" /></a-form-item>
-        <a-form-item label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
+        <a-form-item v-if="fieldForm.fieldType !== 'SECRET'" label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
           <RichTextEditor v-if="fieldForm.fieldType === 'RICH_TEXT'" v-model="fieldForm.defaultValue" :mode="fieldForm.richTextMode" :max-length="fieldForm.maxLength" />
           <template v-else-if="fieldForm.fieldType === 'JSON'">
             <a-button v-if="fieldForm.defaultValue === undefined" @click="fieldForm.defaultValue = emptyJsonValue(fieldForm.jsonSchema)">设置默认内容</a-button>
@@ -64,6 +67,12 @@ const patternModeOptions = [
           <a-alert type="info" show-icon message="级联字段只能选择一种数据源" class="section-alert" />
           <a-form-item label="层级字典"><a-select v-model:value="fieldForm.dictionaryId" allow-clear :options="dictionaryOptions" @change="fieldForm.referenceModuleId = undefined" /></a-form-item>
           <a-form-item label="或模块数据源"><a-select v-model:value="fieldForm.referenceModuleId" allow-clear :options="referenceModuleOptions" @change="fieldForm.dictionaryId = undefined" /></a-form-item>
+          <template v-if="fieldForm.referenceModuleId">
+            <a-alert v-if="cascadeTargetError" type="warning" show-icon :message="cascadeTargetError" class="section-alert" />
+            <a-form-item label="显示字段" required extra="层级选择和记录展示使用这个业务名称。"><a-select v-model:value="fieldForm.cascadeDisplayFieldCode" show-search :options="cascadeDisplayOptions" /></a-form-item>
+            <a-form-item label="值字段" required extra="选择目标模块的记录 ID、记录编号或已建立唯一约束的字段。"><a-select v-model:value="fieldForm.cascadeValueFieldCode" show-search :options="cascadeValueOptions" /></a-form-item>
+            <a-form-item label="父级字段" required extra="目标模块须先发布一个指向自身的关联字段，以确定层级关系。"><a-select v-model:value="fieldForm.cascadeParentFieldCode" show-search :options="cascadeParentOptions" /></a-form-item>
+          </template>
           <div class="form-grid"><a-form-item label="最大层级"><a-input-number v-model:value="fieldForm.maxDepth" :min="1" :max="20" /></a-form-item><a-form-item label="允许选中间层"><a-switch v-model:checked="fieldForm.allowIntermediate" /></a-form-item></div>
           <a-form-item label="保存方式"><a-radio-group v-model:value="fieldForm.saveMode"><a-radio value="FINAL">最终项</a-radio><a-radio value="PATH">完整路径</a-radio></a-radio-group></a-form-item>
         </template>
@@ -79,7 +88,7 @@ const patternModeOptions = [
           <a-form-item label="授权模型" required><a-select v-model:value="fieldForm.modelCode" show-search :options="availableAiModels.map(model => ({ value: model.code, label: `${model.name} · ${model.provider}` }))" placeholder="仅显示当前系统已授权模型" /></a-form-item>
           <a-form-item label="写入控制"><a-checkbox v-model:checked="fieldForm.humanConfirmation">每次写入前必须人工确认</a-checkbox></a-form-item>
         </template>
-        <a-form-item v-if="fieldForm.fieldType === 'SECRET'" label="敏感字段"><a-checkbox v-model:checked="fieldForm.sensitive">按敏感字段权限、脱敏和审计处理</a-checkbox></a-form-item>
+        <a-form-item v-if="fieldForm.fieldType === 'SECRET'" label="敏感字段" extra="密码和密钥固定按敏感字段处理，不设置明文默认值。"><a-checkbox :checked="true" disabled>按敏感字段权限、脱敏和审计处理</a-checkbox></a-form-item>
         <a-form-item v-if="fieldForm.fieldType.startsWith('SYSTEM_')" label="系统字段"><a-checkbox v-model:checked="fieldForm.readOnly">只读，由系统维护</a-checkbox></a-form-item>
         <a-alert v-if="fieldConfigurationIssue" type="warning" show-icon :message="fieldConfigurationIssue" />
       </a-form>

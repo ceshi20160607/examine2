@@ -1,0 +1,604 @@
+{
+  "step": "B04.1b",
+  "status": "verified_contribution",
+  "module_id": 45,
+  "cases": [
+    {
+      "case": "tenant77_main_action_collision_atomic",
+      "status": 422,
+      "error_code": "TENANT_EXTENSION_INVALID"
+    },
+    {
+      "case": "tenant77_unknown_parameter_atomic",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_FIELD_INVALID"
+    },
+    {
+      "case": "tenant77_duplicate_parameter_atomic",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_CONFIG_INVALID"
+    },
+    {
+      "case": "tenant77_physical_identity_logical_published_action_and_own_catalog",
+      "action": {
+        "id": 480,
+        "code": "ACTION_TENANT_ACCEPT",
+        "name": "来源扩展填写动作",
+        "source": "TENANT",
+        "status": "ACTIVE",
+        "version": 0,
+        "location": "ROW",
+        "moduleId": 45,
+        "systemId": 54,
+        "createdAt": null,
+        "mandatory": false,
+        "sortOrder": 10,
+        "updatedAt": null,
+        "actionType": "CUSTOM",
+        "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"choice\",\"city\",\"related\"]}",
+        "ownerTenantId": 77,
+        "sourceTenantId": 77
+      },
+      "catalog": {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "name": "正式扩展公共表单",
+        "actions": [
+          "ACTION_TENANT_ACCEPT",
+          "ARCHIVE",
+          "CONVERT",
+          "CREATE",
+          "DELETE",
+          "DETAIL",
+          "EXPORT",
+          "IMPORT",
+          "LIST",
+          "PRINT",
+          "RESTORE",
+          "SHARE",
+          "TRANSFER",
+          "UPDATE"
+        ],
+        "fields": [
+          "subject",
+          "choice",
+          "city",
+          "related",
+          "hidden"
+        ],
+        "actionNames": {
+          "ACTION_TENANT_ACCEPT": "来源扩展填写动作",
+          "ARCHIVE": "归档",
+          "CONVERT": "转化记录",
+          "CREATE": "新建",
+          "DELETE": "删除",
+          "DETAIL": "详情",
+          "EXPORT": "导出",
+          "IMPORT": "导入",
+          "LIST": "列表",
+          "PRINT": "打印",
+          "RESTORE": "恢复",
+          "SHARE": "共享给租户",
+          "TRANSFER": "转交负责人",
+          "UPDATE": "编辑"
+        },
+        "fieldNames": {
+          "subject": "公共主题",
+          "choice": "来源扩展选择",
+          "city": "来源扩展地区",
+          "related": "来源扩展关联",
+          "hidden": "来源扩展私有字段"
+        }
+      }
+    },
+    {
+      "case": "tenant57_main_action_collision_atomic",
+      "status": 422,
+      "error_code": "TENANT_EXTENSION_INVALID"
+    },
+    {
+      "case": "tenant57_unknown_parameter_atomic",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_FIELD_INVALID"
+    },
+    {
+      "case": "tenant57_duplicate_parameter_atomic",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_CONFIG_INVALID"
+    },
+    {
+      "case": "tenant57_physical_identity_logical_published_action_and_own_catalog",
+      "action": {
+        "id": 481,
+        "code": "ACTION_TENANT_ACCEPT",
+        "name": "接收方扩展填写动作",
+        "source": "TENANT",
+        "status": "ACTIVE",
+        "version": 0,
+        "location": "ROW",
+        "moduleId": 45,
+        "systemId": 54,
+        "createdAt": null,
+        "mandatory": false,
+        "sortOrder": 10,
+        "updatedAt": null,
+        "actionType": "CUSTOM",
+        "configJson": "{\"operation\":\"UPDATE_FIELDS\",\"parameterFieldCodes\":[\"subject\"]}",
+        "ownerTenantId": 57,
+        "sourceTenantId": 57
+      },
+      "catalog": {
+        "resourceType": "MODULE",
+        "resourceCode": "extension_accept_4a356e1ce2",
+        "name": "正式扩展公共表单",
+        "actions": [
+          "ACTION_TENANT_ACCEPT",
+          "ARCHIVE",
+          "CONVERT",
+          "CREATE",
+          "DELETE",
+          "DETAIL",
+          "EXPORT",
+          "IMPORT",
+          "LIST",
+          "PRINT",
+          "RESTORE",
+          "SHARE",
+          "TRANSFER",
+          "UPDATE"
+        ],
+        "fields": [
+          "subject",
+          "choice",
+          "city",
+          "related",
+          "hidden",
+          "extension_mu6mcrsn"
+        ],
+        "actionNames": {
+          "ACTION_TENANT_ACCEPT": "接收方扩展填写动作",
+          "ARCHIVE": "归档",
+          "CONVERT": "转化记录",
+          "CREATE": "新建",
+          "DELETE": "删除",
+          "DETAIL": "详情",
+          "EXPORT": "导出",
+          "IMPORT": "导入",
+          "LIST": "列表",
+          "PRINT": "打印",
+          "RESTORE": "恢复",
+          "SHARE": "共享给租户",
+          "TRANSFER": "转交负责人",
+          "UPDATE": "编辑"
+        },
+        "fieldNames": {
+          "subject": "公共主题",
+          "choice": "接收方扩展选择",
+          "city": "接收方扩展地区",
+          "related": "接收方扩展关联",
+          "hidden": "接收方扩展私有字段",
+          "extension_mu6mcrsn": "页面配置状态"
+        }
+      }
+    },
+    {
+      "case": "foreign_tenant_action_identity_rejected_without_any_write",
+      "status": 422,
+      "error_code": "TENANT_EXTENSION_INVALID"
+    },
+    {
+      "case": "old_save_contract_preserves_existing_extension_action",
+      "id": 480
+    },
+    {
+      "case": "rollback_removes_action_from_effective_runtime_catalog_and_restores_same_identity"
+    },
+    {
+      "case": "main_draft_excludes_foreign_fields_actions_and_cannot_edit_internal_foreign_action",
+      "status": 404
+    },
+    {
+      "case": "main_republication_keeps_extension_physical_rows_out_of_base_snapshot",
+      "version_id": 73,
+      "base_fields": [
+        {
+          "id": 141,
+          "code": "subject",
+          "name": "公共主题",
+          "status": "ACTIVE",
+          "version": 0,
+          "moduleId": 45,
+          "required": true,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.524+08:00",
+          "fieldType": "TEXT",
+          "sortOrder": 0,
+          "updatedAt": "2026-09-18T15:04:04.524+08:00",
+          "configJson": "{\"maxLength\": 80}",
+          "searchable": false,
+          "uniqueValue": false,
+          "dictionaryId": null,
+          "ownerTenantId": 56,
+          "referenceModuleId": null,
+          "access": {
+            "channel": "PAGE",
+            "readable": true,
+            "writable": true,
+            "reason": "字段通过所有贡献角色与PAGE渠道硬限制"
+          }
+        }
+      ],
+      "base_actions": [
+        {
+          "id": 456,
+          "code": "LIST",
+          "name": "列表",
+          "status": "ACTIVE",
+          "version": 1,
+          "location": "MODULE_ENTRY",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.448+08:00",
+          "sortOrder": 0,
+          "updatedAt": "2026-09-18T15:04:04.448+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 457,
+          "code": "DETAIL",
+          "name": "详情",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "ROW",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.45+08:00",
+          "sortOrder": 10,
+          "updatedAt": "2026-09-18T15:04:04.45+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 458,
+          "code": "CREATE",
+          "name": "新建",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "LIST_TOOLBAR",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.452+08:00",
+          "sortOrder": 20,
+          "updatedAt": "2026-09-18T15:04:04.452+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 459,
+          "code": "UPDATE",
+          "name": "编辑",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_HEADER",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.454+08:00",
+          "sortOrder": 30,
+          "updatedAt": "2026-09-18T15:04:04.454+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 460,
+          "code": "ARCHIVE",
+          "name": "归档",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_MORE",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.455+08:00",
+          "sortOrder": 40,
+          "updatedAt": "2026-09-18T15:04:04.455+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 461,
+          "code": "DELETE",
+          "name": "删除",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_MORE",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.457+08:00",
+          "sortOrder": 50,
+          "updatedAt": "2026-09-18T15:04:04.457+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 462,
+          "code": "RESTORE",
+          "name": "恢复",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_HEADER",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.459+08:00",
+          "sortOrder": 60,
+          "updatedAt": "2026-09-18T15:04:04.459+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 463,
+          "code": "TRANSFER",
+          "name": "转交负责人",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_MORE",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.46+08:00",
+          "sortOrder": 70,
+          "updatedAt": "2026-09-18T15:04:04.46+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 464,
+          "code": "CONVERT",
+          "name": "转化记录",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_MORE",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.462+08:00",
+          "sortOrder": 80,
+          "updatedAt": "2026-09-18T15:04:04.462+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 465,
+          "code": "SHARE",
+          "name": "共享给租户",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "DETAIL_MORE",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.464+08:00",
+          "sortOrder": 90,
+          "updatedAt": "2026-09-18T15:04:04.464+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 466,
+          "code": "IMPORT",
+          "name": "导入",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "LIST_TOOLBAR",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.466+08:00",
+          "sortOrder": 100,
+          "updatedAt": "2026-09-18T15:04:04.466+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        },
+        {
+          "id": 467,
+          "code": "EXPORT",
+          "name": "导出",
+          "status": "ACTIVE",
+          "version": 0,
+          "location": "LIST_TOOLBAR",
+          "moduleId": 45,
+          "systemId": 54,
+          "createdAt": "2026-09-18T15:04:04.468+08:00",
+          "sortOrder": 110,
+          "updatedAt": "2026-09-18T15:04:04.468+08:00",
+          "actionType": "BUILTIN",
+          "configJson": "{}",
+          "ownerTenantId": 56
+        }
+      ]
+    },
+    {
+      "case": "readOnly_existing_parameter_atomically_rejected",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_FIELD_INVALID"
+    },
+    {
+      "case": "unsupported_PERCENT_parameter_atomically_rejected",
+      "status": 422,
+      "error_code": "CUSTOM_ACTION_FIELD_INVALID"
+    }
+  ],
+  "prior_current_versions": {
+    "77": 2,
+    "57": 4
+  },
+  "checked_time": "2026-09-18T15:54:28.981465+08:00",
+  "published_versions": {
+    "77": 7,
+    "57": 6
+  },
+  "preparation_failures": [
+    {
+      "reason": "('/api/admin/module-config/modules/45/publish', 409, 'PUBLICATION_VERSION_CONFLICT', '当前草稿修订已经发布')",
+      "meaning": "Exact main draft revision was already published;409 duplicate publication correctly produced no base change. No passed action cases repeated; create next revision via normal unchanged main action save."
+    }
+  ],
+  "physical_readback": [
+    [
+      "456",
+      "54",
+      "56",
+      "45",
+      "LIST",
+      "BUILTIN",
+      "ACTIVE",
+      "1"
+    ],
+    [
+      "457",
+      "54",
+      "56",
+      "45",
+      "DETAIL",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "458",
+      "54",
+      "56",
+      "45",
+      "CREATE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "459",
+      "54",
+      "56",
+      "45",
+      "UPDATE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "460",
+      "54",
+      "56",
+      "45",
+      "ARCHIVE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "461",
+      "54",
+      "56",
+      "45",
+      "DELETE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "462",
+      "54",
+      "56",
+      "45",
+      "RESTORE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "463",
+      "54",
+      "56",
+      "45",
+      "TRANSFER",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "464",
+      "54",
+      "56",
+      "45",
+      "CONVERT",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "465",
+      "54",
+      "56",
+      "45",
+      "SHARE",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "466",
+      "54",
+      "56",
+      "45",
+      "IMPORT",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "467",
+      "54",
+      "56",
+      "45",
+      "EXPORT",
+      "BUILTIN",
+      "ACTIVE",
+      "0"
+    ],
+    [
+      "480",
+      "54",
+      "77",
+      "45",
+      "__t77_ACTION_TENANT_ACCEPT",
+      "CUSTOM",
+      "ACTIVE",
+      "1"
+    ],
+    [
+      "481",
+      "54",
+      "57",
+      "45",
+      "__t57_ACTION_TENANT_ACCEPT",
+      "CUSTOM",
+      "ACTIVE",
+      "0"
+    ]
+  ],
+  "page_fixture_assignment": {
+    "account": 69,
+    "recipient_only": 57,
+    "temporary_config_role": 73,
+    "restore_role": 114,
+    "source_memberships": 0,
+    "restored": true
+  },
+  "recipient_page_published_current": 8,
+  "remaining": "Next source runtime action metadata/options/read-write/Flow checks and real ordinary invocation. Keep exact source/recipient action fixtures and ordinary69; whole B04/R2807, source-only resource/structure and all other requirements remain open."
+}

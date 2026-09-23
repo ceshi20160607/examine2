@@ -1,0 +1,1424 @@
+{
+  "step": "B09.2c.2",
+  "status": "verified_contribution",
+  "code": "claim_fb97bb758f",
+  "fields": {
+    "subject": {
+      "id": 254,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 65,
+      "code": "subject",
+      "name": "业务主题",
+      "fieldType": "TEXT",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 0,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "score": {
+      "id": 255,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 65,
+      "code": "score",
+      "name": "业务数量",
+      "fieldType": "NUMBER",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 1,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    },
+    "enabled": {
+      "id": 256,
+      "systemId": 54,
+      "ownerTenantId": 57,
+      "moduleId": 65,
+      "code": "enabled",
+      "name": "是否启用",
+      "fieldType": "BOOLEAN",
+      "required": false,
+      "uniqueValue": false,
+      "searchable": false,
+      "dictionaryId": null,
+      "referenceModuleId": null,
+      "sortOrder": 2,
+      "status": "ACTIVE",
+      "configJson": "{}",
+      "createdAt": null,
+      "updatedAt": null,
+      "version": 0
+    }
+  },
+  "flows": [
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "actions": [
+    {
+      "idempotencyRecordId": 425,
+      "outboxId": 388,
+      "idempotencyKey": "claim_fb97bb758fa9be8d02da0e",
+      "status": "PENDING_APPROVAL",
+      "replayed": false,
+      "mode": "AFTER_APPROVAL",
+      "value": null,
+      "flowInstanceId": 213
+    }
+  ],
+  "platform_instances": [
+    209,
+    210,
+    211,
+    212,
+    214,
+    215,
+    216,
+    217
+  ],
+  "records": [
+    222
+  ],
+  "cases": [
+    "unclaimed-approval-form-and-malicious-claim-no-writes",
+    "real-parallel-claim-one-winner-same-task",
+    "claim-replay-no-writes",
+    "release-same-task-candidates-deadline-job-and-todo-reactivates",
+    "todo-claim-central-entry",
+    "human-transfer-clears-claim-no-release-to-old-pool",
+    "other-candidate-original-todo-reactivates-and-clears-completed-time",
+    "publication-mode-reject-no-frozen-write",
+    "dynamic-before-inherits-claim-and-restores-original-claimer",
+    "real-timeout-transfer-clears-claim",
+    "system-candidate-form-claim-before-write-and-source-once",
+    "single-candidate-claim-and-legacy-direct-compatibility",
+    "gui-claim-switch-mode-block-save-reenter-publish-and-frozen-v1-new-v2",
+    "ordinary-gui-claim-real-frozen-task-no-form-submit",
+    "ordinary-gui-unclaim-same-task-pool-deadline",
+    "same-backend-restart-retains-claimer-time-task-pool-jobs-and-policy",
+    "ordinary-gui-claimed-approval-opinion-real-complete-own-result",
+    "completed-restart-frozen-versions-and-source-once",
+    "exact-fixture-cleanup-and-golden-business-unchanged"
+  ],
+  "golden_baseline": [
+    [
+      "151",
+      "11",
+      "E6ADA3E5BC8FE59FBAE7A180E58FA0E58AA0E69DA5E6BA90E689A9E5B195E9A1B5E99DA2E4BF9DE5AD98E68890E58A9F",
+      "2026-09-18 16:41:48.877"
+    ],
+    [
+      "154",
+      "6",
+      "E69DA5E6BA90E7A781E69C89E585B1E4BAABE4BA8BE9A1B9E699AEE9809AE9A1B5E99DA2E7BC96E8BE91E68890E58A9F",
+      "2026-09-18 18:14:50.204"
+    ],
+    [
+      "170",
+      "0",
+      "E699AEE9809AE9A1B5E99DA2E79C9FE5AE9EE69DA1E4BBB6E5AEA1E689B9",
+      "2026-09-18 23:39:01.272"
+    ]
+  ],
+  "golden_count": [
+    [
+      "4"
+    ]
+  ],
+  "checked_time": "2026-09-19T07:17:07.799798+08:00",
+  "registration": {
+    "account_id": 99,
+    "system_id": 101,
+    "username": "claim_fb97bb758f_gui"
+  },
+  "gui_account": 99,
+  "gui_platform_member": 97,
+  "platform_role_id": 9,
+  "platform_link_id": 10,
+  "api_member": 165,
+  "module_id": 65,
+  "gui_flow": 107,
+  "nodes": [
+    {
+      "nodeKey": "start",
+      "nodeType": "START",
+      "name": "开始",
+      "positionX": 0,
+      "positionY": 100,
+      "config": {
+        "runtimeRules": {
+          "allowAddNodes": true
+        }
+      },
+      "assigneePolicy": {},
+      "formPolicy": {},
+      "timeoutPolicy": {}
+    },
+    {
+      "nodeKey": "review",
+      "nodeType": "APPROVAL",
+      "name": "原始人工核对",
+      "positionX": 220,
+      "positionY": 100,
+      "config": {
+        "approvalMode": "OR_SIGN",
+        "manualOperationPolicy": {
+          "allowedActions": [
+            "APPROVE",
+            "TRANSFER"
+          ],
+          "opinionRequiredActions": [
+            "APPROVE"
+          ],
+          "requireClaim": true
+        }
+      },
+      "assigneePolicy": {
+        "type": "PERSON",
+        "platformAccountIds": [
+          1,
+          99
+        ]
+      },
+      "formPolicy": {},
+      "timeoutPolicy": {
+        "timeoutMinutes": 60,
+        "action": "REMIND"
+      }
+    },
+    {
+      "nodeKey": "end",
+      "nodeType": "END",
+      "name": "结束",
+      "positionX": 440,
+      "positionY": 100,
+      "config": {},
+      "assigneePolicy": {},
+      "formPolicy": {},
+      "timeoutPolicy": {}
+    }
+  ],
+  "edges": [
+    {
+      "edgeKey": "edge_0",
+      "sourceNodeKey": "start",
+      "targetNodeKey": "review",
+      "priorityOrder": 0,
+      "config": {}
+    },
+    {
+      "edgeKey": "edge_1",
+      "sourceNodeKey": "review",
+      "targetNodeKey": "end",
+      "priorityOrder": 0,
+      "config": {}
+    }
+  ],
+  "frozen_instance": 209,
+  "prepared": true,
+  "api_started": true,
+  "main_task": 302,
+  "harness_corrections": [
+    {
+      "tool": "c0751a",
+      "issue": "Todo DTO actual availableActions, initial oracle used allowedActions; only candidateTodo projection created, no manualtask transitions; read actual TodoModels and precise retry asserts originaltask version0/claimnull/action0, no status reset"
+    },
+    {
+      "tool": "dbc518/e868c4",
+      "issue": "dynamic pause intentionally shifts absolute due by paused duration, initial oracle compared absolute due; original304 actuallysameID/PENDING/rootclaim; corrected remainingclock comparison vs persistedframe andactualNODE_RESUMED timestamp. Diagnostic SELECT created_at was incorrect for action entity, no writes. Resume exactatrestoredoriginal beforeworker, no repeatpassedrelease/publication/dynamicwrites",
+      "remaining_proof_scope": "claimActor identity/claimedAt nonnull and frame taskID matched; initial local claimedTime equality had not persisted baseline; full exactclaimedTime continuity additionally verifyGUI pending restart"
+    }
+  ],
+  "main_todo": 20,
+  "api_main_verified": true,
+  "race_winner": "ordinary",
+  "more_started": true,
+  "release_instance": 210,
+  "dynamic_instance": 211,
+  "worker_instance": 212,
+  "source_instance": 213,
+  "single_instance": 214,
+  "legacy_instance": 215,
+  "gui_instance": 216,
+  "gui_version_before": [
+    [
+      "118",
+      "1"
+    ]
+  ],
+  "api_more_verified": true,
+  "gui_original_task": {
+    "id": 310,
+    "nodeKey": "review",
+    "taskType": "APPROVAL",
+    "status": "PENDING",
+    "currentHandler": true,
+    "assigneeTenantMemberId": null,
+    "assigneeName": null,
+    "assigneeDepartment": null,
+    "assigneePosition": null,
+    "assigneeSnapshot": {},
+    "dueAt": "2026-09-19T08:04:57.772+08:00",
+    "claimedAt": null,
+    "completedAt": null,
+    "version": 0,
+    "candidates": [
+      {
+        "id": 330,
+        "candidateType": "PLATFORM_ACCOUNT",
+        "tenantMemberId": null,
+        "accountId": 1,
+        "displayName": "平台超级管理员",
+        "departmentName": null,
+        "positionTitle": null,
+        "resolutionReason": "按发布版本中的指定人员解析",
+        "createdAt": "2026-09-19T07:04:57.778+08:00"
+      },
+      {
+        "id": 331,
+        "candidateType": "PLATFORM_ACCOUNT",
+        "tenantMemberId": null,
+        "accountId": 99,
+        "displayName": "领取规则页面成员",
+        "departmentName": null,
+        "positionTitle": null,
+        "resolutionReason": "按发布版本中的指定人员解析",
+        "createdAt": "2026-09-19T07:04:57.779+08:00"
+      }
+    ]
+  },
+  "gui_original_jobs": [
+    {
+      "id": 84,
+      "executionId": 638,
+      "nodeKey": "review",
+      "jobType": "TASK_TIMEOUT",
+      "status": "PENDING",
+      "attemptCount": 0,
+      "maxAttempts": 1,
+      "nextRunAt": "2026-09-19T08:04:57.772+08:00",
+      "lastErrorCode": null,
+      "lastErrorMessage": null,
+      "completedAt": null,
+      "version": 0
+    }
+  ],
+  "gui_direct_instance": 217,
+  "gui_policy_verified": true,
+  "gui_claimed_state": {
+    "flow_instance": [
+      [
+        "216",
+        "PLATFORM",
+        "1",
+        "NULL",
+        "NULL",
+        "107",
+        "118",
+        "NULL",
+        "NULL",
+        "{}",
+        "?????????????",
+        "review",
+        "WAITING",
+        "1",
+        "NULL",
+        "2026-09-19 07:04:57.755",
+        "NULL",
+        "NULL",
+        "NULL",
+        "2026-09-19 07:04:57.755",
+        "2026-09-19 07:13:19.262",
+        "4"
+      ]
+    ],
+    "flow_instance_variable": [
+      [
+        "1428",
+        "216",
+        "hiddenProbe",
+        "STRING",
+        "\"??????????????\"",
+        "2026-09-19 07:04:57.761",
+        "0"
+      ]
+    ],
+    "flow_task": [
+      [
+        "310",
+        "216",
+        "review",
+        "APPROVAL",
+        "PENDING",
+        "99",
+        "NULL",
+        "{\"sequence\": 1, \"claimPool\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"formPolicy\": {}, \"policyType\": \"PERSON\", \"approvalMode\": \"OR_SIGN\", \"sequenceCount\": 1, \"timeoutPolicy\": {\"action\": \"REMIND\", \"timeoutMinutes\": 60}, \"repeatApproval\": {}, \"resolvedPeople\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"claimActorAccountId\": 99}",
+        "2026-09-19 08:04:57.772",
+        "2026-09-19 07:13:19.262",
+        "NULL",
+        "2026-09-19 07:04:57.772",
+        "2026-09-19 07:13:19.262",
+        "3"
+      ]
+    ],
+    "flow_action": [
+      [
+        "727",
+        "216",
+        "NULL",
+        "start",
+        "START",
+        "NULL",
+        "{\"flowId\": 107, \"variables\": {\"hiddenProbe\": \"??????????????\"}}",
+        "{\"status\": \"WAITING\", \"version\": 1, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "claim_fb97bb758f86c54488164b",
+        "1",
+        "NULL",
+        "2026-09-19 07:04:57.763"
+      ],
+      [
+        "731",
+        "216",
+        "310",
+        "review",
+        "CLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"6077798e964bf8f070beb467abd24e118861d9b0d7ad8c9f35b6d1a5a92e6398\"}",
+        "{\"status\": \"WAITING\", \"version\": 2, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-claim-1789773131958-16qq4ut",
+        "99",
+        "NULL",
+        "2026-09-19 07:12:12.015"
+      ],
+      [
+        "732",
+        "216",
+        "310",
+        "review",
+        "UNCLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"aa9b5cc9853854f89991a1b80aebc8fbe747d41255347f6100038d2c32aed79a\"}",
+        "{\"status\": \"WAITING\", \"version\": 3, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-unclaim-1789773166092-2ot9s6w",
+        "99",
+        "NULL",
+        "2026-09-19 07:12:46.146"
+      ],
+      [
+        "733",
+        "216",
+        "310",
+        "review",
+        "CLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"6077798e964bf8f070beb467abd24e118861d9b0d7ad8c9f35b6d1a5a92e6398\"}",
+        "{\"status\": \"WAITING\", \"version\": 4, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-claim-1789773199221-34fliry",
+        "99",
+        "NULL",
+        "2026-09-19 07:13:19.267"
+      ]
+    ],
+    "flow_history_event": [
+      [
+        "1358",
+        "216",
+        "NULL",
+        "NULL",
+        "start",
+        "INSTANCE",
+        "?????",
+        "1",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "{\"flowVersionId\": 118, \"definitionHash\": \"b869d3951346e6a33426eb73392be12af1efb34426ec5d507d3badc33db860f0\"}",
+        "2026-09-19 07:04:57.759"
+      ],
+      [
+        "1359",
+        "216",
+        "NULL",
+        "NULL",
+        "start",
+        "ACTION",
+        "?????",
+        "1",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "{\"comment\": \"\", \"actionCode\": \"START\"}",
+        "2026-09-19 07:04:57.764"
+      ],
+      [
+        "1360",
+        "216",
+        "638",
+        "NULL",
+        "review",
+        "JOB",
+        "?????????",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "WAITING",
+        "{\"jobType\": \"TASK_TIMEOUT\", \"nextRunAt\": \"2026-09-19T08:04:57.771634736\", \"maxAttempts\": 1}",
+        "2026-09-19 07:04:57.776"
+      ],
+      [
+        "1361",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "???????",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "WAITING",
+        "{\"assignees\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"taskCount\": 1, \"approvalMode\": \"OR_SIGN\"}",
+        "2026-09-19 07:04:57.781"
+      ],
+      [
+        "1368",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"CLAIM\"}",
+        "2026-09-19 07:12:12.017"
+      ],
+      [
+        "1369",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 731}",
+        "2026-09-19 07:12:12.018"
+      ],
+      [
+        "1370",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"UNCLAIM\"}",
+        "2026-09-19 07:12:46.149"
+      ],
+      [
+        "1371",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????????????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 732}",
+        "2026-09-19 07:12:46.151"
+      ],
+      [
+        "1372",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"CLAIM\"}",
+        "2026-09-19 07:13:19.268"
+      ],
+      [
+        "1373",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 733}",
+        "2026-09-19 07:13:19.269"
+      ]
+    ],
+    "flow_job": [
+      [
+        "84",
+        "216",
+        "638",
+        "review",
+        "TASK_TIMEOUT",
+        "PENDING",
+        "{\"taskId\": 310}",
+        "TASK_TIMEOUT:310",
+        "0",
+        "1",
+        "2026-09-19 08:04:57.772",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "2026-09-19 07:04:57.775",
+        "2026-09-19 07:04:57.775",
+        "0"
+      ]
+    ],
+    "flow_execution": [
+      [
+        "637",
+        "216",
+        "NULL",
+        "start",
+        "START",
+        "COMPLETED",
+        "2026-09-19 07:04:57.757",
+        "2026-09-19 07:04:57.757",
+        "STARTED",
+        "1"
+      ],
+      [
+        "638",
+        "216",
+        "NULL",
+        "review",
+        "APPROVAL",
+        "ACTIVE",
+        "2026-09-19 07:04:57.767",
+        "NULL",
+        "NULL",
+        "0"
+      ]
+    ]
+  },
+  "gui_claimed_view": {
+    "id": 216,
+    "contextType": "PLATFORM",
+    "platformId": 1,
+    "systemId": null,
+    "tenantId": null,
+    "flowId": 107,
+    "flowVersionId": 118,
+    "flowVersionNumber": 1,
+    "definitionHash": "b869d3951346e6a33426eb73392be12af1efb34426ec5d507d3badc33db860f0",
+    "definitionSnapshot": {
+      "edges": [
+        {
+          "edgeKey": "edge_0",
+          "sourceNodeKey": "start",
+          "targetNodeKey": "review"
+        },
+        {
+          "edgeKey": "edge_1",
+          "sourceNodeKey": "review",
+          "targetNodeKey": "end"
+        }
+      ],
+      "nodes": [
+        {
+          "nodeKey": "start",
+          "name": "开始",
+          "nodeType": "START"
+        },
+        {
+          "nodeKey": "review",
+          "name": "原始人工核对",
+          "nodeType": "APPROVAL"
+        },
+        {
+          "nodeKey": "end",
+          "name": "结束",
+          "nodeType": "END"
+        }
+      ]
+    },
+    "businessType": null,
+    "businessId": null,
+    "businessSnapshot": {
+      "label": "未关联业务记录"
+    },
+    "businessView": null,
+    "title": "页面候选领取取消与冻结核验",
+    "currentNodeKey": "review",
+    "currentNodeName": "原始人工核对",
+    "status": "WAITING",
+    "startedByTenantMemberId": null,
+    "startedByCurrentUser": false,
+    "startedByName": "平台超级管理员",
+    "startedAt": "2026-09-19T07:04:57.755+08:00",
+    "finishedAt": null,
+    "errorCode": null,
+    "errorMessage": null,
+    "version": 4,
+    "graphRevision": 0,
+    "runtimeNodeAnchors": [
+      {
+        "nodeKey": "end",
+        "name": "结束",
+        "nodeType": "END",
+        "beforeAllowed": true,
+        "afterAllowed": false
+      }
+    ],
+    "variables": {},
+    "tasks": [
+      {
+        "id": 310,
+        "nodeKey": "review",
+        "taskType": "APPROVAL",
+        "status": "PENDING",
+        "currentHandler": true,
+        "assigneeTenantMemberId": null,
+        "assigneeName": "领取规则页面成员",
+        "assigneeDepartment": null,
+        "assigneePosition": null,
+        "assigneeSnapshot": {},
+        "dueAt": "2026-09-19T08:04:57.772+08:00",
+        "claimedAt": "2026-09-19T07:13:19.262+08:00",
+        "completedAt": null,
+        "version": 3,
+        "candidates": [
+          {
+            "id": 330,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 1,
+            "displayName": "平台超级管理员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T07:04:57.778+08:00"
+          },
+          {
+            "id": 331,
+            "candidateType": "PLATFORM_ACCOUNT",
+            "tenantMemberId": null,
+            "accountId": 99,
+            "displayName": "领取规则页面成员",
+            "departmentName": null,
+            "positionTitle": null,
+            "resolutionReason": "按发布版本中的指定人员解析",
+            "createdAt": "2026-09-19T07:04:57.779+08:00"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": 727,
+        "taskId": null,
+        "nodeKey": "start",
+        "actionCode": "START",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "claim_fb97bb758f86c54488164b",
+        "actedByTenantMemberId": null,
+        "actedByName": "平台超级管理员",
+        "actedAt": "2026-09-19T07:04:57.763+08:00"
+      },
+      {
+        "id": 731,
+        "taskId": 310,
+        "nodeKey": "review",
+        "actionCode": "CLAIM",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "flow-claim-1789773131958-16qq4ut",
+        "actedByTenantMemberId": null,
+        "actedByName": "领取规则页面成员",
+        "actedAt": "2026-09-19T07:12:12.015+08:00"
+      },
+      {
+        "id": 732,
+        "taskId": 310,
+        "nodeKey": "review",
+        "actionCode": "UNCLAIM",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "flow-unclaim-1789773166092-2ot9s6w",
+        "actedByTenantMemberId": null,
+        "actedByName": "领取规则页面成员",
+        "actedAt": "2026-09-19T07:12:46.146+08:00"
+      },
+      {
+        "id": 733,
+        "taskId": 310,
+        "nodeKey": "review",
+        "actionCode": "CLAIM",
+        "comment": null,
+        "input": {},
+        "result": {},
+        "idempotencyKey": "flow-claim-1789773199221-34fliry",
+        "actedByTenantMemberId": null,
+        "actedByName": "领取规则页面成员",
+        "actedAt": "2026-09-19T07:13:19.267+08:00"
+      }
+    ],
+    "exceptions": [],
+    "executions": [
+      {
+        "id": 637,
+        "parentExecutionId": null,
+        "nodeKey": "start",
+        "nodeType": "START",
+        "status": "COMPLETED",
+        "enteredAt": "2026-09-19T07:04:57.757+08:00",
+        "leftAt": "2026-09-19T07:04:57.757+08:00",
+        "resultCode": "STARTED",
+        "version": 1
+      },
+      {
+        "id": 638,
+        "parentExecutionId": null,
+        "nodeKey": "review",
+        "nodeType": "APPROVAL",
+        "status": "ACTIVE",
+        "enteredAt": "2026-09-19T07:04:57.767+08:00",
+        "leftAt": null,
+        "resultCode": null,
+        "version": 0
+      }
+    ],
+    "history": [
+      {
+        "id": 1358,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "INSTANCE",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:04:57.759+08:00"
+      },
+      {
+        "id": 1359,
+        "executionId": null,
+        "taskId": null,
+        "nodeKey": "start",
+        "eventType": "ACTION",
+        "eventName": "流程已发起",
+        "actorTenantMemberId": null,
+        "actorName": "平台超级管理员",
+        "beforeStatus": null,
+        "afterStatus": "RUNNING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:04:57.764+08:00"
+      },
+      {
+        "id": 1360,
+        "executionId": 638,
+        "taskId": null,
+        "nodeKey": "review",
+        "eventType": "JOB",
+        "eventName": "已安排审批超时检查",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:04:57.776+08:00"
+      },
+      {
+        "id": 1361,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "审批任务已创建",
+        "actorTenantMemberId": null,
+        "actorName": "系统自动处理",
+        "beforeStatus": "RUNNING",
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:04:57.781+08:00"
+      },
+      {
+        "id": 1368,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "ACTION",
+        "eventName": "待办已领取",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:12:12.017+08:00"
+      },
+      {
+        "id": 1369,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "待办已领取",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": "PENDING",
+        "afterStatus": "PENDING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:12:12.018+08:00"
+      },
+      {
+        "id": 1370,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "ACTION",
+        "eventName": "已取消领取",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:12:46.149+08:00"
+      },
+      {
+        "id": 1371,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "已取消领取，恢复原候选待办",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": "PENDING",
+        "afterStatus": "PENDING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:12:46.151+08:00"
+      },
+      {
+        "id": 1372,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "ACTION",
+        "eventName": "待办已领取",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": null,
+        "afterStatus": "WAITING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:13:19.268+08:00"
+      },
+      {
+        "id": 1373,
+        "executionId": null,
+        "taskId": 310,
+        "nodeKey": "review",
+        "eventType": "TASK",
+        "eventName": "待办已领取",
+        "actorTenantMemberId": null,
+        "actorName": "领取规则页面成员",
+        "beforeStatus": "PENDING",
+        "afterStatus": "PENDING",
+        "detail": {},
+        "occurredAt": "2026-09-19T07:13:19.269+08:00"
+      }
+    ],
+    "jobs": [
+      {
+        "id": 84,
+        "executionId": 638,
+        "nodeKey": "review",
+        "jobType": "TASK_TIMEOUT",
+        "status": "PENDING",
+        "attemptCount": 0,
+        "maxAttempts": 1,
+        "nextRunAt": "2026-09-19T08:04:57.772+08:00",
+        "lastErrorCode": null,
+        "lastErrorMessage": null,
+        "completedAt": null,
+        "version": 0
+      }
+    ],
+    "allowedActions": [
+      "APPROVE",
+      "TRANSFER",
+      "UNCLAIM",
+      "ADD_RUNTIME_NODE"
+    ],
+    "opinionRequiredActions": [
+      "APPROVE"
+    ],
+    "nextStep": "请处理审批节点“原始人工核对”"
+  },
+  "frozen_versions": [
+    [
+      "118",
+      "b869d3951346e6a33426eb73392be12af1efb34426ec5d507d3badc33db860f0",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F623335326562222C20226E616D65223A2022E9A286E58F96E8A784E58899E586BBE7BB93E4B88EE9A1B5E99DA2E9858DE7BDAE222C20226564676573223A205B7B226964223A203530332C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203530342C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203730322C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B2272756E74696D6552756C6573223A207B22616C6C6F774164644E6F646573223A20747275657D7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203730332C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E222C20226D616E75616C4F7065726174696F6E506F6C696379223A207B2272657175697265436C61696D223A20747275652C2022616C6C6F776564416374696F6E73223A205B22415050524F5645222C20225452414E53464552225D2C20226F70696E696F6E5265717569726564416374696F6E73223A205B22415050524F5645225D7D7D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A202252454D494E44222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039395D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203730342C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130372C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20332C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "119",
+      "fb984eb42cb355a1197b36698ba669a45769348d8d983abfe1c939a92d999863",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F653231613861222C20226E616D65223A2022E5B7B2E9A286E58F96E5BE85E58A9EE79C9FE5AE9EE8B685E697B6E8BDACE4BAA4222C20226564676573223A205B7B226964223A203531312C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203531322C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203731342C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203731352C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E222C20226D616E75616C4F7065726174696F6E506F6C696379223A207B2272657175697265436C61696D223A20747275652C2022616C6C6F776564416374696F6E73223A205B22415050524F5645222C20225452414E53464552225D2C20226F70696E696F6E5265717569726564416374696F6E73223A205B22415050524F5645225D7D7D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A20225452414E53464552222C202274696D656F75744D696E75746573223A2036302C2022746172676574506C6174666F726D4163636F756E744964223A20317D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039395D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203731362C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130382C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20332C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "120",
+      "caf210ee991c981206805628b6eeaa2d83e2291acfe7b93c1d92ff939efb2f88",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F636434393039222C20226E616D65223A2022E7B3BBE7BB9FE58099E98089E9A286E58F96E8A1A8E58D95E58E9FE58AA8E4BD9CE4B880E6ACA1222C20226564676573223A205B7B226964223A203531352C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203531362C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203732302C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B226D6F64756C654964223A2036357D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203732312C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E222C20226D616E75616C4F7065726174696F6E506F6C696379223A207B2272657175697265436C61696D223A20747275652C2022616C6C6F776564416374696F6E73223A205B22415050524F5645225D2C20226F70696E696F6E5265717569726564416374696F6E73223A205B22415050524F5645225D7D7D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B226564697461626C65223A205B227375626A656374222C202273636F7265222C2022656E61626C6564225D2C20227265717569726564223A205B227375626A656374225D7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C202274656E616E744D656D626572496473223A205B37342C203136355D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203732322C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130392C202273797374656D4964223A2035342C202274656E616E744964223A2035372C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A202253595354454D222C2022666F726D436F6E74657874223A207B226669656C6473223A205B7B226964223A203235342C2022636F6465223A20227375626A656374222C20226E616D65223A2022E4B89AE58AA1E4B8BBE9A298222C20226564697461626C65223A20747275652C20226669656C6454797065223A202254455854222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D2C207B226964223A203235352C2022636F6465223A202273636F7265222C20226E616D65223A2022E4B89AE58AA1E695B0E9878F222C20226564697461626C65223A20747275652C20226669656C6454797065223A20224E554D424552222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D2C207B226964223A203235362C2022636F6465223A2022656E61626C6564222C20226E616D65223A2022E698AFE590A6E590AFE794A8222C20226564697461626C65223A20747275652C20226669656C6454797065223A2022424F4F4C45414E222C202264696374696F6E6172794964223A206E756C6C2C20227265666572656E63654D6F64756C654964223A206E756C6C7D5D2C20226D6F64756C654964223A2036352C20226D6F64756C65436F6465223A2022636C61696D5F66623937626237353866222C20226D6F64756C6556657273696F6E4964223A203131337D2C202264726166745265766973696F6E223A20332C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B226669656C6473223A205B5D2C20226D6F64756C654964223A2036352C20226D6F64756C65436F6465223A2022636C61696D5F66623937626237353866222C20226669656C6442696E64696E6773223A205B5D2C20226D6F64756C6556657273696F6E4964223A203131337D7D"
+    ],
+    [
+      "121",
+      "39b6c308da713ec9b755236e70bf208105f266a9d93379ccde6e4ea34e59e2d5",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F653466353134222C20226E616D65223A2022E58D95E58099E98089E5BF85E9A1BBE9A286E58F96222C20226564676573223A205B7B226964223A203531392C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203532302C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203732362C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203732372C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E222C20226D616E75616C4F7065726174696F6E506F6C696379223A207B2272657175697265436C61696D223A20747275652C2022616C6C6F776564416374696F6E73223A205B22415050524F5645225D2C20226F70696E696F6E5265717569726564416374696F6E73223A205B5D7D7D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B39395D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203732382C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203131302C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20332C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "122",
+      "5944507625352a0dd6a6c24038ba83f37d7094d18cbf0531fdeb99995e65e63d",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F393433356565222C20226E616D65223A2022E9A286E58F96E58F91E5B883E58D87E7BAA7E697A7E7BCBAE79C81E585BCE5AEB9222C20226564676573223A205B7B226964223A203532312C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203532322C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203732392C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203733302C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E227D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B39395D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203733312C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203131312C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20322C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ],
+    [
+      "123",
+      "26e3af5aa21f195d7b46173b9c382fdfe1331022156a89c9cb3bd9c1484f8762",
+      "7B22636F6465223A2022636C61696D5F666239376262373538665F623335326562222C20226E616D65223A2022E9A286E58F96E8A784E58899E586BBE7BB93E4B88EE9A1B5E99DA2E9858DE7BDAE222C20226564676573223A205B7B226964223A203532352C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F30222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A20227374617274222C20227461726765744E6F64654B6579223A2022726576696577222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D2C207B226964223A203532362C2022636F6E666967223A207B7D2C2022656467654B6579223A2022656467655F31222C202276657273696F6E223A20302C20227072696F726974794F72646572223A20302C2022736F757263654E6F64654B6579223A2022726576696577222C20227461726765744E6F64654B6579223A2022656E64222C2022636F6E646974696F6E45787072657373696F6E223A206E756C6C7D5D2C20226E6F646573223A205B7B226964223A203733352C20226E616D65223A2022E5BC80E5A78B222C2022636F6E666967223A207B2272756E74696D6552756C6573223A207B22616C6C6F774164644E6F646573223A20747275657D7D2C20226E6F64654B6579223A20227374617274222C202276657273696F6E223A20302C20226E6F646554797065223A20225354415254222C2022706F736974696F6E58223A2022302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203733362C20226E616D65223A2022E58E9FE5A78BE4BABAE5B7A5E6A0B8E5AFB9222C2022636F6E666967223A207B22617070726F76616C4D6F6465223A20224F525F5349474E222C20226D616E75616C4F7065726174696F6E506F6C696379223A207B2272657175697265436C61696D223A2066616C73652C2022616C6C6F776564416374696F6E73223A205B22415050524F5645222C20225452414E53464552225D2C20226F70696E696F6E5265717569726564416374696F6E73223A205B22415050524F5645225D7D7D2C20226E6F64654B6579223A2022726576696577222C202276657273696F6E223A20302C20226E6F646554797065223A2022415050524F56414C222C2022706F736974696F6E58223A20223232302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B22616374696F6E223A202252454D494E44222C202274696D656F75744D696E75746573223A2036307D2C202261737369676E6565506F6C696379223A207B2274797065223A2022504552534F4E222C2022706C6174666F726D4163636F756E74496473223A205B312C2039395D7D2C2022657863657074696F6E506F6C696379223A207B7D7D2C207B226964223A203733372C20226E616D65223A2022E7BB93E69D9F222C2022636F6E666967223A207B7D2C20226E6F64654B6579223A2022656E64222C202276657273696F6E223A20302C20226E6F646554797065223A2022454E44222C2022706F736974696F6E58223A20223434302E303030222C2022706F736974696F6E59223A20223130302E303030222C2022666F726D506F6C696379223A207B7D2C202274696D656F7574506F6C696379223A207B7D2C202261737369676E6565506F6C696379223A207B7D2C2022657863657074696F6E506F6C696379223A207B7D7D5D2C2022666C6F774964223A203130372C202273797374656D4964223A206E756C6C2C202274656E616E744964223A206E756C6C2C2022706C6174666F726D4964223A20312C2022636F6E7465787454797065223A2022504C4154464F524D222C2022666F726D436F6E74657874223A207B7D2C202264726166745265766973696F6E223A20372C2022736368656D6156657273696F6E223A20312C2022636F6E646974696F6E436F6E74657874223A207B7D7D"
+    ]
+  ],
+  "claimed_restart_verified": true,
+  "gui_completed_state": {
+    "flow_instance": [
+      [
+        "216",
+        "PLATFORM",
+        "1",
+        "NULL",
+        "NULL",
+        "107",
+        "118",
+        "NULL",
+        "NULL",
+        "{}",
+        "?????????????",
+        "end",
+        "COMPLETED",
+        "1",
+        "NULL",
+        "2026-09-19 07:04:57.755",
+        "2026-09-19 07:15:05.972",
+        "NULL",
+        "NULL",
+        "2026-09-19 07:04:57.755",
+        "2026-09-19 07:15:05.972",
+        "6"
+      ]
+    ],
+    "flow_instance_variable": [
+      [
+        "1428",
+        "216",
+        "hiddenProbe",
+        "STRING",
+        "\"??????????????\"",
+        "2026-09-19 07:04:57.761",
+        "0"
+      ]
+    ],
+    "flow_task": [
+      [
+        "310",
+        "216",
+        "review",
+        "APPROVAL",
+        "APPROVE",
+        "99",
+        "NULL",
+        "{\"sequence\": 1, \"claimPool\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"formPolicy\": {}, \"policyType\": \"PERSON\", \"approvalMode\": \"OR_SIGN\", \"sequenceCount\": 1, \"timeoutPolicy\": {\"action\": \"REMIND\", \"timeoutMinutes\": 60}, \"repeatApproval\": {}, \"resolvedPeople\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"claimActorAccountId\": 99}",
+        "2026-09-19 08:04:57.772",
+        "2026-09-19 07:13:19.262",
+        "2026-09-19 07:15:05.874",
+        "2026-09-19 07:04:57.772",
+        "2026-09-19 07:15:05.874",
+        "4"
+      ]
+    ],
+    "flow_action": [
+      [
+        "727",
+        "216",
+        "NULL",
+        "start",
+        "START",
+        "NULL",
+        "{\"flowId\": 107, \"variables\": {\"hiddenProbe\": \"??????????????\"}}",
+        "{\"status\": \"WAITING\", \"version\": 1, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "claim_fb97bb758f86c54488164b",
+        "1",
+        "NULL",
+        "2026-09-19 07:04:57.763"
+      ],
+      [
+        "731",
+        "216",
+        "310",
+        "review",
+        "CLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"6077798e964bf8f070beb467abd24e118861d9b0d7ad8c9f35b6d1a5a92e6398\"}",
+        "{\"status\": \"WAITING\", \"version\": 2, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-claim-1789773131958-16qq4ut",
+        "99",
+        "NULL",
+        "2026-09-19 07:12:12.015"
+      ],
+      [
+        "732",
+        "216",
+        "310",
+        "review",
+        "UNCLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"aa9b5cc9853854f89991a1b80aebc8fbe747d41255347f6100038d2c32aed79a\"}",
+        "{\"status\": \"WAITING\", \"version\": 3, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-unclaim-1789773166092-2ot9s6w",
+        "99",
+        "NULL",
+        "2026-09-19 07:12:46.146"
+      ],
+      [
+        "733",
+        "216",
+        "310",
+        "review",
+        "CLAIM",
+        "NULL",
+        "{\"requestFingerprint\": \"6077798e964bf8f070beb467abd24e118861d9b0d7ad8c9f35b6d1a5a92e6398\"}",
+        "{\"status\": \"WAITING\", \"version\": 4, \"instanceId\": 216, \"currentNodeKey\": \"review\"}",
+        "flow-claim-1789773199221-34fliry",
+        "99",
+        "NULL",
+        "2026-09-19 07:13:19.267"
+      ],
+      [
+        "734",
+        "216",
+        "310",
+        "review",
+        "APPROVE",
+        "????????????????",
+        "{\"variables\": {}, \"requestFingerprint\": \"dc98e3e5421008507ffe8267d627763db8044bc89c6ee7012d14f17ea633d9db\", \"targetTenantMemberId\": \"\"}",
+        "{\"status\": \"COMPLETED\", \"version\": 6, \"instanceId\": 216, \"currentNodeKey\": \"end\"}",
+        "flow-approve-1789773305782-d5nl8z1",
+        "99",
+        "NULL",
+        "2026-09-19 07:15:05.885"
+      ],
+      [
+        "735",
+        "216",
+        "NULL",
+        "end",
+        "AUTO_END",
+        "NULL",
+        "{}",
+        "{\"status\": \"COMPLETED\", \"version\": 6, \"instanceId\": 216, \"currentNodeKey\": \"end\"}",
+        "AUTO:end:645dc6db-8d3e-4577-a321-c6246bf9da00",
+        "1",
+        "NULL",
+        "2026-09-19 07:15:05.983"
+      ]
+    ],
+    "flow_history_event": [
+      [
+        "1358",
+        "216",
+        "NULL",
+        "NULL",
+        "start",
+        "INSTANCE",
+        "?????",
+        "1",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "{\"flowVersionId\": 118, \"definitionHash\": \"b869d3951346e6a33426eb73392be12af1efb34426ec5d507d3badc33db860f0\"}",
+        "2026-09-19 07:04:57.759"
+      ],
+      [
+        "1359",
+        "216",
+        "NULL",
+        "NULL",
+        "start",
+        "ACTION",
+        "?????",
+        "1",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "{\"comment\": \"\", \"actionCode\": \"START\"}",
+        "2026-09-19 07:04:57.764"
+      ],
+      [
+        "1360",
+        "216",
+        "638",
+        "NULL",
+        "review",
+        "JOB",
+        "?????????",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "WAITING",
+        "{\"jobType\": \"TASK_TIMEOUT\", \"nextRunAt\": \"2026-09-19T08:04:57.771634736\", \"maxAttempts\": 1}",
+        "2026-09-19 07:04:57.776"
+      ],
+      [
+        "1361",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "???????",
+        "NULL",
+        "NULL",
+        "RUNNING",
+        "WAITING",
+        "{\"assignees\": [{\"accountId\": 1, \"displayName\": \"???????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}, {\"accountId\": 99, \"displayName\": \"????????\", \"positionTitle\": null, \"departmentName\": null, \"tenantMemberId\": null}], \"taskCount\": 1, \"approvalMode\": \"OR_SIGN\"}",
+        "2026-09-19 07:04:57.781"
+      ],
+      [
+        "1368",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"CLAIM\"}",
+        "2026-09-19 07:12:12.017"
+      ],
+      [
+        "1369",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 731}",
+        "2026-09-19 07:12:12.018"
+      ],
+      [
+        "1370",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"UNCLAIM\"}",
+        "2026-09-19 07:12:46.149"
+      ],
+      [
+        "1371",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????????????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 732}",
+        "2026-09-19 07:12:46.151"
+      ],
+      [
+        "1372",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "?????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"\", \"actionCode\": \"CLAIM\"}",
+        "2026-09-19 07:13:19.268"
+      ],
+      [
+        "1373",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "TASK",
+        "?????",
+        "99",
+        "NULL",
+        "PENDING",
+        "PENDING",
+        "{\"actionId\": 733}",
+        "2026-09-19 07:13:19.269"
+      ],
+      [
+        "1374",
+        "216",
+        "NULL",
+        "310",
+        "review",
+        "ACTION",
+        "????",
+        "99",
+        "NULL",
+        "NULL",
+        "WAITING",
+        "{\"comment\": \"????????????????\", \"actionCode\": \"APPROVE\"}",
+        "2026-09-19 07:15:05.896"
+      ],
+      [
+        "1375",
+        "216",
+        "NULL",
+        "NULL",
+        "end",
+        "ACTION",
+        "?????",
+        "1",
+        "NULL",
+        "NULL",
+        "COMPLETED",
+        "{\"comment\": \"\", \"actionCode\": \"AUTO_END\"}",
+        "2026-09-19 07:15:05.986"
+      ]
+    ],
+    "flow_job": [
+      [
+        "84",
+        "216",
+        "638",
+        "review",
+        "TASK_TIMEOUT",
+        "CANCELLED",
+        "{\"taskId\": 310}",
+        "TASK_TIMEOUT:310",
+        "0",
+        "1",
+        "2026-09-19 08:04:57.772",
+        "NULL",
+        "NULL",
+        "NULL",
+        "NULL",
+        "2026-09-19 07:15:05.912",
+        "2026-09-19 07:04:57.775",
+        "2026-09-19 07:15:05.917",
+        "1"
+      ]
+    ],
+    "flow_execution": [
+      [
+        "637",
+        "216",
+        "NULL",
+        "start",
+        "START",
+        "COMPLETED",
+        "2026-09-19 07:04:57.757",
+        "2026-09-19 07:04:57.757",
+        "STARTED",
+        "1"
+      ],
+      [
+        "638",
+        "216",
+        "NULL",
+        "review",
+        "APPROVAL",
+        "COMPLETED",
+        "2026-09-19 07:04:57.767",
+        "2026-09-19 07:15:05.924",
+        "APPROVE",
+        "1"
+      ],
+      [
+        "642",
+        "216",
+        "NULL",
+        "end",
+        "END",
+        "COMPLETED",
+        "2026-09-19 07:15:05.970",
+        "2026-09-19 07:15:05.974",
+        "COMPLETED",
+        "1"
+      ]
+    ]
+  },
+  "gui_verified": true,
+  "restart_verified": true,
+  "cleanup_verified": true,
+  "completion_credit": false
+}

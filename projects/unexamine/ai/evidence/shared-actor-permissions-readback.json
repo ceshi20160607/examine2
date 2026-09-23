@@ -1,0 +1,83 @@
+{
+  "system_id": 54,
+  "actor_tenant_id": 57,
+  "data_tenant_id": 56,
+  "records": [
+    {
+      "id": 132,
+      "share_id": 5
+    }
+  ],
+  "role_ids": [
+    81,
+    82,
+    83,
+    84
+  ],
+  "cases": [
+    {
+      "case": "no_convert",
+      "http": 403,
+      "code": "PERMISSION_DENIED",
+      "no_half_writes": true
+    },
+    {
+      "case": "no_create",
+      "http": 403,
+      "code": "PERMISSION_DENIED",
+      "no_half_writes": true
+    },
+    {
+      "case": "self",
+      "http": 403,
+      "code": "PERMISSION_DENIED",
+      "no_half_writes": true
+    },
+    {
+      "case": "allowed_all",
+      "positive_persisted": true,
+      "recipient_target": true,
+      "replay_same_target": true,
+      "permanent_duplicate_denied": true
+    }
+  ],
+  "business_verification": "permission_package_passed_source_flow_still_failed",
+  "account_id": 55,
+  "registration_system_id": 57,
+  "email_or_sms_used": false,
+  "organization_fixture": {
+    "root_department_id": 75,
+    "public_api": true,
+    "automatic_new_tenant_root_initialization": "still_missing"
+  },
+  "catalog": {
+    "inherited_modules_named": true,
+    "foreign_system_module_denied": true
+  },
+  "tenant_member_id": 78,
+  "source_membership_count": 0,
+  "checked_time": "2026-09-18T11:19:44.846117+08:00",
+  "target_record_id": 133,
+  "action_id": 200,
+  "before": {
+    "delivery": {
+      "status": "RETRYING",
+      "mode": "AFTER_EXECUTION",
+      "flowInstanceId": null,
+      "businessStatus": "COMPLETED",
+      "errorCode": null,
+      "message": null
+    },
+    "flow_rows": []
+  },
+  "conversion_audit": [
+    [
+      "3552",
+      "55",
+      "57",
+      "BUSINESS_RECORD_CONVERTED",
+      "132",
+      "SUCCESS"
+    ]
+  ]
+}

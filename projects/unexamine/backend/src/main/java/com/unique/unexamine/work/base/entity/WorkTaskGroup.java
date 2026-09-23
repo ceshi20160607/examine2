@@ -6,11 +6,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 项目任务组
  * </p>
  *
  * @author Template Base
@@ -33,6 +34,30 @@ public class WorkTaskGroup {
 
     @TableField("`status`")
     private String status;
+
+    /**
+     * 任务组负责人账号标识
+     */
+    @TableField("owner_account_id")
+    private Long ownerAccountId;
+
+    /**
+     * 任务组负责人租户成员标识
+     */
+    @TableField("owner_tenant_member_id")
+    private Long ownerTenantMemberId;
+
+    /**
+     * 任务组截止时间
+     */
+    @TableField("due_time")
+    private LocalDateTime dueTime;
+
+    /**
+     * 任务组完成百分比
+     */
+    @TableField("progress_percent")
+    private BigDecimal progressPercent;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
@@ -84,6 +109,38 @@ public class WorkTaskGroup {
         this.status = status;
     }
 
+    public Long getOwnerAccountId() {
+        return ownerAccountId;
+    }
+
+    public void setOwnerAccountId(Long ownerAccountId) {
+        this.ownerAccountId = ownerAccountId;
+    }
+
+    public Long getOwnerTenantMemberId() {
+        return ownerTenantMemberId;
+    }
+
+    public void setOwnerTenantMemberId(Long ownerTenantMemberId) {
+        this.ownerTenantMemberId = ownerTenantMemberId;
+    }
+
+    public LocalDateTime getDueTime() {
+        return dueTime;
+    }
+
+    public void setDueTime(LocalDateTime dueTime) {
+        this.dueTime = dueTime;
+    }
+
+    public BigDecimal getProgressPercent() {
+        return progressPercent;
+    }
+
+    public void setProgressPercent(BigDecimal progressPercent) {
+        this.progressPercent = progressPercent;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -116,6 +173,10 @@ public class WorkTaskGroup {
             ", name = " + name +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
+            ", ownerAccountId = " + ownerAccountId +
+            ", ownerTenantMemberId = " + ownerTenantMemberId +
+            ", dueTime = " + dueTime +
+            ", progressPercent = " + progressPercent +
             ", createdAt = " + createdAt +
             ", updatedAt = " + updatedAt +
             ", version = " + version +

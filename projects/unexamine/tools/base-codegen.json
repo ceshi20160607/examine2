@@ -442,6 +442,34 @@
           "entity": "AppGrantField"
         },
         {
+          "name": "app_bridge_identity",
+          "entity": "AppBridgeIdentity"
+        },
+        {
+          "name": "app_provider_connection",
+          "entity": "AppProviderConnection"
+        },
+        {
+          "name": "app_provider_secret",
+          "entity": "AppProviderSecret"
+        },
+        {
+          "name": "app_provider_route",
+          "entity": "AppProviderRoute"
+        },
+        {
+          "name": "app_provider_event",
+          "entity": "AppProviderEvent"
+        },
+        {
+          "name": "app_provider_delivery",
+          "entity": "AppProviderDelivery"
+        },
+        {
+          "name": "app_provider_identity",
+          "entity": "AppProviderIdentity"
+        },
+        {
           "name": "app_version",
           "entity": "AppVersion",
           "immutable": true
@@ -512,6 +540,15 @@
           "immutable": true
         },
         {
+          "name": "work_log_material",
+          "entity": "WorkLogMaterial"
+        },
+        {
+          "name": "work_log_comment",
+          "entity": "WorkLogComment",
+          "immutable": true
+        },
+        {
           "name": "work_field_config",
           "entity": "WorkFieldConfig"
         }
@@ -549,6 +586,10 @@
         {
           "name": "msg_user_preference",
           "entity": "MsgUserPreference"
+        },
+        {
+          "name": "todo_contact_rule",
+          "entity": "TodoContactRule"
         }
       ]
     },

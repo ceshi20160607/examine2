@@ -15,6 +15,7 @@ withDefaults(defineProps<{
   activeKey?: string
   showRuntime?: boolean
   showFlow?: boolean
+  showApplications?: boolean
   showTasks?: boolean
   showTodos?: boolean
   showMessages?: boolean
@@ -24,6 +25,7 @@ withDefaults(defineProps<{
 }>(), {
   showRuntime: false,
   showFlow: false,
+  showApplications: false,
   showTasks: false,
   showTodos: false,
   showMessages: false,
@@ -68,6 +70,7 @@ function dismissNotice() {
           <p v-if="showRuntime" class="nav-section-title">业务运行</p>
           <button v-if="showRuntime" :class="['system-nav__item', { active: activeKey === 'runtime' }]" @click="emit('navigate', 'runtime')"><DatabaseOutlined />业务模块</button>
           <button v-if="showFlow" :class="['system-nav__item', { active: activeKey === 'flow' }]" @click="emit('navigate', 'flow')"><ApartmentOutlined />流程</button>
+          <button v-if="showApplications" :class="['system-nav__item', { active: activeKey === 'applications' }]" @click="emit('navigate', 'applications')"><CheckSquareOutlined />我的申请</button>
           <button v-if="showTasks" :class="['system-nav__item', { active: activeKey === 'tasks' }]" @click="emit('navigate', 'tasks')"><ProjectOutlined />任务</button>
           <p v-if="showTodos || showMessages || showFiles" class="nav-section-title">协作</p>
           <button v-if="showTodos" :class="['system-nav__item', { active: activeKey === 'todos' }]" @click="emit('navigate', 'todos')"><CheckSquareOutlined />系统待办</button>

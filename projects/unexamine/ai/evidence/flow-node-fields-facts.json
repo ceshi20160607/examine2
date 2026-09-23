@@ -1,0 +1,285 @@
+{
+  "step": "B09.1b.1",
+  "status": "verified_contribution",
+  "cases": [
+    {
+      "case": "actual_invalid_policy_publish_rejected",
+      "checks": [
+        {
+          "policy": {
+            "hidden": [
+              "missing_field"
+            ]
+          },
+          "status": 422,
+          "code": "FLOW_PUBLICATION_INVALID"
+        },
+        {
+          "policy": {
+            "hidden": "score"
+          },
+          "status": 422,
+          "code": "FLOW_PUBLICATION_INVALID"
+        },
+        {
+          "policy": {
+            "visible": [],
+            "editable": [
+              "subject"
+            ]
+          },
+          "status": 422,
+          "code": "FLOW_PUBLICATION_INVALID"
+        },
+        {
+          "policy": {
+            "required": [
+              "subject"
+            ]
+          },
+          "status": 422,
+          "code": "FLOW_PUBLICATION_INVALID"
+        },
+        {
+          "policy": {
+            "hidden": [
+              "score",
+              "score"
+            ]
+          },
+          "status": 422,
+          "code": "FLOW_PUBLICATION_INVALID"
+        }
+      ],
+      "result": "真实保存无效字段、错误列表、不可见编辑、必填未设编辑和重复字段五种草稿；发布检查明确无效，实际发布均422，没有静默放宽或删策略。"
+    },
+    {
+      "case": "ordinary_policy_published_runtime_bound",
+      "result": "普通页面发布节点策略，保留旧自定义配置，中文目录冻结真实字段177等，独立实例当前正式170按隐藏多选及冻结安全目录裁剪，Root也不能补回未冻结不可读字段。"
+    },
+    {
+      "case": "ordinary_draft_change_cannot_modify_frozen_policy",
+      "result": "普通页面取消多选隐藏并保存草稿，旧实例仍隐藏该字段；字段目录身份、节点策略及旧版本定义哈希完全一致。"
+    },
+    {
+      "case": "ordinary_structured_four_policies_actual_ui",
+      "result": "普通69通过系统切换刷新真实权限，从系统管理进入Flow29，中文名称选择subject编辑及必填、choices隐藏；保存/页面reload后全部保留。关闭查看全部后从中文目录取消flow_only，其他项保留；实际普通页面发布第1版37。API读回customSetting保留，冻结目录不含普通不可读hidden。"
+    },
+    {
+      "case": "actual_ordinary_reject_no_formal_write",
+      "result": "普通页面本人拒绝隔离节点实例，实际待办清零；原正式170字段和版本不变，模块51仍4条正式数据。"
+    },
+    {
+      "case": "affected_common_projection_integrated_readback",
+      "physical_values_hash": "a86e4d584c0152cd3fd736935da55512c4ec2f18d8e0602f0c844a1451eb41f5",
+      "result": "共享策略更新后旧完成81仍读取正式170分值30/北京时间10点并裁剪原始旁路；来源151/154完整字段和版本仍等于既有基线，全部物理值列含日期和时间读前后相等。角色114原始权限准确恢复，未重新运行旧包测试。"
+    },
+    {
+      "case": "ordinary_frozen_node_real_ui",
+      "result": "普通69待办88实际页面显示正式170主题/分值/日期时间真实值，事项标签及排除查看flow_only的DOM均不存在；此时模板草稿已取消隐藏，旧实例仍第1版策略。本人GUI拒绝后待办0，DB正式字段/版本不变。"
+    },
+    {
+      "case": "ordinary_module_loss_clears_directory_and_layout",
+      "result": "已加载公共节点面板宽308px=scrollWidth，整页1265px=scrollWidth，没有横向溢出和raw field code。撤回MODULE51权限后刷新，真实403清空旧字段/节点/样本，显示权限错误并以当前无法读取流程说明空状态，不误称尚未创建。"
+    }
+  ],
+  "temporary_role_granted": true,
+  "fixture": {
+    "flow_id": 29,
+    "nodes": [
+      {
+        "nodeKey": "start",
+        "nodeType": "START",
+        "name": "开始",
+        "positionX": 0,
+        "positionY": 80,
+        "config": {
+          "moduleId": 51
+        },
+        "assigneePolicy": {},
+        "formPolicy": {}
+      },
+      {
+        "nodeKey": "review",
+        "nodeType": "APPROVAL",
+        "name": "核对业务字段",
+        "positionX": 220,
+        "positionY": 80,
+        "config": {
+          "approvalMode": "OR_SIGN"
+        },
+        "assigneePolicy": {
+          "type": "PERSON",
+          "tenantMemberIds": [
+            108
+          ]
+        },
+        "formPolicy": {
+          "hidden": [],
+          "customSetting": "保留已有配置"
+        }
+      },
+      {
+        "nodeKey": "end",
+        "nodeType": "END",
+        "name": "结束",
+        "positionX": 440,
+        "positionY": 80,
+        "config": {},
+        "assigneePolicy": {},
+        "formPolicy": {}
+      }
+    ],
+    "edges": [
+      {
+        "edgeKey": "entry",
+        "sourceNodeKey": "start",
+        "targetNodeKey": "review",
+        "priorityOrder": 0,
+        "config": {}
+      },
+      {
+        "edgeKey": "finish",
+        "sourceNodeKey": "review",
+        "targetNodeKey": "end",
+        "priorityOrder": 0,
+        "config": {}
+      }
+    ],
+    "record_id": 170,
+    "instance_id": 88,
+    "version_id": 37,
+    "definition_hash": "5ec78b5e79cccbd7216124a7a43be790dafaf1c530ee67c1d0a1b99e994a640e",
+    "frozen_policy": {
+      "hidden": [
+        "choices"
+      ],
+      "visible": [
+        "subject",
+        "score",
+        "enabled",
+        "occurred",
+        "day",
+        "choices",
+        "choice",
+        "date_text",
+        "manual_choice"
+      ],
+      "editable": [
+        "subject"
+      ],
+      "required": [
+        "subject"
+      ],
+      "customSetting": "保留已有配置"
+    },
+    "frozen_form": {
+      "fields": [
+        {
+          "id": 177,
+          "code": "subject",
+          "name": "事项主题",
+          "editable": true,
+          "fieldType": "TEXT",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 178,
+          "code": "score",
+          "name": "优先分值",
+          "editable": true,
+          "fieldType": "NUMBER",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 179,
+          "code": "enabled",
+          "name": "是否紧急",
+          "editable": true,
+          "fieldType": "BOOLEAN",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 180,
+          "code": "occurred",
+          "name": "发生时间",
+          "editable": true,
+          "fieldType": "DATETIME",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 181,
+          "code": "day",
+          "name": "业务日期",
+          "editable": true,
+          "fieldType": "DATE",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 182,
+          "code": "choices",
+          "name": "事项标签",
+          "editable": true,
+          "fieldType": "MULTI_SELECT",
+          "dictionaryId": 11,
+          "referenceModuleId": null
+        },
+        {
+          "id": 183,
+          "code": "choice",
+          "name": "事项类别",
+          "editable": true,
+          "fieldType": "SINGLE_SELECT",
+          "dictionaryId": 11,
+          "referenceModuleId": null
+        },
+        {
+          "id": 184,
+          "code": "date_text",
+          "name": "文本标识",
+          "editable": true,
+          "fieldType": "TEXT",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 187,
+          "code": "manual_choice",
+          "name": "手动选项状态验收",
+          "editable": true,
+          "fieldType": "SINGLE_SELECT",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        },
+        {
+          "id": 186,
+          "code": "flow_only",
+          "name": "流程条件未使用字段",
+          "editable": true,
+          "fieldType": "TEXT",
+          "dictionaryId": null,
+          "referenceModuleId": null
+        }
+      ],
+      "moduleId": 51,
+      "moduleCode": "flow_condition_accept_20260918",
+      "moduleVersionId": 94
+    }
+  },
+  "checked_time": "2026-09-19T01:04:54.060610+08:00",
+  "api_verified": true,
+  "frozen_verified": true,
+  "frontend_build": "npm run build vue-tsc/Vite 92a2c1→421f02 exit0，最终frozen前端一次集成构建。",
+  "backend_build": "mvn -q -Dtest=FlowNodeFieldsTest test package 602f47→b505cc exit0，7 tests 0 failures/errors/skipped；同一backend既有容器0872ce重启部署。",
+  "fixture_closed": true,
+  "permission_loss_published": true,
+  "original_role_restored": true,
+  "integrated_verified": true,
+  "frontend_build_final": "微小实际失权空状态修复后04bd3c→c63adc exit0，vue-tsc/Vite最终构建通过；新增修改是复跑构建的原因，无重复旧包测试。",
+  "verified_time": "2026-09-19T01:07:11.743756+08:00"
+}

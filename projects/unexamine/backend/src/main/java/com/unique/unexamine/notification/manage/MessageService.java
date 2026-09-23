@@ -9,21 +9,24 @@ import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.flow.base.entity.FlowInstance;
 import com.unique.unexamine.flow.base.service.FlowInstanceBaseService;
+import com.unique.unexamine.flow.manage.FlowRuntimeService;
+import com.unique.unexamine.foundation.manage.control.BusinessActionApprovalCoordinator;
 import com.unique.unexamine.notification.base.entity.MsgDelivery;
 import com.unique.unexamine.notification.base.entity.MsgMessage;
 import com.unique.unexamine.notification.base.entity.MsgRecipient;
 import com.unique.unexamine.notification.base.entity.MsgTemplate;
 import com.unique.unexamine.notification.base.entity.MsgTemplateVersion;
+import com.unique.unexamine.notification.base.entity.MsgUserPreference;
 import com.unique.unexamine.notification.base.service.MsgDeliveryBaseService;
 import com.unique.unexamine.notification.base.service.MsgMessageBaseService;
 import com.unique.unexamine.notification.base.service.MsgRecipientBaseService;
 import com.unique.unexamine.notification.base.service.MsgTemplateBaseService;
 import com.unique.unexamine.notification.base.service.MsgTemplateVersionBaseService;
+import com.unique.unexamine.notification.base.service.MsgUserPreferenceBaseService;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
 import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
-import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemMember;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
@@ -32,10 +35,12 @@ import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.work.base.entity.WorkTask;
 import com.unique.unexamine.work.base.service.WorkTaskBaseService;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -49,6 +54,8 @@ import java.util.Set;
 @Service
 public class MessageService {
     private static final Set<String> INBOX_STATUSES = Set.of("ACTIVE", "UNREAD", "READ", "ARCHIVED", "ALL");
+    private static final List<String> EXTERNAL_CHANNELS = List.of(
+            "EMAIL", "SMS", "WEBHOOK", "WECOM", "FEISHU", "DINGTALK");
     private static final int MAX_DELIVERY_ATTEMPTS = 3;
 
     private final MsgTemplateBaseService templateService;
@@ -56,16 +63,20 @@ public class MessageService {
     private final MsgMessageBaseService messageService;
     private final MsgRecipientBaseService recipientService;
     private final MsgDeliveryBaseService deliveryService;
+    private final MsgUserPreferenceBaseService preferenceService;
     private final PlatformAccountBaseService accountService;
     private final PlatformMemberBaseService platformMemberService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
     private final FlowInstanceBaseService flowInstanceService;
     private final WorkTaskBaseService workTaskService;
-    private final RuntimeDataService runtimeDataService;
+    private final RuntimeTargetAccessReader runtimeTargetAccessReader;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    /** 延迟获取流程服务，避免运行时发送通知与消息目标校验形成构造循环。 */
+    private final ObjectProvider<FlowRuntimeService> flowRuntime;
+    private final ObjectProvider<BusinessActionApprovalCoordinator> actionCoordinator;
 
     public MessageService(
             MsgTemplateBaseService templateService,
@@ -73,31 +84,36 @@ public class MessageService {
             MsgMessageBaseService messageService,
             MsgRecipientBaseService recipientService,
             MsgDeliveryBaseService deliveryService,
+            MsgUserPreferenceBaseService preferenceService,
             PlatformAccountBaseService accountService,
             PlatformMemberBaseService platformMemberService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
             FlowInstanceBaseService flowInstanceService,
             WorkTaskBaseService workTaskService,
-            RuntimeDataService runtimeDataService,
+            RuntimeTargetAccessReader runtimeTargetAccessReader,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, ObjectProvider<FlowRuntimeService> flowRuntime,
+            ObjectProvider<BusinessActionApprovalCoordinator> actionCoordinator) {
         this.templateService = templateService;
         this.templateVersionService = templateVersionService;
         this.messageService = messageService;
         this.recipientService = recipientService;
         this.deliveryService = deliveryService;
+        this.preferenceService = preferenceService;
         this.accountService = accountService;
         this.platformMemberService = platformMemberService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
         this.flowInstanceService = flowInstanceService;
         this.workTaskService = workTaskService;
-        this.runtimeDataService = runtimeDataService;
+        this.runtimeTargetAccessReader = runtimeTargetAccessReader;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.flowRuntime = flowRuntime;
+        this.actionCoordinator = actionCoordinator;
     }
 
     @Transactional(readOnly = true)
@@ -190,25 +206,100 @@ public class MessageService {
         return templateView(templateService.selectById(template.getId()));
     }
 
+    /** 内部摘要继续使用首屏，避免分页参数扩散到仪表盘等只读消费者。 */
     @Transactional(readOnly = true)
-    public MessageModels.InboxView list(AuthenticatedContext context, String requestedStatus, String requestedSourceType) {
+    public MessageModels.InboxView list(
+            AuthenticatedContext context, String requestedStatus, String requestedSourceType) {
+        return list(context, requestedStatus, requestedSourceType, 1, 20);
+    }
+
+    @Transactional(readOnly = true)
+    public MessageModels.InboxView list(
+            AuthenticatedContext context, String requestedStatus, String requestedSourceType,
+            int page, int pageSize) {
         require(context, "VIEW");
+        if (page < 1 || pageSize < 1 || pageSize > 100) {
+            throw invalid("MESSAGE_PAGE_INVALID", "消息页码必须从 1 开始，每页最多 100 条");
+        }
         String status = requestedStatus.strip().toUpperCase(Locale.ROOT);
         if (!INBOX_STATUSES.contains(status)) throw invalid("MESSAGE_STATUS_INVALID", "消息状态筛选无效");
         String sourceType = requestedSourceType.strip().toUpperCase(Locale.ROOT);
         if (!"ALL".equals(sourceType) && !sourceType.matches("[A-Z][A-Z0-9_]{1,63}")) {
             throw invalid("MESSAGE_SOURCE_TYPE_INVALID", "消息来源筛选无效");
         }
-        List<MessageModels.MessageView> views = ownedRecipients(context).stream()
+        List<Map.Entry<MsgRecipient, MsgMessage>> matches = ownedRecipients(context).stream()
                 .filter(recipient -> matchesStatus(recipient, status))
                 .map(recipient -> Map.entry(recipient, messageService.selectById(recipient.getMessageId())))
                 .filter(entry -> entry.getValue() != null && inContext(entry.getValue(), context))
                 .filter(entry -> "ALL".equals(sourceType) || sourceType.equals(entry.getValue().getSourceType()))
                 .sorted(Comparator.comparing((Map.Entry<MsgRecipient, MsgMessage> entry) -> entry.getValue().getCreatedAt(),
                         Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(entry -> messageView(context, entry.getValue(), entry.getKey(), null))
                 .toList();
-        return new MessageModels.InboxView(views, countUnread(context));
+        int from = Math.min((page - 1) * pageSize, matches.size());
+        int to = Math.min(from + pageSize, matches.size());
+        List<MessageModels.MessageView> views = matches.subList(from, to).stream()
+                .map(entry -> messageView(context, entry.getValue(), entry.getKey(), null)).toList();
+        return new MessageModels.InboxView(views, countUnread(context), matches.size(), page, pageSize,
+                page > 1, to < matches.size());
+    }
+
+    @Transactional(readOnly = true)
+    public List<MessageModels.PreferenceView> preferences(AuthenticatedContext context) {
+        require(context, "VIEW");
+        Map<String, MsgUserPreference> stored = preferenceRows(context).stream()
+                .filter(item -> "*".equals(item.getEventCode()))
+                .collect(java.util.stream.Collectors.toMap(MsgUserPreference::getChannel, item -> item,
+                        (left, right) -> left, LinkedHashMap::new));
+        return EXTERNAL_CHANNELS.stream().map(channel -> {
+            MsgUserPreference item = stored.get(channel);
+            return item == null ? new MessageModels.PreferenceView(channel, true, null, null, null)
+                    : preferenceView(item);
+        }).toList();
+    }
+
+    @Transactional
+    public MessageModels.PreferenceView savePreference(
+            AuthenticatedContext context, MessageModels.SavePreferenceRequest input, String traceId) {
+        require(context, "VIEW");
+        boolean hasStart = input.quietStart() != null && !input.quietStart().isBlank();
+        boolean hasEnd = input.quietEnd() != null && !input.quietEnd().isBlank();
+        if (hasStart != hasEnd || (hasStart && input.quietStart().equals(input.quietEnd()))) {
+            throw invalid("MESSAGE_QUIET_HOURS_INVALID", "免打扰开始和结束时间必须同时填写且不能相同");
+        }
+        MsgUserPreference item = preferenceRows(context).stream()
+                .filter(row -> "*".equals(row.getEventCode()) && input.channel().equals(row.getChannel()))
+                .findFirst().orElse(null);
+        if (item == null) {
+            if (input.expectedVersion() != null) {
+                throw conflict("MESSAGE_PREFERENCE_VERSION_CONFLICT", "通知偏好已经变化，请刷新后重试");
+            }
+            item = new MsgUserPreference();
+            item.setAccountId(context.accountId());
+            item.setContextType(contextType(context));
+            item.setSystemId(context.systemId());
+            item.setEventCode("*");
+            item.setChannel(input.channel());
+            item.setVersion(0);
+            item.setEnabled(input.enabled());
+            item.setQuietHoursJson(hasStart
+                    ? toJson(Map.of("start", input.quietStart(), "end", input.quietEnd())) : "{}");
+            preferenceService.insert(item);
+        } else {
+            if (input.expectedVersion() == null || !input.expectedVersion().equals(item.getVersion())) {
+                throw conflict("MESSAGE_PREFERENCE_VERSION_CONFLICT", "通知偏好已经变化，请刷新后重试");
+            }
+            item.setEnabled(input.enabled());
+            item.setQuietHoursJson(hasStart
+                    ? toJson(Map.of("start", input.quietStart(), "end", input.quietEnd())) : "{}");
+            if (preferenceService.updateById(item) != 1) {
+                throw conflict("MESSAGE_PREFERENCE_VERSION_CONFLICT", "通知偏好已经变化，请刷新后重试");
+            }
+            item = preferenceService.selectById(item.getId());
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "MESSAGE_PREFERENCE_SAVED", "MESSAGE_PREFERENCE", item.getId().toString(), "SUCCESS",
+                Map.of("channel", item.getChannel(), "enabled", item.getEnabled(), "quietHours", hasStart));
+        return preferenceView(item);
     }
 
     @Transactional(readOnly = true)
@@ -289,6 +380,29 @@ public class MessageService {
         if (context == null || instanceId == null || eventKey == null || eventKey.isBlank()) return;
         if (recipientAccountIds == null || recipientAccountIds.isEmpty()) return;
         List<Long> ids = distinctRecipients(recipientAccountIds);
+        FlowInstance instance = flowInstanceService.selectById(instanceId);
+        var original = instance == null || context.systemId() == null ? null
+                : actionCoordinator.getObject().notificationAction(instance);
+        if (original != null && !Objects.equals(original.input().actor().tenantId(), instance.getTenantId())
+                && ids.contains(original.input().actor().accountId())) {
+            // 外租户原申请人只收到自己上下文中的通用进度通知，不接收来源节点、错误和业务快照。
+            var actor = original.input().actor();
+            String target = original.input().moduleCode() + ":" + original.actionId();
+            insertFlowNotification(actor, eventKey, "申请进度已更新",
+                    "你提交的业务操作审批进度已更新，请查看当前处理结果。", List.of(actor.accountId()),
+                    "BUSINESS_ACTION", target, "/systems/" + actor.systemId() + "?workspace=applications&module="
+                            + original.input().moduleCode() + "&actionId=" + original.actionId());
+            ids = ids.stream().filter(id -> !id.equals(actor.accountId())).toList();
+        }
+        if (ids.isEmpty()) return;
+        insertFlowNotification(context, eventKey, subject, content, ids, "FLOW_INSTANCE", instanceId.toString(),
+                context.systemId() == null ? "/platform/flows?instanceId=" + instanceId
+                        : "/systems/" + context.systemId() + "?workspace=flow&instanceId=" + instanceId);
+    }
+
+    /** 同一运行事件可分别通知来源审批人和外租户原申请人，各自按实际上下文去重。 */
+    private void insertFlowNotification(AuthenticatedContext context, String eventKey, String subject,
+            String content, List<Long> ids, String targetType, String targetId, String route) {
         if (findEvent(context, "FLOW", eventKey) != null) return;
         List<PlatformAccount> accounts = ids.stream().map(id -> requireRecipient(context, id)).toList();
         MsgMessage message = new MsgMessage();
@@ -301,11 +415,9 @@ public class MessageService {
         message.setSourceId(eventKey);
         message.setSubject(subject);
         message.setContentText(content);
-        message.setTargetType("FLOW_INSTANCE");
-        message.setTargetId(instanceId.toString());
-        message.setTargetRoute(context.systemId() == null
-                ? "/platform/flows?instanceId=" + instanceId
-                : "/systems/" + context.systemId() + "?workspace=flow&instanceId=" + instanceId);
+        message.setTargetType(targetType);
+        message.setTargetId(targetId);
+        message.setTargetRoute(route);
         message.setSensitivity("NORMAL");
         message.setCreatedByAccountId(context.accountId());
         messageService.insert(message);
@@ -545,8 +657,16 @@ public class MessageService {
         targetAudit.put("resolvedRoute", route);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "MESSAGE_TARGET_OPENED", "MESSAGE", messageId.toString(), "SUCCESS", targetAudit);
-        return new MessageModels.OpenResult(messageId, route, context.systemId(), owned.message().getTargetType(),
-                owned.message().getTargetId());
+        String type = owned.message().getTargetType();
+        String id = owned.message().getTargetId();
+        // 保留旧通知记录；历史来源实例消息在当前授权下解析为本人原动作入口。
+        if ("FLOW_INSTANCE".equals(type) && context.systemId() != null
+                && route.startsWith("/systems/" + context.systemId() + "?workspace=applications&")) {
+            var original = actionCoordinator.getObject().notificationAction(flowInstanceService.selectById(numericTarget(id)));
+            type = "BUSINESS_ACTION";
+            id = original.input().moduleCode() + ":" + original.actionId();
+        }
+        return new MessageModels.OpenResult(messageId, route, context.systemId(), type, id);
     }
 
     @Transactional
@@ -559,9 +679,27 @@ public class MessageService {
         if (message == null || !inContext(message, context)) {
             throw notFound("MESSAGE_DELIVERY_NOT_FOUND", "消息投递记录不存在");
         }
-        if ("IN_APP".equals(delivery.getChannel()) || "DELIVERED".equals(delivery.getStatus())
-                || "FAILED".equals(delivery.getStatus()) || delivery.getAttemptCount() >= MAX_DELIVERY_ATTEMPTS) {
+        if ("IN_APP".equals(delivery.getChannel()) || !Set.of("RETRY_PENDING", "QUIET_PENDING").contains(delivery.getStatus())
+                || delivery.getAttemptCount() >= MAX_DELIVERY_ATTEMPTS) {
             throw conflict("MESSAGE_DELIVERY_NOT_RETRYABLE", "该投递记录不需要重试");
+        }
+        MsgUserPreference preference = preferenceFor(message, delivery.getAccountId(), delivery.getChannel());
+        LocalDateTime quietEnd = quietEnd(preference, LocalDateTime.now());
+        if (quietEnd != null) {
+            delivery.setStatus("QUIET_PENDING");
+            delivery.setNextAttemptAt(quietEnd);
+            delivery.setUpdatedAt(LocalDateTime.now());
+            if (deliveryService.updateById(delivery) != 1) {
+                throw conflict("MESSAGE_DELIVERY_VERSION_CONFLICT", "投递记录已变化，请刷新后重试");
+            }
+            auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                    "MESSAGE_DELIVERY_DEFERRED", "MESSAGE_DELIVERY", deliveryId.toString(), "QUIET_PENDING",
+                    Map.of("channel", delivery.getChannel(), "nextAttemptAt", quietEnd.toString()));
+            MsgRecipient recipient = recipientService.selectList(Wrappers.<MsgRecipient>lambdaQuery()
+                            .eq(MsgRecipient::getMessageId, message.getId())
+                            .eq(MsgRecipient::getAccountId, delivery.getAccountId()))
+                    .stream().findFirst().orElseThrow(() -> conflict("MESSAGE_RECIPIENT_NOT_FOUND", "消息接收记录不存在"));
+            return messageView(context, message, recipient, traceId);
         }
         int attempt = delivery.getAttemptCount() + 1;
         delivery.setAttemptCount(attempt);
@@ -752,16 +890,32 @@ public class MessageService {
     }
 
     private void insertExternalDelivery(MsgMessage message, PlatformAccount account, String channel) {
+        MsgUserPreference preference = preferenceFor(message, account.getId(), channel);
+        boolean enabled = preference == null || Boolean.TRUE.equals(preference.getEnabled());
+        LocalDateTime quietEnd = enabled ? quietEnd(preference, LocalDateTime.now()) : null;
         MsgDelivery delivery = new MsgDelivery();
         delivery.setMessageId(message.getId());
         delivery.setAccountId(account.getId());
         delivery.setChannel(channel);
         delivery.setDestinationMasked(maskDestination(account, channel));
-        delivery.setStatus("RETRY_PENDING");
-        delivery.setAttemptCount(1);
-        delivery.setNextAttemptAt(LocalDateTime.now().plusMinutes(1));
-        delivery.setProviderReceiptJson(toJson(Map.of("result", "PROVIDER_UNAVAILABLE", "attempt", 1)));
-        delivery.setLastError("CHANNEL_PROVIDER_UNAVAILABLE");
+        if (!enabled) {
+            delivery.setStatus("SKIPPED");
+            delivery.setAttemptCount(0);
+            delivery.setProviderReceiptJson(toJson(Map.of("result", "USER_CHANNEL_DISABLED")));
+            delivery.setLastError("USER_CHANNEL_DISABLED");
+        } else if (quietEnd != null) {
+            delivery.setStatus("QUIET_PENDING");
+            delivery.setAttemptCount(0);
+            delivery.setNextAttemptAt(quietEnd);
+            delivery.setProviderReceiptJson(toJson(Map.of("result", "USER_QUIET_HOURS")));
+            delivery.setLastError("USER_QUIET_HOURS");
+        } else {
+            delivery.setStatus("RETRY_PENDING");
+            delivery.setAttemptCount(1);
+            delivery.setNextAttemptAt(LocalDateTime.now().plusMinutes(1));
+            delivery.setProviderReceiptJson(toJson(Map.of("result", "PROVIDER_UNAVAILABLE", "attempt", 1)));
+            delivery.setLastError("CHANNEL_PROVIDER_UNAVAILABLE");
+        }
         delivery.setVersion(0);
         deliveryService.insert(delivery);
     }
@@ -788,21 +942,44 @@ public class MessageService {
             case "FLOW_INSTANCE" -> {
                 Long instanceId = numericTarget(targetId);
                 FlowInstance instance = flowInstanceService.selectById(instanceId);
-                if (instance == null || !sameContext(instance.getContextType(), instance.getPlatformId(),
-                        instance.getSystemId(), instance.getTenantId(), context)) {
+                if (instance == null) {
                     throw notFound("MESSAGE_TARGET_NOT_FOUND", "消息关联的 Flow 实例不存在");
                 }
-                requireTargetPermission(context, "FLOW", context.systemId() == null ? "PLATFORM" : "SYSTEM", "VIEW");
+                if (!sameContext(instance.getContextType(), instance.getPlatformId(),
+                        instance.getSystemId(), instance.getTenantId(), context)) {
+                    // 旧来源申请消息仍从真实 START/outbox 恢复本人关联，不迁移快照或放宽来源实例权限。
+                    var original = actionCoordinator.getObject().notificationAction(instance);
+                    if (original == null || !Objects.equals(original.input().actor().accountId(), context.accountId())
+                            || !Objects.equals(original.input().actor().tenantId(), context.tenantId())) {
+                        throw notFound("MESSAGE_TARGET_NOT_FOUND", "消息关联的 Flow 实例不存在");
+                    }
+                    flowRuntime.getObject().businessActionProgress(context, original.input().moduleCode(), original.actionId(), traceId);
+                    return "/systems/" + context.systemId() + "?workspace=applications&module="
+                            + original.input().moduleCode() + "&actionId=" + original.actionId();
+                }
+                // 使用实际运行时可见性，不能用不存在的 VIEW 动作或旧消息快照代替当前审批权限。
+                flowRuntime.getObject().instance(context, instanceId);
                 return context.systemId() == null ? "/platform/flows?instanceId=" + instanceId
                         : "/systems/" + context.systemId() + "?workspace=flow&instanceId=" + instanceId;
+            }
+            case "BUSINESS_ACTION" -> {
+                if (context.systemId() == null || targetId == null
+                        || !targetId.matches("[a-z][a-z0-9_-]{0,99}:[1-9][0-9]*")) {
+                    throw forbidden("MESSAGE_TARGET_CONTEXT_INVALID", "申请消息只能属于当前系统上下文");
+                }
+                String[] parts = targetId.split(":", 2);
+                flowRuntime.getObject().businessActionProgress(context, parts[0], numericTarget(parts[1]), traceId);
+                return "/systems/" + context.systemId() + "?workspace=applications&module=" + parts[0]
+                        + "&actionId=" + parts[1];
             }
             case "RUNTIME_RECORD" -> {
                 if (context.systemId() == null || targetId == null || !targetId.matches("[a-z][a-z0-9_-]{0,99}:[1-9][0-9]*")) {
                     throw forbidden("MESSAGE_TARGET_CONTEXT_INVALID", "业务记录消息只能属于当前系统上下文");
                 }
                 String[] parts = targetId.split(":", 2);
-                runtimeDataService.detail(context, parts[0], Long.valueOf(parts[1]), traceId);
-                return "/systems/" + context.systemId() + "?module=" + parts[0] + "&record=" + parts[1];
+                runtimeTargetAccessReader.detail(context, parts[0], Long.valueOf(parts[1]), traceId);
+                return "/systems/" + context.systemId() + "?workspace=runtime&module=" + parts[0]
+                        + "&recordId=" + parts[1];
             }
             case "WORK_TASK" -> {
                 Long taskId = numericTarget(targetId);
@@ -879,12 +1056,93 @@ public class MessageService {
         } catch (DomainException exception) {
             targetAccessible = false;
         }
+        String subject = message.getSubject();
+        String content = message.getContentText();
+        if ("FLOW_INSTANCE".equals(message.getTargetType()) && context.systemId() != null) {
+            FlowInstance flow = flowInstanceService.selectById(numericTarget(message.getTargetId()));
+            if (flow != null && Objects.equals(flow.getSystemId(), context.systemId())
+                    && Objects.equals(flow.getStartedByAccountId(), context.accountId())
+                    && !Objects.equals(flow.getTenantId(), message.getTenantId())) {
+                // 历史跨租户通知只投影通用进度文本，原来源意见和异常摘要留在存储中，不再回显给申请人。
+                subject = "申请进度已更新";
+                content = "你提交的业务操作审批进度已更新，请查看当前处理结果。";
+            }
+        }
+        List<MessageModels.RecipientDeliveryView> deliveries = deliveryService.selectList(
+                        Wrappers.<MsgDelivery>lambdaQuery().eq(MsgDelivery::getMessageId, message.getId())
+                                .eq(MsgDelivery::getAccountId, recipient.getAccountId()).orderByAsc(MsgDelivery::getId))
+                .stream().map(item -> new MessageModels.RecipientDeliveryView(item.getChannel(),
+                        item.getDestinationMasked(), item.getStatus(), item.getAttemptCount(), item.getNextAttemptAt(),
+                        safeDeliveryReason(item.getLastError()))).toList();
         return new MessageModels.MessageView(message.getId(), message.getContextType(), message.getPlatformId(),
                 message.getSystemId(), message.getTenantId(), message.getTemplateVersionId(), message.getSourceType(),
-                message.getSourceId(), message.getSubject(), message.getContentText(), message.getTargetType(),
+                message.getSourceId(), subject, content, message.getTargetType(),
                 message.getTargetId(), message.getTargetRoute(), message.getSensitivity(), recipient.getStatus(),
                 recipient.getReadAt(), recipient.getArchivedAt(), recipient.getVersion(), message.getCreatedAt(),
-                actorName(message.getCreatedByAccountId()), targetAccessible);
+                actorName(message.getCreatedByAccountId()), targetAccessible, deliveries);
+    }
+
+    private List<MsgUserPreference> preferenceRows(AuthenticatedContext context) {
+        var query = Wrappers.<MsgUserPreference>lambdaQuery()
+                .eq(MsgUserPreference::getAccountId, context.accountId())
+                .eq(MsgUserPreference::getContextType, contextType(context));
+        if (context.systemId() == null) query.isNull(MsgUserPreference::getSystemId);
+        else query.eq(MsgUserPreference::getSystemId, context.systemId());
+        return preferenceService.selectList(query);
+    }
+
+    private MsgUserPreference preferenceFor(MsgMessage message, Long accountId, String channel) {
+        var query = Wrappers.<MsgUserPreference>lambdaQuery()
+                .eq(MsgUserPreference::getAccountId, accountId)
+                .eq(MsgUserPreference::getContextType, message.getContextType())
+                .eq(MsgUserPreference::getChannel, channel)
+                .in(MsgUserPreference::getEventCode, message.getSourceType(), "*");
+        if (message.getSystemId() == null) query.isNull(MsgUserPreference::getSystemId);
+        else query.eq(MsgUserPreference::getSystemId, message.getSystemId());
+        return preferenceService.selectList(query).stream()
+                .sorted(Comparator.comparing(item -> "*".equals(item.getEventCode()) ? 1 : 0))
+                .findFirst().orElse(null);
+    }
+
+    private MessageModels.PreferenceView preferenceView(MsgUserPreference item) {
+        QuietHours quiet = quietHours(item);
+        return new MessageModels.PreferenceView(item.getChannel(), Boolean.TRUE.equals(item.getEnabled()),
+                quiet == null ? null : quiet.start().toString(), quiet == null ? null : quiet.end().toString(),
+                item.getVersion());
+    }
+
+    private QuietHours quietHours(MsgUserPreference item) {
+        if (item == null || item.getQuietHoursJson() == null || item.getQuietHoursJson().isBlank()
+                || "{}".equals(item.getQuietHoursJson())) return null;
+        try {
+            Map<String, String> value = objectMapper.readValue(item.getQuietHoursJson(), new TypeReference<>() { });
+            if (value.get("start") == null || value.get("end") == null) return null;
+            return new QuietHours(LocalTime.parse(value.get("start")), LocalTime.parse(value.get("end")));
+        } catch (RuntimeException | JsonProcessingException exception) {
+            return null;
+        }
+    }
+
+    private LocalDateTime quietEnd(MsgUserPreference item, LocalDateTime now) {
+        QuietHours quiet = quietHours(item);
+        if (quiet == null) return null;
+        LocalTime current = now.toLocalTime();
+        boolean wraps = quiet.start().isAfter(quiet.end());
+        boolean active = wraps ? !current.isBefore(quiet.start()) || current.isBefore(quiet.end())
+                : !current.isBefore(quiet.start()) && current.isBefore(quiet.end());
+        if (!active) return null;
+        return current.isBefore(quiet.end()) ? now.toLocalDate().atTime(quiet.end())
+                : now.toLocalDate().plusDays(1).atTime(quiet.end());
+    }
+
+    private String safeDeliveryReason(String code) {
+        if (code == null) return null;
+        return switch (code) {
+            case "USER_CHANNEL_DISABLED" -> "已按你的通知偏好关闭该外部渠道";
+            case "USER_QUIET_HOURS" -> "当前处于免打扰时段";
+            case "CHANNEL_PROVIDER_UNAVAILABLE" -> "外部渠道暂不可用，等待重试";
+            default -> "投递未完成，请稍后查看";
+        };
     }
 
     private String actorName(Long accountId) {
@@ -1028,6 +1286,9 @@ public class MessageService {
     }
 
     private record Owned(MsgMessage message, MsgRecipient recipient) {
+    }
+
+    private record QuietHours(LocalTime start, LocalTime end) {
     }
 
     private record TemplateSnapshot(

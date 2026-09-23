@@ -1,0 +1,61 @@
+{
+  "step": "B11.2",
+  "status": "passed",
+  "checked_time": "2026-09-20T18:35:04+08:00",
+  "browser": "Codex in-app browser",
+  "routes": [
+    "http://localhost:15173/systems/54/admin?section=applications",
+    "http://localhost:15173/platform/applications"
+  ],
+  "system_application": {
+    "application_id": 24,
+    "observed_name": "系统外部调用验收",
+    "preset_icon": "数据服务",
+    "status": "已停用",
+    "published_grant": "当前系统 / 外部访问 / 固定模块 V1 / 新建记录",
+    "credential_versions": 2,
+    "credential_plaintext_visible": false,
+    "credential_period_visible": true,
+    "call_log_count": 6,
+    "visible_failures": [
+      "调用来源 IP 不在应用白名单内",
+      "平台范围不能与系统数据范围互相替换",
+      "请求包含未获应用写权限的字段"
+    ],
+    "failure_policy_history_visible": true
+  },
+  "platform_application": {
+    "application_id": 23,
+    "observed_name": "平台外部调用验收",
+    "preset_icon": "业务流程",
+    "status": "已停用",
+    "published_grant": "平台 / 外部访问 / 固定 Flow V1 / 发起流程",
+    "credential_versions": 4,
+    "credential_plaintext_visible": false,
+    "credential_period_visible": true,
+    "call_log_count": 10,
+    "visible_failures": [
+      "应用调用签名校验失败",
+      "调用时间戳已超过五分钟有效窗口",
+      "同一幂等键不能用于不同请求内容",
+      "应用调用频率超过授权限制",
+      "凭证版本已失效",
+      "应用已停用或尚未发布"
+    ],
+    "idempotent_replay_visible": true
+  },
+  "integration_guide": {
+    "generated_from_current_grant": true,
+    "endpoint_visible": "/api/application-access/v1/calls",
+    "required_headers_visible": 5,
+    "signature_sequence_visible": true,
+    "error_explanations_visible": true,
+    "copy_generated_request_available": true,
+    "manual_json_configuration_required": false
+  },
+  "create_form": {
+    "preset_icons": ["接口服务", "连接器", "业务流程", "数据服务", "自动化", "消息应用"],
+    "credential_validity_days_default": 365,
+    "raw_icon_or_json_input_present": false
+  }
+}

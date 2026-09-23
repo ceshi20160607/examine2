@@ -1,0 +1,33 @@
+{
+  "step": "B10.2c.2b",
+  "status": "passed",
+  "checked_time": "2026-09-20T15:55:12.490355+08:00",
+  "route": "/systems/54/admin?section=flow&module=flow_condition_accept_20260918&moduleTask=FLOW&flowSection=bindings&triggerEvent=SCHEDULED",
+  "workspace": "协作工作空间",
+  "checks": {
+    "structured_interval_daily_weekly_controls": true,
+    "weekly_value_visible": "星期一 09:15",
+    "misfire_policy_visible": "跳过错过的执行",
+    "execution_mode_fixed_to_flow_only": true,
+    "next_execution_visible": "2026/9/21 09:15:00",
+    "missed_skip_result_visible": true,
+    "stale_schedule_result_visible": true,
+    "real_instance_result_visible": 285,
+    "cron_prompt_visible": false,
+    "json_prompt_visible": false,
+    "timezone_input_visible": false,
+    "textarea_count": 0
+  },
+  "observed_labels": [
+    "按固定周期启动流程",
+    "每周",
+    "星期一",
+    "09:15",
+    "跳过错过的执行",
+    "周期：每周一 09:15 · 错过后跳过",
+    "计划于 2026/9/21 09:15:00执行",
+    "错过后已按配置跳过",
+    "旧计划已失效，未启动流程",
+    "已启动流程实例 285"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "step": "B10.2d.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0927",
+    "R0930",
+    "R1084",
+    "R1085",
+    "R1115",
+    "R2855",
+    "R2856",
+    "R2862",
+    "R2940",
+    "R2941"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue"
+  ],
+  "checks_actual_results": [
+    "应用发布快照现在为每条 FLOW/START 授权保存目标 Flow 物理身份、版本 ID、版本号和定义摘要；旧应用版本不再读取 Flow 当前发布指针。",
+    "ApplicationBridge 在当前系统/租户/Flow 身份和启用状态下读取冻结版本；缺少旧快照时明确要求重新发布，版本不存在或摘要不一致时拒绝，不静默回退当前版本。",
+    "FlowRuntime 新增仅供可信应用调用的精确版本入口，要求 app-call 稳定标识、当前 START 权限、目标当前可用、业务访问权限和冻结版本完整性，然后复用原持久实例/动作/推进链。",
+    "应用调用权限快照和 Flow 业务来源保存应用版本与目标 Flow 版本，调用日志可解释本次使用的授权版本；响应和页面不返回 Client Secret、请求载荷或业务变量。",
+    "真实系统应用 V1 冻结 Flow V1 后，将 Flow 当前发布切到 V2；外部签名调用和系统内当前身份调用仍分别启动 V1 实例 294、295，均完成。",
+    "相同幂等键换 nonce 返回原结果且实例总数不增加；再次使用同 nonce 返回重放冲突；错误签名返回 401 并形成安全失败日志。",
+    "显式保存并发布应用 V2 后，授权页面显示固定 Flow V2，新外部调用启动 Flow V2 实例 296；应用升级由重新发布控制。",
+    "普通应用页面显示当前系统、内外访问、固定 Flow V2、两版不可变发布历史、3 次成功与 1 次错误签名日志，以及幂等复用 1 次；没有 JSON 配置框或 Secret 明文。",
+    "首次验收尝试在没有新草稿修订时重复发布，命中唯一约束并安全回滚；改为显式保存同一授权草稿后再发布，未绕过约束。",
+    "后端 JDK21 compile/testCompile/package、前端 vue-tsc/生产构建、验收脚本语法和 git diff --check 通过；旧聚合测试尝试启动 Testcontainers 时按本环境约束立即中止，临时容器已自动清除且未用作验收。",
+    "应用 13/14 与 Flow 183/184 均已精确停用；3 个正式验收实例全部完成，应用 14 无 PENDING 调用；运行环境仍为单后端、既有 MySQL、共享 Redis 和一个 Vite。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/application-flow-entry-acceptance.py",
+    "projects/unexamine/ai/evidence/application-flow-entry-facts.json",
+    "projects/unexamine/ai/evidence/application-flow-entry-page-readback.json"
+  ],
+  "permission_or_failure_result": "外部签名、时间戳、nonce、防重放、幂等、IP、限流、固定系统/租户、发布授权和目标当前权限继续逐层交集；系统内调用使用当前登录身份；目标 Flow 改版、停用或冻结版本损坏不能扩大或漂移授权。",
+  "remaining": "B11 仍需完整核验模块动作授权、凭证轮换/撤销、跨系统桥接、接入说明和全应用页面；B12 四种外部渠道、AI 节点及其他产品要求未完成。",
+  "next_step": "B11.1",
+  "next_scope": "核验并补齐平台/系统应用的可视化资源、动作、字段、数据范围、系统/租户授权和发布版本：先复用现有 ApplicationManagement，不重建应用网关；覆盖模块动作与平台 Flow，普通用户不手写 JSON 或技术 ID。",
+  "integrated_verification": "精确 Flow 版本冻结、Flow 改版前后、外部签名、内部身份、幂等/nonce/错误签名、调用日志、普通 GUI、构建和精确清理通过。",
+  "completion_credit": false,
+  "verified_time": "2026-09-20T17:42:50.953788+08:00",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationModels.java",
+      "sha256": "232911bd8b0f75389a959980daeb44bf99332cb01051546291c39d38496449bb"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+      "sha256": "cd750712b4aa181cbef4528c3dab48fe0dd5bc01849d19d469d08e8838138b69"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+      "sha256": "ac5cde6325f05b31c6a8e6d0c9f13ed0af98131762ce5da4fcfe49060c1c1801"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "b2e972275e98cd0240a7e1327b08ee0905751aaa831f3e05a5fe6ca2c040cdcf"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "ed155a72167d634bf4a6a662e94b1301a9a64a70cb1c541a20dc141f192c65ea"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "9e746b3a915b5477a740462f796c9dec1fe3874df12268eee0d394b4c9616f7d"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "projects/unexamine/ai/evidence/application-flow-entry-acceptance.py",
+      "sha256": "bf16f3b37d2a4c4e8c127095146ee48efb2c74961e879ade2f78726570fb3677"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-flow-entry-facts.json",
+      "sha256": "cffea49cc8752f68736e2a30a1281ec4a43c844d379c4760f2ca063678c29199"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/application-flow-entry-page-readback.json",
+      "sha256": "1e950404b21978a28e297c4a0bef418cb151608d2b2bcf4742ae85215d75c170"
+    }
+  ]
+}

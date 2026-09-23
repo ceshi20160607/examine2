@@ -33,12 +33,17 @@ public class ApplicationSecretCipher {
     }
 
     public String encrypt(String secret, Long applicationId, int credentialVersion) {
+        return encrypt(secret, applicationId + ":" + credentialVersion);
+    }
+
+    /** 外部平台密钥使用包含连接、用途和版本的绑定值，防止不同用途的密文被调换。 */
+    public String encrypt(String secret, String binding) {
         byte[] iv = new byte[IV_BYTES];
         secureRandom.nextBytes(iv);
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
-            cipher.updateAAD(aad(applicationId, credentialVersion));
+            cipher.updateAAD(aad(binding));
             byte[] encrypted = cipher.doFinal(secret.getBytes(StandardCharsets.UTF_8));
             return PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(
                     ByteBuffer.allocate(iv.length + encrypted.length).put(iv).put(encrypted).array());
@@ -48,6 +53,11 @@ public class ApplicationSecretCipher {
     }
 
     public String decrypt(String reference, Long applicationId, int credentialVersion) {
+        return decrypt(reference, applicationId + ":" + credentialVersion);
+    }
+
+    /** 明文只在本次协议处理调用栈中存在，调用方不得记录或返回。 */
+    public String decrypt(String reference, String binding) {
         if (reference == null || !reference.startsWith(PREFIX)) {
             throw new IllegalStateException("Application signing secret reference is unavailable");
         }
@@ -60,7 +70,7 @@ public class ApplicationSecretCipher {
             System.arraycopy(payload, IV_BYTES, encrypted, 0, encrypted.length);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
-            cipher.updateAAD(aad(applicationId, credentialVersion));
+            cipher.updateAAD(aad(binding));
             return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException | IllegalArgumentException exception) {
             throw new IllegalStateException("Application signing secret reference is invalid", exception);
@@ -71,7 +81,10 @@ public class ApplicationSecretCipher {
         return "app-secret/" + applicationId + "/v" + credentialVersion;
     }
 
-    private byte[] aad(Long applicationId, int credentialVersion) {
-        return (applicationId + ":" + credentialVersion).getBytes(StandardCharsets.UTF_8);
+    private byte[] aad(String binding) {
+        if (binding == null || binding.isBlank()) {
+            throw new IllegalArgumentException("Application secret binding is required");
+        }
+        return binding.getBytes(StandardCharsets.UTF_8);
     }
 }

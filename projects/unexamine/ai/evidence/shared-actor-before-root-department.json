@@ -1,0 +1,30 @@
+{
+  "system_id": 54,
+  "actor_tenant_id": 57,
+  "data_tenant_id": 56,
+  "records": [],
+  "role_ids": [
+    76,
+    77,
+    78,
+    79
+  ],
+  "cases": [],
+  "business_verification": "in_progress",
+  "account_id": 54,
+  "registration_system_id": 56,
+  "email_or_sms_used": false,
+  "catalog": {
+    "inherited_modules_named": true,
+    "foreign_system_module_denied": true
+  },
+  "cleanup": {
+    "account_disabled": true,
+    "sessions_revoked": true,
+    "registration_system_disabled": true,
+    "audit_preserved": true,
+    "unused_roles_disabled": true
+  },
+  "checked_time": "2026-09-18T11:15:33.202707+08:00",
+  "failed_stage": "recipient_root_department_missing"
+}

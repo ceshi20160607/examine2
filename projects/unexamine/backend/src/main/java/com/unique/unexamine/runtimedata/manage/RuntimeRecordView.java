@@ -1,6 +1,7 @@
 package com.unique.unexamine.runtimedata.manage;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.unique.unexamine.authorization.manage.SystemPeopleDirectoryModels;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -33,12 +34,18 @@ public record RuntimeRecordView(
         String shareStatus,
         List<String> sharedActions,
         LocalDateTime shareExpiresAt,
+        SystemPeopleDirectoryModels.Labels organizationLabels,
+        Map<String, RuntimeFieldPresentation> fieldPresentation,
+        List<RuntimeRecordAction> actions,
         Map<String, JsonNode> fields) {
-    public RuntimeRecordView withFields(Map<String, JsonNode> visibleFields) {
+    /** 重放时重新裁剪字段、名称和展示文本，不能沿用旧权限下的描述。 */
+    public RuntimeRecordView withFields(Map<String, JsonNode> visibleFields, SystemPeopleDirectoryModels.Labels visibleLabels,
+                                        Map<String, RuntimeFieldPresentation> visiblePresentation,
+                                        List<RuntimeRecordAction> visibleActions) {
         return new RuntimeRecordView(id, recordNumber, title, status, ownerMemberId, departmentId,
                 createdByMemberId, updatedByMemberId, createdConfigVersionId, updatedConfigVersionId,
                 participantMemberIds, archived, archivedAt, deleted, deletedAt, version, createdAt, updatedAt,
                 dataTenantId, dataTenantName, ownedByCurrentTenant, shared, shareId, shareStatus, sharedActions,
-                shareExpiresAt, visibleFields);
+                shareExpiresAt, visibleLabels, visiblePresentation, visibleActions, visibleFields);
     }
 }

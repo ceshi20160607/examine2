@@ -1,0 +1,19 @@
+{
+  "step": "B13.1",
+  "status": "passed",
+  "cases": [
+    "ordinary-member-download-works-then-same-session-is-denied-after-role-publish"
+  ],
+  "fixture": {
+    "module_code": "file_accept_be8ef08ead",
+    "record_id": 266,
+    "file_id": 50
+  },
+  "cleanup": {
+    "account_disabled": true,
+    "sessions_revoked": true,
+    "registration_system_disabled": true,
+    "temporary_role_disabled": true
+  },
+  "checked_time": "2026-09-20T22:46:16.695800+08:00"
+}

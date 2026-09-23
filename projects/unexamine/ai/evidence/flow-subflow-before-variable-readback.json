@@ -1,0 +1,36 @@
+{
+  "step": "B10.1b",
+  "status": "running",
+  "code": "subflow_af8a0f854d",
+  "flows": [
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147
+  ],
+  "instances": [
+    252,
+    253
+  ],
+  "cases": [
+    {
+      "case": "self-reference-cannot-publish"
+    },
+    {
+      "case": "unpublished-child-cannot-publish"
+    },
+    {
+      "case": "indirect-cycle-cannot-publish"
+    }
+  ],
+  "checked_time": "2026-09-19T11:36:18.201830+08:00",
+  "child_flow": 146,
+  "child_v1": 154,
+  "parent_flow": 147,
+  "parent_version": 155,
+  "child_v2": 156,
+  "failed_stage": "acceptance_expected_public_variables_but_runtime_projection_correctly_redacted"
+}

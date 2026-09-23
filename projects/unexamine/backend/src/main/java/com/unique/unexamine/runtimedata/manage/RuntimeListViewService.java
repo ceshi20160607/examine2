@@ -5,57 +5,50 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
-import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
-import com.unique.unexamine.authorization.manage.FieldAccessDecision;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.foundation.base.entity.CoreSetting;
 import com.unique.unexamine.foundation.base.service.CoreSettingBaseService;
-import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
-import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+/** 接收方个人视图管理；字段权限按视图自身范围解析，配置不会写入来源租户。 */
 @Service
 public class RuntimeListViewService {
     private static final String CATEGORY = "RUNTIME_LIST_VIEW";
-    private static final Set<String> BUILT_INS = Set.of("title", "recordNumber", "status", "ownerMemberId",
-            "departmentId", "createdAt", "updatedAt", "dataTenantName");
     private final CoreSettingBaseService settingService;
-    private final ModulePublicationService publicationService;
     private final PermissionChecker permissionChecker;
-    private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final RuntimeDataService runtimeDataService;
 
     public RuntimeListViewService(
             CoreSettingBaseService settingService,
-            ModulePublicationService publicationService,
             PermissionChecker permissionChecker,
-            ChannelFieldPolicyResolver fieldPolicyResolver,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, RuntimeDataService runtimeDataService) {
         this.settingService = settingService;
-        this.publicationService = publicationService;
         this.permissionChecker = permissionChecker;
-        this.fieldPolicyResolver = fieldPolicyResolver;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.runtimeDataService = runtimeDataService;
     }
 
+    /** 仅列出当前账户视图，并按各自记录状态、租户范围校验当前可查询字段。 */
     @Transactional(readOnly = true)
     public List<RuntimeListView> list(AuthenticatedContext context, String moduleCode, String traceId) {
         Access access = requireAccess(context, moduleCode, traceId);
+        Map<String, Access> scopes = new HashMap<>();
+        scopes.put("ACTIVE:ALL", access);
         String prefix = settingPrefix(context, access.moduleCode());
         return settingService.selectList(Wrappers.<CoreSetting>lambdaQuery()
                         .eq(CoreSetting::getContextType, "TENANT")
@@ -65,17 +58,27 @@ public class RuntimeListViewService {
                         .eq(CoreSetting::getCategory, CATEGORY)
                         .eq(CoreSetting::getStatus, "ACTIVE")
                         .likeRight(CoreSetting::getSettingKey, prefix))
-                .stream().map(setting -> view(setting, access.allowedFields()))
+                .stream().map(setting -> {
+                    RuntimeListView saved = stored(setting);
+                    String lifecycle = lifecycle(saved.lifecycleState());
+                    String tenant = tenantScope(saved.tenantScope());
+                    Access scoped = scopes.computeIfAbsent(lifecycle + ":" + tenant,
+                            ignored -> requireAccess(context, moduleCode, lifecycle, tenant, traceId));
+                    return view(setting, scoped);
+                })
                 .sorted(Comparator.comparing(RuntimeListView::defaultView).reversed()
                         .thenComparing(RuntimeListView::updatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
     }
 
+    /** 同一事务保存精确查询范围和默认标记；版本冲突不会覆盖其他个人视图。 */
     @Transactional
     public RuntimeListView save(
             AuthenticatedContext context, String moduleCode, String viewCode,
             SaveRuntimeListViewRequest request, String traceId) {
-        Access access = requireAccess(context, moduleCode, traceId);
+        Access access = requireAccess(context, moduleCode,
+                lifecycle(request.lifecycleState()), tenantScope(request.tenantScope()), traceId);
+        runtimeDataService.validateListQuery(access.queryFields(), request.filters(), request.sortField(), request.sortDirection());
         String normalizedCode = normalizeViewCode(viewCode);
         RuntimeListView desired = normalizeRequest(request, normalizedCode, access.allowedFields());
         String key = settingPrefix(context, access.moduleCode()) + normalizedCode;
@@ -124,7 +127,7 @@ public class RuntimeListViewService {
                 "RUNTIME_LIST_VIEW_SAVED", "CORE_SETTING", current.getId().toString(), "SUCCESS",
                 Map.of("moduleCode", access.moduleCode(), "viewCode", normalizedCode, "created", created,
                         "version", current.getVersion()));
-        return view(current, access.allowedFields());
+        return view(current, access);
     }
 
     @Transactional
@@ -149,6 +152,7 @@ public class RuntimeListViewService {
                 Map.of("moduleCode", access.moduleCode(), "viewCode", normalizedCode));
     }
 
+    /** 只改变默认标记，保留其他视图的原始条件与范围，避免失权裁剪永久丢失配置。 */
     private void clearOtherDefaults(AuthenticatedContext context, Access access, String currentKey) {
         String prefix = settingPrefix(context, access.moduleCode());
         List<CoreSetting> others = settingService.selectList(Wrappers.<CoreSetting>lambdaQuery()
@@ -161,11 +165,12 @@ public class RuntimeListViewService {
                 .likeRight(CoreSetting::getSettingKey, prefix)
                 .ne(CoreSetting::getSettingKey, currentKey));
         for (CoreSetting other : others) {
-            RuntimeListView existing = view(other, access.allowedFields());
+            RuntimeListView existing = stored(other);
             if (!existing.defaultView()) continue;
             RuntimeListView changed = new RuntimeListView(null, existing.code(), existing.name(), existing.search(),
                     existing.filters(), existing.sortField(), existing.sortDirection(), existing.visibleFieldCodes(),
-                    existing.fixedFieldCodes(), existing.pageSize(), false, null, null);
+                    existing.fixedFieldCodes(), existing.pageSize(), false, null, null, false,
+                    lifecycle(existing.lifecycleState()), tenantScope(existing.tenantScope()));
             other.setValueJson(toJson(changed));
             if (settingService.updateById(other) != 1) {
                 throw new DomainException("LIST_VIEW_VERSION_CONFLICT", "默认视图已被修改，请刷新后重试", HttpStatus.CONFLICT);
@@ -174,6 +179,12 @@ public class RuntimeListViewService {
     }
 
     private Access requireAccess(AuthenticatedContext context, String moduleCode, String traceId) {
+        return requireAccess(context, moduleCode, "ACTIVE", "ALL", traceId);
+    }
+
+    /** 不使用当前页面范围替代历史视图范围，尤其保留仅归档来源字段的查询能力。 */
+    private Access requireAccess(AuthenticatedContext context, String moduleCode,
+            String lifecycleState, String tenantScope, String traceId) {
         if (context.systemId() == null || context.tenantId() == null || context.accountId() == null) {
             throw new DomainException("SYSTEM_CONTEXT_REQUIRED", "请先进入系统", HttpStatus.BAD_REQUEST);
         }
@@ -184,18 +195,12 @@ public class RuntimeListViewService {
                     Map.of("resource", "MODULE:" + normalized, "action", "LIST", "channel", "PAGE"));
             throw new DomainException("PERMISSION_DENIED", "没有该模块列表权限", HttpStatus.FORBIDDEN);
         }
-        RuntimeModuleConfiguration configuration = publicationService.published(context, normalized);
-        List<String> fieldCodes = new ArrayList<>();
-        configuration.configuration().path("fields").forEach(field -> fieldCodes.add(field.path("code").asText()));
-        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
-                context, normalized, "LIST", List.of("PAGE"), fieldCodes);
-        Set<String> allowed = new LinkedHashSet<>(BUILT_INS);
-        decisions.forEach((code, decision) -> {
-            if (decision.readable() && (decision.maskStrategy() == null || decision.maskStrategy().isBlank())) {
-                allowed.add(code);
-            }
-        });
-        return new Access(normalized, allowed);
+        // 与实时查询共享原操作者范围、有效来源字段和脱敏限制；存储仍只属于接收方个人。
+        List<RuntimeListQueryField> fields = runtimeDataService.queryFields(
+                context, normalized, lifecycleState, tenantScope, traceId);
+        Set<String> allowed = fields.stream().map(RuntimeListQueryField::code)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        return new Access(normalized, allowed, fields);
     }
 
     private RuntimeListView normalizeRequest(
@@ -219,7 +224,7 @@ public class RuntimeListViewService {
         return new RuntimeListView(null, code, request.name().strip(),
                 request.search() == null ? "" : request.search().strip(), filters, request.sortField().strip(),
                 request.sortDirection().strip().toUpperCase(Locale.ROOT), visible, fixed, request.pageSize(),
-                request.defaultView(), null, null);
+                request.defaultView(), null, null, false, lifecycle(request.lifecycleState()), tenantScope(request.tenantScope()));
     }
 
     private void validateField(String field, Set<String> allowedFields, String usage) {
@@ -228,13 +233,17 @@ public class RuntimeListViewService {
         }
     }
 
-    private RuntimeListView view(CoreSetting setting, Set<String> allowedFields) {
-        RuntimeListView stored;
+    private RuntimeListView stored(CoreSetting setting) {
         try {
-            stored = objectMapper.readValue(setting.getValueJson(), RuntimeListView.class);
+            return objectMapper.readValue(setting.getValueJson(), RuntimeListView.class);
         } catch (JsonProcessingException exception) {
             throw new DomainException("LIST_VIEW_VALUE_INVALID", "常用视图配置无法读取", HttpStatus.CONFLICT);
         }
+    }
+
+    private RuntimeListView view(CoreSetting setting, Access access) {
+        RuntimeListView stored = stored(setting);
+        Set<String> allowedFields = access.allowedFields();
         List<RuntimeListFilter> safeFilters = stored.filters() == null ? List.of() : stored.filters().stream()
                 .filter(filter -> filter != null && allowedFields.contains(filter.fieldCode())).toList();
         List<String> safeVisible = stored.visibleFieldCodes() == null ? List.of() : stored.visibleFieldCodes().stream()
@@ -242,9 +251,39 @@ public class RuntimeListViewService {
         List<String> safeFixed = stored.fixedFieldCodes() == null ? List.of() : stored.fixedFieldCodes().stream()
                 .filter(safeVisible::contains).distinct().toList();
         String safeSort = allowedFields.contains(stored.sortField()) ? stored.sortField() : "updatedAt";
+        // 失权或类型变化的历史条件不能静默变为宽查询；仅返回安全字段并明确要求重新配置。
+        boolean queryInvalid = safeFilters.size() != (stored.filters() == null ? 0 : stored.filters().size())
+                || !safeSort.equals(stored.sortField());
+        if (!queryInvalid) {
+            try {
+                runtimeDataService.validateListQuery(access.queryFields(), safeFilters, safeSort, stored.sortDirection());
+            } catch (DomainException invalid) {
+                if (invalid.status() != HttpStatus.BAD_REQUEST && invalid.status() != HttpStatus.FORBIDDEN) throw invalid;
+                queryInvalid = true;
+            }
+        }
         return new RuntimeListView(setting.getId(), stored.code(), stored.name(), stored.search(), safeFilters,
                 safeSort, stored.sortDirection(), safeVisible, safeFixed, stored.pageSize(), stored.defaultView(),
-                setting.getVersion(), setting.getUpdatedAt());
+                setting.getVersion(), setting.getUpdatedAt(), queryInvalid,
+                lifecycle(stored.lifecycleState()), tenantScope(stored.tenantScope()));
+    }
+
+    /** 缺失范围仅兼容原默认值；非法已存范围不静默改成更宽查询。 */
+    private String lifecycle(String value) {
+        return scope(value, "ACTIVE", Set.of("ACTIVE", "ARCHIVED", "DELETED"));
+    }
+
+    private String tenantScope(String value) {
+        return scope(value, "ALL", Set.of("ALL", "OWN", "SHARED"));
+    }
+
+    private String scope(String value, String fallback, Set<String> allowed) {
+        if (value == null) return fallback;
+        String normalized = value.strip().toUpperCase(Locale.ROOT);
+        if (!allowed.contains(normalized)) {
+            throw new DomainException("LIST_VIEW_SCOPE_INVALID", "常用视图查询范围无效，请重新配置", HttpStatus.CONFLICT);
+        }
+        return normalized;
     }
 
     private CoreSetting find(AuthenticatedContext context, String key) {
@@ -279,6 +318,6 @@ public class RuntimeListViewService {
         }
     }
 
-    private record Access(String moduleCode, Set<String> allowedFields) {
+    private record Access(String moduleCode, Set<String> allowedFields, List<RuntimeListQueryField> queryFields) {
     }
 }
