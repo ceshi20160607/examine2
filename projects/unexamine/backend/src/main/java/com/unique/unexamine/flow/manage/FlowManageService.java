@@ -144,7 +144,7 @@ public class FlowManageService {
     /** 本人记录发起审批，记录状态、实例、任务与提交事件在同一事务提交。 */
     @Transactional
     public FlowRun submit(Long accountId, Long systemId, Long moduleId, Long recordId) {
-        SystemPermissionService.Context context = access.requireModule(accountId, systemId, moduleId, "VIEW");
+        SystemPermissionService.Context context = access.requireModule(accountId, systemId, moduleId, "SUBMIT_APPROVAL");
         BusinessRecord record = recordViews.ownedForSubmission(context, moduleId, recordId);
         FlowDefinition flow = flow(context, moduleId);
         if (flow == null || flow.getPublishedVersionId() == null || !"PUBLISHED".equals(flow.getStatus())) {

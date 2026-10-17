@@ -2,7 +2,9 @@ package com.unique.unexamine.moduleconfig.manage;
 
 import com.unique.unexamine.moduleconfig.base.entity.BusinessModule;
 import com.unique.unexamine.moduleconfig.base.entity.ModuleField;
+import com.unique.unexamine.moduleconfig.base.entity.ModuleAction;
 import com.unique.unexamine.moduleconfig.base.entity.ModuleGroup;
+import com.unique.unexamine.moduleconfig.base.entity.ModuleMenu;
 import com.unique.unexamine.moduleconfig.base.entity.ModuleVersion;
 import com.unique.unexamine.platform.manage.AccountSessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,6 +86,32 @@ public class ModuleManageController {
         return FieldView.from(modules.renameField(accountId(request), systemId, moduleId, fieldId, body.label()));
     }
 
+    /** 读取模块动作草稿；动作开关需重新发布才进入运行态。 */
+    @GetMapping("/modules/{moduleId}/actions")
+    public List<ActionView> actions(@PathVariable Long systemId, @PathVariable Long moduleId, HttpServletRequest request) {
+        return modules.actions(accountId(request), systemId, moduleId).stream().map(ActionView::from).toList();
+    }
+
+    /** 修改现有页面动作的启用状态。 */
+    @PutMapping("/modules/{moduleId}/actions/{code}")
+    public ActionView setAction(@PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable String code,
+                                @Valid @RequestBody ActionRequest body, HttpServletRequest request) {
+        return ActionView.from(modules.setAction(accountId(request), systemId, moduleId, code, body.enabled()));
+    }
+
+    /** 读取默认列表菜单草稿。 */
+    @GetMapping("/modules/{moduleId}/menu")
+    public MenuView menu(@PathVariable Long systemId, @PathVariable Long moduleId, HttpServletRequest request) {
+        return MenuView.from(modules.menu(accountId(request), systemId, moduleId));
+    }
+
+    /** 修改菜单名称，发布后才改变导航显示。 */
+    @PutMapping("/modules/{moduleId}/menu")
+    public MenuView renameMenu(@PathVariable Long systemId, @PathVariable Long moduleId,
+                               @Valid @RequestBody RenameMenuRequest body, HttpServletRequest request) {
+        return MenuView.from(modules.renameMenu(accountId(request), systemId, moduleId, body.name()));
+    }
+
     /** 发布模块并返回新版本编号。 */
     @PostMapping("/modules/{moduleId}/publish")
     public VersionView publish(@PathVariable Long systemId, @PathVariable Long moduleId, HttpServletRequest request) {
@@ -119,6 +147,20 @@ public class ModuleManageController {
                                @NotBlank String type, boolean required, boolean searchable, String optionsJson) {}
     /** 字段名称草稿修改。 */
     public record RenameFieldRequest(@NotBlank @Size(max = 160) String label) {}
+    /** 模块列表菜单名称长度与表字段一致。 */
+    public record RenameMenuRequest(@NotBlank @Size(max = 120) String name) {}
+    /** 动作草稿开关只接收明确布尔值。 */
+    public record ActionRequest(@NotNull Boolean enabled) {}
+    /** 页面动作草稿摘要。 */
+    public record ActionView(String code, String name, boolean enabled, int sortOrder) {
+        static ActionView from(ModuleAction action) {
+            return new ActionView(action.getCode(), action.getName(), action.getEnabledFlag(), action.getSortOrder());
+        }
+    }
+    /** 默认列表菜单草稿摘要。 */
+    public record MenuView(String code, String name) {
+        static MenuView from(ModuleMenu menu) { return new MenuView(menu.getCode(), menu.getName()); }
+    }
     /** 模块组页面字段。 */
     public record GroupView(Long id, String code, String name, int sortOrder) {
         static GroupView from(ModuleGroup group) { return new GroupView(group.getId(), group.getCode(), group.getName(), group.getSortOrder()); }

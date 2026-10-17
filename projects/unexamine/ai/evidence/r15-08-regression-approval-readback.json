@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "system_id": 71,
+  "module_id": 63,
+  "record_id": 61,
+  "checks": ["draft_publish", "frozen_snapshot", "cross_account_denial", "duplicate_denial", "reject_reason", "resubmit_new_version", "approve", "record_status", "mysql_readback", "flyway_v4"],
+  "observed": "引入发布动作权限后，基础单节点审批仍在独立新系统完成发起、拒绝、重提和通过，MySQL 读回记录、流程实例、事件与版本。"
+}

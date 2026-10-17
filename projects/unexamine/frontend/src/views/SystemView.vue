@@ -6,8 +6,9 @@ import { api, send, type Account, type System } from '../product/api'
 interface Group { id: number; code: string; name: string; sortOrder: number }
 interface Module { id: number; groupId: number; code: string; name: string; status: string; publishedVersionId: number | null; draftRevision: number }
 interface Field { id: number; key: string; label: string; type: string; required: boolean; searchable: boolean; sortOrder: number; optionsJson: string | null }
+interface ModuleAction { code: string; name: string; enabled: boolean; sortOrder: number }
 interface Snapshot { moduleName: string; groupId: number; groupName: string; fields: Field[]; menus: { name: string }[]; actions: { code: string; name: string }[] }
-interface Published { moduleId: number; versionId: number; versionNumber: number; snapshot: Snapshot; canCreate: boolean; canUpdate: boolean; canExport: boolean }
+interface Published { moduleId: number; versionId: number; versionNumber: number; snapshot: Snapshot; canCreate: boolean; canUpdate: boolean; canExport: boolean; canImport: boolean; canSubmitApproval: boolean }
 interface BusinessRecord { id: number; recordNo: string; title: string; recordStatus: string; version: number; createTime: string; updateTime: string; values: Record<string, string | number | boolean> }
 interface RecordPage { items: BusinessRecord[]; total: number; page: number; size: number }
 interface Role { id: number; code: string; name: string }
@@ -18,6 +19,8 @@ interface FlowTask { taskId: number; recordId: number; moduleId: number; title: 
 interface TaskDetail { task: FlowTask; record: BusinessRecord; history: { eventType: string; opinion: string | null; createTime: string }[] }
 interface FileItem { id: number; name: string; contentType: string; sizeBytes: number; createTime: string }
 interface ExportJob { id: number; status: string; rowCount: number; failureReason: string | null; createTime: string; finishTime: string | null }
+interface ImportRow { line: number; recordNo: string; action: string; message: string | null }
+interface ImportJob { id: number; mode: string; status: string; totalRows: number; validRows: number; importedRows: number; failureReason: string | null; rows: ImportRow[] }
 
 const route = useRoute()
 const router = useRouter()
@@ -28,6 +31,8 @@ const system = ref<System | null>(null)
 const groups = ref<Group[]>([])
 const modules = ref<Module[]>([])
 const fields = ref<Field[]>([])
+const moduleActions = ref<ModuleAction[]>([])
+const menuName = ref('')
 const published = ref<Published[]>([])
 const roles = ref<Role[]>([])
 const members = ref<Member[]>([])
@@ -68,6 +73,10 @@ const taskFiles = ref<FileItem[]>([])
 const exportOpen = ref(false)
 const exportColumnKeys = ref<string[]>([])
 const exportJobs = ref<ExportJob[]>([])
+const importOpen = ref(false)
+const importMode = ref<'INSERT' | 'UPSERT'>('INSERT')
+const importJob = ref<ImportJob | null>(null)
+const importHistory = ref<ImportJob[]>([])
 const form = ref<'group' | 'module' | 'field' | 'role' | null>(null)
 const loading = ref(true)
 const saving = ref(false)
@@ -186,6 +195,31 @@ async function selectGroup(group: Group) {
 async function selectModule(module: Module) {
   selectedModule.value = module
   fields.value = await api<Field[]>(`${base}/modules/${module.id}/fields`)
+  moduleActions.value = await api<ModuleAction[]>(`${base}/modules/${module.id}/actions`)
+  menuName.value = (await api<{ name: string }>(`${base}/modules/${module.id}/menu`)).name
+}
+
+async function setModuleAction(item: ModuleAction, enabled: boolean) {
+  if (!selectedModule.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    const saved = await api<ModuleAction>(`${base}/modules/${selectedModule.value.id}/actions/${item.code}`, { method: 'PUT', body: JSON.stringify({ enabled }) })
+    moduleActions.value = moduleActions.value.map(action => action.code === saved.code ? saved : action)
+    notice.value = '动作草稿已保存，发布新版本后生效。'
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : '动作配置失败' }
+  finally { saving.value = false }
+}
+
+async function saveMenuName() {
+  if (!selectedModule.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    await api(`${base}/modules/${selectedModule.value.id}/menu`, { method: 'PUT', body: JSON.stringify({ name: menuName.value.trim() }) })
+    notice.value = '菜单名称草稿已保存，发布新版本后生效。'
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : '菜单配置失败' }
+  finally { saving.value = false }
 }
 
 function openForm(kind: 'group' | 'module' | 'field' | 'role') {
@@ -272,10 +306,15 @@ async function showRuntime(item: Published) {
     recordFiles.value = []
     recordForm.value = false
     exportOpen.value = false
+    importOpen.value = false
+    importMode.value = 'INSERT'
+    importJob.value = null
     exportColumnKeys.value = runtimeModule.value.snapshot.fields.map(field => field.key)
     await loadRecords(1)
     if (runtimeModule.value.canExport) await loadExportJobs()
     else exportJobs.value = []
+    if (runtimeModule.value.canImport) await loadImportHistory()
+    else importHistory.value = []
   }
   catch (cause) { error.value = cause instanceof Error ? cause.message : '无法打开模块' }
 }
@@ -523,6 +562,51 @@ function exportUrl(jobId: number): string {
   return `/api${base}/modules/${runtimeModule.value?.moduleId}/export-jobs/${jobId}/download`
 }
 
+function importBase(): string {
+  return `${base}/modules/${runtimeModule.value?.moduleId}/import-jobs`
+}
+
+async function loadImportHistory() {
+  if (!runtimeModule.value?.canImport) return
+  importHistory.value = await api<ImportJob[]>(importBase())
+}
+
+async function previewImport(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !runtimeModule.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    const form = new FormData()
+    form.append('mode', importMode.value)
+    form.append('file', file)
+    importJob.value = await api<ImportJob>(`${importBase()}/preview`, { method: 'POST', body: form })
+    await loadImportHistory()
+    notice.value = importJob.value.status === 'READY' ? '预检查通过，可以确认导入。' : '预检查发现错误，请下载错误行并修正。'
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : 'Excel 预检查失败' }
+  finally { input.value = ''; saving.value = false }
+}
+
+async function commitImport() {
+  if (!importJob.value || !runtimeModule.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    importJob.value = await send<ImportJob>(`${importBase()}/${importJob.value.id}/commit`)
+    await loadImportHistory()
+    await loadRecords(1)
+    notice.value = `已导入 ${importJob.value.importedRows} 行。`
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '确认导入失败'
+    await loadImportHistory()
+  } finally { saving.value = false }
+}
+
+function importUrl(suffix: string): string {
+  return `/api${importBase()}${suffix}`
+}
+
 async function logout() {
   await send<void>('/auth/logout')
   await router.push('/')
@@ -531,6 +615,7 @@ async function logout() {
 function switchRuntime() {
   mode.value = 'runtime'
   error.value = ''
+  runtimeModule.value = null
   if (runtimeGroups.value.length) runtimeGroupId.value = runtimeGroups.value[0]!.snapshot.groupId
   if (runtimeModules.value.length) void showRuntime(runtimeModules.value[0]!)
 }
@@ -550,7 +635,7 @@ onMounted(boot)
         <div v-if="system && mode === 'config' && system.owner" class="model-layout">
           <section class="model-column group-column"><div class="column-head"><div><div class="page-kicker">01 / GROUPS</div><h2>模块组</h2></div><button class="icon-button" title="创建模块组" @click="openForm('group')">＋</button></div><p class="column-hint">运行态顶栏的业务分组</p><button v-for="group in groups" :key="group.id" class="list-item" :class="{ active: selectedGroup?.id === group.id }" @click="selectGroup(group)"><strong>{{ group.name }}</strong><small>{{ group.code }}</small></button><div v-if="!groups.length" class="column-empty">先创建一个模块组</div></section>
           <section class="model-column module-column"><div class="column-head"><div><div class="page-kicker">02 / MODULES</div><h2>业务模块</h2></div><button class="icon-button" title="创建业务模块" :disabled="!selectedGroup" @click="openForm('module')">＋</button></div><p class="column-hint">{{ selectedGroup ? `${selectedGroup.name} · 组内模块` : '请先选择模块组' }}</p><button v-for="module in modules" :key="module.id" class="list-item" :class="{ active: selectedModule?.id === module.id }" @click="selectModule(module)"><strong>{{ module.name }}</strong><small>{{ module.status === 'PUBLISHED' ? '已发布' : '草稿' }} · {{ module.code }}</small></button><div v-if="selectedGroup && !modules.length" class="column-empty">这个组还没有模块</div></section>
-          <section class="model-detail"><template v-if="selectedModule"><div class="detail-header"><div><div class="page-kicker">03 / FIELDS & RELEASE</div><h2>{{ selectedModule.name }}</h2><p>在发布前配置字段。新建模块已自带列表菜单和基础页面动作。</p></div><button class="secondary-button" @click="openForm('field')">＋ 添加字段</button></div><div v-if="fields.length" class="field-list"><div v-for="field in fields" :key="field.id" class="field-row"><span class="field-symbol">▤</span><div><strong>{{ field.label }}</strong><small>{{ field.key }} · {{ field.type }}</small></div><span v-if="field.required" class="field-tag">必填</span><span v-if="field.searchable" class="field-tag">可搜索</span></div></div><div v-else class="detail-empty">还没有字段。先添加一个字段，再发布模块。</div><div class="publish-bar"><span>当前状态：{{ selectedModule.status === 'PUBLISHED' ? '已发布，可继续编辑草稿' : '草稿' }}</span><button class="primary-button" :disabled="saving || !fields.length" @click="publish">{{ saving ? '发布中…' : selectedModule.status === 'PUBLISHED' ? '发布新版本' : '发布模块' }}</button></div></template><div v-else class="detail-empty large">选择一个业务模块，配置字段并发布。</div></section>
+          <section class="model-detail"><template v-if="selectedModule"><div class="detail-header"><div><div class="page-kicker">03 / MODULE CONFIG</div><h2>{{ selectedModule.name }}</h2><p>字段、页面动作和菜单名称在发布后成为运行态版本。</p></div><button class="secondary-button" @click="openForm('field')">＋ 添加字段</button></div><div v-if="fields.length" class="field-list"><div v-for="field in fields" :key="field.id" class="field-row"><span class="field-symbol">▤</span><div><strong>{{ field.label }}</strong><small>{{ field.key }} · {{ field.type }}</small></div><span v-if="field.required" class="field-tag">必填</span><span v-if="field.searchable" class="field-tag">可搜索</span></div></div><div v-else class="detail-empty">还没有字段。先添加一个字段，再发布模块。</div><div class="module-draft"><h3>页面动作</h3><p>启用后还需角色授权；关闭的动作发布后在页面和接口同时失效。</p><div class="grant-options"><label v-for="action in moduleActions.filter(item => item.code !== 'view')" :key="action.code"><input type="checkbox" :checked="action.enabled" :disabled="saving" @change="setModuleAction(action, !action.enabled)" /> {{ action.name }}</label></div><h3>列表菜单</h3><p>名称将在下一次模块发布后显示在业务菜单中。</p><form class="menu-draft" @submit.prevent="saveMenuName"><input v-model="menuName" required maxlength="120" aria-label="列表菜单名称" /><button class="secondary-button" :disabled="saving">保存菜单名称</button></form></div><div class="publish-bar"><span>当前状态：{{ selectedModule.status === 'PUBLISHED' ? '已发布，可继续编辑草稿' : '草稿' }}</span><button class="primary-button" :disabled="saving || !fields.length" @click="publish">{{ saving ? '发布中…' : selectedModule.status === 'PUBLISHED' ? '发布新版本' : '发布模块' }}</button></div></template><div v-else class="detail-empty large">选择一个业务模块，配置字段并发布。</div></section>
         </div>
         <div v-if="system && mode === 'access' && system.owner" class="access-layout">
           <section class="access-card"><div class="column-head"><div><div class="page-kicker">ROLES</div><h2>角色</h2></div><button class="icon-button" title="创建角色" @click="openForm('role')">＋</button></div><p class="column-hint">主租户内的业务权限角色</p><div v-for="role in roles" :key="role.id" class="access-row"><strong>{{ role.name }}</strong><small>{{ role.code }}</small></div></section>
@@ -565,16 +650,17 @@ onMounted(boot)
         <div v-if="system && mode === 'runtime'" class="runtime-shell">
           <div v-if="published.length" class="runtime-top"><button v-for="group in runtimeGroups" :key="group.snapshot.groupId" :class="{ active: runtimeGroupId === group.snapshot.groupId }" @click="runtimeGroupId = group.snapshot.groupId; runtimeModule = null">{{ group.snapshot.groupName }}</button></div>
           <div v-if="published.length" class="runtime-body">
-            <nav class="runtime-side"><div class="page-kicker">业务菜单</div><button v-for="item in runtimeModules" :key="item.moduleId" :class="{ active: runtimeModule?.moduleId === item.moduleId }" @click="showRuntime(item)">{{ item.snapshot.moduleName }}</button></nav>
+            <nav class="runtime-side"><div class="page-kicker">业务菜单</div><button v-for="item in runtimeModules" :key="item.moduleId" :class="{ active: runtimeModule?.moduleId === item.moduleId }" @click="showRuntime(item)">{{ item.snapshot.menus[0]?.name || item.snapshot.moduleName }}</button></nav>
             <section class="runtime-main"><template v-if="runtimeModule">
               <div class="page-kicker">已发布 · 第 {{ runtimeModule.versionNumber }} 版</div><h2>{{ runtimeModule.snapshot.moduleName }}</h2>
-              <div class="record-toolbar"><div><strong>业务记录</strong><small>共 {{ recordPage.total }} 条</small></div><div class="toolbar-actions"><button v-if="runtimeModule.canExport" class="secondary-button" @click="exportOpen = !exportOpen">导出数据</button><button v-if="runtimeModule.canCreate" class="primary-button" @click="openNewRecord">＋ 新增记录</button></div></div>
+              <div class="record-toolbar"><div><strong>业务记录</strong><small>共 {{ recordPage.total }} 条</small></div><div class="toolbar-actions"><button v-if="runtimeModule.canImport" class="secondary-button" @click="importOpen = !importOpen">导入 Excel</button><button v-if="runtimeModule.canExport" class="secondary-button" @click="exportOpen = !exportOpen">导出数据</button><button v-if="runtimeModule.canCreate" class="primary-button" @click="openNewRecord">＋ 新增记录</button></div></div>
               <form class="record-search" @submit.prevent="loadRecords(1)"><input v-model="recordSearch" placeholder="搜索记录标题" /><select v-model="filterKey"><option value="">不按字段筛选</option><option v-for="field in runtimeModule.snapshot.fields.filter(item => item.searchable)" :key="field.key" :value="field.key">{{ field.label }}</option></select><input v-model="filterValue" :disabled="!filterKey" placeholder="字段精确值" /><button class="secondary-button">查询</button></form>
               <div v-if="exportOpen" class="export-panel"><div class="record-editor-head"><div><h3>导出当前筛选</h3><p>只包含你当前有权查看的记录。选择 CSV 中的业务字段。</p></div><button class="text-button" @click="loadExportJobs">刷新状态</button></div><div class="export-columns"><label v-for="field in runtimeModule.snapshot.fields" :key="field.key"><input v-model="exportColumnKeys" type="checkbox" :value="field.key" /> {{ field.label }}</label></div><button class="primary-button" :disabled="saving || !exportColumnKeys.length" @click="submitExport">提交导出任务</button><div v-if="exportJobs.length" class="file-list"><div v-for="job in exportJobs" :key="job.id" class="file-row"><strong>任务 #{{ job.id }}</strong><span>{{ job.status === 'SUCCEEDED' ? `已完成 · ${job.rowCount} 行` : job.status === 'FAILED' ? `失败 · ${job.failureReason}` : '正在处理' }}</span><a v-if="job.status === 'SUCCEEDED'" :href="exportUrl(job.id)">下载 CSV</a></div></div></div>
+              <div v-if="importOpen && runtimeModule.canImport" class="export-panel"><div class="record-editor-head"><div><h3>导入 Excel</h3><p>先下载当前字段模板，上传后预检查；确认前不会写入记录。单次最多 1000 行、2 MB。</p></div><button class="text-button" @click="loadImportHistory">刷新历史</button></div><div class="import-actions"><a class="secondary-button" :href="importUrl('/template')">下载模板</a><label>导入方式<select v-model="importMode"><option value="INSERT">只新增</option><option v-if="runtimeModule.canUpdate" value="UPSERT">按记录编号新增或更新</option></select></label><label class="file-upload">选择 Excel 并预检查<input type="file" accept=".xlsx" :disabled="saving" @change="previewImport" /></label></div><p class="column-hint">更新时在模板第一列填写系统生成的记录编号；空白编号新增。仅可更新本人有权编辑的记录。</p><div v-if="importJob" class="import-result"><strong>预检查：{{ importJob.validRows }} / {{ importJob.totalRows }} 行通过</strong><div v-for="row in importJob.rows" :key="row.line" class="file-row"><span>第 {{ row.line }} 行</span><span>{{ row.message || (row.action === 'UPDATE' ? '可更新' : '可新增') }}</span></div><div class="toolbar-actions"><button v-if="importJob.status === 'READY'" class="primary-button" :disabled="saving" @click="commitImport">确认整批导入</button><a v-if="importJob.status === 'INVALID'" :href="importUrl(`/${importJob.id}/errors`)">下载错误行</a></div></div><div v-if="importHistory.length" class="file-list"><div v-for="job in importHistory" :key="job.id" class="file-row"><strong>导入 #{{ job.id }}</strong><span>{{ job.status === 'IMPORTED' ? `已导入 ${job.importedRows} 行` : job.status === 'INVALID' ? `${job.totalRows - job.validRows} 行错误` : job.status === 'FAILED' ? `失败：${job.failureReason}` : '待确认' }}</span><a v-if="job.status === 'INVALID'" :href="importUrl(`/${job.id}/errors`)">下载错误行</a></div></div></div>
               <div v-if="recordForm" class="record-editor"><div class="record-editor-head"><h3>{{ editingRecord ? '编辑记录' : '新增记录' }}</h3><button class="text-button" @click="recordForm = false">取消</button></div><form @submit.prevent="saveRecord"><div class="record-form-grid"><label v-for="field in runtimeModule.snapshot.fields" :key="field.key">{{ field.label }}<span v-if="field.required"> *</span><select v-if="field.type === 'SELECT'" v-model="recordValues[field.key]" :required="field.required"><option value="">请选择</option><option v-for="option in choices(field)" :key="option" :value="option">{{ option }}</option></select><input v-else-if="field.type === 'BOOLEAN'" v-model="recordValues[field.key]" type="checkbox" /><input v-else v-model="recordValues[field.key]" :type="field.type === 'NUMBER' ? 'number' : field.type === 'DATE' ? 'date' : 'text'" :required="field.required" :step="field.type === 'NUMBER' ? 'any' : undefined" /></label></div><button class="primary-button" :disabled="recordBusy">{{ recordBusy ? '保存中…' : '保存记录' }}</button></form></div>
               <div v-if="recordPage.items.length" class="record-list"><button v-for="item in recordPage.items" :key="item.id" class="record-row" @click="openRecord(item)"><span><strong>{{ item.title }}</strong><small>{{ item.recordNo }} · {{ item.recordStatus === 'PENDING' ? '待审批' : item.recordStatus === 'APPROVED' ? '已通过' : item.recordStatus === 'REJECTED' ? '已拒绝' : '未提交' }}</small></span><span>{{ item.updateTime?.slice(0, 10) }}</span><span>查看详情 →</span></button></div><div v-else class="record-empty">当前范围内没有记录。{{ runtimeModule.canCreate ? '可以新增第一条业务数据。' : '' }}</div>
               <div v-if="recordPage.total > recordPage.size" class="record-pagination"><button :disabled="recordPage.page <= 1" @click="loadRecords(recordPage.page - 1)">上一页</button><span>第 {{ recordPage.page }} 页</span><button :disabled="recordPage.page * recordPage.size >= recordPage.total" @click="loadRecords(recordPage.page + 1)">下一页</button></div>
-              <div v-if="recordDetail" class="record-detail"><div class="record-editor-head"><div><div class="page-kicker">RECORD DETAIL / {{ recordDetail.recordNo }} · {{ recordDetail.recordStatus === 'PENDING' ? '待审批' : recordDetail.recordStatus === 'APPROVED' ? '已通过' : recordDetail.recordStatus === 'REJECTED' ? '已拒绝' : '未提交' }}</div><h3>{{ recordDetail.title }}</h3></div><div class="toolbar-actions"><button v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="secondary-button" @click="editRecord">编辑</button><button v-if="['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="primary-button" :disabled="recordBusy" @click="submitApproval">发起审批</button><button class="text-button" @click="recordDetail = null">关闭</button></div></div><div class="record-detail-fields"><div v-for="field in runtimeModule.snapshot.fields" :key="field.key"><small>{{ field.label }}</small><strong>{{ recordDetail.values[field.key] ?? '—' }}</strong></div></div><div class="record-files"><div class="record-editor-head"><div><h3>附件</h3><p>文件关联当前业务记录，审批人可以在待办中查看。</p></div><label v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="file-upload">上传附件<input type="file" @change="uploadSelected" /></label></div><div v-if="recordFiles.length" class="file-list"><div v-for="file in recordFiles" :key="file.id" class="file-row"><img v-if="file.contentType.startsWith('image/')" :src="recordFileUrl(file.id, 'thumbnail')" alt="" /><strong>{{ file.name }}</strong><span>{{ Math.ceil(file.sizeBytes / 1024) }} KB</span><a v-if="file.contentType.startsWith('image/') || file.contentType === 'application/pdf'" :href="recordFileUrl(file.id, 'preview')" target="_blank" rel="noopener">预览</a><a :href="recordFileUrl(file.id, 'download')">下载</a><button v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="text-button" :disabled="recordBusy" @click="removeFile(file.id)">移除</button></div></div><p v-else class="column-hint">这条记录还没有附件。</p></div></div>
+              <div v-if="recordDetail" class="record-detail"><div class="record-editor-head"><div><div class="page-kicker">RECORD DETAIL / {{ recordDetail.recordNo }} · {{ recordDetail.recordStatus === 'PENDING' ? '待审批' : recordDetail.recordStatus === 'APPROVED' ? '已通过' : recordDetail.recordStatus === 'REJECTED' ? '已拒绝' : '未提交' }}</div><h3>{{ recordDetail.title }}</h3></div><div class="toolbar-actions"><button v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="secondary-button" @click="editRecord">编辑</button><button v-if="runtimeModule.canSubmitApproval && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="primary-button" :disabled="recordBusy" @click="submitApproval">发起审批</button><button class="text-button" @click="recordDetail = null">关闭</button></div></div><div class="record-detail-fields"><div v-for="field in runtimeModule.snapshot.fields" :key="field.key"><small>{{ field.label }}</small><strong>{{ recordDetail.values[field.key] ?? '—' }}</strong></div></div><div class="record-files"><div class="record-editor-head"><div><h3>附件</h3><p>文件关联当前业务记录，审批人可以在待办中查看。</p></div><label v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="file-upload">上传附件<input type="file" @change="uploadSelected" /></label></div><div v-if="recordFiles.length" class="file-list"><div v-for="file in recordFiles" :key="file.id" class="file-row"><img v-if="file.contentType.startsWith('image/')" :src="recordFileUrl(file.id, 'thumbnail')" alt="" /><strong>{{ file.name }}</strong><span>{{ Math.ceil(file.sizeBytes / 1024) }} KB</span><a v-if="file.contentType.startsWith('image/') || file.contentType === 'application/pdf'" :href="recordFileUrl(file.id, 'preview')" target="_blank" rel="noopener">预览</a><a :href="recordFileUrl(file.id, 'download')">下载</a><button v-if="runtimeModule.canUpdate && ['ACTIVE', 'REJECTED'].includes(recordDetail.recordStatus)" class="text-button" :disabled="recordBusy" @click="removeFile(file.id)">移除</button></div></div><p v-else class="column-hint">这条记录还没有附件。</p></div></div>
             </template><p v-else>从左侧选择模块。</p></section>
           </div>
           <div v-else class="empty-state"><div class="empty-shape">◇</div><h3>还没有已发布模块</h3><p>完成模块字段配置并发布后，这里会出现模块组和业务菜单。</p><button v-if="system.owner" class="secondary-button" @click="mode = 'config'">返回业务建模</button></div>

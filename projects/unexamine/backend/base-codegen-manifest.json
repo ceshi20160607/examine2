@@ -2,18 +2,27 @@
   "schemaVersion" : 1,
   "generator" : "MyBatis-Plus Generator 3.5.17",
   "database" : "jdbc:mysql://127.0.0.1:3306/unexamine_r15",
-  "schemaSha256" : "ba20812a1aeec5c41810e3e163c7eda753fca614b557b33c1d8a939057f3eda1",
+  "schemaSha256" : "d541fa91df23b419571626fbcad1b69f6b167d99c794d6a5f2ec729e23c2f0c2",
   "moduleCount" : 7,
-  "tableCount" : 26,
+  "tableCount" : 27,
   "generatedFiles" : [ {
     "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/entity/ExchangeJob.java",
     "sha256" : "1430dc96d0e37cfa2e34de39c204ff2c13df967bd9b09e0e2dc9ccac390218c7"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/entity/ImportJob.java",
+    "sha256" : "048caa911e7c8dd5feed5311ea37637f73f2b652dd6d62907f0cb6ed5747f357"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/mapper/ExchangeJobMapper.java",
     "sha256" : "e4770c812274848f7ba22360c19443399ff084ff57767268488ba8f545239ceb"
   }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/mapper/ImportJobMapper.java",
+    "sha256" : "752450e35fb6d460312592c986861b525340e9cbecab03a2cf809588abaee77c"
+  }, {
     "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/service/ExchangeJobBaseService.java",
     "sha256" : "a4d23399ac45a642073a0e4f748a7b210d82d8727397bf6e4c1b7c9da4c782d9"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/service/ImportJobBaseService.java",
+    "sha256" : "fc0a12b00c0af80f311a22f6eeeecb0253a395d04b277127301e1f00dfea051a"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/file/base/entity/FileObject.java",
     "sha256" : "2a19ff9694954c9b35a418b6a3300cb14533914083296748ce765de4d7846a26"
@@ -242,6 +251,9 @@
   }, {
     "path" : "backend/src/main/resources/mapper/exchange/base/ExchangeJobMapper.xml",
     "sha256" : "d890bfe33197afcba3d428be4d31d54768dd415e28c7472e400c04d59ee2b037"
+  }, {
+    "path" : "backend/src/main/resources/mapper/exchange/base/ImportJobMapper.xml",
+    "sha256" : "1e129ef99e12272ce0a34614222c1cf581cf9fc6d81408b58e311b75464766bf"
   }, {
     "path" : "backend/src/main/resources/mapper/file/base/FileObjectMapper.xml",
     "sha256" : "ea4dde185a34278b1b390b187e14d502817db6a00179743cc7e178d9bce51985"

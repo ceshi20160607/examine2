@@ -76,7 +76,8 @@
       "name": "exchange",
       "javaPackage": "exchange",
       "tables": [
-        { "name": "un_exchange_job", "entity": "ExchangeJob" }
+        { "name": "un_exchange_job", "entity": "ExchangeJob" },
+        { "name": "un_exchange_import_job", "entity": "ImportJob" }
       ]
     }
   ]

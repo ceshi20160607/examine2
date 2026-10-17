@@ -108,6 +108,8 @@ public class ModuleManageService {
         addAction(module.getId(), "view", "查看", 1);
         addAction(module.getId(), "update", "编辑", 2);
         addAction(module.getId(), "export", "导出", 3);
+        addAction(module.getId(), "import", "导入", 4);
+        addAction(module.getId(), "submit_approval", "发起审批", 5);
         return module;
     }
 
@@ -177,6 +179,49 @@ public class ModuleManageService {
                 .eq(ModuleField::getStatus, "ACTIVE").orderByAsc(ModuleField::getSortOrder, ModuleField::getId));
     }
 
+    /** 管理员读取模块页面动作草稿；历史模块的新增动作由迁移补齐。 */
+    public List<ModuleAction> actions(Long accountId, Long systemId, Long moduleId) {
+        requireOwnedModule(accountId, systemId, moduleId);
+        return actions.selectList(new LambdaQueryWrapper<ModuleAction>().eq(ModuleAction::getModuleId, moduleId)
+                .orderByAsc(ModuleAction::getSortOrder, ModuleAction::getId));
+    }
+
+    /** 动作开关只修改草稿；查看动作保留为菜单与记录的基础入口。 */
+    @Transactional
+    public ModuleAction setAction(Long accountId, Long systemId, Long moduleId, String code, boolean enabled) {
+        BusinessModule module = requireOwnedModule(accountId, systemId, moduleId);
+        if (!List.of("create", "update", "import", "export", "submit_approval").contains(code)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "该动作不能配置");
+        }
+        ModuleAction action = actions.selectOne(new LambdaQueryWrapper<ModuleAction>()
+                .eq(ModuleAction::getModuleId, moduleId).eq(ModuleAction::getCode, code));
+        if (action == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "模块动作不存在");
+        action.setEnabledFlag(enabled);
+        actions.updateById(action);
+        bumpDraft(module);
+        return action;
+    }
+
+    /** 默认列表菜单名称只修改草稿；运行态名称在下一次发布后生效。 */
+    @Transactional
+    public ModuleMenu renameMenu(Long accountId, Long systemId, Long moduleId, String name) {
+        BusinessModule module = requireOwnedModule(accountId, systemId, moduleId);
+        ModuleMenu menu = menus.selectOne(new LambdaQueryWrapper<ModuleMenu>()
+                .eq(ModuleMenu::getModuleId, moduleId).eq(ModuleMenu::getCode, "list"));
+        if (menu == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "模块菜单不存在");
+        menu.setName(name);
+        menus.updateById(menu);
+        bumpDraft(module);
+        return menu;
+    }
+
+    /** 后台读取默认列表菜单草稿。 */
+    public ModuleMenu menu(Long accountId, Long systemId, Long moduleId) {
+        requireOwnedModule(accountId, systemId, moduleId);
+        return menus.selectOne(new LambdaQueryWrapper<ModuleMenu>()
+                .eq(ModuleMenu::getModuleId, moduleId).eq(ModuleMenu::getCode, "list"));
+    }
+
     /** 快照冻结模块组、菜单、动作和字段；发布前必须至少配置一个字段。 */
     @Transactional
     public ModuleVersion publish(Long accountId, Long systemId, Long moduleId) {
@@ -202,7 +247,7 @@ public class ModuleManageService {
                     currentFields.stream().map(item -> new FieldSnapshot(item.getId(), item.getFieldKey(), item.getLabel(), item.getFieldType(),
                             item.getRequiredFlag(), item.getSearchableFlag(), item.getSortOrder(), item.getOptionsJson())).toList(),
                     currentMenus.stream().map(item -> new MenuSnapshot(item.getCode(), item.getName(), item.getMenuType(), item.getSortOrder())).toList(),
-                    currentActions.stream().map(item -> new ActionSnapshot(item.getCode(), item.getName(), item.getActionType())).toList())));
+                    currentActions.stream().map(item -> new ActionSnapshot(item.getCode(), item.getName(), item.getActionType())).toList(), 1)));
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("无法生成模块发布快照", exception);
         }
@@ -226,7 +271,9 @@ public class ModuleManageService {
                 result.add(new PublishedModule(module.getId(), version.getId(), version.getVersionNumber(), snapshot,
                         access.canModule(accountId, systemId, module.getId(), "CREATE"),
                         access.canModule(accountId, systemId, module.getId(), "UPDATE"),
-                        hasAction(snapshot, "export") && access.canModule(accountId, systemId, module.getId(), "EXPORT")));
+                        access.canModule(accountId, systemId, module.getId(), "EXPORT"),
+                        access.canModule(accountId, systemId, module.getId(), "IMPORT"),
+                        access.canModule(accountId, systemId, module.getId(), "SUBMIT_APPROVAL")));
             }
         }
         result.sort((left, right) -> {
@@ -248,16 +295,14 @@ public class ModuleManageService {
         return new PublishedModule(moduleId, version.getId(), version.getVersionNumber(), snapshot,
                 access.canModule(accountId, systemId, moduleId, "CREATE"),
                 access.canModule(accountId, systemId, moduleId, "UPDATE"),
-                hasAction(snapshot, "export") && access.canModule(accountId, systemId, moduleId, "EXPORT"));
+                access.canModule(accountId, systemId, moduleId, "EXPORT"),
+                access.canModule(accountId, systemId, moduleId, "IMPORT"),
+                access.canModule(accountId, systemId, moduleId, "SUBMIT_APPROVAL"));
     }
 
     private ModuleSnapshot readSnapshot(ModuleVersion version) {
         try { return json.readValue(version.getSnapshotJson(), ModuleSnapshot.class); }
         catch (JsonProcessingException exception) { throw new IllegalStateException("模块快照无法读取", exception); }
-    }
-
-    private boolean hasAction(ModuleSnapshot snapshot, String code) {
-        return snapshot.actions().stream().anyMatch(action -> code.equals(action.code()));
     }
 
     private void addAction(Long moduleId, String code, String name, int order) {
@@ -299,11 +344,12 @@ public class ModuleManageService {
     public record MenuSnapshot(String code, String name, String type, int sortOrder) {}
     /** 发布时冻结的动作配置。 */
     public record ActionSnapshot(String code, String name, String type) {}
-    /** 单个模块的不可变发布内容。 */
+    /** 单个模块的不可变发布内容；动作策略版本 0 代表历史快照，1 代表全部已实现动作显式配置。 */
     public record ModuleSnapshot(Long moduleId, String moduleCode, String moduleName, Long groupId, String groupCode,
                                  String groupName, int groupSortOrder, List<FieldSnapshot> fields,
-                                 List<MenuSnapshot> menus, List<ActionSnapshot> actions) {}
+                                 List<MenuSnapshot> menus, List<ActionSnapshot> actions, int actionPolicyVersion) {}
     /** 运行态模块与当前发布版本。 */
     public record PublishedModule(Long moduleId, Long versionId, int versionNumber, ModuleSnapshot snapshot,
-                                  boolean canCreate, boolean canUpdate, boolean canExport) {}
+                                  boolean canCreate, boolean canUpdate, boolean canExport,
+                                  boolean canImport, boolean canSubmitApproval) {}
 }

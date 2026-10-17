@@ -1,38 +1,36 @@
 {
   "schema_version": 1,
-  "phase": "第15次重构：模块数据导入",
+  "phase": "第15次重构：基础消息",
   "plan": "projects/unexamine/ai/planning/rebuild-plan.md",
   "ledger": "projects/unexamine/ai/planning/rebuild-ledger.json",
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
-  "current_step": "R15_07_IMPORT",
-  "next_step": "R15_07_IMPORT",
+  "current_step": "R15_09_MESSAGES",
+  "next_step": "R15_09_MESSAGES",
   "current_scope": {
-    "step": "R15_07_IMPORT",
+    "step": "R15_09_MESSAGES",
     "status": "in_progress",
     "source_rows": [
-      "R0089"
+      "R0094"
     ],
-    "reason": "沿已发布模块补 Excel 导入模板、预检查、新增和按唯一字段更新、错误行反馈与历史，不直接写系统字段。",
+    "reason": "沿同一记录审批旅程补持久化消息收件箱，让申请人和审批人能从业务通知进入原记录或待办；先覆盖基础审批事件，不预建其他来源的消息体系。",
     "prerequisite_steps": [
-      "R15_01_SCHEMA",
       "R15_02_ADMIN",
-      "R15_03_MODULE",
       "R15_04_MEMBER",
       "R15_04_RECORD",
       "R15_05_APPROVAL",
-      "R15_06_FILE_EXPORT"
+      "R15_08_ACTION_CONFIG"
     ],
     "entry_files": [
-      "backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
-      "backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
+      "backend/src/main/java/com/unique/unexamine/platform/manage/AccountSessionService.java",
       "frontend/src/views/SystemView.vue",
       "ai/planning/rebuild-plan.md"
     ],
     "acceptance": [
-      "管理员或有新增权限成员下载当前发布字段的 Excel 模板，上传后先预检查，展示成功、错误行与失败原因。",
-      "确认导入后仅把通过预检查的行按当前权限新增，支持配置唯一字段匹配更新；失败不能污染已存在数据。",
-      "导入历史和错误行文件可由提交人读回，字段类型、必填和权限沿用运行态服务，数据库和页面一致。"
+      "提交审批、同意和拒绝后，指定收件人获得可读消息，列表、未读数与标记已读都按账号和系统隔离。",
+      "消息指向有权访问的待办或记录；状态变化后跳转仍重新检查目标权限，不通过消息正文泄露业务数据。",
+      "真实 Edge、双账号 API 和 MySQL 验证消息生成、读回、权限与失败路径。"
     ]
   },
   "packages": [
@@ -56,7 +54,19 @@
     {
       "id": "R15_IMPORT",
       "steps": {
-        "R15_07_IMPORT": "in_progress"
+        "R15_07_IMPORT": "verified"
+      }
+    },
+    {
+      "id": "R15_ACTION_CONFIG",
+      "steps": {
+        "R15_08_ACTION_CONFIG": "verified"
+      }
+    },
+    {
+      "id": "R15_MESSAGES",
+      "steps": {
+        "R15_09_MESSAGES": "in_progress"
       }
     }
   ],
@@ -88,10 +98,48 @@
     "R15_06_FILE_EXPORT": {
       "status": "verified",
       "evidence": "projects/unexamine/ai/evidence/r15-06-file-export.json"
+    },
+    "R15_07_IMPORT": {
+      "status": "verified",
+      "evidence": "projects/unexamine/ai/evidence/r15-07-import.json"
+    },
+    "R15_08_ACTION_CONFIG": {
+      "status": "verified",
+      "evidence": "projects/unexamine/ai/evidence/r15-08-action-config.json"
+    },
+    "R15_09_MESSAGES": {
+      "status": "in_progress",
+      "evidence": "projects/unexamine/ai/evidence/r15-09-messages.json"
     }
   },
-  "blockers": [],
-  "environment_note": "基础记录、审批、附件和异步导出在新候选系统做过包级 UI/API/MySQL 集成；下一步 Excel 导入，整产品未完成。",
+  "blockers": [
+    {
+      "id": "R15_RELEASE_1",
+      "status": "resolved",
+      "description": "页面动作配置与发布授权尚未闭合"
+    },
+    {
+      "id": "R15_RELEASE_2",
+      "status": "open",
+      "description": "高级字段和复杂流程未实现"
+    },
+    {
+      "id": "R15_RELEASE_3",
+      "status": "open",
+      "description": "消息、应用访问与接口开放未实现"
+    },
+    {
+      "id": "R15_RELEASE_4",
+      "status": "open",
+      "description": "权限中心、多租户、仪表盘、移动端、AI 和部署验收未实现"
+    },
+    {
+      "id": "R15_RELEASE_5",
+      "status": "open",
+      "description": "普通用户消息入口与审批通知尚未闭合"
+    }
+  ],
+  "environment_note": "同一重构候选系统的建模发布、动作授权、记录、单节点审批、附件、导出和 Excel 导入做过 UI/API/MySQL 验证；下一步基础消息，整产品未完成。",
   "step_record_contract": {
     "required": [
       "step",
@@ -106,245 +154,132 @@
     ]
   },
   "last_result": {
-    "step": "R15_06_FILE_EXPORT",
+    "step": "R15_08_ACTION_CONFIG",
     "status": "verified_contribution",
     "source_rows": [
-      "R0080",
-      "R0092",
-      "R0095"
+      "R0074",
+      "R0075"
     ],
     "checks_actual_results": [
-      "真实 Edge 页面完成成员上传图片、显示缩略图、下载附件、按当前筛选创建导出任务并下载 CSV；所属人从同一记录读回附件。",
-      "同一新系统 API 验证图片预览、缩略图、普通文件强制下载、文件移除、审批任务附件、他人记录隔离和待审批附件修改拒绝。",
-      "导出动作独立于查看权限，未授权返回 404；授权后成员只导出本人记录，所属人可导出系统范围；任务成功/失败原因和 CSV 公式转义已验。",
-      "独立 MySQL 读回文件对象/引用、导出任务、Flyway V5/V6；Java 21 Maven test、Node 24 Vue 构建通过，Base manifest 重跑稳定。"
+      "真实 Edge 页面配置导出动作和列表菜单名称，草稿保存后运行态保持第 1 版，发布第 2 版后菜单改名、导出按钮消失而导入及新增按钮保留；无页面异常。",
+      "独立新系统双账号 API 验证五种已实现动作草稿开关、不可变发布快照、直接接口拒绝、所属人不可绕过关闭动作、角色授权交集和未查看却申请操作的拒绝。",
+      "MySQL 读回四个发布版本、动作草稿、V8 对已有模块草稿的回填；Java 21 Maven test、Node 24 前端构建、Workspace 校验和 Base 生成稳定，基础审批回归通过。"
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/r15-06-file-export-api-readback.json",
-      "projects/unexamine/ai/evidence/r15-06-file-export-browser-readback.json",
-      "projects/unexamine/ai/evidence/r15-06-file-export-browser.png",
-      "projects/unexamine/ai/evidence/r15-06-regression-record.json",
-      "projects/unexamine/ai/evidence/r15-06-regression-approval.json",
-      "projects/unexamine/ai/evidence/r15-06-regression-approval-browser.json"
+      "projects/unexamine/ai/evidence/r15-08-action-config-api-readback.json",
+      "projects/unexamine/ai/evidence/r15-08-action-config-browser-readback.json",
+      "projects/unexamine/ai/evidence/r15-08-action-config-browser.png",
+      "projects/unexamine/ai/evidence/r15-08-action-config-draft.png",
+      "projects/unexamine/ai/evidence/r15-08-regression-approval-readback.json"
     ],
     "permission_or_failure_result": [
-      "无导出授权、非本人导出任务、非本人业务记录附件、非审批人待办附件均被拒绝；待审批记录不能上传或移除附件。",
-      "非法导出字段返回 400；数字筛选错误产生 FAILED 任务与明确失败原因，失败任务不能下载；已移除附件旧地址返回 404。"
+      "未获系统所属人身份的成员不能读取动作草稿；查看动作不可关闭；关闭后的导入、导出、新增、编辑和发起审批接口返回 404，所属人也不能绕过。",
+      "已发布动作与角色权限同时约束成员；仅有角色授权时不能访问已关闭动作，未授予导出权限时即使发布动作启用也不能导出。"
     ],
     "tested_file_hashes": [
       {
-        "path": "projects/unexamine/db/update/V5__record_files_export.sql",
-        "sha256": "4fb4037f76be20842a830a56ff2c84e47c2aff1ac12a2d4f507a9775982edd8d"
-      },
-      {
-        "path": "projects/unexamine/db/update/V6__export_action_permission.sql",
-        "sha256": "223f88cd355a4042128aaf3ee1fbf6f9ab492c9f4421b4ac86aa7f7ea1418847"
-      },
-      {
-        "path": "projects/unexamine/db/migration/V5__record_files_export.sql",
-        "sha256": "4fb4037f76be20842a830a56ff2c84e47c2aff1ac12a2d4f507a9775982edd8d"
-      },
-      {
-        "path": "projects/unexamine/db/migration/V6__export_action_permission.sql",
-        "sha256": "223f88cd355a4042128aaf3ee1fbf6f9ab492c9f4421b4ac86aa7f7ea1418847"
-      },
-      {
-        "path": "projects/unexamine/db/update.sql",
-        "sha256": "a855de7934412259c32aecc813162992814f01182a27f4375ec42a5b43b80e09"
-      },
-      {
-        "path": "projects/unexamine/db/final.sql",
-        "sha256": "3b05ae265a50b23412b0663b0044b7657130c3d25de909d2355be5e7ee3604d4"
-      },
-      {
-        "path": "projects/unexamine/tools/base-codegen.json",
-        "sha256": "5bd1c34884187fb4e6d705b5a2a0a8deb4ab9992edab75a13f2562f16a4d5417"
-      },
-      {
-        "path": "projects/unexamine/backend/base-codegen-manifest.json",
-        "sha256": "ef9a09c8d2337b5c6d446b78988e045798fc296f77ac8bc45ffaab714984796e"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/resources/application.properties",
-        "sha256": "0887d36f8d72a9d0639b2cebbda0b51ac48963523aca7f653807fc11c314108b"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileManageService.java",
-        "sha256": "7154ad814733b6c5dce60775b02bb286d01115dda264464bd626380691243414"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileManageController.java",
-        "sha256": "f3f63f6fe62cc87f1666a5bb94a4c5495549475ee9f812ee29c4503e7900f17f"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ExportManageService.java",
-        "sha256": "083767ef1cde62a4f075de59214092bb9794b1e2fd009b35c4a9ef6dc84d4bad"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ExportManageController.java",
-        "sha256": "3010bf5f71b755542b5588dc146c5da117a8f85730049ddd3edb7d7bfdf86fef"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
-        "sha256": "b27320ca9074fd97153365b7f0aa5525d314a0686224787d8bd3861f00347b56"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
-        "sha256": "e7297bf365242a8d1e0702b60a409ef62326e9502af82a8ab1c4ac0af11baa1f"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipController.java",
-        "sha256": "a39effcc7576b22d00bde0bb0a6f72f749a5d2e53e867be71fe57bd056cc8a76"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-        "sha256": "20623837de99b7a07355f2f2f91e67416c412dc0bc9bf78756a63c948c256122"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
-        "sha256": "a82893a4b7bb5639f47ebc3f968f8e69f948422838a3cf9dc6a6650158cae8b4"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/base/entity/RoleMenuGrant.java",
-        "sha256": "93c2d7f3f30421713b0105910146dc698435d76fda09ec7872aa2bc7c3c7e1c0"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/resources/mapper/system/base/RoleMenuGrantMapper.xml",
-        "sha256": "4fa1f24ee8eb39ae636f340823bca3db1296ebb041c940a0e42e4dd55c8c3750"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/views/SystemView.vue",
-        "sha256": "dc98cc13751442ad75cfb38d9eef6fff450d94de0399b9d110972572a79388b0"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/api.ts",
-        "sha256": "4cae1f1bcb28261b4798f23e04ff5a121d81cbef425ec6844dbdf71715fb3dbf"
-      },
-      {
-        "path": "projects/unexamine/frontend/src/product/workspace.css",
-        "sha256": "fb5fad58bd499e6f4071707610aee8b596b51b22c5aed8ec5d127b70b266030a"
-      },
-      {
-        "path": "projects/unexamine/tools/apply-pending-migrations.ps1",
-        "sha256": "3b46e288ec15eb2bca794fd573b1d30dabe166308be55f0fbbf0be2822371e6f"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-file-export.py",
-        "sha256": "890f2af7489a49f7b1339466bbb90a0e197cb794e791b6b6c5f56b7d6100f1b3"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-file-export-browser.py",
-        "sha256": "a68dc0f58feb63ba89dcaabbd61b0198a00c6b681b379f96133f674757677fee"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-record.py",
-        "sha256": "20d6e8c62f3c46920fc3166f8ae07b15c54312e1d0809282c4bb452928e2251c"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-approval.py",
-        "sha256": "febbb93f4b606a3cbca1f574b97f8bfe0c1e845abdc67efd672f4040a1ebf8fa"
-      },
-      {
         "path": "projects/unexamine/README.md",
-        "sha256": "2dbb507150d644658e0dc2643fa39de627737d9d16c25b945c34cdc617aaa1fd"
+        "sha256": "ee39801f6668b10e50c8846f4f5ab23f50c93897b65e4ef452790e759f1b67d7"
       },
       {
         "path": "projects/unexamine/ai/planning/rebuild-plan.md",
-        "sha256": "a14118ebe2108143896dd5a1f043e5fce80e44a4860769191c18e4b462b544b0"
+        "sha256": "63347dd9ef00f6fa557c0d272fc106ce95ffee76de3228ff66daff67a29cb2d1"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/entity/FileObject.java",
-        "sha256": "2a19ff9694954c9b35a418b6a3300cb14533914083296748ce765de4d7846a26"
+        "path": "projects/unexamine/ai/evidence/r15-08-action-config-api-readback.json",
+        "sha256": "6275f3d09764c46f1d6b1ca22646cb46f12a566632312f240a8b5cd88bd3a64e"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/entity/FileReference.java",
-        "sha256": "632210c4a03cebb0ebb7ae23daad5540b7c886055c9a37714c7a8d6f85557a3f"
+        "path": "projects/unexamine/ai/evidence/r15-08-action-config-browser-readback.json",
+        "sha256": "f220af6f51cfa7f92b3f5c6d65ebdfd6255647f188feeb8890000b1d5a1953ef"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/mapper/FileObjectMapper.java",
-        "sha256": "e1379d2e673228fdebd985cc71f3c4b8eb81ed2c1cbfda9f986d3081718a93c9"
+        "path": "projects/unexamine/ai/evidence/r15-08-regression-approval-readback.json",
+        "sha256": "9181ec30912231a313fb0be698671d8072c4f93539c65282934a5d4ebf820fce"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/mapper/FileReferenceMapper.java",
-        "sha256": "2db54cab7d7c7dea0c48aa40d2a5ed2676ba3d8ed33913fcf950e23670ab173d"
+        "path": "projects/unexamine/ai/evidence/r15-08-action-config-browser.png",
+        "sha256": "31d112f82dc1782c926b02e5551f75482498f90148377601c8adc2ae0513a7ca"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/service/FileObjectBaseService.java",
-        "sha256": "1141f0c1accf9653a5f66b8ac8efddc419029abc26540bb2cb3fe71a58f7951a"
+        "path": "projects/unexamine/ai/evidence/r15-08-action-config-draft.png",
+        "sha256": "219360e0168a54d3059a6fd4a5f6a5145c2e295197d40626f1ea8bb3605ace1d"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/service/FileReferenceBaseService.java",
-        "sha256": "94e7d92860107c978a448c9e4d0975a2752938c8fa8972bf5f9c35e80ab79bf8"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+        "sha256": "ecd632f11bea1b9ef2e9a241d604b11dbe961b7e6c8cee02c35346cd83667e5c"
       },
       {
-        "path": "projects/unexamine/backend/src/main/resources/mapper/file/base/FileObjectMapper.xml",
-        "sha256": "ea4dde185a34278b1b390b187e14d502817db6a00179743cc7e178d9bce51985"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageController.java",
+        "sha256": "ed601d00fac9b8107b8086b6456f5ed90bbe410b8688ad4ee6ca3914faee505e"
       },
       {
-        "path": "projects/unexamine/backend/src/main/resources/mapper/file/base/FileReferenceMapper.xml",
-        "sha256": "7e8c2f8f3b3859b32e53e3b270de62f7496d03aba5a81525eaf673c31e6b6a66"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
+        "sha256": "cbad4037752c2ece2721883b04086b093e249ebf3d5ccb84380ec7f5992b9183"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/entity/ExchangeJob.java",
-        "sha256": "1430dc96d0e37cfa2e34de39c204ff2c13df967bd9b09e0e2dc9ccac390218c7"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
+        "sha256": "8f16146bf802505bb9c426af2cad52ac50896e1a195e0f8c2d90bcdf28d6f91a"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/mapper/ExchangeJobMapper.java",
-        "sha256": "e4770c812274848f7ba22360c19443399ff084ff57767268488ba8f545239ceb"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
+        "sha256": "a0ee04cf8073d445796d93794fefb0891f6f27241283f52e63e99fb93945b0c5"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/service/ExchangeJobBaseService.java",
-        "sha256": "a4d23399ac45a642073a0e4f748a7b210d82d8727397bf6e4c1b7c9da4c782d9"
+        "path": "projects/unexamine/db/update/V8__module_import_approval_actions.sql",
+        "sha256": "6f407a964bb237f335cff140de5ee0014410c4c16d171c7fee29c3648c4380e9"
       },
       {
-        "path": "projects/unexamine/backend/src/main/resources/mapper/exchange/base/ExchangeJobMapper.xml",
-        "sha256": "d890bfe33197afcba3d428be4d31d54768dd415e28c7472e400c04d59ee2b037"
+        "path": "projects/unexamine/db/migration/V8__module_import_approval_actions.sql",
+        "sha256": "6f407a964bb237f335cff140de5ee0014410c4c16d171c7fee29c3648c4380e9"
+      },
+      {
+        "path": "projects/unexamine/db/update.sql",
+        "sha256": "f3d861d4b58a300537066c992b8760d180de33ccdc10e5d063daec233d0dd67e"
+      },
+      {
+        "path": "projects/unexamine/db/final.sql",
+        "sha256": "4abf57d76f4ded6f0bb7f10179e3fde345efcad6ae05638fbc44b343d9e89fab"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/views/SystemView.vue",
+        "sha256": "64ff80b4dddcf07c7385369797ef1d539b28588874e2cbd7f180a66a65d56fd2"
+      },
+      {
+        "path": "projects/unexamine/frontend/src/product/workspace.css",
+        "sha256": "3ecdb2394e717683b4eb47ed7bce37714d58ef153b0fd22a542b6f2e0d03e6d5"
+      },
+      {
+        "path": "projects/unexamine/tools/verify-action-config.py",
+        "sha256": "1e01115a080cd6558b6f38d04a21cdcef578b3dad16cb8cf5322bbcbe55c0343"
+      },
+      {
+        "path": "projects/unexamine/tools/verify-action-config-browser.py",
+        "sha256": "621ce35563d59624d277bf680c1605db163e5adfccaa17174467712f4e8b72ad"
       }
     ],
     "changed_files": [
-      "projects/unexamine/db/update/V5__record_files_export.sql",
-      "projects/unexamine/db/update/V6__export_action_permission.sql",
-      "projects/unexamine/db/migration/V5__record_files_export.sql",
-      "projects/unexamine/db/migration/V6__export_action_permission.sql",
-      "projects/unexamine/db/update.sql",
-      "projects/unexamine/db/final.sql",
-      "projects/unexamine/tools/base-codegen.json",
-      "projects/unexamine/backend/base-codegen-manifest.json",
-      "projects/unexamine/backend/src/main/resources/application.properties",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileManageController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ExportManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ExportManageController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/base/entity/RoleMenuGrant.java",
-      "projects/unexamine/backend/src/main/resources/mapper/system/base/RoleMenuGrantMapper.xml",
-      "projects/unexamine/frontend/src/views/SystemView.vue",
-      "projects/unexamine/frontend/src/product/api.ts",
-      "projects/unexamine/frontend/src/product/workspace.css",
-      "projects/unexamine/tools/apply-pending-migrations.ps1",
-      "projects/unexamine/tools/verify-file-export.py",
-      "projects/unexamine/tools/verify-file-export-browser.py",
-      "projects/unexamine/tools/verify-record.py",
-      "projects/unexamine/tools/verify-approval.py",
       "projects/unexamine/README.md",
       "projects/unexamine/ai/planning/rebuild-plan.md",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/entity/FileObject.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/entity/FileReference.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/mapper/FileObjectMapper.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/mapper/FileReferenceMapper.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/service/FileObjectBaseService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/base/service/FileReferenceBaseService.java",
-      "projects/unexamine/backend/src/main/resources/mapper/file/base/FileObjectMapper.xml",
-      "projects/unexamine/backend/src/main/resources/mapper/file/base/FileReferenceMapper.xml",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/entity/ExchangeJob.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/mapper/ExchangeJobMapper.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/base/service/ExchangeJobBaseService.java",
-      "projects/unexamine/backend/src/main/resources/mapper/exchange/base/ExchangeJobMapper.xml"
+      "projects/unexamine/ai/evidence/r15-08-action-config-api-readback.json",
+      "projects/unexamine/ai/evidence/r15-08-action-config-browser-readback.json",
+      "projects/unexamine/ai/evidence/r15-08-regression-approval-readback.json",
+      "projects/unexamine/ai/evidence/r15-08-action-config-browser.png",
+      "projects/unexamine/ai/evidence/r15-08-action-config-draft.png",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageController.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
+      "projects/unexamine/db/update/V8__module_import_approval_actions.sql",
+      "projects/unexamine/db/migration/V8__module_import_approval_actions.sql",
+      "projects/unexamine/db/update.sql",
+      "projects/unexamine/db/final.sql",
+      "projects/unexamine/frontend/src/views/SystemView.vue",
+      "projects/unexamine/frontend/src/product/workspace.css",
+      "projects/unexamine/tools/verify-action-config.py",
+      "projects/unexamine/tools/verify-action-config-browser.py"
     ],
-    "next_step": "R15_07_IMPORT"
+    "next_step": "R15_09_MESSAGES"
   }
 }

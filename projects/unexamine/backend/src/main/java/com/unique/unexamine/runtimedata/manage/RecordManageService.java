@@ -184,6 +184,13 @@ public class RecordManageService {
         return view(record);
     }
 
+    /** 导入预检查复用运行态发布字段校验，不产生业务记录或索引写入。 */
+    public void validateImportedValues(Long accountId, Long systemId, Long moduleId,
+                                       Map<String, JsonNode> values) {
+        ModuleManageService.PublishedModule published = modules.runtime(accountId, systemId, moduleId);
+        validate(moduleId, published.snapshot().fields(), values);
+    }
+
     /** 根据发布字段验证完整表单；不接受草稿字段、未知字段或错误类型。 */
     private Validated validate(Long moduleId, List<ModuleManageService.FieldSnapshot> definitions,
                                Map<String, JsonNode> submitted) {
