@@ -126,8 +126,12 @@ public class ModuleManageService {
     public ModuleField addField(Long accountId, Long systemId, Long moduleId, String key, String label,
                                 String type, boolean required, boolean searchable, String optionsJson) {
         BusinessModule module = requireOwnedModule(accountId, systemId, moduleId);
-        if (!List.of("TEXT", "NUMBER", "DATE", "BOOLEAN", "SELECT").contains(type)) {
+        if (!List.of("TEXT", "TEXTAREA", "PHONE", "EMAIL", "URL", "NUMBER", "MONEY", "PERCENT",
+                "DATE", "DATETIME", "BOOLEAN", "SELECT").contains(type)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "当前阶段不支持该字段类型");
+        }
+        if ("TEXTAREA".equals(type) && searchable) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "多行文本暂不支持精确筛选");
         }
         if (fields.selectOne(new LambdaQueryWrapper<ModuleField>().eq(ModuleField::getModuleId, moduleId)
                 .eq(ModuleField::getFieldKey, key)) != null) {

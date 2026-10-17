@@ -329,10 +329,17 @@ public class ImportManageService {
         if (text.isEmpty()) return null;
         try {
             return switch (field.type()) {
-                case "NUMBER" -> json.valueToTree(cell.getCellType() == CellType.NUMERIC
-                        ? BigDecimal.valueOf(cell.getNumericCellValue()) : new BigDecimal(text));
+                case "NUMBER", "MONEY", "PERCENT" -> {
+                    BigDecimal number = "PERCENT".equals(field.type()) && text.endsWith("%")
+                            ? new BigDecimal(text.substring(0, text.length() - 1).trim())
+                            : cell.getCellType() == CellType.NUMERIC
+                            ? BigDecimal.valueOf(cell.getNumericCellValue()) : new BigDecimal(text);
+                    yield json.valueToTree(number);
+                }
                 case "DATE" -> json.valueToTree(cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)
                         ? cell.getLocalDateTimeCellValue().toLocalDate().toString() : LocalDate.parse(text).toString());
+                case "DATETIME" -> json.valueToTree(cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)
+                        ? cell.getLocalDateTimeCellValue().toString() : LocalDateTime.parse(text.replace(' ', 'T')).toString());
                 case "BOOLEAN" -> {
                     if (List.of("true", "1", "是").contains(text.toLowerCase())) yield json.valueToTree(true);
                     if (List.of("false", "0", "否").contains(text.toLowerCase())) yield json.valueToTree(false);

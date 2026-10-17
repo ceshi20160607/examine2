@@ -1,36 +1,61 @@
 {
   "schema_version": 1,
-  "phase": "第15次重构：常用字段类型",
+  "phase": "第15次重构：同一候选系统集成验收",
   "plan": "projects/unexamine/ai/planning/rebuild-plan.md",
   "ledger": "projects/unexamine/ai/planning/rebuild-ledger.json",
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
-  "current_step": "R15_10_FIELD_TYPES",
-  "next_step": "R15_10_FIELD_TYPES",
+  "current_step": "R15_11_INTEGRATED_JOURNEY",
+  "next_step": "R15_11_INTEGRATED_JOURNEY",
   "current_scope": {
-    "step": "R15_10_FIELD_TYPES",
+    "step": "R15_11_INTEGRATED_JOURNEY",
     "status": "in_progress",
     "source_rows": [
-      "R0073"
+      "R0070",
+      "R0073",
+      "R0074",
+      "R0075",
+      "R0076",
+      "R0077",
+      "R0079",
+      "R0080",
+      "R0086",
+      "R0087",
+      "R0088",
+      "R0089",
+      "R0090",
+      "R0091",
+      "R0092",
+      "R0093",
+      "R0094",
+      "R0095"
     ],
-    "reason": "沿已发布模块的同一记录链补常用字段类型与真实验证：多行文本、手机号、邮箱、网址、金额、百分比、日期时间；先满足基础自建表单，不假定整套高级字段完成。",
+    "reason": "用一个新候选系统贯穿管理员建模发布、授权、成员记录、附件、导入导出、审批和消息，再对照需求第2.3与第10节记录真实缺口；集成通过仍不等于全产品完成。",
     "prerequisite_steps": [
+      "R15_01_SCHEMA",
+      "R15_02_ADMIN",
       "R15_03_MODULE",
+      "R15_04_MEMBER",
       "R15_04_RECORD",
+      "R15_05_APPROVAL",
       "R15_06_FILE_EXPORT",
       "R15_07_IMPORT",
-      "R15_08_ACTION_CONFIG"
+      "R15_08_ACTION_CONFIG",
+      "R15_09_MESSAGES",
+      "R15_10_FIELD_TYPES"
     ],
     "entry_files": [
+      "frontend/src/views/SystemView.vue",
       "backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-      "backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+      "backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
       "backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
-      "frontend/src/views/SystemView.vue"
+      "backend/src/main/java/com/unique/unexamine/message/manage/MessageManageService.java",
+      "ai/planning/rebuild-plan.md"
     ],
     "acceptance": [
-      "管理员能为当前模块选择常用字段类型并发布；成员在表单、新增、编辑和详情按相同类型显示。",
-      "API、筛选、Excel 导入和 CSV 导出沿同一字段类型校验，非法手机号、邮箱、网址、数值及日期时间不能落库。",
-      "真实 Edge、双账号 API 和 MySQL 在一个新候选系统读回字段配置与类型值，旧记录和旧发布版本保持可用。"
+      "一个新系统的所属人和两名成员在同一候选系统中完成建模、发布、权限、录入、筛选、附件、Excel 导入、CSV 导出、审批发起办理、消息跳转。",
+      "同一组记录和流程通过真实 Edge、API 与 MySQL 交叉读回；权限撤销与失败路径不能仅凭已有孤立用例推断。",
+      "按需求第2.3与第10节逐项区分已实测、部分能力和未实现，记录下一项真实发布阻塞，不标记整个产品完成。"
     ]
   },
   "packages": [
@@ -72,7 +97,13 @@
     {
       "id": "R15_FIELD_TYPES",
       "steps": {
-        "R15_10_FIELD_TYPES": "in_progress"
+        "R15_10_FIELD_TYPES": "verified"
+      }
+    },
+    {
+      "id": "R15_INTEGRATED_JOURNEY",
+      "steps": {
+        "R15_11_INTEGRATED_JOURNEY": "in_progress"
       }
     }
   ],
@@ -118,8 +149,12 @@
       "evidence": "projects/unexamine/ai/evidence/r15-09-messages.json"
     },
     "R15_10_FIELD_TYPES": {
-      "status": "in_progress",
+      "status": "verified",
       "evidence": "projects/unexamine/ai/evidence/r15-10-field-types.json"
+    },
+    "R15_11_INTEGRATED_JOURNEY": {
+      "status": "in_progress",
+      "evidence": "projects/unexamine/ai/evidence/r15-11-integrated-journey.json"
     }
   },
   "blockers": [
@@ -149,7 +184,7 @@
       "description": "普通用户消息入口与审批通知尚未闭合"
     }
   ],
-  "environment_note": "同一重构候选系统的建模发布、动作授权、记录、审批、附件、导入导出和基础审批消息完成 UI/API/MySQL 验证；下一步常用字段类型，整产品未完成。",
+  "environment_note": "常用字段类型在独立新系统完成 UI/API/MySQL 验证；当前需同一候选系统贯穿基础旅程并盘点第10节发布缺口，整产品未完成。",
   "step_record_contract": {
     "required": [
       "step",
@@ -164,145 +199,89 @@
     ]
   },
   "last_result": {
-    "step": "R15_09_MESSAGES",
+    "step": "R15_10_FIELD_TYPES",
     "status": "verified_contribution",
     "source_rows": [
-      "R0094"
+      "R0073"
     ],
     "checks_actual_results": [
-      "真实 Edge 审批人通过当前系统消息进入原待办详情并拒绝；申请人通过结果消息进入自己的记录，未读角标和阅读后计数实际更新，无页面脚本异常。",
-      "独立新系统 API 验证提交、拒绝、重提、通过各产生指定收件消息；重复提交不重复发消息；本人已读幂等，跨账号与跨系统不能代读。",
-      "消息标题不复制记录标题或办理意见，权限撤销后消息仍可列出而原业务记录接口拒绝；独立 MySQL 读回四条消息与 Flyway V9；Java 21 Maven test、Node 24 构建、Workspace 校验和 Base 生成稳定。"
+      "真实 Edge 管理员配置六种字段并发布，成员用多行文本、手机号、邮箱、金额和日期时间控件创建记录，在详情读回并按金额筛选，无页面异常。",
+      "独立新系统 API 验证七种新增常用字段类型的创建、非法值拒绝、字段筛选、当前发布模板的 Excel 百分比与日期时间导入、CSV 导出。",
+      "MySQL 读回发布字段类型、两条业务记录和六个筛选索引；Java 21 Maven test、Node 24 构建、Workspace 边界校验通过，未增表或更改旧数据。"
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/r15-09-messages-api-readback.json",
-      "projects/unexamine/ai/evidence/r15-09-messages-browser-readback.json",
-      "projects/unexamine/ai/evidence/r15-09-message-todo-browser.png",
-      "projects/unexamine/ai/evidence/r15-09-message-result-browser.png"
+      "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
+      "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
+      "projects/unexamine/ai/evidence/r15-10-field-types-browser.png"
     ],
     "permission_or_failure_result": [
-      "非收件账号标记消息已读返回 404；系统外账号不能读取消息；从其他系统使用消息编号标记已读返回 404。",
-      "取消模块角色查看权限后消息仅显示通用标题，目标记录详情返回 404；重复发起失败的事务不产生多余消息。"
+      "可搜索多行文本字段创建被拒；非法手机号、邮箱、网址、金额精度、百分比范围、日期时间精度及超长多行文本写入返回 400，不新增业务记录。",
+      "非法日期时间、越界百分比和非法手机号精确筛选返回 400；浏览器原生邮箱输入校验阻止非法表单提交。"
     ],
     "tested_file_hashes": [
       {
         "path": "projects/unexamine/README.md",
-        "sha256": "c95cfbc4eb38122e9b80682ae2cd9f33fb0e0f115e9d3c77d9c212d398374964"
+        "sha256": "8417199f8444ef82d3aa1a24d35d361f9ab6281d7a33c70f47e3ab8994eee910"
       },
       {
         "path": "projects/unexamine/ai/planning/rebuild-plan.md",
-        "sha256": "af3119afc694b21c8797f21307eae196b86edf944c2d9213a53865aec733ddc2"
+        "sha256": "806d9ed2691230e9274312ffc317a8fd97bf5cf3a11e0d33f83497c2f36b1ad5"
       },
       {
-        "path": "projects/unexamine/backend/base-codegen-manifest.json",
-        "sha256": "c80cd947aaa16d1f398d88863b1dfe31bf21fcae9d7324461ae2c4a4fd39f17b"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
+        "sha256": "076bb069413746088b3df688eb50f82bed0088641c95b1a4efc0e88091913963"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
-        "sha256": "7f3f7cd5b8c1252c7d7e3da724686254b57533a37061ac311485a853dac26ac7"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+        "sha256": "08742fdab70462ce4453cc2f65544e932f96257ec94386ba70bee4fd3308972a"
       },
       {
-        "path": "projects/unexamine/db/final.sql",
-        "sha256": "a47ae42477c0db6ef937b19033d40a21f414990d2bf7bfe40ce06f325b39cb78"
-      },
-      {
-        "path": "projects/unexamine/db/update.sql",
-        "sha256": "8c7425dd21f06ce4360c90ade0bd40feffa65bb81c56ad7956095f57ce931ab1"
+        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+        "sha256": "45e9b03e97fbcd322362725cf804b740992104fb9e3c8283cf7fba61474cb07f"
       },
       {
         "path": "projects/unexamine/frontend/src/product/workspace.css",
-        "sha256": "febb8c1009a27bee066d1ff18e6d30763c3bf0084305a628ea2da38d3eb3bf28"
+        "sha256": "aeca38c993b59caa1a1092d49aed2f1ba4e4ab5b1929f05eaee0b0de70c48dc3"
       },
       {
         "path": "projects/unexamine/frontend/src/views/SystemView.vue",
-        "sha256": "970cebc78cdb47b00d967bcba07630897f1a9a13a2e6f3775ceb352e7cc5da1a"
+        "sha256": "630fbf7135defadf625b331fbf5d3328163ee681364c13293ef537da23a454ad"
       },
       {
-        "path": "projects/unexamine/tools/base-codegen.json",
-        "sha256": "8d6648efc7149387a46373eb4ffd648a781207c42ff37ca3bcce95eceb00a2a4"
+        "path": "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
+        "sha256": "671abc398e3d4d8b7db01b2d085acf2a31ca148a3936bd71672027fa5cff0228"
       },
       {
-        "path": "projects/unexamine/ai/evidence/r15-09-message-result-browser.png",
-        "sha256": "8a635c4b3cdd27d50ce1696bf0d0055233e09bbc3e0e9f3ba03ccb9e62de423d"
+        "path": "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
+        "sha256": "84f2ea99390bc26ab6f21677730fa49f190ff83497d56bbd7ce48a8134b309e3"
       },
       {
-        "path": "projects/unexamine/ai/evidence/r15-09-message-todo-browser.png",
-        "sha256": "045dd24c917cd88c5a015856e1f5fec428a4f6bbcc1faaa03c43cdea534e7061"
+        "path": "projects/unexamine/ai/evidence/r15-10-field-types-browser.png",
+        "sha256": "ca6fc0335a8b62a837d42eb052f3ff36b5f6f7651b56004928d667dbcaad230f"
       },
       {
-        "path": "projects/unexamine/ai/evidence/r15-09-messages-api-readback.json",
-        "sha256": "751e354f2dca274168e1bb27322bed68c01a39e35b4c63b8f885c294c9330a1a"
+        "path": "projects/unexamine/tools/verify-field-types-browser.py",
+        "sha256": "56fc837ec9300dd501845c4ae6b706719f6fe4664ac9e698f57b6ce346ba0cfe"
       },
       {
-        "path": "projects/unexamine/ai/evidence/r15-09-messages-browser-readback.json",
-        "sha256": "a1658c67a12a17ccaa632b289612b70d2824c6e1669f7521739054be19efa858"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/entity/InboxMessage.java",
-        "sha256": "1498b495e4b775cd89f69f43501de2025bf9521e6987fc0c3a763f0aa7400e72"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/mapper/InboxMessageMapper.java",
-        "sha256": "afe682a995818ebebd067142ff99b0a992c8de5deba344c43854b27440948720"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/service/InboxMessageBaseService.java",
-        "sha256": "f67cb115cdf0d599070a3acc72a5b2266d895f629e1e6f9238e184e1a50c0fef"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/manage/MessageManageController.java",
-        "sha256": "a95e4083faee15301266099583686c66a03736188cf5b3ab23d3f9eb04c4d613"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/manage/MessageManageService.java",
-        "sha256": "db0f5da46c9cf82b5a946072ca9f899349b3b133dbd1976225480b512e7f275c"
-      },
-      {
-        "path": "projects/unexamine/backend/src/main/resources/mapper/message/base/InboxMessageMapper.xml",
-        "sha256": "7e3cad0fea0847a0e89264703b2a9a2588606fe860871afb4fe909ae35178c02"
-      },
-      {
-        "path": "projects/unexamine/db/migration/V9__approval_message.sql",
-        "sha256": "8a87db804e59fc17e25144294eb7ddb4d170ffeeb91d6214556e1a47cb9a936b"
-      },
-      {
-        "path": "projects/unexamine/db/update/V9__approval_message.sql",
-        "sha256": "8a87db804e59fc17e25144294eb7ddb4d170ffeeb91d6214556e1a47cb9a936b"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-messages-browser.py",
-        "sha256": "0d37cadc7253283ee6867bb455c6a2aa248233a559c7a32db7912a2266a29695"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-messages.py",
-        "sha256": "a63ef7431e875ec99acc5a3e67ca0c9c5ff86e2fcf68de13dd7c40218f09746d"
+        "path": "projects/unexamine/tools/verify-field-types.py",
+        "sha256": "dd64abfa242456f968272c914ccc6cfb0bb534166660acb4e66f1acbe647f532"
       }
     ],
     "changed_files": [
       "projects/unexamine/README.md",
       "projects/unexamine/ai/planning/rebuild-plan.md",
-      "projects/unexamine/backend/base-codegen-manifest.json",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
-      "projects/unexamine/db/final.sql",
-      "projects/unexamine/db/update.sql",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
       "projects/unexamine/frontend/src/product/workspace.css",
       "projects/unexamine/frontend/src/views/SystemView.vue",
-      "projects/unexamine/tools/base-codegen.json",
-      "projects/unexamine/ai/evidence/r15-09-message-result-browser.png",
-      "projects/unexamine/ai/evidence/r15-09-message-todo-browser.png",
-      "projects/unexamine/ai/evidence/r15-09-messages-api-readback.json",
-      "projects/unexamine/ai/evidence/r15-09-messages-browser-readback.json",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/entity/InboxMessage.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/mapper/InboxMessageMapper.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/base/service/InboxMessageBaseService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/manage/MessageManageController.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/message/manage/MessageManageService.java",
-      "projects/unexamine/backend/src/main/resources/mapper/message/base/InboxMessageMapper.xml",
-      "projects/unexamine/db/migration/V9__approval_message.sql",
-      "projects/unexamine/db/update/V9__approval_message.sql",
-      "projects/unexamine/tools/verify-messages-browser.py",
-      "projects/unexamine/tools/verify-messages.py"
+      "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
+      "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
+      "projects/unexamine/ai/evidence/r15-10-field-types-browser.png",
+      "projects/unexamine/tools/verify-field-types-browser.py",
+      "projects/unexamine/tools/verify-field-types.py"
     ],
-    "next_step": "R15_10_FIELD_TYPES"
+    "next_step": "R15_11_INTEGRATED_JOURNEY"
   }
 }

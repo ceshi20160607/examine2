@@ -21,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -121,14 +123,31 @@ public class RecordManageService {
             if (field == null || !moduleId.equals(field.getModuleId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "字段不可筛选");
             LambdaQueryWrapper<RecordIndex> filter = new LambdaQueryWrapper<RecordIndex>().eq(RecordIndex::getFieldId, field.getId());
             switch (definition.type()) {
-                case "TEXT", "SELECT" -> filter.eq(RecordIndex::getTextValue, filterValue);
-                case "NUMBER" -> {
-                    try { filter.eq(RecordIndex::getNumberValue, new BigDecimal(filterValue)); }
+                case "TEXT", "PHONE", "EMAIL", "URL", "SELECT" -> {
+                    checkType(definition, json.valueToTree(filterValue));
+                    filter.eq(RecordIndex::getTextValue, filterValue);
+                }
+                case "NUMBER", "MONEY", "PERCENT" -> {
+                    try {
+                        BigDecimal number = new BigDecimal(filterValue);
+                        checkType(definition, json.valueToTree(number));
+                        filter.eq(RecordIndex::getNumberValue, number);
+                    }
                     catch (NumberFormatException exception) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "数字筛选值无效"); }
                 }
                 case "DATE" -> {
-                    try { filter.eq(RecordIndex::getDateValue, LocalDate.parse(filterValue).atStartOfDay()); }
+                    try {
+                        checkType(definition, json.valueToTree(filterValue));
+                        filter.eq(RecordIndex::getDateValue, LocalDate.parse(filterValue).atStartOfDay());
+                    }
                     catch (DateTimeParseException exception) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "日期筛选值无效"); }
+                }
+                case "DATETIME" -> {
+                    try {
+                        checkType(definition, json.valueToTree(filterValue));
+                        filter.eq(RecordIndex::getDateValue, LocalDateTime.parse(filterValue));
+                    }
+                    catch (DateTimeParseException exception) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "日期时间筛选值无效"); }
                 }
                 case "BOOLEAN" -> {
                     if (!List.of("true", "false").contains(filterValue)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "开关筛选值无效");
@@ -220,8 +239,18 @@ public class RecordManageService {
 
     private void checkType(ModuleManageService.FieldSnapshot field, JsonNode value) {
         switch (field.type()) {
-            case "TEXT", "SELECT" -> {
-                if (!value.isTextual() || value.asText().length() > 2000) throw invalid(field);
+            case "TEXT", "TEXTAREA", "PHONE", "EMAIL", "URL", "SELECT" -> {
+                if (!value.isTextual() || value.asText().length() > ("TEXTAREA".equals(field.type()) ? 10000 : 2000)) throw invalid(field);
+                String text = value.asText();
+                if ("PHONE".equals(field.type()) && !text.matches("\\+?[0-9][0-9 -]{6,19}")) throw invalid(field);
+                if ("EMAIL".equals(field.type()) && (text.length() > 254 || !text.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"))) throw invalid(field);
+                if ("URL".equals(field.type())) {
+                    try {
+                        URI address = new URI(text);
+                        if (!("http".equalsIgnoreCase(address.getScheme()) || "https".equalsIgnoreCase(address.getScheme()))
+                                || address.getHost() == null) throw invalid(field);
+                    } catch (URISyntaxException exception) { throw invalid(field); }
+                }
                 if ("SELECT".equals(field.type())) {
                     try {
                         JsonNode choices = json.readTree(field.optionsJson());
@@ -235,13 +264,26 @@ public class RecordManageService {
                 }
                 if (field.searchable() && value.asText().length() > 255) throw invalid(field);
             }
-            case "NUMBER" -> {
-                if (!value.isNumber() || value.decimalValue().precision() > 30 || value.decimalValue().scale() > 10) throw invalid(field);
+            case "NUMBER", "MONEY", "PERCENT" -> {
+                if (!value.isNumber()) throw invalid(field);
+                BigDecimal number = value.decimalValue();
+                int precision = "MONEY".equals(field.type()) ? 20 : 30;
+                int scale = "MONEY".equals(field.type()) ? 2 : "PERCENT".equals(field.type()) ? 4 : 10;
+                if (number.precision() > precision || number.scale() > scale) throw invalid(field);
+                if ("PERCENT".equals(field.type()) &&
+                        (number.compareTo(BigDecimal.ZERO) < 0 || number.compareTo(BigDecimal.valueOf(100)) > 0)) throw invalid(field);
             }
             case "DATE" -> {
                 if (!value.isTextual()) throw invalid(field);
                 try { LocalDate.parse(value.asText()); }
                 catch (DateTimeParseException exception) { throw invalid(field); }
+            }
+            case "DATETIME" -> {
+                if (!value.isTextual()) throw invalid(field);
+                try {
+                    LocalDateTime dateTime = LocalDateTime.parse(value.asText());
+                    if (dateTime.getNano() % 1_000_000 != 0) throw invalid(field);
+                } catch (DateTimeParseException exception) { throw invalid(field); }
             }
             case "BOOLEAN" -> { if (!value.isBoolean()) throw invalid(field); }
             default -> throw invalid(field);
@@ -294,9 +336,10 @@ public class RecordManageService {
                 index.setDateValue(null);
                 index.setBooleanValue(null);
                 switch (definition.type()) {
-                    case "TEXT", "SELECT" -> index.setTextValue(value.asText());
-                    case "NUMBER" -> index.setNumberValue(value.decimalValue());
+                    case "TEXT", "PHONE", "EMAIL", "URL", "SELECT" -> index.setTextValue(value.asText());
+                    case "NUMBER", "MONEY", "PERCENT" -> index.setNumberValue(value.decimalValue());
                     case "DATE" -> index.setDateValue(LocalDate.parse(value.asText()).atStartOfDay());
+                    case "DATETIME" -> index.setDateValue(LocalDateTime.parse(value.asText()));
                     case "BOOLEAN" -> index.setBooleanValue(value.asBoolean());
                     default -> throw new IllegalStateException("不支持的索引字段类型");
                 }
