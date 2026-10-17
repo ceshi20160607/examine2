@@ -1,61 +1,37 @@
 {
   "schema_version": 1,
-  "phase": "第15次重构：同一候选系统集成验收",
+  "phase": "第15次重构：固定能力数据关系与 SQL 契约",
   "plan": "projects/unexamine/ai/planning/rebuild-plan.md",
   "ledger": "projects/unexamine/ai/planning/rebuild-ledger.json",
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
-  "current_step": "R15_11_INTEGRATED_JOURNEY",
-  "next_step": "R15_11_INTEGRATED_JOURNEY",
+  "current_step": "R15_12_SCHEMA_CONTRACT",
+  "next_step": "R15_12_SCHEMA_CONTRACT",
   "current_scope": {
-    "step": "R15_11_INTEGRATED_JOURNEY",
+    "step": "R15_12_SCHEMA_CONTRACT",
     "status": "in_progress",
     "source_rows": [
-      "R0070",
-      "R0073",
-      "R0074",
-      "R0075",
-      "R0076",
-      "R0077",
-      "R0079",
-      "R0080",
-      "R0086",
-      "R0087",
-      "R0088",
-      "R0089",
-      "R0090",
-      "R0091",
-      "R0092",
-      "R0093",
-      "R0094",
-      "R0095"
+      "R2958",
+      "R2959",
+      "R2961",
+      "R2967",
+      "R2968"
     ],
-    "reason": "用一个新候选系统贯穿管理员建模发布、授权、成员记录、附件、导入导出、审批和消息，再对照需求第2.3与第10节记录真实缺口；集成通过仍不等于全产品完成。",
+    "reason": "同一候选系统基础旅程已验证；继续扩展前先按需求 A.18/A.19 梳理固定能力表关系、业务域命名、模块 SQL 来源和现有数据迁移，阻止下一次重复局部补表。",
     "prerequisite_steps": [
-      "R15_01_SCHEMA",
-      "R15_02_ADMIN",
-      "R15_03_MODULE",
-      "R15_04_MEMBER",
-      "R15_04_RECORD",
-      "R15_05_APPROVAL",
-      "R15_06_FILE_EXPORT",
-      "R15_07_IMPORT",
-      "R15_08_ACTION_CONFIG",
-      "R15_09_MESSAGES",
-      "R15_10_FIELD_TYPES"
+      "R15_11_INTEGRATED_JOURNEY"
     ],
     "entry_files": [
-      "frontend/src/views/SystemView.vue",
-      "backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-      "backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
-      "backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
-      "backend/src/main/java/com/unique/unexamine/message/manage/MessageManageService.java",
-      "ai/planning/rebuild-plan.md"
+      "db/init/V1__foundation.sql",
+      "db/update/V4__basic_approval.sql",
+      "db/update/V9__approval_message.sql",
+      "tools/regenerate-base.ps1",
+      "ai/planning/product-gap-audit.md"
     ],
     "acceptance": [
-      "一个新系统的所属人和两名成员在同一候选系统中完成建模、发布、权限、录入、筛选、附件、Excel 导入、CSV 导出、审批发起办理、消息跳转。",
-      "同一组记录和流程通过真实 Edge、API 与 MySQL 交叉读回；权限撤销与失败路径不能仅凭已有孤立用例推断。",
-      "按需求第2.3与第10节逐项区分已实测、部分能力和未实现，记录下一项真实发布阻塞，不标记整个产品完成。"
+      "逐项比对现有 28 张实体表、用户表意义参考和需求固定能力，明确保留、改名、合并及尚需设计的业务关系，避免无用途预建表。",
+      "按业务模块收敛首装 SQL 与统一命名，给出现有候选数据安全迁移方案，空库复现和 Base 生成结果可核验。",
+      "验证原同一候选系统的基础旅程不因结构调整失效，并记录下一项直接影响发布的产品能力。"
     ]
   },
   "packages": [
@@ -103,7 +79,13 @@
     {
       "id": "R15_INTEGRATED_JOURNEY",
       "steps": {
-        "R15_11_INTEGRATED_JOURNEY": "in_progress"
+        "R15_11_INTEGRATED_JOURNEY": "verified"
+      }
+    },
+    {
+      "id": "R15_SCHEMA_CONTRACT",
+      "steps": {
+        "R15_12_SCHEMA_CONTRACT": "in_progress"
       }
     }
   ],
@@ -153,8 +135,12 @@
       "evidence": "projects/unexamine/ai/evidence/r15-10-field-types.json"
     },
     "R15_11_INTEGRATED_JOURNEY": {
-      "status": "in_progress",
+      "status": "verified",
       "evidence": "projects/unexamine/ai/evidence/r15-11-integrated-journey.json"
+    },
+    "R15_12_SCHEMA_CONTRACT": {
+      "status": "in_progress",
+      "evidence": "projects/unexamine/ai/evidence/r15-12-schema-contract.json"
     }
   },
   "blockers": [
@@ -171,7 +157,7 @@
     {
       "id": "R15_RELEASE_3",
       "status": "open",
-      "description": "消息、应用访问与接口开放未实现"
+      "description": "审批以外的消息、应用访问与受控接口未实现"
     },
     {
       "id": "R15_RELEASE_4",
@@ -182,9 +168,14 @@
       "id": "R15_RELEASE_5",
       "status": "resolved",
       "description": "普通用户消息入口与审批通知尚未闭合"
+    },
+    {
+      "id": "R15_RELEASE_6",
+      "status": "open",
+      "description": "固定能力表关系未定稿，首装 SQL 组织和部分业务域表名与需求 A.18/A.19 不一致"
     }
   ],
-  "environment_note": "常用字段类型在独立新系统完成 UI/API/MySQL 验证；当前需同一候选系统贯穿基础旅程并盘点第10节发布缺口，整产品未完成。",
+  "environment_note": "同一候选系统的管理员、两名成员、记录、导入导出、审批、消息和撤权已完成 Edge/API/MySQL 集成读回；当前修正 A.18/A.19 工程结构缺口，整产品未完成。",
   "step_record_contract": {
     "required": [
       "step",
@@ -199,89 +190,82 @@
     ]
   },
   "last_result": {
-    "step": "R15_10_FIELD_TYPES",
+    "step": "R15_11_INTEGRATED_JOURNEY",
     "status": "verified_contribution",
     "source_rows": [
-      "R0073"
+      "R0070",
+      "R0073",
+      "R0074",
+      "R0075",
+      "R0076",
+      "R0077",
+      "R0079",
+      "R0080",
+      "R0086",
+      "R0087",
+      "R0088",
+      "R0089",
+      "R0090",
+      "R0091",
+      "R0092",
+      "R0093",
+      "R0094",
+      "R0095"
     ],
     "checks_actual_results": [
-      "真实 Edge 管理员配置六种字段并发布，成员用多行文本、手机号、邮箱、金额和日期时间控件创建记录，在详情读回并按金额筛选，无页面异常。",
-      "独立新系统 API 验证七种新增常用字段类型的创建、非法值拒绝、字段筛选、当前发布模板的 Excel 百分比与日期时间导入、CSV 导出。",
-      "MySQL 读回发布字段类型、两条业务记录和六个筛选索引；Java 21 Maven test、Node 24 构建、Workspace 边界校验通过，未增表或更改旧数据。"
+      "真实 Edge 中，系统所属人在同一候选系统配置字段并发布；两名成员获同一角色，申请人完成记录录入、附件、Excel 导入、金额筛选和 CSV 导出，审批人通过消息打开待办并同意，申请人从结果消息打开已通过记录。",
+      "API 验证同一系统的发布、授权、成员、记录、审批任务和消息；独立 MySQL 读回三条记录、一项成功导入、一项一行导出、已通过审批实例、两条消息和一条文件引用。",
+      "对照需求第2.3、第10节及 A.15-A.20 形成逐项产品缺口审计；该集成通过仅证明基础旅程，整产品未完成。Python 脚本编译、工作区边界验证、git diff --check 通过。"
     ],
     "readback": [
-      "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
-      "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
-      "projects/unexamine/ai/evidence/r15-10-field-types-browser.png"
+      "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+      "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+      "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
+      "projects/unexamine/ai/planning/product-gap-audit.md"
     ],
     "permission_or_failure_result": [
-      "可搜索多行文本字段创建被拒；非法手机号、邮箱、网址、金额精度、百分比范围、日期时间精度及超长多行文本写入返回 400，不新增业务记录。",
-      "非法日期时间、越界百分比和非法手机号精确筛选返回 400；浏览器原生邮箱输入校验阻止非法表单提交。"
+      "第二名成员的记录未进入申请人的筛选 CSV；审批任务附件只在指定审批人接口读回。",
+      "撤销同一角色的模块权限后，申请人对记录详情、附件、新导出请求均收到 404；消息仍可见，但页面再次打开目标提示无权访问。"
     ],
     "tested_file_hashes": [
       {
         "path": "projects/unexamine/README.md",
-        "sha256": "8417199f8444ef82d3aa1a24d35d361f9ab6281d7a33c70f47e3ab8994eee910"
+        "sha256": "d540caf73bb7f7f9d7202889ef4578888a2b59ab0734b6863ed59dad666b9f29"
       },
       {
         "path": "projects/unexamine/ai/planning/rebuild-plan.md",
-        "sha256": "806d9ed2691230e9274312ffc317a8fd97bf5cf3a11e0d33f83497c2f36b1ad5"
+        "sha256": "5e6b06f6b60f3487a5c84cbb51b22270f5c2e7191bf64acdc93d04ae81f0cf6c"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
-        "sha256": "076bb069413746088b3df688eb50f82bed0088641c95b1a4efc0e88091913963"
+        "path": "projects/unexamine/ai/planning/product-gap-audit.md",
+        "sha256": "a71f6ac67299d992f978536c333621aa05e5afbee6061822b5474c8d42b97da6"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-        "sha256": "08742fdab70462ce4453cc2f65544e932f96257ec94386ba70bee4fd3308972a"
+        "path": "projects/unexamine/tools/verify-integrated-journey.py",
+        "sha256": "3e5244ee91036b25e59a901d518f792d7dc398d64a565891c56075d81f33a706"
       },
       {
-        "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
-        "sha256": "45e9b03e97fbcd322362725cf804b740992104fb9e3c8283cf7fba61474cb07f"
+        "path": "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+        "sha256": "cf61c4b30026cd95d9019cb0b67d800b7329d4dae8518fc32ef60c16c46bfd89"
       },
       {
-        "path": "projects/unexamine/frontend/src/product/workspace.css",
-        "sha256": "aeca38c993b59caa1a1092d49aed2f1ba4e4ab5b1929f05eaee0b0de70c48dc3"
+        "path": "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+        "sha256": "37b427f0246e53f40ac3214bebda9aef222411cd3d60a2c85c5ab126642ba46a"
       },
       {
-        "path": "projects/unexamine/frontend/src/views/SystemView.vue",
-        "sha256": "630fbf7135defadf625b331fbf5d3328163ee681364c13293ef537da23a454ad"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
-        "sha256": "671abc398e3d4d8b7db01b2d085acf2a31ca148a3936bd71672027fa5cff0228"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
-        "sha256": "84f2ea99390bc26ab6f21677730fa49f190ff83497d56bbd7ce48a8134b309e3"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-10-field-types-browser.png",
-        "sha256": "ca6fc0335a8b62a837d42eb052f3ff36b5f6f7651b56004928d667dbcaad230f"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-field-types-browser.py",
-        "sha256": "56fc837ec9300dd501845c4ae6b706719f6fe4664ac9e698f57b6ce346ba0cfe"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-field-types.py",
-        "sha256": "dd64abfa242456f968272c914ccc6cfb0bb534166660acb4e66f1acbe647f532"
+        "path": "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
+        "sha256": "9124a2c800900ba8fec8df2d14dcb7fa7a0971ef676c3ec466b5ad1d4f66d116"
       }
     ],
     "changed_files": [
       "projects/unexamine/README.md",
       "projects/unexamine/ai/planning/rebuild-plan.md",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/exchange/manage/ImportManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
-      "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
-      "projects/unexamine/frontend/src/product/workspace.css",
-      "projects/unexamine/frontend/src/views/SystemView.vue",
-      "projects/unexamine/ai/evidence/r15-10-field-types-api-readback.json",
-      "projects/unexamine/ai/evidence/r15-10-field-types-browser-readback.json",
-      "projects/unexamine/ai/evidence/r15-10-field-types-browser.png",
-      "projects/unexamine/tools/verify-field-types-browser.py",
-      "projects/unexamine/tools/verify-field-types.py"
+      "projects/unexamine/ai/planning/product-gap-audit.md",
+      "projects/unexamine/tools/verify-integrated-journey.py",
+      "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+      "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+      "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png"
     ],
-    "next_step": "R15_11_INTEGRATED_JOURNEY"
+    "next_step": "R15_12_SCHEMA_CONTRACT"
   }
 }

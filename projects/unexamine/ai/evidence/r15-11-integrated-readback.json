@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "system_id": 85,
+  "module_id": 75,
+  "record_ids": [
+    81,
+    82,
+    83
+  ],
+  "checks": [
+    "owner_publish_grant_and_approval",
+    "member_create_detail_and_file",
+    "same_module_excel_import",
+    "filtered_owner_scoped_csv",
+    "approval_message_target_and_attachment",
+    "revoked_permission_blocks_target_file_export",
+    "mysql_same_candidate_readback"
+  ],
+  "screenshots": [
+    "r15-11-integrated-reviewer.png",
+    "r15-11-integrated-applicant.png"
+  ]
+}

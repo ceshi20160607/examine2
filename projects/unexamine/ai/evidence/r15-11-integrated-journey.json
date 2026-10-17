@@ -1,0 +1,79 @@
+{
+  "step": "R15_11_INTEGRATED_JOURNEY",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0070",
+    "R0073",
+    "R0074",
+    "R0075",
+    "R0076",
+    "R0077",
+    "R0079",
+    "R0080",
+    "R0086",
+    "R0087",
+    "R0088",
+    "R0089",
+    "R0090",
+    "R0091",
+    "R0092",
+    "R0093",
+    "R0094",
+    "R0095"
+  ],
+  "checks_actual_results": [
+    "真实 Edge 中，系统所属人在同一候选系统配置字段并发布；两名成员获同一角色，申请人完成记录录入、附件、Excel 导入、金额筛选和 CSV 导出，审批人通过消息打开待办并同意，申请人从结果消息打开已通过记录。",
+    "API 验证同一系统的发布、授权、成员、记录、审批任务和消息；独立 MySQL 读回三条记录、一项成功导入、一项一行导出、已通过审批实例、两条消息和一条文件引用。",
+    "对照需求第2.3、第10节及 A.15-A.20 形成逐项产品缺口审计；该集成通过仅证明基础旅程，整产品未完成。Python 脚本编译、工作区边界验证、git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+    "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+    "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
+    "projects/unexamine/ai/planning/product-gap-audit.md"
+  ],
+  "permission_or_failure_result": [
+    "第二名成员的记录未进入申请人的筛选 CSV；审批任务附件只在指定审批人接口读回。",
+    "撤销同一角色的模块权限后，申请人对记录详情、附件、新导出请求均收到 404；消息仍可见，但页面再次打开目标提示无权访问。"
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/README.md",
+      "sha256": "d540caf73bb7f7f9d7202889ef4578888a2b59ab0734b6863ed59dad666b9f29"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/rebuild-plan.md",
+      "sha256": "5e6b06f6b60f3487a5c84cbb51b22270f5c2e7191bf64acdc93d04ae81f0cf6c"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/product-gap-audit.md",
+      "sha256": "a71f6ac67299d992f978536c333621aa05e5afbee6061822b5474c8d42b97da6"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-integrated-journey.py",
+      "sha256": "3e5244ee91036b25e59a901d518f792d7dc398d64a565891c56075d81f33a706"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+      "sha256": "cf61c4b30026cd95d9019cb0b67d800b7329d4dae8518fc32ef60c16c46bfd89"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+      "sha256": "37b427f0246e53f40ac3214bebda9aef222411cd3d60a2c85c5ab126642ba46a"
+    },
+    {
+      "path": "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
+      "sha256": "9124a2c800900ba8fec8df2d14dcb7fa7a0971ef676c3ec466b5ad1d4f66d116"
+    }
+  ],
+  "changed_files": [
+    "projects/unexamine/README.md",
+    "projects/unexamine/ai/planning/rebuild-plan.md",
+    "projects/unexamine/ai/planning/product-gap-audit.md",
+    "projects/unexamine/tools/verify-integrated-journey.py",
+    "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
+    "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
+    "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png"
+  ],
+  "next_step": "R15_12_SCHEMA_CONTRACT"
+}
