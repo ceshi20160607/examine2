@@ -21,6 +21,7 @@ interface FileItem { id: number; name: string; contentType: string; sizeBytes: n
 interface ExportJob { id: number; status: string; rowCount: number; failureReason: string | null; createTime: string; finishTime: string | null }
 interface ImportRow { line: number; recordNo: string; action: string; message: string | null }
 interface ImportJob { id: number; mode: string; status: string; totalRows: number; validRows: number; importedRows: number; failureReason: string | null; rows: ImportRow[] }
+interface InboxMessage { id: number; kind: string; title: string; moduleId: number; recordId: number; taskId: number; createTime: string; readTime: string | null }
 
 const route = useRoute()
 const router = useRouter()
@@ -59,7 +60,9 @@ const editingRecord = ref<BusinessRecord | null>(null)
 const recordDetail = ref<BusinessRecord | null>(null)
 const recordValues = ref<Record<string, string | number | boolean>>({})
 const recordBusy = ref(false)
-const mode = ref<'config' | 'runtime' | 'access' | 'approval'>('config')
+const mode = ref<'config' | 'runtime' | 'access' | 'approval' | 'messages'>('config')
+const inbox = ref<InboxMessage[]>([])
+const unreadCount = ref(0)
 const approvalModuleId = ref<number | null>(null)
 const approvalConfig = ref<FlowConfig | null>(null)
 const flowName = ref('')
@@ -116,9 +119,44 @@ async function boot() {
       mode.value = 'runtime'
     }
     if (runtimeGroups.value.length) runtimeGroupId.value = runtimeGroups.value[0]!.snapshot.groupId
+    await loadUnreadCount()
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : '无法读取系统'
   } finally { loading.value = false }
+}
+
+async function loadUnreadCount() {
+  unreadCount.value = (await api<{ count: number }>(`${base}/messages/unread-count`)).count
+}
+
+async function openMessages() {
+  mode.value = 'messages'
+  error.value = ''
+  try {
+    inbox.value = await api<InboxMessage[]>(`${base}/messages`)
+    await loadUnreadCount()
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : '读取消息失败' }
+}
+
+async function openMessage(message: InboxMessage) {
+  error.value = ''
+  try {
+    await send<InboxMessage>(`${base}/messages/${message.id}/read`)
+    inbox.value = await api<InboxMessage[]>(`${base}/messages`)
+    await loadUnreadCount()
+    if (message.kind === 'APPROVAL_TODO') {
+      await openApproval()
+      await openTask({ taskId: message.taskId })
+    } else {
+      const target = published.value.find(item => item.moduleId === message.moduleId)
+      if (!target) throw new Error('当前无权打开这条消息对应的模块')
+      mode.value = 'runtime'
+      runtimeGroupId.value = target.snapshot.groupId
+      await showRuntime(target)
+      const record = await api<BusinessRecord>(`${base}/modules/${message.moduleId}/records/${message.recordId}`)
+      await openRecord(record)
+    }
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : '无法打开消息目标' }
 }
 
 async function loadAccess() {
@@ -461,7 +499,7 @@ async function submitApproval() {
   finally { recordBusy.value = false }
 }
 
-async function openTask(task: FlowTask) {
+async function openTask(task: { taskId: number }) {
   error.value = ''
   taskDetail.value = null
   taskFiles.value = []
@@ -631,7 +669,7 @@ onMounted(boot)
       <div v-else class="content system-content">
         <div class="page-head"><button class="back-link" @click="router.push('/')">← 返回系统列表</button><div class="page-kicker">SYSTEM / {{ system?.code }}</div><h1>{{ system?.name || '系统不可访问' }}</h1><p>{{ system?.description || (system?.owner ? '从模块组开始组织当前系统的业务能力。' : '打开有权限的业务菜单，处理当前业务记录。') }}</p></div>
         <p v-if="error" class="form-error">{{ error }}</p><p v-if="notice" class="success-note">{{ notice }}</p>
-        <div v-if="system" class="mode-tabs"><button v-if="system.owner" :class="{ active: mode === 'config' }" @click="mode = 'config'">业务建模</button><button :class="{ active: mode === 'runtime' }" @click="switchRuntime">{{ system.owner ? '运行预览' : '业务系统' }} <span class="tab-count">{{ published.length }}</span></button><button v-if="system.owner" :class="{ active: mode === 'access' }" @click="mode = 'access'; error = ''; notice = ''">成员与权限</button><button :class="{ active: mode === 'approval' }" @click="openApproval">{{ system.owner ? '审批配置与待办' : '我的审批待办' }}</button></div>
+        <div v-if="system" class="mode-tabs"><button v-if="system.owner" :class="{ active: mode === 'config' }" @click="mode = 'config'">业务建模</button><button :class="{ active: mode === 'runtime' }" @click="switchRuntime">{{ system.owner ? '运行预览' : '业务系统' }} <span class="tab-count">{{ published.length }}</span></button><button v-if="system.owner" :class="{ active: mode === 'access' }" @click="mode = 'access'; error = ''; notice = ''">成员与权限</button><button :class="{ active: mode === 'approval' }" @click="openApproval">{{ system.owner ? '审批配置与待办' : '我的审批待办' }}</button><button :class="{ active: mode === 'messages' }" @click="openMessages">消息 <span v-if="unreadCount" class="tab-count">{{ unreadCount }}</span></button></div>
         <div v-if="system && mode === 'config' && system.owner" class="model-layout">
           <section class="model-column group-column"><div class="column-head"><div><div class="page-kicker">01 / GROUPS</div><h2>模块组</h2></div><button class="icon-button" title="创建模块组" @click="openForm('group')">＋</button></div><p class="column-hint">运行态顶栏的业务分组</p><button v-for="group in groups" :key="group.id" class="list-item" :class="{ active: selectedGroup?.id === group.id }" @click="selectGroup(group)"><strong>{{ group.name }}</strong><small>{{ group.code }}</small></button><div v-if="!groups.length" class="column-empty">先创建一个模块组</div></section>
           <section class="model-column module-column"><div class="column-head"><div><div class="page-kicker">02 / MODULES</div><h2>业务模块</h2></div><button class="icon-button" title="创建业务模块" :disabled="!selectedGroup" @click="openForm('module')">＋</button></div><p class="column-hint">{{ selectedGroup ? `${selectedGroup.name} · 组内模块` : '请先选择模块组' }}</p><button v-for="module in modules" :key="module.id" class="list-item" :class="{ active: selectedModule?.id === module.id }" @click="selectModule(module)"><strong>{{ module.name }}</strong><small>{{ module.status === 'PUBLISHED' ? '已发布' : '草稿' }} · {{ module.code }}</small></button><div v-if="selectedGroup && !modules.length" class="column-empty">这个组还没有模块</div></section>
@@ -647,6 +685,7 @@ onMounted(boot)
           <section class="access-card"><div class="page-kicker">MY TASKS</div><h2>待我审批</h2><p class="column-hint">只显示当前账号有权查看并处理的业务记录。</p><div v-for="task in tasks" :key="task.taskId" class="access-row"><strong>{{ task.title }}</strong><small>{{ task.nodeName }} · 第 {{ task.attemptNumber }} 次申请</small><button class="secondary-button" @click="openTask(task)">查看办理</button></div><p v-if="!tasks.length" class="column-empty">当前没有待办。</p></section>
           <section v-if="taskDetail" class="access-card"><div class="page-kicker">TASK DETAIL</div><h2>{{ taskDetail.record.title }}</h2><p class="column-hint">{{ taskDetail.task.nodeName }} · {{ taskDetail.record.recordNo }}</p><div class="record-detail-fields"><div v-for="(value, key) in taskDetail.record.values" :key="key"><small>{{ taskFieldLabel(key) }}</small><strong>{{ value }}</strong></div></div><div v-if="taskFiles.length" class="file-list"><div v-for="file in taskFiles" :key="file.id" class="file-row"><strong>{{ file.name }}</strong><span>{{ Math.ceil(file.sizeBytes / 1024) }} KB</span><a v-if="file.contentType.startsWith('image/') || file.contentType === 'application/pdf'" :href="taskFileUrl(file.id, 'preview')" target="_blank" rel="noopener">预览</a><a :href="taskFileUrl(file.id, 'download')">下载</a></div></div><div class="member-list"><div v-for="(event, index) in taskDetail.history" :key="index"><strong>{{ eventName(event.eventType) }}</strong><small>{{ event.createTime?.slice(0, 16) }} {{ event.opinion || '' }}</small></div></div><label>办理意见<textarea v-model="decisionOpinion" rows="3" maxlength="1000" placeholder="拒绝时必须填写原因"></textarea></label><div class="grant-options"><button class="primary-button" :disabled="saving" @click="decide(true)">同意</button><button class="secondary-button" :disabled="saving || !decisionOpinion.trim()" @click="decide(false)">拒绝</button></div></section>
         </div>
+        <section v-if="system && mode === 'messages'" class="access-card message-card"><div class="record-editor-head"><div><div class="page-kicker">MESSAGES</div><h2>我的消息</h2><p class="column-hint">只显示当前系统发给你的通知；打开目标时会重新检查业务权限。</p></div><button class="secondary-button" @click="openMessages">刷新消息</button></div><button v-for="message in inbox" :key="message.id" class="message-item" @click="openMessage(message)"><span><strong>{{ message.title }}</strong><small>{{ message.kind === 'APPROVAL_TODO' ? '审批待办' : '审批结果' }} · {{ message.createTime?.slice(0, 16) }}</small></span><span v-if="!message.readTime" class="field-tag">未读</span><span>查看目标 →</span></button><p v-if="!inbox.length" class="column-empty">当前系统还没有消息。</p></section>
         <div v-if="system && mode === 'runtime'" class="runtime-shell">
           <div v-if="published.length" class="runtime-top"><button v-for="group in runtimeGroups" :key="group.snapshot.groupId" :class="{ active: runtimeGroupId === group.snapshot.groupId }" @click="runtimeGroupId = group.snapshot.groupId; runtimeModule = null">{{ group.snapshot.groupName }}</button></div>
           <div v-if="published.length" class="runtime-body">

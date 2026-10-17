@@ -16,6 +16,7 @@ import com.unique.unexamine.flow.base.service.FlowNodeBaseService;
 import com.unique.unexamine.flow.base.service.FlowTaskBaseService;
 import com.unique.unexamine.flow.base.service.FlowVersionBaseService;
 import com.unique.unexamine.moduleconfig.base.entity.BusinessModule;
+import com.unique.unexamine.message.manage.MessageManageService;
 import com.unique.unexamine.moduleconfig.base.service.BusinessModuleBaseService;
 import com.unique.unexamine.runtimedata.base.entity.BusinessRecord;
 import com.unique.unexamine.runtimedata.base.service.BusinessRecordBaseService;
@@ -50,6 +51,7 @@ public class FlowManageService {
     private final FlowExampleBaseService examples;
     private final FlowTaskBaseService tasks;
     private final FlowEventBaseService events;
+    private final MessageManageService messages;
     private final ObjectMapper json;
 
     public FlowManageService(SystemManageService systems, SystemPermissionService access,
@@ -58,7 +60,7 @@ public class FlowManageService {
                              RecordManageService recordViews, FlowDefinitionBaseService flows,
                              FlowNodeBaseService nodes, FlowVersionBaseService versions,
                              FlowExampleBaseService examples, FlowTaskBaseService tasks,
-                             FlowEventBaseService events, ObjectMapper json) {
+                             FlowEventBaseService events, MessageManageService messages, ObjectMapper json) {
         this.systems = systems;
         this.access = access;
         this.modules = modules;
@@ -72,6 +74,7 @@ public class FlowManageService {
         this.examples = examples;
         this.tasks = tasks;
         this.events = events;
+        this.messages = messages;
         this.json = json;
     }
 
@@ -152,7 +155,7 @@ public class FlowManageService {
         }
         FlowVersion version = versions.selectById(flow.getPublishedVersionId());
         ApprovalSnapshot snapshot = read(version.getSnapshotJson());
-        requireApprover(context, snapshot.approverMemberId());
+        SystemMember approver = requireApprover(context, snapshot.approverMemberId());
         FlowExample previous = examples.selectList(new LambdaQueryWrapper<FlowExample>()
                 .eq(FlowExample::getRecordId, recordId).orderByDesc(FlowExample::getAttemptNumber).last("LIMIT 1"))
                 .stream().findFirst().orElse(null);
@@ -178,6 +181,8 @@ public class FlowManageService {
         task.setStatus("PENDING");
         tasks.insert(task);
         event(example.getId(), task.getId(), context.member().getId(), "SUBMIT", null);
+        messages.sendApproval(systemId, context.tenant().getId(), approver.getAccountId(),
+                "APPROVAL_TODO", moduleId, recordId, task.getId());
         return run(example, task, record.getTitle());
     }
 
@@ -236,6 +241,12 @@ public class FlowManageService {
         if (records.updateById(record) != 1) throw conflict("业务记录已变化");
         SystemPermissionService.Context context = access.requireMembership(accountId, systemId);
         event(example.getId(), taskId, context.member().getId(), approve ? "APPROVE" : "REJECT", task.getOpinion());
+        SystemMember applicant = members.selectById(example.getApplicantMemberId());
+        if (applicant != null) {
+            messages.sendApproval(systemId, context.tenant().getId(), applicant.getAccountId(),
+                    approve ? "APPROVAL_APPROVED" : "APPROVAL_REJECTED",
+                    example.getModuleId(), example.getRecordId(), taskId);
+        }
         return run(example, task, detail.record().title());
     }
 
@@ -261,12 +272,13 @@ public class FlowManageService {
         return node;
     }
 
-    private void requireApprover(SystemPermissionService.Context context, Long memberId) {
+    private SystemMember requireApprover(SystemPermissionService.Context context, Long memberId) {
         SystemMember member = memberId == null ? null : members.selectById(memberId);
         if (member == null || !context.system().getId().equals(member.getSystemId())
                 || !"ACTIVE".equals(member.getStatus()) || tenantMembers.selectOne(new LambdaQueryWrapper<TenantMember>()
                 .eq(TenantMember::getTenantId, context.tenant().getId()).eq(TenantMember::getMemberId, memberId)
                 .eq(TenantMember::getStatus, "ACTIVE")) == null) throw bad("审批人必须是当前系统主租户有效成员");
+        return member;
     }
 
     private void event(Long exampleId, Long taskId, Long actorMemberId, String type, String opinion) {

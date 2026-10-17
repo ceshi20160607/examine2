@@ -2,9 +2,9 @@
   "schemaVersion" : 1,
   "generator" : "MyBatis-Plus Generator 3.5.17",
   "database" : "jdbc:mysql://127.0.0.1:3306/unexamine_r15",
-  "schemaSha256" : "d541fa91df23b419571626fbcad1b69f6b167d99c794d6a5f2ec729e23c2f0c2",
-  "moduleCount" : 7,
-  "tableCount" : 27,
+  "schemaSha256" : "9f69ec3d63300a09507498ccd1c859a67cb0486c4a33114367a59629e3fd99a7",
+  "moduleCount" : 8,
+  "tableCount" : 28,
   "generatedFiles" : [ {
     "path" : "backend/src/main/java/com/unique/unexamine/exchange/base/entity/ExchangeJob.java",
     "sha256" : "1430dc96d0e37cfa2e34de39c204ff2c13df967bd9b09e0e2dc9ccac390218c7"
@@ -95,6 +95,15 @@
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/flow/base/service/FlowVersionBaseService.java",
     "sha256" : "339b36aeb810988b332216671f0b559ee94be39a2a5b9059a24eef8111a3b9df"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/message/base/entity/InboxMessage.java",
+    "sha256" : "1498b495e4b775cd89f69f43501de2025bf9521e6987fc0c3a763f0aa7400e72"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/message/base/mapper/InboxMessageMapper.java",
+    "sha256" : "afe682a995818ebebd067142ff99b0a992c8de5deba344c43854b27440948720"
+  }, {
+    "path" : "backend/src/main/java/com/unique/unexamine/message/base/service/InboxMessageBaseService.java",
+    "sha256" : "f67cb115cdf0d599070a3acc72a5b2266d895f629e1e6f9238e184e1a50c0fef"
   }, {
     "path" : "backend/src/main/java/com/unique/unexamine/moduleconfig/base/entity/BusinessModule.java",
     "sha256" : "e188687fde233d49d5eab5f2e6708524f7b66ed231e407feaf6f0e8dbf24a745"
@@ -278,6 +287,9 @@
   }, {
     "path" : "backend/src/main/resources/mapper/flow/base/FlowVersionMapper.xml",
     "sha256" : "5d4797ce11c31f54bf5856dd7c8194e6cb7f64e04319fe4a17ba5bef23ccef4b"
+  }, {
+    "path" : "backend/src/main/resources/mapper/message/base/InboxMessageMapper.xml",
+    "sha256" : "7e3cad0fea0847a0e89264703b2a9a2588606fe860871afb4fe909ae35178c02"
   }, {
     "path" : "backend/src/main/resources/mapper/moduleconfig/base/BusinessModuleMapper.xml",
     "sha256" : "d407ccae4bdf90cc4406815f061e9129d073a1266b1b3ae4d31fe11655da661e"

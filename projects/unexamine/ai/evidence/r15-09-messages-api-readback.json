@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "system_id": 75,
+  "module_id": 66,
+  "checks": ["submit_notice", "duplicate_no_message", "recipient_isolation", "unread", "read_idempotent", "target_permission", "reject_notice", "approve_notice", "generic_title", "system_isolation", "revoked_target_denial", "mysql_readback", "flyway_v9"],
+  "observed": "独立新系统提交、拒绝、重提、通过产生四条对应收件消息；重复提交不产生多余消息；已读时间保持不变；账号和系统间不能代读；撤销角色权限后消息仍只显示通用标题，目标记录接口返回 404。MySQL 读回四条消息与 Flyway V9。"
+}
