@@ -41,10 +41,12 @@ class ProjectStarterTest(unittest.TestCase):
             generated_paths = {item["path"] for item in first["manifest"]["generatedFiles"]}
             self.assertIn("backend/pom.xml", generated_paths)
             self.assertIn("frontend/package.json", generated_paths)
+            self.assertIn("frontend/src/product/routes.ts", generated_paths)
             self.assertIn("ai/status/README.md", generated_paths)
             self.assertIn("db/init/README.md", generated_paths)
             self.assertIn("question.md", generated_paths)
             self.assertIn("tools/README.md", generated_paths)
+            self.assertNotIn("deploy/compose.yaml", generated_paths)
             self.assertFalse(any(path.startswith("backend/") and "/base/" in path for path in generated_paths))
             self.assertFalse(any(path.startswith("backend/") and "/entity/" in path for path in generated_paths))
             self.assertFalse(any("Security" in path for path in generated_paths))
@@ -57,6 +59,17 @@ class ProjectStarterTest(unittest.TestCase):
             self.assertNotIn("spring-security", pom_text)
             router_text = (root / "frontend" / "src" / "router.ts").read_text(encoding="utf-8")
             self.assertIn("productRoutes", router_text)
+            app_config = (root / "backend" / "src" / "main" / "resources" / "application.yml").read_text(encoding="utf-8")
+            self.assertIn("jdbc:mysql://127.0.0.1:3306/unexamine_r15", app_config)
+            self.assertIn("password: ${APP_DB_PASSWORD:}", app_config)
+
+    def test_compose_mode_remains_available_for_other_projects(self) -> None:
+        starter = json.loads(json.dumps(load_starter(self.starter_path)))
+        starter["local"]["dependencyMode"] = "compose"
+        with tempfile.TemporaryDirectory(prefix="template-base-compose-starter-") as directory:
+            result = generate_starter(starter, self.starter_path, Path(directory))
+            generated_paths = {item["path"] for item in result["manifest"]["generatedFiles"]}
+            self.assertIn("deploy/compose.yaml", generated_paths)
 
     def test_starter_refuses_to_overwrite_hand_modified_generated_file(self) -> None:
         starter = load_starter(self.starter_path)

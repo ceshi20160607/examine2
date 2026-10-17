@@ -6,14 +6,11 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.platform.base.entity.PlatformAccount">
         <id column="id" property="id" />
         <result column="username" property="username" />
+        <result column="password_hash" property="passwordHash" />
+        <result column="display_name" property="displayName" />
         <result column="email" property="email" />
         <result column="mobile" property="mobile" />
-        <result column="display_name" property="displayName" />
-        <result column="avatar_file_id" property="avatarFileId" />
-        <result column="locale" property="locale" />
-        <result column="timezone" property="timezone" />
         <result column="status" property="status" />
-        <result column="last_login_time" property="lastLoginTime" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
@@ -21,7 +18,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, username, email, mobile, display_name, avatar_file_id, locale, timezone, `status`, last_login_time, create_time, update_time, version
+        id, username, password_hash, display_name, email, mobile, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

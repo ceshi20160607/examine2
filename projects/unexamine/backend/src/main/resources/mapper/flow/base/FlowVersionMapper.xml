@@ -7,18 +7,14 @@
         <id column="id" property="id" />
         <result column="flow_id" property="flowId" />
         <result column="version_number" property="versionNumber" />
-        <result column="draft_revision" property="draftRevision" />
-        <result column="definition_hash" property="definitionHash" />
         <result column="snapshot_json" property="snapshotJson" />
-        <result column="simulation_result_json" property="simulationResultJson" />
-        <result column="change_summary" property="changeSummary" />
         <result column="published_by_account_id" property="publishedByAccountId" />
-        <result column="publish_time" property="publishTime" />
+        <result column="published_time" property="publishedTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, flow_id, version_number, draft_revision, definition_hash, snapshot_json, simulation_result_json, change_summary, published_by_account_id, publish_time
+        id, flow_id, version_number, snapshot_json, published_by_account_id, published_time
     </sql>
 
 </mapper>

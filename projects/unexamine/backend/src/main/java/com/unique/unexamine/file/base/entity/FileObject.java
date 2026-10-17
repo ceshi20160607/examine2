@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 可被业务引用的文件对象元数据
+ * 本地文件内容的元数据与存储定位
  * </p>
  *
  * @author Template Base
@@ -26,119 +25,70 @@ public class FileObject {
     private Long id;
 
     /**
-     * 文件作用域：PLATFORM 或 SYSTEM
-     */
-    @TableField("context_type")
-    private String contextType;
-
-    /**
-     * 文件所属平台
-     */
-    @TableField("platform_id")
-    private Long platformId;
-
-    /**
-     * 系统文件所属系统，平台文件为空
+     * 文件所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 系统文件所属租户，平台文件为空
+     * 文件所属租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 文件字节所在存储后端主键
+     * 本地存储中随机生成的文件名
      */
-    @TableField("storage_backend_id")
-    private Long storageBackendId;
+    @TableField("storage_key")
+    private String storageKey;
 
     /**
-     * 原始上传会话主键；生成的预览产物可为空
-     */
-    @TableField("upload_session_id")
-    private Long uploadSessionId;
-
-    /**
-     * 后端内存储对象键
-     */
-    @TableField("object_key")
-    private String objectKey;
-
-    /**
-     * 对象键 SHA-256，用于稳定唯一约束
-     */
-    @TableField("object_key_hash")
-    private String objectKeyHash;
-
-    /**
-     * 展示和下载时使用的文件名
+     * 上传时的原始文件名
      */
     @TableField("original_name")
     private String originalName;
 
     /**
-     * 文件实际媒体类型
+     * 服务端识别的安全文件类型
      */
     @TableField("content_type")
     private String contentType;
 
     /**
-     * 文件完整字节数
+     * 文件实际字节数
      */
     @TableField("size_bytes")
     private Long sizeBytes;
 
     /**
-     * 完整文件 SHA-256 校验值
+     * 文件内容的 SHA-256 摘要
      */
-    @TableField("sha256")
-    private String sha256;
+    @TableField("sha256_hex")
+    private String sha256Hex;
 
     /**
-     * 安全扫描结果状态
-     */
-    @TableField("scan_status")
-    private String scanStatus;
-
-    /**
-     * 预览处理汇总状态，产物详见 un_file_preview
-     */
-    @TableField("preview_status")
-    private String previewStatus;
-
-    /**
-     * 文件可用或删除状态
+     * 文件可用或已移除状态
      */
     @TableField("`status`")
     private String status;
 
     /**
-     * 原文件上传人或预览产物生成主体账号
+     * 上传文件的平台账号主键
      */
-    @TableField("uploaded_by_account_id")
-    private Long uploadedByAccountId;
+    @TableField("created_by_account_id")
+    private Long createdByAccountId;
 
     /**
-     * 创建时间
+     * 文件上传时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 逻辑删除时间
+     * 文件移除时间
      */
     @TableField("delete_time")
     private LocalDateTime deleteTime;
-
-    /**
-     * 乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -146,22 +96,6 @@ public class FileObject {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getContextType() {
-        return contextType;
-    }
-
-    public void setContextType(String contextType) {
-        this.contextType = contextType;
-    }
-
-    public Long getPlatformId() {
-        return platformId;
-    }
-
-    public void setPlatformId(Long platformId) {
-        this.platformId = platformId;
     }
 
     public Long getSystemId() {
@@ -180,36 +114,12 @@ public class FileObject {
         this.tenantId = tenantId;
     }
 
-    public Long getStorageBackendId() {
-        return storageBackendId;
+    public String getStorageKey() {
+        return storageKey;
     }
 
-    public void setStorageBackendId(Long storageBackendId) {
-        this.storageBackendId = storageBackendId;
-    }
-
-    public Long getUploadSessionId() {
-        return uploadSessionId;
-    }
-
-    public void setUploadSessionId(Long uploadSessionId) {
-        this.uploadSessionId = uploadSessionId;
-    }
-
-    public String getObjectKey() {
-        return objectKey;
-    }
-
-    public void setObjectKey(String objectKey) {
-        this.objectKey = objectKey;
-    }
-
-    public String getObjectKeyHash() {
-        return objectKeyHash;
-    }
-
-    public void setObjectKeyHash(String objectKeyHash) {
-        this.objectKeyHash = objectKeyHash;
+    public void setStorageKey(String storageKey) {
+        this.storageKey = storageKey;
     }
 
     public String getOriginalName() {
@@ -236,28 +146,12 @@ public class FileObject {
         this.sizeBytes = sizeBytes;
     }
 
-    public String getSha256() {
-        return sha256;
+    public String getSha256Hex() {
+        return sha256Hex;
     }
 
-    public void setSha256(String sha256) {
-        this.sha256 = sha256;
-    }
-
-    public String getScanStatus() {
-        return scanStatus;
-    }
-
-    public void setScanStatus(String scanStatus) {
-        this.scanStatus = scanStatus;
-    }
-
-    public String getPreviewStatus() {
-        return previewStatus;
-    }
-
-    public void setPreviewStatus(String previewStatus) {
-        this.previewStatus = previewStatus;
+    public void setSha256Hex(String sha256Hex) {
+        this.sha256Hex = sha256Hex;
     }
 
     public String getStatus() {
@@ -268,12 +162,12 @@ public class FileObject {
         this.status = status;
     }
 
-    public Long getUploadedByAccountId() {
-        return uploadedByAccountId;
+    public Long getCreatedByAccountId() {
+        return createdByAccountId;
     }
 
-    public void setUploadedByAccountId(Long uploadedByAccountId) {
-        this.uploadedByAccountId = uploadedByAccountId;
+    public void setCreatedByAccountId(Long createdByAccountId) {
+        this.createdByAccountId = createdByAccountId;
     }
 
     public LocalDateTime getCreateTime() {
@@ -292,37 +186,21 @@ public class FileObject {
         this.deleteTime = deleteTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "FileObject{" +
             "id = " + id +
-            ", contextType = " + contextType +
-            ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
-            ", storageBackendId = " + storageBackendId +
-            ", uploadSessionId = " + uploadSessionId +
-            ", objectKey = " + objectKey +
-            ", objectKeyHash = " + objectKeyHash +
+            ", storageKey = " + storageKey +
             ", originalName = " + originalName +
             ", contentType = " + contentType +
             ", sizeBytes = " + sizeBytes +
-            ", sha256 = " + sha256 +
-            ", scanStatus = " + scanStatus +
-            ", previewStatus = " + previewStatus +
+            ", sha256Hex = " + sha256Hex +
             ", status = " + status +
-            ", uploadedByAccountId = " + uploadedByAccountId +
+            ", createdByAccountId = " + createdByAccountId +
             ", createTime = " + createTime +
             ", deleteTime = " + deleteTime +
-            ", version = " + version +
             "}";
     }
 }

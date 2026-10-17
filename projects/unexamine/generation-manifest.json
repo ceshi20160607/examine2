@@ -1,0 +1,146 @@
+{
+  "generatedFiles": [
+    {
+      "path": "README.md",
+      "sha256": "802e178cc09608880193ff755f1c548c5259f341f4ae9c2227ce936b7db5be73"
+    },
+    {
+      "path": "ai/README.md",
+      "sha256": "e1b50d8afdbac9e3b1b4efeb8c5e18c032f694a463ddc61491086a97b7c30475"
+    },
+    {
+      "path": "ai/agents/README.md",
+      "sha256": "8d9887d71eaca5362ea7087eb94fce5da0f31a3e4b89848b3c03e4fc9eb9a775"
+    },
+    {
+      "path": "ai/architecture/README.md",
+      "sha256": "767a371cde0a1af7c4ed53bfeda044381cd9fedb4dd2b12272ce63d2af5aae7c"
+    },
+    {
+      "path": "ai/decisions/README.md",
+      "sha256": "a2cb80e2118396763014c8e5e0558202f3bb5cf57a0bf1ee2970eb79da937dbb"
+    },
+    {
+      "path": "ai/evidence/README.md",
+      "sha256": "8b4eb8a91a571d00af0034e7e40821b8b1ca870406df70ff21c4fba7193d93cb"
+    },
+    {
+      "path": "ai/planning/README.md",
+      "sha256": "f512f8f9ab4998209f26b6426b9592836cc141d5720a2385dc05c7e654388e1b"
+    },
+    {
+      "path": "ai/requirements/README.md",
+      "sha256": "37ce652a06441029bf3dbb87ab5db773b4c8a2a64091de0ecd9378a30fb554eb"
+    },
+    {
+      "path": "ai/status/README.md",
+      "sha256": "3548b588b27b0a14a797a7d379c7d3676cb2118c87b69f1bc9b2081dd86554fc"
+    },
+    {
+      "path": "backend/pom.xml",
+      "sha256": "dc601de396389d5cbe66ff05bb4bb5cb1f54c4fcc54808cfeb13af7e1e2104f5"
+    },
+    {
+      "path": "backend/src/main/java/com/unique/unexamine/UnexamineApplication.java",
+      "sha256": "2717c70b3143ba027ec62233e76a6edc0ff843b4d071550050d3067f20d3dfba"
+    },
+    {
+      "path": "backend/src/main/resources/application.yml",
+      "sha256": "6215582969faf87a72879017e11bbcc44e8d60b51aa28d95e490742e27390d6c"
+    },
+    {
+      "path": "db/README.md",
+      "sha256": "cf8e9a5ad4af38aa75328fd6129b8403de31f76b847199a72ddbfe68295b0942"
+    },
+    {
+      "path": "db/init/README.md",
+      "sha256": "25c6e96633ccf524a819cc7a6a173ed4a9b7d7cfeb70c284c87bd7865fc1506c"
+    },
+    {
+      "path": "db/migration/README.md",
+      "sha256": "4727f090f06001778cccdc7d7765684025f46b785af336aa1b3485b570748d3e"
+    },
+    {
+      "path": "db/update/README.md",
+      "sha256": "c5e7f50cd22ff3bfa83009835fed81785a665a9fb558393e77fcd50e3946e645"
+    },
+    {
+      "path": "deploy/local.env.example",
+      "sha256": "9e8ffa9facb4cfcd1244b16b20279f31083ad8c8c7cffcf5ff5b6f5fff04a372"
+    },
+    {
+      "path": "frontend/env.d.ts",
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "frontend/index.html",
+      "sha256": "d6efe58ce2a4b628039c174174393d4fd558eec35a1ab36157391701148894a5"
+    },
+    {
+      "path": "frontend/package.json",
+      "sha256": "48c7af274df4712b4e7c54a777cab852799f18f948cb503496837b1e23640515"
+    },
+    {
+      "path": "frontend/src/App.vue",
+      "sha256": "893015b266298feabd24f6ba939645c5f029cf5f2201851fc577596cc2935802"
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "sha256": "55929018a94e8ce0c82e2720f2df5924002caae73fb2566c5022b7e9db0b3b07"
+    },
+    {
+      "path": "frontend/src/product/routes.ts",
+      "sha256": "977c580e8a0b39623b6cff2addd0b30a7a09b0ddf0e02818263ba7e7c01df648"
+    },
+    {
+      "path": "frontend/src/router.ts",
+      "sha256": "824b4fae44b5ffc89f1b15865b15403b468bf13ff5c6852ecf057d84ba142638"
+    },
+    {
+      "path": "frontend/src/styles.css",
+      "sha256": "86df03eae308b2b83e66161893f3095d3c69d009ed765e792ecb8ad48e912cf3"
+    },
+    {
+      "path": "frontend/src/views/ProjectReadyView.vue",
+      "sha256": "e00b31d51451061023b1537fed37752f8ff034d355913e6ebb978e7324c55bb7"
+    },
+    {
+      "path": "frontend/src/views/generated/projectInfo.test.ts",
+      "sha256": "db8b97a68be253535fd05291766124c8d67a938724d0754e4e2e56cc8b96102f"
+    },
+    {
+      "path": "frontend/src/views/generated/projectInfo.ts",
+      "sha256": "7cfee3484e1fdebdb614821816c8aafb81273056f1e8c67893038af53213e0b0"
+    },
+    {
+      "path": "frontend/tsconfig.app.json",
+      "sha256": "b4fe85f69618b10e67c7be56492312fdade54596716cdb4ef4c8c6b9f02530ab"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "sha256": "3a11d1d758b82ceae1687b3b3b673d98febb16b81305239be576b6aa30148fed"
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "sha256": "3900a9286719f464432a4dc1022f3b93bfcc84a3b229dfc3f3e9912f39b57323"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "sha256": "b758ea2dce6141ea9c194b31b694ec5ef7d0361e8c0f5aabb993b49ee0a45fb3"
+    },
+    {
+      "path": "question.md",
+      "sha256": "ddf833ded118ac3b2db292c14484e487d74806b2e547db8be5dbbd276239f873"
+    },
+    {
+      "path": "tools/README.md",
+      "sha256": "342e7ab159f2671512814a582cf57ee8c00d8cfbf039382b1e8c23c3aa63a82e"
+    }
+  ],
+  "generatorKind": "project-starter",
+  "generatorVersion": "0.5.0-dev",
+  "projectId": "unexamine",
+  "requirementsSha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
+  "schemaVersion": 1,
+  "starterSha256": "e508334c793d28747766e3cad921ce968bc89755081752d3b3af06ec633b3a2f"
+}

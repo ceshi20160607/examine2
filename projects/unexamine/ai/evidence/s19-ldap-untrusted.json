@@ -1,8 +1,0 @@
-{
-  "step": "S19.5",
-  "candidate": "0.1.0-s19.5-dev1",
-  "untrustedCertificatePreflight": "FAILED",
-  "failureCode": "SSO_DIRECTORY_UNAVAILABLE",
-  "loginEntryHidden": true,
-  "certificateBoundary": "Different local certificate on 127.0.0.1:1637 was absent from backend trust store."
-}

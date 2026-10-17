@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 系统成员
+ * 平台账号在业务系统中的成员关系
  * </p>
  *
  * @author Template Base
@@ -26,28 +25,16 @@ public class SystemMember {
     private Long id;
 
     /**
-     * 所属业务系统标识
+     * 成员所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 对应平台账号标识
+     * 成员对应平台账号主键
      */
     @TableField("account_id")
     private Long accountId;
-
-    /**
-     * 系统内成员工号
-     */
-    @TableField("employee_number")
-    private String employeeNumber;
-
-    /**
-     * 系统内成员显示名称
-     */
-    @TableField("display_name")
-    private String displayName;
 
     /**
      * 系统成员状态
@@ -62,23 +49,16 @@ public class SystemMember {
     private LocalDateTime joinTime;
 
     /**
-     * 系统成员创建时间
+     * 成员关系创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 系统成员更新时间
+     * 成员关系更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 系统成员乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -102,22 +82,6 @@ public class SystemMember {
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
-    }
-
-    public String getEmployeeNumber() {
-        return employeeNumber;
-    }
-
-    public void setEmployeeNumber(String employeeNumber) {
-        this.employeeNumber = employeeNumber;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
     }
 
     public String getStatus() {
@@ -152,27 +116,16 @@ public class SystemMember {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "SystemMember{" +
             "id = " + id +
             ", systemId = " + systemId +
             ", accountId = " + accountId +
-            ", employeeNumber = " + employeeNumber +
-            ", displayName = " + displayName +
             ", status = " + status +
             ", joinTime = " + joinTime +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

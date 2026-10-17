@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 系统租户
+ * 业务系统租户及默认主租户
  * </p>
  *
  * @author Template Base
@@ -26,7 +25,7 @@ public class SystemTenant {
     private Long id;
 
     /**
-     * 所属业务系统标识
+     * 所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
@@ -38,65 +37,34 @@ public class SystemTenant {
     private String code;
 
     /**
-     * 租户展示名称
+     * 租户显示名称
      */
     @TableField("`name`")
     private String name;
 
     /**
-     * 租户专属登录页标题，空值使用租户名称
+     * 是否系统自动创建的主租户
      */
-    @TableField("login_title")
-    private String loginTitle;
+    @TableField("main_flag")
+    private Boolean mainFlag;
 
     /**
-     * 租户专属登录页说明，空值使用系统默认说明
-     */
-    @TableField("login_subtitle")
-    private String loginSubtitle;
-
-    /**
-     * 是否为系统主租户
-     */
-    @TableField("is_main")
-    private Boolean main;
-
-    /**
-     * 主租户唯一标记
-     */
-    @TableField("main_marker")
-    private String mainMarker;
-
-    /**
-     * 创建租户的平台账号标识
-     */
-    @TableField("creator_account_id")
-    private Long creatorAccountId;
-
-    /**
-     * 系统租户状态
+     * 租户启用状态
      */
     @TableField("`status`")
     private String status;
 
     /**
-     * 系统租户创建时间
+     * 租户创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 系统租户更新时间
+     * 租户更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 系统租户乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -130,44 +98,12 @@ public class SystemTenant {
         this.name = name;
     }
 
-    public String getLoginTitle() {
-        return loginTitle;
+    public Boolean getMainFlag() {
+        return mainFlag;
     }
 
-    public void setLoginTitle(String loginTitle) {
-        this.loginTitle = loginTitle;
-    }
-
-    public String getLoginSubtitle() {
-        return loginSubtitle;
-    }
-
-    public void setLoginSubtitle(String loginSubtitle) {
-        this.loginSubtitle = loginSubtitle;
-    }
-
-    public Boolean getMain() {
-        return main;
-    }
-
-    public void setMain(Boolean main) {
-        this.main = main;
-    }
-
-    public String getMainMarker() {
-        return mainMarker;
-    }
-
-    public void setMainMarker(String mainMarker) {
-        this.mainMarker = mainMarker;
-    }
-
-    public Long getCreatorAccountId() {
-        return creatorAccountId;
-    }
-
-    public void setCreatorAccountId(Long creatorAccountId) {
-        this.creatorAccountId = creatorAccountId;
+    public void setMainFlag(Boolean mainFlag) {
+        this.mainFlag = mainFlag;
     }
 
     public String getStatus() {
@@ -194,14 +130,6 @@ public class SystemTenant {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "SystemTenant{" +
@@ -209,15 +137,10 @@ public class SystemTenant {
             ", systemId = " + systemId +
             ", code = " + code +
             ", name = " + name +
-            ", loginTitle = " + loginTitle +
-            ", loginSubtitle = " + loginSubtitle +
-            ", main = " + main +
-            ", mainMarker = " + mainMarker +
-            ", creatorAccountId = " + creatorAccountId +
+            ", mainFlag = " + mainFlag +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

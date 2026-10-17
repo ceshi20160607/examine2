@@ -1,28 +1,21 @@
-# Workspace boundaries
+# 工作区边界
 
-This repository contains one active implementation and one reusable engineering template.
-
-- `docs/user_requirement.md` is the only product requirement source.
-- `projects/unexamine/` is the only active product implementation root.
-- `template_base/` contains reusable deterministic engineering capabilities only.
-- Only current requirements, current implementation and reusable template capabilities belong in this workspace. Removed historical code and evidence must not be recreated or treated as a requirement source.
-- Run `python template_base/tools/tb.py workspace-validate --workspace workspace.json` before implementation work that changes repository boundaries.
+- `docs/user_requirement.md` 是唯一产品需求源。
+- `docs/表意义.md` 是用户提供的基础表模型参考；`docs/old_table1.sql` 只供研究早期审批逻辑，含旧数据与删表语句，不得执行。
+- `template_base/` 保存通用工程工具、MyBatis-Plus 生成器、Agent 职责和校验规则；`projects/unexamine/` 是唯一当前产品实现。
+- 旧实现保存在 Git 标签 `pre-rebuild-15-20261017`，不得作为本轮需求或完成证据重新引入。
 
 # 开发规约
 
-- 新建、修改表结构时，表和所有字段必须有中文备注；复杂 SQL、数据修复和迁移步骤要说明用途。数据库时间字段统一用 `*_time`，Java 属性用 `*Time`。修改已有时间字段要同步映射、查询、接口及已有数据迁移方案，不能直接删表重建。
-- Java 类、方法、业务字段和关键逻辑添加解释业务含义与限制的中文注释，避免无意义逐行注释。
-- 优先沿用现有模块结构和写法。简单 CRUD 或一次性逻辑不增加抽象层，只有明确复用或扩展需求才封装。
-- 交付前检查注释、时间命名和不必要封装，执行相关编译或测试并报告结果。
+- 先看需求原文与 `projects/unexamine/ai/planning/rebuild-plan.md`，按当前业务旅程设计必要表，再通过 `db-prepare` 和 `template_base/mybatis-plus-generator` 生成 `base`，业务代码写入 `manage`，最后实现真实页面并验收。
+- 不为尚未实施的能力预建表或多余抽象。每批工作围绕一个可观察结果，估算不超过 240 分钟；前置依赖、共享迁移和测试资源保持串行。
+- 新建和修改的表及所有字段必须有中文备注；复杂 SQL 和迁移说明用途。数据库时间列用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移方案，不直接删表重建。
+- Java 类、方法、业务字段和关键逻辑写有意义的中文注释；沿用现有模块结构，简单 CRUD 不增加无用层。
+- 复用本机现有 Docker MySQL（3306）和 Redis（6379）；后端固定 9999；一个前端、一个后端，不增加 Nginx 或新的数据库容器。新实现使用隔离库 `unexamine_r15`，不改旧库。
+- 交付前检查注释、时间命名和不必要的封装，执行相关编译、测试与真实入口验证，说明结果。
 
-# Current execution handoff
+# 当前接续
 
-- On every reopened session, first read `projects/unexamine/ai/planning/product-closure-audit.md`, `projects/unexamine/ai/planning/spark-execution-plan.md` and `projects/unexamine/ai/planning/spark-state.json`, then run `python template_base/tools/tb.py project-status --workspace workspace.json`. The audit is a current evidence summary, not a new requirement source; update only changed findings instead of repeating the full audit.
-- The user's standing priority is whole-product delivery against `docs/user_requirement.md` §§2.3 and 10 and the latest clarifications in A.15–A.19. While `G18_PRODUCT_RELEASE` is unfinished, select work by the same-candidate release journey and its actual blockers. Keep S18.39 and other isolated feature combinations unverified and deferred unless that journey proves they block release. A verified local step or G1–G17 gate never proves whole-product completion.
-- Use the current session model, including for delegated work; the retained `spark-*` filenames preserve existing references and do not select the Spark model. Follow the product-bound current task packet; do not resume old numbered cycles or infer completion from old reports. If the packet points away from the unfinished product gate, correct the execution scope and explain the conflict before coding.
-- Before implementing a substep, run `python template_base/tools/tb.py execution-context --workspace workspace.json`. The project execution control binds the current requirement rows, dependencies, source entry files and acceptance. Fix invalid bindings by reviewing the affected source; never bypass failures by changing hashes or status alone.
-- Before advancing a verified substep, run `python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt <current-evidence-path>`, then update the exact next scope and repeat the engineering entry within the admitted task packet. Finish packet-level integrated verification before admitting another packet. This integrity check supplements actual business verification; it does not award product completion.
-- `docs/user_requirement.md` remains the only product requirement source. The current ledger is a source index and verification record, not a replacement requirement specification.
-- Preserve pre-existing staged and unstaged changes. Never reset the workspace or regenerate over hand-written business code to obtain a clean baseline.
-- Group related work around one observable business outcome, with total assessed effort at most 240 minutes; this is an estimate budget, not an elapsed-time timer. Stabilize shared contracts and common skeletons before implementing dependent features. Parallel work requires satisfied dependencies, explicit file ownership and non-conflicting migration, build and test resources; shared services and writes to the same fixture remain serial.
-- Finish and verify the current product-bound substep before expanding scope. Independent parallel branches retain their own scope and evidence; the coordinator merges them and writes the authoritative checkpoint. Record the next exact substep and the overall release blockers when handing off; do not rebuild the plan or repeat the full audit on each continuation.
+- 重开会话先读 `projects/unexamine/ai/planning/rebuild-plan.md` 和 `projects/unexamine/ai/planning/rebuild-state.json`，运行 `python template_base/tools/tb.py project-status --workspace workspace.json`。
+- 实施当前步骤前运行 `python template_base/tools/tb.py execution-context --workspace workspace.json`。业务结果、持久化、授权和失败结果未验收时保持未完成。
+- 只在当前步骤真实验证后运行 `execution-verify` 并更新准确断点。工程校验或局部测试不等于全产品完成。

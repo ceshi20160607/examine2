@@ -1,3 +1,0 @@
-# 在 Spring 创建产品服务和数据库连接前建立 API、数据库及 JVM 的共同时间约定。
-org.springframework.boot.env.EnvironmentPostProcessor=\
-com.unique.unexamine.shared.manage.web.ApiTimeZoneEnvironmentPostProcessor

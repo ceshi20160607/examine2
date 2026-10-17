@@ -4,111 +4,73 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 流程定义与草稿作用域
+ * 模块的基础审批流程定义
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_flow_definition")
+@TableName("un_flow")
 public class FlowDefinition {
 
     /**
-     * 主键ID
+     * 流程定义主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 流程所属上下文类型
-     */
-    @TableField("context_type")
-    private String contextType;
-
-    /**
-     * 所属平台ID
-     */
-    @TableField("platform_id")
-    private Long platformId;
-
-    /**
-     * 所属系统ID
+     * 所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 配置来源租户ID
+     * 所属主租户主键
      */
-    @TableField("owner_tenant_id")
-    private Long ownerTenantId;
+    @TableField("tenant_id")
+    private Long tenantId;
 
     /**
-     * 配置此流程的应用ID；系统后台配置为空
+     * 绑定的业务模块主键
      */
-    @TableField("owner_application_id")
-    private Long ownerApplicationId;
+    @TableField("module_id")
+    private Long moduleId;
 
     /**
-     * 稳定业务编码
-     */
-    @TableField("`code`")
-    private String code;
-
-    /**
-     * 显示名称
+     * 审批流程名称
      */
     @TableField("`name`")
     private String name;
 
     /**
-     * 业务说明
-     */
-    @TableField("`description`")
-    private String description;
-
-    /**
-     * 草稿修订号
-     */
-    @TableField("draft_revision")
-    private Integer draftRevision;
-
-    /**
-     * 当前业务状态
+     * 流程状态，草稿或已发布
      */
     @TableField("`status`")
     private String status;
 
     /**
-     * 创建人平台账号ID
+     * 当前生效的不可变发布版本主键
      */
-    @TableField("created_by_account_id")
-    private Long createdByAccountId;
+    @TableField("published_version_id")
+    private Long publishedVersionId;
 
     /**
-     * 创建时间
+     * 流程创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 最后修改时间
+     * 流程更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 乐观锁版本号
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -116,22 +78,6 @@ public class FlowDefinition {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getContextType() {
-        return contextType;
-    }
-
-    public void setContextType(String contextType) {
-        this.contextType = contextType;
-    }
-
-    public Long getPlatformId() {
-        return platformId;
-    }
-
-    public void setPlatformId(Long platformId) {
-        this.platformId = platformId;
     }
 
     public Long getSystemId() {
@@ -142,28 +88,20 @@ public class FlowDefinition {
         this.systemId = systemId;
     }
 
-    public Long getOwnerTenantId() {
-        return ownerTenantId;
+    public Long getTenantId() {
+        return tenantId;
     }
 
-    public void setOwnerTenantId(Long ownerTenantId) {
-        this.ownerTenantId = ownerTenantId;
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
-    public Long getOwnerApplicationId() {
-        return ownerApplicationId;
+    public Long getModuleId() {
+        return moduleId;
     }
 
-    public void setOwnerApplicationId(Long ownerApplicationId) {
-        this.ownerApplicationId = ownerApplicationId;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
     }
 
     public String getName() {
@@ -174,22 +112,6 @@ public class FlowDefinition {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getDraftRevision() {
-        return draftRevision;
-    }
-
-    public void setDraftRevision(Integer draftRevision) {
-        this.draftRevision = draftRevision;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -198,12 +120,12 @@ public class FlowDefinition {
         this.status = status;
     }
 
-    public Long getCreatedByAccountId() {
-        return createdByAccountId;
+    public Long getPublishedVersionId() {
+        return publishedVersionId;
     }
 
-    public void setCreatedByAccountId(Long createdByAccountId) {
-        this.createdByAccountId = createdByAccountId;
+    public void setPublishedVersionId(Long publishedVersionId) {
+        this.publishedVersionId = publishedVersionId;
     }
 
     public LocalDateTime getCreateTime() {
@@ -222,32 +144,18 @@ public class FlowDefinition {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "FlowDefinition{" +
             "id = " + id +
-            ", contextType = " + contextType +
-            ", platformId = " + platformId +
             ", systemId = " + systemId +
-            ", ownerTenantId = " + ownerTenantId +
-            ", ownerApplicationId = " + ownerApplicationId +
-            ", code = " + code +
+            ", tenantId = " + tenantId +
+            ", moduleId = " + moduleId +
             ", name = " + name +
-            ", description = " + description +
-            ", draftRevision = " + draftRevision +
             ", status = " + status +
-            ", createdByAccountId = " + createdByAccountId +
+            ", publishedVersionId = " + publishedVersionId +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

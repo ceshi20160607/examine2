@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 可被业务引用的文件对象元数据 Mapper 接口
+ * 本地文件内容的元数据与存储定位 Mapper 接口
  * </p>
  *
  * @author Template Base

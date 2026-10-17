@@ -4,14 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 流程草稿节点
+ * 审批流程草稿节点与指定审批人
  * </p>
  *
  * @author Template Base
@@ -21,95 +19,46 @@ import java.time.LocalDateTime;
 public class FlowNode {
 
     /**
-     * 主键ID
+     * 审批草稿节点主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 流程定义ID
+     * 所属流程定义主键
      */
     @TableField("flow_id")
     private Long flowId;
 
     /**
-     * 流程节点稳定编码
+     * 节点展示名称
      */
-    @TableField("node_key")
-    private String nodeKey;
+    @TableField("node_name")
+    private String nodeName;
 
     /**
-     * 节点类型
+     * 指定审批人的系统成员主键
      */
-    @TableField("node_type")
-    private String nodeType;
+    @TableField("approver_member_id")
+    private Long approverMemberId;
 
     /**
-     * 显示名称
+     * 节点顺序，当前基础审批只允许一个节点
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     /**
-     * 设计画布横坐标
-     */
-    @TableField("position_x")
-    private BigDecimal positionX;
-
-    /**
-     * 设计画布纵坐标
-     */
-    @TableField("position_y")
-    private BigDecimal positionY;
-
-    /**
-     * 审批人解析策略
-     */
-    @TableField("assignee_policy_json")
-    private String assigneePolicyJson;
-
-    /**
-     * 节点表单与字段权限策略
-     */
-    @TableField("form_policy_json")
-    private String formPolicyJson;
-
-    /**
-     * 节点超时处理策略
-     */
-    @TableField("timeout_policy_json")
-    private String timeoutPolicyJson;
-
-    /**
-     * 节点异常兜底策略
-     */
-    @TableField("exception_policy_json")
-    private String exceptionPolicyJson;
-
-    /**
-     * 节点或连线业务配置
-     */
-    @TableField("config_json")
-    private String configJson;
-
-    /**
-     * 创建时间
+     * 草稿节点创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 最后修改时间
+     * 草稿节点更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 乐观锁版本号
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -127,84 +76,28 @@ public class FlowNode {
         this.flowId = flowId;
     }
 
-    public String getNodeKey() {
-        return nodeKey;
+    public String getNodeName() {
+        return nodeName;
     }
 
-    public void setNodeKey(String nodeKey) {
-        this.nodeKey = nodeKey;
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
     }
 
-    public String getNodeType() {
-        return nodeType;
+    public Long getApproverMemberId() {
+        return approverMemberId;
     }
 
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
+    public void setApproverMemberId(Long approverMemberId) {
+        this.approverMemberId = approverMemberId;
     }
 
-    public String getName() {
-        return name;
+    public Integer getSortOrder() {
+        return sortOrder;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public BigDecimal getPositionX() {
-        return positionX;
-    }
-
-    public void setPositionX(BigDecimal positionX) {
-        this.positionX = positionX;
-    }
-
-    public BigDecimal getPositionY() {
-        return positionY;
-    }
-
-    public void setPositionY(BigDecimal positionY) {
-        this.positionY = positionY;
-    }
-
-    public String getAssigneePolicyJson() {
-        return assigneePolicyJson;
-    }
-
-    public void setAssigneePolicyJson(String assigneePolicyJson) {
-        this.assigneePolicyJson = assigneePolicyJson;
-    }
-
-    public String getFormPolicyJson() {
-        return formPolicyJson;
-    }
-
-    public void setFormPolicyJson(String formPolicyJson) {
-        this.formPolicyJson = formPolicyJson;
-    }
-
-    public String getTimeoutPolicyJson() {
-        return timeoutPolicyJson;
-    }
-
-    public void setTimeoutPolicyJson(String timeoutPolicyJson) {
-        this.timeoutPolicyJson = timeoutPolicyJson;
-    }
-
-    public String getExceptionPolicyJson() {
-        return exceptionPolicyJson;
-    }
-
-    public void setExceptionPolicyJson(String exceptionPolicyJson) {
-        this.exceptionPolicyJson = exceptionPolicyJson;
-    }
-
-    public String getConfigJson() {
-        return configJson;
-    }
-
-    public void setConfigJson(String configJson) {
-        this.configJson = configJson;
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
     }
 
     public LocalDateTime getCreateTime() {
@@ -223,32 +116,16 @@ public class FlowNode {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "FlowNode{" +
             "id = " + id +
             ", flowId = " + flowId +
-            ", nodeKey = " + nodeKey +
-            ", nodeType = " + nodeType +
-            ", name = " + name +
-            ", positionX = " + positionX +
-            ", positionY = " + positionY +
-            ", assigneePolicyJson = " + assigneePolicyJson +
-            ", formPolicyJson = " + formPolicyJson +
-            ", timeoutPolicyJson = " + timeoutPolicyJson +
-            ", exceptionPolicyJson = " + exceptionPolicyJson +
-            ", configJson = " + configJson +
+            ", nodeName = " + nodeName +
+            ", approverMemberId = " + approverMemberId +
+            ", sortOrder = " + sortOrder +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

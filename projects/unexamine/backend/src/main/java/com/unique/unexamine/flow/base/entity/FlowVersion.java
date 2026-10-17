@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 不可变流程发布版本
+ * 审批流程不可变发布版本
  * </p>
  *
  * @author Template Base
@@ -19,64 +19,40 @@ import java.time.LocalDateTime;
 public class FlowVersion {
 
     /**
-     * 主键ID
+     * 流程发布版本主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 流程定义ID
+     * 所属流程定义主键
      */
     @TableField("flow_id")
     private Long flowId;
 
     /**
-     * 流程发布版本号
+     * 同流程内连续版本号
      */
     @TableField("version_number")
     private Integer versionNumber;
 
     /**
-     * 草稿修订号
-     */
-    @TableField("draft_revision")
-    private Integer draftRevision;
-
-    /**
-     * 发布定义内容摘要
-     */
-    @TableField("definition_hash")
-    private String definitionHash;
-
-    /**
-     * 发布时冻结的完整流程定义快照
+     * 发布时节点与审批人的不可变快照
      */
     @TableField("snapshot_json")
     private String snapshotJson;
 
     /**
-     * 发布前模拟验证结果
-     */
-    @TableField("simulation_result_json")
-    private String simulationResultJson;
-
-    /**
-     * 发布变更说明
-     */
-    @TableField("change_summary")
-    private String changeSummary;
-
-    /**
-     * 发布人平台账号ID
+     * 执行发布的平台账号主键
      */
     @TableField("published_by_account_id")
     private Long publishedByAccountId;
 
     /**
-     * 发布时间
+     * 版本发布时间
      */
-    @TableField("publish_time")
-    private LocalDateTime publishTime;
+    @TableField("published_time")
+    private LocalDateTime publishedTime;
 
     public Long getId() {
         return id;
@@ -102,44 +78,12 @@ public class FlowVersion {
         this.versionNumber = versionNumber;
     }
 
-    public Integer getDraftRevision() {
-        return draftRevision;
-    }
-
-    public void setDraftRevision(Integer draftRevision) {
-        this.draftRevision = draftRevision;
-    }
-
-    public String getDefinitionHash() {
-        return definitionHash;
-    }
-
-    public void setDefinitionHash(String definitionHash) {
-        this.definitionHash = definitionHash;
-    }
-
     public String getSnapshotJson() {
         return snapshotJson;
     }
 
     public void setSnapshotJson(String snapshotJson) {
         this.snapshotJson = snapshotJson;
-    }
-
-    public String getSimulationResultJson() {
-        return simulationResultJson;
-    }
-
-    public void setSimulationResultJson(String simulationResultJson) {
-        this.simulationResultJson = simulationResultJson;
-    }
-
-    public String getChangeSummary() {
-        return changeSummary;
-    }
-
-    public void setChangeSummary(String changeSummary) {
-        this.changeSummary = changeSummary;
     }
 
     public Long getPublishedByAccountId() {
@@ -150,12 +94,12 @@ public class FlowVersion {
         this.publishedByAccountId = publishedByAccountId;
     }
 
-    public LocalDateTime getPublishTime() {
-        return publishTime;
+    public LocalDateTime getPublishedTime() {
+        return publishedTime;
     }
 
-    public void setPublishTime(LocalDateTime publishTime) {
-        this.publishTime = publishTime;
+    public void setPublishedTime(LocalDateTime publishedTime) {
+        this.publishedTime = publishedTime;
     }
 
     @Override
@@ -164,13 +108,9 @@ public class FlowVersion {
             "id = " + id +
             ", flowId = " + flowId +
             ", versionNumber = " + versionNumber +
-            ", draftRevision = " + draftRevision +
-            ", definitionHash = " + definitionHash +
             ", snapshotJson = " + snapshotJson +
-            ", simulationResultJson = " + simulationResultJson +
-            ", changeSummary = " + changeSummary +
             ", publishedByAccountId = " + publishedByAccountId +
-            ", publishTime = " + publishTime +
+            ", publishedTime = " + publishedTime +
             "}";
     }
 }

@@ -1,0 +1,119 @@
+{
+  "step": "R15_04_RECORD",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0089",
+    "R0090",
+    "R0091"
+  ],
+  "checks_actual_results": [
+    "真实 Edge 双浏览器完成所属人建模授权、成员动态表单新增、详情、编辑、标题搜索和所属人读回。",
+    "API 按已发布字段校验类型和必填；主记录、字段值与可搜索索引同事务写入，独立 MySQL 读回一致。",
+    "记录编辑使用乐观锁版本；MySQL 中 V3 增量迁移成功，原记录补标题和编号；生成器重复运行 manifest 不变。",
+    "Java 21 Maven test、Node 24 前端构建、Template Base 43 项测试通过；run-local.ps1 冷启动仅复用已有 MySQL/Redis，前端 15173、后端 9999。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/r15-04-record-api-readback.json",
+    "projects/unexamine/ai/evidence/r15-04-record-browser-readback.json",
+    "projects/unexamine/ai/evidence/r15-04-record-browser.png"
+  ],
+  "permission_or_failure_result": [
+    "同系统其他成员读取或编辑非本人记录返回 404；只读角色新增/编辑返回 404，所属人可读回。",
+    "必填缺失或未知字段返回 400，独立数据库查询只剩成功创建的一条记录；旧版本更新返回 409。"
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V3__record_identity.sql",
+      "sha256": "c2e98b12fc9629c8947b0737ef3df76d2c754dc29883eab1f7a50559188af2ae"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V3__record_identity.sql",
+      "sha256": "c2e98b12fc9629c8947b0737ef3df76d2c754dc29883eab1f7a50559188af2ae"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "8ff83161db22537b255cd32206a0f224b57f8c2bca8a5ef628569bd11c264fdf"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "f9b56fd3c9958dd102d855a5d1c642415889101814b0e3cf5baf8c4d66d6e4e9"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "5157ef89b6a0a717c4c747697e17d955013dadaf892ae68b2f4a941822d849b8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BusinessRecord.java",
+      "sha256": "e24c97251ca989d9e58dd5080a68d75d4b53ddde99f10b7e05acaa90a572569b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/runtimedata/base/BusinessRecordMapper.xml",
+      "sha256": "0c77f6a8c6c73525b58e3f5f1ffbae3978574370504d2b7d778ec8459f822f83"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/MybatisConfig.java",
+      "sha256": "9e637bfaa2e7432060f9c7815becad2094d8423c8b653bcdd5af53c815e90c49"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "sha256": "86e945e90272cd611c6fdfe685c39778bd30e740eecdf4ef720f6645ec304d01"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
+      "sha256": "9e631b97546b254a52636a8cdfee988546ed4615a28c740a300eaa067dd30590"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+      "sha256": "6b4349abc5cc2ad622566863175872b269c313c18fc5f38fc4e858d0c4438c9b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageController.java",
+      "sha256": "cc1544934888552322cd6206f50acc3c4a6f2ca4aec12939129a56743694fe76"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/views/SystemView.vue",
+      "sha256": "5a9d6e37871b481de996e862d1c7b7faea6924f998c5e2be35db84befa381724"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/workspace.css",
+      "sha256": "95332bed9e9ce373384e70d149a69dbb1e7daed625d535e1ddcef15530317205"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-record.py",
+      "sha256": "aab1849d8f46ea23d084596caeadcb060d82c92bd2080f9b33f0516cf9ac2647"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-record-browser.py",
+      "sha256": "5b97be640632a0dafd2bf47cbe21c9d490d564e299e52b23075593ca2328508d"
+    },
+    {
+      "path": "projects/unexamine/tools/run-local.ps1",
+      "sha256": "777b901db3d0c1471e37230dd241fcd1c5ac5a8a6f4227675ac87f5e9891c3b0"
+    },
+    {
+      "path": "projects/unexamine/README.md",
+      "sha256": "71982b15b01ffd9a54f3d23d7898590a20ba46c4f6d0322f2df9e431c578aa4d"
+    }
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V3__record_identity.sql",
+    "projects/unexamine/db/migration/V3__record_identity.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/base/entity/BusinessRecord.java",
+    "projects/unexamine/backend/src/main/resources/mapper/runtimedata/base/BusinessRecordMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/MybatisConfig.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageController.java",
+    "projects/unexamine/frontend/src/views/SystemView.vue",
+    "projects/unexamine/frontend/src/product/workspace.css",
+    "projects/unexamine/tools/verify-record.py",
+    "projects/unexamine/tools/verify-record-browser.py",
+    "projects/unexamine/tools/run-local.ps1",
+    "projects/unexamine/README.md"
+  ],
+  "next_step": "R15_05_APPROVAL"
+}

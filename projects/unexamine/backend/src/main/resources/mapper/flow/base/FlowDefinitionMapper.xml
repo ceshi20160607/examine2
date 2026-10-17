@@ -5,25 +5,19 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowDefinition">
         <id column="id" property="id" />
-        <result column="context_type" property="contextType" />
-        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
-        <result column="owner_tenant_id" property="ownerTenantId" />
-        <result column="owner_application_id" property="ownerApplicationId" />
-        <result column="code" property="code" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="module_id" property="moduleId" />
         <result column="name" property="name" />
-        <result column="description" property="description" />
-        <result column="draft_revision" property="draftRevision" />
         <result column="status" property="status" />
-        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="published_version_id" property="publishedVersionId" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, owner_tenant_id, owner_application_id, `code`, `name`, `description`, draft_revision, `status`, created_by_account_id, create_time, update_time, version
+        id, system_id, tenant_id, module_id, `name`, `status`, published_version_id, create_time, update_time
     </sql>
 
 </mapper>

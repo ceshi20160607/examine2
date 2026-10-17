@@ -5,15 +5,11 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.SystemDefinition">
         <id column="id" property="id" />
-        <result column="platform_id" property="platformId" />
+        <result column="owner_account_id" property="ownerAccountId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
         <result column="description" property="description" />
-        <result column="logo_file_id" property="logoFileId" />
-        <result column="creator_account_id" property="creatorAccountId" />
-        <result column="tenant_mode" property="tenantMode" />
         <result column="status" property="status" />
-        <result column="deleted" property="deleted" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
@@ -21,7 +17,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, platform_id, `code`, `name`, `description`, logo_file_id, creator_account_id, tenant_mode, `status`, deleted, create_time, update_time, version
+        id, owner_account_id, `code`, `name`, `description`, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

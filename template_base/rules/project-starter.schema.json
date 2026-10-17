@@ -61,6 +61,7 @@
       "additionalProperties": false,
       "required": ["databaseName", "databaseUser", "mysqlPort", "redisPort"],
       "properties": {
+        "dependencyMode": { "enum": ["compose", "existing"] },
         "databaseName": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
         "databaseUser": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
         "mysqlPort": { "type": "integer", "minimum": 1024, "maximum": 65535 },

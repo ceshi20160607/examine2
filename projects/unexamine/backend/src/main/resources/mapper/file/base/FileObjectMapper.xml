@@ -5,30 +5,22 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.file.base.entity.FileObject">
         <id column="id" property="id" />
-        <result column="context_type" property="contextType" />
-        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
-        <result column="storage_backend_id" property="storageBackendId" />
-        <result column="upload_session_id" property="uploadSessionId" />
-        <result column="object_key" property="objectKey" />
-        <result column="object_key_hash" property="objectKeyHash" />
+        <result column="storage_key" property="storageKey" />
         <result column="original_name" property="originalName" />
         <result column="content_type" property="contentType" />
         <result column="size_bytes" property="sizeBytes" />
-        <result column="sha256" property="sha256" />
-        <result column="scan_status" property="scanStatus" />
-        <result column="preview_status" property="previewStatus" />
+        <result column="sha256_hex" property="sha256Hex" />
         <result column="status" property="status" />
-        <result column="uploaded_by_account_id" property="uploadedByAccountId" />
+        <result column="created_by_account_id" property="createdByAccountId" />
         <result column="create_time" property="createTime" />
         <result column="delete_time" property="deleteTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, storage_backend_id, upload_session_id, object_key, object_key_hash, original_name, content_type, size_bytes, sha256, scan_status, preview_status, `status`, uploaded_by_account_id, create_time, delete_time, version
+        id, system_id, tenant_id, storage_key, original_name, content_type, size_bytes, sha256_hex, `status`, created_by_account_id, create_time, delete_time
     </sql>
 
 </mapper>

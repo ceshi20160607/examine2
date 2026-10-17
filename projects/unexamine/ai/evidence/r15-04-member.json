@@ -1,0 +1,105 @@
+{
+  "step": "R15_04_MEMBER",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0076",
+    "R0079",
+    "R0087",
+    "R0088"
+  ],
+  "checks_actual_results": [
+    "已注册账号由所属人在真实页面加入系统主租户并获角色；成员页面只显示授权发布模块，隐藏建模与权限管理。",
+    "双账号 API 验证系统/主租户成员关系、角色菜单查看/新增/编辑权限及即时撤销；未授权模块与后台均拒绝。",
+    "Flyway V2 为迁移前已有主租户补齐默认成员角色，独立 MySQL 查询验证角色、成员、租户成员、菜单授权归属。",
+    "Java 21 Maven test、Node 24 前端构建、Template Base 43 项测试通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/r15-04-api-readback.json",
+    "projects/unexamine/ai/evidence/r15-04-browser-readback.json",
+    "projects/unexamine/ai/evidence/r15-04-member-browser.png"
+  ],
+  "permission_or_failure_result": [
+    "未受邀账号进入系统或运行菜单返回 404；受邀但无授权模块返回 404；成员配置模块组返回 403。",
+    "授权撤销后同一受邀会话再次读取导航为空；所属人隐式拥有系统管理权限。"
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V2__default_member_role.sql",
+      "sha256": "d643d2f61761c4373b814d66613c454bee939a7ab8b2dc04ebdf0762e23a3b46"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V2__default_member_role.sql",
+      "sha256": "d643d2f61761c4373b814d66613c454bee939a7ab8b2dc04ebdf0762e23a3b46"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "71a9569bffbb5206f1b97c304b08ca891a6c953d389e6f8d78745d7de18f9590"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "10244413aedeb0c636725f6ae5a4ab5f196cf62f3782396a4db586db4f515cac"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageService.java",
+      "sha256": "920464a19621d0a36274f72775baac751e41ef03949b85047d0d8b95b1028b5d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageController.java",
+      "sha256": "371582fa652be38b002fbe1ef4c0808a20b2ddf0905586f45c702028757549d2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
+      "sha256": "8621b07dab8509eeb5815cb24e38201d7b238d48e64988b01303c1e78be25401"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
+      "sha256": "1d4e112f1df23fefc515b28afa11f7a42c0225bdd4c2cec119c20c15e795016a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipController.java",
+      "sha256": "89833f666de32ffcb45238208ccfd748241c824b835841fde260769e818c6d69"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "sha256": "95d297f4af1cc61acdcc55b93042b9b003fdc332d7c68db85784b16289ea3051"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/api.ts",
+      "sha256": "9e3f0ff3aaf25970901143a2120e31de9cf3aa9134740dbe98877259e1db3b95"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/workspace.css",
+      "sha256": "fa75fffe291550a721d4160f1c41be1197d0a1dc753a87f6a5826fdf847fba57"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/views/SystemView.vue",
+      "sha256": "6e4821c0cbfe54009aa17483258157f934aa77e59a7baf1182fed88c026e51ee"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-membership.py",
+      "sha256": "d86f3bbffb28d0012acf41b6e6102fd6c6b81b5643cc3b23cd5dfb46fef36b59"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-membership-browser.py",
+      "sha256": "2d8b9772e1244721ca05934adff15e09fcc111d0359357df34c093bd8f36dd84"
+    }
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V2__default_member_role.sql",
+    "projects/unexamine/db/migration/V2__default_member_role.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemPermissionService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemMembershipController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+    "projects/unexamine/frontend/src/product/api.ts",
+    "projects/unexamine/frontend/src/product/workspace.css",
+    "projects/unexamine/frontend/src/views/SystemView.vue",
+    "projects/unexamine/tools/verify-membership.py",
+    "projects/unexamine/tools/verify-membership-browser.py"
+  ],
+  "next_step": "R15_04_RECORD"
+}

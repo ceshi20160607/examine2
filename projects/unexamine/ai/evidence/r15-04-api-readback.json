@@ -1,0 +1,1 @@
+{"status": "passed", "system_id": 20, "allowed_module_id": 11, "blocked_module_id": 12, "checks": ["default_role_migration", "role_create", "invite", "system_tenant_membership", "menu_action_grant", "member_navigation", "unauthorized_denial", "instant_revoke", "mysql_readback"]}

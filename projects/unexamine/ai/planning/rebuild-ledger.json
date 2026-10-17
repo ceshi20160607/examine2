@@ -1,0 +1,190 @@
+{
+  "source": "docs/user_requirement.md",
+  "source_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
+  "rows": [
+    {
+      "id": "R0070",
+      "line": 70,
+      "section": "2.3",
+      "excerpt": "1. 创建一个系统。",
+      "source_sha256": "4320abfb94843978d9616bc0e461c62cbc42d8b4555631e69f9e3cdc6393257a",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0071",
+      "line": 71,
+      "section": "2.3",
+      "excerpt": "2. 创建一个**模块组**（运行态顶栏导航分组）。",
+      "source_sha256": "21cc8a1431493aa77cb96489f487cd6f1d35da018ffb9e7b80c0935f319bb48b",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0072",
+      "line": 72,
+      "section": "2.3",
+      "excerpt": "3. 在模块组下创建业务模块。",
+      "source_sha256": "ea89fdc69fee8e598b6f8ebd5b02fbdd6c4666b6e1231df683031a011add85df",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0073",
+      "line": 73,
+      "section": "2.3",
+      "excerpt": "4. 配置字段。",
+      "source_sha256": "d4c1024b2e6f8eb7affa73bd8c7d1b3f5c49bc8c616d7e88e7b1fb4f92059421",
+      "status": "unverified"
+    },
+    {
+      "id": "R0074",
+      "line": 74,
+      "section": "2.3",
+      "excerpt": "5. 配置页面动作（含导出）。",
+      "source_sha256": "faa34a6fb0f2092ecbd48b6638783268d18b5a8437b35d2e8b5467e62cc429bf",
+      "status": "unverified"
+    },
+    {
+      "id": "R0075",
+      "line": 75,
+      "section": "2.3",
+      "excerpt": "6. 配置菜单与发布。",
+      "source_sha256": "62d3f9d75c3a13e54e03283bba0490191c7b47602f449b49458344799cf959ac",
+      "status": "unverified"
+    },
+    {
+      "id": "R0076",
+      "line": 76,
+      "section": "2.3",
+      "excerpt": "7. 配置角色权限。",
+      "source_sha256": "7a023cfc831fbccbdf4ca0f81f4fbddb59ab70f642669a2344bf54a24b02b9ed",
+      "status": "unverified"
+    },
+    {
+      "id": "R0077",
+      "line": 77,
+      "section": "2.3",
+      "excerpt": "8. 配置审批流程。",
+      "source_sha256": "707692315d00d5931b53c3fb758b9d8603f3489fa39741c53f11952aa485d358",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0078",
+      "line": 78,
+      "section": "2.3",
+      "excerpt": "9. （可选）配置应用的外部访问或系统内访问入口。",
+      "source_sha256": "3ff8a0923cf2638a8b973a16360ab357ee22638ce4354bfac92cabee86960b50",
+      "status": "unverified"
+    },
+    {
+      "id": "R0079",
+      "line": 79,
+      "section": "2.3",
+      "excerpt": "10. 邀请用户使用。",
+      "source_sha256": "71b669502b546a54defd26b4f4fbb80467b407c71c23ecc6cd3d515c19fbfc70",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0080",
+      "line": 80,
+      "section": "2.3",
+      "excerpt": "11. 导出数据或开放接口。",
+      "source_sha256": "9dd3ec8490afd629e31b4e7d7e4776e70e30fb51128ed9575c857862939be093",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0082",
+      "line": 82,
+      "section": "2.3",
+      "excerpt": "> **统一边界：** 建模主链是“系统 → 模块组 → 模块”，不是“应用 → 模块”。应用用于提供外部访问和系统内受控访问，见 4.2、5.3 和附录 A。",
+      "source_sha256": "2e77b05c6942acde155bb5480b1adf9ed1a6986857af5c7e34c226569dcf0141",
+      "status": "unverified"
+    },
+    {
+      "id": "R0084",
+      "line": 84,
+      "section": "2.3",
+      "excerpt": "普通用户应该可以完成：",
+      "source_sha256": "876195a85385077beac6c8d02e97968f5875e4deb24a37fafd383c346c947a1e",
+      "status": "unverified"
+    },
+    {
+      "id": "R0086",
+      "line": 86,
+      "section": "2.3",
+      "excerpt": "1. 登录。",
+      "source_sha256": "a8d7a0d8ebc31b9112b57e9a90ee737ff496b52eaa129d52f04f0b08c78ba85e",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0087",
+      "line": 87,
+      "section": "2.3",
+      "excerpt": "2. 进入自己有权限的系统。",
+      "source_sha256": "4ed37e72946a3347da7ac4866f4207945cb15c768b00caa11e13d6a46136360d",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0088",
+      "line": 88,
+      "section": "2.3",
+      "excerpt": "3. 打开业务菜单。",
+      "source_sha256": "6679bdd9d141744d9a31bf19a3137cce597fbaf30d9d25735d4a942be426d945",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0089",
+      "line": 89,
+      "section": "2.3",
+      "excerpt": "4. 新增和编辑数据。",
+      "source_sha256": "04cb34324936b582224390c0e437b3842e0274e1409545619c3adfb33aef2f22",
+      "status": "unverified"
+    },
+    {
+      "id": "R0090",
+      "line": 90,
+      "section": "2.3",
+      "excerpt": "5. 查询和筛选数据。",
+      "source_sha256": "ac7ed0e869816e4de25f572b8da38e8f691e08edc37578693fb7ff0e65c74652",
+      "status": "unverified"
+    },
+    {
+      "id": "R0091",
+      "line": 91,
+      "section": "2.3",
+      "excerpt": "6. 查看详情。",
+      "source_sha256": "44fd66d29c46d6c509a28f7c041fc6f226ae8ba0a55d12d1d26269fee8d0d8b3",
+      "status": "unverified"
+    },
+    {
+      "id": "R0092",
+      "line": 92,
+      "section": "2.3",
+      "excerpt": "7. 上传附件。",
+      "source_sha256": "5c93bddf6e68dcf7c40372c8af2e1a33f6568202d1a3498b19cacf3942b7bd5f",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0093",
+      "line": 93,
+      "section": "2.3",
+      "excerpt": "8. 处理审批。",
+      "source_sha256": "4b4972270ce4381434fbaa306731075cebb7a66c05dd67c7e22db16934138b82",
+      "status": "verified_contribution"
+    },
+    {
+      "id": "R0094",
+      "line": 94,
+      "section": "2.3",
+      "excerpt": "9. 查看消息。",
+      "source_sha256": "5cee1e629f5fee684947e11696c2e42f1192c6fecfe495096cfa480513d9b5a9",
+      "status": "unverified"
+    },
+    {
+      "id": "R0095",
+      "line": 95,
+      "section": "2.3",
+      "excerpt": "10. 导出自己有权限的数据。",
+      "source_sha256": "6efb0ac630a3e4400f9627dd70403b666baa5cd5e175168fbb8c9f9cb99e6634",
+      "status": "verified_contribution"
+    }
+  ]
+}

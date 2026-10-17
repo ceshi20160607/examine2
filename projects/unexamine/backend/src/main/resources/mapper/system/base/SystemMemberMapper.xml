@@ -7,18 +7,15 @@
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
         <result column="account_id" property="accountId" />
-        <result column="employee_number" property="employeeNumber" />
-        <result column="display_name" property="displayName" />
         <result column="status" property="status" />
         <result column="join_time" property="joinTime" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, account_id, employee_number, display_name, `status`, join_time, create_time, update_time, version
+        id, system_id, account_id, `status`, join_time, create_time, update_time
     </sql>
 
 </mapper>

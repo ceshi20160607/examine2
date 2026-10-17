@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 平台内业务系统
+ * 平台内的业务系统
  * </p>
  *
  * @author Template Base
@@ -20,25 +20,25 @@ import java.time.LocalDateTime;
 public class SystemDefinition {
 
     /**
-     * 平台内业务系统主键
+     * 业务系统主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 所属平台标识
+     * 系统所属平台账号主键
      */
-    @TableField("platform_id")
-    private Long platformId;
+    @TableField("owner_account_id")
+    private Long ownerAccountId;
 
     /**
-     * 平台内系统编码
+     * 系统唯一编码
      */
     @TableField("`code`")
     private String code;
 
     /**
-     * 系统展示名称
+     * 系统显示名称
      */
     @TableField("`name`")
     private String name;
@@ -50,49 +50,25 @@ public class SystemDefinition {
     private String description;
 
     /**
-     * 系统标识文件标识
-     */
-    @TableField("logo_file_id")
-    private Long logoFileId;
-
-    /**
-     * 当前系统所属平台账号标识，所属权转移时更新
-     */
-    @TableField("creator_account_id")
-    private Long creatorAccountId;
-
-    /**
-     * 系统租户运行模式
-     */
-    @TableField("tenant_mode")
-    private String tenantMode;
-
-    /**
-     * 系统运行状态
+     * 系统启用状态
      */
     @TableField("`status`")
     private String status;
 
     /**
-     * 系统是否已逻辑删除
-     */
-    @TableField("deleted")
-    private Boolean deleted;
-
-    /**
-     * 平台内业务系统创建时间
+     * 系统创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 平台内业务系统更新时间
+     * 系统更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
 
     /**
-     * 平台内业务系统乐观锁版本
+     * 系统乐观锁版本
      */
     @Version
     @TableField("version")
@@ -106,12 +82,12 @@ public class SystemDefinition {
         this.id = id;
     }
 
-    public Long getPlatformId() {
-        return platformId;
+    public Long getOwnerAccountId() {
+        return ownerAccountId;
     }
 
-    public void setPlatformId(Long platformId) {
-        this.platformId = platformId;
+    public void setOwnerAccountId(Long ownerAccountId) {
+        this.ownerAccountId = ownerAccountId;
     }
 
     public String getCode() {
@@ -138,44 +114,12 @@ public class SystemDefinition {
         this.description = description;
     }
 
-    public Long getLogoFileId() {
-        return logoFileId;
-    }
-
-    public void setLogoFileId(Long logoFileId) {
-        this.logoFileId = logoFileId;
-    }
-
-    public Long getCreatorAccountId() {
-        return creatorAccountId;
-    }
-
-    public void setCreatorAccountId(Long creatorAccountId) {
-        this.creatorAccountId = creatorAccountId;
-    }
-
-    public String getTenantMode() {
-        return tenantMode;
-    }
-
-    public void setTenantMode(String tenantMode) {
-        this.tenantMode = tenantMode;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
     }
 
     public LocalDateTime getCreateTime() {
@@ -206,15 +150,11 @@ public class SystemDefinition {
     public String toString() {
         return "SystemDefinition{" +
             "id = " + id +
-            ", platformId = " + platformId +
+            ", ownerAccountId = " + ownerAccountId +
             ", code = " + code +
             ", name = " + name +
             ", description = " + description +
-            ", logoFileId = " + logoFileId +
-            ", creatorAccountId = " + creatorAccountId +
-            ", tenantMode = " + tenantMode +
             ", status = " + status +
-            ", deleted = " + deleted +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             ", version = " + version +

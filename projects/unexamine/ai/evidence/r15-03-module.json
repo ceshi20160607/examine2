@@ -1,0 +1,90 @@
+{
+  "step": "R15_03_MODULE",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0071",
+    "R0072",
+    "R0073",
+    "R0075"
+  ],
+  "checks_actual_results": [
+    "真实 Edge 页面完成新建模块组、模块、字段和发布，并从运行态顶栏/左侧导航打开发布字段。",
+    "API 创建默认列表菜单与新增、查看、编辑动作；发布前缺少字段返回 400。",
+    "修改字段草稿后已发布快照不变；第二次发布生成新版本，MySQL 中两个 JSON 快照分别保留原字段名与新字段名。",
+    "Node 24 前端构建、Java 21 Maven test、Template Base 43 项测试和 workspace 校验通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/r15-03-api-readback.json",
+    "projects/unexamine/ai/evidence/r15-03-browser-readback.json",
+    "projects/unexamine/ai/evidence/r15-03-module-browser.png"
+  ],
+  "permission_or_failure_result": [
+    "其他账号创建模块组、改字段和读取运行态导航均被拒绝。",
+    "草稿未发布前运行态无模块；本步骤只支持 TEXT、NUMBER、DATE、BOOLEAN、SELECT 五类基础字段，高级字段仍未验收。"
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/MybatisConfig.java",
+      "sha256": "3ffff3da636922489dc31b6769bfaa5b803f07bbf297150e7f3b85d604e1abf2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageService.java",
+      "sha256": "ea2d85f8f562de7e7adea18c6a5f9b82192cf6e980152d5e68e2a0575ae0d5ac"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+      "sha256": "2ee31b59b35d28be27f8a4eb5c9bff3ca0ae5bbea537dded547bf26480a3904f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageController.java",
+      "sha256": "10df432ad54c8227cf8e1a7c2306c25fe141f13da1484023990d4ff4d8f13f55"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/routes.ts",
+      "sha256": "96bb28f955f95296ea452d483b1a4cc27d9f89fc0ea2677882467a5a52feb4d6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/workspace.css",
+      "sha256": "87f7635c645f347763188c9abc33647c3c05490438de6de62c7155f7fbbe6e5d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/views/HomeView.vue",
+      "sha256": "5920b2fed8638dd6f38ba3a4e491a5c10d5d912a2ce48f75bdae08f83ca01650"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/views/SystemView.vue",
+      "sha256": "2f54066cfb8f677fa72b9bbae5d0e0b7f0f0cbaa433aaeb571ff6abb639de3f0"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-admin-browser.py",
+      "sha256": "5b52a8f1307bfc1e59609bb4b520c60ac4b8f5e280ffd1c39e211680734b8c9b"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module.py",
+      "sha256": "d92210a0e0ec87c463358eed6e658ce52486214924767dc095d336b95bd629e0"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-browser.py",
+      "sha256": "d592729bc402f3fd502f23fa3317dfeb70f7af1dd05a12f3ef3d8b23e6c78952"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/rebuild-plan.md",
+      "sha256": "3302a8e2238e1545fde5421cd6cacfca277f511f4c4f6793ae8f44ecfc9636e0"
+    }
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/MybatisConfig.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleManageController.java",
+    "projects/unexamine/frontend/src/product/routes.ts",
+    "projects/unexamine/frontend/src/product/workspace.css",
+    "projects/unexamine/frontend/src/views/HomeView.vue",
+    "projects/unexamine/frontend/src/views/SystemView.vue",
+    "projects/unexamine/tools/verify-admin-browser.py",
+    "projects/unexamine/tools/verify-module.py",
+    "projects/unexamine/tools/verify-module-browser.py",
+    "projects/unexamine/ai/planning/rebuild-plan.md"
+  ],
+  "next_step": "R15_04_MEMBER"
+}

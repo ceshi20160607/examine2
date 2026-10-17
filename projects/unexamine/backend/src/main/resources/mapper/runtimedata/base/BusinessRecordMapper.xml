@@ -8,19 +8,13 @@
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="module_id" property="moduleId" />
-        <result column="created_config_version_id" property="createdConfigVersionId" />
-        <result column="updated_config_version_id" property="updatedConfigVersionId" />
-        <result column="record_number" property="recordNumber" />
-        <result column="title" property="title" />
-        <result column="status" property="status" />
+        <result column="module_version_id" property="moduleVersionId" />
         <result column="owner_member_id" property="ownerMemberId" />
-        <result column="department_id" property="departmentId" />
-        <result column="created_by_member_id" property="createdByMemberId" />
-        <result column="updated_by_member_id" property="updatedByMemberId" />
-        <result column="archived" property="archived" />
-        <result column="archive_time" property="archiveTime" />
-        <result column="deleted" property="deleted" />
-        <result column="delete_time" property="deleteTime" />
+        <result column="title" property="title" />
+        <result column="record_no" property="recordNo" />
+        <result column="record_status" property="recordStatus" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="updated_by_account_id" property="updatedByAccountId" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
@@ -28,7 +22,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, module_id, created_config_version_id, updated_config_version_id, record_number, title, `status`, owner_member_id, department_id, created_by_member_id, updated_by_member_id, archived, archive_time, deleted, delete_time, create_time, update_time, version
+        id, system_id, tenant_id, module_id, module_version_id, owner_member_id, title, record_no, record_status, created_by_account_id, updated_by_account_id, create_time, update_time, version
     </sql>
 
 </mapper>

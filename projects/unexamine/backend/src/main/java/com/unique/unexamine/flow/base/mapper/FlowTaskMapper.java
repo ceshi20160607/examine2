@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 节点执行轮次的待办任务 Mapper 接口
+ * 指定审批人的流程待办任务 Mapper 接口
  * </p>
  *
  * @author Template Base

@@ -1,9 +1,0 @@
-{
-  "step": "S19.7",
-  "candidate": "0.1.0-s19.7-dev4",
-  "tamperedFrontendServerRejected": true,
-  "error": "Packaged frontend server SHA-256 mismatch",
-  "currentVersion": "0.1.0-s19.7-dev4",
-  "backendAlive": true,
-  "frontendAlive": true
-}

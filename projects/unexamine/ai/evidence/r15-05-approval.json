@@ -1,0 +1,224 @@
+{
+  "step": "R15_05_APPROVAL",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0077",
+    "R0093"
+  ],
+  "checks_actual_results": [
+    "Edge 双账号页面完成所属人配置发布、成员发起、指定审批人从待办读取记录并拒绝，成员列表和详情读回拒绝状态。",
+    "同候选系统 API 完成第一版发起、草稿变更和第二版发布、旧实例继续由原审批人拒绝、成员补充后重新发起由新版审批人同意。",
+    "独立 MySQL 读回业务记录 APPROVED、两轮实例版本快照、任务及四条提交/办理事件；Flyway V4 增量迁移成功。",
+    "Java 21 Maven test、Node 24 Vue 构建、Template Base 43 项测试通过；Base 生成 manifest 重跑稳定。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/r15-05-approval-api-readback.json",
+    "projects/unexamine/ai/evidence/r15-05-approval-browser-readback.json",
+    "projects/unexamine/ai/evidence/r15-05-approval-task-browser.png",
+    "projects/unexamine/ai/evidence/r15-05-approval-browser.png"
+  ],
+  "permission_or_failure_result": [
+    "跨账号/非审批人无法读取或办理待办，未加入系统账号访问返回 404；审批人只能看到自己且仍有菜单权限的待办。",
+    "未发布流程不能发起；拒绝无原因返回 400；审批中的记录禁止编辑；重复发起和重复办理返回 409。"
+  ],
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V4__basic_approval.sql",
+      "sha256": "60429e097131168678c80f6f6a61421389198a0ff09c3194249805dbda89f732"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V4__basic_approval.sql",
+      "sha256": "60429e097131168678c80f6f6a61421389198a0ff09c3194249805dbda89f732"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "0db26df8e637e99a708ff5144a89ca96bf243d17ad16cc287a976d02fa24265c"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "39b6d60b3ac44d12332af0a0c8a010c466540cc0a05f372690fee9d42dfbfc5c"
+    },
+    {
+      "path": "projects/unexamine/tools/base-codegen.json",
+      "sha256": "8fce63e26f1e52e290e55972180de1227c5ba8fbeaef69059a0f1d5e68425f5b"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "7aa7ce0a53d4a8346b0555adef44708ab7b70a1178ba2181db8c62f1efaf9c60"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
+      "sha256": "0b780383aa36bf60c87c2069dd1fb579696e2e616d5be182be649067b12621af"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageController.java",
+      "sha256": "5b0e6fd72bd1a2a40fee39698bc69ccb2c970c44ddeda87fb5642223f3b4eb80"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+      "sha256": "a82893a4b7bb5639f47ebc3f968f8e69f948422838a3cf9dc6a6650158cae8b4"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/views/SystemView.vue",
+      "sha256": "f3fb8e5b5a7ab14d8f02aee86f65444c420560196a7406584c233ab8836c4450"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/workspace.css",
+      "sha256": "19683fc97550f421d63bb743c9f8fe820dd40a2a15a4a3c4f1e93c2fef5b2c5f"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-approval.py",
+      "sha256": "a4db34d97a751eada426830284c859d4a6f9fb63a69426935031ba2205f05420"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-approval-browser.py",
+      "sha256": "9c6e9b7c573c1ccb99233eaff92737044ed0e22e5c2bf1d54077e4e2d35fc265"
+    },
+    {
+      "path": "projects/unexamine/README.md",
+      "sha256": "0c571131229057d01ce90fee80d096730f1390aa0f64021a5e30528b42d57529"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/rebuild-plan.md",
+      "sha256": "bd7f1eed0274e3bc3e6fa27e6abc39dd9ad6208060a941dec0c97fe9d5df5dda"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowDefinition.java",
+      "sha256": "d250f04a95599df86bd12cd73b04e2965867e019ec08c72e2d1cb53460f87de8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowEvent.java",
+      "sha256": "86d16e5bd2c8440eb8e68089681aef86929846efdaa49e50e88fc5dacc5d7e75"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowExample.java",
+      "sha256": "3e340082b7256ab98224bfe9c5018d1e06c69a80cbe66f0719a814fc1fc57975"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowNode.java",
+      "sha256": "a429ca6972dae7087fa73f5b50916194601860e06c707a8b79b6a6ac46ddd339"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTask.java",
+      "sha256": "541b141d150f7bc3dbfc4e6f87c6de63653b0e4bbf39372f58969c5e49058440"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowVersion.java",
+      "sha256": "fabd7eb1f17c43602ac20a497a898077d0b672f58c58e574f1c986d35d129a86"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowDefinitionMapper.java",
+      "sha256": "24af7a0917c7e7515ca80a96e4ef7069382c065b264eb3d79c65c61cba247206"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowEventMapper.java",
+      "sha256": "702250523a5bdf85a7f26b07658f696c874f926bc3da11c073b92af49298444f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowExampleMapper.java",
+      "sha256": "0b533910e954fc7d9518f2b5d757ce25598caece3e89f2e901d910653ab27505"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowNodeMapper.java",
+      "sha256": "50faaac228a890d09b4e99d1eb7d24967bd5ecde69ec039d693a2a8bf456248f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowTaskMapper.java",
+      "sha256": "6390fe0e312c17ac09c45a7d09bd824b1aa4c79bc72cbdc65332a993d6ea6c12"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowVersionMapper.java",
+      "sha256": "d8d579dcddd6787a35edd4b513e5e9d0236eb40fddde1370a5a6eb1a409e993f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowDefinitionBaseService.java",
+      "sha256": "8a7edc6398ad5d11ae02a7c43733319cee7331d30f5377c31f57ed5b6fa6b108"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowEventBaseService.java",
+      "sha256": "533c3ee22a3bc6b1a0dfa9392c1521669060ed2e166df373ea04f369966fa50a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowExampleBaseService.java",
+      "sha256": "b191b47af8ab0edc1cd054bed17fcc0eb16edfe904155ef46b684d2d7b7c6e53"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowNodeBaseService.java",
+      "sha256": "1640828c9b83ba74b15931c12428b901fcce60c1184c886fa99dcddca6c347f2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowTaskBaseService.java",
+      "sha256": "bd702a32cef15b3118be16cf37575d77ef19c3504122e0d407257f185413b9aa"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowVersionBaseService.java",
+      "sha256": "339b36aeb810988b332216671f0b559ee94be39a2a5b9059a24eef8111a3b9df"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowDefinitionMapper.xml",
+      "sha256": "cc07c70df0dee975238395d0106552d798e9fb854a436fa2614b91a99ec41b9c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowEventMapper.xml",
+      "sha256": "09725a68124ee901d1618464b12eca64282a2643e426bd6ab7678354b20753d7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowExampleMapper.xml",
+      "sha256": "f02b37c1eddb3025d65496efd339e676f21b3932fcacfa6f722f7944d09da273"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowNodeMapper.xml",
+      "sha256": "83c8f1304b0d249e7d6a2b5aa2568968d0cc4fc2d3fc9336b144a124cf233879"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowTaskMapper.xml",
+      "sha256": "8c67724bad2e403a30eefbe18371be86422e39c5f7087ad6000b96ad2ba64a77"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowVersionMapper.xml",
+      "sha256": "5d4797ce11c31f54bf5856dd7c8194e6cb7f64e04319fe4a17ba5bef23ccef4b"
+    }
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V4__basic_approval.sql",
+    "projects/unexamine/db/migration/V4__basic_approval.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/tools/base-codegen.json",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowManageController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RecordManageService.java",
+    "projects/unexamine/frontend/src/views/SystemView.vue",
+    "projects/unexamine/frontend/src/product/workspace.css",
+    "projects/unexamine/tools/verify-approval.py",
+    "projects/unexamine/tools/verify-approval-browser.py",
+    "projects/unexamine/README.md",
+    "projects/unexamine/ai/planning/rebuild-plan.md",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowDefinition.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowEvent.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowExample.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowNode.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTask.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowVersion.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowDefinitionMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowEventMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowExampleMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowNodeMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowTaskMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/mapper/FlowVersionMapper.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowDefinitionBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowEventBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowExampleBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowNodeBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowTaskBaseService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/service/FlowVersionBaseService.java",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowDefinitionMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowEventMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowExampleMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowNodeMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowTaskMapper.xml",
+    "projects/unexamine/backend/src/main/resources/mapper/flow/base/FlowVersionMapper.xml"
+  ],
+  "next_step": "R15_06_FILE_EXPORT"
+}

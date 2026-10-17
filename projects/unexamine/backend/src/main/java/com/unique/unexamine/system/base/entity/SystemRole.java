@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 租户角色
+ * 租户业务角色
  * </p>
  *
  * @author Template Base
@@ -26,13 +26,13 @@ public class SystemRole {
     private Long id;
 
     /**
-     * 所属业务系统标识
+     * 角色所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 所属租户标识
+     * 角色所属租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
@@ -44,77 +44,35 @@ public class SystemRole {
     private String code;
 
     /**
-     * 角色展示名称
+     * 角色显示名称
      */
     @TableField("`name`")
     private String name;
 
     /**
-     * 角色用途说明
-     */
-    @TableField("`description`")
-    private String description;
-
-    /**
-     * 是否为租户内置角色
-     */
-    @TableField("built_in")
-    private Boolean builtIn;
-
-    /**
-     * 租户角色状态
+     * 角色启用状态
      */
     @TableField("`status`")
     private String status;
 
     /**
-     * 租户角色创建时间
+     * 角色创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 租户角色更新时间
+     * 角色更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
 
     /**
-     * 租户角色乐观锁版本
+     * 角色乐观锁版本
      */
     @Version
     @TableField("version")
     private Integer version;
-
-    /**
-     * 待发布角色编码，为空表示没有待发布草稿
-     */
-    @TableField("draft_code")
-    private String draftCode;
-
-    /**
-     * 待发布角色展示名称
-     */
-    @TableField("draft_name")
-    private String draftName;
-
-    /**
-     * 待发布角色用途说明
-     */
-    @TableField("draft_description")
-    private String draftDescription;
-
-    /**
-     * 待发布资源动作和数据范围配置
-     */
-    @TableField("draft_permissions_json")
-    private String draftPermissionsJson;
-
-    /**
-     * 待发布字段与渠道权限配置
-     */
-    @TableField("draft_field_policies_json")
-    private String draftFieldPoliciesJson;
 
     public Long getId() {
         return id;
@@ -156,22 +114,6 @@ public class SystemRole {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getBuiltIn() {
-        return builtIn;
-    }
-
-    public void setBuiltIn(Boolean builtIn) {
-        this.builtIn = builtIn;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -204,46 +146,6 @@ public class SystemRole {
         this.version = version;
     }
 
-    public String getDraftCode() {
-        return draftCode;
-    }
-
-    public void setDraftCode(String draftCode) {
-        this.draftCode = draftCode;
-    }
-
-    public String getDraftName() {
-        return draftName;
-    }
-
-    public void setDraftName(String draftName) {
-        this.draftName = draftName;
-    }
-
-    public String getDraftDescription() {
-        return draftDescription;
-    }
-
-    public void setDraftDescription(String draftDescription) {
-        this.draftDescription = draftDescription;
-    }
-
-    public String getDraftPermissionsJson() {
-        return draftPermissionsJson;
-    }
-
-    public void setDraftPermissionsJson(String draftPermissionsJson) {
-        this.draftPermissionsJson = draftPermissionsJson;
-    }
-
-    public String getDraftFieldPoliciesJson() {
-        return draftFieldPoliciesJson;
-    }
-
-    public void setDraftFieldPoliciesJson(String draftFieldPoliciesJson) {
-        this.draftFieldPoliciesJson = draftFieldPoliciesJson;
-    }
-
     @Override
     public String toString() {
         return "SystemRole{" +
@@ -252,17 +154,10 @@ public class SystemRole {
             ", tenantId = " + tenantId +
             ", code = " + code +
             ", name = " + name +
-            ", description = " + description +
-            ", builtIn = " + builtIn +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             ", version = " + version +
-            ", draftCode = " + draftCode +
-            ", draftName = " + draftName +
-            ", draftDescription = " + draftDescription +
-            ", draftPermissionsJson = " + draftPermissionsJson +
-            ", draftFieldPoliciesJson = " + draftFieldPoliciesJson +
             "}";
     }
 }

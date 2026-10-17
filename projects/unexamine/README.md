@@ -1,43 +1,11 @@
-# Unexamine 项目
+# Unexamine 当前实现
 
-本目录是依据 `docs/user_requirement.md`、使用 `template_base` 构建的唯一当前项目。产品源码与 AI 开发控制面严格分开。
+`docs/user_requirement.md` 是产品需求。`docs/表意义.md` 是表结构参考，`docs/old_table1.sql` 只供早期审批关系设计参考。当前数据库使用已有 Docker MySQL 的隔离库 `unexamine_r15`，已有 Docker Redis 用于登录会话。
 
-```text
-unexamine/
-├─ backend/        Java 21 / Spring Boot 后端；各模块 base 为生成代码，manage 为业务代码
-├─ frontend/       Vue 3 Web 管理端与运行台
-├─ db/             init、update、final SQL 及 Flyway 输入
-├─ deploy/         本地依赖与后续部署文件
-├─ tools/          项目生成参数和一键脚本
-└─ ai/             需求、架构、任务、角色、决策、状态与周期证据
-```
+从工作区根目录运行 `& projects/unexamine/tools/run-local.ps1`。页面地址是 <http://127.0.0.1:15173/>，后端固定监听 `9999`。首次使用可在登录页注册账号。运行脚本只连接已有容器，不创建 MySQL、Redis、Nginx 或 Compose 服务。
 
-## 当前状态
+现有页面已接通：注册登录 → 创建系统和主租户 → 创建模块组、模块和基础字段 → 发布模块 → 配置角色菜单权限、添加已有平台账号 → 受邀成员录入、筛选、查看和编辑本人负责的记录 → 所属人为模块配置并发布单节点审批 → 成员发起，指定审批人查看待办并同意或拒绝。审批发布版本与运行实例隔离；拒绝后可修改记录重新发起。业务记录现可上传、预览、下载及移除附件；模块可按当前筛选和独立导出权限创建异步 CSV 任务并下载。高级字段、复杂流程、Excel 导入、应用访问、移动端、消息和完整部署包仍未实现；这条基础旅程不等于整个产品交付。
 
-项目尚未完成整站可用验收。当前执行断点以 `ai/planning/spark-state.json` 为准，局部编译和测试结果不能代替完整业务流程验证。
+本地文件默认保存在 `projects/unexamine/data/files`，导出结果默认保存在 `projects/unexamine/data/exports`，两者均被 Git 忽略。需要调整时分别设置 `APP_FILE_ROOT`、`APP_EXPORT_ROOT` 为服务进程可写的绝对路径。单个附件上限 10 MB；图片和 PDF 可以在登录状态下预览，其他类型只提供下载。导出最多 10000 行，任务状态和失败原因在模块页面查看。
 
-2026-10-09 按用户重新确认的产品主线复核完整需求和现有源码。当前保留、重写、删除判断及先定表、生成 Base、再贯通业务的顺序，见 `ai/planning/spark-execution-plan.md` 开头。旧复评和旧周期记录不再作为实施依据。
-
-原 G1/G2/G3 旅程曾有局部证据，但新的系统所属权、负责人权限、租户共享和应用授权规则使它们需要按当前产品模型重新验收。当前整站交付状态为未验证；旧事实记录只能用于定位已有代码，不能算作现行需求通过。
-
-首次空库启动会幂等创建默认平台超级管理员，部署时必须通过 `APP_BOOTSTRAP_DEFAULT_ADMIN_DEPLOYMENT_KEY` 提供至少 24 个字符的一次性初始化密钥；密钥不写入数据库、日志或验收证据。已有默认管理员时不会重复创建或重置密码。
-
-## 数据库与代码生成
-
-数据库设计只从 `db/init/` 和 `db/update/` 的版本 SQL 进入：
-
-```powershell
-python template_base/tools/tb.py db-prepare --project-root projects/unexamine
-powershell -File projects/unexamine/tools/regenerate-base.ps1
-```
-
-第一条命令合成 `init.sql`、`update.sql`、`final.sql` 和 Flyway 输入；第二条命令执行 SQL、从真实 MySQL 元数据调用 MyBatis-Plus Generator，全量替换每个模块的代码包 `base`，并验证 `manage` 未被修改。开发期字段变化需保持 SQL、生成代码和业务代码一致；测试数据与表结构可以按当前需求重建，但不能把重新生成当成业务验收。
-
-## 校验
-
-```powershell
-python template_base/tools/tb.py workspace-validate --workspace workspace.json
-python template_base/tools/tb.py starter-check --starter projects/unexamine/tools/project-starter.json
-```
-
-本地环境只用于当前周期真实入口验收；端口、账号和样例业务数据由对应周期证据记录，不在项目根目录保留会失真的固定演示账号。
+新增或修改表先写入 `db/init/` 或 `db/update/`，运行 `python template_base/tools/tb.py db-prepare --project-root projects/unexamine`，再运行 `& projects/unexamine/tools/regenerate-base.ps1` 更新 MyBatis-Plus 生成的 `base`。手写业务代码放在各模块的 `manage`，页面放在 `frontend/src/views`。按 `ai/planning/rebuild-state.json` 中当前步骤继续，验收证据位于 `ai/evidence/`。

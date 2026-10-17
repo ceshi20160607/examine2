@@ -16,125 +16,89 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("un_biz_record")
+@TableName("un_module_record")
 public class BusinessRecord {
 
     /**
-     * 本表主键
+     * 通用业务记录主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 业务数据所属系统
+     * 记录所属业务系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 业务数据归属租户
+     * 记录所属租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 业务记录所属模块主键
+     * 记录所属业务模块主键
      */
     @TableField("module_id")
     private Long moduleId;
 
     /**
-     * 创建业务记录时固定的已发布模块版本
+     * 记录创建时生效的模块发布版本主键
      */
-    @TableField("created_config_version_id")
-    private Long createdConfigVersionId;
+    @TableField("module_version_id")
+    private Long moduleVersionId;
 
     /**
-     * 最近修改业务记录时固定的已发布模块版本
-     */
-    @TableField("updated_config_version_id")
-    private Long updatedConfigVersionId;
-
-    /**
-     * 模块内可展示的业务编号
-     */
-    @TableField("record_number")
-    private String recordNumber;
-
-    /**
-     * 业务记录标题
-     */
-    @TableField("title")
-    private String title;
-
-    /**
-     * 当前业务状态或处理状态
-     */
-    @TableField("`status`")
-    private String status;
-
-    /**
-     * 当前业务记录负责人主键，缺失时由系统当前所属人补齐
+     * 记录当前负责人系统成员主键
      */
     @TableField("owner_member_id")
     private Long ownerMemberId;
 
     /**
-     * 业务记录所属部门主键
+     * 业务记录在列表与详情中显示的标题
      */
-    @TableField("department_id")
-    private Long departmentId;
+    @TableField("title")
+    private String title;
 
     /**
-     * 创建业务数据的系统成员主键
+     * 业务记录在租户和模块内唯一的稳定编号
      */
-    @TableField("created_by_member_id")
-    private Long createdByMemberId;
+    @TableField("record_no")
+    private String recordNo;
 
     /**
-     * 最近修改业务记录的系统成员主键
+     * 记录业务状态
      */
-    @TableField("updated_by_member_id")
-    private Long updatedByMemberId;
+    @TableField("record_status")
+    private String recordStatus;
 
     /**
-     * 业务记录归档标记
+     * 创建记录的平台账号主键
      */
-    @TableField("archived")
-    private Boolean archived;
+    @TableField("created_by_account_id")
+    private Long createdByAccountId;
 
     /**
-     * 业务记录归档时间
+     * 最近修改记录的平台账号主键
      */
-    @TableField("archive_time")
-    private LocalDateTime archiveTime;
+    @TableField("updated_by_account_id")
+    private Long updatedByAccountId;
 
     /**
-     * 逻辑删除标记
-     */
-    @TableField("deleted")
-    private Boolean deleted;
-
-    /**
-     * 逻辑删除时间
-     */
-    @TableField("delete_time")
-    private LocalDateTime deleteTime;
-
-    /**
-     * 创建时间
+     * 记录创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 最近修改时间
+     * 记录更新时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
 
     /**
-     * 乐观锁版本
+     * 记录乐观锁版本
      */
     @Version
     @TableField("version")
@@ -172,44 +136,12 @@ public class BusinessRecord {
         this.moduleId = moduleId;
     }
 
-    public Long getCreatedConfigVersionId() {
-        return createdConfigVersionId;
+    public Long getModuleVersionId() {
+        return moduleVersionId;
     }
 
-    public void setCreatedConfigVersionId(Long createdConfigVersionId) {
-        this.createdConfigVersionId = createdConfigVersionId;
-    }
-
-    public Long getUpdatedConfigVersionId() {
-        return updatedConfigVersionId;
-    }
-
-    public void setUpdatedConfigVersionId(Long updatedConfigVersionId) {
-        this.updatedConfigVersionId = updatedConfigVersionId;
-    }
-
-    public String getRecordNumber() {
-        return recordNumber;
-    }
-
-    public void setRecordNumber(String recordNumber) {
-        this.recordNumber = recordNumber;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+    public void setModuleVersionId(Long moduleVersionId) {
+        this.moduleVersionId = moduleVersionId;
     }
 
     public Long getOwnerMemberId() {
@@ -220,60 +152,44 @@ public class BusinessRecord {
         this.ownerMemberId = ownerMemberId;
     }
 
-    public Long getDepartmentId() {
-        return departmentId;
+    public String getTitle() {
+        return title;
     }
 
-    public void setDepartmentId(Long departmentId) {
-        this.departmentId = departmentId;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public Long getCreatedByMemberId() {
-        return createdByMemberId;
+    public String getRecordNo() {
+        return recordNo;
     }
 
-    public void setCreatedByMemberId(Long createdByMemberId) {
-        this.createdByMemberId = createdByMemberId;
+    public void setRecordNo(String recordNo) {
+        this.recordNo = recordNo;
     }
 
-    public Long getUpdatedByMemberId() {
-        return updatedByMemberId;
+    public String getRecordStatus() {
+        return recordStatus;
     }
 
-    public void setUpdatedByMemberId(Long updatedByMemberId) {
-        this.updatedByMemberId = updatedByMemberId;
+    public void setRecordStatus(String recordStatus) {
+        this.recordStatus = recordStatus;
     }
 
-    public Boolean getArchived() {
-        return archived;
+    public Long getCreatedByAccountId() {
+        return createdByAccountId;
     }
 
-    public void setArchived(Boolean archived) {
-        this.archived = archived;
+    public void setCreatedByAccountId(Long createdByAccountId) {
+        this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getArchiveTime() {
-        return archiveTime;
+    public Long getUpdatedByAccountId() {
+        return updatedByAccountId;
     }
 
-    public void setArchiveTime(LocalDateTime archiveTime) {
-        this.archiveTime = archiveTime;
-    }
-
-    public Boolean getDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    public LocalDateTime getDeleteTime() {
-        return deleteTime;
-    }
-
-    public void setDeleteTime(LocalDateTime deleteTime) {
-        this.deleteTime = deleteTime;
+    public void setUpdatedByAccountId(Long updatedByAccountId) {
+        this.updatedByAccountId = updatedByAccountId;
     }
 
     public LocalDateTime getCreateTime() {
@@ -307,19 +223,13 @@ public class BusinessRecord {
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
             ", moduleId = " + moduleId +
-            ", createdConfigVersionId = " + createdConfigVersionId +
-            ", updatedConfigVersionId = " + updatedConfigVersionId +
-            ", recordNumber = " + recordNumber +
-            ", title = " + title +
-            ", status = " + status +
+            ", moduleVersionId = " + moduleVersionId +
             ", ownerMemberId = " + ownerMemberId +
-            ", departmentId = " + departmentId +
-            ", createdByMemberId = " + createdByMemberId +
-            ", updatedByMemberId = " + updatedByMemberId +
-            ", archived = " + archived +
-            ", archiveTime = " + archiveTime +
-            ", deleted = " + deleted +
-            ", deleteTime = " + deleteTime +
+            ", title = " + title +
+            ", recordNo = " + recordNo +
+            ", recordStatus = " + recordStatus +
+            ", createdByAccountId = " + createdByAccountId +
+            ", updatedByAccountId = " + updatedByAccountId +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             ", version = " + version +

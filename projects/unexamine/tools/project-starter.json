@@ -30,9 +30,10 @@
     "vitePluginVue": "6.0.8"
   },
   "local": {
-    "databaseName": "unexamine",
-    "databaseUser": "unexamine",
-    "mysqlPort": 33077,
-    "redisPort": 36379
+    "dependencyMode": "existing",
+    "databaseName": "unexamine_r15",
+    "databaseUser": "root",
+    "mysqlPort": 3306,
+    "redisPort": 6379
   }
 }

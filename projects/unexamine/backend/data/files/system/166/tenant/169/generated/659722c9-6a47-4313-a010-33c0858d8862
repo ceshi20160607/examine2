@@ -1,3 +1,0 @@
-﻿标题,验收说明,关联备件,状态,验收明细
-S18 模块功能导入记录,S18 导入说明,S18 目标备件,ACTIVE,"[{""rowKey"":""53ab8b98-32a7-491a-a0e5-f311fb7db532"",""fields"":{""field_68acd4104b"":""导入明细""},""displayFields"":{""field_68acd4104b"":""导入明细""}}]"
-S18 关联子表成功记录,S18 成功写入,S18 目标备件,ACTIVE,"[{""rowKey"":""3c770a54-dafa-4ba8-a8d4-354f094b55d0"",""fields"":{""field_68acd4104b"":""第一行""},""displayFields"":{""field_68acd4104b"":""第一行""}}]"
