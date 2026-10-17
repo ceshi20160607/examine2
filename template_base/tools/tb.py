@@ -106,10 +106,12 @@ def parser() -> argparse.ArgumentParser:
 
     context = commands.add_parser("execution-context", help="validate and read the current bounded project work packet")
     context.add_argument("--workspace", required=True, type=Path)
+    context.add_argument("--step", help="explicit admitted independent parallel packet")
 
     verify = commands.add_parser("execution-verify", help="validate current checkpoint integrity without claiming business completion")
     verify.add_argument("--workspace", required=True, type=Path)
     verify.add_argument("--receipt", required=True, type=Path)
+    verify.add_argument("--step", help="explicit admitted independent parallel packet")
 
     db_prepare = commands.add_parser("db-prepare", help="derive combined SQL and Flyway inputs from versioned database sources")
     db_prepare.add_argument("--project-root", required=True, type=Path)
@@ -167,9 +169,9 @@ def main() -> int:
             workspace_path = args.workspace.resolve()
             result = workspace_status(load_workspace(workspace_path), workspace_path)
         elif args.command == "execution-context":
-            result = execution_context(args.workspace.resolve())
+            result = execution_context(args.workspace.resolve(), args.step)
         elif args.command == "execution-verify":
-            result = verify_execution_receipt(args.workspace.resolve(), args.receipt)
+            result = verify_execution_receipt(args.workspace.resolve(), args.receipt, args.step)
         elif args.command == "project-status":
             workspace_path = args.workspace.resolve()
             result = computed_project_status(load_workspace(workspace_path), workspace_path)

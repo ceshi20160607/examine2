@@ -137,7 +137,7 @@ public class ModuleRuleConfigurationService {
             rule.setLastTestInputJson(objectMapper.writeValueAsString(request.sampleFields()));
             rule.setLastTestResultJson(objectMapper.writeValueAsString(result));
             rule.setLastTestedByMemberId(context.memberId());
-            rule.setLastTestedAt(LocalDateTime.now());
+            rule.setLastTestedTime(LocalDateTime.now());
             if (ruleService.updateById(rule) == 0) conflict("规则草稿已被其他操作修改");
             auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                     "MODULE_RULE_DRAFT_TESTED", "MODULE_RULE", ruleId.toString(), "SUCCESS",
@@ -210,7 +210,7 @@ public class ModuleRuleConfigurationService {
         rule.setLastTestInputJson(null);
         rule.setLastTestResultJson(null);
         rule.setLastTestedByMemberId(null);
-        rule.setLastTestedAt(null);
+        rule.setLastTestedTime(null);
     }
 
     private void validateDefinition(Long moduleId, com.fasterxml.jackson.databind.JsonNode definition) {
@@ -227,6 +227,7 @@ public class ModuleRuleConfigurationService {
         for (IndexFieldRequest request : requests) {
             ConfiguredModuleField field = active.get(request.fieldId());
             if (field == null) invalidIndex("索引字段不存在或已停用");
+            if (field.getParentFieldId() != null) invalidIndex("子表列不能使用主记录查询索引");
             if (!fieldIds.add(request.fieldId()) || !orders.add(request.sortOrder())) invalidIndex("索引字段和顺序不能重复");
             if (!indexable(field.getFieldType())) invalidIndex("字段类型 " + field.getFieldType() + " 不支持查询索引");
         }
@@ -256,7 +257,7 @@ public class ModuleRuleConfigurationService {
         List<String> fieldCodes = fields.stream().map(field -> codes.getOrDefault(field.getFieldId(), "<missing>" )).toList();
         String scope = Boolean.TRUE.equals(index.getUniqueIndex())
                 ? "SYSTEM + TENANT + MODULE + NON_DELETED" : "TENANT + MODULE";
-        String plan = "biz_record_index(" + String.join(", ", fieldCodes) + ") -> SHA-256 -> "
+        String plan = "un_biz_record_index(" + String.join(", ", fieldCodes) + ") -> SHA-256 -> "
                 + (Boolean.TRUE.equals(index.getUniqueIndex()) ? "唯一哈希约束" : "普通查询投影");
         return new QueryIndexDraft(index, fields, fieldCodes, scope, plan);
     }
@@ -271,7 +272,7 @@ public class ModuleRuleConfigurationService {
             throw new DomainException("SYSTEM_CONTEXT_REQUIRED", "请先进入系统", HttpStatus.CONFLICT);
         }
         ConfiguredModule module = moduleService.selectById(moduleId);
-        if (module == null || !context.systemId().equals(module.getSystemId())
+        if (module == null || "DELETED".equals(module.getStatus()) || !context.systemId().equals(module.getSystemId())
                 || !context.tenantId().equals(module.getOwnerTenantId())) {
             throw new DomainException("CONFIGURATION_NOT_FOUND", "模块不存在", HttpStatus.NOT_FOUND);
         }

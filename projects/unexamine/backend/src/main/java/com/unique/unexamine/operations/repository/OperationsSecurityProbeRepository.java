@@ -33,22 +33,22 @@ public class OperationsSecurityProbeRepository {
     }
 
     public SecuritySignals securitySignals(long systemId) {
-        long weakPasswords = count("select count(*) from plat_account_credential c "
-                + "join sys_member sm on sm.account_id=c.account_id "
+        long weakPasswords = count("select count(*) from un_plat_account_credential c "
+                + "join un_sys_member sm on sm.account_id=c.account_id "
                 + "where sm.system_id=? and c.password_hash not like 'pbkdf2-sha256$%'", systemId);
-        long unreferencedApplicationSecrets = count("select count(*) from app_credential c "
-                + "join app_definition a on a.id=c.application_id where a.owner_system_id=? "
+        long unreferencedApplicationSecrets = count("select count(*) from un_app_credential c "
+                + "join un_app_definition a on a.id=c.application_id where a.owner_system_id=? "
                 + "and c.status='ACTIVE' and (c.signing_secret_ref is null or c.signing_secret_ref='')", systemId);
-        long boundaryViolations = count("select count(*) from sys_tenant_member tm "
-                + "left join sys_member sm on sm.id=tm.system_member_id and sm.system_id=tm.system_id "
-                + "left join sys_tenant t on t.id=tm.tenant_id and t.system_id=tm.system_id "
+        long boundaryViolations = count("select count(*) from un_sys_tenant_member tm "
+                + "left join un_sys_member sm on sm.id=tm.system_member_id and sm.system_id=tm.system_id "
+                + "left join un_sys_tenant t on t.id=tm.tenant_id and t.system_id=tm.system_id "
                 + "where tm.system_id=? and (sm.id is null or t.id is null)", systemId);
         return new SecuritySignals(weakPasswords, unreferencedApplicationSecrets, boundaryViolations);
     }
 
     public ProbeResult listQuery(long systemId, long tenantId, int pageSize, int timeoutMillis) {
         long started = System.nanoTime();
-        String query = "select id,job_type,status,created_at from job_background force index (idx_job_background_context) "
+        String query = "select id,job_type,status,created_at from un_job_background force index (idx_job_background_context) "
                 + "where system_id=? and tenant_id=? order by created_at desc limit ?";
         List<Map<String, Object>> rows = jdbc.queryForList(query, systemId, tenantId, pageSize + 1);
         List<Map<String, Object>> explain = jdbc.queryForList("explain " + query, systemId, tenantId, pageSize + 1);
@@ -104,7 +104,7 @@ public class OperationsSecurityProbeRepository {
     public ProbeResult jobQueue(long systemId, long tenantId, int timeoutMillis) {
         long started = System.nanoTime();
         Map<String, Long> states = new LinkedHashMap<>();
-        jdbc.queryForList("select status,count(*) total from job_background where system_id=? and tenant_id=? "
+        jdbc.queryForList("select status,count(*) total from un_job_background where system_id=? and tenant_id=? "
                 + "group by status", systemId, tenantId).forEach(row ->
                 states.put(String.valueOf(row.get("status")), ((Number) row.get("total")).longValue()));
         String pong;
@@ -123,7 +123,7 @@ public class OperationsSecurityProbeRepository {
 
     public ProbeResult statistics(long systemId, long tenantId, int timeoutMillis) {
         long started = System.nanoTime();
-        List<Map<String, Object>> groups = jdbc.queryForList("select event_category,count(*) total from audit_event "
+        List<Map<String, Object>> groups = jdbc.queryForList("select event_category,count(*) total from un_audit_event "
                 + "where system_id=? and tenant_id=? group by event_category limit 50", systemId, tenantId);
         String key = "ops:performance:statistics:" + systemId + ":" + tenantId + ":" + UUID.randomUUID();
         redis.opsForValue().set(key, Integer.toString(groups.size()), Duration.ofSeconds(30));

@@ -23,12 +23,12 @@
         <result column="user_agent" property="userAgent" />
         <result column="permission_snapshot" property="permissionSnapshot" />
         <result column="detail_json" property="detailJson" />
-        <result column="occurred_at" property="occurredAt" />
+        <result column="occur_time" property="occurTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, trace_id, request_id, context_type, actor_account_id, platform_id, system_id, tenant_id, member_id, application_id, event_category, event_code, object_type, object_id, result_code, client_ip, user_agent, permission_snapshot, detail_json, occurred_at
+        id, trace_id, request_id, context_type, actor_account_id, platform_id, system_id, tenant_id, member_id, application_id, event_category, event_code, object_type, object_id, result_code, client_ip, user_agent, permission_snapshot, detail_json, occur_time
     </sql>
 
 </mapper>

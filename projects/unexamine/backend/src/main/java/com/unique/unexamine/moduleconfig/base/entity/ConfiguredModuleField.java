@@ -10,66 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 模块字段草稿定义
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module_field")
+@TableName("un_cfg_module_field")
 public class ConfiguredModuleField {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块标识
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 范围内稳定编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 字段业务类型
+     */
     @TableField("field_type")
     private String fieldType;
 
+    /**
+     * 是否必填
+     */
     @TableField("required")
     private Boolean required;
 
+    /**
+     * 是否要求业务值唯一
+     */
     @TableField("unique_value")
     private Boolean uniqueValue;
 
+    /**
+     * 是否进入搜索范围
+     */
     @TableField("searchable")
     private Boolean searchable;
 
+    /**
+     * 所属字典标识
+     */
     @TableField("dictionary_id")
     private Long dictionaryId;
 
+    /**
+     * 关联数据来源模块标识
+     */
     @TableField("reference_module_id")
     private Long referenceModuleId;
 
+    /**
+     * 所属子表字段标识，空值表示主记录字段
+     */
+    @TableField("parent_field_id")
+    private Long parentFieldId;
+
+    /**
+     * 显示排序值
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 字段或动作的类型专属配置
+     */
     @TableField("config_json")
     private String configJson;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -170,6 +230,14 @@ public class ConfiguredModuleField {
         this.referenceModuleId = referenceModuleId;
     }
 
+    public Long getParentFieldId() {
+        return parentFieldId;
+    }
+
+    public void setParentFieldId(Long parentFieldId) {
+        this.parentFieldId = parentFieldId;
+    }
+
     public Integer getSortOrder() {
         return sortOrder;
     }
@@ -194,20 +262,20 @@ public class ConfiguredModuleField {
         this.configJson = configJson;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -233,11 +301,12 @@ public class ConfiguredModuleField {
             ", searchable = " + searchable +
             ", dictionaryId = " + dictionaryId +
             ", referenceModuleId = " + referenceModuleId +
+            ", parentFieldId = " + parentFieldId +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", configJson = " + configJson +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -9,12 +9,12 @@
         <result column="candidate_type" property="candidateType" />
         <result column="candidate_id" property="candidateId" />
         <result column="resolution_reason" property="resolutionReason" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, task_id, candidate_type, candidate_id, resolution_reason, created_at
+        id, task_id, candidate_type, candidate_id, resolution_reason, create_time
     </sql>
 
 </mapper>

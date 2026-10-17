@@ -1,0 +1,54 @@
+{
+  "step": "S15.3",
+  "status": "verified_contribution",
+  "integration_gate": "G15_LOCAL_EVENTS",
+  "source_rows": [
+    "R2214",
+    "R2215",
+    "R2216",
+    "R2218"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportService.java"
+  ],
+  "checks_actual_results": [
+    "File upload emits FILE_UPLOADED only after clean scan and ACTIVE status, in the upload transaction. Replayed completion returned the original file #153 and did not emit a second event; checksum mismatch left session #19 FAILED without a file event.",
+    "Queued import #17 finished COMPLETED_WITH_ERRORS with 2 successful rows and 2 validation errors; one IMPORT_COMPLETED fact for the batch. Existing Flow trigger event logic remained in place and the integrated export still produced three rows.",
+    "Exports #21, #22 and #23 completed with one EXPORT_COMPLETED fact each. Export #24 failed after permission revocation and had no completion fact. The batch terminal write, audit and local outbox insertion now share a short transaction.",
+    "All six scoped local outbox rows were PUBLISHED with retry_count 0 and payloads contain only context, actor, source and module references, no file bytes or imported row values. No failed local event rows.",
+    "Real customer module page showed the executing member import #17 as partially completed with two successful and two rejected rows; the member sees only one owned business record. Reader upload received 403 FILE_PERMISSION_DENIED and reader import detail received 403.",
+    "After backend restart, health returned UP, the member page again showed the same import row statuses, API returned file #149 ACTIVE, import #17 and export #21 persisted, and the unrelated reader remained denied.",
+    "Java 21 clean package, focused LocalBusinessEventDeliveryTest, workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s15-import-completed-page.png",
+    "projects/unexamine/ai/evidence/s15-import-restart-page.png"
+  ],
+  "permission_or_failure_result": "Checksum failure and unauthorized upload created no successful event; failed export #24 created no EXPORT_COMPLETED fact; replayed upload created no duplicate.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/file/manage/FileStorageService.java",
+      "sha256": "fce62448a9cc2daa80ca1a7da1fab690d7ac3b7fbad0815ba060022029cc5d25"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+      "sha256": "b6f368c271a9e401a57b3168a404abebdcec9fd544dfa8c20b169ac728f0b62f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleExportService.java",
+      "sha256": "2639767f9e33d45b640dd5d525bb9cca635ad45234faab95d9bbffbe6bf2b358"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventPublisher.java",
+      "sha256": "d506181f6984f229209816c04cc939dccdd962cef322a3b7160f98cf256e64f8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEvent.java",
+      "sha256": "79fc03d8165fa918c7935b2171d9ea68131c7b465a0bf4c0a7fd6ab03d0e9f8d"
+    }
+  ],
+  "remaining": "S15.4 integrated local subscriber, notification/automation extension and cross-event verification remain.",
+  "next_step": "S15.4"
+}

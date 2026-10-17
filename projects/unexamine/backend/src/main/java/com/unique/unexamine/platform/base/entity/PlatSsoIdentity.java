@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 外部身份与平台账号绑定
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_sso_identity")
+@TableName("un_plat_sso_identity")
 public class PlatSsoIdentity {
 
+    /**
+     * 外部身份与平台账号绑定主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台身份源标识
+     */
     @TableField("provider_id")
     private Long providerId;
 
+    /**
+     * 外部身份主体标识
+     */
     @TableField("external_subject")
     private String externalSubject;
 
+    /**
+     * 绑定的平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 外部身份属性快照
+     */
     @TableField("attributes_json")
     private String attributesJson;
 
-    @TableField("last_login_at")
-    private LocalDateTime lastLoginAt;
+    /**
+     * 该外部身份最近登录时间
+     */
+    @TableField("last_login_time")
+    private LocalDateTime lastLoginTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 外部身份与平台账号绑定创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 外部身份与平台账号绑定更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     public Long getId() {
         return id;
@@ -82,28 +106,28 @@ public class PlatSsoIdentity {
         this.attributesJson = attributesJson;
     }
 
-    public LocalDateTime getLastLoginAt() {
-        return lastLoginAt;
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
     }
 
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     @Override
@@ -114,9 +138,9 @@ public class PlatSsoIdentity {
             ", externalSubject = " + externalSubject +
             ", accountId = " + accountId +
             ", attributesJson = " + attributesJson +
-            ", lastLoginAt = " + lastLoginAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", lastLoginTime = " + lastLoginTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             "}";
     }
 }

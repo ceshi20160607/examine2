@@ -2,6 +2,7 @@
 package com.unique.unexamine.operations.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.operations.base.entity.OpsVerificationRun;
 import com.unique.unexamine.operations.base.mapper.OpsVerificationRunMapper;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,41 @@ public class OpsVerificationRunBaseService {
         return mapper.selectList(query);
     }
 
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public OpsVerificationRun selectOne(Wrapper<OpsVerificationRun> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<OpsVerificationRun> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<OpsVerificationRun> selectPage(IPage<OpsVerificationRun> page, Wrapper<OpsVerificationRun> query) {
+        return mapper.selectPage(page, query);
+    }
+
     public int updateById(OpsVerificationRun entity) {
         return mapper.updateById(entity);
     }
 
+    /** 按条件更新记录，调用方负责限定租户和目标范围。 */
+    public int update(OpsVerificationRun entity, Wrapper<OpsVerificationRun> query) {
+        return mapper.update(entity, query);
+    }
+
+    /** 使用更新条件中的赋值表达式更新记录。 */
+    public int update(Wrapper<OpsVerificationRun> query) {
+        return mapper.update(null, query);
+    }
+
     public int deleteById(Serializable id) {
         return mapper.deleteById(id);
+    }
+
+    /** 按条件删除记录，调用方负责限定租户和目标范围。 */
+    public int delete(Wrapper<OpsVerificationRun> query) {
+        return mapper.delete(query);
     }
 }

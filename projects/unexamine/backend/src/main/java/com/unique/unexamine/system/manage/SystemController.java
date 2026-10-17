@@ -82,4 +82,10 @@ public class SystemController {
                 tenantId, input == null ? null : input.previousSystemId(),
                 input == null ? null : input.previousTenantId(), TraceIdFilter.current(request)));
     }
+
+    @GetMapping("/{systemId}/tenants/access")
+    public ApiResult<List<AccessibleTenant>> accessibleTenants(@PathVariable Long systemId) {
+        return ApiResult.ok(entryService.listAccessibleTenants(
+                AuthenticationContextHolder.require().accountId(), systemId));
+    }
 }

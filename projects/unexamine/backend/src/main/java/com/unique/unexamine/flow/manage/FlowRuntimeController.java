@@ -48,6 +48,14 @@ public class FlowRuntimeController {
                 TraceIdFilter.current(request)));
     }
 
+    /** 从已发布模块动作发起审批，目标 Flow 只能来自该动作在当前租户的有效绑定。 */
+    @PostMapping("/module-approvals")
+    public ApiResult<FlowRuntimeModels.ActionResult> startModuleApproval(
+            @Valid @RequestBody FlowRuntimeModels.StartModuleApprovalRequest body, HttpServletRequest request) {
+        return ApiResult.ok(service.startModuleApproval(AuthenticationContextHolder.require(), body,
+                TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/instances/{instanceId}")
     public ApiResult<FlowRuntimeModels.InstanceView> instance(@PathVariable Long instanceId) {
         return ApiResult.ok(service.instance(AuthenticationContextHolder.require(), instanceId));

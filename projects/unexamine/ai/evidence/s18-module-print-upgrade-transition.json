@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "moduleId": 67,
+  "oldVersionId": 72,
+  "newVersionId": 105,
+  "retired": true,
+  "oldJobsUnchanged": 11,
+  "oldJobPdfSha256": "9d8663bd4af7b9fe2d5f8471dd9065a10d7ef8b4dc5394ec3bd093a41d39578c",
+  "duplicateDenied": "LEGACY_PRINT_ACTION_DRAFT_EXISTS",
+  "remainingCompatibility": {
+    "modules": 30,
+    "templates": 33
+  }
+}

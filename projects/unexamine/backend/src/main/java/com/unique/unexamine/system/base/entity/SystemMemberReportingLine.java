@@ -10,39 +10,66 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 租户成员职位及直属上级关系
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_member_reporting_line")
+@TableName("un_sys_member_reporting_line")
 public class SystemMemberReportingLine {
 
+    /**
+     * 成员汇报关系主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 成员所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 成员所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 具有该职位和汇报关系的租户成员主键
+     */
     @TableField("tenant_member_id")
     private Long tenantMemberId;
 
+    /**
+     * 同租户直属上级成员主键，无上级时为空
+     */
     @TableField("manager_tenant_member_id")
     private Long managerTenantMemberId;
 
+    /**
+     * 成员在租户组织中的职位名称
+     */
     @TableField("position_title")
     private String positionTitle;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 成员汇报关系创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 成员汇报关系更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 汇报关系乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -95,20 +122,20 @@ public class SystemMemberReportingLine {
         this.positionTitle = positionTitle;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -128,8 +155,8 @@ public class SystemMemberReportingLine {
             ", tenantMemberId = " + tenantMemberId +
             ", managerTenantMemberId = " + managerTenantMemberId +
             ", positionTitle = " + positionTitle +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

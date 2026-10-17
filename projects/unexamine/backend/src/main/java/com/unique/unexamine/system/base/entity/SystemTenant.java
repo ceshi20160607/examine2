@@ -10,45 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统租户
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_tenant")
+@TableName("un_sys_tenant")
 public class SystemTenant {
 
+    /**
+     * 系统租户主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属业务系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统内租户编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 租户展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 租户专属登录页标题，空值使用租户名称
+     */
+    @TableField("login_title")
+    private String loginTitle;
+
+    /**
+     * 租户专属登录页说明，空值使用系统默认说明
+     */
+    @TableField("login_subtitle")
+    private String loginSubtitle;
+
+    /**
+     * 是否为系统主租户
+     */
     @TableField("is_main")
     private Boolean main;
 
+    /**
+     * 主租户唯一标记
+     */
     @TableField("main_marker")
     private String mainMarker;
 
+    /**
+     * 创建租户的平台账号标识
+     */
     @TableField("creator_account_id")
     private Long creatorAccountId;
 
+    /**
+     * 系统租户状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 系统租户创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 系统租户更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 系统租户乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -85,6 +130,22 @@ public class SystemTenant {
         this.name = name;
     }
 
+    public String getLoginTitle() {
+        return loginTitle;
+    }
+
+    public void setLoginTitle(String loginTitle) {
+        this.loginTitle = loginTitle;
+    }
+
+    public String getLoginSubtitle() {
+        return loginSubtitle;
+    }
+
+    public void setLoginSubtitle(String loginSubtitle) {
+        this.loginSubtitle = loginSubtitle;
+    }
+
     public Boolean getMain() {
         return main;
     }
@@ -117,20 +178,20 @@ public class SystemTenant {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -148,12 +209,14 @@ public class SystemTenant {
             ", systemId = " + systemId +
             ", code = " + code +
             ", name = " + name +
+            ", loginTitle = " + loginTitle +
+            ", loginSubtitle = " + loginSubtitle +
             ", main = " + main +
             ", mainMarker = " + mainMarker +
             ", creatorAccountId = " + creatorAccountId +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

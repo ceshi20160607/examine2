@@ -19,7 +19,7 @@ public final class DashboardModels {
     public record DataSourceRequest(
             @NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{1,99}") String code,
             @NotBlank @Size(max = 200) String name,
-            @NotBlank @Pattern(regexp = "PLATFORM_SYSTEMS|MODULE_RECORDS|MODULE_REPORT|EXTERNAL_API|DATABASE_CONNECTION|TODO_ITEMS|MESSAGE_ITEMS|WORK_PROJECTS") String sourceType,
+            @NotBlank @Pattern(regexp = "PLATFORM_SYSTEMS|MODULE_RECORDS|MODULE_REPORT|TODO_ITEMS|MESSAGE_ITEMS|WORK_PROJECTS") String sourceType,
             @NotNull Map<String, Object> definition,
             @NotNull Map<String, Object> permissionPolicy,
             Integer expectedVersion) {
@@ -45,7 +45,23 @@ public final class DashboardModels {
             @NotBlank @Size(max = 200) String name,
             @Size(max = 1000) String description,
             @NotNull @Size(min = 1, max = 40) List<@Valid ComponentInput> components,
+            Integer expectedVersion,
+            String dashboardKind,
+            Long moduleId) {
+    }
+
+    /** 个人首页归属从当前登录账号确定，客户端只能编辑显示内容。 */
+    public record PersonalDashboardRequest(
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 1000) String description,
+            @NotNull @Size(min = 1, max = 40) List<@Valid ComponentInput> components,
             Integer expectedVersion) {
+    }
+
+    public record PublishedSourceOption(Long id, String name, String sourceType) {
+    }
+
+    public record PersonalOverview(DashboardView dashboard, List<PublishedSourceOption> dataSources) {
     }
 
     public record DataSourceVersionView(Long id, Integer versionNumber, Integer draftRevision,
@@ -59,7 +75,7 @@ public final class DashboardModels {
     public record DataSourceView(Long id, String contextType, String code, String name, String sourceType,
                                  Integer draftRevision, Map<String, Object> definition,
                                  Map<String, Object> permissionPolicy, String status, Integer version,
-                                 LocalDateTime updatedAt, DataSourceBoundary boundary,
+                                 LocalDateTime updatedAt, boolean inherited, DataSourceBoundary boundary,
                                  List<DataSourceVersionView> versions) {
     }
 
@@ -75,7 +91,8 @@ public final class DashboardModels {
 
     public record DashboardView(Long id, String contextType, String code, String name, String description,
                                 Integer draftRevision, String status, Integer version, LocalDateTime updatedAt,
-                                List<ComponentView> components, List<DashboardVersionView> versions) {
+                                List<ComponentView> components, List<DashboardVersionView> versions,
+                                String dashboardKind, Long moduleId) {
     }
 
     public record AdminOverview(String contextType, List<DataSourceView> dataSources,

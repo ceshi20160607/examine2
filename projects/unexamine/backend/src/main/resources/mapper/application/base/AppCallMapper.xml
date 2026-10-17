@@ -11,7 +11,7 @@
         <result column="grant_id" property="grantId" />
         <result column="request_id" property="requestId" />
         <result column="trace_id" property="traceId" />
-        <result column="request_timestamp" property="requestTimestamp" />
+        <result column="request_time" property="requestTime" />
         <result column="nonce" property="nonce" />
         <result column="idempotency_key" property="idempotencyKey" />
         <result column="source_address" property="sourceAddress" />
@@ -29,13 +29,13 @@
         <result column="replay_count" property="replayCount" />
         <result column="duration_millis" property="durationMillis" />
         <result column="error_message" property="errorMessage" />
-        <result column="called_at" property="calledAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="call_time" property="callTime" />
+        <result column="finish_time" property="finishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, application_id, application_version_id, credential_version, grant_id, request_id, trace_id, request_timestamp, nonce, idempotency_key, source_address, target_system_id, target_tenant_id, resource_type, resource_id, action_code, request_hash, permission_snapshot_json, `status`, response_code, response_json, target_reference, replay_count, duration_millis, error_message, called_at, finished_at
+        id, application_id, application_version_id, credential_version, grant_id, request_id, trace_id, request_time, nonce, idempotency_key, source_address, target_system_id, target_tenant_id, resource_type, resource_id, action_code, request_hash, permission_snapshot_json, `status`, response_code, response_json, target_reference, replay_count, duration_millis, error_message, call_time, finish_time
     </sql>
 
 </mapper>

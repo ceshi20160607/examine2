@@ -7,16 +7,18 @@
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
+        <result column="source_module_id" property="sourceModuleId" />
         <result column="source_record_id" property="sourceRecordId" />
         <result column="field_id" property="fieldId" />
+        <result column="target_module_id" property="targetModuleId" />
         <result column="target_record_id" property="targetRecordId" />
         <result column="relation_order" property="relationOrder" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, source_record_id, field_id, target_record_id, relation_order, created_at
+        id, system_id, tenant_id, source_module_id, source_record_id, field_id, target_module_id, target_record_id, relation_order, create_time
     </sql>
 
 </mapper>

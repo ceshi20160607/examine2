@@ -1,0 +1,74 @@
+{
+  "step": "S15.1",
+  "status": "verified_contribution",
+  "integration_gate": "G15_LOCAL_EVENTS",
+  "source_rows": [
+    "R2206",
+    "R2208",
+    "R2209",
+    "R2210",
+    "R2218"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEvent.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventListener.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventExtension.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventPublisher.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventDeliveryTest.java",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "Implemented one local interface for nine documented event types on top of the existing MySQL outbox and in-process dispatcher; S15.1 wires the three record mutations only.",
+    "Owner created record #154, updated version 0 to 1, and soft-deleted version 1 to 2 through real runtime HTTP endpoints. MySQL contains exactly RECORD_CREATED, RECORD_UPDATED and RECORD_DELETED events for BUSINESS_RECORD:154, each PUBLISHED with retry_count 0.",
+    "The event payload stores system #151, tenant #152, module code, record ID and actor references, with no business field values, file bytes or credentials. LocalBusinessEventDeliveryTest verified listener delivery only after transaction commit callback.",
+    "Viewer create/delete returned 403 and stale owner update returned 409; the three successful event rows remained the only LOCAL_BUSINESS_EVENT rows for record #154.",
+    "After Java 21 clean package and backend restart, actuator health was UP; owner recycle-bin API returned #154, viewer returned 403, and the browser displayed #154 in the recycle bin.",
+    "A related G14 reload regression was found: route-only lifecycle retained a saved-view filter. The URL now restores an entire list-state snapshot; recycle-bin #154 and personal default view #8 both survive page reload. Frontend vue-tsc/Vite build passed.",
+    "workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s15-record-recycle-bin.png",
+    "projects/unexamine/ai/evidence/s15-record-restart.png",
+    "projects/unexamine/ai/evidence/s15-g14-view-regression.png",
+    "projects/unexamine/ai/evidence/g14-daily-productivity-verification.json"
+  ],
+  "permission_or_failure_result": "Viewer received 403 on create/delete and recycle-bin query; stale owner update received 409. These failed requests created no completed local business event.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEvent.java",
+      "sha256": "79fc03d8165fa918c7935b2171d9ea68131c7b465a0bf4c0a7fd6ab03d0e9f8d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventListener.java",
+      "sha256": "55af890bfd1ac1bbcd4a5845055a61058a034b3a0a5837d4edd8770d7c47369f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventExtension.java",
+      "sha256": "445e7f1ed9ebfd0ea112561c05e4c86ad8a2c4d03dad37708ac0367454ca0002"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventPublisher.java",
+      "sha256": "d506181f6984f229209816c04cc939dccdd962cef322a3b7160f98cf256e64f8"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/FoundationExtensionDispatcher.java",
+      "sha256": "f118a1ee34553282f31f1df5354b84bf792889f29b0f073f7c37c08f9cf4cdc4"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "da0ab656ccd14956c115414c404f04660f85174777203ca781508c8ce346fac1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventDeliveryTest.java",
+      "sha256": "d9f4e340a3a5ff522168c100759f7e3bd950112fed0f9c4d1acbda527b2fe5e4"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "890dedf7ee56b600d3904cc238aa2a6b1fc32b1cf7159c24b74aecd9c9b40684"
+    }
+  ],
+  "remaining": "Flow start/pass/reject, file-upload, import-complete and export-complete event wiring and an integrated real notification/automation subscriber remain for S15.2-S15.4; current unit listener proves the extension boundary only.",
+  "next_step": "S15.2"
+}

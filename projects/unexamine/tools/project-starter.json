@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "source": {
     "requirementsPath": "../../../docs/user_requirement.md",
-    "requirementsSha256": "b090f848d32b25ae0d36bf3a392fed5ccf5ac90db43088d5e2ed8281b9496316"
+    "requirementsSha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903"
   },
   "project": {
     "id": "unexamine",
@@ -16,7 +16,7 @@
     "springBoot": "3.5.16",
     "mybatisPlus": "3.5.17",
     "flyway": "13.0.0",
-    "serverPort": 18080
+    "serverPort": 9999
   },
   "frontend": {
     "node": ">=22.12.0",

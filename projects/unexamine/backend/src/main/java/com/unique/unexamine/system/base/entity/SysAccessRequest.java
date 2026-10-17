@@ -10,69 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统成员访问申请及审批历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_access_request")
+@TableName("un_sys_access_request")
 public class SysAccessRequest {
 
+    /**
+     * 访问申请主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 目标系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 目标租户标识，未确定租户时为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 申请的平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 申请所用身份源编码
+     */
     @TableField("identity_provider")
     private String identityProvider;
 
+    /**
+     * 身份源中的外部用户标识
+     */
     @TableField("external_user_id")
     private String externalUserId;
 
+    /**
+     * 申请原因
+     */
     @TableField("request_reason")
     private String requestReason;
 
+    /**
+     * 申请人期望的角色
+     */
     @TableField("requested_role")
     private String requestedRole;
 
+    /**
+     * 申请状态，PENDING 表示未决
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 审批系统成员标识
+     */
     @TableField("decided_by_member_id")
     private Long decidedByMemberId;
 
+    /**
+     * 审批意见
+     */
     @TableField("decision_comment")
     private String decisionComment;
 
+    /**
+     * 审批确认的角色标识快照
+     */
     @TableField("approved_role_ids_json")
     private String approvedRoleIdsJson;
 
+    /**
+     * 审批确认的数据范围快照
+     */
     @TableField("approved_data_scope_json")
     private String approvedDataScopeJson;
 
+    /**
+     * 申请链路追踪标识
+     */
     @TableField("request_trace_id")
     private String requestTraceId;
 
+    /**
+     * 审批链路追踪标识
+     */
     @TableField("decision_trace_id")
     private String decisionTraceId;
 
-    @TableField("decided_at")
-    private LocalDateTime decidedAt;
+    /**
+     * 审批时间
+     */
+    @TableField("decide_time")
+    private LocalDateTime decideTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -197,28 +254,28 @@ public class SysAccessRequest {
         this.decisionTraceId = decisionTraceId;
     }
 
-    public LocalDateTime getDecidedAt() {
-        return decidedAt;
+    public LocalDateTime getDecideTime() {
+        return decideTime;
     }
 
-    public void setDecidedAt(LocalDateTime decidedAt) {
-        this.decidedAt = decidedAt;
+    public void setDecideTime(LocalDateTime decideTime) {
+        this.decideTime = decideTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -247,9 +304,9 @@ public class SysAccessRequest {
             ", approvedDataScopeJson = " + approvedDataScopeJson +
             ", requestTraceId = " + requestTraceId +
             ", decisionTraceId = " + decisionTraceId +
-            ", decidedAt = " + decidedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", decideTime = " + decideTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

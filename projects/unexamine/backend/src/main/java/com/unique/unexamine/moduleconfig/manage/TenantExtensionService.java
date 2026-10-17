@@ -144,6 +144,8 @@ public class TenantExtensionService {
     @Transactional
     public TenantExtensionModuleView save(
             AuthenticatedContext context, Long moduleId, SaveTenantExtensionRequest request, String traceId) {
+        // 扩展字段与主模块字段共用租户配额；在任何配置读取前锁定系统，避免并发快照漏计。
+        configurationService.lockConfigurationQuotaScope(context);
         ExtensionContext scope = requireExtensionContext(context);
         ConfiguredModule module = requireBaseModule(context, scope, moduleId);
         BaseConfiguration base = baseConfiguration(module);
@@ -222,13 +224,16 @@ public class TenantExtensionService {
                 decorateBase(base.configuration().deepCopy(), scope.mainTenant()), document));
 
         CfgTenantExtensionVersion version = new CfgTenantExtensionVersion();
+        // 发布版本保留系统与基础模块归属，避免生成的 Base 插入遗漏非空业务键。
+        version.setSystemId(context.systemId());
         version.setExtensionId(extension.getId());
+        version.setBaseModuleId(moduleId);
         version.setVersionNumber(next);
         version.setBaseModuleVersionId(base.version().getId());
         version.setSnapshotJson(write(snapshot));
         version.setSchemaHash(sha256(version.getSnapshotJson()));
         version.setPublishedByMemberId(context.memberId());
-        version.setPublishedAt(LocalDateTime.now());
+        version.setPublishTime(LocalDateTime.now());
         extensionVersionService.insert(version);
         extension.setCurrentVersionId(version.getId());
         extension.setStatus("PUBLISHED");
@@ -273,6 +278,20 @@ public class TenantExtensionService {
         if (!request.expectedVersion().equals(extension.getVersion())) conflict("租户扩展发布指针已经变化");
         CfgTenantExtensionVersion target = extensionVersionService.selectById(request.targetVersionId());
         if (target == null || !extension.getId().equals(target.getExtensionId())) notFound("租户扩展版本不存在");
+        identifierIntegrity.lockSystem(context.systemId());
+        BaseConfiguration base = baseConfiguration(module);
+        JsonNode snapshot = parse(target.getSnapshotJson());
+        JsonNode document = snapshot.path("extension");
+        List<TenantExtensionIssue> issues = validateDocument(context, module, base.configuration(), document);
+        List<PublicationCheckIssue> compatibility = runtimeService.checkDocument(
+                context.tenantId(), base.configuration(), document);
+        if (!issues.isEmpty() || !compatibility.isEmpty()) {
+            List<String> messages = new ArrayList<>();
+            issues.forEach(issue -> messages.add(issue.message()));
+            compatibility.forEach(issue -> messages.add(issue.message()));
+            throw new DomainException("TENANT_EXTENSION_CHECK_FAILED", String.join("；", messages),
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
         extension.setCurrentVersionId(target.getId());
         extension.setStatus("PUBLISHED");
         extension.setUpdatedByMemberId(context.memberId());
@@ -294,7 +313,7 @@ public class TenantExtensionService {
                         .eq(CfgTenantExtensionVersion::getExtensionId, extension.getId())
                         .orderByDesc(CfgTenantExtensionVersion::getVersionNumber)).stream()
                 .map(version -> new TenantExtensionVersionView(version.getId(), version.getVersionNumber(),
-                        version.getBaseModuleVersionId(), version.getPublishedAt(),
+                        version.getBaseModuleVersionId(), version.getPublishTime(),
                         version.getId().equals(extension.getCurrentVersionId())))
                 .toList();
         return new TenantExtensionModuleView(module.getId(), module.getCode(), module.getName(),
@@ -345,7 +364,10 @@ public class TenantExtensionService {
             physical.setRequired(input.required());
             physical.setSortOrder(input.sortOrder());
             physical.setConfigJson(write(input.config()));
-            if (physical.getId() == null) fieldService.insert(physical);
+            if (physical.getId() == null) {
+                configurationService.requireFieldQuotaCapacity(context);
+                fieldService.insert(physical);
+            }
             else if (fieldService.updateById(physical) == 0) conflict("扩展字段已经变化");
             ObjectNode node = objectMapper.valueToTree(physical);
             node.put("code", code);
@@ -622,22 +644,7 @@ public class TenantExtensionService {
     }
 
     private ObjectNode decorateBase(ObjectNode base, SystemTenant mainTenant) {
-        base.path("actions").forEach(action -> {
-            if (action.isObject()) {
-                ((ObjectNode) action).put("source", "MAIN");
-                ((ObjectNode) action).put("sourceTenantId", mainTenant.getId());
-                ((ObjectNode) action).put("mandatory", true);
-            }
-        });
-        base.path("fields").forEach(field -> {
-            if (field.isObject()) {
-                ((ObjectNode) field).put("source", "MAIN");
-                ((ObjectNode) field).put("sourceTenantId", mainTenant.getId());
-                ((ObjectNode) field).put("mandatory", field.path("required").asBoolean(false));
-            }
-        });
-        base.put("tenantExtensionApplied", false);
-        return base;
+        return runtimeService.decorateBase(base, mainTenant.getId());
     }
 
     private BaseConfiguration baseConfiguration(ConfiguredModule module) {
@@ -677,7 +684,7 @@ public class TenantExtensionService {
 
     private ConfiguredModule requireBaseModule(AuthenticatedContext context, ExtensionContext scope, Long moduleId) {
         ConfiguredModule module = moduleService.selectById(moduleId);
-        if (module == null || !context.systemId().equals(module.getSystemId())
+        if (module == null || "DELETED".equals(module.getStatus()) || !context.systemId().equals(module.getSystemId())
                 || !scope.mainTenant().getId().equals(module.getOwnerTenantId())) notFound("主租户基础模块不存在");
         return module;
     }

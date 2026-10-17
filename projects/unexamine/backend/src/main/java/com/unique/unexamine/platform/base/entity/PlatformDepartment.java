@@ -10,45 +10,78 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台组织部门
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_department")
+@TableName("un_plat_department")
 public class PlatformDepartment {
 
+    /**
+     * 平台组织部门主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 上级平台部门标识
+     */
     @TableField("parent_id")
     private Long parentId;
 
+    /**
+     * 平台内部门编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 部门展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 部门层级编码路径
+     */
     @TableField("path_code")
     private String pathCode;
 
+    /**
+     * 同级部门排序值
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 平台组织部门状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台组织部门创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台组织部门更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台组织部门乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -117,20 +150,20 @@ public class PlatformDepartment {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -152,8 +185,8 @@ public class PlatformDepartment {
             ", pathCode = " + pathCode +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

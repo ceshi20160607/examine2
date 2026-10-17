@@ -10,42 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 账号多因素认证方式
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_account_mfa")
+@TableName("un_plat_account_mfa")
 public class PlatAccountMfa {
 
+    /**
+     * 账号多因素认证方式主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 多因素认证方式类型
+     */
     @TableField("method_type")
     private String methodType;
 
+    /**
+     * 认证密钥的受控引用
+     */
     @TableField("secret_ref")
     private String secretRef;
 
+    /**
+     * 认证方式展示标签
+     */
     @TableField("display_label")
     private String displayLabel;
 
-    @TableField("verified_at")
-    private LocalDateTime verifiedAt;
+    /**
+     * 认证方式最近验证时间
+     */
+    @TableField("verify_time")
+    private LocalDateTime verifyTime;
 
+    /**
+     * 账号多因素认证方式状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 账号多因素认证方式创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 账号多因素认证方式更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 账号多因素认证方式乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -90,12 +120,12 @@ public class PlatAccountMfa {
         this.displayLabel = displayLabel;
     }
 
-    public LocalDateTime getVerifiedAt() {
-        return verifiedAt;
+    public LocalDateTime getVerifyTime() {
+        return verifyTime;
     }
 
-    public void setVerifiedAt(LocalDateTime verifiedAt) {
-        this.verifiedAt = verifiedAt;
+    public void setVerifyTime(LocalDateTime verifyTime) {
+        this.verifyTime = verifyTime;
     }
 
     public String getStatus() {
@@ -106,20 +136,20 @@ public class PlatAccountMfa {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -138,10 +168,10 @@ public class PlatAccountMfa {
             ", methodType = " + methodType +
             ", secretRef = " + secretRef +
             ", displayLabel = " + displayLabel +
-            ", verifiedAt = " + verifiedAt +
+            ", verifyTime = " + verifyTime +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

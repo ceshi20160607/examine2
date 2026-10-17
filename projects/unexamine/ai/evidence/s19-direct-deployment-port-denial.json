@@ -1,0 +1,9 @@
+{
+  "step": "S19.7",
+  "candidate": "0.1.0-s19.7-dev5",
+  "wrongContainerPortRejected": true,
+  "error": "APP_DB_URL does not point to the selected local MySQL container port",
+  "currentVersion": "0.1.0-s19.7-dev5",
+  "backendAlive": true,
+  "frontendAlive": true
+}

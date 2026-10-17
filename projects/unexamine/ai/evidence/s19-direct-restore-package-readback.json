@@ -1,0 +1,10 @@
+{
+  "zipSha256": "9e05cae964424c146b5d75cbb8e942755d0019b926561992762e0a75fc5c350a",
+  "jarSha256": "ed303e36d059104b76f314b39a193113d4d32082e966e33d28cacb6782ba2135",
+  "installedManifestSame": true,
+  "installedRestoreScriptSame": true,
+  "backendHealth": "UP",
+  "frontendStatus": 200,
+  "releaseVersion": "0.1.0-s19.8-dev1",
+  "frontendFileCount": 4
+}

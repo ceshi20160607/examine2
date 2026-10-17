@@ -2,9 +2,10 @@
 import { FilePdfOutlined, PlusOutlined, SaveOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import AiPrintDraftPanel from '../components/AiPrintDraftPanel.vue'
 import { api, ApiError } from '../api'
 import { cyclePrintField, printFieldMode, printPreviewMatchesDraft } from '../print'
-import { fieldTypeLabel, productDateTime, productStatus, versionLabel } from '../presentation'
+import { fieldTypeLabel, productDateTime, versionLabel } from '../presentation'
 import { systemTokens } from '../session'
 import type { PrintAdminOverview, PrintFieldOption, PrintPreview, PrintTemplateDefinition, RuntimeRecordList } from '../types'
 
@@ -30,6 +31,13 @@ const moduleFields = computed(() => moduleOption.value?.fields || [])
 const currentTemplate = computed(() => overview.value?.templates.find(item => item.id === selectedId.value))
 const sampleOptions = computed(() => sampleRecords.value.map(record => ({ value: record.id,
   label: `${record.title}${record.recordNumber ? ` · ${record.recordNumber}` : ''}` })))
+
+function templateState(item: PrintTemplateDefinition) {
+  if (!item.currentVersionId) return { color: 'orange', label: '未发布' }
+  const published = item.versions.find(version => version.current)
+  return { color: 'green', label: published?.draftRevision === item.draftRevision
+    ? '已发布' : '已发布 · 草稿待发布' }
+}
 
 function readable(reason: unknown) {
   const text = reason instanceof ApiError ? `${reason.message}（${reason.code}）` : reason instanceof Error ? reason.message : '操作失败'
@@ -138,6 +146,10 @@ async function renderPreview() {
 
 async function publish() {
   const current = currentTemplate.value
+  if (current?.versions.some(version => version.draftRevision === current.draftRevision)) {
+    message.warning('当前草稿已发布，请在发布历史中恢复对应版本')
+    return
+  }
   if (!current || !printPreviewMatchesDraft(preview.value, current.draftRevision)) {
     message.warning('请先对当前草稿执行真实记录预览')
     return
@@ -180,8 +192,9 @@ onMounted(() => void load())
     <div class="page-heading"><div><p class="eyebrow">系统后台 · 打印模板</p><h1>可视化打印设计</h1><p>字段选择、纸张预览和页眉页脚配置共同形成草稿；真实记录预览通过后才可发布。</p></div><a-button type="primary" @click="reset"><PlusOutlined />新建模板</a-button></div>
     <a-alert v-if="pageError" type="error" show-icon closable :message="pageError" @close="pageError = ''" />
     <a-alert type="info" show-icon message="业务人员只会使用已发布模板" description="打印时会重新校验记录查看、打印和文件字段权限，历史版本不会被后续草稿覆盖。" />
+    <AiPrintDraftPanel v-if="form.moduleId" :module-id="form.moduleId" @saved="load" />
     <div class="print-template-strip panel-card">
-      <button v-for="item in overview?.templates" :key="item.id" type="button" :class="{ active: selectedId === item.id }" @click="fill(item)"><strong>{{ item.name }}</strong><span>{{ item.moduleName }}</span><a-tag :color="productStatus(item.status).color">{{ productStatus(item.status).label }}</a-tag></button>
+      <button v-for="item in overview?.templates" :key="item.id" type="button" :class="{ active: selectedId === item.id }" @click="fill(item)"><strong>{{ item.name }}</strong><span>{{ item.moduleName }}</span><a-tag :color="templateState(item).color">{{ templateState(item).label }}</a-tag></button>
       <a-empty v-if="!overview?.templates.length" :image="false" description="尚未创建打印模板" />
     </div>
 
@@ -198,7 +211,9 @@ onMounted(() => void load())
         <div v-if="preview" class="print-page-stack">
           <article v-for="page in preview.pages" :key="page.pageNumber" :class="['print-page', `print-page--${form.orientation.toLowerCase()}`, `print-page--${form.pageSize.toLowerCase()}`]" :style="{ '--print-offset-x': `${form.offsetXmm * 3}px`, '--print-offset-y': `${form.offsetYmm * 3}px` }">
             <header><h2>{{ form.name }}</h2><p>{{ page.header }}</p><small>{{ page.recordNumber || '业务记录' }} · {{ page.recordTitle }}</small></header>
-            <dl><div v-for="field in page.fields" :key="`${page.pageNumber}-${field.code}`" :class="{ detail: field.detail }"><dt>{{ field.detail ? '明细 · ' : '' }}{{ field.name }}</dt><dd>{{ field.value }}</dd></div></dl>
+            <div class="print-page-body"><dl><div v-for="field in page.fields" :key="`${page.pageNumber}-${field.code}`" :class="{ detail: field.detail }"><dt>{{ field.detail ? '明细 · ' : '' }}{{ field.name }}</dt><dd>{{ field.value }}</dd></div></dl>
+              <section v-for="table in page.detailTables || []" :key="`${page.pageNumber}-${table.code}`" class="print-detail-table"><h3>{{ table.name }}</h3><table><thead><tr><th v-for="column in table.columns" :key="column.code">{{ column.name }}</th></tr></thead><tbody><tr v-for="row in table.rows" :key="row.rowNumber"><td v-for="(value, index) in row.values" :key="`${row.rowNumber}-${index}`">{{ value }}</td></tr></tbody></table></section>
+            </div>
             <div class="print-signature" v-if="page.signatureLabel">{{ page.signatureLabel }}：________________</div>
             <footer><span>{{ page.footer }}</span><b>第 {{ page.pageNumber }} / {{ page.pageCount }} 页</b></footer>
           </article>
@@ -209,8 +224,8 @@ onMounted(() => void load())
 
       <aside class="panel-card print-properties">
         <div class="panel-title"><strong>3. 页面属性</strong><span>草稿配置</span></div>
-        <a-form layout="vertical"><a-form-item label="模板名称" required><a-input v-model:value="form.name" placeholder="例如：售后工单打印单" /></a-form-item><div class="form-grid"><a-form-item label="纸张"><a-select v-model:value="form.pageSize" :options="['A4','A5'].map(value => ({ value }))" /></a-form-item><a-form-item label="方向"><a-select v-model:value="form.orientation" :options="[{ value:'PORTRAIT',label:'纵向' },{ value:'LANDSCAPE',label:'横向' }]" /></a-form-item></div><a-form-item label="每页字段行数"><a-input-number v-model:value="form.rowsPerPage" :min="4" :max="24" style="width:100%" /></a-form-item><div class="form-grid"><a-form-item label="套打水平偏移（毫米）"><a-input-number v-model:value="form.offsetXmm" :min="-30" :max="30" style="width:100%" /></a-form-item><a-form-item label="套打垂直偏移（毫米）"><a-input-number v-model:value="form.offsetYmm" :min="-30" :max="30" style="width:100%" /></a-form-item></div><a-form-item label="页眉"><a-input v-model:value="form.header" placeholder="公司名称 / 单据类型" /></a-form-item><a-form-item label="页脚"><a-textarea v-model:value="form.footer" :rows="2" placeholder="保密说明或联系信息" /></a-form-item><a-form-item label="签章区"><a-input v-model:value="form.signatureLabel" placeholder="审批签章" /></a-form-item></a-form>
-        <div class="print-property-actions"><a-button type="primary" :loading="saving" block @click="save"><SaveOutlined />保存草稿</a-button><a-button danger :loading="saving" :disabled="!preview" block @click="publish"><FilePdfOutlined />发布不可变版本</a-button></div>
+        <a-form layout="vertical"><a-form-item label="模板名称" required><a-input v-model:value="form.name" placeholder="例如：售后工单打印单" /></a-form-item><div class="form-grid"><a-form-item label="纸张"><a-select v-model:value="form.pageSize" :options="['A4','A5'].map(value => ({ value }))" /></a-form-item><a-form-item label="方向"><a-select v-model:value="form.orientation" :options="[{ value:'PORTRAIT',label:'纵向' },{ value:'LANDSCAPE',label:'横向' }]" /></a-form-item></div><a-form-item label="每页字段行数"><a-input-number v-model:value="form.rowsPerPage" :min="4" :max="24" style="width:100%" /></a-form-item><div class="form-grid"><a-form-item label="套打水平偏移（毫米）"><a-input-number v-model:value="form.offsetXmm" :min="-14" :max="14" style="width:100%" /></a-form-item><a-form-item label="套打垂直偏移（毫米）"><a-input-number v-model:value="form.offsetYmm" :min="-12" :max="12" style="width:100%" /></a-form-item></div><a-form-item label="页眉"><a-input v-model:value="form.header" placeholder="公司名称 / 单据类型" /></a-form-item><a-form-item label="页脚"><a-textarea v-model:value="form.footer" :rows="2" placeholder="保密说明或联系信息" /></a-form-item><a-form-item label="签章区"><a-input v-model:value="form.signatureLabel" placeholder="审批签章" /></a-form-item></a-form>
+        <div class="print-property-actions"><a-button type="primary" :loading="saving" block @click="save"><SaveOutlined />保存草稿</a-button><a-button danger :loading="saving" :disabled="!preview || Boolean(currentTemplate?.versions.some(version => version.draftRevision === currentTemplate?.draftRevision))" block @click="publish"><FilePdfOutlined />发布不可变版本</a-button></div>
         <div v-if="currentTemplate?.versions.length" class="print-version-list"><strong>发布历史</strong><span v-for="version in currentTemplate.versions" :key="version.id" :class="{ current: version.current }"><em>{{ versionLabel(version.versionNumber) }} <b v-if="version.current">当前使用</b></em><a-button v-if="!version.current" size="small" :loading="saving" @click="activateVersion(version.id)">恢复为当前</a-button></span></div>
       </aside>
     </div>

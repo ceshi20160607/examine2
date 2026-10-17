@@ -1,0 +1,123 @@
+{
+  "step": "S04.1",
+  "status": "verified_contribution",
+  "integration_gate": "G4_EXTERNAL_FLOW",
+  "source_rows": [
+    "R0398",
+    "R0939",
+    "R2677",
+    "R2970",
+    "R2971"
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V19__flow_external_identity.sql",
+    "projects/unexamine/db/migration/V19__flow_external_identity.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/db/README.md",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowInstance.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTask.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowAction.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowParticipantResolver.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/frontend/src/product/flow-designer.ts",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+    "projects/unexamine/tools/verify-external-flow.py"
+  ],
+  "checks_actual_results": [
+    "V19 给现有 Flow 实例、待办和操作增加应用 ID 与外部身份列及索引，无外键、触发器；db-prepare 生成最终 SQL 和 Flyway 迁移，隔离库重新生成 18 模块、188 表对应的 752 个 Base 文件，manage 未被覆盖，Java 21 package 与前端 vue-tsc/Vite build 通过。",
+    "隔离测试系统 #6 的真实签名调用：应用 #6 分别获权 Flow START、VIEW_INSTANCE、LIST_TASKS、HANDLE，外部审批人 external-approver-001 发起实例 #6，待办 #6；错误标识查不到待办且办理返回 HTTP 403 FLOW_EXTERNAL_APPROVER_DENIED，正确标识办理后实例 COMPLETED。预览容器重启后原待办仍可查询与办理；再次发起实例 #7 后停用应用，新调用返回 HTTP 403 APPLICATION_DISABLED。",
+    "隔离测试系统 #7 的应用 #7 首版只授权 START，签名 LIST_TASKS 返回 HTTP 403 APPLICATION_GRANT_DENIED；重新发布四项动作后实例 #8 的审批完成，错误审批人仍被拒；停用后的实例 #9 保留待办。",
+    "数据库读回实例 #6 COMPLETED、#7 WAITING，来源应用 #6 和外部标识一致；任务 #6 APPROVE、#7 PENDING，操作 #11 START、#12 APPROVE 的应用与外部身份列一致；应用 DISABLED，调用成功与失败、流程发起与审批均有审计。",
+    "普通系统流程页在重启后显示同一实例：#8 已完成、#9 待审批；发起人、当前处理人、任务快照和审批历史显示真实外部应用与标识，不再误称技术账号或后台自动推进。设计器可见外部应用审批人选择、应用及外部标识字段，未保存演示系统的试选变动。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s04-1-external-approver-designer.png",
+    "projects/unexamine/ai/evidence/s04-1-external-pending-runtime.png",
+    "projects/unexamine/ai/evidence/s04-1-external-completed-runtime.png",
+    "projects/unexamine/db/update/V19__flow_external_identity.sql",
+    "projects/unexamine/tools/verify-external-flow.py"
+  ],
+  "permission_or_failure_result": "仅 START 授权无法查询外部待办；错误外部审批人不能处理，错误标识查询返回空范围；应用停用后新签名调用拒绝且原待办保持 PENDING。应用来源身份不映射为平台或系统人员，内部页面不提供代替外部应用办理的操作。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V19__flow_external_identity.sql",
+      "sha256": "e7a20e3e06608b76fc57a4cb7d89ef733fd46bcdcb7208ff57939236a4d5b718"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V19__flow_external_identity.sql",
+      "sha256": "e7a20e3e06608b76fc57a4cb7d89ef733fd46bcdcb7208ff57939236a4d5b718"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "2baeb01126ec78d4901abac2c8c1f60871064b224290350e0756a3783808b197"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "543d9650aafdb693b9372b71560ea0f5275be6c4dbcf94053fe2d416f3d7b5f8"
+    },
+    {
+      "path": "projects/unexamine/db/README.md",
+      "sha256": "9e0cb7570952440c3cfa7533e20c385a4efe9ad403fbc49e44b5b925bf791418"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "01da0f523596572bb16433e3630df7d581811c580c6b2d598840cd2b3e7be075"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowInstance.java",
+      "sha256": "db9870d240606afade1181be6b6dbd4172963a903f5c75690d58efc850e3816b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowTask.java",
+      "sha256": "d3d516adfb4f47e9106f19ef6cc944d1e4b839474a85341df864cf20901a6691"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowAction.java",
+      "sha256": "8b1ddd4252d9442548105644248001ab577eeb2b8e3f0a1bc5fc6a89bcd3eff6"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowParticipantResolver.java",
+      "sha256": "198cc3af5a2de61d198471889fb479b83965e508147083be5daba88d80c15864"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "60d77b8ea7da977134f3c8ce6f2453d2cd389cf1c93d07b8d61d77473cd5afb9"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "746bd6604275545c222d1b4f9b3b44259da7b97b6ccd34c9f7851c608096e8a7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+      "sha256": "f8f6c6683a245c1af3f4e25c65eaa8966c856a821a64e9fc91421f74b7fe7e66"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+      "sha256": "42af356b1ca043a6ac9b1a6a80691401c622c64b75ae2754d126582fd7e67927"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/flow-designer.ts",
+      "sha256": "0c4b3351c2e436831a48cd1b3dbdb3230b16af5d773ead6e5ec13f5e257218e4"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "04e0414d6efaaf8a5d457bf48075a5c816505d55ad4984a836eddc1b84500f12"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "1eaee7985de90fc31cf0929afb4739447262afc59df26fd6904d57e4c220eec4"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow.py",
+      "sha256": "473c2ed0b996206a5bc8e37f411e1d717df8e00def3f4dc0e26a1d7188893cbd"
+    }
+  ],
+  "remaining": "S04.2 仍需经应用提供外部 Flow 草稿、校验和发布的逐项授权接口，随后完成 G4 同一外部系统全流程组合验收；真实第三方接入和整站验收另行验证。",
+  "next_step": "S04.2"
+}

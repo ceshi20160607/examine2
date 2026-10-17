@@ -8,12 +8,12 @@
         <result column="platform_id" property="platformId" />
         <result column="member_id" property="memberId" />
         <result column="role_id" property="roleId" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, platform_id, member_id, role_id, created_at
+        id, platform_id, member_id, role_id, create_time
     </sql>
 
 </mapper>

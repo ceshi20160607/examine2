@@ -2,6 +2,7 @@
 package com.unique.unexamine.analytics.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.analytics.base.entity.AnaKpiResult;
 import com.unique.unexamine.analytics.base.mapper.AnaKpiResultMapper;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,41 @@ public class AnaKpiResultBaseService {
         return mapper.selectList(query);
     }
 
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public AnaKpiResult selectOne(Wrapper<AnaKpiResult> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<AnaKpiResult> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<AnaKpiResult> selectPage(IPage<AnaKpiResult> page, Wrapper<AnaKpiResult> query) {
+        return mapper.selectPage(page, query);
+    }
+
     public int updateById(AnaKpiResult entity) {
         return mapper.updateById(entity);
     }
 
+    /** 按条件更新记录，调用方负责限定租户和目标范围。 */
+    public int update(AnaKpiResult entity, Wrapper<AnaKpiResult> query) {
+        return mapper.update(entity, query);
+    }
+
+    /** 使用更新条件中的赋值表达式更新记录。 */
+    public int update(Wrapper<AnaKpiResult> query) {
+        return mapper.update(null, query);
+    }
+
     public int deleteById(Serializable id) {
         return mapper.deleteById(id);
+    }
+
+    /** 按条件删除记录，调用方负责限定租户和目标范围。 */
+    public int delete(Wrapper<AnaKpiResult> query) {
+        return mapper.delete(query);
     }
 }

@@ -113,8 +113,14 @@ public class OperationsDeploymentService {
                         .eq(OpsRelease::getVersionName, input.versionName()).last("limit 1"))
                 .stream().findFirst().orElse(null);
         if (existing != null) {
-            if (!Objects.equals(existing.getArtifactHash(), hash)) {
-                throw new DomainException("RELEASE_VERSION_IMMUTABLE", "同一发布版本不能替换制品摘要", HttpStatus.CONFLICT);
+            Map<String, Object> compatibility = parseMap(existing.getCompatibilityJson());
+            // 发布版本号代表完整的制品、数据库、配置和前端组合；重复登记只能是完全相同的清单。
+            if (!Objects.equals(existing.getArtifactHash(), hash)
+                    || !Objects.equals(existing.getDatabaseVersion(), input.databaseVersion())
+                    || !Objects.equals(existing.getConfigVersion(), input.configVersion())
+                    || !Objects.equals(text(compatibility.get("frontendVersion")), input.frontendVersion())
+                    || !Objects.equals(text(compatibility.get("databaseRollbackStrategy")), input.databaseRollbackStrategy())) {
+                throw new DomainException("RELEASE_VERSION_IMMUTABLE", "同一发布版本不能替换制品、数据库、配置或前端清单", HttpStatus.CONFLICT);
             }
             return releaseView(existing);
         }
@@ -131,7 +137,7 @@ public class OperationsDeploymentService {
         release.setReleaseNotes(input.releaseNotes().strip());
         release.setStatus("REGISTERED");
         release.setCreatedByAccountId(context.accountId());
-        release.setCreatedAt(LocalDateTime.now());
+        release.setCreateTime(LocalDateTime.now());
         releases.insert(release);
         audit(context, requestId, "OPERATIONS_RELEASE_REGISTERED", "OPS_RELEASE", release.getId(), "SUCCESS",
                 Map.of("version", release.getVersionName(), "artifactSha256", release.getArtifactHash(),
@@ -350,8 +356,8 @@ public class OperationsDeploymentService {
         deployment.setStepStateJson("{}");
         deployment.setRollbackPointJson(null);
         deployment.setRequestedByAccountId(context.accountId());
-        deployment.setStartedAt(LocalDateTime.now());
-        deployment.setCreatedAt(LocalDateTime.now());
+        deployment.setStartTime(LocalDateTime.now());
+        deployment.setCreateTime(LocalDateTime.now());
         deployment.setVersion(0);
         deployments.insert(deployment);
         return deployment;
@@ -361,7 +367,7 @@ public class OperationsDeploymentService {
         deployment.setStatus(status);
         deployment.setStepStateJson(json(state));
         deployment.setRollbackPointJson(json(point));
-        deployment.setFinishedAt(LocalDateTime.now());
+        deployment.setFinishTime(LocalDateTime.now());
         deployments.updateById(deployment);
     }
 
@@ -405,7 +411,7 @@ public class OperationsDeploymentService {
         return new OperationsDeploymentModels.ReleaseView(release.getId(), release.getVersionName(),
                 release.getArtifactHash(), release.getDatabaseVersion(), release.getConfigVersion(),
                 text(compatibility.get("frontendVersion")), text(compatibility.get("databaseRollbackStrategy")),
-                release.getReleaseNotes(), release.getStatus(), release.getCreatedByAccountId(), format(release.getCreatedAt()));
+                release.getReleaseNotes(), release.getStatus(), release.getCreatedByAccountId(), format(release.getCreateTime()));
     }
 
     private OperationsDeploymentModels.DeploymentView deploymentView(OpsDeployment deployment, OpsRelease release) {
@@ -420,7 +426,7 @@ public class OperationsDeploymentService {
                         longOrNull(approval.get("approvedByAccountId")), text(approval.get("approvedAt")),
                         text(approval.get("confirmation"))),
                 steps, parseMap(deployment.getRollbackPointJson()), deployment.getRequestedByAccountId(),
-                format(deployment.getStartedAt()), format(deployment.getFinishedAt()), format(deployment.getCreatedAt()));
+                format(deployment.getStartTime()), format(deployment.getFinishTime()), format(deployment.getCreateTime()));
     }
 
     private List<OperationsDeploymentModels.DeploymentStep> parseSteps(Object value) {

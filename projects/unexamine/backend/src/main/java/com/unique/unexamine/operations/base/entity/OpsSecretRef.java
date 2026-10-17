@@ -10,51 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 受控密钥引用及当前版本，不保存密钥明文
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_secret_ref")
+@TableName("un_ops_secret_ref")
 public class OpsSecretRef {
 
+    /**
+     * 受控密钥引用主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 密钥归属层级，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统密钥所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 稳定归属主键，平台密钥为平台主键，系统密钥为系统主键
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 同一归属内稳定的密钥引用编码
+     */
     @TableField("secret_code")
     private String secretCode;
 
+    /**
+     * 受控密钥服务提供方
+     */
     @TableField("provider")
     private String provider;
 
+    /**
+     * 受控密钥服务中的引用路径，不是密钥明文
+     */
     @TableField("reference_path")
     private String referencePath;
 
+    /**
+     * 当前启用的密钥版本标识
+     */
     @TableField("current_version")
     private String currentVersion;
 
+    /**
+     * 密钥引用的启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("last_verified_at")
-    private LocalDateTime lastVerifiedAt;
+    /**
+     * 最近一次验证密钥可用性的时间
+     */
+    @TableField("last_verified_time")
+    private LocalDateTime lastVerifiedTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 密钥引用创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 密钥引用更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 密钥引用乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -89,6 +134,14 @@ public class OpsSecretRef {
 
     public void setSystemId(Long systemId) {
         this.systemId = systemId;
+    }
+
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
     }
 
     public String getSecretCode() {
@@ -131,28 +184,28 @@ public class OpsSecretRef {
         this.status = status;
     }
 
-    public LocalDateTime getLastVerifiedAt() {
-        return lastVerifiedAt;
+    public LocalDateTime getLastVerifiedTime() {
+        return lastVerifiedTime;
     }
 
-    public void setLastVerifiedAt(LocalDateTime lastVerifiedAt) {
-        this.lastVerifiedAt = lastVerifiedAt;
+    public void setLastVerifiedTime(LocalDateTime lastVerifiedTime) {
+        this.lastVerifiedTime = lastVerifiedTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -170,14 +223,15 @@ public class OpsSecretRef {
             ", contextType = " + contextType +
             ", platformId = " + platformId +
             ", systemId = " + systemId +
+            ", scopeOwnerId = " + scopeOwnerId +
             ", secretCode = " + secretCode +
             ", provider = " + provider +
             ", referencePath = " + referencePath +
             ", currentVersion = " + currentVersion +
             ", status = " + status +
-            ", lastVerifiedAt = " + lastVerifiedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", lastVerifiedTime = " + lastVerifiedTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

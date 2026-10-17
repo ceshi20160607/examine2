@@ -14,9 +14,11 @@ unexamine/
 
 ## 当前状态
 
-需求、架构、用例、任务、依赖、现有代码评估、数据库、Base、后端 `manage`、前端、运维和真实入口验收均已完成并通过机器校验。184 条原子需求归属到 20 个能力和 60 个真实业务用例，拆为 191 个任务、6 个依赖阶段和 56 个最多 240 分钟的周期。
+项目尚未完成整站可用验收。当前执行断点以 `ai/planning/spark-state.json` 为准，局部编译和测试结果不能代替完整业务流程验证。
 
-首次数据库基线由 18 个有序片段组成，共 150 张固定能力及通用运行时表；当前 V34 由 34 个迁移组成，共 155 张业务表，MyBatis-Plus Generator 已从真实 MySQL 元数据生成 18 个模块、612 个 `base` 文件，并通过重复生成与后端编译。56/56 个连续周期均有完整验收证据，9 个质量关口已完成；机器可读事实见 `ai/status/project-status.json` 和 `ai/evidence/CYCLE-*.json`。
+2026-10-09 按用户重新确认的产品主线复核完整需求和现有源码。当前保留、重写、删除判断及先定表、生成 Base、再贯通业务的顺序，见 `ai/planning/spark-execution-plan.md` 开头。旧复评和旧周期记录不再作为实施依据。
+
+原 G1/G2/G3 旅程曾有局部证据，但新的系统所属权、负责人权限、租户共享和应用授权规则使它们需要按当前产品模型重新验收。当前整站交付状态为未验证；旧事实记录只能用于定位已有代码，不能算作现行需求通过。
 
 首次空库启动会幂等创建默认平台超级管理员，部署时必须通过 `APP_BOOTSTRAP_DEFAULT_ADMIN_DEPLOYMENT_KEY` 提供至少 24 个字符的一次性初始化密钥；密钥不写入数据库、日志或验收证据。已有默认管理员时不会重复创建或重置密码。
 
@@ -29,7 +31,7 @@ python template_base/tools/tb.py db-prepare --project-root projects/unexamine
 powershell -File projects/unexamine/tools/regenerate-base.ps1
 ```
 
-第一条命令合成 `init.sql`、`update.sql`、`final.sql` 和 Flyway 输入；第二条命令执行 SQL、从真实 MySQL 元数据调用 MyBatis-Plus Generator，全量替换每个模块的代码包 `base`，并验证 `manage` 未被修改。首次 Base 已生成，后续开发期字段变化必须新增到 `db/update/`，不能回写已冻结的首次基线。
+第一条命令合成 `init.sql`、`update.sql`、`final.sql` 和 Flyway 输入；第二条命令执行 SQL、从真实 MySQL 元数据调用 MyBatis-Plus Generator，全量替换每个模块的代码包 `base`，并验证 `manage` 未被修改。开发期字段变化需保持 SQL、生成代码和业务代码一致；测试数据与表结构可以按当前需求重建，但不能把重新生成当成业务验收。
 
 ## 校验
 

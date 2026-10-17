@@ -38,50 +38,50 @@ class PlatformFoundationMigrationTest {
         );
         assertThat(tableCount).isEqualTo(155);
 
-        jdbc.update("insert into plat_account(username, display_name, status) values (?, ?, ?)", "owner", "Owner", "ACTIVE");
-        Long accountId = jdbc.queryForObject("select id from plat_account where username = 'owner'", Long.class);
-        jdbc.update("insert into plat_platform(code, name, settings_json, status) values ('main', 'Main', cast('{}' as json), 'ACTIVE')");
-        Long platformId = jdbc.queryForObject("select id from plat_platform where code = 'main'", Long.class);
-        jdbc.update("insert into sys_system(platform_id, code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, ?, ?, ?)",
+        jdbc.update("insert into un_plat_account(username, display_name, status) values (?, ?, ?)", "owner", "Owner", "ACTIVE");
+        Long accountId = jdbc.queryForObject("select id from un_plat_account where username = 'owner'", Long.class);
+        jdbc.update("insert into un_plat_platform(code, name, settings_json, status) values ('main', 'Main', cast('{}' as json), 'ACTIVE')");
+        Long platformId = jdbc.queryForObject("select id from un_plat_platform where code = 'main'", Long.class);
+        jdbc.update("insert into un_sys_system(platform_id, code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, ?, ?, ?)",
                 platformId, "sales", "Sales", accountId, "SINGLE", "ACTIVE");
-        Long systemId = jdbc.queryForObject("select id from sys_system where code = 'sales'", Long.class);
-        jdbc.update("insert into sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
+        Long systemId = jdbc.queryForObject("select id from un_sys_system where code = 'sales'", Long.class);
+        jdbc.update("insert into un_sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
                 systemId, "main", "Main tenant", true, "MAIN", accountId, "ACTIVE");
-        Long tenantId = jdbc.queryForObject("select id from sys_tenant where system_id = ? and code = 'main'", Long.class, systemId);
+        Long tenantId = jdbc.queryForObject("select id from un_sys_tenant where system_id = ? and code = 'main'", Long.class, systemId);
 
         assertThatThrownBy(() -> jdbc.update(
-                "insert into sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
+                "insert into un_sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
                 systemId, "second-main", "Second main", true, "MAIN", accountId, "ACTIVE"
         )).hasRootCauseInstanceOf(SQLException.class);
         assertThatThrownBy(() -> jdbc.update(
-                "insert into sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
+                "insert into un_sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, ?, ?, ?, ?, ?, ?)",
                 systemId, "bad-marker", "Bad marker", true, null, accountId, "ACTIVE"
         )).hasRootCauseInstanceOf(SQLException.class);
 
-        jdbc.update("insert into plat_account(username, display_name, status) values (?, ?, ?)", "other-owner", "Other Owner", "ACTIVE");
-        Long otherAccountId = jdbc.queryForObject("select id from plat_account where username = 'other-owner'", Long.class);
-        jdbc.update("insert into sys_system(platform_id, code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, ?, ?, ?)",
+        jdbc.update("insert into un_plat_account(username, display_name, status) values (?, ?, ?)", "other-owner", "Other Owner", "ACTIVE");
+        Long otherAccountId = jdbc.queryForObject("select id from un_plat_account where username = 'other-owner'", Long.class);
+        jdbc.update("insert into un_sys_system(platform_id, code, name, creator_account_id, tenant_mode, status) values (?, ?, ?, ?, ?, ?)",
                 platformId, "finance", "Finance", otherAccountId, "SINGLE", "ACTIVE");
-        Long otherSystemId = jdbc.queryForObject("select id from sys_system where code = 'finance'", Long.class);
-        jdbc.update("insert into sys_member(system_id, account_id, display_name, status) values (?, ?, ?, ?)",
+        Long otherSystemId = jdbc.queryForObject("select id from un_sys_system where code = 'finance'", Long.class);
+        jdbc.update("insert into un_sys_member(system_id, account_id, display_name, status) values (?, ?, ?, ?)",
                 otherSystemId, otherAccountId, "Other Owner", "ACTIVE");
-        Long otherSystemMemberId = jdbc.queryForObject("select id from sys_member where system_id = ?", Long.class, otherSystemId);
+        Long otherSystemMemberId = jdbc.queryForObject("select id from un_sys_member where system_id = ?", Long.class, otherSystemId);
         assertThatThrownBy(() -> jdbc.update(
-                "insert into sys_tenant_member(system_id, tenant_id, system_member_id, tenant_admin, status) values (?, ?, ?, ?, ?)",
+                "insert into un_sys_tenant_member(system_id, tenant_id, system_member_id, tenant_admin, status) values (?, ?, ?, ?, ?)",
                 systemId, tenantId, otherSystemMemberId, false, "ACTIVE"
         )).hasRootCauseInstanceOf(SQLException.class);
 
-        jdbc.update("insert into audit_event(trace_id, context_type, actor_account_id, system_id, event_category, event_code, result_code, detail_json) values (?, ?, ?, ?, ?, ?, ?, cast(? as json))",
+        jdbc.update("insert into un_audit_event(trace_id, context_type, actor_account_id, system_id, event_category, event_code, result_code, detail_json) values (?, ?, ?, ?, ?, ?, ?, cast(? as json))",
                 "trace-001", "SYSTEM", accountId, systemId, "CONFIGURATION", "SYSTEM_CREATED", "SUCCESS", "{}");
-        Long auditId = jdbc.queryForObject("select id from audit_event where trace_id = 'trace-001'", Long.class);
+        Long auditId = jdbc.queryForObject("select id from un_audit_event where trace_id = 'trace-001'", Long.class);
 
-        assertThatThrownBy(() -> jdbc.update("update audit_event set result_code = 'CHANGED' where id = ?", auditId))
+        assertThatThrownBy(() -> jdbc.update("update un_audit_event set result_code = 'CHANGED' where id = ?", auditId))
                 .hasRootCauseInstanceOf(SQLException.class)
                 .hasMessageContaining("immutable");
-        assertThatThrownBy(() -> jdbc.update("delete from audit_event where id = ?", auditId))
+        assertThatThrownBy(() -> jdbc.update("delete from un_audit_event where id = ?", auditId))
                 .hasRootCauseInstanceOf(SQLException.class)
                 .hasMessageContaining("immutable");
-        assertThat(jdbc.queryForObject("select count(*) from audit_event where id = ?", Integer.class, auditId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from un_audit_event where id = ?", Integer.class, auditId)).isEqualTo(1);
         dataSource.close();
     }
 }

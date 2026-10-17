@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 打印模板当前生效版本指针，可回滚至历史版本 Mapper 接口
  * </p>
  *
  * @author Template Base

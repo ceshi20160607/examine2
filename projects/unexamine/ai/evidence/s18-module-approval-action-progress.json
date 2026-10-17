@@ -1,0 +1,7 @@
+{
+  "step": "S18.31",
+  "status": "in_progress",
+  "source_rows": ["R0288", "R0453"],
+  "predecessor": "projects/unexamine/ai/evidence/s18-module-print-upgrade-verification.json",
+  "next_exact": "Review current module action configuration, record action placement, published Flow bindings and start/approval contracts. Then implement and verify one owner-configured APPROVAL action on an existing module, with draft isolation, publication, runtime permission and Flow instance/task readback; keep dashboard entry for a later packet."
+}

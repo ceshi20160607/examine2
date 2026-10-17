@@ -34,6 +34,7 @@ import com.unique.unexamine.system.base.service.SystemMemberBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.work.base.entity.WorkTask;
 import com.unique.unexamine.work.base.service.WorkTaskBaseService;
+import com.unique.unexamine.work.manage.WorkManagementService;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,7 @@ public class MessageService {
     private final MsgRecipientBaseService recipientService;
     private final MsgDeliveryBaseService deliveryService;
     private final MsgUserPreferenceBaseService preferenceService;
+    private final PlatformMessageService platformMessages;
     private final PlatformAccountBaseService accountService;
     private final PlatformMemberBaseService platformMemberService;
     private final SystemMemberBaseService memberService;
@@ -77,6 +79,8 @@ public class MessageService {
     /** 延迟获取流程服务，避免运行时发送通知与消息目标校验形成构造循环。 */
     private final ObjectProvider<FlowRuntimeService> flowRuntime;
     private final ObjectProvider<BusinessActionApprovalCoordinator> actionCoordinator;
+    /** 消息跳转沿用任务详情的实时权限与参与关系，延迟获取以避免任务通知的构造循环。 */
+    private final ObjectProvider<WorkManagementService> workManagement;
 
     public MessageService(
             MsgTemplateBaseService templateService,
@@ -85,6 +89,7 @@ public class MessageService {
             MsgRecipientBaseService recipientService,
             MsgDeliveryBaseService deliveryService,
             MsgUserPreferenceBaseService preferenceService,
+            PlatformMessageService platformMessages,
             PlatformAccountBaseService accountService,
             PlatformMemberBaseService platformMemberService,
             SystemMemberBaseService memberService,
@@ -95,13 +100,15 @@ public class MessageService {
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper, ObjectProvider<FlowRuntimeService> flowRuntime,
-            ObjectProvider<BusinessActionApprovalCoordinator> actionCoordinator) {
+            ObjectProvider<BusinessActionApprovalCoordinator> actionCoordinator,
+            ObjectProvider<WorkManagementService> workManagement) {
         this.templateService = templateService;
         this.templateVersionService = templateVersionService;
         this.messageService = messageService;
         this.recipientService = recipientService;
         this.deliveryService = deliveryService;
         this.preferenceService = preferenceService;
+        this.platformMessages = platformMessages;
         this.accountService = accountService;
         this.platformMemberService = platformMemberService;
         this.memberService = memberService;
@@ -114,15 +121,17 @@ public class MessageService {
         this.objectMapper = objectMapper;
         this.flowRuntime = flowRuntime;
         this.actionCoordinator = actionCoordinator;
+        this.workManagement = workManagement;
     }
 
     @Transactional(readOnly = true)
     public List<MessageModels.TemplateView> listTemplates(AuthenticatedContext context) {
         require(context, "MANAGE");
+        if (context.systemId() == null) return platformMessages.listTemplates(context);
         return templateService.selectList(Wrappers.<MsgTemplate>lambdaQuery()
                         .eq(MsgTemplate::getPlatformId, context.platformId()))
                 .stream().filter(item -> inContext(item, context))
-                .sorted(Comparator.comparing(MsgTemplate::getUpdatedAt,
+                .sorted(Comparator.comparing(MsgTemplate::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(this::templateView).toList();
     }
@@ -131,6 +140,7 @@ public class MessageService {
     public MessageModels.TemplateView saveTemplate(
             AuthenticatedContext context, MessageModels.SaveTemplateRequest input, String traceId) {
         require(context, "MANAGE");
+        if (context.systemId() == null) return platformMessages.saveTemplate(context, input, traceId);
         List<String> requiredVariables = distinctVariables(input.requiredVariables());
         MsgTemplate template;
         if (input.id() == null) {
@@ -179,6 +189,7 @@ public class MessageService {
     @Transactional
     public MessageModels.TemplateView publishTemplate(AuthenticatedContext context, Long templateId, String traceId) {
         require(context, "MANAGE");
+        if (context.systemId() == null) return platformMessages.publishTemplate(context, templateId, traceId);
         MsgTemplate template = requireTemplateForUpdate(context, templateId);
         if (template.getContentTemplate() == null || template.getContentTemplate().isBlank()) {
             throw invalid("MESSAGE_TEMPLATE_CONTENT_REQUIRED", "消息模板正文不能为空");
@@ -218,6 +229,7 @@ public class MessageService {
             AuthenticatedContext context, String requestedStatus, String requestedSourceType,
             int page, int pageSize) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.list(context, requestedStatus, requestedSourceType, page, pageSize);
         if (page < 1 || pageSize < 1 || pageSize > 100) {
             throw invalid("MESSAGE_PAGE_INVALID", "消息页码必须从 1 开始，每页最多 100 条");
         }
@@ -232,7 +244,7 @@ public class MessageService {
                 .map(recipient -> Map.entry(recipient, messageService.selectById(recipient.getMessageId())))
                 .filter(entry -> entry.getValue() != null && inContext(entry.getValue(), context))
                 .filter(entry -> "ALL".equals(sourceType) || sourceType.equals(entry.getValue().getSourceType()))
-                .sorted(Comparator.comparing((Map.Entry<MsgRecipient, MsgMessage> entry) -> entry.getValue().getCreatedAt(),
+                .sorted(Comparator.comparing((Map.Entry<MsgRecipient, MsgMessage> entry) -> entry.getValue().getCreateTime(),
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
         int from = Math.min((page - 1) * pageSize, matches.size());
@@ -246,6 +258,7 @@ public class MessageService {
     @Transactional(readOnly = true)
     public List<MessageModels.PreferenceView> preferences(AuthenticatedContext context) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.preferences(context);
         Map<String, MsgUserPreference> stored = preferenceRows(context).stream()
                 .filter(item -> "*".equals(item.getEventCode()))
                 .collect(java.util.stream.Collectors.toMap(MsgUserPreference::getChannel, item -> item,
@@ -261,6 +274,7 @@ public class MessageService {
     public MessageModels.PreferenceView savePreference(
             AuthenticatedContext context, MessageModels.SavePreferenceRequest input, String traceId) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.savePreference(context, input, traceId);
         boolean hasStart = input.quietStart() != null && !input.quietStart().isBlank();
         boolean hasEnd = input.quietEnd() != null && !input.quietEnd().isBlank();
         if (hasStart != hasEnd || (hasStart && input.quietStart().equals(input.quietEnd()))) {
@@ -305,6 +319,7 @@ public class MessageService {
     @Transactional(readOnly = true)
     public MessageModels.UnreadCount unreadCount(AuthenticatedContext context) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.unreadCount(context);
         return new MessageModels.UnreadCount(countUnread(context));
     }
 
@@ -312,6 +327,7 @@ public class MessageService {
     public MessageModels.MessageView send(
             AuthenticatedContext context, MessageModels.SendEventRequest input, String traceId) {
         requireAny(context, "SEND", "MANAGE");
+        if (context.systemId() == null) return platformMessages.send(context, input, traceId);
         MsgTemplate template = publishedTemplate(context, input.templateCode());
         MsgTemplateVersion version = latestVersion(template.getId());
         if (version == null) throw conflict("MESSAGE_TEMPLATE_NOT_PUBLISHED", "消息模板尚未发布");
@@ -349,15 +365,11 @@ public class MessageService {
         message.setTargetRoute(stripToNull(input.targetRoute()));
         message.setSensitivity(input.sensitivity() == null ? "NORMAL" : input.sensitivity());
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
         MsgRecipient first = null;
         for (PlatformAccount account : accounts) {
-            MsgRecipient recipient = new MsgRecipient();
-            recipient.setMessageId(message.getId());
-            recipient.setAccountId(account.getId());
-            recipient.setStatus("UNREAD");
-            recipient.setVersion(0);
-            recipientService.insert(recipient);
+            MsgRecipient recipient = insertRecipient(context, message, account);
             if (first == null) first = recipient;
             insertInAppDelivery(message, account);
             if (!"IN_APP".equals(snapshot.channel())) insertExternalDelivery(message, account, snapshot.channel());
@@ -379,6 +391,11 @@ public class MessageService {
             String subject, String content, List<Long> recipientAccountIds) {
         if (context == null || instanceId == null || eventKey == null || eventKey.isBlank()) return;
         if (recipientAccountIds == null || recipientAccountIds.isEmpty()) return;
+        if (context.systemId() == null) {
+            platformMessages.notifyEvent(context, "FLOW", eventKey, subject, content, recipientAccountIds,
+                    "FLOW_INSTANCE", instanceId.toString(), "/platform/flows?instanceId=" + instanceId);
+            return;
+        }
         List<Long> ids = distinctRecipients(recipientAccountIds);
         FlowInstance instance = flowInstanceService.selectById(instanceId);
         var original = instance == null || context.systemId() == null ? null
@@ -420,14 +437,10 @@ public class MessageService {
         message.setTargetRoute(route);
         message.setSensitivity("NORMAL");
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
         for (PlatformAccount account : accounts) {
-            MsgRecipient recipient = new MsgRecipient();
-            recipient.setMessageId(message.getId());
-            recipient.setAccountId(account.getId());
-            recipient.setStatus("UNREAD");
-            recipient.setVersion(0);
-            recipientService.insert(recipient);
+            MsgRecipient recipient = insertRecipient(context, message, account);
             insertInAppDelivery(message, account);
         }
     }
@@ -438,6 +451,11 @@ public class MessageService {
             String subject, String content, List<Long> recipientAccountIds) {
         if (context == null || task == null || eventKey == null || eventKey.isBlank()
                 || recipientAccountIds == null || recipientAccountIds.isEmpty()) return;
+        if (context.systemId() == null) {
+            platformMessages.notifyEvent(context, "WORK_TASK", eventKey, subject, content, recipientAccountIds,
+                    "WORK_TASK", task.getId().toString(), "/platform/tasks?taskId=" + task.getId());
+            return;
+        }
         if (findEvent(context, "WORK_TASK", eventKey) != null) return;
         List<PlatformAccount> accounts = distinctRecipients(recipientAccountIds).stream()
                 .map(id -> requireRecipient(context, id)).toList();
@@ -458,14 +476,64 @@ public class MessageService {
                 : "/systems/" + context.systemId() + "?workspace=tasks&taskId=" + task.getId());
         message.setSensitivity("NORMAL");
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
         for (PlatformAccount account : accounts) {
-            MsgRecipient recipient = new MsgRecipient();
-            recipient.setMessageId(message.getId());
-            recipient.setAccountId(account.getId());
-            recipient.setStatus("UNREAD");
-            recipient.setVersion(0);
-            recipientService.insert(recipient);
+            MsgRecipient recipient = insertRecipient(context, message, account);
+            insertInAppDelivery(message, account);
+        }
+    }
+
+    /**
+     * 业务评论使用来源租户的站内消息，和评论、审计一起提交；不要求发表评论者拥有消息管理权限。
+     * 收件人再次按当前账号、系统成员及租户成员状态过滤，防止停用身份收到新消息。
+     */
+    @Transactional
+    public void notifyRuntimeRecordComment(AuthenticatedContext context, String moduleCode, Long recordId,
+                                           Long commentId, boolean reply, List<Long> recipientAccountIds) {
+        if (context == null || context.systemId() == null || context.tenantId() == null
+                || recordId == null || commentId == null || recipientAccountIds == null
+                || recipientAccountIds.isEmpty()) return;
+        String eventKey = "comment-" + commentId;
+        if (findEvent(context, "RUNTIME_RECORD_COMMENT", eventKey) != null) return;
+        List<PlatformAccount> accounts = recipientAccountIds.stream().filter(Objects::nonNull).distinct()
+                .filter(id -> !id.equals(context.accountId()))
+                .map(accountService::selectById)
+                .filter(account -> account != null && "ACTIVE".equals(account.getStatus()))
+                .filter(account -> {
+                    SystemMember member = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                                    .eq(SystemMember::getSystemId, context.systemId())
+                                    .eq(SystemMember::getAccountId, account.getId())
+                                    .eq(SystemMember::getStatus, "ACTIVE"))
+                            .stream().findFirst().orElse(null);
+                    return member != null && tenantMemberService.selectCount(Wrappers.<SystemTenantMember>lambdaQuery()
+                            .eq(SystemTenantMember::getSystemId, context.systemId())
+                            .eq(SystemTenantMember::getTenantId, context.tenantId())
+                            .eq(SystemTenantMember::getSystemMemberId, member.getId())
+                            .eq(SystemTenantMember::getStatus, "ACTIVE")) > 0;
+                }).toList();
+        if (accounts.isEmpty()) return;
+        MsgMessage message = new MsgMessage();
+        message.setContextType("SYSTEM");
+        message.setPlatformId(context.platformId());
+        message.setSystemId(context.systemId());
+        message.setTenantId(context.tenantId());
+        message.setTemplateVersionId(null);
+        message.setSourceType("RUNTIME_RECORD_COMMENT");
+        message.setSourceId(eventKey);
+        // 成员有效并不代表仍有此记录的详情权限，通知正文不复制记录标题或评论内容。
+        message.setSubject(reply ? "业务记录有新回复" : "业务记录有新评论");
+        message.setContentText("您参与的业务记录有新" + (reply ? "回复" : "评论") + "，请进入系统查看。");
+        message.setTargetType("RUNTIME_RECORD");
+        message.setTargetId(moduleCode + ":" + recordId);
+        message.setTargetRoute("/systems/" + context.systemId() + "?workspace=runtime&module=" + moduleCode
+                + "&recordId=" + recordId);
+        message.setSensitivity("NORMAL");
+        message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
+        messageService.insert(message);
+        for (PlatformAccount account : accounts) {
+            insertRecipient(context, message, account);
             insertInAppDelivery(message, account);
         }
     }
@@ -494,13 +562,9 @@ public class MessageService {
         message.setTargetRoute("/systems/" + context.systemId() + "?module=" + moduleCode + "&exportBatch=" + batchId);
         message.setSensitivity("NORMAL");
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
-        MsgRecipient recipient = new MsgRecipient();
-        recipient.setMessageId(message.getId());
-        recipient.setAccountId(context.accountId());
-        recipient.setStatus("UNREAD");
-        recipient.setVersion(0);
-        recipientService.insert(recipient);
+        MsgRecipient recipient = insertRecipient(context, message, account);
         insertInAppDelivery(message, account);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "MESSAGE_CREATED", "MESSAGE", message.getId().toString(), "SUCCESS",
@@ -531,13 +595,9 @@ public class MessageService {
         message.setTargetRoute("/systems/" + context.systemId() + "/admin?section=operations&requestId=" + requestId);
         message.setSensitivity("INTERNAL");
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
-        MsgRecipient recipient = new MsgRecipient();
-        recipient.setMessageId(message.getId());
-        recipient.setAccountId(context.accountId());
-        recipient.setStatus("UNREAD");
-        recipient.setVersion(0);
-        recipientService.insert(recipient);
+        MsgRecipient recipient = insertRecipient(context, message, account);
         insertInAppDelivery(message, account);
         auditRecorder.record(requestId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "CRITICAL_EXCEPTION_MESSAGE_CREATED", "MESSAGE", message.getId().toString(), "PENDING",
@@ -547,7 +607,6 @@ public class MessageService {
     @Transactional
     public MessageModels.MessageView notifyKpiUnderTarget(
             AuthenticatedContext context, Long kpiId, Long resultId, String kpiName,
-            String actualValue, String targetValue, String achievementRate,
             List<MessageModels.RecipientRef> recipients, String traceId) {
         String sourceId = "result-" + resultId;
         MsgMessage existing = findEvent(context, "KPI_ALERT", sourceId);
@@ -567,22 +626,18 @@ public class MessageService {
         message.setSourceType("KPI_ALERT");
         message.setSourceId(sourceId);
         message.setSubject(kpiName + " 未达标提醒");
-        message.setContentText("当前实际值 " + actualValue + "，目标值 " + targetValue
-                + "，达成率 " + achievementRate + "%；请打开 KPI 查看当前授权口径和下钻数据。");
+        // 接收人的业务数据权限可能小于计算人的权限，通知不携带计算人可见的汇总值。
+        message.setContentText("目标未达标；请打开 KPI 查看当前授权口径、实际值和下钻数据。");
         message.setTargetType("SYSTEM_ROUTE");
         message.setTargetId(kpiId.toString());
         message.setTargetRoute("/systems/" + context.systemId() + "?workspace=kpi&kpiId=" + kpiId);
         message.setSensitivity("NORMAL");
         message.setCreatedByAccountId(context.accountId());
+        message.setCreatedByMemberId(context.memberId());
         messageService.insert(message);
         MsgRecipient first = null;
         for (PlatformAccount account : accounts) {
-            MsgRecipient recipient = new MsgRecipient();
-            recipient.setMessageId(message.getId());
-            recipient.setAccountId(account.getId());
-            recipient.setStatus("UNREAD");
-            recipient.setVersion(0);
-            recipientService.insert(recipient);
+            MsgRecipient recipient = insertRecipient(context, message, account);
             if (first == null) first = recipient;
             insertInAppDelivery(message, account);
         }
@@ -596,10 +651,11 @@ public class MessageService {
     @Transactional
     public MessageModels.MessageView read(AuthenticatedContext context, Long messageId, String traceId) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.read(context, messageId, traceId);
         Owned owned = requireOwned(context, messageId, true);
         if (!"ARCHIVED".equals(owned.recipient().getStatus()) && !"READ".equals(owned.recipient().getStatus())) {
             owned.recipient().setStatus("READ");
-            owned.recipient().setReadAt(LocalDateTime.now());
+            owned.recipient().setReadTime(LocalDateTime.now());
             updateRecipient(owned.recipient());
             auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                     "MESSAGE_READ", "MESSAGE", messageId.toString(), "SUCCESS", Map.of());
@@ -610,11 +666,12 @@ public class MessageService {
     @Transactional
     public MessageModels.MessageView archive(AuthenticatedContext context, Long messageId, String traceId) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.archive(context, messageId, traceId);
         Owned owned = requireOwned(context, messageId, true);
         if (!"ARCHIVED".equals(owned.recipient().getStatus())) {
             owned.recipient().setStatus("ARCHIVED");
-            if (owned.recipient().getReadAt() == null) owned.recipient().setReadAt(LocalDateTime.now());
-            owned.recipient().setArchivedAt(LocalDateTime.now());
+            if (owned.recipient().getReadTime() == null) owned.recipient().setReadTime(LocalDateTime.now());
+            owned.recipient().setArchiveTime(LocalDateTime.now());
             updateRecipient(owned.recipient());
             auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                     "MESSAGE_ARCHIVED", "MESSAGE", messageId.toString(), "SUCCESS", Map.of());
@@ -625,11 +682,12 @@ public class MessageService {
     @Transactional
     public MessageModels.UnreadCount readAll(AuthenticatedContext context, String traceId) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.readAll(context, traceId);
         int changed = 0;
         for (MsgRecipient recipient : ownedRecipients(context)) {
             if (!"UNREAD".equals(recipient.getStatus())) continue;
             recipient.setStatus("READ");
-            recipient.setReadAt(LocalDateTime.now());
+            recipient.setReadTime(LocalDateTime.now());
             updateRecipient(recipient);
             changed++;
         }
@@ -642,13 +700,14 @@ public class MessageService {
     @Transactional
     public MessageModels.OpenResult open(AuthenticatedContext context, Long messageId, String traceId) {
         require(context, "VIEW");
+        if (context.systemId() == null) return platformMessages.open(context, messageId, traceId);
         Owned owned = requireOwned(context, messageId, false);
         String route = validateTarget(context, owned.message().getTargetType(), owned.message().getTargetId(),
                 owned.message().getTargetRoute(), traceId);
         if (route == null) throw conflict("MESSAGE_TARGET_UNAVAILABLE", "消息没有可打开的目标");
-        if (owned.recipient().getReadAt() == null) {
+        if (owned.recipient().getReadTime() == null) {
             owned.recipient().setStatus("READ");
-            owned.recipient().setReadAt(LocalDateTime.now());
+            owned.recipient().setReadTime(LocalDateTime.now());
             updateRecipient(owned.recipient());
         }
         Map<String, Object> targetAudit = new LinkedHashMap<>();
@@ -672,6 +731,7 @@ public class MessageService {
     @Transactional
     public MessageModels.MessageView retryDelivery(AuthenticatedContext context, Long deliveryId, String traceId) {
         require(context, "MANAGE");
+        if (context.systemId() == null) return platformMessages.retryDelivery(context, deliveryId, traceId);
         MsgDelivery delivery = deliveryService.selectList(Wrappers.<MsgDelivery>lambdaQuery()
                         .eq(MsgDelivery::getId, deliveryId).last("FOR UPDATE"))
                 .stream().findFirst().orElseThrow(() -> notFound("MESSAGE_DELIVERY_NOT_FOUND", "消息投递记录不存在"));
@@ -687,8 +747,8 @@ public class MessageService {
         LocalDateTime quietEnd = quietEnd(preference, LocalDateTime.now());
         if (quietEnd != null) {
             delivery.setStatus("QUIET_PENDING");
-            delivery.setNextAttemptAt(quietEnd);
-            delivery.setUpdatedAt(LocalDateTime.now());
+            delivery.setNextAttemptTime(quietEnd);
+            delivery.setUpdateTime(LocalDateTime.now());
             if (deliveryService.updateById(delivery) != 1) {
                 throw conflict("MESSAGE_DELIVERY_VERSION_CONFLICT", "投递记录已变化，请刷新后重试");
             }
@@ -705,13 +765,13 @@ public class MessageService {
         delivery.setAttemptCount(attempt);
         delivery.setProviderReceiptJson(toJson(Map.of("result", "PROVIDER_UNAVAILABLE", "attempt", attempt)));
         delivery.setLastError("CHANNEL_PROVIDER_UNAVAILABLE");
-        delivery.setUpdatedAt(LocalDateTime.now());
+        delivery.setUpdateTime(LocalDateTime.now());
         if (attempt >= MAX_DELIVERY_ATTEMPTS) {
             delivery.setStatus("FAILED");
-            delivery.setNextAttemptAt(null);
+            delivery.setNextAttemptTime(null);
         } else {
             delivery.setStatus("RETRY_PENDING");
-            delivery.setNextAttemptAt(LocalDateTime.now().plusMinutes(attempt));
+            delivery.setNextAttemptTime(LocalDateTime.now().plusMinutes(attempt));
         }
         if (deliveryService.updateById(delivery) != 1) {
             throw conflict("MESSAGE_DELIVERY_VERSION_CONFLICT", "投递记录已变化，请刷新后重试");
@@ -730,6 +790,7 @@ public class MessageService {
     public MessageModels.DeliveryDiagnosticsView deliveryDiagnostics(
             AuthenticatedContext context, Long messageId) {
         require(context, "MANAGE");
+        if (context.systemId() == null) return platformMessages.deliveryDiagnostics(context, messageId);
         MsgMessage message = messageService.selectById(messageId);
         if (message == null || !inContext(message, context)) {
             throw notFound("MESSAGE_NOT_FOUND", "消息不存在");
@@ -780,7 +841,7 @@ public class MessageService {
                 template.getChannel(), template.getDraftRevision(), template.getSubjectTemplate(),
                 template.getContentTemplate(), requiredVariables(template), template.getStatus(),
                 latest == null ? null : latest.getVersionNumber(), latest == null ? null : latest.getId(),
-                latest == null ? null : latest.getPublishedAt(), template.getVersion(), template.getUpdatedAt());
+                latest == null ? null : latest.getPublishTime(), template.getVersion(), template.getUpdateTime());
     }
 
     private List<String> requiredVariables(MsgTemplate template) {
@@ -808,6 +869,25 @@ public class MessageService {
                         .eq(MsgMessage::getSourceType, sourceType)
                         .eq(MsgMessage::getSourceId, sourceId))
                 .stream().filter(item -> inContext(item, context)).findFirst().orElse(null);
+    }
+
+    /** 系统消息接收人必须同时记录系统、租户和成员，保证收件箱按当前身份隔离。 */
+    private MsgRecipient insertRecipient(AuthenticatedContext context, MsgMessage message, PlatformAccount account) {
+        SystemMember member = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
+                        .eq(SystemMember::getSystemId, context.systemId())
+                        .eq(SystemMember::getAccountId, account.getId())
+                        .eq(SystemMember::getStatus, "ACTIVE"))
+                .stream().findFirst().orElseThrow(() -> invalid("MESSAGE_RECIPIENT_CONTEXT_INVALID", "接收人不是当前系统成员"));
+        MsgRecipient recipient = new MsgRecipient();
+        recipient.setMessageId(message.getId());
+        recipient.setSystemId(context.systemId());
+        recipient.setTenantId(context.tenantId());
+        recipient.setAccountId(account.getId());
+        recipient.setSystemMemberId(member.getId());
+        recipient.setStatus("UNREAD");
+        recipient.setVersion(0);
+        recipientService.insert(recipient);
+        return recipient;
     }
 
     private PlatformAccount requireRecipient(AuthenticatedContext context, Long accountId) {
@@ -883,8 +963,8 @@ public class MessageService {
         delivery.setAttemptCount(1);
         delivery.setProviderMessageId("in-app:" + message.getId() + ":" + account.getId());
         delivery.setProviderReceiptJson(toJson(Map.of("result", "STORED")));
-        delivery.setSentAt(LocalDateTime.now());
-        delivery.setDeliveredAt(LocalDateTime.now());
+        delivery.setSendTime(LocalDateTime.now());
+        delivery.setDeliverTime(LocalDateTime.now());
         delivery.setVersion(0);
         deliveryService.insert(delivery);
     }
@@ -906,13 +986,13 @@ public class MessageService {
         } else if (quietEnd != null) {
             delivery.setStatus("QUIET_PENDING");
             delivery.setAttemptCount(0);
-            delivery.setNextAttemptAt(quietEnd);
+            delivery.setNextAttemptTime(quietEnd);
             delivery.setProviderReceiptJson(toJson(Map.of("result", "USER_QUIET_HOURS")));
             delivery.setLastError("USER_QUIET_HOURS");
         } else {
             delivery.setStatus("RETRY_PENDING");
             delivery.setAttemptCount(1);
-            delivery.setNextAttemptAt(LocalDateTime.now().plusMinutes(1));
+            delivery.setNextAttemptTime(LocalDateTime.now().plusMinutes(1));
             delivery.setProviderReceiptJson(toJson(Map.of("result", "PROVIDER_UNAVAILABLE", "attempt", 1)));
             delivery.setLastError("CHANNEL_PROVIDER_UNAVAILABLE");
         }
@@ -986,7 +1066,8 @@ public class MessageService {
                 WorkTask task = workTaskService.selectById(taskId);
                 if (task == null || !sameContext(task.getContextType(), task.getPlatformId(), task.getSystemId(),
                         task.getTenantId(), context)) throw notFound("MESSAGE_TARGET_NOT_FOUND", "消息关联的工作任务不存在");
-                requireTargetPermission(context, "WORK", "TASK", "VIEW");
+                // 任务消息只提供入口；当前角色、任务参与关系和关联业务展示由任务详情统一校验。
+                workManagement.getObject().task(context, taskId);
                 return context.systemId() == null ? "/platform/tasks?taskId=" + taskId
                         : "/systems/" + context.systemId() + "?workspace=tasks&taskId=" + taskId;
             }
@@ -1058,6 +1139,11 @@ public class MessageService {
         }
         String subject = message.getSubject();
         String content = message.getContentText();
+        if ("WORK_TASK".equals(message.getTargetType()) && content != null) {
+            // 旧任务消息曾附带业务标题；任务收件人未必拥有该记录的当前读取权限。
+            int businessIndex = content.indexOf("；关联业务：");
+            if (businessIndex >= 0) content = content.substring(0, businessIndex);
+        }
         if ("FLOW_INSTANCE".equals(message.getTargetType()) && context.systemId() != null) {
             FlowInstance flow = flowInstanceService.selectById(numericTarget(message.getTargetId()));
             if (flow != null && Objects.equals(flow.getSystemId(), context.systemId())
@@ -1072,13 +1158,13 @@ public class MessageService {
                         Wrappers.<MsgDelivery>lambdaQuery().eq(MsgDelivery::getMessageId, message.getId())
                                 .eq(MsgDelivery::getAccountId, recipient.getAccountId()).orderByAsc(MsgDelivery::getId))
                 .stream().map(item -> new MessageModels.RecipientDeliveryView(item.getChannel(),
-                        item.getDestinationMasked(), item.getStatus(), item.getAttemptCount(), item.getNextAttemptAt(),
+                        item.getDestinationMasked(), item.getStatus(), item.getAttemptCount(), item.getNextAttemptTime(),
                         safeDeliveryReason(item.getLastError()))).toList();
         return new MessageModels.MessageView(message.getId(), message.getContextType(), message.getPlatformId(),
                 message.getSystemId(), message.getTenantId(), message.getTemplateVersionId(), message.getSourceType(),
                 message.getSourceId(), subject, content, message.getTargetType(),
                 message.getTargetId(), message.getTargetRoute(), message.getSensitivity(), recipient.getStatus(),
-                recipient.getReadAt(), recipient.getArchivedAt(), recipient.getVersion(), message.getCreatedAt(),
+                recipient.getReadTime(), recipient.getArchiveTime(), recipient.getVersion(), message.getCreateTime(),
                 actorName(message.getCreatedByAccountId()), targetAccessible, deliveries);
     }
 
@@ -1155,13 +1241,13 @@ public class MessageService {
 
     private MessageModels.DeliveryView deliveryView(MsgDelivery delivery) {
         return new MessageModels.DeliveryView(delivery.getId(), delivery.getChannel(), delivery.getDestinationMasked(),
-                delivery.getStatus(), delivery.getAttemptCount(), delivery.getNextAttemptAt(),
+                delivery.getStatus(), delivery.getAttemptCount(), delivery.getNextAttemptTime(),
                 delivery.getProviderMessageId(), delivery.getProviderReceiptJson(), delivery.getLastError(),
-                delivery.getSentAt(), delivery.getDeliveredAt(), delivery.getVersion());
+                delivery.getSendTime(), delivery.getDeliverTime(), delivery.getVersion());
     }
 
     private void updateRecipient(MsgRecipient recipient) {
-        recipient.setUpdatedAt(LocalDateTime.now());
+        recipient.setUpdateTime(LocalDateTime.now());
         if (recipientService.updateById(recipient) != 1) {
             throw conflict("MESSAGE_RECIPIENT_VERSION_CONFLICT", "消息状态已变化，请刷新后重试");
         }

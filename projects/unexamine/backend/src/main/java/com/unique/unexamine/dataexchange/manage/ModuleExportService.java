@@ -14,9 +14,19 @@ import com.unique.unexamine.authorization.manage.ResolvedPermissions;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.backgroundjobs.manage.BackgroundJobExecution;
 import com.unique.unexamine.dataexchange.base.entity.ExchangeExportBatch;
+import com.unique.unexamine.dataexchange.base.entity.ExchangeMapping;
+import com.unique.unexamine.dataexchange.base.entity.ExchangeMappingPublication;
+import com.unique.unexamine.dataexchange.base.entity.ExchangeMappingVersion;
 import com.unique.unexamine.dataexchange.base.service.ExchangeExportBatchBaseService;
+import com.unique.unexamine.dataexchange.base.service.ExchangeMappingBaseService;
+import com.unique.unexamine.dataexchange.base.service.ExchangeMappingPublicationBaseService;
+import com.unique.unexamine.dataexchange.base.service.ExchangeMappingVersionBaseService;
+import com.unique.unexamine.authentication.base.entity.AuthorizationPermissionVersion;
+import com.unique.unexamine.authentication.base.service.AuthorizationPermissionVersionBaseService;
 import com.unique.unexamine.file.manage.FileModels;
 import com.unique.unexamine.file.manage.FileStorageService;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEvent;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEventPublisher;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
 import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.notification.manage.MessageService;
@@ -29,8 +39,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -42,6 +57,7 @@ import java.util.Set;
 
 @Service
 public class ModuleExportService {
+    private static final String DEFAULT_CONFIG_CODE = "default_export";
     private static final List<FieldDefinition> BUILT_INS = List.of(
             new FieldDefinition("recordNumber", "记录编号", "TEXT", true, null),
             new FieldDefinition("title", "标题", "TEXT", true, null),
@@ -53,6 +69,10 @@ public class ModuleExportService {
             new FieldDefinition("updatedAt", "更新时间", "DATETIME", true, null));
 
     private final ExchangeExportBatchBaseService batches;
+    private final ExchangeMappingBaseService mappings;
+    private final ExchangeMappingVersionBaseService mappingVersions;
+    private final ExchangeMappingPublicationBaseService mappingPublications;
+    private final AuthorizationPermissionVersionBaseService permissionVersions;
     private final ModulePublicationService publicationService;
     private final RuntimeDataService runtimeDataService;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
@@ -64,9 +84,16 @@ public class ModuleExportService {
     private final ObjectMapper objectMapper;
     private final SpreadsheetExchangeCodec spreadsheetCodec;
     private final long maximumRows;
+    private final TenantExchangeQuotaService exchangeQuotaService;
+    private final LocalBusinessEventPublisher localEvents;
+    private final TransactionTemplate transactions;
 
     public ModuleExportService(
             ExchangeExportBatchBaseService batches,
+            ExchangeMappingBaseService mappings,
+            ExchangeMappingVersionBaseService mappingVersions,
+            ExchangeMappingPublicationBaseService mappingPublications,
+            AuthorizationPermissionVersionBaseService permissionVersions,
             ModulePublicationService publicationService,
             RuntimeDataService runtimeDataService,
             ChannelFieldPolicyResolver fieldPolicyResolver,
@@ -77,8 +104,15 @@ public class ModuleExportService {
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
             SpreadsheetExchangeCodec spreadsheetCodec,
+            TenantExchangeQuotaService exchangeQuotaService,
+            LocalBusinessEventPublisher localEvents,
+            TransactionTemplate transactions,
             @Value("${unexamine.exports.max-rows:5000}") long maximumRows) {
         this.batches = batches;
+        this.mappings = mappings;
+        this.mappingVersions = mappingVersions;
+        this.mappingPublications = mappingPublications;
+        this.permissionVersions = permissionVersions;
         this.publicationService = publicationService;
         this.runtimeDataService = runtimeDataService;
         this.fieldPolicyResolver = fieldPolicyResolver;
@@ -89,7 +123,133 @@ public class ModuleExportService {
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
         this.spreadsheetCodec = spreadsheetCodec;
+        this.exchangeQuotaService = exchangeQuotaService;
+        this.localEvents = localEvents;
+        this.transactions = transactions;
         this.maximumRows = Math.max(1, maximumRows);
+    }
+
+    /** 导出配置属于当前模块；普通导出成员只能读取发布版本，管理员可编辑草稿。 */
+    @Transactional(readOnly = true)
+    public ExportModels.ConfigOverview config(
+            AuthenticatedContext context, String moduleCode, String traceId) {
+        RuntimeModuleConfiguration module = requireExport(context, moduleCode, traceId);
+        ExchangeMapping mapping = findMapping(context, module.moduleId());
+        boolean manager = permissionChecker.allows(context, "CONFIG", "MODULE", "MANAGE");
+        return new ExportModels.ConfigOverview(availableFields(context, moduleCode, module).stream()
+                .map(FieldDefinition::view).toList(),
+                manager && mapping != null ? draftView(mapping) : null,
+                mapping == null ? null : publishedView(findPublished(mapping)));
+    }
+
+    /** 保存草稿时按当前模块字段和文件渠道权限校验，防止配置越过字段授权。 */
+    @Transactional
+    public ExportModels.ConfigDraftView saveConfig(
+            AuthenticatedContext context, String moduleCode, ExportModels.SaveConfigRequest input, String traceId) {
+        requireConfigManage(context, traceId);
+        RuntimeModuleConfiguration module = requireExport(context, moduleCode, traceId);
+        List<String> selected = validateFields(input.selectedFields(),
+                availableFields(context, moduleCode, module));
+        String relationDisplay = normalizeRelationDisplay(input.relationDisplay());
+        ExchangeMapping mapping = findMapping(context, module.moduleId());
+        if (mapping == null) {
+            if (input.expectedVersion() != null) throw conflict("EXPORT_CONFIG_VERSION_CONFLICT", "导出配置已变化，请刷新");
+            mapping = new ExchangeMapping();
+            mapping.setSystemId(context.systemId());
+            mapping.setOwnerTenantId(context.tenantId());
+            mapping.setModuleId(module.moduleId());
+            mapping.setCode(DEFAULT_CONFIG_CODE);
+            mapping.setMappingType("EXPORT");
+            mapping.setDraftRevision(1);
+            mapping.setCreatedByMemberId(context.memberId());
+            mapping.setVersion(0);
+            mapping.setValidationPolicyJson("{}");
+            mapping.setConflictPolicyJson("{}");
+        } else {
+            if (!Objects.equals(input.expectedVersion(), mapping.getVersion())) {
+                throw conflict("EXPORT_CONFIG_VERSION_CONFLICT", "导出配置已变化，请刷新");
+            }
+            mapping.setDraftRevision(mapping.getDraftRevision() + 1);
+        }
+        mapping.setName(input.name().strip());
+        mapping.setColumnMappingJson(json(Map.of("selectedFields", selected,
+                "relationDisplay", relationDisplay)));
+        mapping.setStatus("DRAFT");
+        mapping.setUpdateTime(LocalDateTime.now());
+        if (mapping.getId() == null) mappings.insert(mapping);
+        else if (mappings.updateById(mapping) == 0) {
+            throw conflict("EXPORT_CONFIG_VERSION_CONFLICT", "导出配置已变化，请刷新");
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "MODULE_EXPORT_CONFIG_SAVED", "EXCHANGE_MAPPING", mapping.getId().toString(), "SUCCESS",
+                Map.of("moduleCode", moduleCode, "draftRevision", mapping.getDraftRevision()));
+        return draftView(mappings.selectById(mapping.getId()));
+    }
+
+    /** 发布一个不可变字段快照，运行导出任务只读取已发布版本。 */
+    @Transactional
+    public ExportModels.ConfigPublishedView publishConfig(
+            AuthenticatedContext context, String moduleCode,
+            ExportModels.PublishConfigRequest input, String traceId) {
+        requireConfigManage(context, traceId);
+        RuntimeModuleConfiguration module = requireExport(context, moduleCode, traceId);
+        ExchangeMapping mapping = findMapping(context, module.moduleId());
+        if (mapping == null) throw notFound("EXPORT_CONFIG_NOT_FOUND", "请先保存导出字段配置");
+        if (!Objects.equals(input.expectedDraftRevision(), mapping.getDraftRevision())) {
+            throw conflict("EXPORT_CONFIG_REVISION_CONFLICT", "导出配置草稿已变化，请刷新");
+        }
+        Map<String, Object> draft = parseObject(mapping.getColumnMappingJson());
+        List<String> selected = validateFields(stringList(draft.get("selectedFields")),
+                availableFields(context, moduleCode, module));
+        String relationDisplay = normalizeRelationDisplay(String.valueOf(draft.getOrDefault("relationDisplay", "LABEL")));
+        if (!mappingVersions.selectList(Wrappers.<ExchangeMappingVersion>lambdaQuery()
+                .eq(ExchangeMappingVersion::getMappingId, mapping.getId())
+                .eq(ExchangeMappingVersion::getDraftRevision, mapping.getDraftRevision())).isEmpty()) {
+            throw conflict("EXPORT_CONFIG_ALREADY_PUBLISHED", "当前草稿修订已发布");
+        }
+        int nextNumber = mappingVersions.selectList(Wrappers.<ExchangeMappingVersion>lambdaQuery()
+                        .eq(ExchangeMappingVersion::getMappingId, mapping.getId()))
+                .stream().map(ExchangeMappingVersion::getVersionNumber)
+                .max(Integer::compareTo).orElse(0) + 1;
+        String snapshot = json(Map.of("name", mapping.getName(), "selectedFields", selected,
+                "relationDisplay", relationDisplay));
+        ExchangeMappingVersion version = new ExchangeMappingVersion();
+        version.setOwnerTenantId(context.tenantId());
+        version.setModuleId(module.moduleId());
+        version.setMappingId(mapping.getId());
+        version.setModuleConfigVersionId(module.versionId());
+        version.setVersionNumber(nextNumber);
+        version.setDraftRevision(mapping.getDraftRevision());
+        version.setSnapshotJson(snapshot);
+        version.setSnapshotHash(sha256(snapshot));
+        version.setPublishedByMemberId(context.memberId());
+        mappingVersions.insert(version);
+        ExchangeMappingPublication pointer = mappingPublications.selectOne(
+                Wrappers.<ExchangeMappingPublication>lambdaQuery()
+                        .eq(ExchangeMappingPublication::getMappingId, mapping.getId()));
+        if (pointer == null) {
+            pointer = new ExchangeMappingPublication();
+            pointer.setOwnerTenantId(context.tenantId());
+            pointer.setMappingId(mapping.getId());
+            pointer.setCurrentVersionId(version.getId());
+            pointer.setUpdatedByMemberId(context.memberId());
+            pointer.setVersion(0);
+            mappingPublications.insert(pointer);
+        } else {
+            pointer.setCurrentVersionId(version.getId());
+            pointer.setUpdatedByMemberId(context.memberId());
+            if (mappingPublications.updateById(pointer) == 0) {
+                throw conflict("EXPORT_CONFIG_PUBLICATION_CONFLICT", "导出配置发布指针已变化");
+            }
+        }
+        mapping.setStatus("PUBLISHED");
+        if (mappings.updateById(mapping) == 0) {
+            throw conflict("EXPORT_CONFIG_VERSION_CONFLICT", "导出配置草稿已变化");
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "MODULE_EXPORT_CONFIG_PUBLISHED", "EXCHANGE_MAPPING_VERSION", version.getId().toString(),
+                "SUCCESS", Map.of("moduleCode", moduleCode, "versionNumber", nextNumber));
+        return publishedView(version);
     }
 
     @Transactional(readOnly = true)
@@ -112,26 +272,41 @@ public class ModuleExportService {
         }
         Map<String, Object> filterSnapshot = querySnapshot(input);
         String idempotencyKey = String.valueOf(filterSnapshot.get("idempotencyKey"));
+        var policy = exchangeQuotaService.lock(context, "EXPORT_COUNT");
         ExchangeExportBatch existing = batches.selectList(Wrappers.<ExchangeExportBatch>lambdaQuery()
                         .eq(ExchangeExportBatch::getSystemId, context.systemId())
                         .eq(ExchangeExportBatch::getTenantId, context.tenantId())
                         .eq(ExchangeExportBatch::getModuleId, preparation.configuration().moduleId())
                         .eq(ExchangeExportBatch::getCreatedByMemberId, context.memberId())
-                        .orderByDesc(ExchangeExportBatch::getId).last("limit 20"))
+                        .orderByDesc(ExchangeExportBatch::getId).last("FOR UPDATE"))
                 .stream().filter(item -> idempotencyKey.equals(String.valueOf(
                         parseObject(item.getFilterSnapshotJson()).get("idempotencyKey"))))
                 .findFirst().orElse(null);
         if (existing != null) return view(moduleCode, existing);
+        LocalDateTime submittedTime = LocalDateTime.now();
+        exchangeQuotaService.requireCapacity(context, policy, false, submittedTime);
         ExchangeExportBatch batch = new ExchangeExportBatch();
         batch.setSystemId(context.systemId());
         batch.setTenantId(context.tenantId());
         batch.setModuleId(preparation.configuration().moduleId());
+        batch.setModuleConfigVersionId(preparation.configuration().versionId());
+        batch.setPermissionVersionId(currentPermissionVersionId(context));
+        if (preparation.mappingVersion() != null) {
+            batch.setMappingId(preparation.mappingVersion().getMappingId());
+            batch.setMappingVersionId(preparation.mappingVersion().getId());
+        }
+        batch.setExportFormat(normalizedFormat(input.format()));
         filterSnapshot.put("authorizedRecordIds", preparation.records().stream().map(RuntimeRecordView::id).toList());
         filterSnapshot.put("estimatedAt", LocalDateTime.now().toString());
+        filterSnapshot.put("relationDisplay", preparation.relationDisplay());
+        if (preparation.mappingVersion() != null) {
+            filterSnapshot.put("configVersionId", preparation.mappingVersion().getId());
+        }
         batch.setFilterSnapshotJson(json(filterSnapshot));
         batch.setAuthorizationSnapshotJson(json(authorizationSnapshot(context, moduleCode, preparation.fields())));
         batch.setSelectedFieldsJson(json(preparation.fields().stream().map(FieldDefinition::code).toList()));
         batch.setStatus("QUEUED");
+        batch.setStartTime(submittedTime);
         batch.setTotalRows((long) preparation.records().size());
         batch.setExportedRows(0L);
         batch.setCreatedByMemberId(context.memberId());
@@ -162,7 +337,7 @@ public class ModuleExportService {
         if ("QUEUED".equals(batch.getStatus()) && batch.getJobId() == null) {
             batch.setStatus("FAILED");
             batch.setErrorMessage(truncate(message));
-            batch.setFinishedAt(LocalDateTime.now());
+            batch.setFinishTime(LocalDateTime.now());
             batches.updateById(batch);
         }
     }
@@ -200,7 +375,7 @@ public class ModuleExportService {
             requireExport(context, moduleCode, "export-job-" + execution.jobId());
             batch.setJobId(execution.jobId());
             batch.setStatus("RUNNING");
-            if (batch.getStartedAt() == null) batch.setStartedAt(LocalDateTime.now());
+            if (batch.getStartTime() == null) batch.setStartTime(LocalDateTime.now());
             batch.setErrorMessage(null);
             batches.updateById(batch);
 
@@ -229,7 +404,9 @@ public class ModuleExportService {
                 throw invalid("EXPORT_ROW_QUOTA_EXCEEDED", "任务执行时的导出行数超过配额");
             }
             List<String> snapshotMasked = stringList(authorization.get("maskedFields"));
-            List<List<String>> table = table(selectedFields, snapshotMasked, exported, batchId, execution);
+            List<List<String>> table = table(selectedFields, snapshotMasked, exported,
+                    normalizeRelationDisplay(String.valueOf(snapshot.getOrDefault("relationDisplay", "LABEL"))),
+                    batchId, execution);
             List<String> headers = selectedFields.stream().map(FieldDefinition::name).toList();
             String format = normalizedFormat(query.format());
             byte[] content = "XLSX".equals(format)
@@ -242,17 +419,22 @@ public class ModuleExportService {
             FileModels.FileView file = fileStorageService.storeGenerated(context,
                     moduleCode + "-export-" + batchId + "." + extension, contentType, content,
                     "module_export", "export-job-" + execution.jobId());
-            batch = batches.selectById(batchId);
-            batch.setStatus("COMPLETED");
-            batch.setExportedRows((long) exported.size());
-            batch.setResultFileId(file.id());
-            batch.setFinishedAt(LocalDateTime.now());
-            batch.setErrorMessage(null);
-            batches.updateById(batch);
-            auditRecorder.record("export-job-" + execution.jobId(), context.accountId(), context.systemId(),
-                    context.tenantId(), context.memberId(), "MODULE_EXPORT_COMPLETED", "EXPORT_BATCH",
-                    String.valueOf(batchId), "COMPLETED", Map.of("moduleCode", moduleCode,
-                            "exportedRows", exported.size(), "fileId", file.id(), "jobId", execution.jobId()));
+            // 文件生成之后，批次终态与本地事件同事务提交；失败重试不能留下成功事件。
+            transactions.executeWithoutResult(ignored -> {
+                ExchangeExportBatch completed = batches.selectById(batchId);
+                completed.setStatus("COMPLETED");
+                completed.setExportedRows((long) exported.size());
+                completed.setResultFileId(file.id());
+                completed.setFinishTime(LocalDateTime.now());
+                completed.setErrorMessage(null);
+                batches.updateById(completed);
+                auditRecorder.record("export-job-" + execution.jobId(), context.accountId(), context.systemId(),
+                        completed.getTenantId(), context.memberId(), "MODULE_EXPORT_COMPLETED", "EXPORT_BATCH",
+                        String.valueOf(batchId), "COMPLETED", Map.of("moduleCode", moduleCode,
+                                "exportedRows", exported.size(), "fileId", file.id(), "jobId", execution.jobId()));
+                localEvents.publish(context, completed.getTenantId(), LocalBusinessEvent.Type.EXPORT_COMPLETED,
+                        "EXPORT_BATCH", String.valueOf(batchId), moduleCode);
+            });
             notifyResult(context, batchId, moduleCode, true, exported.size(), null,
                     "export-job-" + execution.jobId() + "-message");
             return Map.of("batchId", batchId, "fileId", file.id(), "exportedRows", exported.size());
@@ -261,7 +443,7 @@ public class ModuleExportService {
             failed.setStatus("FAILED");
             failed.setResultFileId(null);
             failed.setErrorMessage(truncate(exception.getMessage()));
-            failed.setFinishedAt(LocalDateTime.now());
+            failed.setFinishTime(LocalDateTime.now());
             batches.updateById(failed);
             auditRecorder.recordFailure("export-job-" + execution.jobId(), context.accountId(), context.systemId(),
                     context.tenantId(), context.memberId(), "MODULE_EXPORT_FAILED", "EXPORT_BATCH",
@@ -316,7 +498,12 @@ public class ModuleExportService {
         List<FieldDefinition> available = availableFields(context, moduleCode, configuration);
         Map<String, FieldDefinition> byCode = new LinkedHashMap<>();
         available.forEach(field -> byCode.put(field.code(), field));
-        List<String> requested = input.selectedFields().stream().filter(Objects::nonNull)
+        ExchangeMappingVersion selectedVersion = resolveVersion(context, configuration.moduleId(), input.configVersionId());
+        Map<String, Object> published = selectedVersion == null ? Map.of() : parseObject(selectedVersion.getSnapshotJson());
+        List<String> source = input.selectedFields() == null || input.selectedFields().isEmpty()
+                ? stringList(published.get("selectedFields")) : input.selectedFields();
+        if (source.isEmpty()) throw invalid("EXPORT_FIELDS_REQUIRED", "请选择导出字段或先发布导出配置");
+        List<String> requested = source.stream().filter(Objects::nonNull)
                 .map(String::strip).filter(value -> !value.isEmpty()).distinct().toList();
         List<String> invalidFields = requested.stream().filter(code -> !byCode.containsKey(code)).toList();
         if (!invalidFields.isEmpty()) {
@@ -331,7 +518,10 @@ public class ModuleExportService {
         String scope = input.selectedRecordIds() == null || input.selectedRecordIds().isEmpty() ? "CURRENT_FILTER" : "SELECTED";
         ExportModels.EstimateView estimate = new ExportModels.EstimateView(moduleCode, scope, records.size(),
                 maximumRows, records.size() <= maximumRows, fieldViews, selectedViews, masked);
-        return new ExportPreparation(configuration, selectedFields, records, estimate);
+        String relationDisplay = normalizeRelationDisplay(
+                String.valueOf(published.getOrDefault("relationDisplay", "LABEL")));
+        return new ExportPreparation(configuration, selectedVersion, relationDisplay,
+                selectedFields, records, estimate);
     }
 
     private List<FieldDefinition> availableFields(
@@ -344,6 +534,8 @@ public class ModuleExportService {
         Map<String, FieldAccessDecision> exportDecisions = fieldPolicyResolver.resolve(
                 context, moduleCode, "EXPORT", "FILE", codes);
         configuration.configuration().path("fields").forEach(field -> {
+            // 子表列由容器一起导出；单独列既无主记录值，也会误导再次导入的字段映射。
+            if (field.hasNonNull("parentFieldId")) return;
             String code = field.path("code").asText();
             FieldAccessDecision page = listDecisions.get(code);
             FieldAccessDecision file = exportDecisions.get(code);
@@ -372,7 +564,7 @@ public class ModuleExportService {
         int page = 1;
         long total;
         do {
-            RuntimeRecordList current = runtimeDataService.list(context, moduleCode, lifecycle, tenantScope,
+            RuntimeRecordList current = runtimeDataService.listForExport(context, moduleCode, lifecycle, tenantScope,
                     input.search(), filtersJson, sortField, sortDirection, page, 200, traceId + "-page-" + page);
             total = current.total();
             current.records().stream().filter(record -> selected.isEmpty() || selected.contains(record.id()))
@@ -386,7 +578,7 @@ public class ModuleExportService {
     private List<List<String>> table(
             List<FieldDefinition> fields,
             List<String> snapshotMasked, List<RuntimeRecordView> records,
-            Long batchId, BackgroundJobExecution execution) {
+            String relationDisplay, Long batchId, BackgroundJobExecution execution) {
         List<List<String>> result = new ArrayList<>();
         Set<String> submissionMasks = new LinkedHashSet<>(snapshotMasked);
         long processed = 0;
@@ -398,7 +590,8 @@ public class ModuleExportService {
                     value = mask(String.valueOf(jsonValue(value)), field.maskStrategy() == null ? "FULL" : field.maskStrategy());
                 }
                 if (!field.builtIn() && !submissionMasks.contains(field.code())
-                        && usesDisplayValue(field.fieldType())) {
+                        && usesDisplayValue(field.fieldType())
+                        && !("ID".equals(relationDisplay) && "REFERENCE".equals(field.fieldType()))) {
                     RuntimeFieldPresentation presentation = record.fieldPresentation().get(field.code());
                     if (presentation != null && presentation.displayValue() != null) {
                         value = presentation.displayValue();
@@ -433,7 +626,9 @@ public class ModuleExportService {
     }
 
     private boolean usesDisplayValue(String fieldType) {
-        return Set.of("REFERENCE", "MEMBER", "DEPARTMENT", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE")
+        // 附件类字段导出已授权的文件名，避免把内部文件 ID 暴露为业务内容。
+        return Set.of("REFERENCE", "MEMBER", "DEPARTMENT", "SINGLE_SELECT", "MULTI_SELECT", "STATUS", "CASCADE",
+                        "ATTACHMENT", "IMAGE", "FILE", "FILE_GROUP")
                 .contains(fieldType);
     }
 
@@ -453,6 +648,104 @@ public class ModuleExportService {
         }
         if (!publishedAction) throw invalid("EXPORT_ACTION_NOT_PUBLISHED", "模块当前发布版本未启用导出动作");
         return configuration;
+    }
+
+    private void requireConfigManage(AuthenticatedContext context, String traceId) {
+        if (context.systemId() != null
+                && permissionChecker.allows(context, "CONFIG", "MODULE", "MANAGE")) return;
+        auditRecorder.recordPermissionDenied(traceId, context.accountId(), context.systemId(), context.tenantId(),
+                context.memberId(), "CONFIG:MODULE:MANAGE",
+                Map.of("roleIds", context.roleIds(), "permissions", context.permissions()));
+        throw forbidden("EXPORT_CONFIG_PERMISSION_DENIED", "没有管理模块导出配置的权限");
+    }
+
+    private ExchangeMapping findMapping(AuthenticatedContext context, Long moduleId) {
+        return mappings.selectOne(Wrappers.<ExchangeMapping>lambdaQuery()
+                .eq(ExchangeMapping::getSystemId, context.systemId())
+                .eq(ExchangeMapping::getOwnerTenantId, context.tenantId())
+                .eq(ExchangeMapping::getModuleId, moduleId)
+                .eq(ExchangeMapping::getMappingType, "EXPORT")
+                .eq(ExchangeMapping::getCode, DEFAULT_CONFIG_CODE));
+    }
+
+    private ExchangeMappingVersion findPublished(ExchangeMapping mapping) {
+        ExchangeMappingPublication pointer = mappingPublications.selectOne(
+                Wrappers.<ExchangeMappingPublication>lambdaQuery()
+                        .eq(ExchangeMappingPublication::getMappingId, mapping.getId())
+                        .eq(ExchangeMappingPublication::getOwnerTenantId, mapping.getOwnerTenantId()));
+        if (pointer == null) return null;
+        ExchangeMappingVersion version = mappingVersions.selectById(pointer.getCurrentVersionId());
+        if (version == null || !Objects.equals(version.getMappingId(), mapping.getId())) {
+            throw conflict("EXPORT_CONFIG_PUBLICATION_INVALID", "导出配置发布版本不存在");
+        }
+        return version;
+    }
+
+    private ExchangeMappingVersion resolveVersion(
+            AuthenticatedContext context, Long moduleId, Long versionId) {
+        ExchangeMapping mapping = findMapping(context, moduleId);
+        if (versionId == null) return mapping == null ? null : findPublished(mapping);
+        ExchangeMappingVersion version = mappingVersions.selectById(versionId);
+        if (mapping == null || version == null
+                || !Objects.equals(version.getMappingId(), mapping.getId())
+                || !Objects.equals(version.getOwnerTenantId(), context.tenantId())
+                || !Objects.equals(version.getModuleId(), moduleId)) {
+            throw notFound("EXPORT_CONFIG_VERSION_NOT_FOUND", "导出配置版本不存在");
+        }
+        return version;
+    }
+
+    private ExportModels.ConfigDraftView draftView(ExchangeMapping mapping) {
+        Map<String, Object> draft = parseObject(mapping.getColumnMappingJson());
+        return new ExportModels.ConfigDraftView(mapping.getId(), mapping.getName(),
+                stringList(draft.get("selectedFields")),
+                normalizeRelationDisplay(String.valueOf(draft.getOrDefault("relationDisplay", "LABEL"))),
+                mapping.getDraftRevision(), mapping.getVersion(), mapping.getStatus());
+    }
+
+    private ExportModels.ConfigPublishedView publishedView(ExchangeMappingVersion version) {
+        if (version == null) return null;
+        Map<String, Object> snapshot = parseObject(version.getSnapshotJson());
+        return new ExportModels.ConfigPublishedView(version.getId(), version.getVersionNumber(),
+                stringList(snapshot.get("selectedFields")),
+                normalizeRelationDisplay(String.valueOf(snapshot.getOrDefault("relationDisplay", "LABEL"))));
+    }
+
+    private List<String> validateFields(List<String> requested, List<FieldDefinition> available) {
+        if (requested == null || requested.isEmpty()) throw invalid("EXPORT_FIELDS_REQUIRED", "至少选择一个导出字段");
+        Set<String> allowed = new LinkedHashSet<>(available.stream().map(FieldDefinition::code).toList());
+        LinkedHashSet<String> selected = new LinkedHashSet<>();
+        for (String raw : requested) {
+            String code = raw == null ? "" : raw.strip();
+            if (!allowed.contains(code)) throw forbidden("EXPORT_FIELD_FORBIDDEN", "导出字段不存在或无权限：" + code);
+            if (!selected.add(code)) throw invalid("EXPORT_FIELD_DUPLICATED", "导出字段不能重复：" + code);
+        }
+        return List.copyOf(selected);
+    }
+
+    private String normalizeRelationDisplay(String value) {
+        if (value == null || value.isBlank()) return "LABEL";
+        if ("LABEL".equals(value) || "ID".equals(value)) return value;
+        throw invalid("EXPORT_RELATION_DISPLAY_INVALID", "关联字段导出方式必须为展示值或 ID");
+    }
+
+    private Long currentPermissionVersionId(AuthenticatedContext context) {
+        AuthorizationPermissionVersion version = permissionVersions.selectOne(
+                Wrappers.<AuthorizationPermissionVersion>lambdaQuery()
+                        .eq(AuthorizationPermissionVersion::getContextType, "SYSTEM")
+                        .eq(AuthorizationPermissionVersion::getSystemId, context.systemId())
+                        .eq(AuthorizationPermissionVersion::getTenantId, context.tenantId())
+                        .orderByDesc(AuthorizationPermissionVersion::getId).last("limit 1"));
+        return version == null ? 0L : version.getId();
+    }
+
+    private String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 unavailable", exception);
+        }
     }
 
     private ExchangeExportBatch requireBatch(
@@ -518,7 +811,8 @@ public class ModuleExportService {
                 String.valueOf(source.getOrDefault("sortDirection", "DESC")),
                 longList(source.get("selectedRecordIds")),
                 normalizedFormat(String.valueOf(source.getOrDefault("format", "CSV"))),
-                String.valueOf(source.getOrDefault("idempotencyKey", "legacy")), fields);
+                String.valueOf(source.getOrDefault("idempotencyKey", "legacy")), fields,
+                source.get("configVersionId") == null ? null : longValue(source.get("configVersionId")));
     }
 
     private ExportModels.ExportBatchView view(String moduleCode, ExchangeExportBatch batch) {
@@ -529,7 +823,7 @@ public class ModuleExportService {
                 batch.getErrorMessage(), snapshot,
                 normalizedFormat(String.valueOf(snapshot.getOrDefault("format", "CSV"))),
                 parseStringList(batch.getSelectedFieldsJson()),
-                batch.getCreatedAt(), batch.getStartedAt(), batch.getFinishedAt(), batch.getVersion());
+                batch.getCreateTime(), batch.getStartTime(), batch.getFinishTime(), batch.getVersion());
     }
 
     private String normalizedFormat(String value) {
@@ -653,7 +947,8 @@ public class ModuleExportService {
     }
 
     private record ExportPreparation(
-            RuntimeModuleConfiguration configuration, List<FieldDefinition> fields,
+            RuntimeModuleConfiguration configuration, ExchangeMappingVersion mappingVersion,
+            String relationDisplay, List<FieldDefinition> fields,
             List<RuntimeRecordView> records, ExportModels.EstimateView estimate) {
     }
 

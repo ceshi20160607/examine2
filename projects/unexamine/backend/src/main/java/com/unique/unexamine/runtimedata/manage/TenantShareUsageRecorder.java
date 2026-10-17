@@ -23,7 +23,7 @@ public class TenantShareUsageRecorder {
         usage.setTargetTenantMemberId(targetTenantMemberId);
         usage.setActionCode(actionCode);
         usage.setResultCode(resultCode);
-        usage.setOccurredAt(LocalDateTime.now());
+        usage.setOccurTime(LocalDateTime.now());
         usageService.insert(usage);
     }
 }

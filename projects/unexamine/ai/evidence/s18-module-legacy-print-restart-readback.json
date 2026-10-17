@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "restartReadback": true,
+  "versionId": 104,
+  "newJobId": 130,
+  "historicalPdfs": 11,
+  "historicalStatuses": {
+    "MISSING_BLOB_IN_ISOLATED_FIXTURE": 10,
+    "CURRENT_FIELD_PERMISSION_REVOKED": 1
+  }
+}

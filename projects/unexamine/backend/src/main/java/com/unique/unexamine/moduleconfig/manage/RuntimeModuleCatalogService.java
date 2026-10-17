@@ -136,15 +136,14 @@ public class RuntimeModuleCatalogService {
         try {
             JsonNode snapshot = objectMapper.readTree(version.getSnapshotJson());
             JsonNode snapshotModule = snapshot.path("module");
-            JsonNode snapshotGroup = snapshot.path("group");
             JsonNode menu = firstVisibleMenu(snapshot.path("menus"));
             if (snapshot.has("menus") && menu == null) return null;
             Long groupId = nullableLong(snapshotModule.path("groupId"), module.getGroupId());
-            String groupCode = text(snapshotGroup.path("code"), liveGroup == null ? "ungrouped" : liveGroup.getCode());
-            String groupName = text(snapshotGroup.path("name"), liveGroup == null ? "其他" : liveGroup.getName());
-            Integer groupOrder = snapshotGroup.path("sortOrder").isNumber()
-                    ? snapshotGroup.path("sortOrder").asInt()
-                    : liveGroup == null ? Integer.MAX_VALUE : liveGroup.getSortOrder();
+            // 模块内容按发布快照运行；分组名称和顺序由当前有效分组统一控制导航。
+            if (liveGroup == null) return null;
+            String groupCode = liveGroup.getCode();
+            String groupName = liveGroup.getName();
+            Integer groupOrder = liveGroup.getSortOrder();
             String moduleCode = text(snapshotModule.path("code"), module.getCode());
             String moduleName = text(snapshotModule.path("name"), module.getName());
             return new RuntimeModuleCatalogItem(

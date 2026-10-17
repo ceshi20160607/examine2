@@ -1,0 +1,28 @@
+{
+  "step": "S18.12",
+  "environment": {
+    "system_id": 165,
+    "main_tenant_id": 166,
+    "receiving_tenant_id": 167,
+    "database": "unexamine_drill_s17_files_1054",
+    "backend_release": "s18-v9",
+    "backend_jar_sha256": "b5586551736d4d1dd910726c97d3c2da45698ec0846c94f16eb12c22e29f0865"
+  },
+  "baseline": "主租户采购申请 #177 与明细 #178 由同一负责人 #249 创建；#178 的所属申请字段引用 #177，明细金额 90。两条都未共享时分租户图表/KPI 为 175，直读 #177/#178 均无授权。",
+  "detail_only": {
+    "share_id": 3,
+    "grant": "主租户把明细 #178 的 LIST、DETAIL 共享给租户 #167，未共享关联申请 #177。",
+    "browser": "普通成员列表出现 #178；详情金额 90 可见，所属申请显示“无权查看关联记录”，没有泄露 #177 名称。",
+    "api": "对 #177 直接详情返回 HTTP 404 RECORD_NOT_FOUND；继承主租户配置的分组、日趋势以及本租户 KPI 都保持 175，因为关联数据未获权。"
+  },
+  "both_shared": {
+    "share_id": 4,
+    "grant": "再将关联申请 #177 的 LIST、DETAIL 共享给租户 #167。",
+    "browser": "重新打开 #178 详情后所属申请显示“跨功能采购联测 2026-10-12”。",
+    "api": "分租户分组、日趋势和本租户 KPI 都变为 265，仅增加新授权关联明细的 90。"
+  },
+  "revocation": "撤销 #177 的共享 #4 后，详情关联名称重新脱敏，分租户图表/KPI 回到 175；再撤销 #178 的共享 #3 后，列表仅 [176,172]，直读 #178 返回 HTTP 404 RECORD_NOT_FOUND。主租户图表仍为 329.5，源记录未删除。",
+  "mysql_and_restart": "un_biz_tenant_share #3/#4 均为 source_tenant_id=166、target_tenant_id=167、status=REVOKED、version=1；un_biz_record #177/#178 仍属主租户。重启同一 s18-v9 容器后 readiness UP，分租户列表 [176,172]/图表 175、主租户图表 329.5，普通成员页面无 #178。",
+  "implementation": "本步骤未修改业务代码；现有逐记录共享、关联显示与关联数据源权限组合满足该场景。",
+  "remaining": "尚需整站最终验收与真实第三方依赖；共享的其他类型引用和复杂多级关系未在本步骤逐一穷举。"
+}

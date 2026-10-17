@@ -5,17 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.unique.unexamine.application.base.entity.AppCall;
 import com.unique.unexamine.application.base.entity.AppCallNonce;
-import com.unique.unexamine.application.base.entity.AppBridgeIdentity;
 import com.unique.unexamine.application.base.entity.AppCredential;
 import com.unique.unexamine.application.base.entity.AppDefinition;
 import com.unique.unexamine.application.base.entity.AppPublication;
 import com.unique.unexamine.application.base.entity.AppVersion;
 import com.unique.unexamine.application.base.service.AppCallBaseService;
 import com.unique.unexamine.application.base.service.AppCallNonceBaseService;
-import com.unique.unexamine.application.base.service.AppBridgeIdentityBaseService;
 import com.unique.unexamine.application.base.service.AppCredentialBaseService;
 import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
 import com.unique.unexamine.application.base.service.AppPublicationBaseService;
@@ -24,33 +21,39 @@ import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.DataScopeExpression;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
-import com.unique.unexamine.authorization.manage.PermissionChecker;
-import com.unique.unexamine.authorization.manage.PermissionResolver;
-import com.unique.unexamine.authorization.manage.PlatformPermissionResolver;
-import com.unique.unexamine.authorization.manage.ResolvedPermissions;
+import com.unique.unexamine.authorization.manage.PermissionGrant;
 import com.unique.unexamine.flow.base.entity.FlowDefinition;
 import com.unique.unexamine.flow.base.service.FlowDefinitionBaseService;
+import com.unique.unexamine.flow.manage.FlowDesignModels;
+import com.unique.unexamine.flow.manage.FlowDesignService;
 import com.unique.unexamine.flow.manage.FlowRuntimeModels;
 import com.unique.unexamine.flow.manage.FlowRuntimeService;
+import com.unique.unexamine.foundation.base.entity.CoreQuotaPolicy;
+import com.unique.unexamine.foundation.base.service.CoreQuotaPolicyBaseService;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModule;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.entity.PlatformDepartment;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
+import com.unique.unexamine.platform.base.service.PlatformDepartmentBaseService;
 import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
 import com.unique.unexamine.runtimedata.manage.CreateRuntimeRecordRequest;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
+import com.unique.unexamine.runtimedata.manage.RuntimeListQueryField;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.runtimedata.manage.UpdateRuntimeRecordRequest;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemMember;
 import com.unique.unexamine.system.base.entity.SystemDefinition;
+import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
 import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
+import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
@@ -59,6 +62,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import jakarta.validation.Validator;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -66,6 +70,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -82,30 +87,33 @@ import java.util.Set;
 public class ApplicationBridgeService {
     private static final long TIMESTAMP_TOLERANCE_MILLIS = 5 * 60 * 1000L;
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
+    private static final Set<String> MODULE_BASE_QUERY_FIELDS = Set.of("title", "recordNumber", "status",
+            "ownerMemberId", "departmentId", "createdAt", "updatedAt", "dataTenantName");
     private final AppDefinitionBaseService definitionService;
     private final AppCredentialBaseService credentialService;
     private final AppPublicationBaseService publicationService;
     private final AppVersionBaseService versionService;
     private final AppCallBaseService callService;
     private final AppCallNonceBaseService nonceService;
-    private final AppBridgeIdentityBaseService bridgeIdentityService;
+    private final CoreQuotaPolicyBaseService quotaPolicyService;
     private final PlatformAccountBaseService accountService;
     private final PlatformMemberBaseService platformMemberService;
     private final SystemMemberBaseService systemMemberService;
     private final SystemDefinitionBaseService systemService;
     private final SystemTenantBaseService tenantService;
     private final SystemTenantMemberBaseService tenantMemberService;
-    private final PlatformPermissionResolver platformPermissionResolver;
-    private final PermissionResolver permissionResolver;
-    private final PermissionChecker permissionChecker;
+    private final SystemDepartmentBaseService systemDepartmentService;
+    private final PlatformDepartmentBaseService platformDepartmentService;
     private final FlowDefinitionBaseService flowDefinitionService;
     private final ConfiguredModuleBaseService moduleService;
     private final ConfiguredModuleVersionBaseService moduleVersionService;
     private final FlowRuntimeService flowRuntimeService;
+    private final FlowDesignService flowDesignService;
     private final RuntimeDataService runtimeDataService;
     private final ApplicationSecretCipher secretCipher;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final Validator validator;
     private final TransactionTemplate transactions;
 
     public ApplicationBridgeService(
@@ -115,24 +123,25 @@ public class ApplicationBridgeService {
             AppVersionBaseService versionService,
             AppCallBaseService callService,
             AppCallNonceBaseService nonceService,
-            AppBridgeIdentityBaseService bridgeIdentityService,
+            CoreQuotaPolicyBaseService quotaPolicyService,
             PlatformAccountBaseService accountService,
             PlatformMemberBaseService platformMemberService,
             SystemMemberBaseService systemMemberService,
             SystemDefinitionBaseService systemService,
             SystemTenantBaseService tenantService,
             SystemTenantMemberBaseService tenantMemberService,
-            PlatformPermissionResolver platformPermissionResolver,
-            PermissionResolver permissionResolver,
-            PermissionChecker permissionChecker,
+            SystemDepartmentBaseService systemDepartmentService,
+            PlatformDepartmentBaseService platformDepartmentService,
             FlowDefinitionBaseService flowDefinitionService,
             ConfiguredModuleBaseService moduleService,
             ConfiguredModuleVersionBaseService moduleVersionService,
             FlowRuntimeService flowRuntimeService,
+            FlowDesignService flowDesignService,
             RuntimeDataService runtimeDataService,
             ApplicationSecretCipher secretCipher,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
+            Validator validator,
             PlatformTransactionManager transactionManager) {
         this.definitionService = definitionService;
         this.credentialService = credentialService;
@@ -140,24 +149,25 @@ public class ApplicationBridgeService {
         this.versionService = versionService;
         this.callService = callService;
         this.nonceService = nonceService;
-        this.bridgeIdentityService = bridgeIdentityService;
+        this.quotaPolicyService = quotaPolicyService;
         this.accountService = accountService;
         this.platformMemberService = platformMemberService;
         this.systemMemberService = systemMemberService;
         this.systemService = systemService;
         this.tenantService = tenantService;
         this.tenantMemberService = tenantMemberService;
-        this.platformPermissionResolver = platformPermissionResolver;
-        this.permissionResolver = permissionResolver;
-        this.permissionChecker = permissionChecker;
+        this.systemDepartmentService = systemDepartmentService;
+        this.platformDepartmentService = platformDepartmentService;
         this.flowDefinitionService = flowDefinitionService;
         this.moduleService = moduleService;
         this.moduleVersionService = moduleVersionService;
         this.flowRuntimeService = flowRuntimeService;
+        this.flowDesignService = flowDesignService;
         this.runtimeDataService = runtimeDataService;
         this.secretCipher = secretCipher;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.validator = validator;
         this.transactions = new TransactionTemplate(transactionManager);
     }
 
@@ -197,13 +207,7 @@ public class ApplicationBridgeService {
             requireGrantBoundary(grant, input);
             requireSourceAddress(grant, sourceAddress);
             requireDataScope(grant, input.requestedDataScope());
-            AuthenticatedContext targetContext = targetContext(application, grant);
-            if (!permissionChecker.allows(targetContext, grant.getResourceType(), grant.getResourceId(), grant.getActionCode())) {
-                throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "应用授权与目标身份当前角色权限没有允许交集");
-            }
-            requireTargetDataScope(grant, input.requestedDataScope(), targetContext);
-            AuthenticatedContext effectiveContext = restrictToApplicationScope(
-                    grant, input.requestedDataScope(), targetContext);
+            AuthenticatedContext effectiveContext = targetContext(application, grant);
             Map<String, Object> permissionSnapshot = permissionSnapshot(application, credential, grant, effectiveContext);
             Prepared prepared = transactions.execute(status -> prepareCall(application, credential, grant, input,
                     idempotencyKey, requestId, requestTimestamp, nonce, sourceAddress, requestHash,
@@ -272,13 +276,8 @@ public class ApplicationBridgeService {
             requireAccessChannel(grant, providerAccess ? "EXTERNAL" : "INTERNAL");
             requireGrantBoundary(grant, input);
             requireDataScope(grant, input.requestedDataScope());
-            AuthenticatedContext targetContext = internalTargetContext(application, grant, context);
-            if (!permissionChecker.allows(targetContext, grant.getResourceType(), grant.getResourceId(), grant.getActionCode())) {
-                throw forbidden("APPLICATION_TARGET_PERMISSION_DENIED", "映射的目标执行身份没有目标资源动作权限");
-            }
-            requireTargetDataScope(grant, input.requestedDataScope(), targetContext);
-            AuthenticatedContext effectiveContext = restrictToApplicationScope(
-                    grant, input.requestedDataScope(), targetContext);
+            requireInternalSourceIdentity(context);
+            AuthenticatedContext effectiveContext = targetContext(application, grant);
             Map<String, Object> permissionSnapshot = permissionSnapshot(
                     application, internalIdentity, grant, effectiveContext);
             permissionSnapshot.put("accessChannel", trustedChannel);
@@ -337,6 +336,7 @@ public class ApplicationBridgeService {
                     original.actionCode(), original.targetReference(), original.result(), original.source()));
         }
         requireRateLimit(application, grant);
+        requireTenantCallQuota(grant);
         AppCall call = baseCall(application, credential, grant, input, requestId, requestTimestamp, nonce,
                 sourceAddress, requestHash);
         call.setIdempotencyKey(idempotencyKey);
@@ -352,7 +352,7 @@ public class ApplicationBridgeService {
             ApplicationBridgeModels.CallRequest input, AuthenticatedContext targetContext, Long callId,
             String requestId, Map<String, Object> permissionSnapshot, Long actorAccountId, long startedNanos) {
         TargetResult target = switch (grant.getResourceType()) {
-            case "FLOW" -> executeFlow(grant, input, targetContext, callId, requestId);
+            case "FLOW" -> executeFlow(application, credential, grant, input, targetContext, callId, requestId);
             case "MODULE" -> executeModule(grant, input, targetContext, callId, requestId);
             default -> throw invalid("APPLICATION_RESOURCE_UNSUPPORTED", "当前资源类型尚不支持受控调用");
         };
@@ -375,7 +375,7 @@ public class ApplicationBridgeService {
         call.setResponseJson(writeJson(result));
         call.setTargetReference(target.reference());
         call.setDurationMillis(elapsedMillis(startedNanos));
-        call.setFinishedAt(LocalDateTime.now());
+        call.setFinishTime(LocalDateTime.now());
         callService.updateById(call);
         auditRecorder.recordWithPermissionSnapshot(requestId, actorAccountId,
                 grant.getTargetSystemId(), grant.getTargetTenantId(), targetContext.memberId(),
@@ -387,10 +387,11 @@ public class ApplicationBridgeService {
     }
 
     private TargetResult executeFlow(
-            PublishedGrant grant, ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
+            AppDefinition application, AppCredential credential, PublishedGrant grant,
+            ApplicationBridgeModels.CallRequest input, AuthenticatedContext context,
             Long callId, String requestId) {
-        if (!"START".equals(grant.getActionCode())) {
-            throw invalid("APPLICATION_FLOW_ACTION_UNSUPPORTED", "应用当前只支持发起已授权 Flow");
+        if ("__flow_design__".equals(grant.getResourceId())) {
+            return executeFlowDesign(application, grant, input, context, requestId);
         }
         if (grant.getResourceObjectId() == null || grant.getResourceVersionId() == null
                 || grant.getResourceDefinitionHash() == null) {
@@ -407,20 +408,113 @@ public class ApplicationBridgeService {
                 .stream().findFirst().orElseThrow(() -> invalid(
                         "APPLICATION_TARGET_FLOW_NOT_FOUND", "授权的目标 Flow 不存在于固定上下文"));
         Map<String, Object> payload = safe(input.payload());
+        String externalPrincipalId = string(payload.get("externalPrincipalId"));
+        if (!"START".equals(grant.getActionCode())
+                && (externalPrincipalId == null || externalPrincipalId.isBlank())) {
+            throw invalid("FLOW_EXTERNAL_PRINCIPAL_REQUIRED", "外部 Flow 调用必须提供审批人标识");
+        }
+        // 每项动作独立授权；外部身份只在当前应用命名空间内与任务匹配。
+        if ("VIEW_INSTANCE".equals(grant.getActionCode())) {
+            Long instanceId = number(payload.get("instanceId"));
+            if (instanceId == null || instanceId < 1) throw invalid("FLOW_INSTANCE_ID_REQUIRED", "请提供流程实例编号");
+            Map<String, Object> result = flowRuntimeService.applicationInstance(context, flow.getId(),
+                    application.getId(), externalPrincipalId, instanceId);
+            return new TargetResult("FLOW_INSTANCE:" + instanceId, result, "FLOW_INSTANCE", instanceId.toString());
+        }
+        if ("LIST_TASKS".equals(grant.getActionCode())) {
+            List<Map<String, Object>> tasks = flowRuntimeService.applicationTasks(context, flow.getId(),
+                    application.getId(), externalPrincipalId);
+            return new TargetResult("FLOW_TASK_LIST:" + externalPrincipalId,
+                    Map.of("items", tasks, "total", tasks.size()), "FLOW_TASK_LIST", externalPrincipalId);
+        }
+        if ("HANDLE".equals(grant.getActionCode())) {
+            Long taskId = number(payload.get("taskId"));
+            if (taskId == null || taskId < 1) throw invalid("FLOW_TASK_ID_REQUIRED", "请提供外部待办编号");
+            String decision = string(payload.get("decision"));
+            if (decision == null || !Set.of("APPROVE", "REJECT").contains(decision.toUpperCase(Locale.ROOT))) {
+                throw invalid("FLOW_EXTERNAL_ACTION_INVALID", "外部审批动作只能为同意或拒绝");
+            }
+            FlowRuntimeModels.ActionResult handled = flowRuntimeService.handleApplication(context, flow.getId(),
+                    application.getId(), externalPrincipalId, taskId,
+                    new FlowRuntimeModels.HandleTaskRequest(decision.toUpperCase(Locale.ROOT),
+                            string(payload.get("comment")), "app-call:" + callId,
+                            map(payload.get("variables")), null, Map.of(), null), requestId);
+            Map<String, Object> result = Map.of("actionId", handled.actionId(),
+                    "instanceId", handled.instance().id(), "status", handled.instance().status(),
+                    "taskId", taskId, "decision", decision.toUpperCase(Locale.ROOT));
+            return new TargetResult("FLOW_TASK:" + taskId, result, "FLOW_TASK", taskId.toString());
+        }
+        if (!"START".equals(grant.getActionCode())) {
+            throw invalid("APPLICATION_FLOW_ACTION_UNSUPPORTED", "应用 Flow 动作尚不支持受控调用");
+        }
         String title = string(payload.get("title"));
         if (title == null || title.isBlank()) title = "应用调用 · " + grant.getResourceId();
         Map<String, Object> businessSnapshot = new LinkedHashMap<>();
         businessSnapshot.put("sourceType", "APPLICATION_CALL");
+        businessSnapshot.put("applicationId", application.getId());
         businessSnapshot.put("applicationCallId", callId);
         businessSnapshot.put("requestId", requestId);
+        businessSnapshot.put("credentialVersion", credential.getCredentialVersion());
+        businessSnapshot.put("clientId", credential.getClientId());
         businessSnapshot.put("applicationVersionId", grant.getApplicationVersionId());
         businessSnapshot.put("flowVersionId", grant.getResourceVersionId());
+        // 应用调用本身不是模块业务对象，来源放入快照，避免误按模块详情权限校验。
         FlowRuntimeModels.ActionResult result = flowRuntimeService.startApplication(context,
-                new FlowRuntimeModels.StartRequest(flow.getId(), title, "APPLICATION_CALL", requestId,
+                new FlowRuntimeModels.StartRequest(flow.getId(), title, null, null,
                         businessSnapshot, map(payload.get("variables")), "app-call:" + callId),
-                grant.getResourceVersionId(), grant.getResourceDefinitionHash(), requestId);
+                grant.getResourceVersionId(), grant.getResourceDefinitionHash(), application.getId(),
+                externalPrincipalId, requestId);
         return new TargetResult("FLOW_INSTANCE:" + result.instance().id(), result,
                 "FLOW_INSTANCE", result.instance().id().toString());
+    }
+
+    /** 草稿的每次操作先经当前发布的应用动作授权，再按应用归属与固定上下文取 Flow。 */
+    private TargetResult executeFlowDesign(AppDefinition application, PublishedGrant grant,
+            ApplicationBridgeModels.CallRequest input, AuthenticatedContext context, String requestId) {
+        Map<String, Object> payload = safe(input.payload());
+        if ("CREATE_DRAFT".equals(grant.getActionCode())) {
+            FlowDesignModels.CreateFlowRequest request = flowInput(payload, FlowDesignModels.CreateFlowRequest.class);
+            FlowDesignModels.FlowView flow = flowDesignService.createApplication(
+                    context, request, application.getId(), requestId);
+            return new TargetResult("FLOW:" + flow.id(), flow, "FLOW", flow.id().toString());
+        }
+        Long flowId = number(payload.get("flowId"));
+        if (flowId == null || flowId < 1) {
+            throw invalid("FLOW_ID_REQUIRED", "请提供当前应用的流程编号");
+        }
+        FlowDefinition flow = flowDefinitionService.selectById(flowId);
+        if (flow == null || !Objects.equals(flow.getOwnerApplicationId(), application.getId())
+                || !Objects.equals(flow.getPlatformId(), context.platformId())
+                || !Objects.equals(flow.getSystemId(), context.systemId())
+                || !Objects.equals(flow.getOwnerTenantId(), context.tenantId())) {
+            throw new DomainException("FLOW_NOT_FOUND", "Flow 不存在或不属于当前应用", HttpStatus.NOT_FOUND);
+        }
+        Object result = switch (grant.getActionCode()) {
+            case "VIEW_DRAFT" -> flowDesignService.detail(context, flowId);
+            case "SAVE_DRAFT" -> flowDesignService.saveDraft(context, flowId,
+                    flowInput(payload, FlowDesignModels.SaveDraftRequest.class), requestId);
+            case "RENAME_DRAFT" -> flowDesignService.rename(context, flowId,
+                    flowInput(payload, FlowDesignModels.RenameFlowRequest.class), requestId);
+            case "VALIDATE" -> flowDesignService.publicationCheck(context, flowId);
+            case "PUBLISH" -> flowDesignService.publish(context, flowId,
+                    flowInput(payload, FlowDesignModels.PublishRequest.class), requestId);
+            default -> throw invalid("APPLICATION_FLOW_ACTION_UNSUPPORTED", "Flow 配置动作未开放");
+        };
+        return new TargetResult("FLOW:" + flowId, result, "FLOW", flowId.toString());
+    }
+
+    private <T> T flowInput(Map<String, Object> payload, Class<T> type) {
+        try {
+            T input = objectMapper.convertValue(payload, type);
+            var issues = validator.validate(input);
+            if (!issues.isEmpty()) {
+                throw invalid("FLOW_INPUT_INVALID", issues.stream().map(issue ->
+                        issue.getPropertyPath() + " " + issue.getMessage()).sorted().findFirst().orElse("流程参数无效"));
+            }
+            return input;
+        } catch (IllegalArgumentException exception) {
+            throw invalid("FLOW_INPUT_INVALID", "流程参数格式无效");
+        }
     }
 
     private TargetResult executeModule(
@@ -435,6 +529,7 @@ public class ApplicationBridgeService {
             case "LIST" -> {
                 int page = integer(payload.get("page"), 1);
                 int pageSize = Math.min(integer(payload.get("pageSize"), 20), 200);
+                requireReadableListQuery(grant, payload, context, requestId);
                 RuntimeRecordList result = runtimeDataService.list(context, grant.getResourceId(), "ACTIVE", "OWN",
                         stringOrDefault(payload.get("search"), ""), writeJson(payload.getOrDefault("filters", List.of())),
                         stringOrDefault(payload.get("sortField"), "updatedAt"),
@@ -454,12 +549,26 @@ public class ApplicationBridgeService {
             case "CREATE" -> {
                 Map<String, Object> fields = map(payload.get("fields"));
                 requireWritableFields(grant, fields.keySet());
+                if (number(payload.get("ownerMemberId")) == null) {
+                    DataScopeExpression scope = context.dataScopes().get(
+                            "MODULE:" + grant.getResourceId() + ":CREATE");
+                    boolean defaultOwnerAllowed = scope != null && scope.terms().stream()
+                            .anyMatch(term -> term.condition().path("memberIds").isArray()
+                                    && java.util.stream.StreamSupport.stream(
+                                    term.condition().path("memberIds").spliterator(), false)
+                                    .anyMatch(id -> id.asLong() == context.memberId()));
+                    if (!defaultOwnerAllowed) {
+                        throw forbidden("APPLICATION_DEFAULT_OWNER_OUT_OF_SCOPE",
+                                "未传负责人时会使用当前系统所属人；请将其加入应用范围，或传入范围内的负责人");
+                    }
+                }
                 Map<String, JsonNode> jsonFields = new LinkedHashMap<>();
                 fields.forEach((key, fieldValue) -> jsonFields.put(key, objectMapper.valueToTree(fieldValue)));
                 CreateRuntimeRecordRequest request = new CreateRuntimeRecordRequest(
                         stringOrDefault(payload.get("title"), "应用调用创建"), string(payload.get("recordNumber")),
                         string(payload.get("status")), number(payload.get("ownerMemberId")),
-                        number(payload.get("departmentId")), numbers(payload.get("participantMemberIds")), jsonFields);
+                        number(payload.get("departmentId")), numbers(payload.get("participantMemberIds")), jsonFields,
+                        null, number(payload.get("createdByMemberId")));
                 RuntimeRecordView result = runtimeDataService.create(context, grant.getResourceId(), request, requestId);
                 value = filterReadableFields(grant, result);
                 reference = "BUSINESS_RECORD:" + result.id();
@@ -504,6 +613,36 @@ public class ApplicationBridgeService {
         return converted;
     }
 
+    /** 应用按发布字段读取列表；全文搜索可能命中隐藏字段，字段未完整授权时拒绝搜索。 */
+    private void requireReadableListQuery(PublishedGrant grant, Map<String, Object> payload,
+                                          AuthenticatedContext context, String requestId) {
+        Set<String> readable = grant.getFields().stream().filter(PublishedField::readable)
+                .map(PublishedField::fieldCode).collect(java.util.stream.Collectors.toSet());
+        if (payload.get("filters") instanceof List<?> filters) {
+            for (Object filter : filters) {
+                if (filter instanceof Map<?, ?> values) {
+                    String code = string(values.get("fieldCode"));
+                    if (code != null && !MODULE_BASE_QUERY_FIELDS.contains(code) && !readable.contains(code)) {
+                        throw forbidden("APPLICATION_FIELD_QUERY_DENIED", "应用不能按未授权字段筛选");
+                    }
+                }
+            }
+        }
+        String sortField = stringOrDefault(payload.get("sortField"), "updatedAt");
+        if (!MODULE_BASE_QUERY_FIELDS.contains(sortField) && !readable.contains(sortField)) {
+            throw forbidden("APPLICATION_FIELD_QUERY_DENIED", "应用不能按未授权字段排序");
+        }
+        String search = string(payload.get("search"));
+        if (search != null && !search.isBlank()) {
+            List<RuntimeListQueryField> fields = runtimeDataService.queryFields(context, grant.getResourceId(),
+                    "ACTIVE", "OWN", requestId);
+            if (fields.stream().anyMatch(field -> field.searchable()
+                    && !MODULE_BASE_QUERY_FIELDS.contains(field.code()) && !readable.contains(field.code()))) {
+                throw forbidden("APPLICATION_FIELD_QUERY_DENIED", "应用不能通过全文搜索命中未授权字段");
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private void filterFields(Object value, Set<String> readable) {
         if (value instanceof Map<?, ?> raw) {
@@ -511,6 +650,18 @@ public class ApplicationBridgeService {
             Object fields = map.get("fields");
             if (fields instanceof Map<?, ?> fieldMap) {
                 ((Map<String, Object>) fieldMap).keySet().removeIf(key -> !readable.contains(key));
+            }
+            // 字段展示信息可能包含格式化后的业务值，也必须与发布授权使用同一字段范围。
+            Object presentation = map.get("fieldPresentation");
+            if (presentation instanceof Map<?, ?> presentationMap) {
+                ((Map<String, Object>) presentationMap).keySet().removeIf(key -> !readable.contains(key));
+            }
+            // 查询目录中的字段名称和选项也属于字段信息，须与业务值使用同一发布授权。
+            Object queryFields = map.get("queryFields");
+            if (queryFields instanceof List<?> queryFieldList) {
+                ((List<Object>) queryFieldList).removeIf(field -> field instanceof Map<?, ?> descriptor
+                        && !MODULE_BASE_QUERY_FIELDS.contains(descriptor.get("code"))
+                        && !readable.contains(descriptor.get("code")));
             }
             new ArrayList<>(map.values()).forEach(item -> filterFields(item, readable));
         } else if (value instanceof List<?> list) {
@@ -526,42 +677,137 @@ public class ApplicationBridgeService {
         }
     }
 
+
+
+    /** 技术执行人只承载归属与审计，动作和数据范围完全来自当前发布授权。 */
     private AuthenticatedContext targetContext(AppDefinition application, PublishedGrant grant) {
-        PlatformAccount account = accountService.selectById(application.getCreatedByAccountId());
-        if (account == null || !"ACTIVE".equals(account.getStatus())) {
-            throw forbidden("APPLICATION_TARGET_IDENTITY_INACTIVE", "应用绑定的目标执行身份已停用");
+        EffectiveScope scope = effectiveScope(application, grant);
+        List<PermissionGrant> permissions = new ArrayList<>();
+        permissions.add(new PermissionGrant(grant.getResourceType(), grant.getResourceId(), grant.getActionCode(), List.of()));
+        Map<String, DataScopeExpression> dataScopes = new LinkedHashMap<>();
+        dataScopes.put(grant.getResourceType() + ":" + grant.getResourceId() + ":" + grant.getActionCode(), scope.expression());
+        // 编辑内部需读取旧字段；外部仍只可调用发布的 UPDATE 动作。
+        if ("MODULE".equals(grant.getResourceType()) && "UPDATE".equals(grant.getActionCode())) {
+            permissions.add(new PermissionGrant("MODULE", grant.getResourceId(), "DETAIL", List.of()));
+            dataScopes.put("MODULE:" + grant.getResourceId() + ":DETAIL", scope.expression());
+        }
+        if ("FLOW".equals(grant.getResourceType())
+                && Set.of("START", "HANDLE").contains(grant.getActionCode())) {
+            permissions.add(new PermissionGrant("FLOW", grant.getTargetSystemId() == null ? "PLATFORM" : "SYSTEM",
+                    grant.getActionCode(), List.of()));
+        }
+        if ("FLOW".equals(grant.getResourceType()) && "__flow_design__".equals(grant.getResourceId())) {
+            String designAction = switch (grant.getActionCode()) {
+                case "CREATE_DRAFT", "SAVE_DRAFT", "RENAME_DRAFT" -> "DESIGN";
+                case "VIEW_DRAFT" -> "VIEW";
+                case "VALIDATE", "PUBLISH" -> "PUBLISH";
+                default -> null;
+            };
+            if (designAction != null) {
+                permissions.add(new PermissionGrant("FLOW",
+                        grant.getTargetSystemId() == null ? "PLATFORM" : "SYSTEM", designAction, List.of()));
+            }
         }
         if (grant.getTargetSystemId() == null) {
-            PlatformMember member = platformMemberService.selectList(Wrappers.<PlatformMember>lambdaQuery()
-                            .eq(PlatformMember::getPlatformId, application.getPlatformId())
-                            .eq(PlatformMember::getAccountId, account.getId())
-                            .eq(PlatformMember::getStatus, "ACTIVE"))
-                    .stream().findFirst().orElseThrow(() -> forbidden(
-                            "APPLICATION_TARGET_MEMBER_MISSING", "应用绑定账号不是当前平台有效成员"));
-            ResolvedPermissions permissions = platformPermissionResolver.resolve(application.getPlatformId(), account.getId());
-            return new AuthenticatedContext(null, account.getId(), application.getPlatformId(), null, null,
-                    member.getId(), null, account.getUsername(), account.getDisplayName(), "APPLICATION",
-                    permissions.roleIds(), permissions.permissions(), permissions.dataScopes());
+            // 平台 Flow 用应用创建人满足现有发起人字段；所选范围人员绝不作为执行身份。
+            Long creatorId = application.getCreatedByAccountId();
+            if (creatorId == null) throw forbidden("APPLICATION_CREATOR_MISSING", "应用缺少创建人，无法归档 Flow 发起记录");
+            PlatformAccount creator = accountService.selectById(creatorId);
+            PlatformMember creatorMember = platformMemberService.selectList(Wrappers.<PlatformMember>lambdaQuery()
+                    .eq(PlatformMember::getPlatformId, application.getPlatformId())
+                    .eq(PlatformMember::getAccountId, creatorId)).stream().findFirst().orElse(null);
+            return new AuthenticatedContext(null, creatorId, application.getPlatformId(), null, null,
+                    creatorMember == null ? null : creatorMember.getId(), null,
+                    creator == null ? application.getCode() : creator.getUsername(), application.getName(), "APPLICATION",
+                    List.of(), permissions, dataScopes);
+        }
+        SystemDefinition system = systemService.selectById(grant.getTargetSystemId());
+        SystemTenant tenant = tenantService.selectById(grant.getTargetTenantId());
+        if (!active(system) || tenant == null || !"ACTIVE".equals(tenant.getStatus())
+                || !Objects.equals(system.getPlatformId(), application.getPlatformId())
+                || !Objects.equals(tenant.getSystemId(), system.getId())
+                || "SINGLE".equals(system.getTenantMode()) && !Boolean.TRUE.equals(tenant.getMain())) {
+            throw forbidden("APPLICATION_TARGET_TENANT_INACTIVE", "应用目标系统或租户当前不可访问");
+        }
+        PlatformAccount owner = accountService.selectById(system.getCreatorAccountId());
+        if (owner == null || !"ACTIVE".equals(owner.getStatus())) {
+            throw forbidden("APPLICATION_SYSTEM_OWNER_INACTIVE", "当前系统所属人不可用，请先修正系统所属权");
         }
         SystemMember member = systemMemberService.selectList(Wrappers.<SystemMember>lambdaQuery()
-                        .eq(SystemMember::getSystemId, grant.getTargetSystemId())
-                        .eq(SystemMember::getAccountId, account.getId())
-                        .eq(SystemMember::getStatus, "ACTIVE"))
-                .stream().findFirst().orElseThrow(() -> forbidden(
-                        "APPLICATION_TARGET_MEMBER_MISSING", "应用绑定账号不是目标系统有效成员"));
+                .eq(SystemMember::getSystemId, system.getId())
+                .eq(SystemMember::getAccountId, owner.getId())
+                .eq(SystemMember::getStatus, "ACTIVE")).stream().findFirst().orElseThrow(() ->
+                forbidden("APPLICATION_SYSTEM_OWNER_MEMBER_MISSING", "当前系统所属人缺少有效系统成员映射"));
         SystemTenantMember tenantMember = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
-                        .eq(SystemTenantMember::getSystemId, grant.getTargetSystemId())
-                        .eq(SystemTenantMember::getTenantId, grant.getTargetTenantId())
-                        .eq(SystemTenantMember::getSystemMemberId, member.getId())
-                        .eq(SystemTenantMember::getStatus, "ACTIVE"))
-                .stream().findFirst().orElseThrow(() -> forbidden(
-                        "APPLICATION_TARGET_TENANT_MEMBER_MISSING", "应用绑定账号不是目标租户有效成员"));
-        ResolvedPermissions permissions = permissionResolver.resolve(
-                grant.getTargetSystemId(), grant.getTargetTenantId(), tenantMember.getId());
-        return new AuthenticatedContext(null, account.getId(), application.getPlatformId(),
-                grant.getTargetSystemId(), grant.getTargetTenantId(), member.getId(), tenantMember.getId(),
-                account.getUsername(), member.getDisplayName(), "APPLICATION", permissions.roleIds(),
-                permissions.permissions(), permissions.dataScopes());
+                .eq(SystemTenantMember::getSystemId, system.getId())
+                .eq(SystemTenantMember::getTenantId, tenant.getId())
+                .eq(SystemTenantMember::getSystemMemberId, member.getId())
+                .eq(SystemTenantMember::getStatus, "ACTIVE")).stream().findFirst().orElseThrow(() ->
+                forbidden("APPLICATION_SYSTEM_OWNER_TENANT_MEMBER_MISSING", "当前系统所属人缺少目标租户成员映射"));
+        return new AuthenticatedContext(null, owner.getId(), application.getPlatformId(), system.getId(), tenant.getId(),
+                member.getId(), tenantMember.getId(), owner.getUsername(), member.getDisplayName(), "APPLICATION",
+                List.of(), permissions, dataScopes);
+    }
+
+    /** 人员异常时排除其数据；部门异常时管理员必须先修正应用配置。 */
+    private EffectiveScope effectiveScope(AppDefinition application, PublishedGrant grant) {
+        Map<String, Object> configured = readMap(grant.getDataScopeJson());
+        if (!"RESPONSIBLE".equals(string(configured.get("type")))) {
+            throw forbidden("APPLICATION_DATA_SCOPE_INVALID", "应用发布授权缺少明确的负责人或部门范围，请重新发布");
+        }
+        List<Long> selectedMembers = numbers(configured.get("memberIds"));
+        List<Long> selectedDepartments = numbers(configured.get("departmentIds"));
+        List<Long> validMembers = new ArrayList<>();
+        List<Long> validDepartments = new ArrayList<>();
+        if (grant.getTargetSystemId() == null) {
+            for (Long id : selectedDepartments) {
+                PlatformDepartment department = platformDepartmentService.selectById(id);
+                if (department == null || !Objects.equals(department.getPlatformId(), application.getPlatformId())
+                        || !"ACTIVE".equals(department.getStatus())) {
+                    throw forbidden("APPLICATION_SCOPE_DEPARTMENT_INACTIVE", "应用所选平台部门已停用或删除，请管理员修正应用配置");
+                }
+                validDepartments.add(id);
+            }
+            for (PlatformMember member : platformMemberService.selectList(Wrappers.<PlatformMember>lambdaQuery()
+                    .eq(PlatformMember::getPlatformId, application.getPlatformId()))) {
+                if (!"ACTIVE".equals(member.getStatus()) || !activeAccount(member.getAccountId())) continue;
+                if (selectedMembers.contains(member.getId())
+                        || validDepartments.contains(member.getDepartmentId())) validMembers.add(member.getId());
+            }
+        } else {
+            for (Long id : selectedDepartments) {
+                SystemDepartment department = systemDepartmentService.selectById(id);
+                if (department == null || !Objects.equals(department.getSystemId(), grant.getTargetSystemId())
+                        || !Objects.equals(department.getTenantId(), grant.getTargetTenantId())
+                        || !"ACTIVE".equals(department.getStatus())) {
+                    throw forbidden("APPLICATION_SCOPE_DEPARTMENT_INACTIVE", "应用所选系统部门已停用或删除，请管理员修正应用配置");
+                }
+                validDepartments.add(id);
+            }
+            for (SystemTenantMember tenantMember : tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                    .eq(SystemTenantMember::getSystemId, grant.getTargetSystemId())
+                    .eq(SystemTenantMember::getTenantId, grant.getTargetTenantId())
+                    .eq(SystemTenantMember::getStatus, "ACTIVE"))) {
+                SystemMember member = systemMemberService.selectById(tenantMember.getSystemMemberId());
+                if (member == null || !"ACTIVE".equals(member.getStatus())
+                        || !Objects.equals(member.getSystemId(), grant.getTargetSystemId())
+                        || !activeAccount(member.getAccountId())) continue;
+                if (selectedMembers.contains(member.getId())
+                        || validDepartments.contains(tenantMember.getDepartmentId())) validMembers.add(member.getId());
+            }
+        }
+        if (validMembers.isEmpty()) {
+            throw forbidden("APPLICATION_SCOPE_EMPTY", "应用配置范围内没有有效负责人，请管理员修正应用配置");
+        }
+        // 每次调用按有效账号与组织成员展开负责人，避免部门条件重新放行已停用人员负责的数据。
+        DataScopeTerm owners = new DataScopeTerm("SPECIFIED_MEMBERS",
+                objectMapper.valueToTree(Map.of("memberIds", validMembers.stream().distinct().toList())), List.of());
+        return new EffectiveScope(new DataScopeExpression("UNION", List.of(owners)));
+    }
+
+    private boolean activeAccount(Long accountId) {
+        PlatformAccount account = accountService.selectById(accountId);
+        return account != null && "ACTIVE".equals(account.getStatus());
     }
 
     private void claimNonce(
@@ -579,8 +825,8 @@ public class ApplicationBridgeService {
                 accepted.setCredentialVersion(credential.getCredentialVersion());
                 accepted.setNonce(nonce);
                 accepted.setRequestId(requestId);
-                accepted.setRequestTimestamp(requestTimestamp);
-                accepted.setExpiresAt(LocalDateTime.now().plus(24, ChronoUnit.HOURS));
+                accepted.setRequestTime(requestTimestamp);
+                accepted.setExpireTime(LocalDateTime.now().plus(24, ChronoUnit.HOURS));
                 nonceService.insert(accepted);
             });
         } catch (DataIntegrityViolationException exception) {
@@ -615,8 +861,8 @@ public class ApplicationBridgeService {
         if (!"ACTIVE".equals(application.getStatus())) {
             throw forbidden("APPLICATION_DISABLED", "应用已停用或尚未发布");
         }
-        if (!"ACTIVE".equals(credential.getStatus()) || credential.getValidFrom().isAfter(now)
-                || credential.getExpiresAt() != null && !credential.getExpiresAt().isAfter(now)) {
+        if (!"ACTIVE".equals(credential.getStatus()) || credential.getValidStartTime().isAfter(now)
+                || credential.getExpireTime() != null && !credential.getExpireTime().isAfter(now)) {
             throw unauthorized("APPLICATION_CREDENTIAL_INACTIVE", "凭证版本已失效");
         }
         if (credential.getSigningSecretRef() == null) {
@@ -640,42 +886,30 @@ public class ApplicationBridgeService {
         }
     }
 
-    /**
-     * 同系统调用沿用登录身份；跨系统调用只能使用当前发布版本中冻结且尚未停用的 A→B 身份映射。
-     */
-    private AuthenticatedContext internalTargetContext(
-            AppDefinition application, PublishedGrant grant, AuthenticatedContext sourceContext) {
-        if ("PLATFORM".equals(application.getContextType())) return sourceContext;
-        requireActiveSourceIdentity(sourceContext);
-        if (Objects.equals(sourceContext.systemId(), application.getOwnerSystemId())
-                && Objects.equals(sourceContext.tenantId(), application.getOwnerTenantId())) {
-            return sourceContext;
+    /** 内部调用要先确认真实登录来源有效，来源身份不参与目标授权。 */
+    private void requireInternalSourceIdentity(AuthenticatedContext context) {
+        if (context.systemId() == null) {
+            PlatformAccount account = accountService.selectById(context.accountId());
+            // 平台登录会话不保存系统成员 ID；按平台与账号查平台成员，避免误拒绝有效来源。
+            PlatformMember member = platformMemberService.selectList(Wrappers.<PlatformMember>lambdaQuery()
+                    .eq(PlatformMember::getPlatformId, context.platformId())
+                    .eq(PlatformMember::getAccountId, context.accountId())
+                    .eq(PlatformMember::getStatus, "ACTIVE")).stream().findFirst().orElse(null);
+            if (account == null || !"ACTIVE".equals(account.getStatus())
+                    || member == null || !"ACTIVE".equals(member.getStatus())
+                    || !Objects.equals(member.getPlatformId(), context.platformId())
+                    || !Objects.equals(member.getAccountId(), context.accountId())) {
+                throw forbidden("APPLICATION_SOURCE_IDENTITY_INACTIVE", "来源平台成员已停用");
+            }
+            return;
         }
-        PublishedIdentity identity = findPublishedIdentity(grant.getApplicationVersionId(), sourceContext);
-        if (identity == null) {
-            throw forbidden("APPLICATION_SOURCE_IDENTITY_UNMAPPED", "当前来源成员没有此应用的跨系统身份映射");
-        }
-        AppBridgeIdentity current = bridgeIdentityService.selectById(identity.mappingId());
-        if (current == null || !Objects.equals(current.getApplicationId(), application.getId())
-                || !"ACTIVE".equals(current.getStatus())) {
-            throw forbidden("APPLICATION_IDENTITY_MAPPING_DISABLED", "跨系统身份映射已停用或撤销");
-        }
-        if (!Objects.equals(identity.targetSystemId(), application.getOwnerSystemId())
-                || !Objects.equals(identity.targetTenantId(), application.getOwnerTenantId())
-                || !Objects.equals(identity.targetSystemId(), grant.getTargetSystemId())
-                || !Objects.equals(identity.targetTenantId(), grant.getTargetTenantId())) {
-            throw forbidden("APPLICATION_IDENTITY_MAPPING_BOUNDARY_INVALID", "发布身份映射超出应用目标系统或租户范围");
-        }
-        return mappedTargetContext(application, identity);
-    }
-
-    private void requireActiveSourceIdentity(AuthenticatedContext context) {
         SystemDefinition system = systemService.selectById(context.systemId());
         SystemTenant tenant = tenantService.selectById(context.tenantId());
         SystemMember member = systemMemberService.selectById(context.memberId());
         SystemTenantMember tenantMember = tenantMemberService.selectById(context.tenantMemberId());
         PlatformAccount account = accountService.selectById(context.accountId());
         if (!active(system) || tenant == null || !"ACTIVE".equals(tenant.getStatus())
+                || "SINGLE".equals(system.getTenantMode()) && !Boolean.TRUE.equals(tenant.getMain())
                 || member == null || !"ACTIVE".equals(member.getStatus())
                 || tenantMember == null || !"ACTIVE".equals(tenantMember.getStatus())
                 || account == null || !"ACTIVE".equals(account.getStatus())
@@ -690,50 +924,6 @@ public class ApplicationBridgeService {
         }
     }
 
-    private PublishedIdentity findPublishedIdentity(Long versionId, AuthenticatedContext sourceContext) {
-        AppVersion version = versionService.selectById(versionId);
-        if (version == null || version.getSnapshotJson() == null) return null;
-        Object raw = readMap(version.getSnapshotJson()).get("bridgeIdentities");
-        if (!(raw instanceof List<?> values)) return null;
-        for (Object value : values) {
-            Map<String, Object> identity = map(value);
-            if (Objects.equals(number(identity.get("sourceSystemId")), sourceContext.systemId())
-                    && Objects.equals(number(identity.get("sourceTenantId")), sourceContext.tenantId())
-                    && Objects.equals(number(identity.get("sourceTenantMemberId")), sourceContext.tenantMemberId())) {
-                return new PublishedIdentity(number(identity.get("mappingId")),
-                        number(identity.get("sourceSystemId")), number(identity.get("sourceTenantId")),
-                        number(identity.get("sourceTenantMemberId")), number(identity.get("targetSystemId")),
-                        number(identity.get("targetTenantId")), number(identity.get("targetTenantMemberId")));
-            }
-        }
-        return null;
-    }
-
-    private AuthenticatedContext mappedTargetContext(AppDefinition application, PublishedIdentity identity) {
-        SystemDefinition system = systemService.selectById(identity.targetSystemId());
-        SystemTenant tenant = tenantService.selectById(identity.targetTenantId());
-        SystemTenantMember tenantMember = tenantMemberService.selectById(identity.targetTenantMemberId());
-        SystemMember member = tenantMember == null ? null
-                : systemMemberService.selectById(tenantMember.getSystemMemberId());
-        PlatformAccount account = member == null ? null : accountService.selectById(member.getAccountId());
-        if (!active(system) || tenant == null || !"ACTIVE".equals(tenant.getStatus())
-                || tenantMember == null || !"ACTIVE".equals(tenantMember.getStatus())
-                || member == null || !"ACTIVE".equals(member.getStatus())
-                || account == null || !"ACTIVE".equals(account.getStatus())
-                || !Objects.equals(system.getPlatformId(), application.getPlatformId())
-                || !Objects.equals(tenant.getSystemId(), identity.targetSystemId())
-                || !Objects.equals(tenantMember.getSystemId(), identity.targetSystemId())
-                || !Objects.equals(tenantMember.getTenantId(), identity.targetTenantId())
-                || !Objects.equals(member.getSystemId(), identity.targetSystemId())) {
-            throw forbidden("APPLICATION_TARGET_IDENTITY_INACTIVE", "映射的目标系统、租户或成员已停用");
-        }
-        ResolvedPermissions permissions = permissionResolver.resolve(
-                identity.targetSystemId(), identity.targetTenantId(), identity.targetTenantMemberId());
-        return new AuthenticatedContext(null, account.getId(), application.getPlatformId(),
-                identity.targetSystemId(), identity.targetTenantId(), member.getId(), tenantMember.getId(),
-                account.getUsername(), member.getDisplayName(), "APPLICATION", permissions.roleIds(),
-                permissions.permissions(), permissions.dataScopes());
-    }
 
     private boolean active(SystemDefinition system) {
         return system != null && "ACTIVE".equals(system.getStatus()) && !Boolean.TRUE.equals(system.getDeleted());
@@ -812,70 +1002,12 @@ public class ApplicationBridgeService {
 
     private void requireDataScope(PublishedGrant grant, Map<String, Object> requested) {
         if (requested == null || requested.isEmpty()) return;
-        Map<String, Object> fixed = readMap(grant.getDataScopeJson());
-        String fixedType = string(fixed.get("type"));
-        String requestedType = string(requested.get("type"));
-        if ("PLATFORM".equals(fixedType) || "PLATFORM".equals(requestedType)) {
-            if (!Objects.equals(fixedType, requestedType)) {
-                throw forbidden("APPLICATION_DATA_SCOPE_EXPANSION", "平台范围不能与系统数据范围互相替换");
-            }
-            return;
-        }
-        Map<String, Integer> rank = Map.of("SELF", 1, "DEPARTMENT", 2,
-                "DEPARTMENT_AND_DESCENDANTS", 3, "ALL", 4);
-        if (fixedType == null || requestedType == null || !rank.containsKey(fixedType)
-                || !rank.containsKey(requestedType) || rank.get(requestedType) > rank.get(fixedType)) {
-            throw forbidden("APPLICATION_DATA_SCOPE_EXPANSION", "请求数据范围超过应用固定授权范围");
-        }
-        for (Map.Entry<String, Object> entry : requested.entrySet()) {
-            if (!"type".equals(entry.getKey()) && fixed.containsKey(entry.getKey())
-                    && !Objects.equals(fixed.get(entry.getKey()), entry.getValue())) {
-                throw forbidden("APPLICATION_DATA_SCOPE_EXPANSION", "请求数据范围条件超过应用固定授权范围");
-            }
+        if (!Objects.equals(readMap(grant.getDataScopeJson()), requested)) {
+            throw forbidden("APPLICATION_DATA_SCOPE_EXPANSION", "调用方不能修改应用已发布的负责人或部门范围");
         }
     }
 
-    private void requireTargetDataScope(
-            PublishedGrant grant, Map<String, Object> requested, AuthenticatedContext targetContext) {
-        if (targetContext.systemId() == null) return;
-        Map<String, Object> effective = requested == null || requested.isEmpty()
-                ? readMap(grant.getDataScopeJson()) : requested;
-        String requestedType = string(effective.get("type"));
-        if (requestedType == null || "PLATFORM".equals(requestedType)) {
-            throw forbidden("APPLICATION_TARGET_DATA_SCOPE_DENIED", "目标系统身份不能使用平台数据范围");
-        }
-        List<DataScopeExpression> matching = targetContext.dataScopes().entrySet().stream()
-                .filter(entry -> scopeKeyMatches(entry.getKey(), grant))
-                .map(Map.Entry::getValue)
-                .filter(Objects::nonNull)
-                .toList();
-        boolean allowed = matching.stream().flatMap(expression -> expression.terms().stream())
-                .anyMatch(term -> scopeTypeContains(term.type(), requestedType));
-        if (!allowed) {
-            throw forbidden("APPLICATION_TARGET_DATA_SCOPE_DENIED",
-                    "请求数据范围超过目标身份当前角色的数据权限范围");
-        }
-    }
-
-    /**
-     * 模块调用在目标身份现有授权通过后，使用应用版本固定的数据范围执行。
-     * 这样应用的 SELF/部门边界不会因目标成员后来获得更宽角色而被绕过。
-     */
-    private AuthenticatedContext restrictToApplicationScope(
-            PublishedGrant grant, Map<String, Object> requested, AuthenticatedContext context) {
-        if (context.systemId() == null || !"MODULE".equals(grant.getResourceType())) return context;
-        Map<String, Object> effective = requested == null || requested.isEmpty()
-                ? readMap(grant.getDataScopeJson()) : requested;
-        String type = normalize(string(effective.get("type")));
-        DataScopeExpression scope = new DataScopeExpression("SINGLE",
-                List.of(new DataScopeTerm(type, NullNode.getInstance(), context.roleIds())));
-        return new AuthenticatedContext(context.sessionId(), context.accountId(), context.platformId(),
-                context.systemId(), context.tenantId(), context.memberId(), context.tenantMemberId(),
-                context.username(), context.displayName(), context.mfaLevel(), context.roleIds(),
-                context.permissions(), Map.of("MODULE:" + grant.getResourceId() + ":" + grant.getActionCode(), scope));
-    }
-
-    /** 模块调用校验应用发布时固定的物理模块和版本快照，禁止同编码替换或快照损坏。 */
+    /** 模块调用校验发布时固定的物理模块和版本快照。 */
     private void requireFrozenModule(PublishedGrant grant, AuthenticatedContext context) {
         if (grant.getResourceObjectId() == null || grant.getResourceVersionId() == null
                 || grant.getResourceDefinitionHash() == null) {
@@ -897,21 +1029,6 @@ public class ApplicationBridgeService {
         }
     }
 
-    private boolean scopeKeyMatches(String key, PublishedGrant grant) {
-        String[] parts = key.split(":", 3);
-        return parts.length == 3
-                && ("*".equals(parts[0]) || grant.getResourceType().equals(parts[0]))
-                && ("*".equals(parts[1]) || grant.getResourceId().equals(parts[1]))
-                && ("*".equals(parts[2]) || grant.getActionCode().equals(parts[2]));
-    }
-
-    private boolean scopeTypeContains(String grantedType, String requestedType) {
-        if (Objects.equals(grantedType, requestedType) || "ALL".equals(grantedType)) return true;
-        Map<String, Integer> rank = Map.of("SELF", 1, "DEPARTMENT", 2,
-                "DEPARTMENT_AND_DESCENDANTS", 3);
-        return rank.containsKey(grantedType) && rank.containsKey(requestedType)
-                && rank.get(requestedType) <= rank.get(grantedType);
-    }
 
     private void requireSourceAddress(PublishedGrant grant, String sourceAddress) {
         Object configured = readMap(grant.getRateLimitJson()).get("allowedIps");
@@ -934,10 +1051,51 @@ public class ApplicationBridgeService {
                         .eq(AppCall::getResourceType, grant.getResourceType())
                         .eq(AppCall::getResourceId, grant.getResourceId())
                         .eq(AppCall::getActionCode, grant.getActionCode())
-                        .ge(AppCall::getCalledAt, cutoff))
+                        .ge(AppCall::getCallTime, cutoff))
                 .size();
         if (count >= maximum) throw new DomainException(
                 "APPLICATION_RATE_LIMITED", "应用调用频率超过授权限制", HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    /** 已授权的新调用按目标租户计次；策略行锁保证并发请求不会同时占用最后一个名额。 */
+    private void requireTenantCallQuota(PublishedGrant grant) {
+        if (grant.getTargetSystemId() == null || grant.getTargetTenantId() == null) return;
+        CoreQuotaPolicy policy = quotaPolicyService.selectOne(Wrappers.<CoreQuotaPolicy>lambdaQuery()
+                .eq(CoreQuotaPolicy::getContextType, "SYSTEM")
+                .eq(CoreQuotaPolicy::getSystemId, grant.getTargetSystemId())
+                .eq(CoreQuotaPolicy::getTenantId, grant.getTargetTenantId())
+                .eq(CoreQuotaPolicy::getQuotaCode, "APPLICATION_CALL_COUNT")
+                .eq(CoreQuotaPolicy::getStatus, "ACTIVE")
+                .last("FOR UPDATE"));
+        if (policy == null) return;
+
+        LocalDateTime periodStart = null;
+        LocalDateTime periodEnd = null;
+        if ("DAY".equals(policy.getPeriodType())) {
+            periodStart = LocalDate.now().atStartOfDay();
+            periodEnd = periodStart.plusDays(1);
+        } else if ("MONTH".equals(policy.getPeriodType())) {
+            periodStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            periodEnd = periodStart.plusMonths(1);
+        } else if (!"TOTAL".equals(policy.getPeriodType())) {
+            throw conflict("TENANT_APPLICATION_CALL_QUOTA_INVALID", "应用调用配额周期配置无效");
+        }
+
+        // 前面已经读取过幂等日志；锁定读取才能看到等待策略锁期间刚提交的调用。
+        long used = callService.selectList(Wrappers.<AppCall>lambdaQuery()
+                .select(AppCall::getId)
+                .eq(AppCall::getTargetSystemId, grant.getTargetSystemId())
+                .eq(AppCall::getTargetTenantId, grant.getTargetTenantId())
+                .isNotNull(AppCall::getIdempotencyKey)
+                .isNotNull(AppCall::getPermissionSnapshotJson)
+                .ge(periodStart != null, AppCall::getCallTime, periodStart)
+                .lt(periodEnd != null, AppCall::getCallTime, periodEnd)
+                .last("FOR UPDATE")).size();
+        if (used >= policy.getHardLimit()) {
+            throw new DomainException("TENANT_APPLICATION_CALL_QUOTA_EXCEEDED",
+                    "当前工作空间应用调用次数已达到上限：" + policy.getHardLimit(),
+                    HttpStatus.TOO_MANY_REQUESTS);
+        }
     }
 
     private Map<String, Object> permissionSnapshot(
@@ -969,7 +1127,7 @@ public class ApplicationBridgeService {
         targetIdentity.put("permissions", context.permissions());
         targetIdentity.put("dataScopes", context.dataScopes());
         snapshot.put("targetIdentity", targetIdentity);
-        snapshot.put("decision", "APPLICATION_GRANT_INTERSECT_TARGET_IDENTITY_ALLOW");
+        snapshot.put("decision", "APPLICATION_PUBLISHED_GRANT_ALLOW");
         return snapshot;
     }
 
@@ -995,7 +1153,7 @@ public class ApplicationBridgeService {
                 call.setErrorMessage(message);
                 call.setReplayCount(0);
                 call.setDurationMillis(elapsedMillis(startedNanos));
-                call.setFinishedAt(LocalDateTime.now());
+                call.setFinishTime(LocalDateTime.now());
                 callService.insert(call);
             });
         } catch (DataIntegrityViolationException ignored) {
@@ -1012,7 +1170,7 @@ public class ApplicationBridgeService {
             call.setResponseCode(code);
             call.setErrorMessage(message);
             call.setDurationMillis(elapsedMillis(startedNanos));
-            call.setFinishedAt(LocalDateTime.now());
+            call.setFinishTime(LocalDateTime.now());
             callService.updateById(call);
         });
     }
@@ -1062,7 +1220,7 @@ public class ApplicationBridgeService {
                         .eq(AppCall::getResourceId, grant.getResourceId())
                         .eq(AppCall::getActionCode, grant.getActionCode())
                         .eq(AppCall::getStatus, "FAILED")
-                        .ge(AppCall::getCalledAt, cutoff))
+                        .ge(AppCall::getCallTime, cutoff))
                 .stream().filter(call -> call.getPermissionSnapshotJson() != null
                         && !call.getPermissionSnapshotJson().isBlank()).count();
         if (failures < threshold) return;
@@ -1077,7 +1235,7 @@ public class ApplicationBridgeService {
                     .eq(AppCredential::getApplicationId, application.getId())
                     .eq(AppCredential::getStatus, "ACTIVE"))) {
                 active.setStatus("REVOKED");
-                active.setRevokedAt(now);
+                active.setRevokeTime(now);
                 credentialService.updateById(active);
             }
             auditRecorder.record(requestId, targetContext.accountId(),
@@ -1108,7 +1266,7 @@ public class ApplicationBridgeService {
         call.setGrantId(null);
         call.setRequestId(requestId);
         call.setTraceId(requestId);
-        call.setRequestTimestamp(timestamp);
+        call.setRequestTime(timestamp);
         call.setNonce(nonce);
         call.setSourceAddress(sourceAddress);
         call.setTargetSystemId(input.targetSystemId());
@@ -1117,7 +1275,7 @@ public class ApplicationBridgeService {
         call.setResourceId(input.resourceId() == null ? "UNKNOWN" : input.resourceId().strip());
         call.setActionCode(normalize(input.actionCode()));
         call.setRequestHash(requestHash);
-        call.setCalledAt(LocalDateTime.now());
+        call.setCallTime(LocalDateTime.now());
         return call;
     }
 
@@ -1308,15 +1466,8 @@ public class ApplicationBridgeService {
     private record PublishedField(String fieldCode, boolean readable, boolean writable) {
     }
 
-    /** 发布版本固定的跨系统来源身份和目标执行身份。 */
-    private record PublishedIdentity(
-            Long mappingId,
-            Long sourceSystemId,
-            Long sourceTenantId,
-            Long sourceTenantMemberId,
-            Long targetSystemId,
-            Long targetTenantId,
-            Long targetTenantMemberId) {
+    /** 本次调用按当前有效组织状态收敛出的负责人范围。 */
+    private record EffectiveScope(DataScopeExpression expression) {
     }
 
     private record Prepared(Long callId, ApplicationBridgeModels.CallResult replayed) {

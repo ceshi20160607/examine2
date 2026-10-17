@@ -1,0 +1,17 @@
+{
+  "step": "S18.21",
+  "status": "verified_contribution",
+  "source_rows": ["R0410", "R0418"],
+  "environment": "独立 Docker MySQL 副本；原应用 #28 V4、导入应用 #29 V5，后端 s18-v13 健康检查 UP。",
+  "actual_results": [
+    "系统所属人打开应用 #29 的技术接入详情，页面列出当前 V5、当前 V2 凭证引用、失效 V1、请求体示例、五个 X-App-* 请求头、HMAC-SHA256 的换行签名顺序及常见拒绝原因；请求体的系统 #166、租户 #169、负责人 #251、部门 #172 与当前发布授权一致，页面不再展示 Secret 明文。",
+    "应用调用日志在同一配置页展示 requestId、来源 IP、毫秒耗时、业务结果及错误文案。所属人 GET /api/applications/29/calls 返回 200 和 13 条记录；普通成员同一 API 返回 403 PERMISSION_DENIED。",
+    "普通成员从真实系统页面直达应用后台会重定向到系统首页并提示 access-denied；左侧仍只有业务模块组和本人业务。MySQL 调用 #218 的 requestId、127.0.0.1、124 毫秒与页面/API 一致，应用 #29 仍 ACTIVE。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-app-technical-access.png",
+    "projects/unexamine/ai/evidence/s18-app-member-admin-denied.png"
+  ],
+  "remaining": "本步骤已完成。新系统中的多模块组创建、排序、运行态顶栏与左侧联动留给 S18.22。",
+  "next_exact": "S18.22 在系统 #166 创建第二个模块组和模块，核对排序、切换与成员导航。"
+}

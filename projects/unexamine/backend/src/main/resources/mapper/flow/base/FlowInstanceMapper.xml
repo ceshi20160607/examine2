@@ -11,26 +11,35 @@
         <result column="tenant_id" property="tenantId" />
         <result column="flow_id" property="flowId" />
         <result column="flow_version_id" property="flowVersionId" />
+        <result column="module_id" property="moduleId" />
+        <result column="module_version_id" property="moduleVersionId" />
+        <result column="business_record_id" property="businessRecordId" />
+        <result column="binding_resolution_id" property="bindingResolutionId" />
+        <result column="binding_id" property="bindingId" />
+        <result column="binding_source_tenant_id" property="bindingSourceTenantId" />
         <result column="business_type" property="businessType" />
         <result column="business_id" property="businessId" />
         <result column="business_snapshot_json" property="businessSnapshotJson" />
+        <result column="runtime_snapshot_json" property="runtimeSnapshotJson" />
         <result column="title" property="title" />
         <result column="current_node_key" property="currentNodeKey" />
         <result column="status" property="status" />
         <result column="started_by_account_id" property="startedByAccountId" />
         <result column="started_by_tenant_member_id" property="startedByTenantMemberId" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="source_application_id" property="sourceApplicationId" />
+        <result column="source_external_principal_id" property="sourceExternalPrincipalId" />
+        <result column="start_time" property="startTime" />
+        <result column="finish_time" property="finishTime" />
         <result column="error_code" property="errorCode" />
         <result column="error_message" property="errorMessage" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, flow_id, flow_version_id, business_type, business_id, business_snapshot_json, title, current_node_key, `status`, started_by_account_id, started_by_tenant_member_id, started_at, finished_at, error_code, error_message, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, flow_id, flow_version_id, module_id, module_version_id, business_record_id, binding_resolution_id, binding_id, binding_source_tenant_id, business_type, business_id, business_snapshot_json, runtime_snapshot_json, title, current_node_key, `status`, started_by_account_id, started_by_tenant_member_id, source_application_id, source_external_principal_id, start_time, finish_time, error_code, error_message, create_time, update_time, version
     </sql>
 
 </mapper>

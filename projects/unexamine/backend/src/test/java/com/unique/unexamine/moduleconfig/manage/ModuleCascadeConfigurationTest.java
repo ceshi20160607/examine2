@@ -25,7 +25,7 @@ class ModuleCascadeConfigurationTest {
     private final ConfiguredModuleVersionBaseService versions = mock(ConfiguredModuleVersionBaseService.class);
     private final ModuleConfigurationService configuration = new ModuleConfigurationService(
             null, null, null, null, null, null, publications, versions,
-            null, null, null, json, null, null, null);
+            null, null, null, json, null, null, null, null, null, null, null);
 
     @Test
     void acceptsPublishedSelfReferenceAndRejectsUnrelatedParent() throws Exception {

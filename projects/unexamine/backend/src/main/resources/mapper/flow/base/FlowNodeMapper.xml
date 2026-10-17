@@ -16,14 +16,14 @@
         <result column="timeout_policy_json" property="timeoutPolicyJson" />
         <result column="exception_policy_json" property="exceptionPolicyJson" />
         <result column="config_json" property="configJson" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, flow_id, node_key, node_type, `name`, position_x, position_y, assignee_policy_json, form_policy_json, timeout_policy_json, exception_policy_json, config_json, created_at, updated_at, version
+        id, flow_id, node_key, node_type, `name`, position_x, position_y, assignee_policy_json, form_policy_json, timeout_policy_json, exception_policy_json, config_json, create_time, update_time, version
     </sql>
 
 </mapper>

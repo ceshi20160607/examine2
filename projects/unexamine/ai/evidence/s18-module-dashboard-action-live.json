@@ -1,0 +1,31 @@
+{
+  "status": "verified_live_after_restart",
+  "systemId": 143,
+  "tenantId": 144,
+  "existingModuleId": 93,
+  "existingModuleCode": "approval_accept_5b69b5d6",
+  "existingDashboardId": 7,
+  "newModuleId": 94,
+  "newModuleCode": "dashboard_accept_1a4547cf",
+  "newDashboardId": 8,
+  "approvalInstanceId": 52,
+  "draftIsolation": true,
+  "missingAction": {
+    "status": 409,
+    "code": "DASHBOARD_MODULE_ACTION_NOT_PUBLISHED"
+  },
+  "disabledAction": {
+    "status": 409,
+    "code": "DASHBOARD_MODULE_ACTION_NOT_PUBLISHED"
+  },
+  "wrongSystem": {
+    "status": 404,
+    "code": "CONFIGURATION_NOT_FOUND"
+  },
+  "rollbackTargetVersionId": 110,
+  "restart": {
+    "existingDashboardVersionId": 13,
+    "newDashboardVersionId": 14,
+    "approvalStatus": "WAITING"
+  }
+}

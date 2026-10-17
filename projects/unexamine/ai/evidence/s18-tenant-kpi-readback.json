@@ -1,0 +1,28 @@
+{
+  "step": "S18.8",
+  "environment": {
+    "system_id": 165,
+    "main_tenant_id": 166,
+    "receiving_tenant_id": 167,
+    "database": "unexamine_drill_s17_files_1054",
+    "release": "s18-v7",
+    "api_port": 18081,
+    "frontend_port": 15179
+  },
+  "browser_configuration": {
+    "tenant_kpi": "系统后台为租户 #167 创建 KPI #13，使用主租户已发布采购明细来源 #8 的版本 #10，目标 200、月度、负责人 #252；预览和计算得到本租户 #176 的 25 加显式共享 #172 的 150，共 175、达成率 87.5%。",
+    "tenant_module_home": "在可视化首页配置选择采购明细模块 #85 和 KPI #13，保存仪表盘 #5 草稿、真实数据预览通过并发布 V1。普通成员的模块首页展示本租户目标 175/200，点击后 KPI 明细仅 #176 与 #172。"
+  },
+  "api_readback": {
+    "before_restart": "租户 #167 的 owner/member 读取模块首页 #5 V1 与 KPI #13 均为 175，KPI 下钻记录仅 [176,172]；主租户发布首页 #3 和 KPI #12 未被覆盖。",
+    "permission_revocation": "临时从租户成员 #252 移除角色 #240 后，新成员上下文请求模块首页为 403 DASHBOARD_MODULE_FORBIDDEN、KPI #13 为 403 KPI_VISIBILITY_DENIED、报表来源 #8 为 403 REPORT_SOURCE_FORBIDDEN；浏览器 KPI 页面清空未授权指标。随后恢复角色，成员版本为 12。",
+    "after_restart": "同一 s18-v7 服务重启且 readiness UP；主租户首页 #3 V1 两组件各为 220，KPI #12 为 220/300、下钻 [173,172]；租户 #167 首页 #5 V1 为 175，KPI #13 为 175/200、下钻 [176,172]。成员浏览器重新打开 KPI 与模块首页，均显示 175。"
+  },
+  "mysql_readback": {
+    "dashboard_publications": "主租户仪表盘 #3 owner_tenant_id=166、published_version_id=4；协作租户仪表盘 #5 owner_tenant_id=167、published_version_id=6；均为 MODULE_HOME、模块 #85、PUBLISHED。",
+    "kpi_scope": "主租户 KPI #12 的来源版本 #9、归属租户 #166；协作租户 KPI #13 的来源版本 #10、来源归属 #166、KPI 归属 #167。",
+    "result_scope": "KPI 结果 #21 为租户 #166 的 220/300、来源记录 [173,172]；结果 #22 为租户 #167 的 175/200、来源记录 [176,172]。"
+  },
+  "code_changes": "本子步骤无需修改代码；复用 S18.7 编译并已发布的 s18-v7 制品。",
+  "limitations": "这证明当前模块首页采用本租户发布配置，主租户原首页和目标保持独立；不将单个场景视为全产品终验或真实第三方集成验收。"
+}

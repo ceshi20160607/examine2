@@ -42,12 +42,19 @@ async function load() {
     releases.value = deployment.releases
     const release = deployment.releases[0]
     const backup = continuity.backups.find(verifiedBackup) ?? continuity.backups[0]
+    const backupRelease = deployment.releases.find(item => item.id === backup?.sourceReleaseId)
     if (release && !backupForm.sourceReleaseId) backupForm.sourceReleaseId = release.id
-    if (release && !upgradeForm.releaseId) upgradeForm.releaseId = release.id
+    if (backupRelease && !upgradeForm.releaseId) upgradeForm.releaseId = backupRelease.id
     if (backup && !drillForm.backupId) drillForm.backupId = backup.id
     if (backup && !upgradeForm.backupId) upgradeForm.backupId = backup.id
     if (!selectedUpgrade.value && continuity.upgrades[0]) selectedUpgrade.value = continuity.upgrades[0]
   } catch (cause) { error.value = explain(cause, '备份恢复与升级数据加载失败') } finally { loading.value = false }
+}
+
+function onUpgradeBackupChange(backupId: number) {
+  const backup = overview.value?.backups.find(item => item.id === backupId)
+  if (backup) upgradeForm.releaseId = backup.sourceReleaseId
+  preflight.value = undefined
 }
 
 function artifacts() {
@@ -121,7 +128,7 @@ async function runPreflight() {
     preflight.value = await api<OperationsUpgradePreflight>(`${basePath}/upgrades/preflight`, {
       method: 'POST', body: JSON.stringify(upgradePayload()),
     }, token.value)
-    success.value = preflight.value.ready ? '升级预检全部通过，可以执行。' : '升级预检发现阻断项，尚未创建升级任务。'
+    success.value = preflight.value.ready ? '已部署版本与备份演练核对通过，可以记录升级后验收。' : '升级验收预检发现阻断项，尚未创建记录。'
   } catch (cause) { error.value = explain(cause, '升级预检失败') } finally { busy.value = '' }
 }
 
@@ -133,8 +140,8 @@ async function executeUpgrade() {
       method: 'POST', body: JSON.stringify(upgradePayload()),
     }, token.value)
     success.value = selectedUpgrade.value.status === 'SUCCESS'
-      ? `升级 #${selectedUpgrade.value.id} 已完成并读回 ${selectedUpgrade.value.steps.length} 个步骤。`
-      : `升级 #${selectedUpgrade.value.id} 中途失败，系统已保存明确可恢复状态。`
+      ? `升级后验收 #${selectedUpgrade.value.id} 已通过并读回 ${selectedUpgrade.value.steps.length} 个检查步骤。`
+      : `升级后验收 #${selectedUpgrade.value.id} 未通过，请查看部署脚本的恢复记录。`
     await load()
   } catch (cause) { error.value = explain(cause, '升级执行被阻断') } finally { busy.value = '' }
 }
@@ -170,13 +177,13 @@ onMounted(load)
         <div class="continuity-drills"><article v-for="item in overview?.restoreDrills.slice(0, 4)" :key="item.id"><a-tag :color="color(item.status)">{{ item.status }}</a-tag><strong>#{{ item.id }} · backup #{{ item.backupId }}</strong><small>{{ item.environmentCode }} · {{ item.finishedAt }}</small><details><summary>四类恢复校验结果</summary><pre>{{ JSON.stringify(item.verification, null, 2) }}</pre></details></article></div>
       </section>
 
-      <section class="panel-card continuity-form"><div class="panel-title"><div><strong>3. 预检并执行版本升级</strong><small>备份、演练、源/目标版本、映射和审批全部通过才开始。</small></div></div>
+      <section class="panel-card continuity-form"><div class="panel-title"><div><strong>3. 核对并记录已部署版本</strong><small>先由固定部署脚本升级；这里核对备份、演练、运行版本、映射和审批。</small></div></div>
         <a-select v-model:value="upgradeForm.releaseId"><a-select-option v-for="item in releases" :key="item.id" :value="item.id">源 #{{ item.id }} · DB {{ item.databaseVersion }} · {{ item.configVersion }}</a-select-option></a-select>
-        <a-select v-model:value="upgradeForm.backupId"><a-select-option v-for="item in overview?.backups" :key="item.id" :value="item.id">backup #{{ item.id }} · {{ item.status }}</a-select-option></a-select>
+        <a-select v-model:value="upgradeForm.backupId" @change="onUpgradeBackupChange"><a-select-option v-for="item in overview?.backups" :key="item.id" :value="item.id">backup #{{ item.id }} · {{ item.status }}</a-select-option></a-select>
         <a-textarea v-model:value="upgradeForm.mappingJson" :rows="5" />
         <a-input v-model:value="upgradeForm.approvalReference" placeholder="升级审批单号" />
         <a-input v-model:value="upgradeForm.confirmation" :placeholder="expectedUpgrade" /><small>确认词：<code>{{ expectedUpgrade || '请选择发布与备份' }}</code></small>
-        <div class="continuity-actions"><a-button :loading="busy === 'preflight'" @click="runPreflight">只运行预检</a-button><a-button type="primary" :loading="busy === 'upgrade'" :disabled="!preflight?.ready" @click="executeUpgrade">执行升级</a-button></div>
+        <div class="continuity-actions"><a-button :loading="busy === 'preflight'" @click="runPreflight">只运行预检</a-button><a-button type="primary" :loading="busy === 'upgrade'" :disabled="!preflight?.ready" @click="executeUpgrade">记录升级后验收</a-button></div>
         <div v-if="preflight" class="continuity-checks"><article v-for="item in preflight.checks" :key="item.code"><a-tag :color="color(item.status)">{{ item.status }}</a-tag><strong>{{ item.name }}</strong><small>{{ item.evidence }}</small></article></div>
       </section>
     </div>

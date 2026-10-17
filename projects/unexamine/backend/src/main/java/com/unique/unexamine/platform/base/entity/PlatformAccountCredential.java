@@ -9,41 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 账号口令凭据
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_account_credential")
+@TableName("un_plat_account_credential")
 public class PlatformAccountCredential {
 
+    /**
+     * 账号口令凭据主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 口令哈希值
+     */
     @TableField("password_hash")
     private String passwordHash;
 
+    /**
+     * 口令哈希算法
+     */
     @TableField("password_algorithm")
     private String passwordAlgorithm;
 
+    /**
+     * 下次登录是否必须修改口令
+     */
     @TableField("must_change_password")
     private Boolean mustChangePassword;
 
+    /**
+     * 连续登录失败次数
+     */
     @TableField("failed_attempts")
     private Integer failedAttempts;
 
-    @TableField("locked_until")
-    private LocalDateTime lockedUntil;
+    /**
+     * 账号口令锁定截止时间
+     */
+    @TableField("lock_expire_time")
+    private LocalDateTime lockExpireTime;
 
+    /**
+     * 口令凭据版本号
+     */
     @TableField("credential_version")
     private Integer credentialVersion;
 
-    @TableField("changed_at")
-    private LocalDateTime changedAt;
+    /**
+     * 口令最近变更时间
+     */
+    @TableField("change_time")
+    private LocalDateTime changeTime;
 
     public Long getId() {
         return id;
@@ -93,12 +120,12 @@ public class PlatformAccountCredential {
         this.failedAttempts = failedAttempts;
     }
 
-    public LocalDateTime getLockedUntil() {
-        return lockedUntil;
+    public LocalDateTime getLockExpireTime() {
+        return lockExpireTime;
     }
 
-    public void setLockedUntil(LocalDateTime lockedUntil) {
-        this.lockedUntil = lockedUntil;
+    public void setLockExpireTime(LocalDateTime lockExpireTime) {
+        this.lockExpireTime = lockExpireTime;
     }
 
     public Integer getCredentialVersion() {
@@ -109,12 +136,12 @@ public class PlatformAccountCredential {
         this.credentialVersion = credentialVersion;
     }
 
-    public LocalDateTime getChangedAt() {
-        return changedAt;
+    public LocalDateTime getChangeTime() {
+        return changeTime;
     }
 
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
+    public void setChangeTime(LocalDateTime changeTime) {
+        this.changeTime = changeTime;
     }
 
     @Override
@@ -126,9 +153,9 @@ public class PlatformAccountCredential {
             ", passwordAlgorithm = " + passwordAlgorithm +
             ", mustChangePassword = " + mustChangePassword +
             ", failedAttempts = " + failedAttempts +
-            ", lockedUntil = " + lockedUntil +
+            ", lockExpireTime = " + lockExpireTime +
             ", credentialVersion = " + credentialVersion +
-            ", changedAt = " + changedAt +
+            ", changeTime = " + changeTime +
             "}";
     }
 }

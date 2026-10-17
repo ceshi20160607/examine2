@@ -19,17 +19,17 @@
         <result column="callback_uris_json" property="callbackUrisJson" />
         <result column="test_status" property="testStatus" />
         <result column="test_report_json" property="testReportJson" />
-        <result column="tested_at" property="testedAt" />
+        <result column="tested_time" property="testedTime" />
         <result column="tested_by_account_id" property="testedByAccountId" />
         <result column="status" property="status" />
-        <result column="published_at" property="publishedAt" />
+        <result column="published_time" property="publishedTime" />
         <result column="published_by_account_id" property="publishedByAccountId" />
-        <result column="created_at" property="createdAt" />
+        <result column="created_time" property="createdTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, provider_id, version_number, protocol, `issuer`, client_id, client_secret_ref, protocol_config_json, allowed_domains_json, attribute_mapping_json, jit_policy_json, mfa_policy_json, callback_uris_json, test_status, test_report_json, tested_at, tested_by_account_id, `status`, published_at, published_by_account_id, created_at
+        id, provider_id, version_number, protocol, `issuer`, client_id, client_secret_ref, protocol_config_json, allowed_domains_json, attribute_mapping_json, jit_policy_json, mfa_policy_json, callback_uris_json, test_status, test_report_json, tested_time, tested_by_account_id, `status`, published_time, published_by_account_id, created_time
     </sql>
 
 </mapper>

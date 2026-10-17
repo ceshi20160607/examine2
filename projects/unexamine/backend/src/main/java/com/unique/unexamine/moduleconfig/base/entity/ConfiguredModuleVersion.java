@@ -9,47 +9,80 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变的模块发布版本及完整配置快照
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module_version")
+@TableName("un_cfg_module_version")
 public class ConfiguredModuleVersion {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块标识
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 发布版本序号
+     */
     @TableField("version_number")
     private Integer versionNumber;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 发布配置内容摘要
+     */
     @TableField("schema_hash")
     private String schemaHash;
 
+    /**
+     * 发布时冻结的完整配置快照
+     */
     @TableField("snapshot_json")
     private String snapshotJson;
 
+    /**
+     * 本次发布变更摘要
+     */
     @TableField("change_summary")
     private String changeSummary;
 
+    /**
+     * 发布系统成员标识
+     */
     @TableField("published_by_member_id")
     private Long publishedByMemberId;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 发布时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
     public Long getId() {
         return id;
@@ -131,12 +164,12 @@ public class ConfiguredModuleVersion {
         this.publishedByMemberId = publishedByMemberId;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     @Override
@@ -152,7 +185,7 @@ public class ConfiguredModuleVersion {
             ", snapshotJson = " + snapshotJson +
             ", changeSummary = " + changeSummary +
             ", publishedByMemberId = " + publishedByMemberId +
-            ", publishedAt = " + publishedAt +
+            ", publishTime = " + publishTime +
             "}";
     }
 }

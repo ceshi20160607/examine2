@@ -30,21 +30,18 @@ public class SystemAdministrationController {
     private final ContextSettingManagementService settingService;
     private final SystemIdentityMappingService identityMappingService;
     private final SystemDomainService domainService;
-    private final TenantModeMigrationService tenantModeMigrationService;
 
     public SystemAdministrationController(
             SystemAdministrationService administrationService,
             AccessRequestService accessRequestService,
             ContextSettingManagementService settingService,
             SystemIdentityMappingService identityMappingService,
-            SystemDomainService domainService,
-            TenantModeMigrationService tenantModeMigrationService) {
+            SystemDomainService domainService) {
         this.administrationService = administrationService;
         this.accessRequestService = accessRequestService;
         this.settingService = settingService;
         this.identityMappingService = identityMappingService;
         this.domainService = domainService;
-        this.tenantModeMigrationService = tenantModeMigrationService;
     }
 
     @GetMapping("/domains")
@@ -74,35 +71,6 @@ public class SystemAdministrationController {
             HttpServletRequest request) {
         return ApiResult.ok(domainService.publish(AuthenticationContextHolder.require(), domainId,
                 TraceIdFilter.current(request)));
-    }
-
-    @PostMapping("/tenant-mode-migrations/preflight")
-    public ApiResult<TenantModeMigrationPreflight> tenantModeMigrationPreflight(
-            @Valid @RequestBody TenantModeMigrationRequest input) {
-        return ApiResult.ok(tenantModeMigrationService.preflight(AuthenticationContextHolder.require(), input.toMode()));
-    }
-
-    @GetMapping("/tenant-mode-migrations")
-    public ApiResult<List<TenantModeMigrationView>> tenantModeMigrations() {
-        return ApiResult.ok(tenantModeMigrationService.list(AuthenticationContextHolder.require()));
-    }
-
-    @PostMapping("/tenant-mode-migrations")
-    public ApiResult<TenantModeMigrationView> requestTenantModeMigration(
-            @Valid @RequestBody TenantModeMigrationRequest input,
-            HttpServletRequest request) {
-        return ApiResult.ok(tenantModeMigrationService.request(AuthenticationContextHolder.require(), input,
-                TraceIdFilter.current(request)));
-    }
-
-    @PostMapping("/tenant-mode-migrations/{migrationId}/decision")
-    @RequirePermission(resourceType = "CONFIG", resourceCode = "SYSTEM", actionCode = "MIGRATE_TENANT_MODE")
-    public ApiResult<TenantModeMigrationView> decideTenantModeMigration(
-            @PathVariable Long migrationId,
-            @Valid @RequestBody TenantModeMigrationDecisionRequest input,
-            HttpServletRequest request) {
-        return ApiResult.ok(tenantModeMigrationService.decide(AuthenticationContextHolder.require(), migrationId,
-                input, TraceIdFilter.current(request)));
     }
 
     @GetMapping("/identity-mapping/providers")
@@ -193,6 +161,18 @@ public class SystemAdministrationController {
                 TraceIdFilter.current(servletRequest)));
     }
 
+    @GetMapping("/settings/owner-candidates")
+    public ApiResult<List<SystemOwnerCandidateView>> ownerCandidates(@RequestParam String query) {
+        return ApiResult.ok(administrationService.ownerCandidates(AuthenticationContextHolder.require(), query));
+    }
+
+    @PutMapping("/settings/owner")
+    public ApiResult<SystemSettingsView> transferOwner(@Valid @RequestBody TransferSystemOwnerRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(administrationService.transferOwner(AuthenticationContextHolder.require(), input,
+                TraceIdFilter.current(request)));
+    }
+
     @GetMapping("/tenants")
     public ApiResult<List<TenantView>> tenants() {
         return ApiResult.ok(administrationService.tenants(AuthenticationContextHolder.require()));
@@ -232,5 +212,12 @@ public class SystemAdministrationController {
             HttpServletRequest servletRequest) {
         return ApiResult.ok(administrationService.updateTenantStatus(AuthenticationContextHolder.require(), tenantId,
                 request, TraceIdFilter.current(servletRequest)));
+    }
+
+    @PutMapping("/tenants/{tenantId}/login-presentation")
+    public ApiResult<TenantView> updateTenantLoginPresentation(@PathVariable Long tenantId,
+            @Valid @RequestBody UpdateTenantLoginPresentationRequest request, HttpServletRequest servletRequest) {
+        return ApiResult.ok(administrationService.updateTenantLoginPresentation(AuthenticationContextHolder.require(),
+                tenantId, request, TraceIdFilter.current(servletRequest)));
     }
 }

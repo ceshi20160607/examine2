@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.application.base.entity.AppCallback;
 import com.unique.unexamine.application.base.entity.AppCall;
-import com.unique.unexamine.application.base.entity.AppBridgeIdentity;
 import com.unique.unexamine.application.base.entity.AppCredential;
 import com.unique.unexamine.application.base.entity.AppDefinition;
 import com.unique.unexamine.application.base.entity.AppGrant;
@@ -16,7 +15,6 @@ import com.unique.unexamine.application.base.entity.AppPublication;
 import com.unique.unexamine.application.base.entity.AppVersion;
 import com.unique.unexamine.application.base.service.AppCallbackBaseService;
 import com.unique.unexamine.application.base.service.AppCallBaseService;
-import com.unique.unexamine.application.base.service.AppBridgeIdentityBaseService;
 import com.unique.unexamine.application.base.service.AppCredentialBaseService;
 import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
 import com.unique.unexamine.application.base.service.AppGrantBaseService;
@@ -41,14 +39,18 @@ import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModulePublicationBaseService;
 import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleVersionBaseService;
+import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.entity.PlatformDepartment;
+import com.unique.unexamine.platform.base.entity.PlatformMember;
+import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
+import com.unique.unexamine.platform.base.service.PlatformDepartmentBaseService;
+import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
-import com.unique.unexamine.system.base.entity.SystemDefinition;
+import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemMember;
-import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
-import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
+import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
-import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -82,7 +84,6 @@ public class ApplicationManagementService {
 
     private final AppDefinitionBaseService definitionService;
     private final AppCallbackBaseService callbackService;
-    private final AppBridgeIdentityBaseService bridgeIdentityService;
     private final AppGrantBaseService grantService;
     private final AppGrantFieldBaseService fieldService;
     private final AppVersionBaseService versionService;
@@ -96,10 +97,12 @@ public class ApplicationManagementService {
     private final ConfiguredModuleBaseService moduleService;
     private final ConfiguredModulePublicationBaseService modulePublicationService;
     private final ConfiguredModuleVersionBaseService moduleVersionService;
-    private final SystemDefinitionBaseService systemService;
-    private final SystemTenantBaseService tenantService;
     private final SystemMemberBaseService systemMemberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final SystemDepartmentBaseService systemDepartmentService;
+    private final PlatformMemberBaseService platformMemberService;
+    private final PlatformDepartmentBaseService platformDepartmentService;
+    private final PlatformAccountBaseService accountService;
     private final PermissionChecker permissionChecker;
     private final Pbkdf2PasswordHasher secretHasher;
     private final ApplicationSecretCipher secretCipher;
@@ -110,7 +113,6 @@ public class ApplicationManagementService {
     public ApplicationManagementService(
             AppDefinitionBaseService definitionService,
             AppCallbackBaseService callbackService,
-            AppBridgeIdentityBaseService bridgeIdentityService,
             AppGrantBaseService grantService,
             AppGrantFieldBaseService fieldService,
             AppVersionBaseService versionService,
@@ -124,10 +126,12 @@ public class ApplicationManagementService {
             ConfiguredModuleBaseService moduleService,
             ConfiguredModulePublicationBaseService modulePublicationService,
             ConfiguredModuleVersionBaseService moduleVersionService,
-            SystemDefinitionBaseService systemService,
-            SystemTenantBaseService tenantService,
             SystemMemberBaseService systemMemberService,
             SystemTenantMemberBaseService tenantMemberService,
+            SystemDepartmentBaseService systemDepartmentService,
+            PlatformMemberBaseService platformMemberService,
+            PlatformDepartmentBaseService platformDepartmentService,
+            PlatformAccountBaseService accountService,
             PermissionChecker permissionChecker,
             Pbkdf2PasswordHasher secretHasher,
             ApplicationSecretCipher secretCipher,
@@ -135,7 +139,6 @@ public class ApplicationManagementService {
             ObjectMapper objectMapper) {
         this.definitionService = definitionService;
         this.callbackService = callbackService;
-        this.bridgeIdentityService = bridgeIdentityService;
         this.grantService = grantService;
         this.fieldService = fieldService;
         this.versionService = versionService;
@@ -149,10 +152,12 @@ public class ApplicationManagementService {
         this.moduleService = moduleService;
         this.modulePublicationService = modulePublicationService;
         this.moduleVersionService = moduleVersionService;
-        this.systemService = systemService;
-        this.tenantService = tenantService;
         this.systemMemberService = systemMemberService;
         this.tenantMemberService = tenantMemberService;
+        this.systemDepartmentService = systemDepartmentService;
+        this.platformMemberService = platformMemberService;
+        this.platformDepartmentService = platformDepartmentService;
+        this.accountService = accountService;
         this.permissionChecker = permissionChecker;
         this.secretHasher = secretHasher;
         this.secretCipher = secretCipher;
@@ -164,7 +169,7 @@ public class ApplicationManagementService {
     public List<ApplicationModels.ApplicationView> list(AuthenticatedContext context) {
         requireAction(context, "VIEW");
         return scopedDefinitions(context).stream()
-                .sorted(Comparator.comparing(AppDefinition::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .sorted(Comparator.comparing(AppDefinition::getUpdateTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(application -> view(application, false)).toList();
     }
 
@@ -172,6 +177,15 @@ public class ApplicationManagementService {
     public List<ApplicationModels.ResourceOption> resources(AuthenticatedContext context) {
         requireAction(context, "VIEW");
         List<ApplicationModels.ResourceOption> resources = new ArrayList<>();
+        // 配置流程是应用本身的能力；创建草稿时尚无 Flow 发布版本可供选择。
+        resources.add(new ApplicationModels.ResourceOption("FLOW", "__flow_design__", "Flow 配置",
+                "仅配置当前应用创建的流程草稿", null, null,
+                List.of(new ApplicationModels.ResourceAction("CREATE_DRAFT", "创建流程草稿"),
+                        new ApplicationModels.ResourceAction("VIEW_DRAFT", "读取流程草稿"),
+                        new ApplicationModels.ResourceAction("SAVE_DRAFT", "保存流程草稿"),
+                        new ApplicationModels.ResourceAction("RENAME_DRAFT", "修改流程名称"),
+                        new ApplicationModels.ResourceAction("VALIDATE", "检查流程发布条件"),
+                        new ApplicationModels.ResourceAction("PUBLISH", "发布流程版本")), List.of()));
         for (FlowDefinition flow : flowDefinitionService.selectList(Wrappers.<FlowDefinition>lambdaQuery()
                 .eq(FlowDefinition::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
                 .eq(FlowDefinition::getPlatformId, context.platformId())
@@ -187,7 +201,10 @@ public class ApplicationManagementService {
             if (publication == null) continue;
             resources.add(new ApplicationModels.ResourceOption("FLOW", flow.getCode(), flow.getName(),
                     flow.getDescription(), publication.getCurrentVersionId(), currentFlowVersion(publication.getCurrentVersionId()),
-                    List.of(new ApplicationModels.ResourceAction("START", "发起流程")), List.of()));
+                    List.of(new ApplicationModels.ResourceAction("START", "发起流程"),
+                            new ApplicationModels.ResourceAction("VIEW_INSTANCE", "查询流程实例"),
+                            new ApplicationModels.ResourceAction("LIST_TASKS", "查询外部待办"),
+                            new ApplicationModels.ResourceAction("HANDLE", "办理外部审批")), List.of()));
         }
         if (context.systemId() != null) {
             for (ConfiguredModulePublication publication : modulePublicationService.selectList(
@@ -228,65 +245,58 @@ public class ApplicationManagementService {
                 .thenComparing(ApplicationModels.ResourceOption::name)).toList();
     }
 
-    /** 返回同平台可选来源成员和当前应用租户的目标执行成员，页面无需录入任何技术主键。 */
+    /** 数据范围由应用所属层级的组织架构选择，不把某个人的角色当作应用权限。 */
     @Transactional(readOnly = true)
-    public ApplicationModels.IdentityCatalog identityCatalog(AuthenticatedContext context, Long applicationId) {
+    public ApplicationModels.ScopeCatalog scopeCatalog(AuthenticatedContext context, Long applicationId) {
         requireAction(context, "VIEW");
         AppDefinition application = requireOwned(context, applicationId);
-        if (!"SYSTEM".equals(application.getContextType())) {
-            throw invalid("APPLICATION_IDENTITY_MAPPING_SYSTEM_ONLY", "只有系统应用需要配置跨系统执行身份");
+        if (application.getOwnerSystemId() == null) {
+            List<ApplicationModels.ScopeMemberOption> members = platformMemberService.selectList(
+                    Wrappers.<PlatformMember>lambdaQuery().eq(PlatformMember::getPlatformId, application.getPlatformId())
+                            .orderByAsc(PlatformMember::getId)).stream()
+                    .map(member -> new ApplicationModels.ScopeMemberOption(member.getId(),
+                            accountName(member.getAccountId()),
+                            "ACTIVE".equals(member.getStatus()) && activeAccount(member.getAccountId())
+                                    ? "ACTIVE" : "DISABLED")).toList();
+            List<ApplicationModels.ScopeDepartmentOption> departments = platformDepartmentService.selectList(
+                    Wrappers.<PlatformDepartment>lambdaQuery().eq(PlatformDepartment::getPlatformId, application.getPlatformId())
+                            .orderByAsc(PlatformDepartment::getSortOrder, PlatformDepartment::getId)).stream()
+                    .map(department -> new ApplicationModels.ScopeDepartmentOption(department.getId(),
+                            department.getName(), department.getStatus())).toList();
+            return new ApplicationModels.ScopeCatalog(members, departments);
         }
-        List<SystemDefinition> systems = systemService.selectList(Wrappers.<SystemDefinition>lambdaQuery()
-                .eq(SystemDefinition::getPlatformId, application.getPlatformId())
-                .eq(SystemDefinition::getStatus, "ACTIVE")
-                .eq(SystemDefinition::getDeleted, false)
-                .orderByAsc(SystemDefinition::getName, SystemDefinition::getId));
-        Map<Long, SystemDefinition> systemById = systems.stream().collect(java.util.stream.Collectors.toMap(
-                SystemDefinition::getId, value -> value));
-        if (systemById.isEmpty()) return new ApplicationModels.IdentityCatalog(List.of(), List.of());
-        List<SystemTenant> tenants = tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
-                .in(SystemTenant::getSystemId, systemById.keySet())
-                .eq(SystemTenant::getStatus, "ACTIVE")
-                .orderByAsc(SystemTenant::getName, SystemTenant::getId));
-        Map<Long, SystemTenant> tenantById = tenants.stream().collect(java.util.stream.Collectors.toMap(
-                SystemTenant::getId, value -> value));
-        List<SystemMember> members = systemMemberService.selectList(Wrappers.<SystemMember>lambdaQuery()
-                .in(SystemMember::getSystemId, systemById.keySet())
-                .eq(SystemMember::getStatus, "ACTIVE"));
-        Map<Long, SystemMember> memberById = members.stream().collect(java.util.stream.Collectors.toMap(
-                SystemMember::getId, value -> value));
-        if (tenantById.isEmpty() || memberById.isEmpty()) {
-            return new ApplicationModels.IdentityCatalog(List.of(), List.of());
-        }
-        List<ApplicationModels.IdentityMemberOption> source = new ArrayList<>();
-        List<ApplicationModels.IdentityMemberOption> target = new ArrayList<>();
-        for (SystemTenantMember tenantMember : tenantMemberService.selectList(
-                Wrappers.<SystemTenantMember>lambdaQuery()
-                        .in(SystemTenantMember::getTenantId, tenantById.keySet())
-                        .eq(SystemTenantMember::getStatus, "ACTIVE")
-                        .orderByAsc(SystemTenantMember::getId))) {
-            SystemDefinition system = systemById.get(tenantMember.getSystemId());
-            SystemTenant tenant = tenantById.get(tenantMember.getTenantId());
-            SystemMember member = memberById.get(tenantMember.getSystemMemberId());
-            if (system == null || tenant == null || member == null
-                    || !Objects.equals(member.getSystemId(), system.getId())) continue;
-            ApplicationModels.IdentityMemberOption option = new ApplicationModels.IdentityMemberOption(
-                    system.getId(), system.getName(), tenant.getId(), tenant.getName(), tenantMember.getId(),
-                    member.getDisplayName(), member.getEmployeeNumber());
-            if (Objects.equals(system.getId(), application.getOwnerSystemId())
-                    && Objects.equals(tenant.getId(), application.getOwnerTenantId())) {
-                target.add(option);
-            } else if (!Objects.equals(system.getId(), application.getOwnerSystemId())) {
-                source.add(option);
-            }
-        }
-        Comparator<ApplicationModels.IdentityMemberOption> ordering = Comparator
-                .comparing(ApplicationModels.IdentityMemberOption::systemName)
-                .thenComparing(ApplicationModels.IdentityMemberOption::tenantName)
-                .thenComparing(ApplicationModels.IdentityMemberOption::memberName)
-                .thenComparing(ApplicationModels.IdentityMemberOption::tenantMemberId);
-        return new ApplicationModels.IdentityCatalog(source.stream().sorted(ordering).toList(),
-                target.stream().sorted(ordering).toList());
+        List<SystemTenantMember> tenantMembers = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                        .eq(SystemTenantMember::getSystemId, application.getOwnerSystemId())
+                        .eq(SystemTenantMember::getTenantId, application.getOwnerTenantId()));
+        Set<Long> tenantMemberIds = tenantMembers.stream()
+                .map(SystemTenantMember::getSystemMemberId).collect(java.util.stream.Collectors.toSet());
+        Set<Long> activeTenantMemberIds = tenantMembers.stream()
+                .filter(item -> "ACTIVE".equals(item.getStatus()))
+                .map(SystemTenantMember::getSystemMemberId).collect(java.util.stream.Collectors.toSet());
+        List<ApplicationModels.ScopeMemberOption> members = systemMemberService.selectList(
+                Wrappers.<SystemMember>lambdaQuery().eq(SystemMember::getSystemId, application.getOwnerSystemId())
+                        .orderByAsc(SystemMember::getId)).stream()
+                .filter(member -> tenantMemberIds.contains(member.getId()))
+                .map(member -> new ApplicationModels.ScopeMemberOption(member.getId(), member.getDisplayName(),
+                        "ACTIVE".equals(member.getStatus()) && activeTenantMemberIds.contains(member.getId())
+                                && activeAccount(member.getAccountId()) ? "ACTIVE" : "DISABLED")).toList();
+        List<ApplicationModels.ScopeDepartmentOption> departments = systemDepartmentService.selectList(
+                Wrappers.<SystemDepartment>lambdaQuery().eq(SystemDepartment::getSystemId, application.getOwnerSystemId())
+                        .eq(SystemDepartment::getTenantId, application.getOwnerTenantId())
+                        .orderByAsc(SystemDepartment::getSortOrder, SystemDepartment::getId)).stream()
+                .map(department -> new ApplicationModels.ScopeDepartmentOption(department.getId(),
+                        department.getName(), department.getStatus())).toList();
+        return new ApplicationModels.ScopeCatalog(members, departments);
+    }
+
+    private String accountName(Long accountId) {
+        PlatformAccount account = accountService.selectById(accountId);
+        return account == null ? "账号已删除" : account.getDisplayName();
+    }
+
+    private boolean activeAccount(Long accountId) {
+        PlatformAccount account = accountService.selectById(accountId);
+        return account != null && "ACTIVE".equals(account.getStatus());
     }
 
     @Transactional
@@ -333,8 +343,7 @@ public class ApplicationManagementService {
                         grant.rateLimit(), grant.fields())).toList();
         ApplicationModels.ApplicationView imported = saveDraft(context, created.application().id(),
                 new ApplicationModels.SaveDraftRequest(created.application().version(), input.name(),
-                        input.description(), input.applicationType(), input.iconCode(), input.callbacks(), scopedGrants,
-                        List.of()), traceId);
+                        input.description(), input.applicationType(), input.iconCode(), input.callbacks(), scopedGrants), traceId);
         audit(context, traceId, "APPLICATION_CONFIGURATION_IMPORTED", imported.id(), Map.of(
                 "schemaVersion", 1,
                 "grantCount", input.grants().size(),
@@ -355,14 +364,14 @@ public class ApplicationManagementService {
         requireOwned(context, applicationId);
         return callService.selectList(Wrappers.<AppCall>lambdaQuery()
                         .eq(AppCall::getApplicationId, applicationId)
-                        .orderByDesc(AppCall::getCalledAt, AppCall::getId))
+                        .orderByDesc(AppCall::getCallTime, AppCall::getId))
                 .stream().map(call -> new ApplicationBridgeModels.CallLogView(
                         call.getId(), call.getRequestId(), call.getTraceId(), call.getApplicationVersionId(), call.getCredentialVersion(),
                         call.getGrantId(), call.getSourceAddress(), call.getTargetSystemId(), call.getTargetTenantId(),
                         call.getResourceType(), call.getResourceId(), call.getActionCode(), call.getStatus(),
                         call.getResponseCode(), call.getDurationMillis(), call.getErrorMessage(),
                         call.getTargetReference(), call.getReplayCount(), readMap(call.getPermissionSnapshotJson()),
-                        readObject(call.getResponseJson()), call.getCalledAt(), call.getFinishedAt())).toList();
+                        readObject(call.getResponseJson()), call.getCallTime(), call.getFinishTime())).toList();
     }
 
     @Transactional(readOnly = true)
@@ -403,15 +412,8 @@ public class ApplicationManagementService {
         List<ApplicationModels.CallbackInput> callbacks = input.callbacks() == null ? List.of() : input.callbacks();
         List<ApplicationModels.GrantInput> grants = input.grants() == null ? List.of() : input.grants();
         validateDraftInputs(context, callbacks, grants);
-        if (input.identityMappings() != null) {
-            validateIdentityMappings(application, input.identityMappings());
-        }
-
         replaceCallbacks(applicationId, callbacks);
         replaceGrants(applicationId, grants);
-        if (input.identityMappings() != null) {
-            replaceIdentityMappings(application, input.identityMappings(), context.accountId());
-        }
         application.setName(input.name().strip());
         application.setDescription(blankToNull(input.description()));
         application.setApplicationType(normalizeApplicationType(input.applicationType()));
@@ -423,9 +425,7 @@ public class ApplicationManagementService {
         audit(context, traceId, "APPLICATION_DRAFT_SAVED", applicationId, Map.of(
                 "draftRevision", application.getDraftRevision(),
                 "grantCount", grants.size(),
-                "callbackCount", callbacks.size(),
-                "identityMappingCount", input.identityMappings() == null
-                        ? bridgeIdentities(applicationId).size() : input.identityMappings().size()));
+                "callbackCount", callbacks.size()));
         return view(requireOwned(context, applicationId), true);
     }
 
@@ -521,7 +521,7 @@ public class ApplicationManagementService {
         for (AppCredential credential : credentials(applicationId)) {
             if (!Objects.equals(credential.getId(), issued.credentialId()) && "ACTIVE".equals(credential.getStatus())) {
                 credential.setStatus("REVOKED");
-                credential.setRevokedAt(now);
+                credential.setRevokeTime(now);
                 credentialService.updateById(credential);
             }
         }
@@ -551,7 +551,7 @@ public class ApplicationManagementService {
         for (AppCredential credential : credentials(applicationId)) {
             if ("ACTIVE".equals(credential.getStatus())) {
                 credential.setStatus("REVOKED");
-                credential.setRevokedAt(now);
+                credential.setRevokeTime(now);
                 credentialService.updateById(credential);
             }
         }
@@ -580,15 +580,10 @@ public class ApplicationManagementService {
                         fields(grant.getId()).stream().map(field -> new ApplicationModels.FieldInput(
                                 field.getFieldCode(), Boolean.TRUE.equals(field.getReadable()),
                                 Boolean.TRUE.equals(field.getWritable()), field.getMaskStrategy())).toList())).toList();
-        List<ApplicationModels.IdentityMappingInput> copiedIdentities = bridgeIdentities(applicationId).stream()
-                .filter(identity -> "ACTIVE".equals(identity.getStatus()))
-                .map(identity -> new ApplicationModels.IdentityMappingInput(null,
-                        identity.getSourceTenantMemberId(), identity.getTargetTenantMemberId(), true))
-                .toList();
         ApplicationModels.ApplicationView copied = saveDraft(context, created.application().id(),
                 new ApplicationModels.SaveDraftRequest(created.application().version(), input.name(),
                         source.getDescription(), source.getApplicationType(), source.getIconCode(), copiedCallbacks,
-                        copiedGrants, copiedIdentities), traceId);
+                        copiedGrants), traceId);
         audit(context, traceId, "APPLICATION_COPIED", copied.id(), Map.of("sourceApplicationId", applicationId));
         return new ApplicationModels.CreateResult(copied, created.issuedCredential());
     }
@@ -678,7 +673,7 @@ public class ApplicationManagementService {
         for (AppCredential credential : credentials(applicationId)) {
             if ("ACTIVE".equals(credential.getStatus())) {
                 credential.setStatus("REVOKED");
-                credential.setRevokedAt(now);
+                credential.setRevokeTime(now);
                 credentialService.updateById(credential);
             }
         }
@@ -698,6 +693,9 @@ public class ApplicationManagementService {
             case "CREATE" -> "新建记录";
             case "UPDATE" -> "编辑记录";
             case "START" -> "发起流程";
+            case "VIEW_INSTANCE" -> "查询流程实例";
+            case "LIST_TASKS" -> "查询外部待办";
+            case "HANDLE" -> "办理外部审批";
             default -> code;
         };
     }
@@ -762,128 +760,6 @@ public class ApplicationManagementService {
         }
     }
 
-    private void validateIdentityMappings(
-            AppDefinition application, List<ApplicationModels.IdentityMappingInput> inputs) {
-        if (!inputs.isEmpty() && !"SYSTEM".equals(application.getContextType())) {
-            throw invalid("APPLICATION_IDENTITY_MAPPING_SYSTEM_ONLY", "平台应用不能配置跨系统执行身份");
-        }
-        Set<Long> sourceMembers = new java.util.HashSet<>();
-        Set<Long> inputIds = new java.util.HashSet<>();
-        for (ApplicationModels.IdentityMappingInput input : inputs) {
-            if (!sourceMembers.add(input.sourceTenantMemberId())) {
-                throw invalid("APPLICATION_IDENTITY_MAPPING_DUPLICATE", "同一来源成员只能配置一个目标执行身份");
-            }
-            if (input.id() != null) {
-                if (!inputIds.add(input.id())) {
-                    throw invalid("APPLICATION_IDENTITY_MAPPING_DUPLICATE", "同一身份映射不能重复提交");
-                }
-                AppBridgeIdentity existing = bridgeIdentityService.selectById(input.id());
-                if (existing == null || !Objects.equals(existing.getApplicationId(), application.getId())) {
-                    throw invalid("APPLICATION_IDENTITY_MAPPING_NOT_FOUND", "跨系统身份映射不存在或不属于当前应用");
-                }
-            }
-            requireIdentitySelection(application, input);
-        }
-    }
-
-    /**
-     * 保存草稿时保留映射主键；未提交的行转为停用，便于已发布版本立即撤销且保留审计引用。
-     */
-    private void replaceIdentityMappings(
-            AppDefinition application, List<ApplicationModels.IdentityMappingInput> inputs, Long accountId) {
-        List<AppBridgeIdentity> existing = bridgeIdentities(application.getId());
-        Map<Long, AppBridgeIdentity> bySource = existing.stream().collect(java.util.stream.Collectors.toMap(
-                AppBridgeIdentity::getSourceTenantMemberId, value -> value));
-        Set<Long> retained = new java.util.HashSet<>();
-        for (ApplicationModels.IdentityMappingInput input : inputs) {
-            IdentitySelection selection = requireIdentitySelection(application, input);
-            AppBridgeIdentity identity = bySource.get(input.sourceTenantMemberId());
-            if (identity == null && input.id() != null) {
-                AppBridgeIdentity submitted = existing.stream().filter(item -> Objects.equals(item.getId(), input.id()))
-                        .findFirst().orElse(null);
-                if (submitted != null && Objects.equals(submitted.getSourceTenantMemberId(), input.sourceTenantMemberId())) {
-                    identity = submitted;
-                }
-            }
-            boolean inserting = identity == null;
-            if (inserting) {
-                identity = new AppBridgeIdentity();
-                identity.setApplicationId(application.getId());
-                identity.setCreatedByAccountId(accountId);
-                identity.setVersion(0);
-            }
-            identity.setSourceSystemId(selection.sourceSystem().getId());
-            identity.setSourceTenantId(selection.sourceTenant().getId());
-            identity.setSourceTenantMemberId(selection.sourceTenantMember().getId());
-            identity.setTargetSystemId(selection.targetSystem().getId());
-            identity.setTargetTenantId(selection.targetTenant().getId());
-            identity.setTargetTenantMemberId(selection.targetTenantMember().getId());
-            identity.setStatus(Boolean.TRUE.equals(input.enabled()) ? "ACTIVE" : "DISABLED");
-            if (inserting) {
-                bridgeIdentityService.insert(identity);
-            } else if (bridgeIdentityService.updateById(identity) != 1) {
-                throw conflict("APPLICATION_IDENTITY_MAPPING_CONFLICT", "身份映射已被其他管理员修改，请刷新后重试");
-            }
-            retained.add(identity.getId());
-        }
-        for (AppBridgeIdentity identity : existing) {
-            if (!retained.contains(identity.getId()) && !"DISABLED".equals(identity.getStatus())) {
-                identity.setStatus("DISABLED");
-                if (bridgeIdentityService.updateById(identity) != 1) {
-                    throw conflict("APPLICATION_IDENTITY_MAPPING_CONFLICT", "身份映射已被其他管理员修改，请刷新后重试");
-                }
-            }
-        }
-    }
-
-    private IdentitySelection requireIdentitySelection(
-            AppDefinition application, ApplicationModels.IdentityMappingInput input) {
-        SystemTenantMember sourceTenantMember = tenantMemberService.selectById(input.sourceTenantMemberId());
-        SystemTenant sourceTenant = sourceTenantMember == null ? null
-                : tenantService.selectById(sourceTenantMember.getTenantId());
-        SystemDefinition sourceSystem = sourceTenantMember == null ? null
-                : systemService.selectById(sourceTenantMember.getSystemId());
-        SystemMember sourceMember = sourceTenantMember == null ? null
-                : systemMemberService.selectById(sourceTenantMember.getSystemMemberId());
-        if (!active(sourceSystem) || !active(sourceTenant) || !active(sourceMember)
-                || sourceTenantMember == null || !"ACTIVE".equals(sourceTenantMember.getStatus())
-                || !Objects.equals(sourceTenant.getSystemId(), sourceSystem.getId())
-                || !Objects.equals(sourceMember.getSystemId(), sourceSystem.getId())
-                || !Objects.equals(sourceTenantMember.getTenantId(), sourceTenant.getId())
-                || Objects.equals(sourceSystem.getId(), application.getOwnerSystemId())
-                || !Objects.equals(sourceSystem.getPlatformId(), application.getPlatformId())) {
-            throw invalid("APPLICATION_SOURCE_IDENTITY_INVALID", "来源身份必须是同平台其他启用系统中的有效租户成员");
-        }
-        SystemTenantMember targetTenantMember = tenantMemberService.selectById(input.targetTenantMemberId());
-        SystemTenant targetTenant = targetTenantMember == null ? null
-                : tenantService.selectById(targetTenantMember.getTenantId());
-        SystemDefinition targetSystem = targetTenantMember == null ? null
-                : systemService.selectById(targetTenantMember.getSystemId());
-        SystemMember targetMember = targetTenantMember == null ? null
-                : systemMemberService.selectById(targetTenantMember.getSystemMemberId());
-        if (!active(targetSystem) || !active(targetTenant) || !active(targetMember)
-                || targetTenantMember == null || !"ACTIVE".equals(targetTenantMember.getStatus())
-                || !Objects.equals(targetSystem.getId(), application.getOwnerSystemId())
-                || !Objects.equals(targetTenant.getId(), application.getOwnerTenantId())
-                || !Objects.equals(targetTenant.getSystemId(), targetSystem.getId())
-                || !Objects.equals(targetMember.getSystemId(), targetSystem.getId())) {
-            throw invalid("APPLICATION_TARGET_IDENTITY_INVALID", "目标执行身份必须是当前应用租户中的有效成员");
-        }
-        return new IdentitySelection(sourceSystem, sourceTenant, sourceMember, sourceTenantMember,
-                targetSystem, targetTenant, targetMember, targetTenantMember);
-    }
-
-    private boolean active(SystemDefinition value) {
-        return value != null && "ACTIVE".equals(value.getStatus()) && !Boolean.TRUE.equals(value.getDeleted());
-    }
-
-    private boolean active(SystemTenant value) {
-        return value != null && "ACTIVE".equals(value.getStatus());
-    }
-
-    private boolean active(SystemMember value) {
-        return value != null && "ACTIVE".equals(value.getStatus());
-    }
 
     private void validateGrantContext(AuthenticatedContext context, ApplicationModels.GrantInput grant) {
         String resourceType = grant.resourceType().strip().toUpperCase(Locale.ROOT);
@@ -916,8 +792,8 @@ public class ApplicationManagementService {
         LocalDateTime now = LocalDateTime.now();
         if (credentials(application.getId()).stream().noneMatch(item ->
                 "ACTIVE".equals(item.getStatus()) && item.getSigningSecretRef() != null
-                        && (item.getValidFrom() == null || !item.getValidFrom().isAfter(now))
-                        && item.getExpiresAt() != null && item.getExpiresAt().isAfter(now))) {
+                        && (item.getValidStartTime() == null || !item.getValidStartTime().isAfter(now))
+                        && item.getExpireTime() != null && item.getExpireTime().isAfter(now))) {
             issues.add(new ApplicationModels.Issue("APPLICATION_CREDENTIAL_REQUIRED", "应用没有可验签的有效凭证版本"));
         }
         List<AppGrant> grants = grants(application.getId());
@@ -935,15 +811,6 @@ public class ApplicationManagementService {
             if (callback.getUrl() == null || !callback.getUrl().toLowerCase(Locale.ROOT).startsWith("https://")
                     || callback.getSigningSecretRef() == null) {
                 issues.add(new ApplicationModels.Issue("APPLICATION_CALLBACK_INVALID", "回调地址或签名密钥引用不完整"));
-            }
-        }
-        for (AppBridgeIdentity identity : bridgeIdentities(application.getId()).stream()
-                .filter(item -> "ACTIVE".equals(item.getStatus())).toList()) {
-            try {
-                requireIdentitySelection(application, new ApplicationModels.IdentityMappingInput(
-                        identity.getId(), identity.getSourceTenantMemberId(), identity.getTargetTenantMemberId(), true));
-            } catch (DomainException exception) {
-                issues.add(new ApplicationModels.Issue(exception.code(), exception.getMessage()));
             }
         }
         return issues;
@@ -974,6 +841,13 @@ public class ApplicationManagementService {
     private void validatePublishedTarget(AuthenticatedContext context, AppGrant grant) {
         String resourceType = grant.getResourceType().toUpperCase(Locale.ROOT);
         if ("FLOW".equals(resourceType)) {
+            if ("__flow_design__".equals(grant.getResourceId())) {
+                if (!Set.of("CREATE_DRAFT", "VIEW_DRAFT", "SAVE_DRAFT", "RENAME_DRAFT", "VALIDATE", "PUBLISH")
+                        .contains(grant.getActionCode()) || !fields(grant.getId()).isEmpty()) {
+                    throw invalid("APPLICATION_TARGET_ACTION_INVALID", "Flow 配置授权只能选择草稿动作，且不能设置业务字段");
+                }
+                return;
+            }
             FlowDefinition flow = flowDefinitionService.selectList(Wrappers.<FlowDefinition>lambdaQuery()
                             .eq(FlowDefinition::getContextType, context.systemId() == null ? "PLATFORM" : "SYSTEM")
                             .eq(FlowDefinition::getPlatformId, context.platformId())
@@ -991,11 +865,12 @@ public class ApplicationManagementService {
                 throw invalid("APPLICATION_TARGET_RESOURCE_NOT_PUBLISHED",
                         "应用授权引用的 Flow 不存在或尚未发布：" + grant.getResourceId());
             }
-            if (!"START".equals(grant.getActionCode())) {
-                throw invalid("APPLICATION_TARGET_ACTION_INVALID", "Flow 只允许配置发起流程动作");
+            if (!Set.of("START", "VIEW_INSTANCE", "LIST_TASKS", "HANDLE").contains(grant.getActionCode())) {
+                throw invalid("APPLICATION_TARGET_ACTION_INVALID", "Flow 授权动作无效");
             }
             Set<String> invalidFields = fields(grant.getId()).stream().map(AppGrantField::getFieldCode)
-                    .filter(code -> !Set.of("title", "variables").contains(code)).collect(java.util.stream.Collectors.toSet());
+                    .filter(code -> !"START".equals(grant.getActionCode())
+                            || !Set.of("title", "variables").contains(code)).collect(java.util.stream.Collectors.toSet());
             if (!invalidFields.isEmpty()) {
                 throw invalid("APPLICATION_TARGET_FIELD_INVALID", "Flow 授权包含不存在的输入项：" + String.join("、", invalidFields));
             }
@@ -1068,18 +943,68 @@ public class ApplicationManagementService {
                 "应用授权引用的 AI 能力尚未形成可发布资源：" + grant.getResourceId());
     }
 
-    /** 应用数据范围只能从当前层级支持的固定选项中选择，任意文本不能进入发布快照。 */
+    /** 应用只保存明确选择的负责人或部门，人员角色不是授权来源。 */
     private void validateDataScope(AuthenticatedContext context, Map<String, Object> dataScope) {
         String type = dataScope == null ? null : string(dataScope.get("type"));
-        if (type == null) {
-            throw invalid("APPLICATION_DATA_SCOPE_REQUIRED", "每项授权必须明确数据范围");
+        if (!"RESPONSIBLE".equals(type) || dataScope.keySet().stream()
+                .anyMatch(key -> !Set.of("type", "memberIds", "departmentIds").contains(key))) {
+            throw invalid("APPLICATION_DATA_SCOPE_INVALID", "应用数据范围必须选择负责人或部门");
         }
-        Set<String> allowed = context.systemId() == null
-                ? Set.of("PLATFORM")
-                : Set.of("SELF", "DEPARTMENT", "DEPARTMENT_AND_DESCENDANTS", "ALL");
-        if (!allowed.contains(type.toUpperCase(Locale.ROOT)) || dataScope.size() != 1) {
-            throw invalid("APPLICATION_DATA_SCOPE_INVALID", "应用数据范围必须从当前页面提供的固定选项中选择");
+        List<Long> memberIds = scopeIds(dataScope.get("memberIds"));
+        List<Long> departmentIds = scopeIds(dataScope.get("departmentIds"));
+        if (memberIds.isEmpty() && departmentIds.isEmpty()) {
+            throw invalid("APPLICATION_DATA_SCOPE_REQUIRED", "每项授权至少选择一名负责人或一个部门");
         }
+        if (context.systemId() == null) {
+            for (Long id : memberIds) {
+                PlatformMember member = platformMemberService.selectById(id);
+                if (member == null || !Objects.equals(member.getPlatformId(), context.platformId())) {
+                    throw invalid("APPLICATION_SCOPE_MEMBER_INVALID", "所选平台负责人不属于当前平台");
+                }
+            }
+            for (Long id : departmentIds) {
+                PlatformDepartment department = platformDepartmentService.selectById(id);
+                if (department == null || !Objects.equals(department.getPlatformId(), context.platformId())) {
+                    throw invalid("APPLICATION_SCOPE_DEPARTMENT_INVALID", "所选平台部门不属于当前平台");
+                }
+            }
+        } else {
+            for (Long id : memberIds) {
+                SystemMember member = systemMemberService.selectById(id);
+                if (member == null || !Objects.equals(member.getSystemId(), context.systemId())
+                        || tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                                .eq(SystemTenantMember::getSystemId, context.systemId())
+                                .eq(SystemTenantMember::getTenantId, context.tenantId())
+                                .eq(SystemTenantMember::getSystemMemberId, id)).isEmpty()) {
+                    throw invalid("APPLICATION_SCOPE_MEMBER_INVALID", "所选负责人不属于当前系统租户");
+                }
+            }
+            for (Long id : departmentIds) {
+                SystemDepartment department = systemDepartmentService.selectById(id);
+                if (department == null || !Objects.equals(department.getSystemId(), context.systemId())
+                        || !Objects.equals(department.getTenantId(), context.tenantId())) {
+                    throw invalid("APPLICATION_SCOPE_DEPARTMENT_INVALID", "所选部门不属于当前系统租户");
+                }
+            }
+        }
+    }
+
+    private List<Long> scopeIds(Object value) {
+        if (!(value instanceof List<?> values)) {
+            throw invalid("APPLICATION_DATA_SCOPE_INVALID", "负责人和部门范围必须使用编号列表");
+        }
+        List<Long> ids = new ArrayList<>();
+        for (Object item : values) {
+            if (!(item instanceof Number number) || number.longValue() <= 0
+                    || number.doubleValue() != number.longValue()) {
+                throw invalid("APPLICATION_DATA_SCOPE_INVALID", "负责人或部门编号无效");
+            }
+            ids.add(number.longValue());
+        }
+        if (ids.size() != new java.util.HashSet<>(ids).size()) {
+            throw invalid("APPLICATION_DATA_SCOPE_INVALID", "负责人或部门范围存在重复编号");
+        }
+        return ids;
     }
 
     private void replaceCallbacks(Long applicationId, List<ApplicationModels.CallbackInput> inputs) {
@@ -1152,16 +1077,16 @@ public class ApplicationManagementService {
         credential.setSecretHash(secretHasher.hash(secret.toCharArray()));
         credential.setSigningSecretRef(secretCipher.encrypt(secret, application.getId(), version));
         credential.setSecretHint(hint);
-        LocalDateTime validFrom = LocalDateTime.now();
-        credential.setValidFrom(validFrom);
-        credential.setExpiresAt(validFrom.plusDays(validityDays));
+        LocalDateTime validStartTime = LocalDateTime.now();
+        credential.setValidStartTime(validStartTime);
+        credential.setExpireTime(validStartTime.plusDays(validityDays));
         credential.setStatus("ACTIVE");
         credential.setCreatedByAccountId(accountId);
         credentialService.insert(credential);
         return new ApplicationModels.CredentialSecret(
                 credential.getId(), version, clientId, secret,
                 secretCipher.displayReference(application.getId(), version), hint,
-                credential.getValidFrom(), credential.getExpiresAt(), true);
+                credential.getValidStartTime(), credential.getExpireTime(), true);
     }
 
     private Map<String, Object> snapshot(AppDefinition application) {
@@ -1180,26 +1105,11 @@ public class ApplicationManagementService {
         snapshot.put("callbacks", callbacks(application.getId()).stream().map(this::callbackSnapshot).toList());
         snapshot.put("grants", grants(application.getId()).stream()
                 .map(grant -> grantSnapshot(application, grant)).toList());
-        snapshot.put("bridgeIdentities", bridgeIdentities(application.getId()).stream()
-                .filter(identity -> "ACTIVE".equals(identity.getStatus()))
-                .map(this::identitySnapshot).toList());
         snapshot.put("credentials", credentials(application.getId()).stream()
                 .filter(item -> "ACTIVE".equals(item.getStatus()))
                 .map(this::credentialSnapshot)
                 .toList());
         return snapshot;
-    }
-
-    private Map<String, Object> identitySnapshot(AppBridgeIdentity identity) {
-        Map<String, Object> value = new LinkedHashMap<>();
-        value.put("mappingId", identity.getId());
-        value.put("sourceSystemId", identity.getSourceSystemId());
-        value.put("sourceTenantId", identity.getSourceTenantId());
-        value.put("sourceTenantMemberId", identity.getSourceTenantMemberId());
-        value.put("targetSystemId", identity.getTargetSystemId());
-        value.put("targetTenantId", identity.getTargetTenantId());
-        value.put("targetTenantMemberId", identity.getTargetTenantMemberId());
-        return value;
     }
 
     private Map<String, Object> credentialSnapshot(AppCredential credential) {
@@ -1208,7 +1118,7 @@ public class ApplicationManagementService {
         value.put("clientId", credential.getClientId());
         value.put("secretHint", credential.getSecretHint());
         value.put("status", credential.getStatus());
-        value.put("expiresAt", credential.getExpiresAt());
+        value.put("expireTime", credential.getExpireTime());
         return value;
     }
 
@@ -1235,7 +1145,9 @@ public class ApplicationManagementService {
         value.put("actionCode", grant.getActionCode());
         value.put("dataScope", readMap(grant.getDataScopeJson()));
         value.put("rateLimit", readMap(grant.getRateLimitJson()));
-        if ("FLOW".equals(grant.getResourceType())) freezeFlowGrant(application, grant, value);
+        if ("FLOW".equals(grant.getResourceType()) && !"__flow_design__".equals(grant.getResourceId())) {
+            freezeFlowGrant(application, grant, value);
+        }
         if ("MODULE".equals(grant.getResourceType())) freezeModuleGrant(application, grant, value);
         value.put("fields", fields(grant.getId()).stream().map(field -> Map.of(
                 "fieldCode", field.getFieldCode(),
@@ -1333,53 +1245,6 @@ public class ApplicationManagementService {
         return result;
     }
 
-    private List<ApplicationModels.IdentityMappingView> publishedIdentityViews(AppPublication publication) {
-        if (publication == null || publication.getCurrentVersionId() == null) return List.of();
-        AppVersion version = versionService.selectById(publication.getCurrentVersionId());
-        if (version == null || version.getSnapshotJson() == null) return List.of();
-        Object raw = readMap(version.getSnapshotJson()).get("bridgeIdentities");
-        if (!(raw instanceof List<?> values)) return List.of();
-        List<ApplicationModels.IdentityMappingView> result = new ArrayList<>();
-        for (Object value : values) {
-            Map<String, Object> identity = map(value);
-            Long mappingId = asLong(identity.get("mappingId"));
-            AppBridgeIdentity current = mappingId == null ? null : bridgeIdentityService.selectById(mappingId);
-            result.add(identityView(mappingId,
-                    asLong(identity.get("sourceSystemId")), asLong(identity.get("sourceTenantId")),
-                    asLong(identity.get("sourceTenantMemberId")), asLong(identity.get("targetSystemId")),
-                    asLong(identity.get("targetTenantId")), asLong(identity.get("targetTenantMemberId")),
-                    current == null ? "MISSING" : current.getStatus(), version.getVersionNumber()));
-        }
-        return result;
-    }
-
-    private ApplicationModels.IdentityMappingView identityView(AppBridgeIdentity identity) {
-        return identityView(identity.getId(), identity.getSourceSystemId(), identity.getSourceTenantId(),
-                identity.getSourceTenantMemberId(), identity.getTargetSystemId(), identity.getTargetTenantId(),
-                identity.getTargetTenantMemberId(), identity.getStatus(), identity.getVersion());
-    }
-
-    private ApplicationModels.IdentityMappingView identityView(
-            Long id, Long sourceSystemId, Long sourceTenantId, Long sourceTenantMemberId,
-            Long targetSystemId, Long targetTenantId, Long targetTenantMemberId, String status, Integer version) {
-        SystemDefinition sourceSystem = systemService.selectById(sourceSystemId);
-        SystemTenant sourceTenant = tenantService.selectById(sourceTenantId);
-        SystemTenantMember sourceTenantMember = tenantMemberService.selectById(sourceTenantMemberId);
-        SystemMember sourceMember = sourceTenantMember == null ? null
-                : systemMemberService.selectById(sourceTenantMember.getSystemMemberId());
-        SystemDefinition targetSystem = systemService.selectById(targetSystemId);
-        SystemTenant targetTenant = tenantService.selectById(targetTenantId);
-        SystemTenantMember targetTenantMember = tenantMemberService.selectById(targetTenantMemberId);
-        SystemMember targetMember = targetTenantMember == null ? null
-                : systemMemberService.selectById(targetTenantMember.getSystemMemberId());
-        return new ApplicationModels.IdentityMappingView(id, sourceSystemId,
-                sourceSystem == null ? "来源系统不可用" : sourceSystem.getName(), sourceTenantId,
-                sourceTenant == null ? "来源租户不可用" : sourceTenant.getName(), sourceTenantMemberId,
-                sourceMember == null ? "来源成员不可用" : sourceMember.getDisplayName(), targetSystemId,
-                targetSystem == null ? "目标系统不可用" : targetSystem.getName(), targetTenantId,
-                targetTenant == null ? "目标租户不可用" : targetTenant.getName(), targetTenantMemberId,
-                targetMember == null ? "目标成员不可用" : targetMember.getDisplayName(), status, version);
-    }
 
     private ApplicationModels.ApplicationView view(AppDefinition application, boolean includeHistory) {
         AppPublication publication = publication(application.getId());
@@ -1395,7 +1260,7 @@ public class ApplicationManagementService {
                 .sorted(Comparator.comparing(AppVersion::getVersionNumber).reversed())
                 .map(version -> new ApplicationModels.VersionView(version.getId(), version.getVersionNumber(),
                         version.getDraftRevision(), version.getSnapshotHash(), version.getPublishedByAccountId(),
-                        version.getPublishedAt(), publication != null && Objects.equals(publication.getCurrentVersionId(), version.getId())))
+                        version.getPublishTime(), publication != null && Objects.equals(publication.getCurrentVersionId(), version.getId())))
                 .toList();
         return new ApplicationModels.ApplicationView(
                 application.getId(), application.getContextType(), application.getPlatformId(),
@@ -1411,26 +1276,24 @@ public class ApplicationManagementService {
                         callback.getTimeoutMillis(), callback.getMaxAttempts(), callback.getStatus(), callback.getVersion())).toList(),
                 draftGrants,
                 publishedGrantViews(publication),
-                bridgeIdentities(application.getId()).stream().map(this::identityView).toList(),
-                publishedIdentityViews(publication),
                 credentials(application.getId()).stream().sorted(Comparator.comparing(AppCredential::getCredentialVersion).reversed())
                         .map(credential -> new ApplicationModels.CredentialView(
                                 credential.getId(), credential.getCredentialVersion(), credential.getClientId(),
                                 secretCipher.displayReference(application.getId(), credential.getCredentialVersion()),
-                                credential.getSecretHint(), credential.getValidFrom(), credential.getExpiresAt(),
-                                credentialViewStatus(credential), credential.getRevokedAt(), credential.getCreatedAt())).toList(),
+                                credential.getSecretHint(), credential.getValidStartTime(), credential.getExpireTime(),
+                                credentialViewStatus(credential), credential.getRevokeTime(), credential.getCreateTime())).toList(),
                 versions,
                 includeHistory ? statusHistory(application.getId()) : List.of(),
-                application.getCreatedAt(), application.getUpdatedAt());
+                application.getCreateTime(), application.getUpdateTime());
     }
 
     private List<ApplicationModels.StatusEvent> statusHistory(Long applicationId) {
         return auditEventService.selectList(Wrappers.<AuditEvent>lambdaQuery()
                         .eq(AuditEvent::getObjectType, "APPLICATION")
                         .eq(AuditEvent::getObjectId, applicationId.toString()))
-                .stream().sorted(Comparator.comparing(AuditEvent::getOccurredAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .stream().sorted(Comparator.comparing(AuditEvent::getOccurTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(event -> new ApplicationModels.StatusEvent(event.getId(), event.getEventCode(), event.getResultCode(),
-                        event.getActorAccountId(), event.getOccurredAt(), readMap(event.getDetailJson()))).toList();
+                        event.getActorAccountId(), event.getOccurTime(), readMap(event.getDetailJson()))).toList();
     }
 
     private List<AppDefinition> scopedDefinitions(AuthenticatedContext context) {
@@ -1488,11 +1351,6 @@ public class ApplicationManagementService {
                 .eq(AppGrantField::getGrantId, grantId).orderByAsc(AppGrantField::getId));
     }
 
-    private List<AppBridgeIdentity> bridgeIdentities(Long applicationId) {
-        return bridgeIdentityService.selectList(Wrappers.<AppBridgeIdentity>lambdaQuery()
-                .eq(AppBridgeIdentity::getApplicationId, applicationId).orderByAsc(AppBridgeIdentity::getId));
-    }
-
     private List<AppCredential> credentials(Long applicationId) {
         return credentialService.selectList(Wrappers.<AppCredential>lambdaQuery()
                 .eq(AppCredential::getApplicationId, applicationId));
@@ -1530,8 +1388,8 @@ public class ApplicationManagementService {
     }
 
     private String credentialViewStatus(AppCredential credential) {
-        if ("ACTIVE".equals(credential.getStatus()) && credential.getExpiresAt() != null
-                && !credential.getExpiresAt().isAfter(LocalDateTime.now())) {
+        if ("ACTIVE".equals(credential.getStatus()) && credential.getExpireTime() != null
+                && !credential.getExpireTime().isAfter(LocalDateTime.now())) {
             return "EXPIRED";
         }
         return credential.getStatus();
@@ -1634,14 +1492,4 @@ public class ApplicationManagementService {
         return new DomainException(code, message, HttpStatus.CONFLICT);
     }
 
-    private record IdentitySelection(
-            SystemDefinition sourceSystem,
-            SystemTenant sourceTenant,
-            SystemMember sourceMember,
-            SystemTenantMember sourceTenantMember,
-            SystemDefinition targetSystem,
-            SystemTenant targetTenant,
-            SystemMember targetMember,
-            SystemTenantMember targetTenantMember) {
-    }
 }

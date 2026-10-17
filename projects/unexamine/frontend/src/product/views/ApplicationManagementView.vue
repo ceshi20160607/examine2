@@ -17,7 +17,7 @@ import type {
   ApplicationCallResult,
   ApplicationConfigurationExport,
   ApplicationCredentialSecret,
-  ApplicationIdentityCatalog,
+  ApplicationScopeCatalog,
   ApplicationPublicationCheck,
   ApplicationPublishResult,
   ApplicationResourceField,
@@ -33,7 +33,8 @@ interface GrantForm {
   actionCode: string
   readableFields: string[]
   writableFields: string[]
-  scopeType: string
+  memberIds: number[]
+  departmentIds: number[]
   maxRequests: number
   windowSeconds: number
   allowedIps: string[]
@@ -48,13 +49,6 @@ interface CallbackForm {
   signingSecretRef: string
   timeoutMillis: number
   maxAttempts: number
-}
-
-interface IdentityMappingForm {
-  id?: number
-  sourceTenantMemberId?: number
-  targetTenantMemberId?: number
-  enabled: boolean
 }
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'platform' })
@@ -102,8 +96,7 @@ const credentialForm = reactive({ validityDays: 365 })
 const draftForm = reactive({ name: '', description: '', applicationType: 'SERVICE', iconCode: 'api' })
 const grantForms = ref<GrantForm[]>([])
 const callbackForms = ref<CallbackForm[]>([])
-const identityCatalog = ref<ApplicationIdentityCatalog>({ sourceMembers: [], targetMembers: [] })
-const identityMappingForms = ref<IdentityMappingForm[]>([])
+const scopeCatalog = ref<ApplicationScopeCatalog>({ members: [], departments: [] })
 const applicationFilter = ref<'ACTIVE' | 'ALL'>('ACTIVE')
 const showTechnical = ref(false)
 const callForm = reactive({
@@ -114,8 +107,16 @@ const callForm = reactive({
   idempotencyKey: '',
   nonce: '',
   title: '',
+  externalPrincipalId: '',
+  flowDesignPayload: '',
+  instanceId: undefined as number | undefined,
+  taskId: undefined as number | undefined,
+  decision: 'APPROVE' as 'APPROVE' | 'REJECT',
+  comment: '',
   recordId: undefined as number | undefined,
   recordVersion: undefined as number | undefined,
+  ownerMemberId: undefined as number | undefined,
+  createdByMemberId: undefined as number | undefined,
   search: '',
   pageSize: 20,
 })
@@ -136,14 +137,13 @@ function retainVisibleSelection() {
 watch(requestedModule, value => switchModuleFilter(Boolean(value)))
 const displayGrants = computed(() => selected.value?.publishedGrants.length
   ? selected.value.publishedGrants : selected.value?.grants || [])
-const displayIdentityMappings = computed(() => selected.value?.publishedIdentityMappings.length
-  ? selected.value.publishedIdentityMappings : selected.value?.identityMappings || [])
 const integrationGrant = computed(() => displayGrants.value.find(grant => grantChannels(grant.rateLimit).includes('EXTERNAL')))
 const integrationExample = computed(() => {
   const grant = integrationGrant.value
   if (!grant) return ''
   const fields = Object.fromEntries(grant.fields.filter(field => field.writable).map(field => [field.fieldCode, `<${fieldName(grant.resourceType, grant.resourceId, field.fieldCode)}>`]))
-  const payload = grant.resourceType === 'FLOW' ? { title: '外部系统发起', variables: {} }
+  const payload = grant.resourceId === '__flow_design__' ? flowDesignExample(grant.actionCode)
+    : grant.resourceType === 'FLOW' ? { title: '外部系统发起', variables: {} }
     : grant.actionCode === 'DETAIL' ? { recordId: 123 }
       : grant.actionCode === 'LIST' ? { search: '', pageSize: 20 }
         : grant.actionCode === 'UPDATE' ? { recordId: 123, version: 0, title: '更新后的标题', fields }
@@ -161,19 +161,22 @@ const integrationExample = computed(() => {
 const availableCallGrants = computed(() => displayGrants.value.filter(grant =>
   grantChannels(grant.rateLimit).includes(callForm.accessMode)))
 const selectedCallGrant = computed(() => availableCallGrants.value.find(item => item.id === callForm.grantId))
+watch(() => selectedCallGrant.value?.id, () => {
+  if (selectedCallGrant.value?.resourceId === '__flow_design__') {
+    callForm.flowDesignPayload = JSON.stringify(flowDesignExample(selectedCallGrant.value.actionCode), null, 2)
+  }
+})
 const selectedCallResource = computed(() => selectedCallGrant.value
   ? findResource(selectedCallGrant.value.resourceType, selectedCallGrant.value.resourceId) : undefined)
 const writableCallFields = computed(() => {
   const writable = new Set(selectedCallGrant.value?.fields.filter(field => field.writable).map(field => field.fieldCode) || [])
   return selectedCallResource.value?.fields.filter(field => writable.has(field.code)) || []
 })
-const sourceIdentityOptions = computed(() => identityCatalog.value.sourceMembers.map(item => ({
-  value: item.tenantMemberId,
-  label: `${item.systemName} / ${item.tenantName} / ${item.memberName}${item.employeeNumber ? `（${item.employeeNumber}）` : ''}`,
+const scopeMemberOptions = computed(() => scopeCatalog.value.members.map(item => ({
+  value: item.id, label: `${item.name}${item.status === 'ACTIVE' ? '' : '（已停用）'}`, disabled: item.status !== 'ACTIVE',
 })))
-const targetIdentityOptions = computed(() => identityCatalog.value.targetMembers.map(item => ({
-  value: item.tenantMemberId,
-  label: `${item.memberName}${item.employeeNumber ? `（${item.employeeNumber}）` : ''} · ${item.tenantName}`,
+const scopeDepartmentOptions = computed(() => scopeCatalog.value.departments.map(item => ({
+  value: item.id, label: `${item.name}${item.status === 'ACTIVE' ? '' : '（已停用）'}`, disabled: item.status !== 'ACTIVE',
 })))
 
 function switchApplicationFilter(value: string) {
@@ -186,7 +189,7 @@ function resourceLabel(value: string) {
 }
 
 function actionLabel(value: string) {
-  return ({ START: '发起流程', DETAIL: '查看详情', CREATE: '新建记录', UPDATE: '编辑记录', LIST: '查询列表' } as Record<string, string>)[value] || value
+  return ({ START: '发起流程', VIEW_INSTANCE: '查询流程实例', LIST_TASKS: '查询外部待办', HANDLE: '办理外部审批', CREATE_DRAFT: '创建流程草稿', VIEW_DRAFT: '读取流程草稿', SAVE_DRAFT: '保存流程草稿', RENAME_DRAFT: '修改流程名称', VALIDATE: '检查流程发布条件', PUBLISH: '发布流程版本', DETAIL: '查看详情', CREATE: '新建记录', UPDATE: '编辑记录', LIST: '查询列表' } as Record<string, string>)[value] || value
 }
 
 function credentialStatusLabel(value: string) {
@@ -222,7 +225,16 @@ function resourceName(type: string, id: string) {
 
 function resourceChoices(type: string) {
   return resources.value.filter(item => item.resourceType === type)
-    .map(item => ({ value: item.resourceId, label: `${item.name} · V${item.publishedVersionNumber || '—'}` }))
+    .map(item => ({ value: item.resourceId, label: item.publishedVersionNumber
+      ? `${item.name} · V${item.publishedVersionNumber}` : item.name }))
+}
+
+function flowDesignExample(action: string): Record<string, unknown> {
+  if (action === 'CREATE_DRAFT') return { code: 'external_order', name: '外部订单审批', description: '由当前应用配置' }
+  if (action === 'SAVE_DRAFT') return { flowId: 1, expectedVersion: 0, nodes: [], edges: [] }
+  if (action === 'RENAME_DRAFT') return { flowId: 1, expectedVersion: 0, name: '新流程名称' }
+  if (action === 'PUBLISH') return { flowId: 1, expectedDraftRevision: 2, changeSummary: '首次发布', simulationVariables: {} }
+  return { flowId: 1 }
 }
 
 function actionChoices(grant: GrantForm) {
@@ -263,16 +275,22 @@ function describeError(error: unknown) {
   return error instanceof Error ? error.message : '操作失败'
 }
 
-function settingString(value: unknown, fallback: string) {
-  return typeof value === 'string' && value ? value : fallback
-}
-
 function settingNumber(value: unknown, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
 function settingStrings(value: unknown, fallback: string[] = []) {
   return Array.isArray(value) ? value.map(String).filter(Boolean) : fallback
+}
+
+function settingNumbers(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is number => typeof item === 'number' && item > 0) : []
+}
+
+function scopeSummary(scope: Record<string, unknown>) {
+  const members = settingNumbers(scope.memberIds).map(id => scopeCatalog.value.members.find(item => item.id === id)?.name || `成员 ${id}`)
+  const departments = settingNumbers(scope.departmentIds).map(id => scopeCatalog.value.departments.find(item => item.id === id)?.name || `部门 ${id}`)
+  return [...members, ...departments].join('、') || '未设置负责人范围'
 }
 
 function grantChannels(callControl: Record<string, unknown>) {
@@ -288,7 +306,7 @@ function newGrant(): GrantForm {
     resourceId: resource?.resourceId || '',
     actionCode: resource?.actions[0]?.code || (props.context === 'platform' ? 'START' : 'DETAIL'),
     readableFields: resource?.fields.map(field => field.code) || [], writableFields: [],
-    scopeType: props.context === 'platform' ? 'PLATFORM' : 'SELF',
+    memberIds: [], departmentIds: [],
     maxRequests: 100, windowSeconds: 60, allowedIps: ['127.0.0.1'],
     failureDisableThreshold: 5, failureWindowSeconds: 300,
   }
@@ -299,10 +317,6 @@ function newCallback(): CallbackForm {
     callbackType: 'RESULT', url: '', eventCodes: ['APPLICATION.CALL.COMPLETED'],
     signingSecretRef: '', timeoutMillis: 5000, maxAttempts: 3,
   }
-}
-
-function newIdentityMapping(): IdentityMappingForm {
-  return { sourceTenantMemberId: undefined, targetTenantMemberId: undefined, enabled: true }
 }
 
 async function load(preferredId?: number) {
@@ -319,7 +333,7 @@ async function load(preferredId?: number) {
       ? preferredId : selected.value && visibleRows.value.some(item => item.id === selected.value?.id)
         ? selected.value.id : visibleRows.value[0]?.id
     selected.value = id ? await api<ApplicationView>(`/api/applications/${id}`, {}, token.value) : undefined
-    await Promise.all([loadCalls(), loadIdentityCatalog()])
+    await Promise.all([loadCalls(), loadScopeCatalog()])
   } catch (error) {
     message.error(describeError(error))
   } finally { loading.value = false }
@@ -329,7 +343,7 @@ async function selectApplication(id: number) {
   if (!token.value) return
   try {
     selected.value = await api<ApplicationView>(`/api/applications/${id}`, {}, token.value)
-    await Promise.all([loadCalls(), loadIdentityCatalog()])
+    await Promise.all([loadCalls(), loadScopeCatalog()])
     publicationCheck.value = undefined
   } catch (error) { message.error(describeError(error)) }
 }
@@ -343,13 +357,13 @@ async function loadCalls() {
     `/api/applications/${selected.value.id}/calls`, {}, token.value)
 }
 
-async function loadIdentityCatalog() {
-  if (!token.value || !selected.value || props.context !== 'system') {
-    identityCatalog.value = { sourceMembers: [], targetMembers: [] }
+async function loadScopeCatalog() {
+  if (!token.value || !selected.value) {
+    scopeCatalog.value = { members: [], departments: [] }
     return
   }
-  identityCatalog.value = await api<ApplicationIdentityCatalog>(
-    `/api/applications/${selected.value.id}/identity-catalog`, {}, token.value)
+  scopeCatalog.value = await api<ApplicationScopeCatalog>(
+    `/api/applications/${selected.value.id}/scope-catalog`, {}, token.value)
 }
 
 function openCallTester(credential?: ApplicationCredentialSecret) {
@@ -368,8 +382,17 @@ function openCallTester(credential?: ApplicationCredentialSecret) {
     idempotencyKey: `ui-${Date.now()}`,
     nonce: newApplicationNonce(),
     title: `应用调用 · ${resourceName(grant.resourceType, grant.resourceId)}`,
+    externalPrincipalId: '',
+    flowDesignPayload: grant.resourceId === '__flow_design__'
+      ? JSON.stringify(flowDesignExample(grant.actionCode), null, 2) : '',
+    instanceId: undefined,
+    taskId: undefined,
+    decision: 'APPROVE',
+    comment: '',
     recordId: undefined,
     recordVersion: undefined,
+    ownerMemberId: undefined,
+    createdByMemberId: undefined,
     search: '',
     pageSize: 20,
   })
@@ -392,10 +415,21 @@ function switchCallMode(mode: string) {
 function callPayload() {
   const grant = selectedCallGrant.value
   if (!grant) return {}
-  if (grant.resourceType === 'FLOW') return { title: callForm.title, variables: {} }
+  if (grant.resourceType === 'FLOW') {
+    if (grant.resourceId === '__flow_design__') return JSON.parse(callForm.flowDesignPayload) as Record<string, unknown>
+    const identity = { externalPrincipalId: callForm.externalPrincipalId.trim() }
+    if (grant.actionCode === 'START') return { ...identity, title: callForm.title, variables: {} }
+    if (grant.actionCode === 'VIEW_INSTANCE') return { ...identity, instanceId: callForm.instanceId }
+    if (grant.actionCode === 'LIST_TASKS') return identity
+    if (grant.actionCode === 'HANDLE') return { ...identity, taskId: callForm.taskId,
+      decision: callForm.decision, comment: callForm.comment }
+  }
   if (grant.actionCode === 'LIST') return { search: callForm.search, pageSize: callForm.pageSize }
   if (grant.actionCode === 'DETAIL') return { recordId: callForm.recordId }
-  if (grant.actionCode === 'CREATE') return { title: callForm.title, fields: callFieldValues.value }
+  if (grant.actionCode === 'CREATE') return {
+    title: callForm.title, fields: callFieldValues.value,
+    ownerMemberId: callForm.ownerMemberId, createdByMemberId: callForm.createdByMemberId,
+  }
   if (grant.actionCode === 'UPDATE') return {
     recordId: callForm.recordId, version: callForm.recordVersion,
     title: callForm.title || undefined, fields: callFieldValues.value,
@@ -598,7 +632,8 @@ function openDraft() {
     actionCode: grant.actionCode,
     readableFields: grant.fields.filter(field => field.readable).map(field => field.fieldCode),
     writableFields: grant.fields.filter(field => field.writable).map(field => field.fieldCode),
-    scopeType: settingString(grant.dataScope.type, props.context === 'platform' ? 'PLATFORM' : 'SELF'),
+    memberIds: settingNumbers(grant.dataScope.memberIds),
+    departmentIds: settingNumbers(grant.dataScope.departmentIds),
     maxRequests: settingNumber(grant.rateLimit.maxRequests, 100),
     windowSeconds: settingNumber(grant.rateLimit.windowSeconds, 60),
     allowedIps: settingStrings(grant.rateLimit.allowedIps, ['127.0.0.1']),
@@ -614,12 +649,6 @@ function openDraft() {
     timeoutMillis: callback.timeoutMillis,
     maxAttempts: callback.maxAttempts,
   }))
-  identityMappingForms.value = selected.value.identityMappings.map(identity => ({
-    id: identity.id,
-    sourceTenantMemberId: identity.sourceTenantMemberId,
-    targetTenantMemberId: identity.targetTenantMemberId,
-    enabled: identity.status === 'ACTIVE',
-  }))
   draftOpen.value = true
 }
 
@@ -631,6 +660,7 @@ async function saveDraft() {
     const grants = grantForms.value.map((grant, index) => {
       if (!grant.resourceId.trim() || !grant.actionCode.trim()) throw new Error(`第 ${index + 1} 项授权缺少资源标识或动作`)
       if (!grant.accessChannels.length) throw new Error(`第 ${index + 1} 项授权至少选择一种访问方式`)
+      if (!grant.memberIds.length && !grant.departmentIds.length) throw new Error(`第 ${index + 1} 项授权至少选择一名负责人或一个部门`)
       return {
         targetType: contextCode.value,
         targetSystemId: props.context === 'system' ? current.value?.systemId : undefined,
@@ -638,7 +668,7 @@ async function saveDraft() {
         resourceType: grant.resourceType,
         resourceId: grant.resourceId.trim(),
         actionCode: grant.actionCode.trim().toUpperCase(),
-        dataScope: { type: grant.scopeType },
+        dataScope: { type: 'RESPONSIBLE', memberIds: grant.memberIds, departmentIds: grant.departmentIds },
         rateLimit: {
           accessChannels: grant.accessChannels,
           maxRequests: grant.maxRequests,
@@ -666,26 +696,11 @@ async function saveDraft() {
         maxAttempts: callback.maxAttempts,
       }
     })
-    const identityMappings = identityMappingForms.value.map((identity, index) => {
-      if (!identity.sourceTenantMemberId || !identity.targetTenantMemberId) {
-        throw new Error(`第 ${index + 1} 项跨系统身份映射没有选择完整的来源成员和目标成员`)
-      }
-      return {
-        id: identity.id,
-        sourceTenantMemberId: identity.sourceTenantMemberId,
-        targetTenantMemberId: identity.targetTenantMemberId,
-        enabled: identity.enabled,
-      }
-    })
-    if (new Set(identityMappings.map(item => item.sourceTenantMemberId)).size !== identityMappings.length) {
-      throw new Error('同一来源成员只能配置一个目标执行身份')
-    }
     selected.value = await api<ApplicationView>(`/api/applications/${selected.value.id}/draft`, {
       method: 'PUT', body: JSON.stringify({
         expectedVersion: selected.value.version,
         name: draftForm.name.trim(), description: draftForm.description.trim() || undefined,
         applicationType: draftForm.applicationType, iconCode: draftForm.iconCode, grants, callbacks,
-        identityMappings,
       }),
     }, token.value)
     draftOpen.value = false
@@ -871,7 +886,7 @@ onMounted(() => load())
         <section class="application-summary-grid">
           <article class="panel-card"><small>作用范围</small><strong>{{ selected.contextType === 'SYSTEM' ? '当前系统' : '整个平台' }}</strong><span>{{ selected.contextType === 'SYSTEM' ? '只允许当前系统资源' : '只允许平台资源' }}</span></article>
           <article class="panel-card"><small>当前发布授权</small><strong>{{ displayGrants.length }} 项</strong><span>资源、动作、字段和数据范围</span></article>
-          <article v-if="context === 'system'" class="panel-card"><small>跨系统身份</small><strong>{{ displayIdentityMappings.filter(item => item.status === 'ACTIVE').length }} 项</strong><span>来源成员映射到本系统执行成员</span></article>
+          <article class="panel-card"><small>数据范围</small><strong>按负责人</strong><span>已发布授权选择人员或部门</span></article>
           <article class="panel-card"><small>凭证版本</small><strong>{{ selected.credentials.length }} 个</strong><span>{{ selected.credentials.filter(item => item.status === 'ACTIVE').length }} 个当前有效</span></article>
           <article class="panel-card"><small>发布历史</small><strong>{{ selected.versions.length }} 版</strong><span>不可变授权快照</span></article>
           <article class="panel-card"><small>受控调用</small><strong>{{ callLogs.length }} 次</strong><span>签名、权限快照和业务来源</span></article>
@@ -882,21 +897,10 @@ onMounted(() => load())
           <div v-if="displayGrants.length" class="application-grants">
             <article v-for="grant in displayGrants" :key="grant.id">
               <div><a-tag color="blue">{{ grant.targetType === 'SYSTEM' ? '当前系统' : '平台' }}</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('INTERNAL')" color="cyan">系统内访问</a-tag><a-tag v-if="grantChannels(grant.rateLimit).includes('EXTERNAL')" color="purple">外部访问</a-tag><strong>{{ resourceName(grant.resourceType, grant.resourceId) }}</strong><a-tag v-if="grant.resourceVersionNumber" color="gold">固定 {{ grant.resourceType === 'FLOW' ? 'Flow' : '模块' }} V{{ grant.resourceVersionNumber }}</a-tag><a-tag color="green">{{ actionLabel(grant.actionCode) }}</a-tag></div>
-              <p>{{ grant.fields.length ? `可返回 ${grant.fields.filter(field => field.readable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、') || '无'}${grant.fields.some(field => field.writable) ? `；可填写 ${grant.fields.filter(field => field.writable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、')}` : ''}` : '流程输入按固定协议校验' }} · {{ settingNumber(grant.rateLimit.maxRequests, 0) }} 次 / {{ settingNumber(grant.rateLimit.windowSeconds, 0) }} 秒 · {{ settingNumber(grant.rateLimit.failureDisableThreshold, 5) }} 次目标执行失败自动停用</p>
+              <p>负责人范围：{{ scopeSummary(grant.dataScope) }}。{{ grant.fields.length ? `可返回 ${grant.fields.filter(field => field.readable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、') || '无'}${grant.fields.some(field => field.writable) ? `；可填写 ${grant.fields.filter(field => field.writable).map(field => fieldName(grant.resourceType, grant.resourceId, field.fieldCode)).join('、')}` : ''}` : '流程输入按固定协议校验' }} · {{ settingNumber(grant.rateLimit.maxRequests, 0) }} 次 / {{ settingNumber(grant.rateLimit.windowSeconds, 0) }} 秒 · {{ settingNumber(grant.rateLimit.failureDisableThreshold, 5) }} 次目标执行失败自动停用</p>
             </article>
           </div>
           <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未配置资源动作授权，不能发布" />
-        </section>
-
-        <section v-if="context === 'system'" class="panel-card application-section">
-          <div class="panel-title"><strong>跨系统执行身份</strong><a-tag>{{ displayIdentityMappings.length }}</a-tag></div>
-          <a-alert type="info" show-icon message="发布版本固定 A 系统来源成员与 B 系统执行成员" description="调用时仍会检查映射开关、双方成员状态，以及目标成员当前角色、字段权限和数据范围；停用后立即拒绝新调用。" />
-          <div v-if="displayIdentityMappings.length" class="application-grants application-identity-list">
-            <article v-for="identity in displayIdentityMappings" :key="identity.id">
-              <div><a-tag color="cyan">{{ identity.sourceSystemName }}</a-tag><strong>{{ identity.sourceMemberName }}</strong><span>（{{ identity.sourceTenantName }}）</span><span>→</span><a-tag color="blue">{{ identity.targetSystemName }}</a-tag><strong>{{ identity.targetMemberName }}</strong><span>（{{ identity.targetTenantName }}）</span><a-tag :color="identity.status === 'ACTIVE' ? 'green' : 'red'">{{ identity.status === 'ACTIVE' ? '调用有效' : '已停用' }}</a-tag></div>
-            </article>
-          </div>
-          <a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="尚未开放其他系统成员调用；当前系统内调用仍使用登录身份" />
         </section>
 
         <ApplicationProviderConnections
@@ -915,7 +919,7 @@ onMounted(() => load())
           <article class="panel-card application-section">
             <div class="panel-title"><strong>凭证引用与版本</strong><SafetyCertificateOutlined /></div>
             <div v-for="credential in selected.credentials" :key="credential.id" class="application-row">
-              <span><strong>凭证 V{{ credential.credentialVersion }}</strong><small>{{ credential.clientId }} · {{ credential.secretReference }} · 密钥尾号 {{ credential.secretHint }}</small><small>{{ productDateTime(credential.validFrom) }} 生效 · {{ credential.expiresAt ? `${productDateTime(credential.expiresAt)} 失效` : '未设置失效时间' }}</small></span><a-tag :color="credential.status === 'ACTIVE' ? 'green' : 'default'">{{ credentialStatusLabel(credential.status) }}</a-tag>
+              <span><strong>凭证 V{{ credential.credentialVersion }}</strong><small>{{ credential.clientId }} · {{ credential.secretReference }} · 密钥尾号 {{ credential.secretHint }}</small><small>{{ productDateTime(credential.validStartTime) }} 生效 · {{ credential.expireTime ? `${productDateTime(credential.expireTime)} 失效` : '未设置失效时间' }}</small></span><a-tag :color="credential.status === 'ACTIVE' ? 'green' : 'default'">{{ credentialStatusLabel(credential.status) }}</a-tag>
             </div>
           </article>
           <article class="panel-card application-section">
@@ -947,7 +951,7 @@ onMounted(() => load())
           </article>
           <article class="panel-card application-section">
             <div class="panel-title"><strong>状态与安全历史</strong><a-tag>{{ selected.statusHistory.length }}</a-tag></div>
-             <a-timeline><a-timeline-item v-for="event in selected.statusHistory" :key="event.id"><strong>{{ applicationEventLabel(event.eventCode) }}</strong><p>{{ event.actorAccountId === current?.accountId ? current?.displayName || '当前账号' : '其他管理员' }} · {{ event.resultCode === 'SUCCESS' ? '成功' : '未完成' }}</p><small>{{ productDateTime(event.occurredAt) }}</small></a-timeline-item></a-timeline>
+             <a-timeline><a-timeline-item v-for="event in selected.statusHistory" :key="event.id"><strong>{{ applicationEventLabel(event.eventCode) }}</strong><p>{{ event.actorAccountId === current?.accountId ? current?.displayName || '当前账号' : '其他管理员' }} · {{ event.resultCode === 'SUCCESS' ? '成功' : '未完成' }}</p><small>{{ productDateTime(event.occurTime) }}</small></a-timeline-item></a-timeline>
           </article>
         </section>
 
@@ -984,30 +988,23 @@ onMounted(() => load())
 
   <a-modal v-model:open="rollbackOpen" title="从历史版本恢复" :confirm-loading="busy === 'rollback'" @ok="rollbackApplication">
     <a-alert type="warning" show-icon message="历史版本不会被覆盖；系统会基于所选快照发布一个新版本" style="margin-bottom:16px" />
-    <a-form layout="vertical"><a-form-item label="恢复版本" required><a-select v-model:value="rollbackForm.targetVersionId" :options="selected?.versions.filter(version => !version.current).map(version => ({ value: version.id, label: `V${version.versionNumber} · ${productDateTime(version.publishedAt)}` }))" /></a-form-item><a-form-item label="恢复原因" required><a-textarea v-model:value="rollbackForm.reason" :rows="3" /></a-form-item></a-form>
+    <a-form layout="vertical"><a-form-item label="恢复版本" required><a-select v-model:value="rollbackForm.targetVersionId" :options="selected?.versions.filter(version => !version.current).map(version => ({ value: version.id, label: `V${version.versionNumber} · ${productDateTime(version.publishTime)}` }))" /></a-form-item><a-form-item label="恢复原因" required><a-textarea v-model:value="rollbackForm.reason" :rows="3" /></a-form-item></a-form>
   </a-modal>
 
   <a-modal v-model:open="draftOpen" title="配置应用草稿" width="920px" :confirm-loading="busy === 'draft'" @ok="saveDraft">
     <a-form layout="vertical"><div class="form-grid"><a-form-item label="应用名称" required><a-input v-model:value="draftForm.name" /></a-form-item><a-form-item label="应用类型" required><a-select v-model:value="draftForm.applicationType" :options="[{ value: 'SERVICE', label: '服务调用' }, { value: 'WEBHOOK', label: '事件回调' }]" /></a-form-item></div><a-form-item label="应用图标" required><a-radio-group v-model:value="draftForm.iconCode"><a-radio-button v-for="item in iconOptions" :key="item.value" :value="item.value">{{ item.glyph }} {{ item.label }}</a-radio-button></a-radio-group></a-form-item><a-form-item label="说明"><a-textarea v-model:value="draftForm.description" :rows="2" /></a-form-item></a-form>
-    <div class="draft-section-heading"><div><strong>资源动作授权</strong><small>{{ context === 'platform' ? '只能选择已经发布的平台能力' : '范围固定为当前系统和租户，请从已发布业务资源中选择' }}</small></div><a-button size="small" @click="grantForms.push(newGrant())">增加授权</a-button></div>
+    <div class="draft-section-heading"><div><strong>资源动作授权</strong><small>{{ context === 'platform' ? '可选平台 Flow 配置能力和已发布平台 Flow' : '范围固定为当前系统和租户，可选 Flow 配置能力和已发布业务资源' }}</small></div><a-button size="small" @click="grantForms.push(newGrant())">增加授权</a-button></div>
     <section v-for="(grant, index) in grantForms" :key="index" class="application-draft-card">
       <div class="application-draft-card__heading"><strong>授权 {{ index + 1 }}</strong><a-button v-if="grantForms.length > 1" type="link" danger @click="grantForms.splice(index, 1)">移除</a-button></div>
-      <a-form-item label="访问方式" required><a-checkbox-group v-model:value="grant.accessChannels" :options="[{ value: 'INTERNAL', label: '系统内访问（使用当前登录身份）' }, { value: 'EXTERNAL', label: '外部访问（凭证签名）' }]" /><small>可同时开放，两种方式都必须通过当前发布授权与目标身份权限交集校验。</small></a-form-item>
+      <a-form-item label="访问方式" required><a-checkbox-group v-model:value="grant.accessChannels" :options="[{ value: 'INTERNAL', label: '系统内访问' }, { value: 'EXTERNAL', label: '外部访问（凭证签名）' }]" /><small>两种方式均只使用当前发布的应用授权及所选负责人范围。</small></a-form-item>
       <div class="form-grid three"><a-form-item label="资源类型" required><a-select v-model:value="grant.resourceType" :options="resourceTypeOptions" @change="selectGrantType(grant)" /></a-form-item><a-form-item label="业务资源" required><a-select v-model:value="grant.resourceId" show-search option-filter-prop="label" placeholder="选择已发布资源" :options="resourceChoices(grant.resourceType)" @change="selectGrantResource(grant)" /></a-form-item><a-form-item label="允许动作" required><a-select v-model:value="grant.actionCode" :options="actionChoices(grant)" @change="selectGrantAction(grant)" /></a-form-item></div>
       <template v-if="grant.resourceType === 'MODULE'"><a-form-item label="可返回字段" required><a-select v-model:value="grant.readableFields" mode="multiple" show-search option-filter-prop="label" placeholder="选择调用结果允许返回的业务字段" :options="fieldChoices(grant)" /></a-form-item><a-form-item v-if="['CREATE','UPDATE'].includes(grant.actionCode)" label="可填写字段" required><a-select v-model:value="grant.writableFields" mode="multiple" show-search option-filter-prop="label" placeholder="选择调用方可以填写或修改的业务字段" :options="fieldChoices(grant)" /></a-form-item></template>
-      <div class="form-grid three"><a-form-item label="数据范围" required><a-select v-model:value="grant.scopeType" :disabled="context === 'platform'" :options="context === 'platform' ? [{value:'PLATFORM',label:'平台范围'}] : [{value:'SELF',label:'调用身份本人数据'},{value:'DEPARTMENT',label:'调用身份所在部门'},{value:'DEPARTMENT_AND_DESCENDANTS',label:'所在部门及下级部门'},{value:'ALL',label:'角色允许的全部数据'}]" /></a-form-item><a-form-item label="调用额度" required><a-input-number v-model:value="grant.maxRequests" :min="1" :max="100000" style="width:100%" addon-after="次" /></a-form-item><a-form-item label="统计窗口" required><a-input-number v-model:value="grant.windowSeconds" :min="1" :max="86400" style="width:100%" addon-after="秒" /></a-form-item></div>
+      <div class="form-grid"><a-form-item label="负责人范围"><a-select v-model:value="grant.memberIds" mode="multiple" show-search option-filter-prop="label" placeholder="选择可访问数据的负责人" :options="scopeMemberOptions" /></a-form-item><a-form-item label="部门范围"><a-select v-model:value="grant.departmentIds" mode="multiple" show-search option-filter-prop="label" placeholder="选择负责人当前所属部门" :options="scopeDepartmentOptions" /></a-form-item></div>
+      <small>人员停用后自动排除其数据；部门停用或删除会使调用报错。若创建记录未传负责人，系统会补当前所属人，且仍须位于此范围。</small>
+      <div class="form-grid"><a-form-item label="调用额度" required><a-input-number v-model:value="grant.maxRequests" :min="1" :max="100000" style="width:100%" addon-after="次" /></a-form-item><a-form-item label="统计窗口" required><a-input-number v-model:value="grant.windowSeconds" :min="1" :max="86400" style="width:100%" addon-after="秒" /></a-form-item></div>
       <a-form-item v-if="grant.accessChannels.includes('EXTERNAL')" label="允许来源 IP" required><a-select v-model:value="grant.allowedIps" mode="tags" :open="false" placeholder="输入 IP 后按回车，可添加多个" /><small>本机调试使用 127.0.0.1；生产环境请填写调用方固定出口 IP。</small></a-form-item>
       <div class="form-grid"><a-form-item label="目标执行失败停用阈值" required><a-input-number v-model:value="grant.failureDisableThreshold" :min="1" :max="1000" style="width:100%" addon-after="次" /><small>签名、重放、IP 和越权拒绝不计入，防止攻击者触发停用。</small></a-form-item><a-form-item label="失败统计窗口" required><a-input-number v-model:value="grant.failureWindowSeconds" :min="10" :max="604800" style="width:100%" addon-after="秒" /><small>窗口内达到阈值会停用应用并撤销有效凭证。</small></a-form-item></div>
     </section>
-    <template v-if="context === 'system'">
-      <div class="draft-section-heading"><div><strong>跨系统执行身份</strong><small>可选；从同平台其他系统的来源成员，映射到当前系统租户的真实执行成员</small></div><a-button size="small" :disabled="!sourceIdentityOptions.length || !targetIdentityOptions.length" @click="identityMappingForms.push(newIdentityMapping())">增加映射</a-button></div>
-      <a-alert type="info" show-icon message="全程使用成员名称选择" description="发布后固定来源和目标关系；每次调用重新读取目标成员的当前角色、字段权限和数据范围。无需填写系统编号、成员编号或 JSON。" style="margin-bottom:12px" />
-      <section v-for="(identity, index) in identityMappingForms" :key="identity.id || `new-${index}`" class="application-draft-card">
-        <div class="application-draft-card__heading"><strong>身份映射 {{ index + 1 }}</strong><span><a-switch v-model:checked="identity.enabled" checked-children="启用" un-checked-children="停用" /><a-button type="link" danger @click="identityMappingForms.splice(index, 1)">移除并停用</a-button></span></div>
-        <div class="form-grid"><a-form-item label="允许调用的来源成员" required><a-select v-model:value="identity.sourceTenantMemberId" show-search option-filter-prop="label" placeholder="选择其他系统中的成员" :options="sourceIdentityOptions" /></a-form-item><a-form-item label="在当前系统中执行为" required><a-select v-model:value="identity.targetTenantMemberId" show-search option-filter-prop="label" placeholder="选择当前租户成员" :options="targetIdentityOptions" /></a-form-item></div>
-      </section>
-      <a-empty v-if="!identityMappingForms.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="未配置跨系统调用；不影响当前系统内调用和外部凭证调用" />
-    </template>
     <div class="draft-section-heading"><div><strong>结果回调</strong><small>可选；保存密钥引用，不保存回调密钥明文</small></div><a-button size="small" @click="callbackForms.push(newCallback())">增加回调</a-button></div>
     <section v-for="(callback, index) in callbackForms" :key="index" class="application-draft-card"><div class="application-draft-card__heading"><strong>回调 {{ index + 1 }}</strong><a-button type="link" danger @click="callbackForms.splice(index, 1)">移除</a-button></div><div class="form-grid"><a-form-item label="回调类型"><a-select v-model:value="callback.callbackType" :options="[{ value: 'RESULT', label: '调用结果' }, { value: 'EVENT', label: '业务事件' }]" /></a-form-item><a-form-item label="HTTPS 地址" required><a-input v-model:value="callback.url" placeholder="https://..." /></a-form-item></div><a-form-item label="触发时机" required><a-select v-model:value="callback.eventCodes" mode="multiple" :options="[{value:'APPLICATION.CALL.COMPLETED',label:'调用成功完成'},{value:'APPLICATION.CALL.FAILED',label:'调用失败'}]" /></a-form-item><a-form-item label="签名密钥引用" required><a-input v-model:value="callback.signingSecretRef" placeholder="从密钥管理中选择或粘贴引用" /></a-form-item><div class="form-grid"><a-form-item label="超时时间"><a-input-number v-model:value="callback.timeoutMillis" :min="100" :max="60000" style="width:100%" addon-after="毫秒" /></a-form-item><a-form-item label="失败重试"><a-input-number v-model:value="callback.maxAttempts" :min="1" :max="10" style="width:100%" addon-after="次" /></a-form-item></div></section>
   </a-modal>
@@ -1019,20 +1016,35 @@ onMounted(() => load())
 
   <a-modal v-model:open="secretOpen" title="一次性凭证明文" :footer="null" :mask-closable="false" @after-close="issuedSecret = undefined">
     <a-alert type="warning" show-icon message="请立即保存，关闭后无法再次查看 secret 明文" description="详情页只会保留 clientId、密钥尾号、版本和状态。" />
-    <a-descriptions v-if="issuedSecret" bordered :column="1" class="application-secret"><a-descriptions-item label="凭证版本">V{{ issuedSecret.credentialVersion }}</a-descriptions-item><a-descriptions-item label="有效时间">{{ productDateTime(issuedSecret.validFrom) }} 至 {{ productDateTime(issuedSecret.expiresAt) }}</a-descriptions-item><a-descriptions-item label="密钥引用"><code>{{ issuedSecret.secretReference }}</code></a-descriptions-item><a-descriptions-item label="Client ID"><code>{{ issuedSecret.clientId }}</code></a-descriptions-item><a-descriptions-item label="Client Secret"><div class="secret-value"><code>{{ issuedSecret.clientSecret }}</code><a-button size="small" @click="copySecret(issuedSecret.clientSecret)"><CopyOutlined />复制</a-button></div></a-descriptions-item></a-descriptions>
+    <a-descriptions v-if="issuedSecret" bordered :column="1" class="application-secret"><a-descriptions-item label="凭证版本">V{{ issuedSecret.credentialVersion }}</a-descriptions-item><a-descriptions-item label="有效时间">{{ productDateTime(issuedSecret.validStartTime) }} 至 {{ productDateTime(issuedSecret.expireTime) }}</a-descriptions-item><a-descriptions-item label="密钥引用"><code>{{ issuedSecret.secretReference }}</code></a-descriptions-item><a-descriptions-item label="Client ID"><code>{{ issuedSecret.clientId }}</code></a-descriptions-item><a-descriptions-item label="Client Secret"><div class="secret-value"><code>{{ issuedSecret.clientSecret }}</code><a-button size="small" @click="copySecret(issuedSecret.clientSecret)"><CopyOutlined />复制</a-button></div></a-descriptions-item></a-descriptions>
     <div class="modal-result-actions"><a-button v-if="issuedSecret && selected?.status === 'ACTIVE'" @click="openCallTester(issuedSecret)"><ApiOutlined />带入本次密钥调试</a-button><a-button type="primary" @click="secretOpen = false">我已安全保存</a-button></div>
   </a-modal>
 
   <a-modal :open="callOpen" title="受控应用调用调试" width="860px" :footer="null" :mask-closable="false" @cancel="closeCallTester">
-    <a-alert type="info" show-icon message="这里执行真实受控调用" description="系统内访问使用当前登录身份；外部访问使用凭证签名。两者都经过幂等、限流、固定上下文及应用授权与目标身份权限交集。" />
+    <a-alert type="info" show-icon message="这里执行真实受控调用" description="系统内访问使用当前登录身份；外部访问使用凭证签名。调用按已发布的应用授权和有效负责人范围执行，并校验幂等、限流与固定上下文。" />
     <a-form layout="vertical" class="application-call-form">
       <a-form-item label="访问方式" required><a-segmented :value="callForm.accessMode" :options="[{ value: 'INTERNAL', label: '系统内身份' }, { value: 'EXTERNAL', label: '外部凭证' }]" @change="switchCallMode(String($event))" /></a-form-item>
       <div class="form-grid"><a-form-item label="访问授权" required><a-select v-model:value="callForm.grantId" :options="availableCallGrants.map(grant => ({ value: grant.id, label: `${resourceName(grant.resourceType, grant.resourceId)} · ${actionLabel(grant.actionCode)}` }))" @change="resetCallFields" /></a-form-item><a-form-item v-if="callForm.accessMode === 'EXTERNAL'" label="Client ID" required><a-input v-model:value="callForm.clientId" /></a-form-item></div>
       <a-form-item v-if="callForm.accessMode === 'EXTERNAL'" label="Client Secret（本次持有值）" required><a-input-password v-model:value="callForm.clientSecret" autocomplete="off" /></a-form-item>
       <div class="form-grid"><a-form-item label="幂等键" required><a-input v-model:value="callForm.idempotencyKey" /></a-form-item><a-form-item v-if="callForm.accessMode === 'EXTERNAL'" label="Nonce" required><a-input v-model:value="callForm.nonce" /></a-form-item></div>
-      <section v-if="selectedCallGrant" class="application-draft-card"><div class="application-draft-card__heading"><strong>{{ resourceName(selectedCallGrant.resourceType, selectedCallGrant.resourceId) }} · {{ actionLabel(selectedCallGrant.actionCode) }}</strong><a-tag>{{ settingString(selectedCallGrant.dataScope.type, '固定范围') }}</a-tag></div><a-form-item v-if="selectedCallGrant.resourceType === 'FLOW' || ['CREATE','UPDATE'].includes(selectedCallGrant.actionCode)" :label="selectedCallGrant.resourceType === 'FLOW' ? '流程标题' : '记录标题'" required><a-input v-model:value="callForm.title" /></a-form-item><div v-if="['DETAIL','UPDATE'].includes(selectedCallGrant.actionCode)" class="form-grid"><a-form-item label="业务记录编号" required><a-input-number v-model:value="callForm.recordId" :min="1" style="width:100%" /></a-form-item><a-form-item v-if="selectedCallGrant.actionCode === 'UPDATE'" label="当前记录版本" required><a-input-number v-model:value="callForm.recordVersion" :min="0" style="width:100%" /><small>请先查询详情，以当前版本提交，避免覆盖他人的修改。</small></a-form-item></div><div v-if="selectedCallGrant.actionCode === 'LIST'" class="form-grid"><a-form-item label="关键词"><a-input v-model:value="callForm.search" allow-clear /></a-form-item><a-form-item label="返回数量"><a-input-number v-model:value="callForm.pageSize" :min="1" :max="200" style="width:100%" /></a-form-item></div><div v-if="writableCallFields.length" class="form-grid"><a-form-item v-for="field in writableCallFields" :key="field.code" :label="field.name" :required="field.required"><a-switch v-if="field.fieldType === 'BOOLEAN'" v-model:checked="callFieldValues[field.code]" /><a-input-number v-else-if="field.fieldType === 'NUMBER'" v-model:value="callFieldValues[field.code]" style="width:100%" /><a-input v-else v-model:value="callFieldValues[field.code]" /></a-form-item></div></section>
-      <a-alert type="warning" show-icon message="失败分支可验证" :description="callForm.accessMode === 'EXTERNAL' ? '原 nonce 再提交会触发重放拒绝；保持幂等键并换新 nonce 会返回原结果；扩大系统、租户或数据范围会在写业务前拒绝。' : '保持幂等键会返回原结果；当前登录身份无目标动作权限，或尝试扩大系统、租户、数据范围时，会在写业务前拒绝。'" />
+      <section v-if="selectedCallGrant" class="application-draft-card">
+        <div class="application-draft-card__heading"><strong>{{ resourceName(selectedCallGrant.resourceType, selectedCallGrant.resourceId) }} · {{ actionLabel(selectedCallGrant.actionCode) }}</strong><a-tag>{{ scopeSummary(selectedCallGrant.dataScope) }}</a-tag></div>
+        <a-form-item v-if="selectedCallGrant.resourceId === '__flow_design__'" label="Flow 配置请求 JSON" required extra="草稿编号、乐观锁版本和节点连线按接口填写；当前应用只能操作自己创建的 Flow。"><a-textarea v-model:value="callForm.flowDesignPayload" :rows="10" /></a-form-item>
+        <a-form-item v-if="selectedCallGrant.resourceType === 'FLOW' && selectedCallGrant.resourceId !== '__flow_design__'" label="外部审批人标识" required extra="使用流程节点配置的标识；实例和待办按本应用及该标识隔离。"><a-input v-model:value="callForm.externalPrincipalId" :maxlength="100" /></a-form-item>
+        <a-form-item v-if="selectedCallGrant.resourceType === 'FLOW' && selectedCallGrant.actionCode === 'VIEW_INSTANCE'" label="流程实例编号" required><a-input-number v-model:value="callForm.instanceId" :min="1" style="width:100%" /></a-form-item>
+        <template v-if="selectedCallGrant.resourceType === 'FLOW' && selectedCallGrant.actionCode === 'HANDLE'">
+          <a-form-item label="外部待办编号" required><a-input-number v-model:value="callForm.taskId" :min="1" style="width:100%" /></a-form-item>
+          <a-form-item label="审批决定" required><a-select v-model:value="callForm.decision" :options="[{ value: 'APPROVE', label: '同意' }, { value: 'REJECT', label: '拒绝' }]" /></a-form-item>
+          <a-form-item label="审批意见" :required="callForm.decision === 'REJECT'"><a-textarea v-model:value="callForm.comment" :maxlength="2000" /></a-form-item>
+        </template>
+        <a-form-item v-if="(selectedCallGrant.resourceType === 'FLOW' && selectedCallGrant.actionCode === 'START') || (selectedCallGrant.resourceType === 'MODULE' && ['CREATE','UPDATE'].includes(selectedCallGrant.actionCode))" :label="selectedCallGrant.resourceType === 'FLOW' ? '流程标题' : '记录标题'" required><a-input v-model:value="callForm.title" /></a-form-item>
+        <div v-if="selectedCallGrant.resourceType === 'MODULE' && ['DETAIL','UPDATE'].includes(selectedCallGrant.actionCode)" class="form-grid"><a-form-item label="业务记录编号" required><a-input-number v-model:value="callForm.recordId" :min="1" style="width:100%" /></a-form-item><a-form-item v-if="selectedCallGrant.actionCode === 'UPDATE'" label="当前记录版本" required><a-input-number v-model:value="callForm.recordVersion" :min="0" style="width:100%" /><small>请先查询详情，以当前版本提交，避免覆盖他人的修改。</small></a-form-item></div>
+        <div v-if="selectedCallGrant.resourceType === 'MODULE' && selectedCallGrant.actionCode === 'LIST'" class="form-grid"><a-form-item label="关键词"><a-input v-model:value="callForm.search" allow-clear /></a-form-item><a-form-item label="返回数量"><a-input-number v-model:value="callForm.pageSize" :min="1" :max="200" style="width:100%" /></a-form-item></div>
+        <div v-if="writableCallFields.length" class="form-grid"><a-form-item v-for="field in writableCallFields" :key="field.code" :label="field.name" :required="field.required"><a-switch v-if="field.fieldType === 'BOOLEAN'" v-model:checked="callFieldValues[field.code]" /><a-input-number v-else-if="field.fieldType === 'NUMBER'" v-model:value="callFieldValues[field.code]" style="width:100%" /><a-input v-else v-model:value="callFieldValues[field.code]" /></a-form-item></div>
+      </section>
+      <div v-if="selectedCallGrant?.actionCode === 'CREATE'" class="form-grid"><a-form-item label="负责人（可选）"><a-select v-model:value="callForm.ownerMemberId" allow-clear show-search option-filter-prop="label" placeholder="留空时补当前系统所属人" :options="scopeMemberOptions" /></a-form-item><a-form-item label="创建人（可选）"><a-select v-model:value="callForm.createdByMemberId" allow-clear show-search option-filter-prop="label" placeholder="留空时补当前系统所属人" :options="scopeMemberOptions" /></a-form-item></div>
+      <a-alert type="warning" show-icon message="失败分支可验证" :description="callForm.accessMode === 'EXTERNAL' ? '原 nonce 再提交会触发重放拒绝；保持幂等键并换新 nonce 会返回原结果；扩大系统、租户或数据范围会在写业务前拒绝。' : '保持幂等键会返回原结果；数据仍按应用已发布的负责人范围核验，超出范围会在写业务前拒绝。'" />
     </a-form>
-    <div class="modal-result-actions"><a-button @click="closeCallTester">关闭并清空 Secret</a-button><a-button v-if="callForm.accessMode === 'EXTERNAL'" :loading="callBusy" @click="executeApplicationCall(true)">换新 Nonce 调用</a-button><a-button type="primary" :loading="callBusy" @click="executeApplicationCall(false)">{{ callForm.accessMode === 'INTERNAL' ? '使用当前身份调用' : '按当前 Nonce 签名调用' }}</a-button></div>
+    <div class="modal-result-actions"><a-button @click="closeCallTester">关闭并清空 Secret</a-button><a-button v-if="callForm.accessMode === 'EXTERNAL'" :loading="callBusy" @click="executeApplicationCall(true)">换新 Nonce 调用</a-button><a-button type="primary" :loading="callBusy" @click="executeApplicationCall(false)">{{ callForm.accessMode === 'INTERNAL' ? '使用应用授权调用' : '按当前 Nonce 签名调用' }}</a-button></div>
   </a-modal>
 </template>

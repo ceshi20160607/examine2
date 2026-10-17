@@ -1,0 +1,30 @@
+{
+  "step": "S06.2",
+  "status": "verified_contribution",
+  "integration_gate": "G6_MODULE_DATA_EXCHANGE",
+  "source_rows": ["R1028", "R1048", "R1050", "R1051", "R1052", "R1053", "R1054", "R1055", "R1061", "R1062", "R1063", "R1064", "R1065"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRuleIndexService.java",
+    "projects/unexamine/tools/verify-module-import.py"
+  ],
+  "checks_actual_results": [
+    "隔离系统 #68 发布客户模块 #23 和唯一客户编码字段；普通成员拥有 IMPORT、CREATE、UPDATE、LIST、DETAIL 及 FILE 所需动作，但记录读取和更新为 SELF。仅有 LIST/DETAIL 的另一成员下载模板和读取导入批次均返回 403 IMPORT_PERMISSION_DENIED。",
+    "从真实 Excel 模板生成并受控上传 4 行数据。试图把 Excel 列映射到 createdByMemberId 返回 422 IMPORT_MAPPING_TARGET_INVALID；可写字段映射后，预演给出新增 1、更新 1、错误 2、跳过 0，错误行 4 是 IMPORT_TITLE_REQUIRED，错误行 5 是其他负责人现存客户编码触发 UNIQUE_RULE_VIOLATION。预演后业务记录仍为 2 条，错误行 CSV 下载包含两行。",
+    "修复导入预演漏查他人记录唯一索引的问题：在业务运行态复用已发布模块的唯一索引计算，按租户及模块查询并在更新预演时排除当前记录；仅返回冲突，不泄露他人记录详情。此前同一夹具把隐藏重复行误判为可新增，修复后在预演阶段标错。",
+    "异步导入批次 #6、作业 #22 完成状态 COMPLETED_WITH_ERRORS，成功 2、错误 2；原记录 #58 标题更新且自定义客户编码不变，新记录 #60 的自定义编码为 NEW-002，负责人和创建人按系统所属人补齐；其他负责人记录 #59 原样保留，错误行没有新建业务记录。数据库读回导入行终态为 UPDATE/CREATE 成功各 1、ERROR 各 2。",
+    "同一模块发布标题、客户编码导出配置，导出批次 #20、作业 #23 完成且下载 CSV 正好包含更新、新增和未改的 3 条记录，不含错误行。Docker 服务重启后导入批次、主记录、自定义字段及同一 CSV 文件字节一致。真实成员页面只显示其 SELF 范围的更新记录，导入抽屉显示 4 行计划、两条预演错误、历史批次和错误行下载入口。Java 21 Maven package、Python 语法、工作区边界及相关 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s06-import-result.png",
+    "projects/unexamine/tools/verify-module-import.py"
+  ],
+  "permission_or_failure_result": "无 IMPORT 动作不能使用模板或批次；导入匹配只能更新当前负责人权限范围内的记录，隐藏的他人唯一值在预演阶段报冲突且不泄露记录。系统/审计字段不能通过列映射覆盖；错误行不会污染主记录和自定义字段。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java", "sha256": "607c25c3950917afbb56693b19399359851486d39037cd5492bfdf0e4d58c3ca"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRuleIndexService.java", "sha256": "dfbdb718c8507826dc81a9f4ab531d4640d789c17e8701dccf306b4118f5b4b9"},
+    {"path": "projects/unexamine/tools/verify-module-import.py", "sha256": "1d9324c86fd7af79c4c747adf89b1ad06627a3f3bba846cb31a5045cb1311402"}
+  ],
+  "remaining": "S06.3 继续验证 Excel 内部重复、更新模式缺失匹配、按批次安全回滚与后续修改阻断，并在同模块完成 G6 剩余组合验收。真实第三方依赖和整站综合验收尚未完成。",
+  "next_step": "S06.3"
+}

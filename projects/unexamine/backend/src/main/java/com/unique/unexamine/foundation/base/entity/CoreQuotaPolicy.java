@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统租户的配额上限策略
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_quota_policy")
+@TableName("un_core_quota_policy")
 public class CoreQuotaPolicy {
 
+    /**
+     * 配额策略主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 配额归属：平台或系统租户
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 平台范围主键，系统租户配额为空
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统范围主键，平台配额为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统租户主键，平台配额为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 归属范围内的配额编码
+     */
     @TableField("quota_code")
     private String quotaCode;
 
+    /**
+     * 统计周期类型
+     */
     @TableField("period_type")
     private String periodType;
 
+    /**
+     * 周期内的硬性上限
+     */
     @TableField("hard_limit")
     private Long hardLimit;
 
+    /**
+     * 触发预警的已用阈值
+     */
     @TableField("warning_threshold")
     private Long warningThreshold;
 
+    /**
+     * 策略启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间，后续统一更名为 create_time
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间，后续统一更名为 update_time
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -139,20 +178,20 @@ public class CoreQuotaPolicy {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -176,8 +215,8 @@ public class CoreQuotaPolicy {
             ", hardLimit = " + hardLimit +
             ", warningThreshold = " + warningThreshold +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

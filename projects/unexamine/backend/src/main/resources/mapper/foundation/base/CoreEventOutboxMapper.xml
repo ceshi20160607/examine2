@@ -13,18 +13,18 @@
         <result column="event_type" property="eventType" />
         <result column="payload_json" property="payloadJson" />
         <result column="status" property="status" />
-        <result column="available_at" property="availableAt" />
-        <result column="published_at" property="publishedAt" />
+        <result column="available_time" property="availableTime" />
+        <result column="publish_time" property="publishTime" />
         <result column="retry_count" property="retryCount" />
         <result column="last_error" property="lastError" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, system_id, tenant_id, aggregate_type, aggregate_id, event_type, payload_json, `status`, available_at, published_at, retry_count, last_error, created_at, updated_at, version
+        id, context_type, system_id, tenant_id, aggregate_type, aggregate_id, event_type, payload_json, `status`, available_time, publish_time, retry_count, last_error, create_time, update_time, version
     </sql>
 
 </mapper>

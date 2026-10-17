@@ -1,0 +1,43 @@
+{
+  "step": "S19.1",
+  "status": "revocation_verified",
+  "sourceSystemId": 1,
+  "targetSystemId": 2,
+  "targetTenantId": 2,
+  "moduleId": 3,
+  "moduleCode": "s19_service_contract",
+  "recordId": 3,
+  "flowId": 2,
+  "flowCode": "s19_service_review",
+  "applicationId": 1,
+  "dataScope": {
+    "type": "RESPONSIBLE",
+    "memberIds": [
+      2
+    ],
+    "departmentIds": []
+  },
+  "flowInstanceId": 2,
+  "visibleFields": [
+    "public_note"
+  ],
+  "deniedUpdate": "APPLICATION_GRANT_DENIED",
+  "deniedScope": "APPLICATION_TARGET_SCOPE_EXPANSION",
+  "deniedUnrelated": "APPLICATION_INTERNAL_CONTEXT_DENIED",
+  "databaseRecord": [
+    2,
+    2,
+    "S19 目标系统合同"
+  ],
+  "databaseFlow": [
+    2,
+    2,
+    "COMPLETED"
+  ],
+  "browser": {
+    "applicationUrl": "http://127.0.0.1:15180/systems/2/admin?section=applications",
+    "runtimeUrl": "http://127.0.0.1:15180/systems/2?workspace=runtime&module=s19_service_contract"
+  },
+  "directTargetEntryDenied": "SYSTEM_ACCESS_DENIED",
+  "deniedAfterDisable": "APPLICATION_DISABLED"
+}

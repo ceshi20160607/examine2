@@ -1,0 +1,36 @@
+{
+  "step": "S19.3",
+  "candidate": "0.1.0-s19.3-dev2",
+  "frontend": "http://127.0.0.1:15184",
+  "localLoginVisible": true,
+  "oauthEntryVisible": true,
+  "authorizationPage": {
+    "url": "http://127.0.0.1:18212/authorize",
+    "title": "隔离 OAuth2 身份源"
+  },
+  "platformPage": {
+    "url": "http://127.0.0.1:15184/platform",
+    "title": "Unexamine",
+    "accountVisible": true,
+    "systemVisible": true
+  },
+  "deniedSystemEntry": {
+    "status": 403,
+    "code": "SYSTEM_ACCESS_DENIED"
+  },
+  "systemPage": {
+    "url": "http://127.0.0.1:15184/systems/1",
+    "title": "Unexamine",
+    "systemVisible": true,
+    "memberVisible": true
+  },
+  "adminPage": {
+    "url": "http://127.0.0.1:15184/platform/admin/identity-providers",
+    "providerVisible": true,
+    "publishedVisible": true,
+    "preflightVisible": true,
+    "verifiedEmailVisible": true
+  },
+  "screenshot": "projects/unexamine/ai/evidence/s19-oauth2-browser.png",
+  "adminScreenshot": "projects/unexamine/ai/evidence/s19-oauth2-admin-browser.png"
+}

@@ -16,10 +16,12 @@ import com.unique.unexamine.moduleconfig.base.service.CfgDictionaryBaseService;
 import com.unique.unexamine.moduleconfig.base.service.CfgDictionaryItemBaseService;
 import com.unique.unexamine.moduleconfig.base.service.CfgDictionaryPublicationBaseService;
 import com.unique.unexamine.moduleconfig.base.service.CfgDictionaryVersionBaseService;
+import com.unique.unexamine.moduleconfig.manage.repository.DictionaryUsageRepository;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,25 +45,28 @@ public class DictionaryConfigurationService {
     private final CfgDictionaryItemBaseService itemService;
     private final CfgDictionaryVersionBaseService versionService;
     private final CfgDictionaryPublicationBaseService publicationService;
+    private final SystemTenantBaseService tenantService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
-    private final JdbcTemplate jdbc;
+    private final DictionaryUsageRepository usageRepository;
 
     public DictionaryConfigurationService(
             CfgDictionaryBaseService dictionaryService,
             CfgDictionaryItemBaseService itemService,
             CfgDictionaryVersionBaseService versionService,
             CfgDictionaryPublicationBaseService publicationService,
+            SystemTenantBaseService tenantService,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
-            JdbcTemplate jdbc) {
+            DictionaryUsageRepository usageRepository) {
         this.dictionaryService = dictionaryService;
         this.itemService = itemService;
         this.versionService = versionService;
         this.publicationService = publicationService;
+        this.tenantService = tenantService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
-        this.jdbc = jdbc;
+        this.usageRepository = usageRepository;
     }
 
     @Transactional(readOnly = true)
@@ -96,6 +101,22 @@ public class DictionaryConfigurationService {
                 "DICTIONARY_DRAFT_CREATED", "DICTIONARY", dictionary.getId().toString(), "SUCCESS",
                 Map.of("code", dictionary.getCode(), "hierarchical", dictionary.getHierarchical()));
         return draft(context, dictionary.getId());
+    }
+
+    /** 字典改名生成新草稿修订，保留供字段和已发布版本引用的编码。 */
+    @Transactional
+    public DictionaryModels.DictionaryDraft rename(AuthenticatedContext context, Long dictionaryId,
+                                                    DictionaryModels.RenameDictionaryRequest request, String traceId) {
+        CfgDictionary dictionary = requireOwned(context, dictionaryId);
+        if (!request.version().equals(dictionary.getVersion())) {
+            throw conflict("字典草稿已被其他操作修改");
+        }
+        dictionary.setName(request.name().strip());
+        touch(dictionary);
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "DICTIONARY_DRAFT_RENAMED", "DICTIONARY", dictionaryId.toString(), "SUCCESS",
+                Map.of("code", dictionary.getCode(), "name", dictionary.getName()));
+        return draft(context, dictionaryId);
     }
 
     @Transactional(readOnly = true)
@@ -218,7 +239,7 @@ public class DictionaryConfigurationService {
         version.setSnapshotJson(snapshotJson);
         version.setSnapshotHash(sha256(snapshotJson));
         version.setPublishedByMemberId(context.memberId());
-        version.setPublishedAt(LocalDateTime.now());
+        version.setPublishTime(LocalDateTime.now());
         versionService.insert(version);
 
         CfgDictionaryPublication publication = publication(dictionaryId);
@@ -229,13 +250,13 @@ public class DictionaryConfigurationService {
             publication.setDictionaryId(dictionaryId);
             publication.setCurrentVersionId(version.getId());
             publication.setPublishedByMemberId(context.memberId());
-            publication.setPublishedAt(LocalDateTime.now());
+            publication.setPublishTime(LocalDateTime.now());
             publication.setVersion(0);
             publicationService.insert(publication);
         } else {
             publication.setCurrentVersionId(version.getId());
             publication.setPublishedByMemberId(context.memberId());
-            publication.setPublishedAt(LocalDateTime.now());
+            publication.setPublishTime(LocalDateTime.now());
             if (publicationService.updateById(publication) == 0) {
                 throw conflict("字典发布指针已被其他操作修改");
             }
@@ -265,7 +286,7 @@ public class DictionaryConfigurationService {
                         .eq(CfgDictionaryVersion::getDictionaryId, dictionaryId)
                         .orderByDesc(CfgDictionaryVersion::getVersionNumber))
                 .stream().map(version -> new DictionaryModels.VersionSummary(version.getId(), version.getVersionNumber(),
-                        version.getDraftRevision(), version.getPublishedAt(), version.getId().equals(currentId),
+                        version.getDraftRevision(), version.getPublishTime(), version.getId().equals(currentId),
                         publicationVersion)).toList();
     }
 
@@ -413,10 +434,13 @@ public class DictionaryConfigurationService {
     }
 
     private Long mainTenantId(Long systemId) {
-        List<Long> ids = jdbc.queryForList(
-                "select id from sys_tenant where system_id=? and is_main=1 and status='ACTIVE' order by id limit 1",
-                Long.class, systemId);
-        return ids.isEmpty() ? -1L : ids.getFirst();
+        // 主租户只允许当前系统的有效记录；历史重复配置沿用最小 ID 的选择顺序。
+        return tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                        .eq(SystemTenant::getSystemId, systemId)
+                        .eq(SystemTenant::getMain, true)
+                        .eq(SystemTenant::getStatus, "ACTIVE")
+                        .orderByAsc(SystemTenant::getId))
+                .stream().map(SystemTenant::getId).findFirst().orElse(-1L);
     }
 
     private List<DictionaryModels.PublicationIssue> validate(CfgDictionary dictionary, List<CfgDictionaryItem> items) {
@@ -477,12 +501,7 @@ public class DictionaryConfigurationService {
     }
 
     private long itemUsage(Long dictionaryId, String itemCode) {
-        Long result = jdbc.queryForObject("select count(*) from biz_record_value v "
-                        + "join cfg_module_field f on f.id=v.field_id "
-                        + "join biz_record r on r.id=v.record_id and r.deleted=0 "
-                        + "where f.dictionary_id=? and (v.value_text=? or json_contains(v.value_json, json_quote(?), '$'))",
-                Long.class, dictionaryId, itemCode, itemCode);
-        return result == null ? 0 : result;
+        return usageRepository.countActiveRecordValues(dictionaryId, itemCode);
     }
 
     private List<CfgDictionaryItem> items(Long dictionaryId) {

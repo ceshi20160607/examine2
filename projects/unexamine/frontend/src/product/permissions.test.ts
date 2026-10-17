@@ -3,6 +3,7 @@ import {
   allowsPermission,
   buildPlatformNavigation,
   hasPlatformAdminCapability,
+  canOpenPlatformConfigurationCategory,
   hasPlatformManagementAccess,
   hasResourceAccess,
   hasRuntimeModuleAccess,
@@ -49,7 +50,7 @@ describe('system navigation permissions', () => {
     ])
     const ordinary = [{ resourceType: 'MODULE', resourceCode: 'customer', actionCode: 'LIST' }]
     expect(buildPlatformNavigation(ordinary).map(item => item.label)).toEqual([
-      '首页', '系统',
+      '首页', '系统', '智能助手',
     ])
     const worker = [...ordinary, { resourceType: 'WORK', resourceCode: 'PLATFORM', actionCode: 'VIEW' }]
     expect(buildPlatformNavigation(worker).map(item => item.label)).toContain('任务')
@@ -67,5 +68,13 @@ describe('system navigation permissions', () => {
     expect(hasPlatformManagementAccess(workManager)).toBe(true)
     expect(hasPlatformAdminCapability(workManager, 'work')).toBe(true)
     expect(hasPlatformAdminCapability(workManager, 'flow')).toBe(false)
+  })
+
+  it('opens only platform configuration categories granted to the member', () => {
+    const roleViewer = [{ resourceType: 'PLATFORM', resourceCode: 'AUTHORIZATION', actionCode: 'VIEW' }]
+    expect(canOpenPlatformConfigurationCategory(roleViewer, 'AUTHORIZATION')).toBe(true)
+    expect(canOpenPlatformConfigurationCategory(roleViewer, 'ORGANIZATION')).toBe(false)
+    expect(canOpenPlatformConfigurationCategory(roleViewer, 'AUDIT')).toBe(false)
+    expect(canOpenPlatformConfigurationCategory(roleViewer, 'PLATFORM_INFO')).toBe(false)
   })
 })

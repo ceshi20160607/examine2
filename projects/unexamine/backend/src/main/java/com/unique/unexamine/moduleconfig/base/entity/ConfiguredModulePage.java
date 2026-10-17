@@ -10,45 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 模块页面草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module_page")
+@TableName("un_cfg_module_page")
 public class ConfiguredModulePage {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块标识
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 页面用途类型
+     */
     @TableField("page_type")
     private String pageType;
 
+    /**
+     * 模块内稳定页面编码
+     */
+    @TableField("page_code")
+    private String pageCode;
+
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 页面布局草稿配置
+     */
     @TableField("layout_json")
     private String layoutJson;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -93,6 +132,14 @@ public class ConfiguredModulePage {
         this.pageType = pageType;
     }
 
+    public String getPageCode() {
+        return pageCode;
+    }
+
+    public void setPageCode(String pageCode) {
+        this.pageCode = pageCode;
+    }
+
     public String getName() {
         return name;
     }
@@ -117,20 +164,20 @@ public class ConfiguredModulePage {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -149,11 +196,12 @@ public class ConfiguredModulePage {
             ", ownerTenantId = " + ownerTenantId +
             ", moduleId = " + moduleId +
             ", pageType = " + pageType +
+            ", pageCode = " + pageCode +
             ", name = " + name +
             ", layoutJson = " + layoutJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

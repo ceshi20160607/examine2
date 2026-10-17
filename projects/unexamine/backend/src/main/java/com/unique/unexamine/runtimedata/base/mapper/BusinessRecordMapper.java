@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 自定义模块的通用业务主记录 Mapper 接口
  * </p>
  *
  * @author Template Base

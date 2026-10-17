@@ -21,7 +21,7 @@ public class FileUploadFailureRecorder {
         FileUploadSession session = sessionService.selectById(sessionId);
         if (session == null || "COMPLETED".equals(session.getStatus())) return;
         session.setStatus(status);
-        session.setUpdatedAt(LocalDateTime.now());
+        session.setUpdateTime(LocalDateTime.now());
         sessionService.updateById(session);
     }
 }

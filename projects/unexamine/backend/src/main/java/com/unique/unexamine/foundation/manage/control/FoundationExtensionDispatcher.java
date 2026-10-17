@@ -39,7 +39,7 @@ public class FoundationExtensionDispatcher {
                 if (!ready(event)) return;
                 for (FoundationCommandExtension extension : extensions) extension.afterCommit(event);
                 event.setStatus("PUBLISHED");
-                event.setPublishedAt(LocalDateTime.now());
+                event.setPublishTime(LocalDateTime.now());
                 // MyBatis 的非空更新策略不会把 null 写回数据库；空串明确清除已经恢复的失败说明。
                 event.setLastError("");
                 update(event);
@@ -52,7 +52,7 @@ public class FoundationExtensionDispatcher {
                 event.setStatus("FAILED");
                 int attempts = (event.getRetryCount() == null ? 0 : event.getRetryCount()) + 1;
                 event.setRetryCount(attempts);
-                event.setAvailableAt(LocalDateTime.now().plusSeconds(Math.min(300, 1L << Math.min(attempts, 8))));
+                event.setAvailableTime(LocalDateTime.now().plusSeconds(Math.min(300, 1L << Math.min(attempts, 8))));
                 String error = exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
                 event.setLastError(error.substring(0, Math.min(1900, error.length())));
                 update(event);
@@ -63,9 +63,9 @@ public class FoundationExtensionDispatcher {
     @Scheduled(fixedDelayString = "${unexamine.actions.outbox.poll-delay-ms:1000}")
     public void retryDue() {
         for (CoreEventOutbox event : outboxService.selectList(Wrappers.<CoreEventOutbox>lambdaQuery()
-                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "BUSINESS_ACTION_COMPLETION", "FOUNDATION_COMMAND", "FLOW_TRIGGER_EVENT")
+                .in(CoreEventOutbox::getAggregateType, "BUSINESS_ACTION", "BUSINESS_ACTION_COMPLETION", "FOUNDATION_COMMAND", "FLOW_TRIGGER_EVENT", "LOCAL_BUSINESS_EVENT")
                 .in(CoreEventOutbox::getStatus, "PENDING", "FAILED")
-                .le(CoreEventOutbox::getAvailableAt, LocalDateTime.now())
+                .le(CoreEventOutbox::getAvailableTime, LocalDateTime.now())
                 .orderByAsc(CoreEventOutbox::getId).last("limit 50"))) {
             dispatch(event.getId());
         }
@@ -74,7 +74,7 @@ public class FoundationExtensionDispatcher {
 
     private boolean ready(CoreEventOutbox event) {
         return event != null && ("PENDING".equals(event.getStatus()) || "FAILED".equals(event.getStatus()))
-                && !event.getAvailableAt().isAfter(LocalDateTime.now());
+                && !event.getAvailableTime().isAfter(LocalDateTime.now());
     }
 
     private void update(CoreEventOutbox event) {

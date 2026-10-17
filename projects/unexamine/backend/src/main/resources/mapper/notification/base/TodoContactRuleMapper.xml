@@ -20,6 +20,7 @@
         <result column="priority" property="priority" />
         <result column="status" property="status" />
         <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_by_member_id" property="createdByMemberId" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
@@ -27,7 +28,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, scope_key, `name`, module_code, module_name_snapshot, contact_field_code, contact_field_name_snapshot, contact_field_type, lead_days, priority, `status`, created_by_account_id, create_time, update_time, version
+        id, context_type, platform_id, system_id, tenant_id, scope_key, `name`, module_code, module_name_snapshot, contact_field_code, contact_field_name_snapshot, contact_field_type, lead_days, priority, `status`, created_by_account_id, created_by_member_id, create_time, update_time, version
     </sql>
 
 </mapper>

@@ -1,0 +1,36 @@
+{
+  "step": "S18.37",
+  "status": "verified_contribution",
+  "source_rows": ["R2743", "R2847", "R2848", "R2849"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/tools/verify-flow-conditions.py",
+    "projects/unexamine/tools/verify-flow-conditions-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "On isolated V23 MySQL module #94, a newly published Flow #29 V1 used the published activity field for an exclusive true/false branch. FLOW_HIGH record #192 created instance #55 and high_review task #49; FLOW_LOW record #193 created instance #56 and low_review task #50. Both simulation routes and actual tasks matched.",
+    "A draft with an unknown condition field and invalid approval mode produced FLOW_CONDITION_INVALID and APPROVAL_MODE_INVALID; publish returned 422 and created no version.",
+    "Binding #9 selected V1/#28. After publishing Flow V2/#29 and replacing it with binding #10, new instance #57 used V2 high_review_v2 and second_review, while V1 instances #55/#56 retained their original snapshots and completed with one approval each. Old module instance #53/#54 snapshots and WAITING status remained unchanged.",
+    "Actual Edge clicked module #94's published APPROVAL button for record #194 and opened instance #58 at V2 high_review_v2. The browser screenshot shows its Flow version, current task and record field. Task #53 was transferred to independent approver tenant member #258; before role publication this member was denied, after publication the member approved the first V2 task and the owner approved the second. The same member still could not initiate a module approval.",
+    "An unrelated member received 403 for approval initiation and task action. Existing print job #134 PDF SHA-256, dashboard #8, conversion records #188/#189/#190/#191 and module Flow instances #53/#54 kept their previous state. A separate JVM on port 18082 read the V1/V2 and browser instances back from the same MySQL and file storage.",
+    "Java 21 Maven package with tests skipped passed. Python compilation, Node syntax, scoped diff check and workspace validation passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-flow-conditions-live.json",
+    "projects/unexamine/ai/evidence/s18-flow-conditions-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-flow-conditions-runtime-browser.png",
+    "projects/unexamine/ai/evidence/s18-flow-conditions-instance-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-live.json",
+    "projects/unexamine/ai/evidence/s18-module-conversion-live.json"
+  ],
+  "permission_or_failure_result": "Invalid Flow condition and node mode were rejected before publication; role draft alone did not grant the approver Flow access; an unrelated member and the approver without module APPROVAL permission received 403. Replacement disabled old bindings only for new initiations; pending V1 and historical instances retained their frozen definitions.",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java", "sha256": "1dca9aa6bca519637a12d7e71232038e7b728582b9dcc4a6099c40665c025ef2"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java", "sha256": "910f205623dfae8f510a6879cd04a6df8c000b7fc80893efa2417da3e3185e70"},
+    {"path": "projects/unexamine/tools/verify-flow-conditions.py", "sha256": "ebf00fb9fd00dce0f226ff540b428b350562d497a1ec7908b0fb8d5cc6a65667"},
+    {"path": "projects/unexamine/tools/verify-flow-conditions-browser.mjs", "sha256": "08a2f82d0f8a2fd3027e7229136ec2d7df23aa8452c42591c017690028c1e195"}
+  ],
+  "remaining": "This verifies one conditional approval Flow combination. Other Flow node and binding combinations, fresh multi-system/multi-tenant release acceptance, missing historical print bytes in the isolated copy, external SSO and release documentation remain open. Whole-product completion is not claimed.",
+  "next_step": "S18.38"
+}

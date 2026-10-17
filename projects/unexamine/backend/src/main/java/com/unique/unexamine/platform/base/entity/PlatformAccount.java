@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台账号
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_account")
+@TableName("un_plat_account")
 public class PlatformAccount {
 
+    /**
+     * 平台账号主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 登录用户名
+     */
     @TableField("username")
     private String username;
 
+    /**
+     * 账号绑定邮箱
+     */
     @TableField("email")
     private String email;
 
+    /**
+     * 账号绑定手机号
+     */
     @TableField("mobile")
     private String mobile;
 
+    /**
+     * 账号展示名称
+     */
     @TableField("display_name")
     private String displayName;
 
+    /**
+     * 头像文件标识
+     */
     @TableField("avatar_file_id")
     private Long avatarFileId;
 
+    /**
+     * 界面语言区域
+     */
     @TableField("locale")
     private String locale;
 
+    /**
+     * 账号时区
+     */
     @TableField("timezone")
     private String timezone;
 
+    /**
+     * 平台账号状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("last_login_at")
-    private LocalDateTime lastLoginAt;
+    /**
+     * 最近登录时间
+     */
+    @TableField("last_login_time")
+    private LocalDateTime lastLoginTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台账号创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台账号更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台账号乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -131,28 +170,28 @@ public class PlatformAccount {
         this.status = status;
     }
 
-    public LocalDateTime getLastLoginAt() {
-        return lastLoginAt;
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
     }
 
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
-        this.lastLoginAt = lastLoginAt;
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -175,9 +214,9 @@ public class PlatformAccount {
             ", locale = " + locale +
             ", timezone = " + timezone +
             ", status = " + status +
-            ", lastLoginAt = " + lastLoginAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", lastLoginTime = " + lastLoginTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

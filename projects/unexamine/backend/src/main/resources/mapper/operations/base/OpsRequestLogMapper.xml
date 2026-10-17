@@ -16,12 +16,12 @@
         <result column="status_code" property="statusCode" />
         <result column="result_code" property="resultCode" />
         <result column="duration_millis" property="durationMillis" />
-        <result column="occurred_at" property="occurredAt" />
+        <result column="occur_time" property="occurTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, request_id, trace_id, system_id, tenant_id, account_id, client_source, http_method, request_path, status_code, result_code, duration_millis, occurred_at
+        id, request_id, trace_id, system_id, tenant_id, account_id, client_source, http_method, request_path, status_code, result_code, duration_millis, occur_time
     </sql>
 
 </mapper>

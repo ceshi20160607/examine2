@@ -6,7 +6,7 @@
   "migrationRoot": "db/migration",
   "manifestPath": "backend/base-codegen-manifest.json",
   "database": {
-    "url": "jdbc:mysql://127.0.0.1:33077/unexamine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+    "url": "jdbc:mysql://127.0.0.1:33077/unexamine_codegen_current?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
     "username": "unexamine",
     "password": "unexamine_local"
   },
@@ -16,56 +16,60 @@
       "javaPackage": "platform",
       "tables": [
         {
-          "name": "plat_account",
+          "name": "un_plat_account",
           "entity": "PlatformAccount"
         },
         {
-          "name": "plat_account_credential",
+          "name": "un_plat_account_credential",
           "entity": "PlatformAccountCredential"
         },
         {
-          "name": "plat_account_mfa",
+          "name": "un_plat_account_mfa",
           "entity": "PlatAccountMfa"
         },
         {
-          "name": "plat_sso_provider",
+          "name": "un_plat_sso_provider",
           "entity": "PlatSsoProvider"
         },
         {
-          "name": "plat_sso_provider_version",
+          "name": "un_plat_sso_provider_version",
           "entity": "PlatSsoProviderVersion"
         },
         {
-          "name": "plat_sso_identity",
+          "name": "un_plat_sso_identity",
           "entity": "PlatSsoIdentity"
         },
         {
-          "name": "plat_password_history",
+          "name": "un_plat_password_history",
           "entity": "PlatPasswordHistory",
           "immutable": true
         },
         {
-          "name": "plat_platform",
+          "name": "un_plat_password_reset",
+          "entity": "PlatPasswordReset"
+        },
+        {
+          "name": "un_plat_platform",
           "entity": "PlatformDefinition"
         },
         {
-          "name": "plat_department",
+          "name": "un_plat_department",
           "entity": "PlatformDepartment"
         },
         {
-          "name": "plat_member",
+          "name": "un_plat_member",
           "entity": "PlatformMember"
         },
         {
-          "name": "plat_role",
+          "name": "un_plat_role",
           "entity": "PlatformRole"
         },
         {
-          "name": "plat_member_role",
+          "name": "un_plat_member_role",
           "entity": "PlatformMemberRole"
         },
         {
-          "name": "plat_role_permission",
+          "name": "un_plat_role_permission",
           "entity": "PlatformRolePermission"
         }
       ]
@@ -75,54 +79,58 @@
       "javaPackage": "system",
       "tables": [
         {
-          "name": "sys_system",
+          "name": "un_sys_system",
           "entity": "SystemDefinition"
         },
         {
-          "name": "sys_system_domain",
+          "name": "un_sys_system_domain",
           "entity": "SysSystemDomain"
         },
         {
-          "name": "sys_tenant",
+          "name": "un_sys_sso_binding",
+          "entity": "SysSsoBinding"
+        },
+        {
+          "name": "un_sys_tenant",
           "entity": "SystemTenant",
           "properties": {
             "is_main": "main"
           }
         },
         {
-          "name": "sys_member",
+          "name": "un_sys_member",
           "entity": "SystemMember"
         },
         {
-          "name": "sys_access_request",
+          "name": "un_sys_member_invitation",
+          "entity": "SystemMemberInvitation"
+        },
+        {
+          "name": "un_sys_access_request",
           "entity": "SysAccessRequest"
         },
         {
-          "name": "sys_tenant_migration",
-          "entity": "SysTenantMigration"
-        },
-        {
-          "name": "sys_department",
+          "name": "un_sys_department",
           "entity": "SystemDepartment"
         },
         {
-          "name": "sys_tenant_member",
+          "name": "un_sys_tenant_member",
           "entity": "SystemTenantMember"
         },
         {
-          "name": "sys_role",
+          "name": "un_sys_role",
           "entity": "SystemRole"
         },
         {
-          "name": "sys_member_role",
+          "name": "un_sys_member_role",
           "entity": "SystemMemberRole"
         },
         {
-          "name": "sys_role_permission",
+          "name": "un_sys_role_permission",
           "entity": "SystemRolePermission"
         },
         {
-          "name": "sys_member_reporting_line",
+          "name": "un_sys_member_reporting_line",
           "entity": "SystemMemberReportingLine"
         }
       ]
@@ -132,15 +140,15 @@
       "javaPackage": "authentication",
       "tables": [
         {
-          "name": "auth_field_policy",
+          "name": "un_auth_field_policy",
           "entity": "AuthorizationFieldPolicy"
         },
         {
-          "name": "auth_permission_version",
+          "name": "un_auth_permission_version",
           "entity": "AuthorizationPermissionVersion"
         },
         {
-          "name": "auth_session",
+          "name": "un_auth_session",
           "entity": "AuthenticationSession"
         }
       ]
@@ -150,17 +158,17 @@
       "javaPackage": "audit",
       "tables": [
         {
-          "name": "audit_event",
+          "name": "un_audit_event",
           "entity": "AuditEvent",
           "immutable": true
         },
         {
-          "name": "audit_field_change",
+          "name": "un_audit_field_change",
           "entity": "AuditFieldChange",
           "immutable": true
         },
         {
-          "name": "audit_retention_marker",
+          "name": "un_audit_retention_marker",
           "entity": "AuditRetentionMarker",
           "immutable": true
         }
@@ -171,73 +179,73 @@
       "javaPackage": "moduleconfig",
       "tables": [
         {
-          "name": "cfg_module_group",
+          "name": "un_cfg_module_group",
           "entity": "ConfiguredModuleGroup"
         },
         {
-          "name": "cfg_module",
+          "name": "un_cfg_module",
           "entity": "ConfiguredModule"
         },
         {
-          "name": "cfg_dictionary",
+          "name": "un_cfg_dictionary",
           "entity": "CfgDictionary"
         },
         {
-          "name": "cfg_dictionary_item",
+          "name": "un_cfg_dictionary_item",
           "entity": "CfgDictionaryItem"
         },
         {
-          "name": "cfg_dictionary_version",
+          "name": "un_cfg_dictionary_version",
           "entity": "CfgDictionaryVersion",
           "immutable": true
         },
         {
-          "name": "cfg_dictionary_publication",
+          "name": "un_cfg_dictionary_publication",
           "entity": "CfgDictionaryPublication"
         },
         {
-          "name": "cfg_module_field",
+          "name": "un_cfg_module_field",
           "entity": "ConfiguredModuleField"
         },
         {
-          "name": "cfg_module_page",
+          "name": "un_cfg_module_page",
           "entity": "ConfiguredModulePage"
         },
         {
-          "name": "cfg_module_menu",
+          "name": "un_cfg_module_menu",
           "entity": "CfgModuleMenu"
         },
         {
-          "name": "cfg_module_action",
+          "name": "un_cfg_module_action",
           "entity": "ConfiguredModuleAction"
         },
         {
-          "name": "cfg_module_rule",
+          "name": "un_cfg_module_rule",
           "entity": "CfgModuleRule"
         },
         {
-          "name": "cfg_query_index",
+          "name": "un_cfg_query_index",
           "entity": "CfgQueryIndex"
         },
         {
-          "name": "cfg_query_index_field",
+          "name": "un_cfg_query_index_field",
           "entity": "CfgQueryIndexField"
         },
         {
-          "name": "cfg_module_version",
+          "name": "un_cfg_module_version",
           "entity": "ConfiguredModuleVersion",
           "immutable": true
         },
         {
-          "name": "cfg_module_publication",
+          "name": "un_cfg_module_publication",
           "entity": "ConfiguredModulePublication"
         },
         {
-          "name": "cfg_tenant_extension",
+          "name": "un_cfg_tenant_extension",
           "entity": "CfgTenantExtension"
         },
         {
-          "name": "cfg_tenant_extension_version",
+          "name": "un_cfg_tenant_extension_version",
           "entity": "CfgTenantExtensionVersion",
           "immutable": true
         }
@@ -248,47 +256,59 @@
       "javaPackage": "runtimedata",
       "tables": [
         {
-          "name": "biz_record",
+          "name": "un_biz_record",
           "entity": "BusinessRecord"
         },
         {
-          "name": "biz_record_value",
+          "name": "un_biz_record_value",
           "entity": "BusinessRecordValue"
         },
         {
-          "name": "biz_record_index",
+          "name": "un_biz_record_child_row",
+          "entity": "BizRecordChildRow"
+        },
+        {
+          "name": "un_biz_record_child_value",
+          "entity": "BizRecordChildValue"
+        },
+        {
+          "name": "un_biz_record_comment",
+          "entity": "BizRecordComment"
+        },
+        {
+          "name": "un_biz_record_index",
           "entity": "BizRecordIndex"
         },
         {
-          "name": "biz_record_relation",
+          "name": "un_biz_record_relation",
           "entity": "BizRecordRelation"
         },
         {
-          "name": "biz_record_participant",
+          "name": "un_biz_record_participant",
           "entity": "BusinessRecordParticipant"
         },
         {
-          "name": "biz_record_state_history",
+          "name": "un_biz_record_state_history",
           "entity": "BizRecordStateHistory"
         },
         {
-          "name": "biz_record_owner_history",
+          "name": "un_biz_record_owner_history",
           "entity": "BizRecordOwnerHistory"
         },
         {
-          "name": "biz_record_conversion",
+          "name": "un_biz_record_conversion",
           "entity": "BizRecordConversion"
         },
         {
-          "name": "biz_record_conversion_result",
+          "name": "un_biz_record_conversion_result",
           "entity": "BizRecordConversionResult"
         },
         {
-          "name": "biz_tenant_share",
+          "name": "un_biz_tenant_share",
           "entity": "BizTenantShare"
         },
         {
-          "name": "biz_tenant_share_usage",
+          "name": "un_biz_tenant_share_usage",
           "entity": "BizTenantShareUsage"
         }
       ]
@@ -298,35 +318,35 @@
       "javaPackage": "foundation",
       "tables": [
         {
-          "name": "core_setting",
+          "name": "un_core_setting",
           "entity": "CoreSetting"
         },
         {
-          "name": "core_feature_flag",
+          "name": "un_core_feature_flag",
           "entity": "CoreFeatureFlag"
         },
         {
-          "name": "core_quota_policy",
+          "name": "un_core_quota_policy",
           "entity": "CoreQuotaPolicy"
         },
         {
-          "name": "core_quota_usage",
+          "name": "un_core_quota_usage",
           "entity": "CoreQuotaUsage"
         },
         {
-          "name": "core_idempotency_record",
+          "name": "un_core_idempotency_record",
           "entity": "CoreIdempotencyRecord"
         },
         {
-          "name": "core_sequence",
+          "name": "un_core_sequence",
           "entity": "CoreSequence"
         },
         {
-          "name": "core_event_outbox",
+          "name": "un_core_event_outbox",
           "entity": "CoreEventOutbox"
         },
         {
-          "name": "core_cache_epoch",
+          "name": "un_core_cache_epoch",
           "entity": "CoreCacheEpoch"
         }
       ]
@@ -336,15 +356,11 @@
       "javaPackage": "backgroundjobs",
       "tables": [
         {
-          "name": "job_background",
+          "name": "un_job_background",
           "entity": "JobBackground"
         },
         {
-          "name": "job_attempt",
-          "entity": "JobAttempt"
-        },
-        {
-          "name": "job_item_result",
+          "name": "un_job_item_result",
           "entity": "JobItemResult"
         }
       ]
@@ -354,69 +370,73 @@
       "javaPackage": "flow",
       "tables": [
         {
-          "name": "flow_definition",
+          "name": "un_flow_definition",
           "entity": "FlowDefinition"
         },
         {
-          "name": "flow_node",
+          "name": "un_flow_node",
           "entity": "FlowNode"
         },
         {
-          "name": "flow_edge",
+          "name": "un_flow_edge",
           "entity": "FlowEdge"
         },
         {
-          "name": "flow_version",
+          "name": "un_flow_version",
           "entity": "FlowVersion",
           "immutable": true
         },
         {
-          "name": "flow_publication",
+          "name": "un_flow_publication",
           "entity": "FlowPublication"
         },
         {
-          "name": "flow_trigger_binding",
+          "name": "un_flow_trigger_binding",
           "entity": "FlowTriggerBinding"
         },
         {
-          "name": "flow_binding_resolution",
+          "name": "un_flow_binding_resolution",
           "entity": "FlowBindingResolution"
         },
         {
-          "name": "flow_instance",
+          "name": "un_flow_instance",
           "entity": "FlowInstance"
         },
         {
-          "name": "flow_execution",
+          "name": "un_flow_subflow_link",
+          "entity": "FlowSubflowLink"
+        },
+        {
+          "name": "un_flow_execution",
           "entity": "FlowExecution"
         },
         {
-          "name": "flow_instance_variable",
+          "name": "un_flow_instance_variable",
           "entity": "FlowInstanceVariable"
         },
         {
-          "name": "flow_task",
+          "name": "un_flow_task",
           "entity": "FlowTask"
         },
         {
-          "name": "flow_task_candidate",
+          "name": "un_flow_task_candidate",
           "entity": "FlowTaskCandidate"
         },
         {
-          "name": "flow_action",
+          "name": "un_flow_action",
           "entity": "FlowAction"
         },
         {
-          "name": "flow_exception",
+          "name": "un_flow_exception",
           "entity": "FlowException"
         },
         {
-          "name": "flow_history_event",
+          "name": "un_flow_history_event",
           "entity": "FlowHistoryEvent",
           "immutable": true
         },
         {
-          "name": "flow_job",
+          "name": "un_flow_job",
           "entity": "FlowJob"
         }
       ]
@@ -426,73 +446,69 @@
       "javaPackage": "application",
       "tables": [
         {
-          "name": "app_definition",
+          "name": "un_app_definition",
           "entity": "AppDefinition"
         },
         {
-          "name": "app_callback",
+          "name": "un_app_callback",
           "entity": "AppCallback"
         },
         {
-          "name": "app_grant",
+          "name": "un_app_grant",
           "entity": "AppGrant"
         },
         {
-          "name": "app_grant_field",
+          "name": "un_app_grant_field",
           "entity": "AppGrantField"
         },
         {
-          "name": "app_bridge_identity",
-          "entity": "AppBridgeIdentity"
-        },
-        {
-          "name": "app_provider_connection",
+          "name": "un_app_provider_connection",
           "entity": "AppProviderConnection"
         },
         {
-          "name": "app_provider_secret",
+          "name": "un_app_provider_secret",
           "entity": "AppProviderSecret"
         },
         {
-          "name": "app_provider_route",
+          "name": "un_app_provider_route",
           "entity": "AppProviderRoute"
         },
         {
-          "name": "app_provider_event",
+          "name": "un_app_provider_event",
           "entity": "AppProviderEvent"
         },
         {
-          "name": "app_provider_delivery",
+          "name": "un_app_provider_delivery",
           "entity": "AppProviderDelivery"
         },
         {
-          "name": "app_provider_identity",
+          "name": "un_app_provider_identity",
           "entity": "AppProviderIdentity"
         },
         {
-          "name": "app_version",
+          "name": "un_app_version",
           "entity": "AppVersion",
           "immutable": true
         },
         {
-          "name": "app_publication",
+          "name": "un_app_publication",
           "entity": "AppPublication"
         },
         {
-          "name": "app_credential",
+          "name": "un_app_credential",
           "entity": "AppCredential"
         },
         {
-          "name": "app_call",
+          "name": "un_app_call",
           "entity": "AppCall"
         },
         {
-          "name": "app_call_nonce",
+          "name": "un_app_call_nonce",
           "entity": "AppCallNonce",
           "immutable": true
         },
         {
-          "name": "app_callback_delivery",
+          "name": "un_app_callback_delivery",
           "entity": "AppCallbackDelivery"
         }
       ]
@@ -502,54 +518,54 @@
       "javaPackage": "work",
       "tables": [
         {
-          "name": "work_project",
+          "name": "un_work_project",
           "entity": "WorkProject"
         },
         {
-          "name": "work_project_member",
+          "name": "un_work_project_member",
           "entity": "WorkProjectMember"
         },
         {
-          "name": "work_task_group",
+          "name": "un_work_task_group",
           "entity": "WorkTaskGroup"
         },
         {
-          "name": "work_task",
+          "name": "un_work_task",
           "entity": "WorkTask"
         },
         {
-          "name": "work_task_member",
+          "name": "un_work_task_member",
           "entity": "WorkTaskMember"
         },
         {
-          "name": "work_task_history",
+          "name": "un_work_task_history",
           "entity": "WorkTaskHistory",
           "immutable": true
         },
         {
-          "name": "work_log",
+          "name": "un_work_log",
           "entity": "WorkLog"
         },
         {
-          "name": "work_log_task_link",
+          "name": "un_work_log_task_link",
           "entity": "WorkLogTaskLink"
         },
         {
-          "name": "work_log_revision",
+          "name": "un_work_log_revision",
           "entity": "WorkLogRevision",
           "immutable": true
         },
         {
-          "name": "work_log_material",
+          "name": "un_work_log_material",
           "entity": "WorkLogMaterial"
         },
         {
-          "name": "work_log_comment",
+          "name": "un_work_log_comment",
           "entity": "WorkLogComment",
           "immutable": true
         },
         {
-          "name": "work_field_config",
+          "name": "un_work_field_config",
           "entity": "WorkFieldConfig"
         }
       ]
@@ -559,36 +575,65 @@
       "javaPackage": "notification",
       "tables": [
         {
-          "name": "todo_item",
+          "name": "un_plat_todo_item",
+          "entity": "PlatTodoItem"
+        },
+        {
+          "name": "un_plat_msg_template",
+          "entity": "PlatMsgTemplate"
+        },
+        {
+          "name": "un_plat_msg_template_version",
+          "entity": "PlatMsgTemplateVersion",
+          "immutable": true
+        },
+        {
+          "name": "un_plat_msg_message",
+          "entity": "PlatMsgMessage"
+        },
+        {
+          "name": "un_plat_msg_recipient",
+          "entity": "PlatMsgRecipient"
+        },
+        {
+          "name": "un_plat_msg_delivery",
+          "entity": "PlatMsgDelivery"
+        },
+        {
+          "name": "un_plat_msg_user_preference",
+          "entity": "PlatMsgUserPreference"
+        },
+        {
+          "name": "un_todo_item",
           "entity": "TodoItem"
         },
         {
-          "name": "msg_template",
+          "name": "un_msg_template",
           "entity": "MsgTemplate"
         },
         {
-          "name": "msg_template_version",
+          "name": "un_msg_template_version",
           "entity": "MsgTemplateVersion",
           "immutable": true
         },
         {
-          "name": "msg_message",
+          "name": "un_msg_message",
           "entity": "MsgMessage"
         },
         {
-          "name": "msg_recipient",
+          "name": "un_msg_recipient",
           "entity": "MsgRecipient"
         },
         {
-          "name": "msg_delivery",
+          "name": "un_msg_delivery",
           "entity": "MsgDelivery"
         },
         {
-          "name": "msg_user_preference",
+          "name": "un_msg_user_preference",
           "entity": "MsgUserPreference"
         },
         {
-          "name": "todo_contact_rule",
+          "name": "un_todo_contact_rule",
           "entity": "TodoContactRule"
         }
       ]
@@ -598,48 +643,53 @@
       "javaPackage": "ai",
       "tables": [
         {
-          "name": "ai_model",
+          "name": "un_ai_model",
           "entity": "AiModel"
         },
         {
-          "name": "ai_system_model_grant",
+          "name": "un_ai_system_model_grant",
           "entity": "AiSystemModelGrant"
         },
         {
-          "name": "ai_agent",
+          "name": "un_ai_system_model_grant_version",
+          "entity": "AiSystemModelGrantVersion",
+          "immutable": true
+        },
+        {
+          "name": "un_ai_agent",
           "entity": "AiAgent"
         },
         {
-          "name": "ai_agent_tool",
+          "name": "un_ai_agent_tool",
           "entity": "AiAgentTool"
         },
         {
-          "name": "ai_agent_version",
+          "name": "un_ai_agent_version",
           "entity": "AiAgentVersion",
           "immutable": true
         },
         {
-          "name": "ai_agent_publication",
+          "name": "un_ai_agent_publication",
           "entity": "AiAgentPublication"
         },
         {
-          "name": "ai_conversation",
+          "name": "un_ai_conversation",
           "entity": "AiConversation"
         },
         {
-          "name": "ai_message",
+          "name": "un_ai_message",
           "entity": "AiMessage"
         },
         {
-          "name": "ai_execution",
+          "name": "un_ai_execution",
           "entity": "AiExecution"
         },
         {
-          "name": "ai_execution_step",
+          "name": "un_ai_execution_step",
           "entity": "AiExecutionStep"
         },
         {
-          "name": "ai_pending_write",
+          "name": "un_ai_pending_write",
           "entity": "AiPendingWrite"
         }
       ]
@@ -649,23 +699,31 @@
       "javaPackage": "file",
       "tables": [
         {
-          "name": "file_storage_backend",
+          "name": "un_file_storage_backend",
           "entity": "FileStorageBackend"
         },
         {
-          "name": "file_upload_session",
+          "name": "un_file_upload_session",
           "entity": "FileUploadSession"
         },
         {
-          "name": "file_object",
+          "name": "un_file_upload_chunk",
+          "entity": "FileUploadChunk"
+        },
+        {
+          "name": "un_file_object",
           "entity": "FileObject"
         },
         {
-          "name": "file_reference",
+          "name": "un_file_preview",
+          "entity": "FilePreview"
+        },
+        {
+          "name": "un_file_reference",
           "entity": "FileReference"
         },
         {
-          "name": "file_security_scan",
+          "name": "un_file_security_scan",
           "entity": "FileSecurityScan"
         }
       ]
@@ -675,19 +733,28 @@
       "javaPackage": "dataexchange",
       "tables": [
         {
-          "name": "exchange_mapping",
+          "name": "un_exchange_mapping",
           "entity": "ExchangeMapping"
         },
         {
-          "name": "exchange_import_batch",
+          "name": "un_exchange_mapping_version",
+          "entity": "ExchangeMappingVersion",
+          "immutable": true
+        },
+        {
+          "name": "un_exchange_mapping_publication",
+          "entity": "ExchangeMappingPublication"
+        },
+        {
+          "name": "un_exchange_import_batch",
           "entity": "ExchangeImportBatch"
         },
         {
-          "name": "exchange_import_row",
+          "name": "un_exchange_import_row",
           "entity": "ExchangeImportRow"
         },
         {
-          "name": "exchange_export_batch",
+          "name": "un_exchange_export_batch",
           "entity": "ExchangeExportBatch"
         }
       ]
@@ -697,41 +764,49 @@
       "javaPackage": "analytics",
       "tables": [
         {
-          "name": "ana_data_source",
+          "name": "un_ana_data_source",
           "entity": "AnaDataSource"
         },
         {
-          "name": "ana_data_source_version",
+          "name": "un_ana_data_source_version",
           "entity": "AnaDataSourceVersion",
           "immutable": true
         },
         {
-          "name": "ana_dashboard",
+          "name": "un_ana_dashboard",
           "entity": "AnaDashboard"
         },
         {
-          "name": "ana_dashboard_component",
+          "name": "un_ana_dashboard_component",
           "entity": "AnaDashboardComponent"
         },
         {
-          "name": "ana_dashboard_version",
+          "name": "un_ana_dashboard_version",
           "entity": "AnaDashboardVersion",
           "immutable": true
         },
         {
-          "name": "ana_dashboard_publication",
+          "name": "un_ana_dashboard_publication",
           "entity": "AnaDashboardPublication"
         },
         {
-          "name": "ana_kpi",
+          "name": "un_ana_dashboard_permission",
+          "entity": "AnaDashboardPermission"
+        },
+        {
+          "name": "un_ana_dashboard_cache",
+          "entity": "AnaDashboardCache"
+        },
+        {
+          "name": "un_ana_kpi",
           "entity": "AnaKpi"
         },
         {
-          "name": "ana_kpi_result",
+          "name": "un_ana_kpi_result",
           "entity": "AnaKpiResult"
         },
         {
-          "name": "ana_kpi_reminder",
+          "name": "un_ana_kpi_reminder",
           "entity": "AnaKpiReminder"
         }
       ]
@@ -741,20 +816,20 @@
       "javaPackage": "print",
       "tables": [
         {
-          "name": "print_template",
+          "name": "un_print_template",
           "entity": "PrintTemplate"
         },
         {
-          "name": "print_template_version",
+          "name": "un_print_template_version",
           "entity": "PrintTemplateVersion",
           "immutable": true
         },
         {
-          "name": "print_template_publication",
+          "name": "un_print_template_publication",
           "entity": "PrintTemplatePublication"
         },
         {
-          "name": "print_job",
+          "name": "un_print_job",
           "entity": "PrintJob"
         }
       ]
@@ -764,59 +839,59 @@
       "javaPackage": "operations",
       "tables": [
         {
-          "name": "ops_secret_ref",
+          "name": "un_ops_secret_ref",
           "entity": "OpsSecretRef"
         },
         {
-          "name": "ops_secret_rotation",
+          "name": "un_ops_secret_rotation",
           "entity": "OpsSecretRotation"
         },
         {
-          "name": "ops_health_run",
+          "name": "un_ops_health_run",
           "entity": "OpsHealthRun"
         },
         {
-          "name": "ops_health_item",
+          "name": "un_ops_health_item",
           "entity": "OpsHealthItem"
         },
         {
-          "name": "ops_release",
+          "name": "un_ops_release",
           "entity": "OpsRelease"
         },
         {
-          "name": "ops_deployment",
+          "name": "un_ops_deployment",
           "entity": "OpsDeployment"
         },
         {
-          "name": "ops_backup",
+          "name": "un_ops_backup",
           "entity": "OpsBackup"
         },
         {
-          "name": "ops_backup_item",
+          "name": "un_ops_backup_item",
           "entity": "OpsBackupItem"
         },
         {
-          "name": "ops_restore_drill",
+          "name": "un_ops_restore_drill",
           "entity": "OpsRestoreDrill"
         },
         {
-          "name": "ops_upgrade",
+          "name": "un_ops_upgrade",
           "entity": "OpsUpgrade"
         },
         {
-          "name": "ops_upgrade_step",
+          "name": "un_ops_upgrade_step",
           "entity": "OpsUpgradeStep"
         },
         {
-          "name": "ops_verification_run",
+          "name": "un_ops_verification_run",
           "entity": "OpsVerificationRun"
         },
         {
-          "name": "ops_verification_finding",
+          "name": "un_ops_verification_finding",
           "entity": "OpsVerificationFinding"
         },
         {
-          "name": "ops_request_log",
+          "name": "un_ops_request_log",
           "entity": "OpsRequestLog",
           "immutable": true
         }

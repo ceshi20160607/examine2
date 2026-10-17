@@ -103,7 +103,7 @@ class RuntimeDataHttpTest {
         assertThat(badDraft.getBody()).containsEntry("code", "FIELD_CONFIG_INVALID");
         createField(owner, moduleId, "profile", "客户资料", "JSON", true, 30,
                 Map.of("jsonSchema", schema, "defaultValue", Map.of("company", "默认公司")));
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST, owner.token(),
                 Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
         String path = "/api/runtime/modules/content_customer/records";
@@ -119,8 +119,8 @@ class RuntimeDataHttpTest {
         var values = map(data(created).get("fields"));
         assertThat(values.get("notes").toString()).contains("<b>合作</b>方案").doesNotContain("script", "onerror", "alert", "<img");
         assertThat(values.get("profile")).isEqualTo(profile);
-        assertThat(jdbc.queryForObject("select value_type from biz_record_value where record_id=? and field_code='notes'", String.class, id)).isEqualTo("RICH_TEXT");
-        assertThat(jdbc.queryForObject("select value_json from biz_record_value where record_id=? and field_code='profile'", String.class, id)).contains("false", "12.5");
+        assertThat(jdbc.queryForObject("select value_type from un_biz_record_value where record_id=? and field_code='notes'", String.class, id)).isEqualTo("RICH_TEXT");
+        assertThat(jdbc.queryForObject("select value_json from un_biz_record_value where record_id=? and field_code='profile'", String.class, id)).contains("false", "12.5");
         assertThat(number(data(exchangeEncoded(path + "?search=" + URLEncoder.encode("合作方案", StandardCharsets.UTF_8), HttpMethod.GET, owner.token(), null)).get("total"))).isOne();
         String filledFilter = URLEncoder.encode("[{\"fieldCode\":\"profile\",\"operator\":\"NOT_EMPTY\"}]", StandardCharsets.UTF_8);
         assertThat(number(data(exchangeEncoded(path + "?filters=" + filledFilter, HttpMethod.GET, owner.token(), null)).get("total"))).isEqualTo(2);
@@ -136,8 +136,8 @@ class RuntimeDataHttpTest {
             assertThat(invalid.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(invalid.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
         }
-        assertThat(jdbc.queryForObject("select version from biz_record where id=?", Integer.class, id)).isEqualTo(version);
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + id + "'")).isZero();
+        assertThat(jdbc.queryForObject("select version from un_biz_record where id=?", Integer.class, id)).isEqualTo(version);
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + id + "'")).isZero();
         var updatedProfile = Map.of("company", "更新公司", "contacts", List.of(Map.of("name", "李四", "active", true)));
         var updated = exchange(path + "/" + id, HttpMethod.PUT, owner.token(), Map.of("participantMemberIds", List.of(), "title", "更新客户", "version", version,
                 "fields", Map.of("name", "更新客户", "notes", "<h2>更新方案</h2>", "profile", updatedProfile)));
@@ -146,7 +146,7 @@ class RuntimeDataHttpTest {
         var timeline = exchange(path + "/" + id + "/timeline", HttpMethod.GET, owner.token(), null);
         assertThat(timeline.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(timeline.getBody().toString()).contains("RICH_TEXT", "JSON", "合作说明", "客户资料", "张三", "李四").doesNotContain("onerror", "alert(1)");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(2);
     }
 
     @Test
@@ -171,10 +171,10 @@ class RuntimeDataHttpTest {
                         "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
         assertThat(commandReplay.getStatusCode()).as("command: %s", commandReplay.getBody()).isEqualTo(HttpStatus.OK);
         assertThat(data(commandReplay)).containsEntry("replayed", true).containsEntry("resultReference", "business-record:" + id);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + id + "'" )).isOne();
-        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + id + "'" )).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isOne();
         assertThat(data(exchange(path + "/" + id, HttpMethod.GET, owner.token(), null)).get("title")).isEqualTo("Action customer");
 
         var changed = new java.util.LinkedHashMap<>(body);
@@ -187,30 +187,30 @@ class RuntimeDataHttpTest {
         assertThat(updated.getStatusCode()).as("update: %s", updated.getBody()).isEqualTo(HttpStatus.OK);
         assertThat(data(actionRequest(path + "/" + id, HttpMethod.PUT, owner, "action-update", update))).isEqualTo(data(updated));
         assertThat(actionRequest(path + "/" + id, HttpMethod.PUT, owner, "action-stale", update).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(count("core_idempotency_record", "idempotency_key='action-stale'")).isZero();
+        assertThat(count("un_core_idempotency_record", "idempotency_key='action-stale'")).isZero();
         var deletion = Map.of("version", data(updated).get("version"), "reason", "remove customer");
         var deleted = actionRequest(path + "/" + id + "/delete", HttpMethod.POST, owner, "action-delete", deletion);
         assertThat(deleted.getStatusCode()).as("delete: %s", deleted.getBody()).isEqualTo(HttpStatus.OK);
         assertThat(data(actionRequest(path + "/" + id + "/delete", HttpMethod.POST, owner, "action-delete", deletion))).isEqualTo(data(deleted));
-        assertThat(jdbc.queryForObject("select deleted from biz_record where id=?", Boolean.class, id)).isTrue();
-        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isEqualTo(3);
+        assertThat(jdbc.queryForObject("select deleted from un_biz_record where id=?", Boolean.class, id)).isTrue();
+        assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isEqualTo(3);
 
         commandPayload.put("title", "");
         var invalidCommand = exchange("/api/admin/system/foundation-control/commands", HttpMethod.POST, owner.token(),
                 Map.of("idempotencyKey", "action-invalid", "applicationCode", "runtime",
                         "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
         assertThat(invalidCommand.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(count("core_idempotency_record", "idempotency_key='action-invalid'")).isZero();
+        assertThat(count("un_core_idempotency_record", "idempotency_key='action-invalid'")).isZero();
         commandPayload.put("title", "Invalid owner");
         commandPayload.put("ownerMemberId", "not-a-number");
         var invalidOwner = exchange("/api/admin/system/foundation-control/commands", HttpMethod.POST, owner.token(),
                 Map.of("idempotencyKey", "action-invalid-owner", "applicationCode", "runtime",
                         "operationCode", "RUNTIME_RECORD_CREATE_DIRECT", "payload", commandPayload));
         assertThat(invalidOwner.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
 
         // Revoking membership must also block reading a cached result.
-        jdbc.update("update sys_tenant_member set status='DISABLED' where tenant_id=?", owner.tenantId());
+        jdbc.update("update un_sys_tenant_member set status='DISABLED' where tenant_id=?", owner.tenantId());
         assertThat(actionRequest(path, HttpMethod.POST, owner, "action-create", body).getStatusCode().is4xxClientError()).isTrue();
     }
 
@@ -221,18 +221,18 @@ class RuntimeDataHttpTest {
         String path = "/api/runtime/modules/customer/records";
         Map<String, Object> body = Map.of("title", "write-failure", "participantMemberIds", List.of(),
                 "fields", Map.of("customer_name", "write-failure", "level", "A"));
-        jdbc.execute("create trigger b01_fail_value before insert on biz_record_value for each row "
+        jdbc.execute("create trigger b01_fail_value before insert on un_biz_record_value for each row "
                 + "begin if NEW.value_text='write-failure' then signal sqlstate '45000' set message_text='controlled value failure'; end if; end");
         try {
             assertThat(actionRequest(path, HttpMethod.POST, owner, "action-rollback", body).getStatusCode().is5xxServerError()).isTrue();
-            assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
-            assertThat(count("core_idempotency_record", "idempotency_key='action-rollback'")).isZero();
-            assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isZero();
+            assertThat(count("un_biz_record", "module_id=" + moduleId)).isZero();
+            assertThat(count("un_core_idempotency_record", "idempotency_key='action-rollback'")).isZero();
+            assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION' and system_id=" + owner.systemId())).isZero();
         } finally {
             jdbc.execute("drop trigger b01_fail_value");
         }
         assertThat(actionRequest(path, HttpMethod.POST, owner, "action-rollback", body).getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
     }
 
     @Test
@@ -254,7 +254,7 @@ class RuntimeDataHttpTest {
                 Map.of("defaultValue", "2026-10-01"));
         createField(owner, moduleId, "priority_customer", "重点客户", "BOOLEAN", false, 50,
                 Map.of("defaultValue", false));
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
                 owner.token(), Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -268,13 +268,13 @@ class RuntimeDataHttpTest {
                 .containsEntry("next_contact", "2026-10-01")
                 .containsEntry("priority_customer", false);
         long recordId = number(data(created).get("id"));
-        assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id=? and field_code='customer_status'",
+        assertThat(jdbc.queryForObject("select value_text from un_biz_record_value where record_id=? and field_code='customer_status'",
                 String.class, recordId)).isEqualTo("active");
-        assertThat(jdbc.queryForObject("select value_number from biz_record_value where record_id=? and field_code='customer_score'",
+        assertThat(jdbc.queryForObject("select value_number from un_biz_record_value where record_id=? and field_code='customer_score'",
                 java.math.BigDecimal.class, recordId)).isEqualByComparingTo("12.5");
-        assertThat(jdbc.queryForObject("select value_date from biz_record_value where record_id=? and field_code='next_contact'",
+        assertThat(jdbc.queryForObject("select value_date from un_biz_record_value where record_id=? and field_code='next_contact'",
                 java.time.LocalDate.class, recordId)).isEqualTo(java.time.LocalDate.of(2026, 10, 1));
-        assertThat(jdbc.queryForObject("select value_boolean from biz_record_value where record_id=? and field_code='priority_customer'",
+        assertThat(jdbc.queryForObject("select value_boolean from un_biz_record_value where record_id=? and field_code='priority_customer'",
                 Boolean.class, recordId)).isFalse();
 
         ResponseEntity<Map> invalid = exchange("/api/runtime/modules/default_customer/records", HttpMethod.POST,
@@ -282,7 +282,7 @@ class RuntimeDataHttpTest {
                         "fields", Map.of("customer_name", "非法数字", "customer_score", "not-a-number")));
         assertThat(invalid.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(invalid.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
     }
 
     @Test
@@ -306,16 +306,16 @@ class RuntimeDataHttpTest {
                 Map.of("readOnly", true));
 
         long generatedIndexId = jdbc.queryForObject(
-                "select id from cfg_query_index where module_id=? and code=?", Long.class,
+                "select id from un_cfg_query_index where module_id=? and code=?", Long.class,
                 moduleId, "field_unique_" + uniqueFieldId);
-        assertThat(jdbc.queryForObject("select unique_index from cfg_query_index where id=?", Boolean.class,
+        assertThat(jdbc.queryForObject("select unique_index from un_cfg_query_index where id=?", Boolean.class,
                 generatedIndexId)).isTrue();
-        assertThat(jdbc.queryForObject("select status from cfg_query_index where id=?", String.class,
+        assertThat(jdbc.queryForObject("select status from un_cfg_query_index where id=?", String.class,
                 generatedIndexId)).isEqualTo("ACTIVE");
-        assertThat(jdbc.queryForObject("select field_id from cfg_query_index_field where query_index_id=?",
+        assertThat(jdbc.queryForObject("select field_id from un_cfg_query_index_field where query_index_id=?",
                 Long.class, generatedIndexId)).isEqualTo(uniqueFieldId);
 
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).as("publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
@@ -333,7 +333,7 @@ class RuntimeDataHttpTest {
                         "created_time", "2000-01-01T00:00:00")));
         assertThat(craftedReadOnly.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(craftedReadOnly.getBody().get("message").toString()).contains("created_time", "只读字段由系统维护");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isZero();
 
         ResponseEntity<Map> first = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
                 "title", "客户甲", "participantMemberIds", List.of(),
@@ -344,15 +344,15 @@ class RuntimeDataHttpTest {
         assertThat(map(data(first).get("fields")).get("created_time").toString()).isNotBlank();
         assertThat(number(map(data(first).get("fields")).get("created_user"))).isEqualTo(memberId(owner.systemId(), owner.accountId()));
 
-        int successfulCreates = count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'");
+        int successfulCreates = count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'");
         ResponseEntity<Map> duplicateCreate = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
                 "title", "客户乙重复", "participantMemberIds", List.of(),
                 "fields", Map.of("customer_name", "客户乙重复", "customer_code", "C-001")));
         assertThat(duplicateCreate.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(duplicateCreate.getBody()).containsEntry("code", "UNIQUE_RULE_VIOLATION");
         assertThat(duplicateCreate.getBody().get("message").toString()).startsWith("customer_code:");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'"))
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + firstId + "'"))
                 .isEqualTo(successfulCreates);
 
         ResponseEntity<Map> second = exchange(recordsPath, HttpMethod.POST, owner.token(), Map.of(
@@ -367,18 +367,18 @@ class RuntimeDataHttpTest {
                         "fields", Map.of("customer_name", "不应保存", "customer_code", "C-001")));
         assertThat(duplicateUpdate.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(duplicateUpdate.getBody()).containsEntry("code", "UNIQUE_RULE_VIOLATION");
-        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
-        assertThat(jdbc.queryForObject("select value_text from biz_record_value where record_id=? and field_code='customer_code'",
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
+        assertThat(jdbc.queryForObject("select value_text from un_biz_record_value where record_id=? and field_code='customer_code'",
                 String.class, secondId)).isEqualTo("C-002");
-        assertThat(jdbc.queryForObject("select version from biz_record where id=?", Integer.class, secondId)).isEqualTo(secondVersion);
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + secondId + "' and result_code='SUCCESS'")).isZero();
+        assertThat(jdbc.queryForObject("select version from un_biz_record where id=?", Integer.class, secondId)).isEqualTo(secondVersion);
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_UPDATED' and object_id='" + secondId + "' and result_code='SUCCESS'")).isZero();
 
         ResponseEntity<Map> readOnlyUpdate = exchange(recordsPath + "/" + secondId, HttpMethod.PUT,
                 owner.token(), Map.of("title", "也不应保存", "participantMemberIds", List.of(), "version", secondVersion,
                         "fields", Map.of("customer_name", "也不应保存", "customer_code", "C-002",
                                 "created_user", 999999L)));
         assertThat(readOnlyUpdate.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id=?", String.class, secondId)).isEqualTo("客户乙");
 
         ResponseEntity<Map> updated = exchange(recordsPath + "/" + secondId, HttpMethod.PUT,
                 owner.token(), Map.of("title", "客户乙已更新", "participantMemberIds", List.of(), "version", secondVersion,
@@ -434,7 +434,7 @@ class RuntimeDataHttpTest {
             assertThat(created.getStatusCode()).as("field %s: %s", definition.get("code"), created.getBody())
                     .isEqualTo(HttpStatus.OK);
         }
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).as("publish: %s", published.getBody()).isEqualTo(HttpStatus.OK);
@@ -455,8 +455,8 @@ class RuntimeDataHttpTest {
                 .containsEntry("email", "default@example.com")
                 .containsEntry("website", "https://example.com/customer")
                 .containsEntry("identity", "11010519491231002X");
-        assertThat(count("biz_record_value", "record_id=" + recordId + " and value_text is not null")).isEqualTo(5);
-        assertThat(jdbc.queryForList("select value_type from biz_record_value where record_id=?", String.class, recordId))
+        assertThat(count("un_biz_record_value", "record_id=" + recordId + " and value_text is not null")).isEqualTo(5);
+        assertThat(jdbc.queryForList("select value_type from un_biz_record_value where record_id=?", String.class, recordId))
                 .containsExactlyInAnyOrder("MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD");
 
         Map<String, Object> validFields = new java.util.LinkedHashMap<>(createdFields);
@@ -474,8 +474,8 @@ class RuntimeDataHttpTest {
             assertThat(rejected.getBody()).containsEntry("code", "FIELD_VALIDATION_FAILED");
             assertThat(rejected.getBody().get("message").toString()).contains(invalidValue.getKey());
         }
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId
                 + "' and result_code='SUCCESS'")).isOne();
 
         Map<String, Object> updatedFields = new java.util.LinkedHashMap<>(validFields);
@@ -531,19 +531,19 @@ class RuntimeDataHttpTest {
             assertThat(results.get(1).get().getStatusCode()).as("parallel: %s", results.get(1).get().getBody()).isEqualTo(HttpStatus.OK);
             assertThat(data(results.get(0).get())).isEqualTo(data(results.get(1).get()));
         }
-        long outboxId = jdbc.queryForObject("select o.id from core_event_outbox o join core_idempotency_record r "
+        long outboxId = jdbc.queryForObject("select o.id from un_core_event_outbox o join un_core_idempotency_record r "
                 + "on o.aggregate_id=cast(r.id as char) where o.aggregate_type='BUSINESS_ACTION' and r.idempotency_key='action-parallel'", Long.class);
-        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        jdbc.update("update core_event_outbox set available_at=? where id=?", LocalDateTime.now().minusSeconds(1), outboxId);
+        assertThat(jdbc.queryForObject("select status from un_core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        jdbc.update("update un_core_event_outbox set available_time=? where id=?", LocalDateTime.now().minusSeconds(1), outboxId);
         actionDispatcher.retryDue();
         actionDispatcher.dispatch(outboxId);
-        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId))
-                .as("delivery: %s", jdbc.queryForMap("select status,available_at,retry_count,last_error from core_event_outbox where id=?", outboxId))
+        assertThat(jdbc.queryForObject("select status from un_core_event_outbox where id=?", String.class, outboxId))
+                .as("delivery: %s", jdbc.queryForMap("select status,available_time,retry_count,last_error from un_core_event_outbox where id=?", outboxId))
                 .isEqualTo("PUBLISHED");
-        assertThat(jdbc.queryForObject("select retry_count from core_event_outbox where id=?", Integer.class, outboxId)).isOne();
+        assertThat(jdbc.queryForObject("select retry_count from un_core_event_outbox where id=?", Integer.class, outboxId)).isOne();
         assertThat(deliveryAttempts.get()).isEqualTo(2);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
     }
 
     private ResponseEntity<Map> actionRequest(String path, HttpMethod method, Session owner, String key, Object body) {
@@ -578,15 +578,15 @@ class RuntimeDataHttpTest {
                 "fields", Map.of("customer_name", "Bound save", "level", "A", "amount", 5));
         assertThat(actionRequest("/api/runtime/modules/customer/records", HttpMethod.POST, owner, "binding-direct", body)
                 .getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("flow_binding_resolution", "system_id=" + owner.systemId())).isOne();
+        assertThat(count("un_flow_binding_resolution", "system_id=" + owner.systemId())).isOne();
         binding.put("replaceExisting", true);
         binding.put("executionMode", "AFTER_APPROVAL");
         binding.put("conditionExpression", "amount > 10");
         assertThat(exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), binding).getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(actionRequest("/api/runtime/modules/customer/records", HttpMethod.POST, owner, "binding-miss", body)
                 .getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isZero();
     }
     @Test
     void boundAfterExecutionPinsVersionAndRecoversWithoutRepeatingCrudOrFlow() {
@@ -610,23 +610,23 @@ class RuntimeDataHttpTest {
         String receipt = path + "/action-results/" + actionId;
         assertThat(result).containsEntry("mode", "AFTER_EXECUTION").containsEntry("status", "COMPLETED");
         assertThat(data(exchange(path + "/" + recordId, HttpMethod.GET, owner.token(), null))).containsEntry("title", "bound-delivery");
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isZero();
         assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("status", "RETRYING");
-        assertThat(jdbc.queryForObject("select status from core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
+        assertThat(jdbc.queryForObject("select status from un_core_event_outbox where id=?", String.class, outboxId)).isEqualTo("FAILED");
         long newerVersion = publishActionFlow(owner, flowId, "new_end");
         assertThat(newerVersion).isNotEqualTo(originalVersion);
         publishActionBinding(owner, moduleId, flowId, "CREATE", "FLOW_ONLY");
         assertThat(data(actionEnvelope(path, HttpMethod.POST, owner, "bound-after-create", body)))
                 .containsEntry("mode", "AFTER_EXECUTION").containsEntry("replayed", true).containsEntry("value", record);
-        jdbc.update("update core_event_outbox set available_at=? where id=?", java.time.LocalDateTime.now().minusSeconds(1), outboxId);
+        jdbc.update("update un_core_event_outbox set available_time=? where id=?", java.time.LocalDateTime.now().minusSeconds(1), outboxId);
         actionDispatcher.dispatch(outboxId);
         actionDispatcher.dispatch(outboxId);
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isOne();
-        assertThat(jdbc.queryForObject("select flow_version_id from flow_instance where system_id=?", Long.class, owner.systemId())).isEqualTo(originalVersion);
-        assertThat(jdbc.queryForObject("select current_node_key from flow_instance where system_id=?", String.class, owner.systemId())).isEqualTo("original_end");
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isOne();
+        assertThat(jdbc.queryForObject("select flow_version_id from un_flow_instance where system_id=?", Long.class, owner.systemId())).isEqualTo(originalVersion);
+        assertThat(jdbc.queryForObject("select current_node_key from un_flow_instance where system_id=?", String.class, owner.systemId())).isEqualTo("original_end");
         assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("status", "STARTED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
         Session outsider = register("bound_other", "bound-other", "bound-other@example.com");
         assertThat(exchange(receipt, HttpMethod.GET, outsider.token(), null).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
@@ -644,7 +644,7 @@ class RuntimeDataHttpTest {
         assertThat(map(deleted.get("value"))).containsEntry("deleted", true);
         assertThat(data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "bound-after-delete", deletion)))
                 .containsEntry("replayed", true);
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(3);
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isEqualTo(3);
     }
 
     @Test
@@ -675,7 +675,7 @@ class RuntimeDataHttpTest {
                 .containsEntry("mode", "FLOW_ONLY").containsEntry("value", null);
         var invalid = Map.of("title", "Invalid", "participantMemberIds", List.of(), "fields", Map.of());
         assertThat(actionEnvelope(opportunities, HttpMethod.POST, owner, "only-invalid", invalid).getStatusCode().is4xxClientError()).isTrue();
-        assertThat(count("core_idempotency_record", "idempotency_key='only-invalid'")).isZero();
+        assertThat(count("un_core_idempotency_record", "idempotency_key='only-invalid'")).isZero();
         publishActionBinding(owner, customerModule, flowId, "UPDATE", "FLOW_ONLY");
         publishActionBinding(owner, customerModule, flowId, "DELETE", "FLOW_ONLY");
         var update = new java.util.LinkedHashMap<String, Object>(customer);
@@ -689,13 +689,13 @@ class RuntimeDataHttpTest {
                 Map.of("version", original.get("version"), "reason", "Flow only deletion")))).containsEntry("mode", "FLOW_ONLY");
         assertThat(data(exchange(customers + "/" + recordId, HttpMethod.GET, owner.token(), null)))
                 .containsEntry("title", "Customer").containsEntry("version", original.get("version")).containsEntry("deleted", false);
-        assertThat(count("biz_record", "module_id=" + customerModule)).isOne();
-        assertThat(count("biz_record", "module_id=" + opportunityModule)).isZero();
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
-        assertThat(count("audit_event", "event_code in ('BUSINESS_RECORD_UPDATED','BUSINESS_RECORD_DELETED') and system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_biz_record", "module_id=" + customerModule)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + opportunityModule)).isZero();
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
+        assertThat(count("un_audit_event", "event_code in ('BUSINESS_RECORD_UPDATED','BUSINESS_RECORD_DELETED') and system_id=" + owner.systemId())).isZero();
         // An unadapted importer/AI/application caller must not commit a Flow and then dereference a null record.
         long memberId = memberId(owner.systemId(), owner.accountId());
-        long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+        long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
                 Long.class, owner.tenantId(), memberId);
         var permissions = testActionPermissions.resolve(owner.systemId(), owner.tenantId(), tenantMemberId);
         var context = new com.unique.unexamine.authentication.manage.AuthenticatedContext(null, owner.accountId(), null,
@@ -707,8 +707,8 @@ class RuntimeDataHttpTest {
                         "level", new com.fasterxml.jackson.databind.node.TextNode("A"))), "legacy-flow-only"))
                 .isInstanceOf(com.unique.unexamine.shared.manage.web.DomainException.class)
                 .hasMessageContaining("当前入口尚不能处理流程结果");
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
-        assertThat(count("biz_record", "module_id=" + customerModule)).isOne();
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isEqualTo(4);
+        assertThat(count("un_biz_record", "module_id=" + customerModule)).isOne();
     }
 
     @Test
@@ -727,15 +727,15 @@ class RuntimeDataHttpTest {
         long instanceId = number(pending.get("flowInstanceId"));
         String receipt = path + "/action-results/" + actionId;
         assertThat(pending).containsEntry("status", "PENDING_APPROVAL").containsEntry("value", null);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and system_id=" + owner.systemId())).isZero();
-        assertThat(jdbc.queryForObject("select business_id from flow_instance where id=?", String.class, instanceId)).isNull();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and system_id=" + owner.systemId())).isZero();
+        assertThat(jdbc.queryForObject("select business_id from un_flow_instance where id=?", String.class, instanceId)).isNull();
         assertThat(data(actionEnvelope(path, HttpMethod.POST, owner, "intent-create", body)))
                 .containsEntry("replayed", true).containsEntry("flowInstanceId", pending.get("flowInstanceId"));
-        assertThat(count("flow_instance", "system_id=" + owner.systemId())).isOne();
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isOne();
         assertThat(data(exchange(receipt + "/retry", HttpMethod.POST, owner.token(), Map.of("approved", true))))
                 .containsEntry("businessStatus", "PENDING_APPROVAL");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isZero();
         finishApprovalTask(owner, instanceId, "APPROVE");
         var one = java.util.concurrent.CompletableFuture.runAsync(() -> approvalActions.reconcile(actionId));
         var two = java.util.concurrent.CompletableFuture.runAsync(() -> approvalActions.reconcile(actionId));
@@ -745,9 +745,9 @@ class RuntimeDataHttpTest {
         assertThat(executed).containsEntry("status", "EXECUTED").containsEntry("replayed", true);
         var record = map(executed.get("value"));
         long recordId = number(record.get("id"));
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + actionId + "'" )).isOne();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + actionId + "'" )).isOne();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_CREATED' and object_id='" + recordId + "'" )).isOne();
         assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
 
         publishActionBinding(owner, moduleId, flowId, "UPDATE", "AFTER_APPROVAL");
@@ -774,7 +774,7 @@ class RuntimeDataHttpTest {
         approvalActions.reconcileDue();
         var rejectedReceipt = path + "/action-results/" + rejected.get("idempotencyRecordId");
         assertThat(data(exchange(rejectedReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "REJECTED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
         Session outsider = register("intent_other", "intent-other", "intent-other@example.com");
         assertThat(exchange(rejectedReceipt + "/retry", HttpMethod.POST, outsider.token(), null).getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         var approvedDelete = data(actionEnvelope(path + "/" + recordId + "/delete", HttpMethod.POST, owner, "intent-delete-approved", deletion));
@@ -784,8 +784,8 @@ class RuntimeDataHttpTest {
         assertThat(deleted).containsEntry("status", "EXECUTED").containsEntry("replayed", true);
         assertThat(map(deleted.get("value"))).containsEntry("deleted", true);
         approvalActions.reconcile(number(approvedDelete.get("idempotencyRecordId")));
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_DELETED' and object_id='" + recordId + "'" )).isOne();
-        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + approvedDelete.get("idempotencyRecordId") + "'" )).isOne();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_DELETED' and object_id='" + recordId + "'" )).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + approvedDelete.get("idempotencyRecordId") + "'" )).isOne();
     }
 
     @Test
@@ -800,13 +800,13 @@ class RuntimeDataHttpTest {
         var pending = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-revoke", body));
         finishApprovalTask(owner, number(pending.get("flowInstanceId")), "APPROVE");
         long actorMember = memberId(owner.systemId(), owner.accountId());
-        jdbc.update("update sys_tenant_member set status='DISABLED' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
+        jdbc.update("update un_sys_tenant_member set status='DISABLED' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
         approvalActions.reconcile(number(pending.get("idempotencyRecordId")));
-        jdbc.update("update sys_tenant_member set status='ACTIVE' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
+        jdbc.update("update un_sys_tenant_member set status='ACTIVE' where tenant_id=? and system_member_id=?", owner.tenantId(), actorMember);
         String receipt = path + "/action-results/" + pending.get("idempotencyRecordId");
         assertThat(data(exchange(receipt, HttpMethod.GET, owner.token(), null)))
                 .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_ACTOR_INACTIVE");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isZero();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isZero();
         assertThat(data(exchange(receipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
         var record = map(data(actionEnvelope(path, HttpMethod.POST, owner, "intent-revoke", body)).get("value"));
         long recordId = number(record.get("id"));
@@ -814,7 +814,7 @@ class RuntimeDataHttpTest {
         var update = new java.util.LinkedHashMap<String, Object>(body);
         update.put("version", record.get("version")); update.put("title", "Must not overwrite");
         var stale = data(actionEnvelope(path + "/" + recordId, HttpMethod.PUT, owner, "intent-stale", update));
-        jdbc.update("update biz_record set title='Changed elsewhere', version=version+1 where id=?", recordId);
+        jdbc.update("update un_biz_record set title='Changed elsewhere', version=version+1 where id=?", recordId);
         finishApprovalTask(owner, number(stale.get("flowInstanceId")), "APPROVE");
         approvalActions.reconcileDue();
         assertThat(data(exchange(path + "/action-results/" + stale.get("idempotencyRecordId") + "/retry", HttpMethod.POST, owner.token(), null)))
@@ -823,39 +823,148 @@ class RuntimeDataHttpTest {
 
         var failing = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-sql-fail", body));
         finishApprovalTask(owner, number(failing.get("flowInstanceId")), "APPROVE");
-        jdbc.execute("CREATE TRIGGER b01_approval_fail BEFORE INSERT ON biz_record_value FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='approval controlled failure'");
+        jdbc.execute("CREATE TRIGGER b01_approval_fail BEFORE INSERT ON un_biz_record_value FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='approval controlled failure'");
         try { approvalActions.reconcile(number(failing.get("idempotencyRecordId"))); }
         finally { jdbc.execute("DROP TRIGGER b01_approval_fail"); }
         String failureReceipt = path + "/action-results/" + failing.get("idempotencyRecordId");
         assertThat(data(exchange(failureReceipt, HttpMethod.GET, owner.token(), null)))
                 .containsEntry("businessStatus", "EXECUTION_FAILED").containsEntry("errorCode", "ACTION_EXECUTION_FAILED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isOne();
-        assertThat(count("core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + failing.get("idempotencyRecordId") + "'" )).isZero();
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='BUSINESS_ACTION_COMPLETION' and aggregate_id='" + failing.get("idempotencyRecordId") + "'" )).isZero();
         assertThat(data(exchange(failureReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
         assertThat(data(exchange(failureReceipt + "/retry", HttpMethod.POST, owner.token(), null))).containsEntry("businessStatus", "EXECUTED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(2);
 
         var configChanged = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-config", body));
         createField(owner, moduleId, "new_optional", "New optional", "TEXT", false, 90, Map.of());
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST, owner.token(),
                 Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
         finishApprovalTask(owner, number(configChanged.get("flowInstanceId")), "APPROVE");
         approvalActions.reconcileDue();
         assertThat(data(exchange(path + "/action-results/" + configChanged.get("idempotencyRecordId"), HttpMethod.GET, owner.token(), null)))
                 .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_CONFIGURATION_CHANGED");
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(2);
         // A mismatched intent snapshot must fail even if the base publication/version id is unchanged.
         var drift = data(actionEnvelope(path, HttpMethod.POST, owner, "intent-effective-drift", body));
-        long currentVersion = jdbc.queryForObject("select current_version_id from cfg_module_publication where module_id=?", Long.class, moduleId);
-        jdbc.update("update core_event_outbox set payload_json=JSON_SET(payload_json, '$.configurationSnapshot.module.name', 'Mismatched intent snapshot') where id=?",
+        long currentVersion = jdbc.queryForObject("select current_version_id from un_cfg_module_publication where module_id=?", Long.class, moduleId);
+        jdbc.update("update un_core_event_outbox set payload_json=JSON_SET(payload_json, '$.configurationSnapshot.module.name', 'Mismatched intent snapshot') where id=?",
                 number(drift.get("outboxId")));
         finishApprovalTask(owner, number(drift.get("flowInstanceId")), "APPROVE");
         approvalActions.reconcileDue();
         assertThat(data(exchange(path + "/action-results/" + drift.get("idempotencyRecordId"), HttpMethod.GET, owner.token(), null)))
                 .containsEntry("businessStatus", "CONFLICT").containsEntry("errorCode", "ACTION_CONFIGURATION_CHANGED");
-        assertThat(jdbc.queryForObject("select current_version_id from cfg_module_publication where module_id=?", Long.class, moduleId)).isEqualTo(currentVersion);
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select current_version_id from un_cfg_module_publication where module_id=?", Long.class, moduleId)).isEqualTo(currentVersion);
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(2);
+    }
+
+    /** 模块审批动作必须先发布，再绑定 Flow；草稿开关、幂等及任务均按同一记录验证。 */
+    @Test
+    void publishedModuleApprovalStartsBoundFlowFromAuthorizedRecord() {
+        Session owner = register("approval_owner", "approval_system", "approval@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        var created = exchange("/api/runtime/modules/customer/records", HttpMethod.POST, owner.token(),
+                Map.of("title", "Approval customer", "participantMemberIds", List.of(),
+                        "fields", Map.of("customer_name", "Approval customer", "level", "A")));
+        assertThat(created.getStatusCode()).as("record: %s", created.getBody()).isEqualTo(HttpStatus.OK);
+        long recordId = number(data(created).get("id"));
+        var draft = exchange("/api/admin/module-config/modules/" + moduleId + "/actions/approval",
+                HttpMethod.POST, owner.token(), Map.of());
+        assertThat(draft.getStatusCode()).as("action draft: %s", draft.getBody()).isEqualTo(HttpStatus.OK);
+        long actionId = number(data(draft).get("id"));
+        String path = "/api/flow-runtime/module-approvals";
+        Map<String, Object> start = Map.of("moduleCode", "customer", "recordId", recordId,
+                "idempotencyKey", "module-approval-1");
+        assertThat(exchange(path, HttpMethod.POST, owner.token(), start).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isZero();
+
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange(path, HttpMethod.POST, owner.token(), start).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        long ordinaryFlowId = number(data(exchange("/api/flows", HttpMethod.POST, owner.token(),
+                Map.of("code", "ordinary_module_flow", "name", "Ordinary module flow"))).get("id"));
+        publishActionFlow(owner, ordinaryFlowId, "ordinary_end");
+        var noApprovalNode = exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), Map.of(
+                "moduleId", moduleId, "actionId", actionId, "flowId", ordinaryFlowId,
+                "triggerEvent", "MANUAL", "executionMode", "FLOW_ONLY", "priorityOrder", 0));
+        assertThat(noApprovalNode.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(noApprovalNode.getBody()).containsEntry("code", "MODULE_APPROVAL_FLOW_NODE_REQUIRED");
+        long flowId = publishApprovalActionFlow(owner, "module_approval_flow");
+        var invalidBinding = exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), Map.of(
+                "moduleId", moduleId, "actionId", actionId, "flowId", flowId,
+                "triggerEvent", "MANUAL", "executionMode", "DIRECT", "priorityOrder", 0));
+        assertThat(invalidBinding.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalidBinding.getBody()).containsEntry("code", "MODULE_APPROVAL_BINDING_INVALID");
+        var binding = exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), Map.of(
+                "moduleId", moduleId, "actionId", actionId, "flowId", flowId,
+                "triggerEvent", "MANUAL", "executionMode", "FLOW_ONLY", "priorityOrder", 0,
+                "mutuallyExclusive", true, "replaceExisting", true));
+        assertThat(binding.getStatusCode()).as("binding: %s", binding.getBody()).isEqualTo(HttpStatus.OK);
+
+        var visible = data(exchange("/api/runtime/modules/customer/records/" + recordId,
+                HttpMethod.GET, owner.token(), null));
+        assertThat((List<Map<String, Object>>) visible.get("actions"))
+                .anySatisfy(item -> assertThat(item).containsEntry("code", "APPROVAL")
+                        .containsEntry("location", "DETAIL_HEADER"));
+
+        var started = exchange(path, HttpMethod.POST, owner.token(), start);
+        assertThat(started.getStatusCode()).as("approval start: %s", started.getBody()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> result = data(started);
+        long instanceId = number(map(result.get("instance")).get("id"));
+        assertThat(result).containsEntry("replayed", false);
+        assertThat(jdbc.queryForMap("select system_id, tenant_id, flow_id, business_type, business_id from un_flow_instance where id=?", instanceId))
+                .containsEntry("system_id", owner.systemId()).containsEntry("tenant_id", owner.tenantId())
+                .containsEntry("flow_id", flowId).containsEntry("business_type", "MODULE:customer")
+                .containsEntry("business_id", String.valueOf(recordId));
+        assertThat(count("un_flow_task", "instance_id=" + instanceId + " and status='PENDING'")).isOne();
+        assertThat(data(exchange(path, HttpMethod.POST, owner.token(), start))).containsEntry("replayed", true);
+        assertThat(count("un_flow_instance", "system_id=" + owner.systemId())).isOne();
+        jdbc.update("update un_sys_system set tenant_mode='MULTI' where id=?", owner.systemId());
+        var otherTenant = exchange("/api/admin/system/tenants", HttpMethod.POST, owner.token(),
+                Map.of("code", "approval_other", "name", "审批隔离租户"));
+        assertThat(otherTenant.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long otherTenantId = number(data(otherTenant).get("id"));
+        var enteredOther = exchange("/api/systems/" + owner.systemId() + "/tenants/" + otherTenantId + "/enter",
+                HttpMethod.POST, owner.token(), Map.of("previousSystemId", owner.systemId(),
+                        "previousTenantId", owner.tenantId()));
+        assertThat(enteredOther.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String otherToken = map(data(enteredOther).get("tokens")).get("accessToken").toString();
+        assertThat(exchange(path, HttpMethod.POST, otherToken, Map.of("moduleCode", "customer",
+                "recordId", recordId, "idempotencyKey", "approval-cross-tenant"))
+                .getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(exchange("/api/flow-runtime/instances", HttpMethod.POST, owner.token(), Map.of(
+                "flowId", flowId, "title", "Spoof approval key", "businessType", "MODULE:customer",
+                "businessId", String.valueOf(recordId), "idempotencyKey", "module-approval:module-approval-1"))
+                .getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        var secondRecord = exchange("/api/runtime/modules/customer/records", HttpMethod.POST, owner.token(),
+                Map.of("title", "Another customer", "participantMemberIds", List.of(),
+                        "fields", Map.of("customer_name", "Another customer", "level", "A")));
+        assertThat(secondRecord.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange(path, HttpMethod.POST, owner.token(), Map.of("moduleCode", "customer",
+                "recordId", number(data(secondRecord).get("id")), "idempotencyKey", "module-approval-1"))
+                .getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        finishApprovalTask(owner, instanceId, "APPROVE");
+
+        int actionVersion = jdbc.queryForObject("select version from un_cfg_module_action where id=?", Integer.class, actionId);
+        var invalidLocation = exchange("/api/admin/module-config/modules/" + moduleId + "/actions/APPROVAL",
+                HttpMethod.PUT, owner.token(), Map.of("location", "BATCH", "config", Map.of(),
+                        "status", "ACTIVE", "version", actionVersion));
+        assertThat(invalidLocation.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalidLocation.getBody()).containsEntry("code", "MODULE_APPROVAL_LOCATION_INVALID");
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/actions/APPROVAL", HttpMethod.PUT,
+                owner.token(), Map.of("location", "DETAIL_HEADER", "config", Map.of(), "status", "DISABLED",
+                        "version", actionVersion)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        // 草稿停用不改变当前发布动作；真正发布后才拒绝新的审批。
+        assertThat(exchange(path, HttpMethod.POST, owner.token(), Map.of("moduleCode", "customer",
+                "recordId", recordId, "idempotencyKey", "module-approval-before-disable"))
+                .getStatusCode()).isEqualTo(HttpStatus.OK);
+        revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", revision)).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange(path, HttpMethod.POST, owner.token(), Map.of("moduleCode", "customer",
+                "recordId", recordId, "idempotencyKey", "module-approval-after-disable"))
+                .getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 
     private long publishApprovalActionFlow(Session owner, String code) {
@@ -876,7 +985,7 @@ class RuntimeDataHttpTest {
     }
 
     private void finishApprovalTask(Session owner, long instanceId, String decision) {
-        long taskId = jdbc.queryForObject("select id from flow_task where instance_id=? and status='PENDING'", Long.class, instanceId);
+        long taskId = jdbc.queryForObject("select id from un_flow_task where instance_id=? and status='PENDING'", Long.class, instanceId);
         var result = exchange("/api/flow-runtime/tasks/" + taskId + "/actions", HttpMethod.POST, owner.token(),
                 Map.of("actionCode", decision, "comment", "Intent contract " + decision, "idempotencyKey", "intent-task-" + taskId + "-" + decision));
         assertThat(result.getStatusCode()).as("approval outcome: %s", result.getBody()).isEqualTo(HttpStatus.OK);
@@ -949,25 +1058,25 @@ class RuntimeDataHttpTest {
         long ownerMemberId = memberId(owner.systemId(), owner.accountId());
         long colleagueAccountId = colleagueAccount.accountId();
 
-        jdbc.update("insert into sys_member(system_id, account_id, display_name, status) values (?, ?, '同部门成员', 'ACTIVE')",
+        jdbc.update("insert into un_sys_member(system_id, account_id, display_name, status) values (?, ?, '同部门成员', 'ACTIVE')",
                 owner.systemId(), colleagueAccountId);
         long colleagueMemberId = memberId(owner.systemId(), colleagueAccountId);
-        jdbc.update("insert into sys_department(system_id, tenant_id, code, name, path_code, status) values (?, ?, 'sales', '销售部', '/sales', 'ACTIVE')",
+        jdbc.update("insert into un_sys_department(system_id, tenant_id, code, name, path_code, status) values (?, ?, 'sales', '销售部', '/sales', 'ACTIVE')",
                 owner.systemId(), owner.tenantId());
         long departmentId = jdbc.queryForObject(
-                "select id from sys_department where tenant_id = ? and code = 'sales'", Long.class, owner.tenantId());
-        jdbc.update("update sys_tenant_member set department_id = ? where tenant_id = ? and system_member_id = ?",
+                "select id from un_sys_department where tenant_id = ? and code = 'sales'", Long.class, owner.tenantId());
+        jdbc.update("update un_sys_tenant_member set department_id = ? where tenant_id = ? and system_member_id = ?",
                 departmentId, owner.tenantId(), ownerMemberId);
-        jdbc.update("insert into sys_tenant_member(system_id, tenant_id, system_member_id, department_id, tenant_admin, status) values (?, ?, ?, ?, 0, 'ACTIVE')",
+        jdbc.update("insert into un_sys_tenant_member(system_id, tenant_id, system_member_id, department_id, tenant_admin, status) values (?, ?, ?, ?, 0, 'ACTIVE')",
                 owner.systemId(), owner.tenantId(), colleagueMemberId, departmentId);
         long colleagueTenantMemberId = jdbc.queryForObject(
-                "select id from sys_tenant_member where tenant_id = ? and system_member_id = ?",
+                "select id from un_sys_tenant_member where tenant_id = ? and system_member_id = ?",
                 Long.class, owner.tenantId(), colleagueMemberId);
         installColleaguePermissions(owner, colleagueTenantMemberId);
 
         long moduleId = createAndPublishCustomerModule(owner);
         long firstConfigVersionId = jdbc.queryForObject(
-                "select current_version_id from cfg_module_publication where module_id = ?", Long.class, moduleId);
+                "select current_version_id from un_cfg_module_publication where module_id = ?", Long.class, moduleId);
 
         ResponseEntity<Map> created = exchange("/api/runtime/modules/customer/records", HttpMethod.POST, owner.token(), Map.of(
                 "recordNumber", "C-001",
@@ -987,19 +1096,37 @@ class RuntimeDataHttpTest {
         Map<String, Object> createdData = data(created);
         long recordId = number(createdData.get("id"));
         int initialRecordVersion = ((Number) createdData.get("version")).intValue();
+        String commentsPath = "/api/runtime/modules/customer/records/" + recordId + "/comments";
+        ResponseEntity<Map> comment = exchange(commentsPath, HttpMethod.POST, owner.token(),
+                Map.of("body", "核对客户档案"));
+        assertThat(comment.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long commentId = number(data(comment).get("id"));
+        ResponseEntity<Map> reply = exchange(commentsPath, HttpMethod.POST, owner.token(),
+                Map.of("body", "已确认", "parentCommentId", commentId));
+        assertThat(reply.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(reply)).containsEntry("parentCommentId", (int) commentId);
+        assertThat((List<?>) data(exchange(commentsPath, HttpMethod.GET, owner.token(), null))
+                .get("comments")).hasSize(2);
+        // 另一个系统的账号不能借评论接口绕过当前记录的详情数据权限。
+        assertThat(exchange(commentsPath, HttpMethod.GET, colleagueAccount.token(), null).getStatusCode())
+                .isIn(HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND);
+        assertThat(exchange(commentsPath, HttpMethod.POST, colleagueAccount.token(),
+                Map.of("body", "越权评论", "parentCommentId", commentId)).getStatusCode())
+                .isIn(HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND);
+        assertThat(count("un_biz_record_comment", "record_id = " + recordId)).isEqualTo(2);
         LocalDateTime createdAt = jdbc.queryForObject(
-                "select created_at from biz_record where id = ?", LocalDateTime.class, recordId);
+                "select create_time from un_biz_record where id = ?", LocalDateTime.class, recordId);
         assertThat(number(createdData.get("createdConfigVersionId"))).isEqualTo(firstConfigVersionId);
         assertThat(number(createdData.get("updatedConfigVersionId"))).isEqualTo(firstConfigVersionId);
         assertThat(((List<?>) createdData.get("participantMemberIds")).stream()
                 .map(value -> ((Number) value).longValue()).toList()).containsExactly(colleagueMemberId);
         assertThat(jdbc.queryForObject(
-                "select value_number from biz_record_value where record_id = ? and field_code = 'amount'",
+                "select value_number from un_biz_record_value where record_id = ? and field_code = 'amount'",
                 BigDecimal.class, recordId)).isEqualByComparingTo("1200.50000000");
         assertThat(jdbc.queryForObject(
-                "select value_boolean from biz_record_value where record_id = ? and field_code = 'enabled'",
+                "select value_boolean from un_biz_record_value where record_id = ? and field_code = 'enabled'",
                 Boolean.class, recordId)).isTrue();
-        assertThat(count("biz_record_participant", "record_id = " + recordId + " and system_member_id = " + colleagueMemberId)).isOne();
+        assertThat(count("un_biz_record_participant", "record_id = " + recordId + " and system_member_id = " + colleagueMemberId)).isOne();
         ResponseEntity<Map> listAfterCreate = exchange(
                 "/api/runtime/modules/customer/records", HttpMethod.GET, owner.token(), null);
         Map<String, Object> firstRow = map(((List<?>) data(listAfterCreate).get("records")).get(0));
@@ -1007,9 +1134,9 @@ class RuntimeDataHttpTest {
         assertThat(number(firstRow.get("ownerMemberId"))).isEqualTo(ownerMemberId);
         assertThat(firstRow).containsEntry("status", "ACTIVE").containsKey("createdAt");
 
-        int recordsBeforeInvalid = count("biz_record", "module_id = " + moduleId);
+        int recordsBeforeInvalid = count("un_biz_record", "module_id = " + moduleId);
         int validationFailuresBeforeInvalid = count(
-                "audit_event", "event_code = 'BUSINESS_RECORD_CREATE' and result_code = 'FIELD_VALIDATION_FAILED'");
+                "un_audit_event", "event_code = 'BUSINESS_RECORD_CREATE' and result_code = 'FIELD_VALIDATION_FAILED'");
         ResponseEntity<Map> invalidMissingRequired = exchange(
                 "/api/runtime/modules/customer/records", HttpMethod.POST, owner.token(), Map.of(
                         "title", "缺少必填字段", "participantMemberIds", List.of(),
@@ -1027,13 +1154,13 @@ class RuntimeDataHttpTest {
                         "fields", Map.of("customer_name", "无效引用", "level", "A", "parent_customer", 99999999)));
         assertThat(invalidReference.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(invalidReference.getBody().get("message").toString()).contains("parent_customer", "引用记录不存在");
-        assertThat(count("biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeInvalid);
-        assertThat(count("audit_event", "event_code = 'BUSINESS_RECORD_CREATE' and result_code = 'FIELD_VALIDATION_FAILED'"))
+        assertThat(count("un_biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeInvalid);
+        assertThat(count("un_audit_event", "event_code = 'BUSINESS_RECORD_CREATE' and result_code = 'FIELD_VALIDATION_FAILED'"))
                 .isEqualTo(validationFailuresBeforeInvalid + 3);
 
         publishSecondVersion(owner, moduleId);
         long secondConfigVersionId = jdbc.queryForObject(
-                "select current_version_id from cfg_module_publication where module_id = ?", Long.class, moduleId);
+                "select current_version_id from un_cfg_module_publication where module_id = ?", Long.class, moduleId);
         assertThat(secondConfigVersionId).isNotEqualTo(firstConfigVersionId);
         ResponseEntity<Map> updated = exchange(
                 "/api/runtime/modules/customer/records/" + recordId, HttpMethod.PUT, owner.token(), Map.of(
@@ -1047,17 +1174,17 @@ class RuntimeDataHttpTest {
         assertThat(number(data(updated).get("createdConfigVersionId"))).isEqualTo(firstConfigVersionId);
         assertThat(number(data(updated).get("updatedConfigVersionId"))).isEqualTo(secondConfigVersionId);
         assertThat(((Number) data(updated).get("version")).intValue()).isEqualTo(initialRecordVersion + 1);
-        assertThat(jdbc.queryForObject("select updated_at from biz_record where id = ?", LocalDateTime.class, recordId))
+        assertThat(jdbc.queryForObject("select update_time from un_biz_record where id = ?", LocalDateTime.class, recordId))
                 .isAfter(createdAt);
         long updatedAuditId = jdbc.queryForObject(
-                "select id from audit_event where event_code='BUSINESS_RECORD_UPDATED' and object_id=? order by id desc limit 1",
+                "select id from un_audit_event where event_code='BUSINESS_RECORD_UPDATED' and object_id=? order by id desc limit 1",
                 Long.class, String.valueOf(recordId));
-        assertThat(count("biz_record_relation", "source_record_id = " + recordId
+        assertThat(count("un_biz_record_relation", "source_record_id = " + recordId
                 + " and target_record_id = " + recordId)).isOne();
-        assertThat(count("audit_field_change", "audit_event_id = " + updatedAuditId)).isEqualTo(4);
-        assertThat(count("audit_field_change", "audit_event_id = " + updatedAuditId
+        assertThat(count("un_audit_field_change", "audit_event_id = " + updatedAuditId)).isEqualTo(4);
+        assertThat(count("un_audit_field_change", "audit_event_id = " + updatedAuditId
                 + " and field_code = 'customer_name' and sensitivity = 'SENSITIVE'")).isOne();
-        String updateRequestId = jdbc.queryForObject("select request_id from audit_event where id=?", String.class,
+        String updateRequestId = jdbc.queryForObject("select request_id from un_audit_event where id=?", String.class,
                 updatedAuditId);
         ResponseEntity<Map> filteredAudit = exchange("/api/admin/audit-events?eventCode=BUSINESS_RECORD_UPDATED"
                         + "&actorAccountId=" + owner.accountId() + "&requestId=" + updateRequestId
@@ -1090,11 +1217,11 @@ class RuntimeDataHttpTest {
                         "fields", Map.of("customer_name", "过期修改", "level", "A")));
         assertThat(staleUpdate.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(staleUpdate.getBody().get("code")).isEqualTo("RECORD_VERSION_CONFLICT");
-        assertThat(jdbc.queryForObject("select title from biz_record where id = ?", String.class, recordId))
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id = ?", String.class, recordId))
                 .isEqualTo("北京重要客户");
-        assertThat(count("biz_record_relation", "source_record_id = " + recordId
+        assertThat(count("un_biz_record_relation", "source_record_id = " + recordId
                 + " and target_record_id = " + recordId)).isOne();
-        assertThat(count("audit_event", "event_code = 'BUSINESS_RECORD_UPDATE' and result_code = 'RECORD_VERSION_CONFLICT' and system_id=" + owner.systemId()))
+        assertThat(count("un_audit_event", "event_code = 'BUSINESS_RECORD_UPDATE' and result_code = 'RECORD_VERSION_CONFLICT' and system_id=" + owner.systemId()))
                 .isOne();
 
         ResponseEntity<Map> colleaguePlatformLogin = http.postForEntity("/api/auth/login", Map.of(
@@ -1166,15 +1293,15 @@ class RuntimeDataHttpTest {
         ResponseEntity<Map> colleagueAudit = exchange(
                 "/api/admin/audit-events", HttpMethod.GET, colleagueToken, null);
         assertThat(colleagueAudit.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(jdbc.queryForObject("select title from biz_record where id = ?", String.class, recordId))
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id = ?", String.class, recordId))
                 .isEqualTo("北京重要客户");
 
         long otherTenantId = createOtherTenant(owner);
-        jdbc.update("insert into biz_record(system_id, tenant_id, module_id, created_config_version_id, updated_config_version_id, title, status, owner_member_id, created_by_member_id, updated_by_member_id) values (?, ?, ?, ?, ?, '其他租户数据', 'ACTIVE', ?, ?, ?)",
+        jdbc.update("insert into un_biz_record(system_id, tenant_id, module_id, created_config_version_id, updated_config_version_id, title, status, owner_member_id, created_by_member_id, updated_by_member_id) values (?, ?, ?, ?, ?, '其他租户数据', 'ACTIVE', ?, ?, ?)",
                 owner.systemId(), otherTenantId, moduleId, firstConfigVersionId, firstConfigVersionId,
                 ownerMemberId, ownerMemberId, ownerMemberId);
         long otherTenantRecordId = jdbc.queryForObject(
-                "select id from biz_record where tenant_id = ? and title = '其他租户数据'", Long.class, otherTenantId);
+                "select id from un_biz_record where tenant_id = ? and title = '其他租户数据'", Long.class, otherTenantId);
         ResponseEntity<Map> ownerList = exchange(
                 "/api/runtime/modules/customer/records?tenantId=" + otherTenantId, HttpMethod.GET, owner.token(), null);
         assertThat((List<?>) data(ownerList).get("records")).hasSize(1);
@@ -1223,22 +1350,14 @@ class RuntimeDataHttpTest {
         ResponseEntity<Map> deletedParent = exchange(
                 "/api/runtime/modules/customer/records/" + parentRecordId + "/delete", HttpMethod.POST, owner.token(),
                 Map.of("reason", "合并重复集团", "version", parentVersion));
-        int deletedParentVersion = ((Number) data(deletedParent).get("version")).intValue();
-        ResponseEntity<Map> blockedRestore = exchange(
-                "/api/runtime/modules/customer/records/" + recordId + "/restore", HttpMethod.POST, owner.token(),
-                Map.of("reason", "尝试恢复", "version", archivedVersion));
-        assertThat(blockedRestore.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(blockedRestore.getBody().get("code")).isEqualTo("RECORD_RESTORE_CONFLICT");
-        assertThat(blockedRestore.getBody().get("message").toString()).contains("parent_customer", "引用记录缺失");
-        assertThat(jdbc.queryForObject("select archived from biz_record where id=?", Boolean.class, recordId)).isTrue();
+        // 父记录仍被子记录引用时必须先处理引用，不能直接删除后留下失效关系。
+        assertThat(deletedParent.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(deletedParent.getBody().get("code")).isEqualTo("RECORD_IN_USE");
+        assertThat(jdbc.queryForObject("select archived from un_biz_record where id=?", Boolean.class, recordId)).isTrue();
 
-        ResponseEntity<Map> restoredParent = exchange(
-                "/api/runtime/modules/customer/records/" + parentRecordId + "/restore", HttpMethod.POST, owner.token(),
-                Map.of("reason", "确认集团仍有效", "version", deletedParentVersion));
-        assertThat(restoredParent.getStatusCode()).isEqualTo(HttpStatus.OK);
         ResponseEntity<Map> restoredChild = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/restore", HttpMethod.POST, owner.token(),
-                Map.of("reason", "关联已恢复", "version", archivedVersion));
+                Map.of("reason", "确认集团仍有效", "version", archivedVersion));
         assertThat(restoredChild.getStatusCode()).isEqualTo(HttpStatus.OK);
         int restoredChildVersion = ((Number) data(restoredChild).get("version")).intValue();
         assertThat(data(restoredChild)).containsEntry("archived", false).containsEntry("deleted", false);
@@ -1257,10 +1376,8 @@ class RuntimeDataHttpTest {
         assertThat(restoredFromRecycle.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat((List<?>) data(exchange("/api/runtime/modules/customer/records?lifecycleState=ACTIVE",
                 HttpMethod.GET, owner.token(), null)).get("records")).hasSize(2);
-        assertThat(count("biz_record_state_history", "record_id in (" + recordId + "," + parentRecordId + ")"))
-                .isEqualTo(6);
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_RESTORE' and result_code='RECORD_RESTORE_CONFLICT'"))
-                .isOne();
+        assertThat(count("un_biz_record_state_history", "record_id in (" + recordId + "," + parentRecordId + ")"))
+                .isEqualTo(4);
         ResponseEntity<Map> lifecycleTimeline = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/timeline", HttpMethod.GET, owner.token(), null);
         assertThat(((List<?>) data(lifecycleTimeline).get("entries")).stream()
@@ -1268,6 +1385,13 @@ class RuntimeDataHttpTest {
                 .contains("BUSINESS_RECORD_ARCHIVED", "BUSINESS_RECORD_DELETED", "BUSINESS_RECORD_RESTORED");
 
         long opportunityModuleId = createAndPublishOpportunityModule(owner);
+        createReferenceField(owner, opportunityModuleId, "self_reference", "本模块关联",
+                opportunityModuleId, 30);
+        int opportunityRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, opportunityModuleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + opportunityModuleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", opportunityRevision)).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
         configureInvalidCustomerConversion(owner, moduleId, "opportunity");
         ResponseEntity<Map> invalidConversionCheck = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/publication-check",
@@ -1297,13 +1421,96 @@ class RuntimeDataHttpTest {
         assertThat(transferred.getStatusCode()).isEqualTo(HttpStatus.OK);
         int transferredVersion = ((Number) data(transferred).get("version")).intValue();
         assertThat(number(data(transferred).get("ownerMemberId"))).isEqualTo(colleagueMemberId);
-        assertThat(count("biz_record_owner_history", "record_id=" + recordId
+        assertThat(count("un_biz_record_owner_history", "record_id=" + recordId
                 + " and from_owner_member_id=" + ownerMemberId + " and to_owner_member_id=" + colleagueMemberId)).isOne();
         Map<String, Object> transferredListRow = ((List<?>) data(exchange(
                 "/api/runtime/modules/customer/records", HttpMethod.GET, owner.token(), null)).get("records")).stream()
                 .map(this::map).filter(row -> number(row.get("id")) == recordId).findFirst().orElseThrow();
         assertThat(number(transferredListRow.get("ownerMemberId"))).isEqualTo(colleagueMemberId);
 
+        // 目标模块改用当前发布选项后，旧来源值必须在预览和执行时被拒绝，且不能留下半条目标记录。
+        Map<String, Object> targetDraft = data(exchange(
+                "/api/admin/module-config/modules/" + opportunityModuleId + "/draft",
+                HttpMethod.GET, owner.token(), null));
+        Map<?, ?> levelField = ((List<Map<?, ?>>) targetDraft.get("fields")).stream()
+                .filter(value -> "source_level".equals(value.get("code"))).findFirst().orElseThrow();
+        String targetFieldPath = "/api/admin/module-config/modules/" + opportunityModuleId
+                + "/fields/" + levelField.get("id");
+        Map<String, Object> targetFieldBody = new java.util.LinkedHashMap<>();
+        targetFieldBody.put("name", "来源客户级别");
+        targetFieldBody.put("required", true);
+        targetFieldBody.put("sortOrder", 20);
+        targetFieldBody.put("status", "ACTIVE");
+        targetFieldBody.put("version", levelField.get("version"));
+        targetFieldBody.put("config", Map.of("options", List.of(
+                Map.of("value", "B", "label", "B级", "status", "ACTIVE"))));
+        ResponseEntity<Map> restrictedField = exchange(targetFieldPath, HttpMethod.PUT,
+                owner.token(), targetFieldBody);
+        assertThat(restrictedField.getStatusCode()).isEqualTo(HttpStatus.OK);
+        int targetRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, opportunityModuleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + opportunityModuleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", targetRevision)).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        ResponseEntity<Map> invalidOptionPreview = exchange(
+                "/api/runtime/modules/customer/records/" + recordId + "/conversion-preview",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "version", transferredVersion, "targetModuleCode", "opportunity"));
+        assertThat(invalidOptionPreview.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(invalidOptionPreview)).containsEntry("executable", false);
+        assertThat(data(invalidOptionPreview).get("issues").toString()).contains("来源客户级别");
+        ResponseEntity<Map> invalidOptionConversion = exchange(
+                "/api/runtime/modules/customer/records/" + recordId + "/convert",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "version", transferredVersion, "targetModuleCode", "opportunity"));
+        assertThat(invalidOptionConversion.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(invalidOptionConversion.getBody().get("code")).isEqualTo("CONVERSION_MAPPING_INVALID");
+        assertThat(count("un_biz_record", "module_id=" + opportunityModuleId)).isZero();
+        assertThat(count("un_biz_record_conversion", "source_record_id=" + recordId)).isZero();
+        targetFieldBody.put("version", data(restrictedField).get("version"));
+        targetFieldBody.put("config", Map.of("options", List.of(
+                Map.of("value", "A", "label", "A级", "status", "ACTIVE"))));
+        assertThat(exchange(targetFieldPath, HttpMethod.PUT, owner.token(), targetFieldBody).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        targetRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, opportunityModuleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + opportunityModuleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", targetRevision)).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        // 关联目标属于商机模块，来源记录却引用客户；预览须按目标当前发布规则拒绝。
+        Map<String, Object> sourceDraft = data(exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/draft",
+                HttpMethod.GET, owner.token(), null));
+        Map<?, ?> convertAction = ((List<Map<?, ?>>) sourceDraft.get("actions")).stream()
+                .filter(value -> "CONVERT".equals(value.get("code"))).findFirst().orElseThrow();
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/actions/CONVERT",
+                HttpMethod.PUT, owner.token(), Map.of("location", "DETAIL_MORE",
+                        "version", convertAction.get("version"), "config", Map.of("targets", List.of(Map.of(
+                                "moduleCode", "opportunity", "fieldMappings", Map.of(
+                                        "opportunity_name", "customer_name", "source_level", "level",
+                                        "self_reference", "parent_customer")))))).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        int sourceRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", sourceRevision)).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        ResponseEntity<Map> invalidReferencePreview = exchange(
+                "/api/runtime/modules/customer/records/" + recordId + "/conversion-preview",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "version", transferredVersion, "targetModuleCode", "opportunity"));
+        assertThat(invalidReferencePreview.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(invalidReferencePreview)).containsEntry("executable", false);
+        assertThat(data(invalidReferencePreview).get("issues").toString()).contains("本模块关联");
+        ResponseEntity<Map> invalidReferenceConversion = exchange(
+                "/api/runtime/modules/customer/records/" + recordId + "/convert",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "version", transferredVersion, "targetModuleCode", "opportunity"));
+        assertThat(invalidReferenceConversion.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(invalidReferenceConversion.getBody().get("code")).isEqualTo("CONVERSION_MAPPING_INVALID");
+        assertThat(count("un_biz_record", "module_id=" + opportunityModuleId)).isZero();
+        assertThat(count("un_biz_record_conversion", "source_record_id=" + recordId)).isZero();
+        configureAndPublishCustomerConversion(owner, moduleId, "opportunity");
         ResponseEntity<Map> conversionPreview = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/conversion-preview",
                 HttpMethod.POST, owner.token(), Map.of(
@@ -1314,7 +1521,7 @@ class RuntimeDataHttpTest {
                 .containsEntry("alreadyConverted", false);
         assertThat((List<?>) data(conversionPreview).get("mappings")).hasSize(2)
                 .allSatisfy(value -> assertThat(map(value)).containsEntry("status", "READY"));
-        int recordCountBeforeConversion = count("biz_record", "tenant_id=" + owner.tenantId());
+        int recordCountBeforeConversion = count("un_biz_record", "tenant_id=" + owner.tenantId());
         ResponseEntity<Map> converted = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/convert",
                 HttpMethod.POST, owner.token(), Map.of(
@@ -1327,10 +1534,10 @@ class RuntimeDataHttpTest {
         assertThat(number(targetRecord.get("ownerMemberId"))).isEqualTo(colleagueMemberId);
         assertThat(map(targetRecord.get("fields"))).containsEntry("opportunity_name", "北京重要客户")
                 .containsEntry("source_level", "A");
-        assertThat(count("biz_record", "tenant_id=" + owner.tenantId())).isEqualTo(recordCountBeforeConversion + 1);
-        assertThat(count("biz_record_conversion", "id=" + conversionId + " and source_record_id=" + recordId
+        assertThat(count("un_biz_record", "tenant_id=" + owner.tenantId())).isEqualTo(recordCountBeforeConversion + 1);
+        assertThat(count("un_biz_record_conversion", "id=" + conversionId + " and source_record_id=" + recordId
                 + " and status='SUCCEEDED'")).isOne();
-        assertThat(count("biz_record_conversion_result", "conversion_id=" + conversionId
+        assertThat(count("un_biz_record_conversion_result", "conversion_id=" + conversionId
                 + " and target_module_id=" + opportunityModuleId + " and target_record_id=" + targetRecordId)).isOne();
 
         ResponseEntity<Map> sourceLinks = exchange(
@@ -1356,8 +1563,8 @@ class RuntimeDataHttpTest {
                         "version", transferredVersion, "targetModuleCode", "opportunity"));
         assertThat(duplicateConversion.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(duplicateConversion.getBody().get("code")).isEqualTo("RECORD_ALREADY_CONVERTED");
-        assertThat(count("biz_record", "module_id=" + opportunityModuleId)).isOne();
-        assertThat(count("biz_record_conversion", "source_record_id=" + recordId)).isOne();
+        assertThat(count("un_biz_record", "module_id=" + opportunityModuleId)).isOne();
+        assertThat(count("un_biz_record_conversion", "source_record_id=" + recordId)).isOne();
 
         ResponseEntity<Map> missingMapping = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/convert",
@@ -1365,20 +1572,20 @@ class RuntimeDataHttpTest {
                         "version", transferredVersion, "targetModuleCode", "customer"));
         assertThat(missingMapping.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(missingMapping.getBody().get("code")).isEqualTo("CONVERSION_MAPPING_INVALID");
-        assertThat(count("biz_record_conversion", "source_record_id=" + recordId)).isOne();
+        assertThat(count("un_biz_record_conversion", "source_record_id=" + recordId)).isOne();
         ResponseEntity<Map> crossSystemDirect = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/convert",
                 HttpMethod.POST, owner.token(), Map.of(
                         "version", transferredVersion, "targetModuleCode", "external_module"));
         assertThat(crossSystemDirect.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(count("biz_record", "tenant_id=" + owner.tenantId())).isEqualTo(recordCountBeforeConversion + 1);
+        assertThat(count("un_biz_record", "tenant_id=" + owner.tenantId())).isEqualTo(recordCountBeforeConversion + 1);
         ResponseEntity<Map> colleagueTransferDenied = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/transfer",
                 HttpMethod.POST, colleagueToken, Map.of(
                         "version", transferredVersion, "ownerMemberId", ownerMemberId,
                         "departmentId", departmentId, "reason", "无权限转回"));
         assertThat(colleagueTransferDenied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(count("biz_record_owner_history", "record_id=" + recordId)).isOne();
+        assertThat(count("un_biz_record_owner_history", "record_id=" + recordId)).isOne();
 
         ResponseEntity<Map> transferConversionTimeline = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/timeline",
@@ -1387,22 +1594,70 @@ class RuntimeDataHttpTest {
                 .map(value -> map(value).get("eventCode").toString()).toList())
                 .contains("BUSINESS_RECORD_TRANSFERRED", "BUSINESS_RECORD_CONVERTED");
 
-        assertThat(count("audit_event", "system_id = " + owner.systemId()
+        assertThat(count("un_audit_event", "system_id = " + owner.systemId()
                 + " and event_code = 'BUSINESS_RECORD_CREATED' and result_code = 'SUCCESS'")).isEqualTo(3);
-        assertThat(count("audit_event", "system_id = " + owner.systemId()
+        assertThat(count("un_audit_event", "system_id = " + owner.systemId()
                 + " and event_code = 'BUSINESS_RECORD_UPDATED' and result_code = 'SUCCESS'")).isEqualTo(2);
-        assertThat(count("audit_event", "system_id = " + owner.systemId()
+        assertThat(count("un_audit_event", "system_id = " + owner.systemId()
                 + " and event_code = 'PERMISSION_CHECK' and result_code = 'PERMISSION_DENIED'"))
                 .isGreaterThanOrEqualTo(2);
-        assertThat(count("audit_event", "event_code = 'AUTHORIZATION_CHANNEL_VIEWED' and object_id = '" + recordId + "'"))
+        assertThat(count("un_audit_event", "event_code = 'AUTHORIZATION_CHANNEL_VIEWED' and object_id = '" + recordId + "'"))
                 .isEqualTo(2);
+
+        // 普通成员仅获模块创建、列表和详情权限时，仍可保存并读回本人负责的业务记录。
+        Session writerAccount = register("runtime_writer", "writer-system", "runtime-writer@example.com");
+        jdbc.update("insert into un_sys_member(system_id, account_id, display_name, status) values (?, ?, '业务录入员', 'ACTIVE')",
+                owner.systemId(), writerAccount.accountId());
+        long writerMemberId = memberId(owner.systemId(), writerAccount.accountId());
+        jdbc.update("insert into un_sys_tenant_member(system_id, tenant_id, system_member_id, department_id, tenant_admin, status) values (?, ?, ?, ?, 0, 'ACTIVE')",
+                owner.systemId(), owner.tenantId(), writerMemberId, departmentId);
+        long writerTenantMemberId = jdbc.queryForObject(
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?", Long.class,
+                owner.tenantId(), writerMemberId);
+        jdbc.update("insert into un_sys_role(system_id, tenant_id, code, name, status) values (?, ?, 'WRITER', '业务录入', 'ACTIVE')",
+                owner.systemId(), owner.tenantId());
+        long writerRoleId = jdbc.queryForObject(
+                "select id from un_sys_role where tenant_id=? and code='WRITER'", Long.class, owner.tenantId());
+        jdbc.update("insert into un_sys_member_role(tenant_id, tenant_member_id, role_id) values (?, ?, ?)",
+                owner.tenantId(), writerTenantMemberId, writerRoleId);
+        for (String action : List.of("CREATE", "LIST", "DETAIL")) {
+            jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', ?, 'SELF')",
+                    owner.systemId(), owner.tenantId(), writerRoleId, action);
+        }
+        long platformId = jdbc.queryForObject("select platform_id from un_sys_system where id=?", Long.class,
+                owner.systemId());
+        for (String fieldCode : List.of("customer_name", "level")) {
+            jdbc.update("insert into un_auth_field_policy(context_type, platform_id, system_id, tenant_id, role_id, system_role_id, resource_code, field_code, `channel`, readable, writable) values ('SYSTEM', ?, ?, ?, ?, ?, 'customer', ?, 'PAGE', 1, 1)",
+                    platformId, owner.systemId(), owner.tenantId(), writerRoleId, writerRoleId, fieldCode);
+        }
+        ResponseEntity<Map> writerLogin = http.postForEntity("/api/auth/login", Map.of(
+                "username", "runtime_writer", "password", "correct-password"), Map.class);
+        String writerPlatformToken = data(writerLogin).get("accessToken").toString();
+        ResponseEntity<Map> writerEntered = exchange(
+                "/api/systems/" + owner.systemId() + "/enter", HttpMethod.POST, writerPlatformToken, null);
+        String writerToken = map(data(writerEntered).get("tokens")).get("accessToken").toString();
+        ResponseEntity<Map> writerCreated = exchange(
+                "/api/runtime/modules/customer/records", HttpMethod.POST, writerToken, Map.of(
+                        "title", "普通成员客户", "ownerMemberId", writerMemberId, "participantMemberIds", List.of(),
+                        "fields", Map.of("customer_name", "普通成员客户", "level", "A")));
+        assertThat(writerCreated.getStatusCode()).withFailMessage("普通成员创建失败：%s", writerCreated.getBody())
+                .isEqualTo(HttpStatus.OK);
+        long writerRecordId = number(data(writerCreated).get("id"));
+        assertThat(number(data(writerCreated).get("ownerMemberId"))).isEqualTo(writerMemberId);
+        assertThat(number(data(writerCreated).get("createdByMemberId"))).isEqualTo(ownerMemberId);
+        assertThat(jdbc.queryForObject("select value_text from un_biz_record_value where record_id=? and field_code='customer_name'",
+                String.class, writerRecordId)).isEqualTo("普通成员客户");
+        assertThat(data(exchange("/api/runtime/modules/customer/records/" + writerRecordId,
+                HttpMethod.GET, writerToken, null))).containsEntry("title", "普通成员客户");
+        assertThat(((List<?>) data(exchange("/api/runtime/modules/customer/records",
+                HttpMethod.GET, writerToken, null)).get("records"))).hasSize(1);
     }
 
     @Test
     void sameSystemTenantShareKeepsOneSourceRecordIntersectsPermissionsAndRevokesImmediately() {
         Session source = register("share_source", "share-runtime-system", "share-source@example.com");
         long sourceMemberId = memberId(source.systemId(), source.accountId());
-        jdbc.update("update sys_system set tenant_mode='MULTI' where id=?", source.systemId());
+        jdbc.update("update un_sys_system set tenant_mode='MULTI' where id=?", source.systemId());
         long moduleId = createAndPublishCustomerModule(source);
         createAndPublishOpportunityModule(source);
         configureAndPublishCustomerConversion(source, moduleId, "opportunity");
@@ -1439,8 +1694,8 @@ class RuntimeDataHttpTest {
         long shareId = number(grantData.get("id"));
         assertThat(((List<?>) grantData.get("allowedActions")).stream().map(Object::toString).toList())
                 .containsExactly("LIST", "DETAIL");
-        assertThat(count("biz_record", "id=" + recordId + " and tenant_id=" + source.tenantId())).isOne();
-        assertThat(count("biz_record", "tenant_id=" + targetTenantId)).isZero();
+        assertThat(count("un_biz_record", "id=" + recordId + " and tenant_id=" + source.tenantId())).isOne();
+        assertThat(count("un_biz_record", "tenant_id=" + targetTenantId)).isZero();
 
         ResponseEntity<Map> sharedOnly = exchange(
                 "/api/runtime/modules/customer/records?tenantScope=SHARED", HttpMethod.GET, targetToken, null);
@@ -1448,7 +1703,7 @@ class RuntimeDataHttpTest {
         List<?> sharedRows = (List<?>) data(sharedOnly).get("records");
         assertThat(sharedRows).singleElement();
         Map<String, Object> sharedRow = map(sharedRows.get(0));
-        String sourceTenantName = jdbc.queryForObject("select name from sys_tenant where id=?", String.class,
+        String sourceTenantName = jdbc.queryForObject("select name from un_sys_tenant where id=?", String.class,
                 source.tenantId());
         assertThat(number(sharedRow.get("id"))).isEqualTo(recordId);
         assertThat(sharedRow).containsEntry("shared", true)
@@ -1472,17 +1727,32 @@ class RuntimeDataHttpTest {
                         "ownerMemberId", sourceMemberId, "participantMemberIds", List.of(), "version", recordVersion,
                         "fields", Map.of("customer_name", "不应写入", "level", "A", "enabled", true)));
         assertThat(defaultReadOnlyUpdate.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, recordId))
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id=?", String.class, recordId))
                 .isEqualTo("来源租户客户");
+
+        // 共享记录不能转化；即便请求显式加入 CONVERT，授权入口也须拒绝。
+        ResponseEntity<Map> invalidConversionGrant = exchange(
+                "/api/runtime/modules/customer/records/" + recordId + "/shares", HttpMethod.POST, source.token(),
+                Map.of("targetTenantId", targetTenantId, "allowedActions", List.of("CONVERT"),
+                        "version", ((Number) grantData.get("version")).intValue()));
+        assertThat(invalidConversionGrant.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalidConversionGrant.getBody().get("code")).isEqualTo("SHARE_ACTION_INVALID");
+        ResponseEntity<Map> invalidRangeConversionGrant = exchange(
+                "/api/runtime/modules/customer/records/range-shares", HttpMethod.POST, source.token(),
+                Map.of("name", "不得跨租户转化", "targetTenantId", targetTenantId,
+                        "allowedActions", List.of("CONVERT"),
+                        "condition", Map.of("mode", "ALL", "conditions", List.of())));
+        assertThat(invalidRangeConversionGrant.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(invalidRangeConversionGrant.getBody().get("code")).isEqualTo("SHARE_ACTION_INVALID");
 
         ResponseEntity<Map> changedGrant = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/shares", HttpMethod.POST, source.token(),
-                Map.of("targetTenantId", targetTenantId, "allowedActions", List.of("UPDATE", "CONVERT"),
+                Map.of("targetTenantId", targetTenantId, "allowedActions", List.of("UPDATE"),
                         "version", ((Number) grantData.get("version")).intValue()));
         assertThat(changedGrant.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> changedGrantData = data(changedGrant);
         assertThat(((List<?>) changedGrantData.get("allowedActions")).stream().map(Object::toString).toList())
-                .containsExactly("LIST", "DETAIL", "UPDATE", "CONVERT");
+                .containsExactly("LIST", "DETAIL", "UPDATE");
 
         ResponseEntity<Map> sharedUpdated = exchange(
                 "/api/runtime/modules/customer/records/" + recordId, HttpMethod.PUT, targetToken,
@@ -1493,14 +1763,14 @@ class RuntimeDataHttpTest {
                 .withFailMessage("共享写入失败：%s", sharedUpdated.getBody()).isEqualTo(HttpStatus.OK);
         assertThat(data(sharedUpdated)).containsEntry("shared", true);
         assertThat(number(data(sharedUpdated).get("dataTenantId"))).isEqualTo(source.tenantId());
-        assertThat(count("biz_record", "id=" + recordId + " and tenant_id=" + source.tenantId())).isOne();
-        assertThat(count("biz_record", "tenant_id=" + targetTenantId)).isZero();
+        assertThat(count("un_biz_record", "id=" + recordId + " and tenant_id=" + source.tenantId())).isOne();
+        assertThat(count("un_biz_record", "tenant_id=" + targetTenantId)).isZero();
         String sharedAuditDetail = jdbc.queryForObject(
-                "select detail_json from audit_event where event_code='BUSINESS_RECORD_UPDATED' and object_id=? order by id desc limit 1",
+                "select detail_json from un_audit_event where event_code='BUSINESS_RECORD_UPDATED' and object_id=? order by id desc limit 1",
                 String.class, String.valueOf(recordId));
         assertThat(sharedAuditDetail).contains("\"actorTenantId\": " + targetTenantId,
                 "\"dataTenantId\": " + source.tenantId(), "\"shareId\": " + shareId);
-        assertThat(count("biz_tenant_share_usage", "share_id=" + shareId
+        assertThat(count("un_biz_tenant_share_usage", "share_id=" + shareId
                 + " and action_code='UPDATE' and result_code='SUCCESS'")).isOne();
 
         int updatedRecordVersion = ((Number) data(sharedUpdated).get("version")).intValue();
@@ -1508,30 +1778,16 @@ class RuntimeDataHttpTest {
                 "/api/runtime/modules/customer/records/" + recordId + "/conversion-preview",
                 HttpMethod.POST, targetToken, Map.of("version", updatedRecordVersion,
                         "targetModuleCode", "opportunity"));
-        assertThat(sharedConversionPreview.getStatusCode())
-                .withFailMessage("共享转化预览失败：%s", sharedConversionPreview.getBody()).isEqualTo(HttpStatus.OK);
-        assertThat(data(sharedConversionPreview)).containsEntry("executable", true);
+        assertThat(sharedConversionPreview.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         ResponseEntity<Map> sharedConverted = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/convert",
                 HttpMethod.POST, targetToken, Map.of("version", updatedRecordVersion,
                         "targetModuleCode", "opportunity"));
-        assertThat(sharedConverted.getStatusCode())
-                .withFailMessage("共享转化执行失败：%s", sharedConverted.getBody()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> targetRecord = map(data(sharedConverted).get("targetRecord"));
-        long targetRecordId = number(targetRecord.get("id"));
-        assertThat(number(targetRecord.get("dataTenantId"))).isEqualTo(targetTenantId);
-        assertThat(targetRecord).containsEntry("ownedByCurrentTenant", true).containsEntry("shared", false);
-        assertThat(count("biz_record", "tenant_id=" + targetTenantId)).isOne();
-        assertThat(count("biz_record_conversion", "source_record_id=" + recordId
-                + " and tenant_id=" + source.tenantId() + " and status='SUCCEEDED'")).isOne();
-        assertThat(count("biz_tenant_share_usage", "share_id=" + shareId
-                + " and action_code='CONVERT' and result_code='SUCCESS'")).isOne();
-        ResponseEntity<Map> targetConversions = exchange(
-                "/api/runtime/modules/opportunity/records/" + targetRecordId + "/conversions",
-                HttpMethod.GET, targetToken, null);
-        assertThat((List<?>) data(targetConversions).get("links")).singleElement()
-                .satisfies(value -> assertThat(map(value)).containsEntry("direction", "SOURCE")
-                        .containsEntry("recordId", (int) recordId));
+        assertThat(sharedConverted.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(count("un_biz_record", "tenant_id=" + targetTenantId)).isZero();
+        assertThat(count("un_biz_record_conversion", "source_record_id=" + recordId)).isZero();
+        assertThat(count("un_biz_tenant_share_usage", "share_id=" + shareId
+                + " and action_code='CONVERT' and result_code='SUCCESS'")).isZero();
 
         ResponseEntity<Map> reShare = exchange(
                 "/api/runtime/modules/customer/records/" + recordId + "/shares", HttpMethod.POST, targetToken,
@@ -1557,12 +1813,12 @@ class RuntimeDataHttpTest {
         ResponseEntity<Map> afterRevokeDetail = exchange(
                 "/api/runtime/modules/customer/records/" + recordId, HttpMethod.GET, targetToken, null);
         assertThat(afterRevokeDetail.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, recordId))
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id=?", String.class, recordId))
                 .isEqualTo("协作租户获权编辑");
-        assertThat(count("biz_record", "id=" + targetRecordId + " and tenant_id=" + targetTenantId)).isOne();
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_SHARED' and object_id='" + shareId + "'"))
+        assertThat(count("un_biz_record", "tenant_id=" + targetTenantId)).isZero();
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_SHARED' and object_id='" + shareId + "'"))
                 .isEqualTo(2);
-        assertThat(count("audit_event", "event_code='BUSINESS_RECORD_SHARE_REVOKED' and object_id='" + shareId + "'"))
+        assertThat(count("un_audit_event", "event_code='BUSINESS_RECORD_SHARE_REVOKED' and object_id='" + shareId + "'"))
                 .isOne();
     }
 
@@ -1626,7 +1882,7 @@ class RuntimeDataHttpTest {
             assertThat(restored).containsEntry("search", "重点").containsEntry("pageSize", 50);
             assertThat(restored.get("visibleFieldCodes")).isEqualTo(List.of("title", "customer_name", "amount", "status"));
         });
-        assertThat(count("core_setting", "tenant_id = " + owner.tenantId()
+        assertThat(count("un_core_setting", "tenant_id = " + owner.tenantId()
                 + " and category = 'RUNTIME_LIST_VIEW' and setting_key like '" + owner.accountId() + ":customer:%'"))
                 .isOne();
 
@@ -1642,7 +1898,7 @@ class RuntimeDataHttpTest {
         ResponseEntity<Map> afterDelete = exchange("/api/runtime/modules/customer/list-views",
                 HttpMethod.GET, owner.token(), null);
         assertThat((List<?>) afterDelete.getBody().get("data")).isEmpty();
-        assertThat(count("audit_event", "tenant_id = " + owner.tenantId()
+        assertThat(count("un_audit_event", "tenant_id = " + owner.tenantId()
                 + " and event_code in ('RUNTIME_LIST_VIEW_SAVED','RUNTIME_LIST_VIEW_DELETED')")).isEqualTo(2);
     }
 
@@ -1708,10 +1964,10 @@ class RuntimeDataHttpTest {
         assertThat(map(reconciledData.get("state")).get("recentIds")).isEqualTo(List.of());
         assertThat(((List<?>) reconciledData.get("invalidated")).stream().map(this::map)
                 .map(row -> row.get("id"))).contains(recordCommandId);
-        assertThat(count("core_setting", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_core_setting", "tenant_id=" + owner.tenantId()
                 + " and category='UI_COMMAND_CENTER' and setting_key='" + owner.accountId() + ":command-center'"))
                 .isOne();
-        assertThat(count("audit_event", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_audit_event", "tenant_id=" + owner.tenantId()
                 + " and event_code in ('COMMAND_CENTER_STATE_SAVED','COMMAND_CENTER_EXECUTED')")).isEqualTo(2);
     }
 
@@ -1755,7 +2011,7 @@ class RuntimeDataHttpTest {
                         "config", Map.of("maxDepth", 3, "allowIntermediate", false, "saveMode", "FINAL")));
         assertThat(stage.getStatusCode()).isEqualTo(HttpStatus.OK);
         int moduleRevision = jdbc.queryForObject(
-                "select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+                "select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
                 owner.token(), Map.of("expectedDraftRevision", moduleRevision)).getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -1769,10 +2025,10 @@ class RuntimeDataHttpTest {
         assertThat(values.get("phone")).isEqualTo("13900139000");
         assertThat(number(values.get("stage"))).isEqualTo(contactedId);
         assertThat(jdbc.queryForObject(
-                "select value_text from biz_record_value where record_id=? and field_code='phone'",
+                "select value_text from un_biz_record_value where record_id=? and field_code='phone'",
                 String.class, recordId)).isEqualTo("13900139000");
         assertThat(jdbc.queryForObject(
-                "select value_reference_id from biz_record_value where record_id=? and field_code='stage'",
+                "select value_reference_id from un_biz_record_value where record_id=? and field_code='stage'",
                 Long.class, recordId)).isEqualTo(contactedId);
 
         ResponseEntity<Map> invalidPhone = exchange("/api/runtime/modules/typed_customer/records", HttpMethod.POST,
@@ -1792,7 +2048,7 @@ class RuntimeDataHttpTest {
             throws Exception {
         Session owner = register("c43_import_owner", "c43-import-system", "c43-import@example.com");
         long moduleId = createAndPublishCustomerModule(owner);
-        int recordsBeforePreview = count("biz_record", "module_id=" + moduleId);
+        int recordsBeforePreview = count("un_biz_record", "module_id=" + moduleId);
 
         long sourceFileId = uploadCsv(owner, "c43-new-customers.csv",
                 "title,recordNumber,customer_name,level,amount,enabled\n"
@@ -1813,7 +2069,7 @@ class RuntimeDataHttpTest {
                 assertThat(map(value)).containsEntry("operation", "CREATE").containsEntry("status", "READY"))
                 .anySatisfy(value -> assertThat(map(value)).containsEntry("status", "ERROR")
                         .containsEntry("errorCode", "FIELD_VALIDATION_FAILED"));
-        assertThat(count("biz_record", "module_id=" + moduleId)).isEqualTo(recordsBeforePreview);
+        assertThat(count("un_biz_record", "module_id=" + moduleId)).isEqualTo(recordsBeforePreview);
 
         ResponseEntity<Map> queued = exchange("/api/runtime/modules/customer/imports/" + firstBatchId + "/execute",
                 HttpMethod.POST, owner.token(), Map.of("version", previewData.get("version")));
@@ -1822,9 +2078,9 @@ class RuntimeDataHttpTest {
         Map<String, Object> completed = awaitImport(owner, firstBatchId);
         assertThat(completed).containsEntry("status", "COMPLETED").containsEntry("successRows", 1)
                 .containsEntry("failedRows", 1);
-        assertThat(count("biz_record", "module_id=" + moduleId + " and record_number='C43-NEW-001' and deleted=0"))
+        assertThat(count("un_biz_record", "module_id=" + moduleId + " and record_number='C43-NEW-001' and deleted=0"))
                 .isOne();
-        assertThat(count("exchange_import_row", "batch_id=" + firstBatchId + " and status='SUCCEEDED'"))
+        assertThat(count("un_exchange_import_row", "batch_id=" + firstBatchId + " and status='SUCCEEDED'"))
                 .isOne();
         ResponseEntity<String> errors = exchangeText(
                 "/api/runtime/modules/customer/imports/" + firstBatchId + "/errors.csv", owner.token());
@@ -1835,7 +2091,7 @@ class RuntimeDataHttpTest {
                 HttpMethod.POST, owner.token(), Map.of("reason", "C43 验证只撤销本批次"));
         assertThat(rolledBack.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(rolledBack)).containsEntry("status", "ROLLED_BACK");
-        assertThat(count("biz_record", "module_id=" + moduleId + " and record_number='C43-NEW-001' and deleted=1"))
+        assertThat(count("un_biz_record", "module_id=" + moduleId + " and record_number='C43-NEW-001' and deleted=1"))
                 .isOne();
 
         ResponseEntity<Map> existing = exchange("/api/runtime/modules/customer/records", HttpMethod.POST,
@@ -1880,9 +2136,9 @@ class RuntimeDataHttpTest {
         assertThat((List<?>) data(partialRollback).get("rows")).singleElement().satisfies(value ->
                 assertThat(map(value)).containsEntry("status", "ROLLBACK_CONFLICT")
                         .containsEntry("errorCode", "IMPORT_ROLLBACK_VERSION_CONFLICT"));
-        assertThat(jdbc.queryForObject("select title from biz_record where id=?", String.class, existingId))
+        assertThat(jdbc.queryForObject("select title from un_biz_record where id=?", String.class, existingId))
                 .isEqualTo("导入后的人工修改");
-        assertThat(count("audit_event", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_audit_event", "tenant_id=" + owner.tenantId()
                 + " and event_code in ('MODULE_IMPORT_PREVIEWED','MODULE_IMPORT_COMPLETED','MODULE_IMPORT_ROLLED_BACK')"))
                 .isGreaterThanOrEqualTo(6);
     }
@@ -1913,7 +2169,7 @@ class RuntimeDataHttpTest {
         assertThat(data(estimate)).containsEntry("scope", "SELECTED").containsEntry("estimatedRows", 1)
                 .containsEntry("maximumRows", 2).containsEntry("withinQuota", true);
 
-        int filesBefore = count("file_object", "system_id=" + owner.systemId());
+        int filesBefore = count("un_file_object", "system_id=" + owner.systemId());
         ResponseEntity<Map> queued = exchange("/api/runtime/modules/customer/exports", HttpMethod.POST,
                 owner.token(), selectedRequest);
         assertThat(queued.getStatusCode()).withFailMessage("导出入队失败：%s", queued.getBody())
@@ -1923,11 +2179,11 @@ class RuntimeDataHttpTest {
         Map<String, Object> completed = awaitExport(owner, batchId);
         assertThat(completed).containsEntry("status", "COMPLETED").containsEntry("exportedRows", 1);
         long fileId = number(completed.get("resultFileId"));
-        assertThat(count("file_object", "id=" + fileId + " and upload_session_id is null and status='ACTIVE' and scan_status='CLEAN'"))
+        assertThat(count("un_file_object", "id=" + fileId + " and upload_session_id is null and status='ACTIVE' and scan_status='CLEAN'"))
                 .isOne();
-        assertThat(count("file_reference", "file_id=" + fileId + " and owner_type='ACCOUNT' and reference_type='RESULT'"))
+        assertThat(count("un_file_reference", "file_id=" + fileId + " and owner_type='ACCOUNT' and reference_type='RESULT'"))
                 .isOne();
-        assertThat(count("file_object", "system_id=" + owner.systemId())).isEqualTo(filesBefore + 1);
+        assertThat(count("un_file_object", "system_id=" + owner.systemId())).isEqualTo(filesBefore + 1);
 
         HttpHeaders downloadHeaders = new HttpHeaders();
         downloadHeaders.setBearerAuth(owner.token());
@@ -1938,10 +2194,10 @@ class RuntimeDataHttpTest {
         assertThat(new String(download.getBody(), StandardCharsets.UTF_8))
                 .contains("记录编号", "客户名称", "C44-001", "导出客户1")
                 .doesNotContain("C44-002", "导出客户2");
-        assertThat(count("audit_event", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_audit_event", "tenant_id=" + owner.tenantId()
                 + " and event_code in ('MODULE_EXPORT_QUEUED','MODULE_EXPORT_COMPLETED','MODULE_EXPORT_DOWNLOADED')"))
                 .isEqualTo(3);
-        assertThat(count("msg_message", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_msg_message", "tenant_id=" + owner.tenantId()
                 + " and source_type='MODULE_EXPORT' and source_id='batch-" + batchId + "-completed'"))
                 .isOne();
 
@@ -1953,24 +2209,24 @@ class RuntimeDataHttpTest {
                 owner.token(), overQuotaRequest);
         assertThat(quotaEstimate.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(quotaEstimate)).containsEntry("estimatedRows", 3).containsEntry("withinQuota", false);
-        int batchesBeforeRejected = count("exchange_export_batch", "module_id=" + moduleId);
-        int jobsBeforeRejected = count("job_background", "source_type='EXPORT_BATCH'");
+        int batchesBeforeRejected = count("un_exchange_export_batch", "module_id=" + moduleId);
+        int jobsBeforeRejected = count("un_job_background", "source_type='EXPORT_BATCH'");
         ResponseEntity<Map> rejected = exchange("/api/runtime/modules/customer/exports", HttpMethod.POST,
                 owner.token(), overQuotaRequest);
         assertThat(rejected.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(rejected.getBody().get("code")).isEqualTo("EXPORT_ROW_QUOTA_EXCEEDED");
-        assertThat(count("exchange_export_batch", "module_id=" + moduleId)).isEqualTo(batchesBeforeRejected);
-        assertThat(count("job_background", "source_type='EXPORT_BATCH'")).isEqualTo(jobsBeforeRejected);
-        assertThat(count("file_object", "system_id=" + owner.systemId())).isEqualTo(filesBefore + 1);
+        assertThat(count("un_exchange_export_batch", "module_id=" + moduleId)).isEqualTo(batchesBeforeRejected);
+        assertThat(count("un_job_background", "source_type='EXPORT_BATCH'")).isEqualTo(jobsBeforeRejected);
+        assertThat(count("un_file_object", "system_id=" + owner.systemId())).isEqualTo(filesBefore + 1);
 
         Session limitedHome = register("c44_export_limited", "c44-limited-home", "c44-limited@example.com");
-        jdbc.update("insert into sys_member(system_id,account_id,display_name,status) values (?,?,?,'ACTIVE')",
+        jdbc.update("insert into un_sys_member(system_id,account_id,display_name,status) values (?,?,?,'ACTIVE')",
                 owner.systemId(), limitedHome.accountId(), "受限导出成员");
         long limitedMemberId = memberId(owner.systemId(), limitedHome.accountId());
-        jdbc.update("insert into sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) values (?,?,?,0,'ACTIVE')",
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) values (?,?,?,0,'ACTIVE')",
                 owner.systemId(), owner.tenantId(), limitedMemberId);
         long limitedTenantMemberId = jdbc.queryForObject(
-                "select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
                 Long.class, owner.tenantId(), limitedMemberId);
         List<Map<String, Object>> exportPermissions = List.of(
                 Map.of("resourceType", "MODULE", "resourceCode", "customer", "actionCode", "LIST",
@@ -1992,7 +2248,7 @@ class RuntimeDataHttpTest {
                 "/api/admin/system/authorization/roles/" + roleId + "/publish", HttpMethod.POST,
                 owner.token(), Map.of("reason", "C44 验证文件渠道脱敏", "expectedVersion", data(roleDraft).get("version")));
         assertThat(rolePublished.getStatusCode()).isEqualTo(HttpStatus.OK);
-        int memberVersion = jdbc.queryForObject("select version from sys_tenant_member where id=?",
+        int memberVersion = jdbc.queryForObject("select version from un_sys_tenant_member where id=?",
                 Integer.class, limitedTenantMemberId);
         assertThat(exchange("/api/admin/system/authorization/members/" + limitedTenantMemberId + "/assignment",
                 HttpMethod.POST, owner.token(), Map.of("roleIds", List.of(roleId), "expectedVersion", memberVersion))
@@ -2032,7 +2288,7 @@ class RuntimeDataHttpTest {
                 limitedToken, maskedRequest);
         assertThat(revokeQueued.getStatusCode()).isEqualTo(HttpStatus.OK);
         long revokeBatchId = number(data(revokeQueued).get("id"));
-        int generatedBeforeRevokedJob = count("file_object", "system_id=" + owner.systemId()
+        int generatedBeforeRevokedJob = count("un_file_object", "system_id=" + owner.systemId()
                 + " and upload_session_id is null");
         ResponseEntity<Map> revokedDraft = exchange("/api/admin/system/authorization/roles", HttpMethod.POST,
                 owner.token(), Map.of("id", roleId, "code", "export_limited", "name", "受限导出角色",
@@ -2044,15 +2300,15 @@ class RuntimeDataHttpTest {
                 owner.token(), Map.of("reason", "C44 验证排队后权限失效", "expectedVersion",
                         data(revokedDraft).get("version"))).getStatusCode()).isEqualTo(HttpStatus.OK);
         backgroundJobWorker.runOnce();
-        assertThat(jdbc.queryForObject("select status from exchange_export_batch where id=?",
+        assertThat(jdbc.queryForObject("select status from un_exchange_export_batch where id=?",
                 String.class, revokeBatchId)).isEqualTo("FAILED");
-        assertThat(jdbc.queryForObject("select result_file_id from exchange_export_batch where id=?",
+        assertThat(jdbc.queryForObject("select result_file_id from un_exchange_export_batch where id=?",
                 Long.class, revokeBatchId)).isNull();
-        assertThat(jdbc.queryForObject("select status from job_background where source_type='EXPORT_BATCH' and source_id=?",
+        assertThat(jdbc.queryForObject("select status from un_job_background where source_type='EXPORT_BATCH' and source_id=?",
                 String.class, String.valueOf(revokeBatchId))).isEqualTo("PERMANENT_FAILED");
-        assertThat(count("file_object", "system_id=" + owner.systemId() + " and upload_session_id is null"))
+        assertThat(count("un_file_object", "system_id=" + owner.systemId() + " and upload_session_id is null"))
                 .isEqualTo(generatedBeforeRevokedJob);
-        assertThat(count("msg_message", "tenant_id=" + owner.tenantId()
+        assertThat(count("un_msg_message", "tenant_id=" + owner.tenantId()
                 + " and source_type='MODULE_EXPORT' and source_id='batch-" + revokeBatchId + "-failed'"))
                 .isOne();
     }
@@ -2117,6 +2373,171 @@ class RuntimeDataHttpTest {
         return http.exchange(path, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     }
 
+    /** 命名状态动作的授权独立于普通编辑，发布后可见且执行与审计使用同一动作编码。 */
+    @Test
+    void publishedNamedStatusActionUsesItsOwnPermissionWithoutOrdinaryEditGrant() {
+        Session owner = register("named_action_owner", "named-action-system", "named-action-owner@example.com");
+        Session workerAccount = register("named_action_worker", "named-action-worker-system", "named-action-worker@example.com");
+        long moduleId = createAndPublishCustomerModule(owner);
+        jdbc.update("insert into un_sys_member(system_id, account_id, display_name, status) values (?, ?, '动作操作员', 'ACTIVE')",
+                owner.systemId(), workerAccount.accountId());
+        long workerMemberId = memberId(owner.systemId(), workerAccount.accountId());
+        jdbc.update("insert into un_sys_tenant_member(system_id, tenant_id, system_member_id, tenant_admin, status) values (?, ?, ?, 0, 'ACTIVE')",
+                owner.systemId(), owner.tenantId(), workerMemberId);
+        long tenantMemberId = jdbc.queryForObject(
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
+                Long.class, owner.tenantId(), workerMemberId);
+
+        ResponseEntity<Map> created = exchange("/api/runtime/modules/customer/records", HttpMethod.POST, owner.token(), Map.of(
+                "title", "动作客户", "ownerMemberId", workerMemberId, "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "动作客户", "level", "A")));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long recordId = number(data(created).get("id"));
+        ResponseEntity<Map> actionCreated = exchange("/api/admin/module-config/modules/" + moduleId + "/actions",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "name", "标记已确认", "location", "DETAIL_HEADER", "parameterFieldCodes", List.of(),
+                        "confirmation", false, "operation", "SET_STATUS", "statusValue", "CONFIRMED"));
+        assertThat(actionCreated.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String actionCode = data(actionCreated).get("code").toString();
+
+        jdbc.update("insert into un_sys_role(system_id, tenant_id, code, name, status) values (?, ?, 'ACTION_ONLY', '仅可确认', 'ACTIVE')",
+                owner.systemId(), owner.tenantId());
+        long roleId = jdbc.queryForObject("select id from un_sys_role where tenant_id=? and code='ACTION_ONLY'",
+                Long.class, owner.tenantId());
+        jdbc.update("insert into un_sys_member_role(tenant_id, tenant_member_id, role_id) values (?, ?, ?)",
+                owner.tenantId(), tenantMemberId, roleId);
+        for (String permission : List.of("LIST", "DETAIL", actionCode)) {
+            jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', ?, 'SELF')",
+                    owner.systemId(), owner.tenantId(), roleId, permission);
+        }
+        ResponseEntity<Map> workerLogin = http.postForEntity("/api/auth/login", Map.of(
+                "username", "named_action_worker", "password", "correct-password"), Map.class);
+        String platformToken = data(workerLogin).get("accessToken").toString();
+        ResponseEntity<Map> entered = exchange("/api/systems/" + owner.systemId() + "/enter",
+                HttpMethod.POST, platformToken, null);
+        String workerToken = map(data(entered).get("tokens")).get("accessToken").toString();
+        String detailPath = "/api/runtime/modules/customer/records/" + recordId;
+        ResponseEntity<Map> beforePublish = exchange(detailPath, HttpMethod.GET, workerToken, null);
+        assertThat(beforePublish.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) data(beforePublish).get("actions")).noneSatisfy(value ->
+                assertThat(map(value).get("code")).isEqualTo(actionCode));
+
+        int draftRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, moduleId);
+        ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", draftRevision));
+        assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
+        ResponseEntity<Map> available = exchange(detailPath, HttpMethod.GET, workerToken, null);
+        assertThat(available.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) data(available).get("actions")).anySatisfy(value ->
+                assertThat(map(value).get("code")).isEqualTo(actionCode));
+        Map<String, Object> workerConfiguration = map(data(exchange(
+                "/api/runtime/modules/customer/configuration", HttpMethod.GET, workerToken, null)).get("configuration"));
+        assertThat((List<?>) workerConfiguration.get("actions")).noneSatisfy(value ->
+                assertThat(map(value).get("code")).isEqualTo("UPDATE"));
+
+        String actionPath = detailPath + "/actions/" + actionCode;
+        ResponseEntity<Map> context = exchange(actionPath + "/context", HttpMethod.GET, workerToken, null);
+        assertThat(context.getStatusCode()).isEqualTo(HttpStatus.OK);
+        int version = ((Number) data(available).get("version")).intValue();
+        ResponseEntity<Map> applied = exchange(actionPath, HttpMethod.POST, workerToken,
+                Map.of("version", version, "values", Map.of()));
+        assertThat(applied.getStatusCode()).withFailMessage("命名动作失败：%s", applied.getBody())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(data(exchange(detailPath, HttpMethod.GET, workerToken, null))).containsEntry("status", "CONFIRMED");
+        assertThat(jdbc.queryForObject("select status from un_biz_record where id=?", String.class, recordId))
+                .isEqualTo("CONFIRMED");
+        assertThat(count("un_biz_record_state_history", "record_id=" + recordId + " and to_status='CONFIRMED'")).isOne();
+        assertThat(count("un_audit_event", "object_id='" + recordId
+                + "' and event_code='BUSINESS_RECORD_UPDATED' and result_code='SUCCESS'")).isOne();
+        ResponseEntity<Map> stale = exchange(actionPath, HttpMethod.POST, workerToken,
+                Map.of("version", version, "values", Map.of()));
+        assertThat(stale.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(jdbc.queryForObject("select status from un_biz_record where id=?", String.class, recordId))
+                .isEqualTo("CONFIRMED");
+
+        ResponseEntity<Map> amountAction = exchange("/api/admin/module-config/modules/" + moduleId + "/actions",
+                HttpMethod.POST, owner.token(), Map.of(
+                        "name", "录入确认金额", "location", "DETAIL_HEADER",
+                        "parameterFieldCodes", List.of("amount"), "confirmation", false,
+                        "operation", "UPDATE_FIELDS"));
+        assertThat(amountAction.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String amountActionCode = data(amountAction).get("code").toString();
+        jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', ?, 'SELF')",
+                owner.systemId(), owner.tenantId(), roleId, amountActionCode);
+        // 测试直接写角色表，需同步推进授权缓存世代；正式后台发布会自动完成该步骤。
+        jdbc.update("insert into un_core_cache_epoch(context_key,cache_namespace,epoch_value,reason) values (?,'AUTHORIZATION',1,'test-action-grant') on duplicate key update epoch_value=epoch_value+1,reason='test-action-grant'",
+                "system:" + owner.systemId() + ":tenant:" + owner.tenantId());
+        int amountDraftRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, moduleId);
+        assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", amountDraftRevision)).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        // 系统会话携带动作授权快照；新增角色动作后重新进入系统取得新会话。
+        workerToken = map(data(exchange("/api/systems/" + owner.systemId() + "/enter",
+                HttpMethod.POST, platformToken, null)).get("tokens")).get("accessToken").toString();
+        Map<String, Object> refreshedConfiguration = map(data(exchange(
+                "/api/runtime/modules/customer/configuration", HttpMethod.GET, workerToken, null)).get("configuration"));
+        assertThat((List<?>) refreshedConfiguration.get("actions")).anySatisfy(value ->
+                assertThat(map(value).get("code")).isEqualTo(amountActionCode));
+        String amountPath = detailPath + "/actions/" + amountActionCode;
+        assertThat(exchange(amountPath + "/context", HttpMethod.GET, workerToken, null).getStatusCode())
+                .isEqualTo(HttpStatus.FORBIDDEN);
+        long platformId = jdbc.queryForObject("select platform_id from un_sys_system where id=?",
+                Long.class, owner.systemId());
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,?,?,'PAGE',1,1)",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "amount");
+        workerToken = map(data(exchange("/api/systems/" + owner.systemId() + "/enter",
+                HttpMethod.POST, platformToken, null)).get("tokens")).get("accessToken").toString();
+        Map<String, Object> permittedConfiguration = map(data(exchange(
+                "/api/runtime/modules/customer/configuration", HttpMethod.GET, workerToken, null)).get("configuration"));
+        assertThat((List<?>) permittedConfiguration.get("actions")).anySatisfy(value ->
+                assertThat(map(value).get("code")).isEqualTo(amountActionCode));
+        ResponseEntity<Map> amountContext = exchange(amountPath + "/context", HttpMethod.GET, workerToken, null);
+        assertThat(amountContext.getStatusCode()).withFailMessage("字段动作上下文失败：%s", amountContext.getBody())
+                .isEqualTo(HttpStatus.OK);
+        int currentVersion = ((Number) data(exchange(detailPath, HttpMethod.GET, workerToken, null))
+                .get("version")).intValue();
+        ResponseEntity<Map> amountApplied = exchange(amountPath, HttpMethod.POST, workerToken,
+                Map.of("version", currentVersion, "values", Map.of("amount", new BigDecimal("42.50"))));
+        assertThat(amountApplied.getStatusCode()).withFailMessage("字段动作失败：%s", amountApplied.getBody())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(jdbc.queryForObject(
+                "select value_number from un_biz_record_value where record_id=? and field_code='amount'",
+                BigDecimal.class, recordId)).isEqualByComparingTo("42.50000000");
+        assertThat(jdbc.queryForObject("select status from un_biz_record where id=?", String.class, recordId))
+                .isEqualTo("CONFIRMED");
+        long flowId = publishApprovalActionFlow(owner, "named_action_approval_flow");
+        long amountActionId = jdbc.queryForObject("select id from un_cfg_module_action where module_id=? and code=?",
+                Long.class, moduleId, amountActionCode);
+        ResponseEntity<Map> binding = exchange("/api/flow-bindings/publish", HttpMethod.POST, owner.token(), Map.of(
+                "moduleId", moduleId, "actionId", amountActionId, "triggerEvent", "MANUAL", "flowId", flowId,
+                "executionMode", "AFTER_APPROVAL", "priorityOrder", 0,
+                "mutuallyExclusive", true, "replaceExisting", false));
+        assertThat(binding.getStatusCode()).withFailMessage("命名动作流程绑定失败：%s", binding.getBody())
+                .isEqualTo(HttpStatus.OK);
+        HttpHeaders actionHeaders = new HttpHeaders();
+        actionHeaders.setBearerAuth(workerToken);
+        actionHeaders.set("Idempotency-Key", "named-amount-approval");
+        actionHeaders.set("Prefer", "return=action");
+        ResponseEntity<Map> pendingResponse = http.exchange(amountPath, HttpMethod.POST,
+                new HttpEntity<>(Map.of("version", currentVersion + 1,
+                        "values", Map.of("amount", new BigDecimal("55.00"))), actionHeaders), Map.class);
+        assertThat(pendingResponse.getStatusCode()).withFailMessage("命名动作审批发起失败：%s", pendingResponse.getBody())
+                .isEqualTo(HttpStatus.OK);
+        Map<String, Object> pending = data(pendingResponse);
+        assertThat(pending).containsEntry("status", "PENDING_APPROVAL");
+        assertThat(jdbc.queryForObject("select title from un_flow_instance where id=?", String.class,
+                number(pending.get("flowInstanceId")))).isEqualTo("named_action_approval_flow · 业务动作");
+        assertThat(jdbc.queryForObject("select value_number from un_biz_record_value where record_id=? and field_code='amount'",
+                BigDecimal.class, recordId)).isEqualByComparingTo("42.50000000");
+        ResponseEntity<Map> progress = exchange("/api/flow-runtime/business-actions/customer/"
+                + pending.get("idempotencyRecordId"), HttpMethod.GET, workerToken, null);
+        assertThat(progress.getStatusCode()).withFailMessage("发起人缺普通编辑权时仍须能查看命名动作审批进度：%s", progress.getBody())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(data(progress)).containsEntry("businessStatus", "PENDING_APPROVAL");
+    }
+
     private long createAndPublishCustomerModule(Session owner) {
         long groupId = number(data(exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
                 Map.of("code", "sales", "name", "销售管理", "sortOrder", 10))).get("id"));
@@ -2131,7 +2552,7 @@ class RuntimeDataHttpTest {
                 Map.of("currency", "CNY", "precision", 2));
         createField(owner, moduleId, "enabled", "是否有效", "BOOLEAN", false, 40, Map.of());
         createReferenceField(owner, moduleId, "parent_customer", "上级客户", moduleId, 50);
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id = ?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id = ?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -2139,7 +2560,7 @@ class RuntimeDataHttpTest {
     }
 
     private long createAndPublishOpportunityModule(Session owner) {
-        long groupId = jdbc.queryForObject("select id from cfg_module_group where system_id=? and code='sales'",
+        long groupId = jdbc.queryForObject("select id from un_cfg_module_group where system_id=? and code='sales'",
                 Long.class, owner.systemId());
         Map<String, Object> moduleDraft = data(exchange("/api/admin/module-config/modules", HttpMethod.POST,
                 owner.token(), Map.of("groupId", groupId, "code", "opportunity", "name", "商机")));
@@ -2147,7 +2568,7 @@ class RuntimeDataHttpTest {
         createField(owner, moduleId, "opportunity_name", "商机名称", "TEXT", true, 10, Map.of());
         createField(owner, moduleId, "source_level", "来源客户级别", "SINGLE_SELECT", true, 20,
                 Map.of("options", List.of(Map.of("value", "A", "label", "A级", "status", "ACTIVE"))));
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -2168,7 +2589,7 @@ class RuntimeDataHttpTest {
                                         "opportunity_name", "customer_name",
                                         "source_level", "level"))))));
         assertThat(configured.getStatusCode()).isEqualTo(HttpStatus.OK);
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -2213,50 +2634,54 @@ class RuntimeDataHttpTest {
         exchange("/api/admin/module-config/modules/" + moduleId + "/fields/" + field.get("id"), HttpMethod.PUT,
                 owner.token(), Map.of("name", "客户全称", "required", true, "sortOrder", 10,
                         "status", "ACTIVE", "config", Map.of(), "version", field.get("version")));
-        int revision = jdbc.queryForObject("select draft_revision from cfg_module where id = ?", Integer.class, moduleId);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id = ?", Integer.class, moduleId);
         ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
         assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     private void installColleaguePermissions(Session owner, long colleagueTenantMemberId) {
-        jdbc.update("insert into sys_role(system_id, tenant_id, code, name, status) values (?, ?, 'COLLEAGUE', '普通成员', 'ACTIVE')",
+        jdbc.update("insert into un_sys_role(system_id, tenant_id, code, name, status) values (?, ?, 'COLLEAGUE', '普通成员', 'ACTIVE')",
                 owner.systemId(), owner.tenantId());
         long roleId = jdbc.queryForObject(
-                "select id from sys_role where tenant_id = ? and code = 'COLLEAGUE'", Long.class, owner.tenantId());
-        jdbc.update("insert into sys_member_role(tenant_id, tenant_member_id, role_id) values (?, ?, ?)",
+                "select id from un_sys_role where tenant_id = ? and code = 'COLLEAGUE'", Long.class, owner.tenantId());
+        jdbc.update("insert into un_sys_member_role(tenant_id, tenant_member_id, role_id) values (?, ?, ?)",
                 owner.tenantId(), colleagueTenantMemberId, roleId);
-        jdbc.update("insert into sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'LIST', 'DEPARTMENT')",
+        jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'LIST', 'DEPARTMENT')",
                 owner.systemId(), owner.tenantId(), roleId);
-        jdbc.update("insert into sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'DETAIL', 'PARTICIPATED')",
+        // 查看范围按负责人当前部门计算；关联参与人本身不扩张数据权限。
+        jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'DETAIL', 'DEPARTMENT')",
                 owner.systemId(), owner.tenantId(), roleId);
-        jdbc.update("insert into sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'UPDATE', 'SELF')",
+        jdbc.update("insert into un_sys_role_permission(system_id, tenant_id, role_id, resource_type, resource_code, action_code, data_scope_type) values (?, ?, ?, 'MODULE', 'customer', 'UPDATE', 'SELF')",
                 owner.systemId(), owner.tenantId(), roleId);
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,'PAGE',1,0,'PARTIAL')",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "customer_name");
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,'PAGE',1,0,'FULL')",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "amount");
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,'PAGE',1,0)",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "enabled");
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,'APPLICATION',1,0,'PARTIAL')",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "customer_name");
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,'APPLICATION',1,0)",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "enabled");
-        jdbc.update("insert into auth_field_policy(context_type,system_id,tenant_id,role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,'FILE',1,0)",
-                owner.systemId(), owner.tenantId(), roleId, "customer", "enabled");
+        long platformId = jdbc.queryForObject("select platform_id from un_sys_system where id=?", Long.class,
+                owner.systemId());
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,?,?,'PAGE',1,0,'PARTIAL')",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "customer_name");
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,?,?,'PAGE',1,0,'FULL')",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "amount");
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,?,?,'PAGE',1,0)",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "enabled");
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable,mask_strategy) values ('SYSTEM',?,?,?,?,?,?,?,'APPLICATION',1,0,'PARTIAL')",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "customer_name");
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,?,?,'APPLICATION',1,0)",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "enabled");
+        jdbc.update("insert into un_auth_field_policy(context_type,platform_id,system_id,tenant_id,role_id,system_role_id,resource_code,field_code,`channel`,readable,writable) values ('SYSTEM',?,?,?,?,?,?,?,'FILE',1,0)",
+                platformId, owner.systemId(), owner.tenantId(), roleId, roleId, "customer", "enabled");
     }
 
     private long createOtherTenant(Session owner) {
-        jdbc.update("insert into sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, 'other', '其他租户', 0, null, ?, 'ACTIVE')",
+        jdbc.update("insert into un_sys_tenant(system_id, code, name, is_main, main_marker, creator_account_id, status) values (?, 'other', '其他租户', 0, null, ?, 'ACTIVE')",
                 owner.systemId(), owner.accountId());
-        return jdbc.queryForObject("select id from sys_tenant where system_id = ? and code = 'other'",
+        return jdbc.queryForObject("select id from un_sys_tenant where system_id = ? and code = 'other'",
                 Long.class, owner.systemId());
     }
 
     private Session register(String username, String systemCode, String email) {
+        // 历史用例的系统代号含连字符；注册请求使用当前统一编码规则，展示名仍保留原测试语义。
         ResponseEntity<Map> response = http.postForEntity("/api/auth/register", Map.of(
                 "username", username, "password", "correct-password", "displayName", username, "email", email,
-                "systemName", systemCode, "systemCode", systemCode), Map.class);
+                "systemName", systemCode, "systemCode", systemCode.replace('-', '_')), Map.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> result = data(response);
         return new Session(number(result.get("accountId")), number(result.get("systemId")), number(result.get("tenantId")),
@@ -2265,7 +2690,7 @@ class RuntimeDataHttpTest {
 
     private long memberId(long systemId, long accountId) {
         return jdbc.queryForObject(
-                "select id from sys_member where system_id = ? and account_id = ?", Long.class, systemId, accountId);
+                "select id from un_sys_member where system_id = ? and account_id = ?", Long.class, systemId, accountId);
     }
 
     private ResponseEntity<Map> exchange(String path, HttpMethod method, String token, Object body) {

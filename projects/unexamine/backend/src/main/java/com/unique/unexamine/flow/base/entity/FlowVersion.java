@@ -9,44 +9,74 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变流程发布版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_version")
+@TableName("un_flow_version")
 public class FlowVersion {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 流程定义ID
+     */
     @TableField("flow_id")
     private Long flowId;
 
+    /**
+     * 流程发布版本号
+     */
     @TableField("version_number")
     private Integer versionNumber;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 发布定义内容摘要
+     */
     @TableField("definition_hash")
     private String definitionHash;
 
+    /**
+     * 发布时冻结的完整流程定义快照
+     */
     @TableField("snapshot_json")
     private String snapshotJson;
 
+    /**
+     * 发布前模拟验证结果
+     */
     @TableField("simulation_result_json")
     private String simulationResultJson;
 
+    /**
+     * 发布变更说明
+     */
     @TableField("change_summary")
     private String changeSummary;
 
+    /**
+     * 发布人平台账号ID
+     */
     @TableField("published_by_account_id")
     private Long publishedByAccountId;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 发布时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
     public Long getId() {
         return id;
@@ -120,12 +150,12 @@ public class FlowVersion {
         this.publishedByAccountId = publishedByAccountId;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     @Override
@@ -140,7 +170,7 @@ public class FlowVersion {
             ", simulationResultJson = " + simulationResultJson +
             ", changeSummary = " + changeSummary +
             ", publishedByAccountId = " + publishedByAccountId +
-            ", publishedAt = " + publishedAt +
+            ", publishTime = " + publishTime +
             "}";
     }
 }

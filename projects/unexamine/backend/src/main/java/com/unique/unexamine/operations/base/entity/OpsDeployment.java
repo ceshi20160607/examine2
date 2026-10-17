@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 多环境部署、验证及回滚证据
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_deployment")
+@TableName("un_ops_deployment")
 public class OpsDeployment {
 
+    /**
+     * 环境部署记录主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 目标产品发布版本主键
+     */
     @TableField("release_id")
     private Long releaseId;
 
+    /**
+     * 开发、测试或生产等环境编码
+     */
     @TableField("environment_code")
     private String environmentCode;
 
+    /**
+     * 部署或回滚操作类型
+     */
     @TableField("deployment_type")
     private String deploymentType;
 
+    /**
+     * 部署前产品发布版本主键
+     */
     @TableField("from_release_id")
     private Long fromReleaseId;
 
+    /**
+     * 部署执行结果状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 部署步骤及校验结果
+     */
     @TableField("step_state_json")
     private String stepStateJson;
 
+    /**
+     * 可恢复的回滚点信息
+     */
     @TableField("rollback_point_json")
     private String rollbackPointJson;
 
+    /**
+     * 发起部署的平台账号主键
+     */
     @TableField("requested_by_account_id")
     private Long requestedByAccountId;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 部署开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 部署结束时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 部署申请时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
+    /**
+     * 部署记录乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -131,28 +170,28 @@ public class OpsDeployment {
         this.requestedByAccountId = requestedByAccountId;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     public Integer getVersion() {
@@ -175,9 +214,9 @@ public class OpsDeployment {
             ", stepStateJson = " + stepStateJson +
             ", rollbackPointJson = " + rollbackPointJson +
             ", requestedByAccountId = " + requestedByAccountId +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
-            ", createdAt = " + createdAt +
+            ", startTime = " + startTime +
+            ", finishTime = " + finishTime +
+            ", createTime = " + createTime +
             ", version = " + version +
             "}";
     }

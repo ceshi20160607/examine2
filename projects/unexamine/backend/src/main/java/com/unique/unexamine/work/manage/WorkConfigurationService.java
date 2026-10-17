@@ -150,7 +150,7 @@ public class WorkConfigurationService {
             row.setConfigJson(toJson(root));
             applyDraft(row, input.fieldName(), fieldType, input.required(), input.sortOrder(), input.settings());
             row.setStatus("DRAFT");
-            row.setUpdatedAt(LocalDateTime.now());
+            row.setUpdateTime(LocalDateTime.now());
             if (configService.updateById(row) != 1) {
                 throw conflict("WORK_CONFIG_VERSION_CONFLICT", "工作配置已被其他人修订，请刷新后重试");
             }
@@ -177,7 +177,7 @@ public class WorkConfigurationService {
         root.put("publication", publication);
         row.setConfigJson(toJson(root));
         row.setStatus("PUBLISHED");
-        row.setUpdatedAt(LocalDateTime.now());
+        row.setUpdateTime(LocalDateTime.now());
         if (configService.updateById(row) != 1) {
             throw conflict("WORK_CONFIG_VERSION_CONFLICT", "工作配置发布指针已被其他人更新");
         }
@@ -210,7 +210,7 @@ public class WorkConfigurationService {
         root.put("publication", publication);
         row.setConfigJson(toJson(root));
         row.setStatus("PUBLISHED");
-        row.setUpdatedAt(LocalDateTime.now());
+        row.setUpdateTime(LocalDateTime.now());
         if (configService.updateById(row) != 1) {
             throw conflict("WORK_CONFIG_VERSION_CONFLICT", "工作配置回滚时已被其他人更新");
         }
@@ -245,8 +245,8 @@ public class WorkConfigurationService {
                 .filter(task -> accountId == null || Objects.equals(task.getOwnerAccountId(), accountId)).toList();
         LocalDate today = LocalDate.now();
         for (WorkTask task : tasks) {
-            LocalDate dueDate = task.getDueAt() == null ? null : task.getDueAt().toLocalDate();
-            LocalDate completedDate = task.getCompletedAt() == null ? null : task.getCompletedAt().toLocalDate();
+            LocalDate dueDate = task.getDueTime() == null ? null : task.getDueTime().toLocalDate();
+            LocalDate completedDate = task.getCompleteTime() == null ? null : task.getCompleteTime().toLocalDate();
             if (dueDate != null && days.containsKey(dueDate)) {
                 DayAccumulator day = days.get(dueDate);
                 day.tasksDue++;
@@ -748,7 +748,7 @@ public class WorkConfigurationService {
             if (tasks.stream().anyMatch(item -> Objects.equals(item.id(), task.getId()))) return;
             tasks.add(new WorkConfigurationModels.TaskCalendarItem(task.getId(), task.getTitle(), task.getStatus(),
                     task.getPriority(), task.getProjectId(), owner, task.getBusinessType(), task.getBusinessId(),
-                    task.getBusinessTitle(), task.getDueAt(), task.getCompletedAt()));
+                    task.getBusinessTitle(), task.getDueTime(), task.getCompleteTime()));
         }
 
         private WorkConfigurationModels.CalendarDay view(boolean detailAvailable) {

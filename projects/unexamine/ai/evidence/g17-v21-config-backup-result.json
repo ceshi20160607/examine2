@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "releaseId": 5,
+  "databaseVersion": "21",
+  "databaseTableCount": 189,
+  "configVersion": "local-v2",
+  "approvalReference": "S17-V7-CONFIG",
+  "consistencyPoint": "2026-10-10T11:35:01.8820665Z",
+  "encryptionKeyReference": "ops-secret://system/164/backup.s17.restore/v1",
+  "requiredBytes": 11452900,
+  "availableBytes": 58929602560,
+  "items": [
+    {
+      "itemType": "DATABASE",
+      "storageUri": "backup://full-5-20261010T113501882Z/database.sql",
+      "sizeBytes": 11452140,
+      "sha256": "78c151842b5fc63d3e6afca96b3f7601059d2a8bb4a973f5308b064aabdbbcc4",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "FILE_STORAGE",
+      "storageUri": "backup://full-5-20261010T113501882Z/file-storage.zip",
+      "sizeBytes": 169,
+      "sha256": "d49f2ecd1db18ae311b726cf39c7f8c88ab79bd4ca70c01d8e8c09b79f94b06f",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "CONFIGURATION",
+      "storageUri": "backup://full-5-20261010T113501882Z/configuration.json",
+      "sizeBytes": 339,
+      "sha256": "6ae369d13428d2a0428ce7c0d5d67978786c997b1cb19f61ad5fa55f1871eea8",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "SECRET_REFERENCES",
+      "storageUri": "backup://full-5-20261010T113501882Z/secret-references.json",
+      "sizeBytes": 252,
+      "sha256": "08d2bf58c28e6883aac9ca20361f3fe9613b2776c81427c2d52ef5f67140fee1",
+      "verificationStatus": "VERIFIED"
+    }
+  ]
+}

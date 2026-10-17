@@ -1,0 +1,39 @@
+{
+  "step": "S13.1",
+  "status": "verified_contribution",
+  "integration_gate": "G13_OPERATION_RISK_PROMPTS",
+  "source_rows": [
+    "R2175",
+    "R2179",
+    "R2180",
+    "R2186"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue"
+  ],
+  "checks_actual_results": [
+    "系统 #151 的隔离模块 #74 字段 #171 从 ACTIVE 拟改 DISABLED 时，真实页面先显示字段名、当前仅修改草稿、发布后新表单/列表/筛选移除、历史值保留及引用可能阻止发布。取消后 API 读回 ACTIVE/version 0，确认后仅草稿 DISABLED/version 1，模块仍未发布。",
+    "隔离 Flow #20 的发布弹窗明确流程名称、新实例切换到不可变新版本、在途实例继续固定旧版本以及取消无版本。取消后 API 读回 DRAFT/0 版本；确认后页面和 API 均为 PUBLISHED/第 1 版。",
+    "普通成员改字段和发布 Flow 均返回 403；管理员用旧字段版本和旧草稿修订号分别返回 409。MySQL 中字段 #171 为 DISABLED/version 1、Flow #20 为 PUBLISHED 且只有一个第 1 版。后端重启后页面、API 持续一致。前端 vue-tsc/Vite 构建、workspace-validate 与 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s13-field-disable-impact.png",
+    "projects/unexamine/ai/evidence/s13-flow-publish-impact.png",
+    "projects/unexamine/ai/evidence/s13-flow-published.png",
+    "projects/unexamine/ai/evidence/s13-flow-restart.png"
+  ],
+  "permission_or_failure_result": "取消字段停用或流程发布均无持久化变化；普通成员 403，过期字段版本和流程草稿修订号 409。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "0d14d9ae4d52da5fd33d65fcf19f8daa7204b17716216db3312ed21f1e9be9e7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "0c82afc31b8d832a2d0c8624606ae1ebd8160994ccce78355b3b9597dcd256ac"
+    }
+  ],
+  "remaining": "G13 仍未完成：模块/字段删除和 Flow 停用需要完整业务入口及影响提示；导入覆盖、批量删除和权限修改留在后续独立子步骤。",
+  "next_step": "S13.2"
+}

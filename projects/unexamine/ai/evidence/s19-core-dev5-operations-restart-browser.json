@@ -1,0 +1,69 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "operations_ui_health_readback_verified",
+  "page": {
+    "health": "就绪门禁 · 真实依赖\n\n可接收业务流量\n\n体检 #6 · 2026-10-16T19:03:17.0735123 · requestId cbed3d1ad8b54b5da38026f047d37f66\n\nREADY\n立即重检并读回",
+    "dependencyStatuses": [
+      "PASSED",
+      "PASSED",
+      "PASSED",
+      "PASSED",
+      "PASSED"
+    ],
+    "metrics": "关键依赖\n5/5\n全部通过\n服务版本\n0.1.0-s19.11-dev5\n当前运行实例\n数据库迁移\nV23\nFlyway 实际版本\n后台作业\n0\n排队/运行 · 0 失败",
+    "deployment": "后端 / 前端\n0.1.0-s19.11-dev5\n0.1.0-s19.11-dev5\n数据库 / 配置\nV23\ndevelopment-v1\n固定制品 SHA-256\n26be4712c6a6…d234313b\n已绑定运行制品\n真实入口\nhttp://127.0.0.1:15173/\n发布成功前必须返回 2xx/3xx",
+    "continuity": "一致性备份 · 隔离恢复 · 版本化升级\n\n备份、恢复演练与升级\n\n数据库、文件、配置和密钥引用必须来自同一时间点；失败升级保持可恢复，不开放混合版本。\n\nDB V23 · development-v1",
+    "errors": []
+  },
+  "apiStatuses": [
+    {
+      "path": "/api/admin/system/operations/health",
+      "status": 200
+    },
+    {
+      "path": "/api/admin/system/operations/deployments",
+      "status": 200
+    },
+    {
+      "path": "/api/admin/system/operations/continuity",
+      "status": 200
+    }
+  ],
+  "health": {
+    "id": 6,
+    "ready": true,
+    "requestId": "cbed3d1ad8b54b5da38026f047d37f66",
+    "checks": [
+      {
+        "name": "数据库",
+        "status": "PASSED"
+      },
+      {
+        "name": "Redis",
+        "status": "PASSED"
+      },
+      {
+        "name": "文件存储",
+        "status": "PASSED"
+      },
+      {
+        "name": "应用签名密钥",
+        "status": "PASSED"
+      },
+      {
+        "name": "数据库迁移",
+        "status": "PASSED"
+      }
+    ],
+    "migrationVersion": "23"
+  },
+  "runtime": {
+    "backendVersion": "0.1.0-s19.11-dev5",
+    "databaseVersion": "23",
+    "frontendSmokeUrl": "http://127.0.0.1:15173/"
+  },
+  "continuity": {
+    "runtimeDatabaseVersion": "23"
+  }
+}

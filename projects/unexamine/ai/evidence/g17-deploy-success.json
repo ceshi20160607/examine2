@@ -1,0 +1,10 @@
+{
+  "version": "s17-v5",
+  "environment": "development",
+  "artifactSha256": "a2e2b60e2c62fbd90a111ff075c22813bbf7ba0820ab1fb52a2c4434a7660872",
+  "approvalReference": "S17-FINAL-DEPLOY",
+  "readinessUrl": "http://127.0.0.1:18081/actuator/health/readiness",
+  "realEntryUrl": "http://127.0.0.1:15179/",
+  "result": "SUCCESS",
+  "deployedAt": "2026-10-10T19:18:04.4596581+08:00"
+}

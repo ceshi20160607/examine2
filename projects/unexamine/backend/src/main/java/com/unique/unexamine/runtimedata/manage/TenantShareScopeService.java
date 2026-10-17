@@ -10,8 +10,12 @@ import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.moduleconfig.manage.StructuredRuleEvaluator;
 import com.unique.unexamine.moduleconfig.manage.DictionaryConfigurationService;
 import com.unique.unexamine.runtimedata.base.entity.*;
-import com.unique.unexamine.runtimedata.base.mapper.BusinessRecordValueMapper;
-import com.unique.unexamine.runtimedata.base.mapper.BusinessRecordParticipantMapper;
+import com.unique.unexamine.runtimedata.base.service.BusinessRecordValueBaseService;
+import com.unique.unexamine.runtimedata.base.service.BusinessRecordParticipantBaseService;
+import com.unique.unexamine.system.base.entity.SystemMember;
+import com.unique.unexamine.system.base.entity.SystemTenantMember;
+import com.unique.unexamine.system.base.service.SystemMemberBaseService;
+import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,20 +27,24 @@ import java.util.*;
 public class TenantShareScopeService {
     // 尚未贯通的关联、级联等类型不开放手输 ID；其条件能力保留在后续字段链中。
     public static final Set<String> CONDITION_TYPES = Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL",
-            "URL", "ID_CARD", "NUMBER", "MONEY", "DATE", "DATETIME", "BOOLEAN", "SINGLE_SELECT", "MULTI_SELECT", "STATUS");
+            "URL", "ID_CARD", "BARCODE", "QRCODE", "NUMBER", "MONEY", "DATE", "DATETIME", "BOOLEAN", "SINGLE_SELECT", "MULTI_SELECT", "STATUS");
     private final ObjectMapper json;
     private final StructuredRuleEvaluator evaluator;
     private final ModulePublicationService publications;
-    private final BusinessRecordValueMapper values;
-    private final BusinessRecordParticipantMapper participants;
+    private final BusinessRecordValueBaseService values;
+    private final BusinessRecordParticipantBaseService participants;
+    private final SystemMemberBaseService members;
+    private final SystemTenantMemberBaseService tenantMembers;
     private final DictionaryConfigurationService dictionaries;
 
     public TenantShareScopeService(ObjectMapper json, StructuredRuleEvaluator evaluator,
-            ModulePublicationService publications, BusinessRecordValueMapper values,
-            BusinessRecordParticipantMapper participants, DictionaryConfigurationService dictionaries) {
+            ModulePublicationService publications, BusinessRecordValueBaseService values,
+            BusinessRecordParticipantBaseService participants, DictionaryConfigurationService dictionaries,
+            SystemMemberBaseService members, SystemTenantMemberBaseService tenantMembers) {
         this.json = json; this.evaluator = evaluator; this.publications = publications;
         this.values = values; this.participants = participants;
         this.dictionaries = dictionaries;
+        this.members = members; this.tenantMembers = tenantMembers;
     }
 
     /** 不依赖容器时区；预定、过期和撤销授权均不能提供当前访问。 */
@@ -44,7 +52,7 @@ public class TenantShareScopeService {
         if (share == null) return "MISSING";
         if (!"ACTIVE".equals(share.getStatus())) return share.getStatus();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
-        if (share.getExpiresAt() != null && !share.getExpiresAt().isAfter(now)) return "EXPIRED";
+        if (share.getExpireTime() != null && !share.getExpireTime().isAfter(now)) return "EXPIRED";
         if (share.getStartTime() != null && share.getStartTime().isAfter(now)) return "SCHEDULED";
         return "ACTIVE";
     }
@@ -122,13 +130,19 @@ public class TenantShareScopeService {
     }
 
     private boolean withinSourceScope(JsonNode clauses, BusinessRecord record, boolean currentRead) {
+        Long ownerDepartmentId = null;
+        boolean departmentLoaded = false;
         for (JsonNode clause : clauses) {
             String type = clause.path("type").asText();
             if ("ALL".equals(type)) return true;
+            if ("DEPARTMENT".equals(type) && !departmentLoaded) {
+                ownerDepartmentId = currentOwnerDepartmentId(record, currentRead);
+                departmentLoaded = true;
+            }
             Long value = switch (type) {
                 case "OWNER" -> record.getOwnerMemberId();
                 case "CREATOR" -> record.getCreatedByMemberId();
-                case "DEPARTMENT" -> record.getDepartmentId();
+                case "DEPARTMENT" -> ownerDepartmentId;
                 default -> null;
             };
             if (value != null) for (JsonNode id : clause.path("ids")) if (id.isIntegralNumber() && value.equals(id.longValue())) return true;
@@ -142,12 +156,26 @@ public class TenantShareScopeService {
         return false;
     }
 
+    /** 来源范围按负责人目前所在部门判定，记录里保留的负责部门只供历史展示。 */
+    private Long currentOwnerDepartmentId(BusinessRecord record, boolean currentRead) {
+        if (record.getOwnerMemberId() == null) return null;
+        SystemMember owner = members.selectById(record.getOwnerMemberId());
+        if (owner == null || !Objects.equals(owner.getSystemId(), record.getSystemId())
+                || !"ACTIVE".equals(owner.getStatus())) return null;
+        return tenantMembers.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                        .eq(SystemTenantMember::getSystemId, record.getSystemId())
+                        .eq(SystemTenantMember::getTenantId, record.getTenantId())
+                        .eq(SystemTenantMember::getSystemMemberId, record.getOwnerMemberId())
+                        .eq(SystemTenantMember::getStatus, "ACTIVE").last(currentRead, "FOR SHARE"))
+                .stream().findFirst().map(SystemTenantMember::getDepartmentId).orElse(null);
+    }
+
     /** 与运行字段存储协议保持同型，不读取密钥，更不以默认值补齐缺失条件。 */
     private JsonNode stored(BusinessRecordValue value) {
         if (value.getValueText() != null) return TextNode.valueOf(value.getValueText());
         if (value.getValueNumber() != null) return DecimalNode.valueOf(value.getValueNumber());
         if (value.getValueDate() != null) return TextNode.valueOf(value.getValueDate().toString());
-        if (value.getValueDatetime() != null) return TextNode.valueOf(value.getValueDatetime().toString());
+        if (value.getValueTime() != null) return TextNode.valueOf(value.getValueTime().toString());
         if (value.getValueBoolean() != null) return BooleanNode.valueOf(value.getValueBoolean());
         if (value.getValueJson() != null) return read(value.getValueJson());
         return NullNode.instance;
@@ -167,7 +195,7 @@ public class TenantShareScopeService {
         var field = fields.get(node.path("field").asText()); String type = field.fieldType(); String op = node.path("operator").asText();
         if (Set.of("EMPTY", "NOT_EMPTY").contains(op)) return;
         if (Set.of("GT", "GTE", "LT", "LTE").contains(op) && !Set.of("NUMBER", "MONEY", "DATE", "DATETIME").contains(type)) throw invalid(field.name() + "不支持大小比较");
-        if ("CONTAINS".equals(op) && !Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "MULTI_SELECT").contains(type)) throw invalid(field.name() + "不支持包含比较");
+        if ("CONTAINS".equals(op) && !Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "BARCODE", "QRCODE", "MULTI_SELECT").contains(type)) throw invalid(field.name() + "不支持包含比较");
         JsonNode value = node.path("value");
         if ("IN".equals(op)) {
             if ("MULTI_SELECT".equals(type) || value.isEmpty()) throw invalid(field.name() + "的比较值无效");

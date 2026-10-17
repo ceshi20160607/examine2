@@ -8,8 +8,12 @@
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="module_id" property="moduleId" />
+        <result column="module_config_version_id" property="moduleConfigVersionId" />
+        <result column="permission_version_id" property="permissionVersionId" />
         <result column="mapping_id" property="mappingId" />
+        <result column="mapping_version_id" property="mappingVersionId" />
         <result column="job_id" property="jobId" />
+        <result column="export_format" property="exportFormat" />
         <result column="filter_snapshot_json" property="filterSnapshotJson" />
         <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
         <result column="selected_fields_json" property="selectedFieldsJson" />
@@ -19,15 +23,15 @@
         <result column="result_file_id" property="resultFileId" />
         <result column="error_message" property="errorMessage" />
         <result column="created_by_member_id" property="createdByMemberId" />
-        <result column="created_at" property="createdAt" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="start_time" property="startTime" />
+        <result column="finish_time" property="finishTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, module_id, mapping_id, job_id, filter_snapshot_json, authorization_snapshot_json, selected_fields_json, `status`, total_rows, exported_rows, result_file_id, error_message, created_by_member_id, created_at, started_at, finished_at, version
+        id, system_id, tenant_id, module_id, module_config_version_id, permission_version_id, mapping_id, mapping_version_id, job_id, export_format, filter_snapshot_json, authorization_snapshot_json, selected_fields_json, `status`, total_rows, exported_rows, result_file_id, error_message, created_by_member_id, create_time, start_time, finish_time, version
     </sql>
 
 </mapper>

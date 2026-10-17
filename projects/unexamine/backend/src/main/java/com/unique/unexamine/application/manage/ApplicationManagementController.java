@@ -53,9 +53,9 @@ public class ApplicationManagementController {
         return ApiResult.ok(service.detail(AuthenticationContextHolder.require(), applicationId));
     }
 
-    @GetMapping("/{applicationId}/identity-catalog")
-    public ApiResult<ApplicationModels.IdentityCatalog> identityCatalog(@PathVariable Long applicationId) {
-        return ApiResult.ok(service.identityCatalog(AuthenticationContextHolder.require(), applicationId));
+    @GetMapping("/{applicationId}/scope-catalog")
+    public ApiResult<ApplicationModels.ScopeCatalog> scopeCatalog(@PathVariable Long applicationId) {
+        return ApiResult.ok(service.scopeCatalog(AuthenticationContextHolder.require(), applicationId));
     }
 
     @GetMapping("/{applicationId}/calls")

@@ -31,6 +31,7 @@ public final class ApplicationBridgeModels {
             Map<String, Object> source) {
     }
 
+    /** 调用日志分别保留开始和结束时间，失败调用也可按开始时间追踪。 */
     public record CallLogView(
             Long id,
             String requestId,
@@ -52,7 +53,7 @@ public final class ApplicationBridgeModels {
             Integer replayCount,
             Map<String, Object> permissionSnapshot,
             Object response,
-            LocalDateTime calledAt,
-            LocalDateTime finishedAt) {
+            LocalDateTime callTime,
+            LocalDateTime finishTime) {
     }
 }

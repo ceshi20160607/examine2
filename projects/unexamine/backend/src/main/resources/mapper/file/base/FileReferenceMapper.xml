@@ -7,6 +7,7 @@
         <id column="id" property="id" />
         <result column="file_id" property="fileId" />
         <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="owner_type" property="ownerType" />
@@ -14,12 +15,12 @@
         <result column="field_code" property="fieldCode" />
         <result column="reference_type" property="referenceType" />
         <result column="created_by_account_id" property="createdByAccountId" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, file_id, context_type, system_id, tenant_id, owner_type, owner_id, field_code, reference_type, created_by_account_id, created_at
+        id, file_id, context_type, platform_id, system_id, tenant_id, owner_type, owner_id, field_code, reference_type, created_by_account_id, create_time
     </sql>
 
 </mapper>

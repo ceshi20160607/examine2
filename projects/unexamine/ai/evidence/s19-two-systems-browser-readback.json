@@ -1,0 +1,16 @@
+{
+  "step": "S19.1",
+  "systems": [
+    {
+      "name": "发布验收业务甲",
+      "id": 1
+    },
+    {
+      "name": "发布验收业务乙",
+      "id": 2
+    }
+  ],
+  "browser": "Edge",
+  "frontend": "http://127.0.0.1:15180",
+  "result": "Administrator login, two create-system modal submissions, admin entry and both system cards passed"
+}

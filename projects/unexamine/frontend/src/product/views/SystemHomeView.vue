@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { message } from 'ant-design-vue'
 import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router'
 import SystemShell from '../components/SystemShell.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductState from '../components/ProductState.vue'
-import { clearSession, systemContext, systemTokens } from '../session'
+import { clearSession, platformTokens, systemContext, systemTokens } from '../session'
+import { api, ApiError } from '../api'
+import { establishTenantSession } from '../system-entry'
 import RuntimeWorkspaceView from './RuntimeWorkspaceView.vue'
 import FlowRuntimeView from './FlowRuntimeView.vue'
 import WorkHubView from './WorkHubView.vue'
@@ -13,17 +16,22 @@ import MessageWorkspaceView from './MessageWorkspaceView.vue'
 import FileWorkspaceView from './FileWorkspaceView.vue'
 import AiWorkspaceView from './AiWorkspaceView.vue'
 import WorkspaceHomeView from './WorkspaceHomeView.vue'
+import ModuleDashboardView from './ModuleDashboardView.vue'
+import PersonalDashboardView from './PersonalDashboardView.vue'
 import KpiWorkspaceView from './KpiWorkspaceView.vue'
 import MyApplicationsView from './MyApplicationsView.vue'
-import { allowsPermission, hasResourceAccess, hasRuntimeModuleAccess, hasWorkConfigurationAccess, hasWorkRuntimeAccess } from '../permissions'
+import { allowsPermission, hasModuleShareManagementAccess, hasResourceAccess, hasRuntimeModuleAccess, hasWorkConfigurationAccess, hasWorkRuntimeAccess } from '../permissions'
 import type { CommandCenterItem } from '../types'
 
 const router = useRouter()
 const route = useRoute()
 const initialWorkspace = String(route.query.workspace || '')
-const workspaceKeys = new Set(['runtime', 'flow', 'applications', 'tasks', 'todos', 'messages', 'files', 'ai', 'kpi'])
+const workspaceKeys = new Set(['runtime', 'module-home', 'personal', 'flow', 'applications', 'tasks', 'todos', 'messages', 'files', 'ai', 'kpi'])
 const active = ref(initialWorkspace || 'home')
 const runtimeRefreshKey = ref(0)
+const accessibleTenants = ref<Array<{ id: number; name: string; main: boolean }>>([])
+const tenantSwitching = ref(false)
+const tenantSwitchable = computed(() => Boolean(systemContext.value?.tenantSwitchContext?.tenantSwitchable))
 const runtimeWorkspace = ref<{ executeCommand: (command: CommandCenterItem) => Promise<void> }>()
 const shellKey = computed(() => systemContext.value?.contextRevision ?? `${systemContext.value?.systemId}:${systemContext.value?.tenantId}`)
 const showRuntime = computed(() => hasRuntimeModuleAccess(systemContext.value?.permissions))
@@ -40,22 +48,56 @@ const initialModuleCode = computed(() => String(route.query.module || ''))
 const flowTarget = computed<{ taskId?: number; instanceId?: number }>(() => route.query.workspace === 'flow'
   ? { taskId: targetId(route.query.taskId), instanceId: targetId(route.query.instanceId) } : {})
 const showConfig = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'MODULE', 'MANAGE'))
+const showShareSettings = computed(() => hasModuleShareManagementAccess(systemContext.value?.permissions))
 const showAudit = computed(() => allowsPermission(systemContext.value?.permissions, 'AUDIT', 'EVENT', 'VIEW'))
 const showSystemSettings = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'SYSTEM', 'MANAGE'))
-const showAdmin = computed(() => showConfig.value || showAudit.value || showSystemSettings.value
+const showAdmin = computed(() => showConfig.value || showShareSettings.value || showAudit.value || showSystemSettings.value
   || allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'DESIGN')
   || allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'PUBLISH')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'MANAGE')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'MANAGE')
-  || allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'MANAGE')
-  || allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'PUBLISH')
   || allowsPermission(systemContext.value?.permissions, 'MESSAGE', 'SYSTEM', 'MANAGE')
   || allowsPermission(systemContext.value?.permissions, 'MESSAGE', '*', 'MANAGE')
   || hasWorkConfigurationAccess(systemContext.value?.permissions, 'SYSTEM'))
 const unavailableTitle = computed(() => workspaceKeys.has(active.value) ? '当前身份不能打开这个工作区' : '这个工作区不存在或已下线')
+
+/** 租户选项来自当前账号的有效成员映射，不能使用后台的全部租户目录。 */
+async function loadAccessibleTenants() {
+  const systemId = systemContext.value?.systemId
+  const token = platformTokens.value?.accessToken
+  if (!tenantSwitchable.value || !systemId || !token) { accessibleTenants.value = []; return }
+  try {
+    const result = await api<Array<{ id: number; name: string; main: boolean }>>(
+      `/api/systems/${systemId}/tenants/access`, {}, token)
+    if (systemContext.value?.systemId === systemId && tenantSwitchable.value) accessibleTenants.value = result
+  } catch (reason) {
+    accessibleTenants.value = []
+    message.error(reason instanceof ApiError ? reason.message : '可进入的租户读取失败')
+  }
+}
+
+/** 切换后重新挂载业务工作区，使模块目录和数据都按新租户权限读取。 */
+async function switchTenant(tenantId: number) {
+  const systemId = systemContext.value?.systemId
+  if (!systemId || tenantSwitching.value || tenantId === systemContext.value?.tenantId
+    || !accessibleTenants.value.some((tenant) => tenant.id === tenantId)) return
+  tenantSwitching.value = true
+  try {
+    await establishTenantSession(systemId, tenantId, 'MULTI')
+    runtimeRefreshKey.value += 1
+    active.value = 'runtime'
+    await router.replace({ path: `/systems/${systemId}`, query: { workspace: 'runtime' } })
+    await loadAccessibleTenants()
+    message.success('已切换租户，业务模块已按当前权限重新加载')
+  } catch (reason) {
+    message.error(reason instanceof ApiError ? reason.message : reason instanceof Error ? reason.message : '租户切换失败')
+  } finally { tenantSwitching.value = false }
+}
+
+watch(() => [systemContext.value?.systemId, tenantSwitchable.value], () => { void loadAccessibleTenants() }, { immediate: true })
 
 async function openAdmin(section: string) {
   await router.push({ path: `/systems/${systemContext.value?.systemId}/admin`, query: { section } })
@@ -98,8 +140,9 @@ function openFlowTarget(target: { taskId?: number; instanceId?: number }) {
   void router.push({ path: route.path, query })
 }
 
-function openWorkTarget() {
-  navigate('tasks')
+function openWorkTarget(target: { taskId: number }) {
+  // 待办已校验当前任务权限；保留目标标识，直接打开任务详情而非只进入任务列表。
+  void router.push({ path: route.path, query: { workspace: 'tasks', taskId: String(target.taskId) } })
 }
 
 function openMessageTarget(target: { route: string; targetType: string; targetId: string }) {
@@ -140,7 +183,7 @@ if (!systemTokens.value?.accessToken || !systemContext.value?.systemId) {
     :key="shellKey"
     :system-name="systemContext?.systemName"
     :tenant-name="systemContext?.tenantName"
-    :active-key="active"
+    :active-key="active === 'module-home' ? 'runtime' : active"
     :show-runtime="showRuntime"
     :show-flow="showFlow"
     :show-applications="showApplications"
@@ -150,13 +193,19 @@ if (!systemTokens.value?.accessToken || !systemContext.value?.systemId) {
     :show-files="showFiles"
     :show-ai="showAi"
     :show-admin="showAdmin"
+    :tenant-switchable="tenantSwitchable"
+    :tenant-options="accessibleTenants"
+    :tenant-switching="tenantSwitching"
     @navigate="navigate"
     @command="executeCommand"
+    @switch-tenant="switchTenant"
   >
     <template v-if="active === 'home'">
       <WorkspaceHomeView context="system" />
     </template>
-    <RuntimeWorkspaceView v-else-if="active === 'runtime' && showRuntime" ref="runtimeWorkspace" :key="`${runtimeRefreshKey}:${initialModuleCode}`" :refresh-key="runtimeRefreshKey" :initial-module-code="initialModuleCode" />
+    <PersonalDashboardView v-else-if="active === 'personal'" />
+    <ModuleDashboardView v-else-if="active === 'module-home' && showRuntime" />
+    <RuntimeWorkspaceView v-else-if="active === 'runtime' && showRuntime" ref="runtimeWorkspace" :key="`${shellKey}:${runtimeRefreshKey}:${initialModuleCode}`" :refresh-key="runtimeRefreshKey" :initial-module-code="initialModuleCode" />
     <FlowRuntimeView v-else-if="active === 'flow' && showFlow" context="system" :initial-task-id="flowTarget.taskId" :initial-instance-id="flowTarget.instanceId" />
     <MyApplicationsView v-else-if="active === 'applications' && showApplications" />
     <WorkHubView v-else-if="active === 'tasks' && showTasks" context="system" />

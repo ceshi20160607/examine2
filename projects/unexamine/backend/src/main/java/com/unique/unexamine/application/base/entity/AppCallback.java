@@ -10,48 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用事件回调配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_callback")
+@TableName("un_app_callback")
 public class AppCallback {
 
+    /**
+     * 回调主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 回调业务类型
+     */
     @TableField("callback_type")
     private String callbackType;
 
+    /**
+     * 接收回调的HTTPS地址
+     */
     @TableField("url")
     private String url;
 
+    /**
+     * 订阅的业务事件编码列表
+     */
     @TableField("event_codes_json")
     private String eventCodesJson;
 
+    /**
+     * 回调签名密钥安全引用
+     */
     @TableField("signing_secret_ref")
     private String signingSecretRef;
 
+    /**
+     * 单次回调超时毫秒数
+     */
     @TableField("timeout_millis")
     private Integer timeoutMillis;
 
+    /**
+     * 最大投递次数
+     */
     @TableField("max_attempts")
     private Integer maxAttempts;
 
+    /**
+     * 回调启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -128,20 +164,20 @@ public class AppCallback {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -164,8 +200,8 @@ public class AppCallback {
             ", timeoutMillis = " + timeoutMillis +
             ", maxAttempts = " + maxAttempts +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/** 系统访问申请；createTime 和 decideTime 对应提交与审批决定。 */
 public record AccessRequestView(
         Long id,
         Long systemId,
@@ -23,7 +24,7 @@ public record AccessRequestView(
         Map<String, Object> approvedDataScope,
         String requestTraceId,
         String decisionTraceId,
-        LocalDateTime createdAt,
-        LocalDateTime decidedAt,
+        LocalDateTime createTime,
+        LocalDateTime decideTime,
         Integer version) {
 }

@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "restartReadback": true,
+  "migrationVersion": 22,
+  "compatibility": {
+    "modules": 30,
+    "templates": 33
+  },
+  "legacyModule66ProjectedPrint": true,
+  "module67Retired": true,
+  "module67JobId": 133,
+  "module67PdfSha256": "9d8663bd4af7b9fe2d5f8471dd9065a10d7ef8b4dc5394ec3bd093a41d39578c"
+}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DeleteOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import { CameraOutlined, DeleteOutlined, EyeOutlined, UploadOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { api } from '../api'
@@ -121,10 +121,16 @@ onBeforeUnmount(revokeThumbnails)
         <a-button type="text" danger size="small" @click="remove(file)"><DeleteOutlined />移除</a-button>
       </article>
     </div>
-    <label v-if="ids.length < maximum" class="ant-btn ant-btn-default" :class="{ disabled: uploading }">
-      <UploadOutlined />{{ uploading ? '正在上传' : (multiple ? '选择文件' : '选择文件') }}
-      <input class="visually-hidden" type="file" :accept="accept" :multiple="multiple" :disabled="uploading" @change="choose" />
-    </label>
+    <div v-if="ids.length < maximum" class="runtime-attachment-input__choices">
+      <label class="ant-btn ant-btn-default" :class="{ disabled: uploading }">
+        <UploadOutlined />{{ uploading ? '正在上传' : '选择文件' }}
+        <input class="visually-hidden" type="file" :accept="accept" :multiple="multiple" :disabled="uploading" @change="choose" />
+      </label>
+      <label class="ant-btn ant-btn-default" :class="{ disabled: uploading }">
+        <CameraOutlined />拍照上传
+        <input class="visually-hidden" type="file" accept="image/*" capture="environment" :disabled="uploading" @change="choose" />
+      </label>
+    </div>
     <a-progress v-if="uploading" :percent="progress" size="small" status="active" />
     <small class="runtime-attachment-input__hint">受控{{ multiple ? `多文件（最多 ${maximum} 个）` : '单文件' }}上传 · 单个不超过 {{ maximumSizeMb }} MB · {{ policy?.backendName || '托管存储' }}<template v-if="policy"> · 剩余 {{ (policy.availableBytes / 1024 / 1024 / 1024).toFixed(2) }} GB</template></small>
     <a-alert v-if="error" type="error" show-icon :message="error" />
@@ -133,6 +139,7 @@ onBeforeUnmount(revokeThumbnails)
 
 <style scoped>
 .runtime-attachment-input { display:grid; gap:8px; }
+.runtime-attachment-input__choices { display:flex; gap:8px; flex-wrap:wrap; }
 .runtime-attachment-input__files { display:grid; gap:8px; }
 .runtime-attachment-input__files article { display:flex; align-items:center; gap:8px; min-width:0; padding:8px; border:1px solid var(--app-border,#e8e8e8); border-radius:8px; }
 .runtime-attachment-input__files img { width:48px; height:48px; object-fit:cover; border-radius:6px; }

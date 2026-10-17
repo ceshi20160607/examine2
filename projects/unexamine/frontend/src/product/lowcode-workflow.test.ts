@@ -6,11 +6,12 @@ import { describe, expect, it } from 'vitest'
 const productRoot = fileURLToPath(new URL('.', import.meta.url))
 const fieldProperties = readFileSync(`${productRoot}/components/ModuleFieldProperties.vue`, 'utf8')
 const moduleConfiguration = readFileSync(`${productRoot}/views/ModuleConfigurationView.vue`, 'utf8')
+const moduleNavigation = readFileSync(`${productRoot}/module-navigation.ts`, 'utf8')
 
 describe('low-code module lifecycle contract', () => {
   it('uses the five requirement-owned tasks as the only first-level workflow', () => {
-    expect(moduleConfiguration).toContain("type ModuleConfigTask = 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATION'")
-    expect(moduleConfiguration).not.toContain("| 'PUBLISH'")
+    expect(moduleNavigation).toContain("type ModuleTask = 'INFO' | 'FIELDS' | 'ACTIONS' | 'FLOW' | 'APPLICATION'")
+    expect(moduleNavigation).not.toContain("| 'PUBLISH'")
     ;['模块信息', '模块字段', '模块动作', '模块 Flow', '模块应用'].forEach(label => {
       expect(moduleConfiguration).toContain(`<span>${label}<small>`)
     })

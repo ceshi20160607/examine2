@@ -1,0 +1,48 @@
+{
+  "step": "S02.6",
+  "status": "verified_contribution",
+  "integration_gate": "G2_ACTION_FLOW_WORK",
+  "source_rows": ["R0855", "R1099", "R1266", "R1291", "R2841"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/components/BusinessRecordPicker.vue",
+    "projects/unexamine/frontend/src/product/components/WorkTaskDetailPanel.vue",
+    "projects/unexamine/frontend/src/product/views/SystemHomeView.vue"
+  ],
+  "checks_actual_results": [
+    "真实页面在已发布商机记录 7 发表主评论 1 和回复 2；刷新后作者与父子关系仍显示。数据库两行均归属系统 1、主租户 1、记录 7，回复 parent_comment_id=1；审计 167/168 分别为 BUSINESS_RECORD_COMMENT_ADDED/REPLIED SUCCESS。",
+    "系统普通任务 1 通过业务记录选择器关联销售商机记录 7；任务详情显示当前有权业务标题并可直达该记录。任务由 TODO 改为 IN_PROGRESS，版本 1、历史 CREATED/STATUS_CHANGED 两条；待办 3 打开任务详情，消息 5/6 的入口均能打开同一任务。审计 170/177 均指向业务记录 7。",
+    "修复业务记录选择器切换模块后记录选择失效、任务详情缺少业务跳转、系统首页待办跳转丢失 taskId。任务列表和历史的关联业务标识与标题按当前记录权限重查；消息和待办不再向任务参与人直接泄露业务标题，已有消息和待办在读出时同步裁剪。",
+    "普通成员直达商机记录 7 时记录详情接口返回 HTTP 403，页面关闭详情；评论读写调用相同的详情权限入口。管理员切换到华南团队后任务、待办、消息均不显示主租户任务，切回主租户恢复。",
+    "Java 21 后端打包、前端 vue-tsc 与 Vite 构建、git diff --check 均通过。定向 Testcontainers HTTP 测试 RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary 及 FlowAndWorkManagementHttpTest#projectTaskLifecyclePersistsGroupsMembersHistoryAndRejectsInvalidChanges 各运行 1 个、失败 0、错误 0；任务旧断言已按现行 person 结构和提交/验收完成流程调整。Windows 测试进程使用 C:\\Temp 避开本机默认临时目录的 Selector 本地连接故障。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s02-browser-record-comment-reply.png",
+    "projects/unexamine/ai/evidence/s02-browser-task-todo-opened.png",
+    "projects/unexamine/ai/evidence/s02-browser-task-todo-sanitized.png",
+    "projects/unexamine/ai/evidence/s02-browser-task-status-message.png",
+    "projects/unexamine/ai/evidence/s02-browser-task-message-opened.png",
+    "projects/unexamine/ai/evidence/s02-browser-worker-record-comment-denied.png",
+    "projects/unexamine/ai/evidence/s02-browser-other-tenant-messages-empty.png",
+    "projects/unexamine/backend/target/surefire-reports/com.unique.unexamine.runtimedata.manage.RuntimeDataHttpTest.txt",
+    "projects/unexamine/backend/target/surefire-reports/com.unique.unexamine.flow.manage.FlowAndWorkManagementHttpTest.txt"
+  ],
+  "permission_or_failure_result": "跨系统评论 GET/POST 在定向 HTTP 测试中被拒，未产生额外评论；普通成员对非本人负责商机的详情为 HTTP 403。另一租户看不到主租户的关联任务、待办和消息；任务通知只授予打开任务的入口，关联业务仍单独执行当前字段与数据权限。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/work/manage/WorkManagementService.java", "sha256": "3cf9dc908f5b20b8bd745f429e1f1ed8b263d172a998edc2e7e068a8df09fa7e"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/TodoService.java", "sha256": "0722982bd166cad62890619edd5c082a5e3321fc601923383333af80bd503203"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java", "sha256": "e336c7d9b1c33d312c9991bdac0478bd9d51a1c8f4cdd87c2a55e858815f269b"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordCommentService.java", "sha256": "3e685a0fee25e8ad29a52ae1dbb9ef74fc56d2654752d471986b374432850d0c"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java", "sha256": "907029884f6689368cbb7f2b882e49d9faebeb86061bcbbf7de188f8a4220a12"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java", "sha256": "58bfcffe863796d739745af307bff2ecad6a6e8766e4c3ad3e6bc527fdacc4b3"},
+    {"path": "projects/unexamine/frontend/src/product/components/BusinessRecordPicker.vue", "sha256": "b41d138e7898f1488ef45a56b37531be49a535828c5eb5b6e9888041f234cd6d"},
+    {"path": "projects/unexamine/frontend/src/product/components/WorkTaskDetailPanel.vue", "sha256": "03e0ced307011d65d353462889bbeaa412e7ad7e106290f0eb267a5f538e6222"},
+    {"path": "projects/unexamine/frontend/src/product/views/SystemHomeView.vue", "sha256": "bdb852831e86e0e6272d52e62bd8175de73cf2550bbf0f1de690e1c8e8e0f147"}
+  ],
+  "remaining": "S02.6 组合贡献已验证；G2 尚需包级持久化重开、权限撤销后的动作/Flow/转化/任务回归和最终证据汇总。G3 应用、仪表盘、Agent 与整站验收仍未完成。",
+  "next_step": "S02.7"
+}

@@ -18,17 +18,17 @@
         <result column="last_test_input_json" property="lastTestInputJson" />
         <result column="last_test_result_json" property="lastTestResultJson" />
         <result column="last_tested_by_member_id" property="lastTestedByMemberId" />
-        <result column="last_tested_at" property="lastTestedAt" />
+        <result column="last_tested_time" property="lastTestedTime" />
         <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, `code`, `name`, rule_type, trigger_event, expression_text, message_template, test_status, last_test_input_json, last_test_result_json, last_tested_by_member_id, last_tested_at, sort_order, `status`, created_at, updated_at, version
+        id, system_id, owner_tenant_id, module_id, `code`, `name`, rule_type, trigger_event, expression_text, message_template, test_status, last_test_input_json, last_test_result_json, last_tested_by_member_id, last_tested_time, sort_order, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

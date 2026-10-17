@@ -37,7 +37,8 @@ public record RuntimeRecordView(
         SystemPeopleDirectoryModels.Labels organizationLabels,
         Map<String, RuntimeFieldPresentation> fieldPresentation,
         List<RuntimeRecordAction> actions,
-        Map<String, JsonNode> fields) {
+        Map<String, JsonNode> fields,
+        List<RuntimeRecordParticipant> participantMembers) {
     /** 重放时重新裁剪字段、名称和展示文本，不能沿用旧权限下的描述。 */
     public RuntimeRecordView withFields(Map<String, JsonNode> visibleFields, SystemPeopleDirectoryModels.Labels visibleLabels,
                                         Map<String, RuntimeFieldPresentation> visiblePresentation,
@@ -46,6 +47,6 @@ public record RuntimeRecordView(
                 createdByMemberId, updatedByMemberId, createdConfigVersionId, updatedConfigVersionId,
                 participantMemberIds, archived, archivedAt, deleted, deletedAt, version, createdAt, updatedAt,
                 dataTenantId, dataTenantName, ownedByCurrentTenant, shared, shareId, shareStatus, sharedActions,
-                shareExpiresAt, visibleLabels, visiblePresentation, visibleActions, visibleFields);
+                shareExpiresAt, visibleLabels, visiblePresentation, visibleActions, visibleFields, participantMembers);
     }
 }

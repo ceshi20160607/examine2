@@ -1,0 +1,25 @@
+{
+  "step": "S19.8",
+  "candidate": "0.1.0-s19.8-dev1",
+  "sourceDatabase": "unexamine_s19_direct",
+  "restoredDatabase": "unexamine_drill_s19_direct_v3",
+  "sourceFlywayVersion": 23,
+  "restoredFlywayVersion": 23,
+  "sourceTableCount": 191,
+  "restoredTableCount": 191,
+  "sourceSystemCount": 1,
+  "restoredSystemCount": 1,
+  "sourceMarkerSha256": "1b4f7aaa879a5317cd59a50d0a6a4d9af27946caa5a2e605b082d6462c2d0bdd",
+  "restoredMarkerSha256": "1b4f7aaa879a5317cd59a50d0a6a4d9af27946caa5a2e605b082d6462c2d0bdd",
+  "backupItemsVerified": true,
+  "secretMaterialIncluded": false,
+  "secretRestoreStrategy": "ROTATE_ON_RESTORE",
+  "drillStatus": "PASSED",
+  "drillDatabaseVersion": 23,
+  "drillTableCount": 191,
+  "currentRelease": "0.1.0-s19.8-dev1",
+  "dockerContainers": [
+    "mysql",
+    "redis"
+  ]
+}

@@ -44,9 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -82,6 +80,7 @@ public class AiConfirmedWriteService {
     private final PermissionChecker permissionChecker;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final PlatformAiConfigurationService platformConfigurationService;
+    private final AiModelGateway modelGateway;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
 
@@ -101,6 +100,7 @@ public class AiConfirmedWriteService {
             PermissionChecker permissionChecker,
             ChannelFieldPolicyResolver fieldPolicyResolver,
             PlatformAiConfigurationService platformConfigurationService,
+            AiModelGateway modelGateway,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
         this.agentService = agentService;
@@ -118,6 +118,7 @@ public class AiConfirmedWriteService {
         this.permissionChecker = permissionChecker;
         this.fieldPolicyResolver = fieldPolicyResolver;
         this.platformConfigurationService = platformConfigurationService;
+        this.modelGateway = modelGateway;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
     }
@@ -189,9 +190,43 @@ public class AiConfirmedWriteService {
         }
         ModelAvailability availability = refusal == null ? modelAvailability(context, published.snapshot())
                 : new ModelAvailability(false, "请求未通过授权边界", "NONE");
-        CandidateDraft draft = refusal == null && availability.available()
-                ? recognizeDraft(input.inputText(), definitions)
-                : manualDraft(input.inputText(), definitions);
+        CandidateDraft draft = manualDraft(input.inputText(), definitions);
+        if (refusal == null && availability.available()) {
+            try {
+                List<FieldDefinition> promptDefinitions = definitions;
+                StringBuilder prompt = new StringBuilder("请从输入提取业务字段，只输出每行“字段编码: 值”；标题使用“标题: 值”。"
+                        + "不要输出未列出的字段，不要猜测缺失值。\n允许字段：");
+                promptDefinitions.stream().filter(field -> field.parentFieldId() == null && field.writable())
+                        .forEach(field -> {
+                            prompt.append("\n").append(field.code()).append("（").append(field.label())
+                                    .append("，").append(field.fieldType()).append("）");
+                            if ("SUBTABLE".equals(field.fieldType())) {
+                                prompt.append("；值为单行 JSON 数组，如 [{\"rowKey\":\"1\",\"fields\":{...}}]；"
+                                        + "仅允许子列：");
+                                promptDefinitions.stream().filter(child -> Objects.equals(child.parentFieldId(), field.id())
+                                                && child.writable())
+                                        .forEach(child -> prompt.append(child.code()).append("（")
+                                                .append(child.label()).append("，").append(child.fieldType())
+                                                .append("）；"));
+                            }
+                        });
+                prompt.append("\n用户输入：\n").append(input.inputText());
+                AiModelGateway.Completion completion = modelGateway.complete(context,
+                        published.snapshot().path("modelBinding").path("modelGrantId").asLong(),
+                        published.snapshot().path("agent").path("systemPrompt").asText(),
+                        prompt.toString(), true,
+                        published.snapshot().path("contextPolicy").path("allowExternalData").asBoolean(false));
+                draft = recognizeDraft(completion.text(), definitions);
+                availability = availability.withUsage(completion);
+                if (draft.fields().stream().noneMatch(AiConfirmedWriteModels.FieldCandidate::recognized)) {
+                    availability = new ModelAvailability(false, "模型未提取到可确认字段", "MODEL_COMPLETION",
+                            completion.promptTokens(), completion.completionTokens());
+                    draft = manualDraft(input.inputText(), definitions);
+                }
+            } catch (DomainException failure) {
+                availability = new ModelAvailability(false, failure.getMessage(), "UNAVAILABLE");
+            }
+        }
         if (refusal == null && sourceContext != null) {
             draft = bindSourceRecord(context, draft, definitions, sourceContext);
         }
@@ -248,14 +283,20 @@ public class AiConfirmedWriteService {
         AiPendingWrite pending = new AiPendingWrite();
         pending.setExecutionId(execution.getId());
         pending.setStepId(step.getId());
-        pending.setTargetType("BUSINESS_RECORD_CREATE");
+        pending.setContextType("SYSTEM");
+        pending.setPlatformId(context.platformId());
+        pending.setSystemId(context.systemId());
+        pending.setTenantId(context.tenantId());
+        pending.setTargetType("BIZ_RECORD");
         pending.setTargetId(moduleCode);
+        // 拒绝的输入没有可访问模块，0 仅表示未解析目标；拒绝状态不可确认。
+        pending.setTargetModuleId(configuration == null ? 0L : configuration.moduleId());
         pending.setProposedPayloadJson(writeJson(proposed));
         pending.setPreviewJson(writeJson(preview));
         pending.setStatus(status);
         pending.setErrorMessage(errorCode == null ? null : message);
-        pending.setCreatedAt(now);
-        pending.setUpdatedAt(now);
+        pending.setCreateTime(now);
+        pending.setUpdateTime(now);
         pending.setVersion(0);
         pendingWriteService.insert(pending);
 
@@ -288,13 +329,20 @@ public class AiConfirmedWriteService {
         AiExecution execution = executionService.selectById(pending.getExecutionId());
         AiConversation conversation = conversationService.selectById(execution.getConversationId());
         AiAgentVersion version = versionService.selectById(execution.getAgentVersionId());
+        AiSystemModelGrant currentGrant = grantService.selectById(version.getModelGrantId());
+        if (currentGrant == null || !context.systemId().equals(currentGrant.getSystemId())
+                || !"ACTIVE".equals(currentGrant.getStatus())) {
+            throw new DomainException("AI_MODEL_NOT_GRANTED", "模型授权已撤销，候选不能继续确认",
+                    HttpStatus.CONFLICT);
+        }
         JsonNode snapshot = readTree(version.getSnapshotJson());
         String moduleCode = pending.getTargetId();
         WriteTool tool = writeTools(snapshot).stream()
                 .filter(item -> moduleCode.equals(item.moduleCode()) && "CREATE".equals(item.actionCode()))
                 .findFirst().orElseThrow(() -> new DomainException("AI_WRITE_TOOL_REVOKED",
                         "固定 Agent 版本没有可确认的写入工具", HttpStatus.CONFLICT));
-        enforceWriteAuthorization(context, moduleCode, tool, input.fields().keySet(), traceId);
+        enforceWriteAuthorization(context, moduleCode, tool, input.fields(), traceId);
+        requireLowConfidenceReview(pending, input);
         SourceRecordContext sourceContext = requireSourceRecordContext(context, pending, traceId);
 
         CreateRuntimeRecordRequest createRequest = new CreateRuntimeRecordRequest(
@@ -308,7 +356,7 @@ public class AiConfirmedWriteService {
             pending.setResultJson(writeJson(Map.of(
                     "errorCode", exception.code(), "message", exception.getMessage(),
                     "submittedPayload", confirmedPayload(input), "businessWritten", false)));
-            pending.setUpdatedAt(LocalDateTime.now());
+            pending.setUpdateTime(LocalDateTime.now());
             pendingWriteService.updateById(pending);
             auditRecorder.recordWithPermissionSnapshot(traceId, context.accountId(), context.systemId(),
                     context.tenantId(), context.memberId(), "AI_WRITE_VALIDATION_FAILED", "AI_PENDING_WRITE",
@@ -347,15 +395,16 @@ public class AiConfirmedWriteService {
         result.put("confirmedAt", confirmedAt);
         pending.setStatus("CONFIRMED");
         pending.setConfirmedByAccountId(context.accountId());
-        pending.setConfirmedAt(confirmedAt);
+        pending.setConfirmedByMemberId(context.memberId());
+        pending.setConfirmTime(confirmedAt);
         pending.setResultJson(writeJson(result));
         pending.setErrorMessage(null);
-        pending.setUpdatedAt(confirmedAt);
+        pending.setUpdateTime(confirmedAt);
         pendingWriteService.updateById(pending);
 
         confirmationStep(execution, tool, pending, input, record, recordPath, confirmedAt);
         execution.setStatus("SUCCEEDED");
-        execution.setFinishedAt(confirmedAt);
+        execution.setFinishTime(confirmedAt);
         execution.setErrorCode(null);
         execution.setErrorMessage(null);
         execution.setAuthorizationSnapshotJson(writeJson(authorizationSnapshot(context, tool, moduleCode)));
@@ -426,12 +475,12 @@ public class AiConfirmedWriteService {
         AiExecution execution = executionService.selectById(pending.getExecutionId());
         AiConversation conversation = conversationService.selectById(execution.getConversationId());
         pending.setStatus("CANCELLED");
-        pending.setUpdatedAt(LocalDateTime.now());
+        pending.setUpdateTime(LocalDateTime.now());
         pending.setResultJson(writeJson(Map.of("businessWritten", false, "cancelledByAccountId", context.accountId())));
         pending.setErrorMessage(null);
         pendingWriteService.updateById(pending);
         execution.setStatus("CANCELLED");
-        execution.setFinishedAt(LocalDateTime.now());
+        execution.setFinishTime(LocalDateTime.now());
         execution.setErrorCode("AI_WRITE_CANCELLED");
         execution.setErrorMessage("用户取消确认，未写入业务");
         executionService.updateById(execution);
@@ -455,7 +504,7 @@ public class AiConfirmedWriteService {
                 "outcome", outcome, "pendingWriteId", pending.getId(), "businessWritten", false,
                 "recognizedFieldCount", definitions.size(), "confirmationRequired", true)));
         step.setStatus("REFUSED".equals(outcome) ? "REFUSED" : "SUCCEEDED");
-        step.setFinishedAt(now);
+        step.setFinishTime(now);
         step.setErrorMessage(errorCode == null ? null : responseMessage);
         stepService.updateById(step);
         execution.setStatus("REFUSED".equals(outcome) ? "REFUSED" : "WAITING_CONFIRMATION");
@@ -463,10 +512,16 @@ public class AiConfirmedWriteService {
         execution.setErrorCode(errorCode);
         execution.setErrorMessage(errorCode == null ? null : responseMessage);
         execution.setAuthorizationSnapshotJson(writeJson(authorizationSnapshot(context, tool, moduleCode)));
-        if ("REFUSED".equals(outcome)) execution.setFinishedAt(now);
+        if ("REFUSED".equals(outcome)) execution.setFinishTime(now);
         executionService.updateById(execution);
         AiConfirmedWriteModels.CandidateView view = candidateView(pending);
-        message(execution.getConversationId(), "ASSISTANT", responseMessage, view, errorCode);
+        AiMessage response = message(execution.getConversationId(), "ASSISTANT", responseMessage, view, errorCode);
+        if (availability.promptTokens() != null) {
+            response.setModelUsageJson(writeJson(Map.of("executionMode", availability.mode(),
+                    "promptTokens", availability.promptTokens(),
+                    "completionTokens", availability.completionTokens(), "modelGenerated", true)));
+            messageService.updateById(response);
+        }
         String event = "READY".equals(outcome) ? "AI_WRITE_CANDIDATE_READY"
                 : "DEGRADED".equals(outcome) ? "AI_WRITE_CANDIDATE_DEGRADED" : "AI_WRITE_CANDIDATE_REFUSED";
         auditRecorder.recordWithPermissionSnapshot(traceId, context.accountId(), context.systemId(),
@@ -514,13 +569,13 @@ public class AiConfirmedWriteService {
                 string(preview.get("sourceType")), stringOrNull(preview.get("sourceReference")),
                 string(preview.get("inputText")), string(proposed.get("title")),
                 stringOrNull(proposed.get("recordNumber")), string(proposed.get("status")), fields, unknown,
-                longValue(result.get("recordId")), stringOrNull(result.get("recordPath")), pending.getConfirmedAt(),
-                pending.getVersion(), pending.getCreatedAt(), pending.getUpdatedAt());
+                longValue(result.get("recordId")), stringOrNull(result.get("recordPath")), pending.getConfirmTime(),
+                pending.getVersion(), pending.getCreateTime(), pending.getUpdateTime());
     }
 
     private CandidateDraft recognizeDraft(String input, List<FieldDefinition> definitions) {
         Map<String, FieldDefinition> aliases = new LinkedHashMap<>();
-        definitions.forEach(field -> {
+        definitions.stream().filter(field -> field.parentFieldId() == null).forEach(field -> {
             aliases.put(normalizeKey(field.code()), field);
             aliases.put(normalizeKey(field.label()), field);
         });
@@ -549,30 +604,52 @@ public class AiConfirmedWriteService {
                 unknown.add(segment);
                 continue;
             }
-            values.put(field.code(), typedValue(field.fieldType(), value));
-            confidences.put(field.code(), normalizeKey(field.code()).equals(normalized) ? 0.99 : 0.95);
+            JsonNode typed = typedValue(field.fieldType(), value);
+            if ("SUBTABLE".equals(field.fieldType()) && typed.isArray()) {
+                Set<String> allowedChildren = new LinkedHashSet<>(childFieldCodes(field, definitions));
+                boolean unauthorizedChild = false;
+                for (JsonNode row : typed) {
+                    JsonNode childValues = row.path("fields");
+                    if (!childValues.isObject()) continue;
+                    var childCodes = childValues.fieldNames();
+                    while (childCodes.hasNext()) {
+                        if (!allowedChildren.contains(childCodes.next())) unauthorizedChild = true;
+                    }
+                }
+                if (unauthorizedChild) {
+                    unknown.add(field.label() + "包含未授权的子表列，请人工核对并填写");
+                    continue;
+                }
+            }
+            values.put(field.code(), typed);
+            confidences.put(field.code(), "SUBTABLE".equals(field.fieldType()) ? 0.70
+                    : normalizeKey(field.code()).equals(normalized) ? 0.99 : 0.95);
         }
-        List<AiConfirmedWriteModels.FieldCandidate> fields = definitions.stream().map(field -> {
+        List<AiConfirmedWriteModels.FieldCandidate> fields = definitions.stream()
+                .filter(field -> field.parentFieldId() == null).map(field -> {
             JsonNode value = values.get(field.code());
             boolean recognized = value != null;
             return new AiConfirmedWriteModels.FieldCandidate(field.code(), field.label(), field.fieldType(),
-                    field.required(), field.writable(), value, confidences.getOrDefault(field.code(), 0.0), recognized,
+                    childFieldCodes(field, definitions), field.required(), field.writable(), value,
+                    confidences.getOrDefault(field.code(), 0.0), recognized,
                     !field.writable() ? "当前用户不可写" : field.required() && !recognized ? "必填字段待补充"
                             : recognized ? "请确认识别值" : "未从输入识别，可人工填写");
         }).toList();
         String title = builtIns.get("title");
         if (title == null || title.isBlank()) {
             title = fields.stream().filter(AiConfirmedWriteModels.FieldCandidate::recognized)
-                    .map(item -> item.value().asText()).findFirst().orElse("AI 待确认记录");
+                    .map(item -> item.value().asText()).filter(value -> !value.isBlank())
+                    .findFirst().orElse("AI 待确认记录");
         }
         return new CandidateDraft(title, blankToNull(builtIns.get("recordNumber")),
                 blankToDefault(builtIns.get("status"), "ACTIVE"), fields, unknown);
     }
 
     private CandidateDraft manualDraft(String input, List<FieldDefinition> definitions) {
-        List<AiConfirmedWriteModels.FieldCandidate> fields = definitions.stream().map(field ->
+        List<AiConfirmedWriteModels.FieldCandidate> fields = definitions.stream()
+                .filter(field -> field.parentFieldId() == null).map(field ->
                 new AiConfirmedWriteModels.FieldCandidate(field.code(), field.label(), field.fieldType(),
-                        field.required(), field.writable(), null, 0.0, false,
+                        childFieldCodes(field, definitions), field.required(), field.writable(), null, 0.0, false,
                         field.writable() ? "模型不可用，请人工填写" : "当前用户不可写")).toList();
         return new CandidateDraft("AI 待人工填写记录", null, "ACTIVE", fields,
                 input.isBlank() ? List.of() : List.of(input.strip()));
@@ -589,7 +666,7 @@ public class AiConfirmedWriteService {
             if (definition == null || !definition.writable() || !"REFERENCE".equals(definition.fieldType())
                     || !Objects.equals(sourceModuleId, definition.referenceModuleId())) return field;
             return new AiConfirmedWriteModels.FieldCandidate(field.code(), field.label(), field.fieldType(),
-                    field.required(), true, new LongNode(source.recordId()), 1.0, true,
+                    field.childFieldCodes(), field.required(), true, new LongNode(source.recordId()), 1.0, true,
                     "已自动关联当前业务记录");
         }).toList();
         return new CandidateDraft(draft.title(), draft.recordNumber(), draft.status(), fields, draft.unknownSegments());
@@ -607,13 +684,16 @@ public class AiConfirmedWriteService {
             fields.add(new FieldDefinition(code, field.path("name").asText(code),
                     field.path("fieldType").asText("TEXT"), field.path("required").asBoolean(false),
                     decision != null && decision.writable(),
-                    field.path("referenceModuleId").isNumber() ? field.path("referenceModuleId").longValue() : null));
+                    field.path("referenceModuleId").isNumber() ? field.path("referenceModuleId").longValue() : null,
+                    field.path("id").asLong(),
+                    field.path("parentFieldId").isNumber() ? field.path("parentFieldId").longValue() : null));
         }
         return List.copyOf(fields);
     }
 
     private void enforceWriteAuthorization(
-            AuthenticatedContext context, String moduleCode, WriteTool tool, Set<String> fields, String traceId) {
+            AuthenticatedContext context, String moduleCode, WriteTool tool,
+            Map<String, JsonNode> submitted, String traceId) {
         if (!tool.requiresConfirmation()) {
             throw new DomainException("AI_WRITE_CONFIRMATION_POLICY_INVALID", "写入工具未启用逐次人工确认",
                     HttpStatus.CONFLICT);
@@ -622,6 +702,12 @@ public class AiConfirmedWriteService {
             throw new DomainException("AI_WRITE_SCOPE_DENIED", "当前用户没有目标模块新建权限",
                     HttpStatus.FORBIDDEN);
         }
+        // 子表列也受 Agent 工具和当前用户字段写权限约束，不能只授权父字段后夹带子列。
+        Set<String> fields = new LinkedHashSet<>(submitted.keySet());
+        submitted.values().stream().filter(Objects::nonNull).filter(JsonNode::isArray).forEach(rows -> rows.forEach(row -> {
+            JsonNode values = row.path("fields");
+            if (values.isObject()) values.fieldNames().forEachRemaining(fields::add);
+        }));
         List<String> excessive = fields.stream().filter(field -> !tool.fieldCodes().contains(field)).sorted().toList();
         if (!excessive.isEmpty()) {
             throw new DomainException("AI_WRITE_FIELD_SCOPE_DENIED", "确认字段超出 Agent 写入范围",
@@ -636,6 +722,23 @@ public class AiConfirmedWriteService {
         if (!denied.isEmpty()) {
             throw new DomainException("AI_WRITE_FIELD_SCOPE_DENIED", "当前用户没有确认字段的写权限",
                     HttpStatus.FORBIDDEN, Map.of("fieldCodes", denied));
+        }
+    }
+
+    private void requireLowConfidenceReview(AiPendingWrite pending, AiConfirmedWriteModels.ConfirmRequest input) {
+        Map<String, Object> preview = readMap(pending.getPreviewJson());
+        List<AiConfirmedWriteModels.FieldCandidate> candidates = objectMapper.convertValue(
+                preview.getOrDefault("fields", List.of()), FIELD_LIST_TYPE);
+        Set<String> reviewed = input.reviewedFieldCodes() == null
+                ? Set.of() : new LinkedHashSet<>(input.reviewedFieldCodes());
+        List<String> missing = candidates.stream().filter(field -> field.recognized()
+                        && field.confidence() < 0.80 && !reviewed.contains(field.code())
+                        && Objects.equals(field.value(), input.fields().get(field.code())))
+                .map(AiConfirmedWriteModels.FieldCandidate::code).toList();
+        if (!missing.isEmpty()) {
+            throw new DomainException("AI_WRITE_LOW_CONFIDENCE_REVIEW_REQUIRED",
+                    "低可信度字段需要逐项核对或修改后再确认", HttpStatus.UNPROCESSABLE_ENTITY,
+                    Map.of("fieldCodes", missing));
         }
     }
 
@@ -711,11 +814,14 @@ public class AiConfirmedWriteService {
             AuthenticatedContext context, AiConfirmedWriteModels.RecognizeRequest input,
             PublishedAgent published, String moduleCode, String entryType) {
         AiConversation conversation = new AiConversation();
+        conversation.setContextType("SYSTEM");
+        conversation.setPlatformId(context.platformId());
         conversation.setSystemId(context.systemId());
         conversation.setTenantId(context.tenantId());
         conversation.setAgentId(published.agent().getId());
         conversation.setAgentVersionId(published.version().getId());
         conversation.setAccountId(context.accountId());
+        conversation.setSystemMemberId(context.memberId());
         conversation.setEntryContextJson(writeJson(Map.of(
                 "entryType", entryType, "moduleCode", moduleCode, "sourceType", input.sourceType(),
                 "sourceReference", input.sourceReference() == null ? "" : input.sourceReference(),
@@ -731,12 +837,25 @@ public class AiConfirmedWriteService {
     private AiExecution execution(AiConversation conversation, AiMessage request, AiAgentVersion version) {
         AiExecution execution = new AiExecution();
         execution.setConversationId(conversation.getId());
+        execution.setContextType("SYSTEM");
+        execution.setPlatformId(conversation.getPlatformId());
+        execution.setSystemId(conversation.getSystemId());
+        execution.setTenantId(conversation.getTenantId());
+        execution.setAgentId(conversation.getAgentId());
         execution.setRequestMessageId(request.getId());
         execution.setAgentVersionId(version.getId());
+        execution.setModelId(version.getModelId());
+        execution.setModelConfigVersion(version.getModelConfigVersion());
+        execution.setModelGrantId(version.getModelGrantId());
+        execution.setModelGrantVersionId(version.getModelGrantVersionId());
+        execution.setCredentialRef(version.getCredentialRef());
+        execution.setCredentialVersion(version.getCredentialVersion());
+        execution.setPolicyVersion(version.getPolicyVersion());
         execution.setAuthorizationSnapshotJson("{}");
+        execution.setPolicySnapshotJson(version.getPolicySnapshotJson());
         execution.setStatus("RUNNING");
         execution.setFallbackUsed(false);
-        execution.setStartedAt(LocalDateTime.now());
+        execution.setStartTime(LocalDateTime.now());
         execution.setVersion(0);
         executionService.insert(execution);
         return execution;
@@ -746,16 +865,17 @@ public class AiConfirmedWriteService {
             AiExecution execution, WriteTool tool, AiConfirmedWriteModels.RecognizeRequest input) {
         AiExecutionStep step = new AiExecutionStep();
         step.setExecutionId(execution.getId());
+        step.setAgentId(execution.getAgentId());
         step.setStepNumber(1);
         step.setStepType("STRUCTURED_RECOGNITION");
         step.setToolId(tool == null || tool.toolId() == 0 ? null : tool.toolId());
         step.setInputJson(writeJson(Map.of(
                 "sourceType", input.sourceType(),
                 "sourceReference", input.sourceReference() == null ? "" : input.sourceReference(),
-                "inputText", input.inputText().strip(), "moduleCode", input.moduleCode())));
+                "inputText", modelGateway.maskSensitive(input.inputText().strip()), "moduleCode", input.moduleCode())));
         step.setOutputJson("{}");
         step.setStatus("RUNNING");
-        step.setStartedAt(LocalDateTime.now());
+        step.setStartTime(LocalDateTime.now());
         stepService.insert(step);
         return step;
     }
@@ -766,6 +886,7 @@ public class AiConfirmedWriteService {
             String recordPath, LocalDateTime confirmedAt) {
         AiExecutionStep step = new AiExecutionStep();
         step.setExecutionId(execution.getId());
+        step.setAgentId(execution.getAgentId());
         step.setStepNumber(2);
         step.setStepType("CONFIRMED_WRITE");
         step.setToolId(tool.toolId() == 0 ? null : tool.toolId());
@@ -775,8 +896,8 @@ public class AiConfirmedWriteService {
         step.setOutputJson(writeJson(Map.of(
                 "recordId", record.id(), "recordPath", recordPath, "businessWritten", true)));
         step.setStatus("SUCCEEDED");
-        step.setStartedAt(confirmedAt);
-        step.setFinishedAt(confirmedAt);
+        step.setStartTime(confirmedAt);
+        step.setFinishTime(confirmedAt);
         stepService.insert(step);
     }
 
@@ -786,9 +907,9 @@ public class AiConfirmedWriteService {
         message.setRoleType(role);
         message.setContentText(content);
         message.setStructuredContentJson(structured == null ? null : writeJson(structured));
-        message.setModelUsageJson(writeJson(Map.of("fabricated", false)));
+        message.setModelUsageJson(writeJson(Map.of("modelGenerated", false)));
         message.setErrorCode(errorCode);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreateTime(LocalDateTime.now());
         messageService.insert(message);
         return message;
     }
@@ -806,22 +927,9 @@ public class AiConfirmedWriteService {
         if (!platformConfigurationService.credentialAvailable(model.getCredentialRef())) {
             return new ModelAvailability(false, "模型凭证引用不可解析", "UNAVAILABLE");
         }
-        String endpoint = model.getEndpointUrl();
-        if (endpoint == null || endpoint.isBlank()) {
-            return "LOCAL".equalsIgnoreCase(model.getProvider())
-                    ? new ModelAvailability(true, null, "LOCAL_SECURE_RECOGNITION")
-                    : new ModelAvailability(false, "模型端点未配置", "UNAVAILABLE");
-        }
-        try {
-            URI uri = URI.create(endpoint);
-            int port = uri.getPort() > 0 ? uri.getPort() : "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
-            try (Socket socket = new Socket()) {
-                socket.connect(new InetSocketAddress(uri.getHost(), port), 700);
-            }
-            return new ModelAvailability(true, null, "MODEL_GATEWAY_SECURE_RECOGNITION");
-        } catch (Exception exception) {
-            return new ModelAvailability(false, "模型端点连接失败", "UNAVAILABLE");
-        }
+        return model.getEndpointUrl() == null || model.getEndpointUrl().isBlank()
+                ? new ModelAvailability(false, "模型端点未配置", "UNAVAILABLE")
+                : new ModelAvailability(true, null, "MODEL_COMPLETION");
     }
 
     private Map<String, Object> authorizationSnapshot(
@@ -877,15 +985,25 @@ public class AiConfirmedWriteService {
     private JsonNode typedValue(String fieldType, String value) {
         try {
             return switch (fieldType) {
+                case "SUBTABLE" -> {
+                    JsonNode rows = objectMapper.readTree(value);
+                    yield rows.isArray() ? rows : TextNode.valueOf(value);
+                }
                 case "NUMBER", "DECIMAL" -> new DoubleNode(Double.parseDouble(value));
                 case "INTEGER", "MEMBER", "DEPARTMENT", "RELATION", "CASCADE" ->
                         new LongNode(Long.parseLong(value));
                 case "BOOLEAN" -> BooleanNode.valueOf(Set.of("true", "1", "是", "启用").contains(value.toLowerCase(Locale.ROOT)));
                 default -> TextNode.valueOf(value);
             };
-        } catch (NumberFormatException exception) {
+        } catch (NumberFormatException | JsonProcessingException exception) {
             return TextNode.valueOf(value);
         }
+    }
+
+    private List<String> childFieldCodes(FieldDefinition parent, List<FieldDefinition> definitions) {
+        if (!"SUBTABLE".equals(parent.fieldType())) return List.of();
+        return definitions.stream().filter(child -> Objects.equals(child.parentFieldId(), parent.id())
+                && child.writable()).map(FieldDefinition::code).toList();
     }
 
     private int separator(String segment) {
@@ -979,7 +1097,8 @@ public class AiConfirmedWriteService {
     }
 
     private record FieldDefinition(String code, String label, String fieldType,
-                                   boolean required, boolean writable, Long referenceModuleId) {
+                                   boolean required, boolean writable, Long referenceModuleId,
+                                   Long id, Long parentFieldId) {
     }
 
     private record CandidateDraft(String title, String recordNumber, String status,
@@ -987,7 +1106,15 @@ public class AiConfirmedWriteService {
                                   List<String> unknownSegments) {
     }
 
-    private record ModelAvailability(boolean available, String reason, String mode) {
+    private record ModelAvailability(boolean available, String reason, String mode,
+                                     Integer promptTokens, Integer completionTokens) {
+        private ModelAvailability(boolean available, String reason, String mode) {
+            this(available, reason, mode, null, null);
+        }
+
+        private ModelAvailability withUsage(AiModelGateway.Completion value) {
+            return new ModelAvailability(true, null, mode, value.promptTokens(), value.completionTokens());
+        }
     }
 
     private record SourceRecordContext(String moduleCode, Long recordId) {

@@ -26,7 +26,7 @@ public class SsoProviderAdministrationController {
 
     @GetMapping
     public ApiResult<List<SsoProviderAdminView>> list() {
-        return ApiResult.ok(administrationService.list());
+        return ApiResult.ok(administrationService.list(AuthenticationContextHolder.require()));
     }
 
     @PostMapping
@@ -62,5 +62,11 @@ public class SsoProviderAdministrationController {
             HttpServletRequest request) {
         return ApiResult.ok(administrationService.publish(
                 AuthenticationContextHolder.require(), providerId, versionId, TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/{providerId}/disable")
+    public ApiResult<SsoProviderAdminView> disable(@PathVariable Long providerId, HttpServletRequest request) {
+        return ApiResult.ok(administrationService.disable(
+                AuthenticationContextHolder.require(), providerId, TraceIdFilter.current(request)));
     }
 }

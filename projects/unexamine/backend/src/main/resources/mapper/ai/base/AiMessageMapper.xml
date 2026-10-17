@@ -11,12 +11,12 @@
         <result column="structured_content_json" property="structuredContentJson" />
         <result column="model_usage_json" property="modelUsageJson" />
         <result column="error_code" property="errorCode" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, conversation_id, role_type, content_text, structured_content_json, model_usage_json, error_code, created_at
+        id, conversation_id, role_type, content_text, structured_content_json, model_usage_json, error_code, create_time
     </sql>
 
 </mapper>

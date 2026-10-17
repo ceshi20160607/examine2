@@ -1,0 +1,91 @@
+{
+  "step": "S18.28",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/UpdateActionConfigurationRequest.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/print/manage/PrintHttpTest.java",
+    "projects/unexamine/tools/verify-print-template.py",
+    "projects/unexamine/tools/verify-print-version-pagination.py",
+    "projects/unexamine/tools/verify-print-layout.py"
+  ],
+  "checks_actual_results": [
+    "隔离系统 #166 的模块 #92 由所属人在页面补建可选 PRINT 动作；草稿未发布时运行模板接口返回 403，发布 V5 后才开放，打印模板 #41 按现有模块绑定生命周期发布。",
+    "记录 #185 的浏览器打印入口和预览可见；页面生成 1 页，实际 PDF 以 %PDF 开头，MySQL 记录任务 #124 为 SUCCEEDED，模板和模块发布指针一致。",
+    "所属人页面停用 PRINT 草稿期间旧发布版本仍可打印；发布 V6 后运行页隐藏打印入口，新任务和历史 PDF 预览直接调用均返回 403；V7 重新启用后动作和模板恢复。",
+    "未获 PRINT 权限的普通成员模板接口返回 403；后端重启后 V7、模板和历史 PDF 字节保持可读。",
+    "JDK 21 Maven package、定向 PrintHttpTest、前端 npm build、三个打印验证脚本 py_compile 与 git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-print-api-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-print-disabled-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-print-active-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-print-restart-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-print-add-before.png",
+    "projects/unexamine/ai/evidence/s18-module-print-add-draft.png",
+    "projects/unexamine/ai/evidence/s18-module-print-config-disabled-draft.png",
+    "projects/unexamine/ai/evidence/s18-module-print-config-active-draft.png",
+    "projects/unexamine/ai/evidence/s18-module-print-runtime-entry.png",
+    "projects/unexamine/ai/evidence/s18-module-print-runtime-preview.png",
+    "projects/unexamine/ai/evidence/s18-module-print-runtime-disabled.png",
+    "projects/unexamine/ai/evidence/s18-module-print-preview.pdf"
+  ],
+  "permission_or_failure_result": "未发布或停用的 PRINT 动作返回 PRINT_ACTION_NOT_PUBLISHED/403；普通成员缺少 PRINT 权限返回 PERMISSION_DENIED/403。草稿停用不改变旧发布版本；发布停用后历史 PDF 同样拒绝。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "b6818384c1e4bed3f1e2938a520932fcddcf8868b4d42c32190cfcf3c8f6dd73"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "0e84193a33d0f4bb5dd20bd1db240ba833af5e5c6c7db550f639553156f95d93"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/UpdateActionConfigurationRequest.java",
+      "sha256": "e463d9771c57dfac6d41eb68fca0a41e38f3ae49d2c2571069a6ee5329c25899"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+      "sha256": "ef6a952bb7669d5b5f81cfffcc9cb900ffddaf3abfdee4d78d4b89b838c8ee9e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "4d279530890a77d29707ddc61fb600cb1a80cb7a96128070f037f40ae286570f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "13c22ebdbbc47a22451deb6b4ef13135c35506ad3d8f427d773ac5cdbf46940e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "8e4a159ade9524b70c88b7daddf6c79fe6d3e86b2446595a8daddceca17c7b87"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/print/manage/PrintHttpTest.java",
+      "sha256": "bdf94bc0d8449e5a23bc963f2f057b3e770b6c240afc2c4fd24825cd49d624e1"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-template.py",
+      "sha256": "0fb4e20dd3d0e5fec078a0075aa8b01acc853d7d2add223c36144fe11117c30e"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-version-pagination.py",
+      "sha256": "d027052df1873a37a3c50c6f681f95234ed7e6c7c843bd5969d50151e9f0b02a"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-layout.py",
+      "sha256": "81f19868750f8d1acd16a3ba92027f1015b7f1980ed205bce1f3a1e048ee6839"
+    }
+  ],
+  "remaining": "R0288/R0453 的审批与仪表盘入口仍需单独验收；整项目尚未完成最终全量验收。",
+  "next_step": "S18.29"
+}

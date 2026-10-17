@@ -10,39 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统消息成员收件箱及回执
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("msg_recipient")
+@TableName("un_msg_recipient")
 public class MsgRecipient {
 
+    /**
+     * 系统消息接收记录主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统消息主键
+     */
     @TableField("message_id")
     private Long messageId;
 
+    /**
+     * 所属系统主键
+     */
+    @TableField("system_id")
+    private Long systemId;
+
+    /**
+     * 所属租户主键
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 接收人的平台账号主键
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 接收人在系统中的成员主键
+     */
+    @TableField("system_member_id")
+    private Long systemMemberId;
+
+    /**
+     * 消息阅读状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("read_at")
-    private LocalDateTime readAt;
+    /**
+     * 首次阅读时间
+     */
+    @TableField("read_time")
+    private LocalDateTime readTime;
 
-    @TableField("archived_at")
-    private LocalDateTime archivedAt;
+    /**
+     * 归档时间
+     */
+    @TableField("archive_time")
+    private LocalDateTime archiveTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 接收记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 接收记录更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -63,12 +108,36 @@ public class MsgRecipient {
         this.messageId = messageId;
     }
 
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getAccountId() {
         return accountId;
     }
 
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    public Long getSystemMemberId() {
+        return systemMemberId;
+    }
+
+    public void setSystemMemberId(Long systemMemberId) {
+        this.systemMemberId = systemMemberId;
     }
 
     public String getStatus() {
@@ -79,36 +148,36 @@ public class MsgRecipient {
         this.status = status;
     }
 
-    public LocalDateTime getReadAt() {
-        return readAt;
+    public LocalDateTime getReadTime() {
+        return readTime;
     }
 
-    public void setReadAt(LocalDateTime readAt) {
-        this.readAt = readAt;
+    public void setReadTime(LocalDateTime readTime) {
+        this.readTime = readTime;
     }
 
-    public LocalDateTime getArchivedAt() {
-        return archivedAt;
+    public LocalDateTime getArchiveTime() {
+        return archiveTime;
     }
 
-    public void setArchivedAt(LocalDateTime archivedAt) {
-        this.archivedAt = archivedAt;
+    public void setArchiveTime(LocalDateTime archiveTime) {
+        this.archiveTime = archiveTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -124,12 +193,15 @@ public class MsgRecipient {
         return "MsgRecipient{" +
             "id = " + id +
             ", messageId = " + messageId +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", accountId = " + accountId +
+            ", systemMemberId = " + systemMemberId +
             ", status = " + status +
-            ", readAt = " + readAt +
-            ", archivedAt = " + archivedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", readTime = " + readTime +
+            ", archiveTime = " + archiveTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

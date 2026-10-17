@@ -1,0 +1,28 @@
+{
+  "step": "S18.14",
+  "observed_at": "2026-10-13",
+  "environment": {
+    "backend_release": "s18-v11",
+    "backend_jar_sha256": "e3be8e08757ab336d795946cbbb5c9579673f180a3060da1d86cfd7eadb5aece",
+    "database": "unexamine_drill_s17_files_1054",
+    "database_source": "从现有 unexamine_mysql-data 卷复制到独立的 unexamine_s18_acceptance_copy 卷；原卷未连接验收服务。",
+    "fixture_adjustment": "仅在隔离副本中注册验收账号，并把该账号的密码哈希赋给系统 #165 的所属人及普通成员以取得浏览器会话；不记录密码或哈希。协作租户通过页面把旧版说明改为独立发布语义，预览后发布第 2 版。"
+  },
+  "browser": {
+    "main_tenant_166": "所属人系统首页显示自己的 5 个组件，不含协作租户 KPI；协作租户发布第 2 版和后端重启后仍为 5 个组件。",
+    "branch_tenant_167": "所属人和普通成员的系统首页均只显示本租户发布的 1 个 KPI，数值 175，目标 200，达成率 87.50%；不出现主租户的采购明细金额组件。后台预览返回真实数据、可发布，页面发布第 2 版后运行态显示新的本租户说明。",
+    "empty_tenant_168": "系统首页显示“当前租户尚未发布仪表盘”和“创建并发布”，仪表盘组件为 0；后端重启后仍显示未配置状态。",
+    "unconfigured_login": "无会话登录页不显示可用的忘记密码或企业 SSO 入口；后端重启后结果相同。",
+    "member_permission": "普通成员可看协作租户 KPI，但系统管理入口不可见。",
+    "images": [
+      "projects/unexamine/ai/evidence/s18-browser-main-tenant-dashboard-runtime.png",
+      "projects/unexamine/ai/evidence/s18-browser-tenant-dashboard-preview.png",
+      "projects/unexamine/ai/evidence/s18-browser-tenant-dashboard-runtime.png",
+      "projects/unexamine/ai/evidence/s18-browser-empty-tenant-dashboard.png",
+      "projects/unexamine/ai/evidence/s18-browser-login-unconfigured-delivery.png"
+    ]
+  },
+  "database_readback": "系统 #165 的主租户首页 #2 仍指向发布版本 #5；协作租户首页 #6 独立指向新发布版本 #12；空租户 #168 没有首页发布记录。",
+  "api_readback": "后端重启后 readiness=UP；匿名密码找回可用性为 false，SSO 提供者列表为空。先前同制品的仪表盘 API、MySQL、权限和定向测试见 s18-tenant-dashboard-isolation-progress.json。",
+  "build": "当前源码的 vue-tsc 和 Vite production build 通过；DashboardRuntimeView.vue 的 git diff --check 通过。"
+}

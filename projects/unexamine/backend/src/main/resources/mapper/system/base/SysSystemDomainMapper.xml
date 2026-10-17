@@ -6,20 +6,21 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.SysSystemDomain">
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="domain_type" property="domainType" />
         <result column="host" property="host" />
         <result column="base_path" property="basePath" />
         <result column="tls_required" property="tlsRequired" />
-        <result column="verified_at" property="verifiedAt" />
+        <result column="verify_time" property="verifyTime" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, domain_type, `host`, base_path, tls_required, verified_at, `status`, created_at, updated_at, version
+        id, system_id, tenant_id, domain_type, `host`, base_path, tls_required, verify_time, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

@@ -1,0 +1,23 @@
+{
+  "step": "S18.17",
+  "status": "verified_contribution",
+  "source_rows": ["R0078", "R0398", "R0405", "R0407", "R0408", "R0415", "R0416", "R0417"],
+  "changed_files": ["projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java"],
+  "checks_actual_results": [
+    "真实页面创建和发布应用 #28 V1，授权模块 LIST 与 Flow START；系统内所属人、普通成员及外部签名访问均成功，Flow #46 由成员审批至 COMPLETED。",
+    "重放、错误签名、未授权资源、跨系统和扩大负责人范围均被拒绝；选中成员停用时范围为空，应用停用时调用拒绝，重新启用后旧凭证失效、新凭证可用。",
+    "修复应用列表字段目录泄漏：重启后外部签名响应仅有 8 个基础查询字段及 2 个授权业务字段，记录 fields 与 fieldPresentation 也仅有这 2 个业务字段；未授权字段筛选与排序为 403，授权字段筛选与排序成功。",
+    "JDK 21 的 mvn.cmd -DskipTests package 成功；git diff --check 通过；后端重启健康检查 UP，页面、签名 API、MySQL 再次读回。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-system-application-progress.json",
+    "projects/unexamine/ai/evidence/s18-system-application-published.png",
+    "projects/unexamine/ai/evidence/s18-app-member-navigation.png"
+  ],
+  "permission_or_failure_result": "应用只执行发布授权的资源、动作、字段和当前有效负责人范围；普通成员工作区仍按模块组导航。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java", "sha256": "66dbe6983e8a3de55befd29c32e41b8045b7b1ec07b29be901c86677ca017ab8"}
+  ],
+  "remaining": "部门选择和部门停用/恢复留给 S18.18；外部渠道接入仍需真实第三方环境。整站完成度不能据本步骤推算。",
+  "next_step": "S18.18"
+}

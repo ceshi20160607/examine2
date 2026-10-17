@@ -10,72 +10,132 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 可被业务引用的文件对象元数据
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("file_object")
+@TableName("un_file_object")
 public class FileObject {
 
+    /**
+     * 文件对象主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 文件作用域：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 文件所属平台
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统文件所属系统，平台文件为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统文件所属租户，平台文件为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 文件字节所在存储后端主键
+     */
     @TableField("storage_backend_id")
     private Long storageBackendId;
 
+    /**
+     * 原始上传会话主键；生成的预览产物可为空
+     */
     @TableField("upload_session_id")
     private Long uploadSessionId;
 
+    /**
+     * 后端内存储对象键
+     */
     @TableField("object_key")
     private String objectKey;
 
+    /**
+     * 对象键 SHA-256，用于稳定唯一约束
+     */
     @TableField("object_key_hash")
     private String objectKeyHash;
 
+    /**
+     * 展示和下载时使用的文件名
+     */
     @TableField("original_name")
     private String originalName;
 
+    /**
+     * 文件实际媒体类型
+     */
     @TableField("content_type")
     private String contentType;
 
+    /**
+     * 文件完整字节数
+     */
     @TableField("size_bytes")
     private Long sizeBytes;
 
+    /**
+     * 完整文件 SHA-256 校验值
+     */
     @TableField("sha256")
     private String sha256;
 
+    /**
+     * 安全扫描结果状态
+     */
     @TableField("scan_status")
     private String scanStatus;
 
+    /**
+     * 预览处理汇总状态，产物详见 un_file_preview
+     */
     @TableField("preview_status")
     private String previewStatus;
 
+    /**
+     * 文件可用或删除状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 原文件上传人或预览产物生成主体账号
+     */
     @TableField("uploaded_by_account_id")
     private Long uploadedByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("deleted_at")
-    private LocalDateTime deletedAt;
+    /**
+     * 逻辑删除时间
+     */
+    @TableField("delete_time")
+    private LocalDateTime deleteTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -216,20 +276,20 @@ public class FileObject {
         this.uploadedByAccountId = uploadedByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
+    public LocalDateTime getDeleteTime() {
+        return deleteTime;
     }
 
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
+    public void setDeleteTime(LocalDateTime deleteTime) {
+        this.deleteTime = deleteTime;
     }
 
     public Integer getVersion() {
@@ -260,8 +320,8 @@ public class FileObject {
             ", previewStatus = " + previewStatus +
             ", status = " + status +
             ", uploadedByAccountId = " + uploadedByAccountId +
-            ", createdAt = " + createdAt +
-            ", deletedAt = " + deletedAt +
+            ", createTime = " + createTime +
+            ", deleteTime = " + deleteTime +
             ", version = " + version +
             "}";
     }

@@ -9,45 +9,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * AI 执行步骤、工具调用与结果摘要
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ai_execution_step")
+@TableName("un_ai_execution_step")
 public class AiExecutionStep {
 
+    /**
+     * 执行步骤主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属执行标识
+     */
     @TableField("execution_id")
     private Long executionId;
 
+    /**
+     * 执行 Agent 标识，用于限制工具归属
+     */
+    @TableField("agent_id")
+    private Long agentId;
+
+    /**
+     * 本次执行内步骤序号
+     */
     @TableField("step_number")
     private Integer stepNumber;
 
+    /**
+     * 步骤类别
+     */
     @TableField("step_type")
     private String stepType;
 
+    /**
+     * 使用的 Agent 工具标识
+     */
     @TableField("tool_id")
     private Long toolId;
 
+    /**
+     * 步骤输入摘要，不含密钥明文
+     */
     @TableField("input_json")
     private String inputJson;
 
+    /**
+     * 步骤输出及脱敏摘要
+     */
     @TableField("output_json")
     private String outputJson;
 
+    /**
+     * 步骤状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 结束时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
+    /**
+     * 步骤失败摘要
+     */
     @TableField("error_message")
     private String errorMessage;
 
@@ -65,6 +104,14 @@ public class AiExecutionStep {
 
     public void setExecutionId(Long executionId) {
         this.executionId = executionId;
+    }
+
+    public Long getAgentId() {
+        return agentId;
+    }
+
+    public void setAgentId(Long agentId) {
+        this.agentId = agentId;
     }
 
     public Integer getStepNumber() {
@@ -115,20 +162,20 @@ public class AiExecutionStep {
         this.status = status;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
     public String getErrorMessage() {
@@ -144,14 +191,15 @@ public class AiExecutionStep {
         return "AiExecutionStep{" +
             "id = " + id +
             ", executionId = " + executionId +
+            ", agentId = " + agentId +
             ", stepNumber = " + stepNumber +
             ", stepType = " + stepType +
             ", toolId = " + toolId +
             ", inputJson = " + inputJson +
             ", outputJson = " + outputJson +
             ", status = " + status +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
+            ", startTime = " + startTime +
+            ", finishTime = " + finishTime +
             ", errorMessage = " + errorMessage +
             "}";
     }

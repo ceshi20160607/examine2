@@ -18,30 +18,54 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("work_project")
+@TableName("un_work_project")
 public class WorkProject {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务上下文类型：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台范围为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台范围为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 同一工作范围内的项目编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 业务说明
+     */
     @TableField("`description`")
     private String description;
 
@@ -87,30 +111,57 @@ public class WorkProject {
     @TableField("business_title")
     private String businessTitle;
 
+    /**
+     * 负责人平台账号标识
+     */
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
+    /**
+     * 项目负责人租户成员ID
+     */
     @TableField("owner_tenant_member_id")
     private Long ownerTenantMemberId;
 
+    /**
+     * 开始日期
+     */
     @TableField("start_date")
     private LocalDate startDate;
 
+    /**
+     * 截止日期
+     */
     @TableField("due_date")
     private LocalDate dueDate;
 
+    /**
+     * 完成百分比
+     */
     @TableField("progress_percent")
     private BigDecimal progressPercent;
 
+    /**
+     * 业务状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -283,20 +334,20 @@ public class WorkProject {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -331,8 +382,8 @@ public class WorkProject {
             ", dueDate = " + dueDate +
             ", progressPercent = " + progressPercent +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

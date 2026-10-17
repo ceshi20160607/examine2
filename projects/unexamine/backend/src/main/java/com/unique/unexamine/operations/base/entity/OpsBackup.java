@@ -10,54 +10,102 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 分范围备份任务及加密密钥引用
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_backup")
+@TableName("un_ops_backup")
 public class OpsBackup {
 
+    /**
+     * 备份任务主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 备份层级，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统备份所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 平台或系统的稳定归属主键
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 数据库、文件、配置或密钥策略等备份类型
+     */
     @TableField("backup_type")
     private String backupType;
 
+    /**
+     * 备份执行结果状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 备份清单校验摘要
+     */
     @TableField("manifest_hash")
     private String manifestHash;
 
-    @TableField("encryption_key_ref")
-    private String encryptionKeyRef;
+    /**
+     * 同范围备份加密密钥引用主键，不保存密钥明文
+     */
+    @TableField("encryption_secret_ref_id")
+    private Long encryptionSecretRefId;
 
-    @TableField("retention_until")
-    private LocalDateTime retentionUntil;
+    /**
+     * 备份保留截止时间
+     */
+    @TableField("retention_until_time")
+    private LocalDateTime retentionUntilTime;
 
+    /**
+     * 发起备份的平台账号主键
+     */
     @TableField("requested_by_account_id")
     private Long requestedByAccountId;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 备份开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 备份结束时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 备份申请时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
+    /**
+     * 备份记录乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -94,6 +142,14 @@ public class OpsBackup {
         this.systemId = systemId;
     }
 
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
+    }
+
     public String getBackupType() {
         return backupType;
     }
@@ -118,20 +174,20 @@ public class OpsBackup {
         this.manifestHash = manifestHash;
     }
 
-    public String getEncryptionKeyRef() {
-        return encryptionKeyRef;
+    public Long getEncryptionSecretRefId() {
+        return encryptionSecretRefId;
     }
 
-    public void setEncryptionKeyRef(String encryptionKeyRef) {
-        this.encryptionKeyRef = encryptionKeyRef;
+    public void setEncryptionSecretRefId(Long encryptionSecretRefId) {
+        this.encryptionSecretRefId = encryptionSecretRefId;
     }
 
-    public LocalDateTime getRetentionUntil() {
-        return retentionUntil;
+    public LocalDateTime getRetentionUntilTime() {
+        return retentionUntilTime;
     }
 
-    public void setRetentionUntil(LocalDateTime retentionUntil) {
-        this.retentionUntil = retentionUntil;
+    public void setRetentionUntilTime(LocalDateTime retentionUntilTime) {
+        this.retentionUntilTime = retentionUntilTime;
     }
 
     public Long getRequestedByAccountId() {
@@ -142,28 +198,28 @@ public class OpsBackup {
         this.requestedByAccountId = requestedByAccountId;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     public Integer getVersion() {
@@ -181,15 +237,16 @@ public class OpsBackup {
             ", contextType = " + contextType +
             ", platformId = " + platformId +
             ", systemId = " + systemId +
+            ", scopeOwnerId = " + scopeOwnerId +
             ", backupType = " + backupType +
             ", status = " + status +
             ", manifestHash = " + manifestHash +
-            ", encryptionKeyRef = " + encryptionKeyRef +
-            ", retentionUntil = " + retentionUntil +
+            ", encryptionSecretRefId = " + encryptionSecretRefId +
+            ", retentionUntilTime = " + retentionUntilTime +
             ", requestedByAccountId = " + requestedByAccountId +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
-            ", createdAt = " + createdAt +
+            ", startTime = " + startTime +
+            ", finishTime = " + finishTime +
+            ", createTime = " + createTime +
             ", version = " + version +
             "}";
     }

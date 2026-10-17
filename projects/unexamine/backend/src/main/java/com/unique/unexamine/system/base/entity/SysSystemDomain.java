@@ -10,45 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务系统访问域名
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_system_domain")
+@TableName("un_sys_system_domain")
 public class SysSystemDomain {
 
+    /**
+     * 业务系统访问域名主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属业务系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 访问地址绑定的系统租户标识
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 域名用途类型
+     */
     @TableField("domain_type")
     private String domainType;
 
+    /**
+     * 访问域名主机名
+     */
     @TableField("`host`")
     private String host;
 
+    /**
+     * 系统访问路径前缀
+     */
     @TableField("base_path")
     private String basePath;
 
+    /**
+     * 是否要求加密传输
+     */
     @TableField("tls_required")
     private Boolean tlsRequired;
 
-    @TableField("verified_at")
-    private LocalDateTime verifiedAt;
+    /**
+     * 域名归属验证时间
+     */
+    @TableField("verify_time")
+    private LocalDateTime verifyTime;
 
+    /**
+     * 业务系统访问域名状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 业务系统访问域名创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 业务系统访问域名更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 业务系统访问域名乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -67,6 +106,14 @@ public class SysSystemDomain {
 
     public void setSystemId(Long systemId) {
         this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getDomainType() {
@@ -101,12 +148,12 @@ public class SysSystemDomain {
         this.tlsRequired = tlsRequired;
     }
 
-    public LocalDateTime getVerifiedAt() {
-        return verifiedAt;
+    public LocalDateTime getVerifyTime() {
+        return verifyTime;
     }
 
-    public void setVerifiedAt(LocalDateTime verifiedAt) {
-        this.verifiedAt = verifiedAt;
+    public void setVerifyTime(LocalDateTime verifyTime) {
+        this.verifyTime = verifyTime;
     }
 
     public String getStatus() {
@@ -117,20 +164,20 @@ public class SysSystemDomain {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -146,14 +193,15 @@ public class SysSystemDomain {
         return "SysSystemDomain{" +
             "id = " + id +
             ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", domainType = " + domainType +
             ", host = " + host +
             ", basePath = " + basePath +
             ", tlsRequired = " + tlsRequired +
-            ", verifiedAt = " + verifiedAt +
+            ", verifyTime = " + verifyTime +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

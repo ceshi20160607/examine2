@@ -9,44 +9,74 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 文件安全扫描结果与历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("file_security_scan")
+@TableName("un_file_security_scan")
 public class FileSecurityScan {
 
+    /**
+     * 安全扫描主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 被扫描文件对象主键
+     */
     @TableField("file_id")
     private Long fileId;
 
+    /**
+     * 扫描器标识
+     */
     @TableField("scanner")
     private String scanner;
 
+    /**
+     * 扫描规则或引擎版本
+     */
     @TableField("scan_version")
     private String scanVersion;
 
+    /**
+     * 扫描任务状态和结果
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 扫描结果编码
+     */
     @TableField("result_code")
     private String resultCode;
 
+    /**
+     * 不含文件正文的扫描详情
+     */
     @TableField("result_detail_json")
     private String resultDetailJson;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 扫描开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 扫描结束时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -104,28 +134,28 @@ public class FileSecurityScan {
         this.resultDetailJson = resultDetailJson;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -138,9 +168,9 @@ public class FileSecurityScan {
             ", status = " + status +
             ", resultCode = " + resultCode +
             ", resultDetailJson = " + resultDetailJson +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
-            ", createdAt = " + createdAt +
+            ", startTime = " + startTime +
+            ", finishTime = " + finishTime +
+            ", createTime = " + createTime +
             "}";
     }
 }

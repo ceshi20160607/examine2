@@ -14,12 +14,12 @@
         <result column="snapshot_json" property="snapshotJson" />
         <result column="change_summary" property="changeSummary" />
         <result column="published_by_member_id" property="publishedByMemberId" />
-        <result column="published_at" property="publishedAt" />
+        <result column="publish_time" property="publishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, version_number, draft_revision, schema_hash, snapshot_json, change_summary, published_by_member_id, published_at
+        id, system_id, owner_tenant_id, module_id, version_number, draft_revision, schema_hash, snapshot_json, change_summary, published_by_member_id, publish_time
     </sql>
 
 </mapper>

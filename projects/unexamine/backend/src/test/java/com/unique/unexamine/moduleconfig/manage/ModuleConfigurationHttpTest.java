@@ -75,7 +75,7 @@ class ModuleConfigurationHttpTest {
         assertThat(actionCodes).containsExactly("LIST", "DETAIL", "CREATE", "UPDATE", "ARCHIVE", "DELETE", "RESTORE", "TRANSFER", "CONVERT", "SHARE", "IMPORT", "EXPORT");
         assertThat((List<?>) initialDraft.get("menus")).hasSize(1);
         assertThat(initialDraft.get("published")).isEqualTo(false);
-        assertThat(count("cfg_module_publication", "module_id = " + moduleId)).isZero();
+        assertThat(count("un_cfg_module_publication", "module_id = " + moduleId)).isZero();
 
         ResponseEntity<Map> overview = exchange("/api/admin/module-config", HttpMethod.GET, first.token(), null);
         assertThat((List<?>) data(overview).get("groups")).hasSize(1);
@@ -92,7 +92,7 @@ class ModuleConfigurationHttpTest {
                 "/api/admin/module-config/modules/" + moduleId + "/publish",
                 HttpMethod.POST, first.token(), Map.of("expectedDraftRevision", 1));
         assertThat(invalidPublish.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(count("cfg_module_version", "module_id = " + moduleId)).isZero();
+        assertThat(count("un_cfg_module_version", "module_id = " + moduleId)).isZero();
 
         ResponseEntity<Map> temporaryPage = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/pages", HttpMethod.POST, first.token(),
@@ -106,8 +106,8 @@ class ModuleConfigurationHttpTest {
                 HttpMethod.DELETE, first.token(), null);
         assertThat(deletedTemporaryPage.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(number(data(deletedTemporaryPage).get("id"))).isEqualTo(temporaryPageId);
-        assertThat(count("cfg_module_page", "id = " + temporaryPageId)).isZero();
-        assertThat(count("audit_event", "event_code = 'MODULE_PAGE_DRAFT_DELETED' and object_id = '"
+        assertThat(count("un_cfg_module_page", "id = " + temporaryPageId)).isZero();
+        assertThat(count("un_audit_event", "event_code = 'MODULE_PAGE_DRAFT_DELETED' and object_id = '"
                 + temporaryPageId + "'")).isOne();
 
         ResponseEntity<Map> fieldResponse = exchange(
@@ -151,15 +151,15 @@ class ModuleConfigurationHttpTest {
         assertThat(firstRuntime.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<?, ?> firstConfiguration = (Map<?, ?>) data(firstRuntime).get("configuration");
         assertThat(publishedFieldName(firstConfiguration)).isEqualTo("客户名称");
-        Long systemId = jdbc.queryForObject("select system_id from cfg_module where id=?", Long.class, moduleId);
-        Long tenantId = jdbc.queryForObject("select owner_tenant_id from cfg_module where id=?", Long.class, moduleId);
-        Long memberId = jdbc.queryForObject("select min(id) from sys_member where system_id=?", Long.class, systemId);
-        jdbc.update("insert into biz_record(system_id,tenant_id,module_id,created_config_version_id,updated_config_version_id,"
+        Long systemId = jdbc.queryForObject("select system_id from un_cfg_module where id=?", Long.class, moduleId);
+        Long tenantId = jdbc.queryForObject("select owner_tenant_id from un_cfg_module where id=?", Long.class, moduleId);
+        Long memberId = jdbc.queryForObject("select min(id) from un_sys_member where system_id=?", Long.class, systemId);
+        jdbc.update("insert into un_biz_record(system_id,tenant_id,module_id,created_config_version_id,updated_config_version_id,"
                         + "record_number,title,status,created_by_member_id,updated_by_member_id) values(?,?,?,?,?,?,?,?,?,?)",
                 systemId, tenantId, moduleId, firstVersionId, firstVersionId, "C21-001", "周期二十一存量客户", "ACTIVE",
                 memberId, memberId);
-        Long existingRecordId = jdbc.queryForObject("select max(id) from biz_record where module_id=?", Long.class, moduleId);
-        jdbc.update("insert into biz_record_value(record_id,field_id,field_code,value_type,value_text,normalized_text) "
+        Long existingRecordId = jdbc.queryForObject("select max(id) from un_biz_record where module_id=?", Long.class, moduleId);
+        jdbc.update("insert into un_biz_record_value(record_id,field_id,field_code,value_type,value_text,normalized_text) "
                         + "values(?,?,?,?,?,?)", existingRecordId, fieldId, "customer_name", "TEXT",
                 "周期二十一存量客户", "周期二十一存量客户");
         ResponseEntity<Map> catalog = exchange("/api/runtime/modules", HttpMethod.GET, first.token(), null);
@@ -230,19 +230,19 @@ class ModuleConfigurationHttpTest {
         assertThat(rollback.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(rollback).get("versionNumber")).isEqualTo(3);
         assertThat(publishedFieldName((Map<?, ?>) data(rollback).get("configuration"))).isEqualTo("客户名称");
-        assertThat(count("cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
+        assertThat(count("un_cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
 
         ResponseEntity<Map> draft = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/draft", HttpMethod.GET, first.token(), null);
         assertThat(draft.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat((List<?>) data(draft).get("fields")).hasSize(1);
-        assertThat(count("cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
+        assertThat(count("un_cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
         assertThat(jdbc.queryForObject(
-                "select v.version_number from cfg_module_publication p join cfg_module_version v "
+                "select v.version_number from un_cfg_module_publication p join un_cfg_module_version v "
                         + "on v.id=p.current_version_id where p.module_id = ?", Integer.class, moduleId)).isEqualTo(3);
         assertThat(jdbc.queryForObject(
-                "select json_extract(v.snapshot_json, '$.rollbackSourceVersionId') from cfg_module_publication p "
-                        + "join cfg_module_version v on v.id=p.current_version_id where p.module_id = ?",
+                "select json_extract(v.snapshot_json, '$.rollbackSourceVersionId') from un_cfg_module_publication p "
+                        + "join un_cfg_module_version v on v.id=p.current_version_id where p.module_id = ?",
                 Long.class, moduleId)).isEqualTo(firstVersionId);
 
         ResponseEntity<Map> crossSystemRead = exchange(
@@ -252,9 +252,9 @@ class ModuleConfigurationHttpTest {
                 Map.of("groupId", groupId, "code", "illegal", "name", "非法跨系统模块"));
         assertThat(crossSystemCreate.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
-        assertThat(count("audit_event", "event_code = 'MODULE_DRAFT_CREATED' and result_code = 'SUCCESS' and object_id = '" + moduleId + "'"))
+        assertThat(count("un_audit_event", "event_code = 'MODULE_DRAFT_CREATED' and result_code = 'SUCCESS' and object_id = '" + moduleId + "'"))
                 .isOne();
-        assertThat(count("audit_event", "event_code = 'MODULE_FIELD_DRAFT_UPDATED' and result_code = 'SUCCESS' and object_id = '" + fieldId + "'"))
+        assertThat(count("un_audit_event", "event_code = 'MODULE_FIELD_DRAFT_UPDATED' and result_code = 'SUCCESS' and object_id = '" + fieldId + "'"))
                 .isEqualTo(3);
 
         ResponseEntity<Map> auditEvents = exchange(
@@ -264,7 +264,7 @@ class ModuleConfigurationHttpTest {
         Map<String, Object> auditData = data(auditEvents);
         List<Map<String, Object>> publishedEvents = (List<Map<String, Object>>) auditData.get("events");
         assertThat(publishedEvents).hasSizeGreaterThanOrEqualTo(2);
-        assertThat(count("audit_event", "event_code = 'MODULE_PUBLISHED' and json_extract(detail_json, '$.moduleId') = "
+        assertThat(count("un_audit_event", "event_code = 'MODULE_PUBLISHED' and json_extract(detail_json, '$.moduleId') = "
                 + moduleId)).isEqualTo(2);
         assertThat(((Number) auditData.get("total")).intValue()).isGreaterThanOrEqualTo(2);
 
@@ -310,7 +310,8 @@ class ModuleConfigurationHttpTest {
                 Map.of("pageType", "CUSTOM", "name", "客户工作台", "layout", Map.of(
                         "schemaVersion", 1, "layoutType", "CUSTOM", "fieldCodes", List.of("customer_name"),
                         "components", List.of(Map.of("id", "generic", "type", "SECTION", "fieldCodes", List.of("customer_name"))))));
-        assertThat(customPage.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(customPage.getStatusCode()).withFailMessage("自定义页面创建失败：%s", customPage.getBody())
+                .isEqualTo(HttpStatus.OK);
         Map<String, Object> genericBlocked = data(exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/publication-check", HttpMethod.GET, owner.token(), null));
         assertThat(genericBlocked.get("valid")).isEqualTo(false);
@@ -371,23 +372,34 @@ class ModuleConfigurationHttpTest {
         assertThat(((List<Map<String, Object>>) publishedSchema.get("pages")).stream()
                 .map(page -> page.get("pageType"))).contains("FORM", "CUSTOM");
         assertThat(((List<?>) publishedSchema.get("menus"))).hasSize(1);
-        assertThat(jdbc.queryForObject("select snapshot_json from cfg_module_version where id=?", String.class, version1Id))
+        assertThat(jdbc.queryForObject("select snapshot_json from un_cfg_module_version where id=?", String.class, version1Id))
                 .contains("客户工作台", "components", "customer_name", "business");
 
         ResponseEntity<Map> invalidDraftPage = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/pages/FORM", HttpMethod.PUT, owner.token(),
                 Map.of("layout", Map.of("schemaVersion", 1, "fieldCodes", List.of("removed_field")), "version", 1));
-        assertThat(invalidDraftPage.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(invalidDraftPage.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(invalidDraftPage.getBody().get("code")).isEqualTo("FORM_LAYOUT_INVALID");
+        ResponseEntity<Map> invalidCustomPage = exchange(
+                "/api/admin/module-config/modules/" + moduleId + "/pages/CUSTOM", HttpMethod.PUT, owner.token(),
+                Map.of("layout", Map.of(
+                        "schemaVersion", 1, "layoutType", "CUSTOM", "fieldCodes", List.of("removed_field"),
+                        "components", List.of(Map.of("id", "summary", "type", "SUMMARY",
+                                "fieldCodes", List.of("removed_field")))), "version", 1));
+        assertThat(invalidCustomPage.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> blocked = data(exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/publication-check", HttpMethod.GET, owner.token(), null));
         assertThat(blocked.get("valid")).isEqualTo(false);
         assertThat(((List<Map<String, Object>>) blocked.get("issues")).stream().map(issue -> issue.get("code")))
-                .contains("PAGE_FIELD_NOT_ACTIVE", "REQUIRED_FIELD_NOT_IN_FORM");
+                .contains("PAGE_FIELD_NOT_ACTIVE");
         assertThat(((List<Map<String, Object>>) exchange("/api/runtime/modules", HttpMethod.GET, owner.token(), null)
                 .getBody().get("data"))).hasSize(1);
 
-        exchange("/api/admin/module-config/modules/" + moduleId + "/pages/FORM", HttpMethod.PUT, owner.token(),
-                Map.of("layout", formLayout, "version", 2));
+        exchange("/api/admin/module-config/modules/" + moduleId + "/pages/CUSTOM", HttpMethod.PUT, owner.token(),
+                Map.of("layout", Map.of(
+                        "schemaVersion", 1, "layoutType", "CUSTOM", "fieldCodes", List.of("customer_name"),
+                        "components", List.of(Map.of("id", "summary", "type", "SUMMARY",
+                                "fieldCodes", List.of("customer_name")))), "version", 2));
         ResponseEntity<Map> hiddenMenu = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/menus/" + menuId,
                 HttpMethod.PUT, owner.token(), Map.of(
@@ -415,8 +427,8 @@ class ModuleConfigurationHttpTest {
         assertThat(rollback.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(((List<?>) exchange("/api/runtime/modules", HttpMethod.GET, owner.token(), null)
                 .getBody().get("data"))).hasSize(1);
-        assertThat(count("cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
-        assertThat(count("audit_event", "event_code = 'MODULE_MENU_DRAFT_UPDATED' and result_code = 'SUCCESS'")).isEqualTo(2);
+        assertThat(count("un_cfg_module_version", "module_id = " + moduleId)).isEqualTo(3);
+        assertThat(count("un_audit_event", "event_code = 'MODULE_MENU_DRAFT_UPDATED' and result_code = 'SUCCESS'")).isEqualTo(2);
     }
 
     @Test
@@ -503,9 +515,9 @@ class ModuleConfigurationHttpTest {
         assertThat(matchedPreview.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(matchedPreview)).containsEntry("matched", true).containsEntry("effectType", "BLOCK");
         assertThat((List<?>) data(matchedPreview).get("conditions")).singleElement();
-        assertThat(jdbc.queryForObject("select test_status from cfg_module_rule where id=?", String.class, ruleId))
+        assertThat(jdbc.queryForObject("select test_status from un_cfg_module_rule where id=?", String.class, ruleId))
                 .isEqualTo("EXECUTED");
-        assertThat(jdbc.queryForObject("select last_test_result_json from cfg_module_rule where id=?", String.class, ruleId))
+        assertThat(jdbc.queryForObject("select last_test_result_json from un_cfg_module_rule where id=?", String.class, ruleId))
                 .contains("\"matched\": true", "\"effectType\": \"BLOCK\"");
         ResponseEntity<Map> unmatchedPreview = exchange(
                 "/api/admin/module-config/modules/" + moduleId + "/rules-indexes/rules/" + ruleId + "/test",
@@ -554,16 +566,16 @@ class ModuleConfigurationHttpTest {
         assertThat(firstRecord.getStatusCode()).withFailMessage("创建首条业务数据失败：%s", firstRecord.getBody())
                 .isEqualTo(HttpStatus.OK);
         long recordId = number(data(firstRecord).get("id"));
-        assertThat(count("biz_record_index", "record_id = " + recordId + " and unique_key_hash is not null")).isOne();
+        assertThat(count("un_biz_record_index", "record_id = " + recordId + " and unique_key_hash is not null")).isOne();
 
-        int recordsBeforeReject = count("biz_record", "module_id = " + moduleId);
+        int recordsBeforeReject = count("un_biz_record", "module_id = " + moduleId);
         ResponseEntity<Map> duplicatePhone = exchange(
                 "/api/runtime/modules/rule_customer/records", HttpMethod.POST, owner.token(), Map.of(
                         "title", "重复客户", "participantMemberIds", List.of(),
                         "fields", Map.of("phone", "13800138000", "amount", 500)));
         assertThat(duplicatePhone.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(duplicatePhone.getBody().get("code")).isEqualTo("UNIQUE_RULE_VIOLATION");
-        assertThat(count("biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeReject);
+        assertThat(count("un_biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeReject);
 
         ResponseEntity<Map> blockedAmount = exchange(
                 "/api/runtime/modules/rule_customer/records", HttpMethod.POST, owner.token(), Map.of(
@@ -571,7 +583,7 @@ class ModuleConfigurationHttpTest {
                         "fields", Map.of("phone", "13900139000", "amount", 1500)));
         assertThat(blockedAmount.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(blockedAmount.getBody().get("code")).isEqualTo("BUSINESS_RULE_REJECTED");
-        assertThat(count("biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeReject);
+        assertThat(count("un_biz_record", "module_id = " + moduleId)).isEqualTo(recordsBeforeReject);
     }
 
     @Test
@@ -595,24 +607,24 @@ class ModuleConfigurationHttpTest {
         Map<String, Object> branch = data(exchange("/api/admin/system/tenants", HttpMethod.POST, owner.token(),
                 Map.of("code", "east", "name", "华东租户")));
         long branchId = number(branch.get("id"));
-        long accountId = jdbc.queryForObject("select id from plat_account where username=?", Long.class,
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username=?", Long.class,
                 "tenant_extension_owner");
-        jdbc.update("insert into app_definition(context_type,owner_system_id,owner_tenant_id,code,name,description,"
+        jdbc.update("insert into un_app_definition(context_type,owner_system_id,owner_tenant_id,code,name,description,"
                         + "application_type,draft_revision,status,created_by_account_id) values('SYSTEM',?,?,?,?,?,'INTERNAL',1,'ACTIVE',?)",
                 owner.systemId(), branchId, "tenant-crm", "租户 CRM 应用", "只桥接已授权动作", accountId);
-        long applicationId = jdbc.queryForObject("select max(id) from app_definition where owner_system_id=?", Long.class,
+        long applicationId = jdbc.queryForObject("select max(id) from un_app_definition where owner_system_id=?", Long.class,
                 owner.systemId());
-        jdbc.update("insert into app_grant(application_id,target_type,target_system_id,target_tenant_id,resource_type,"
+        jdbc.update("insert into un_app_grant(application_id,target_type,target_system_id,target_tenant_id,resource_type,"
                         + "resource_id,action_code,data_scope_json,status) values(?,'TENANT',?,?, 'MODULE',?,'CREATE','{}','ACTIVE')",
                 applicationId, owner.systemId(), branchId, "tenant_customer");
-        long grantId = jdbc.queryForObject("select max(id) from app_grant where application_id=?", Long.class, applicationId);
-        jdbc.update("insert into app_grant_field(grant_id,field_code,readable,writable) values(?,?,1,1),(?,?,1,1)",
+        long grantId = jdbc.queryForObject("select max(id) from un_app_grant where application_id=?", Long.class, applicationId);
+        jdbc.update("insert into un_app_grant_field(grant_id,field_code,readable,writable) values(?,?,1,1),(?,?,1,1)",
                 grantId, "phone", grantId, "vip_level");
-        jdbc.update("insert into app_grant(application_id,target_type,target_system_id,target_tenant_id,resource_type,"
+        jdbc.update("insert into un_app_grant(application_id,target_type,target_system_id,target_tenant_id,resource_type,"
                         + "resource_id,action_code,data_scope_json,status) values(?,'TENANT',?,?, 'MODULE','other_module','CREATE','{}','ACTIVE')",
                 applicationId, owner.systemId(), branchId);
         long otherModuleGrantId = jdbc.queryForObject(
-                "select id from app_grant where application_id=? and resource_id='other_module'", Long.class, applicationId);
+                "select id from un_app_grant where application_id=? and resource_id='other_module'", Long.class, applicationId);
 
         Map<String, Object> entered = data(exchange(
                 "/api/systems/" + owner.systemId() + "/tenants/" + branchId + "/enter", HttpMethod.POST,
@@ -677,8 +689,8 @@ class ModuleConfigurationHttpTest {
         Map<String, Object> extension = (Map<String, Object>) data(saved).get("extension");
         assertThat(extension).containsEntry("status", "DRAFT").containsEntry("draftRevision", 1);
         long tenantFieldId = jdbc.queryForObject(
-                "select id from cfg_module_field where module_id=? and owner_tenant_id=?", Long.class, moduleId, branchId);
-        assertThat(jdbc.queryForObject("select code from cfg_module_field where id=?", String.class, tenantFieldId))
+                "select id from un_cfg_module_field where module_id=? and owner_tenant_id=?", Long.class, moduleId, branchId);
+        assertThat(jdbc.queryForObject("select code from un_cfg_module_field where id=?", String.class, tenantFieldId))
                 .startsWith("__t" + branchId + "_");
 
         Map<String, Object> checked = data(exchange(
@@ -721,8 +733,8 @@ class ModuleConfigurationHttpTest {
         assertThat(record.getStatusCode()).withFailMessage("租户扩展字段业务录入失败：%s", record.getBody())
                 .isEqualTo(HttpStatus.OK);
         long recordId = number(data(record).get("id"));
-        assertThat(count("biz_record_value", "record_id = " + recordId + " and field_id = " + tenantFieldId)).isOne();
-        assertThat(count("biz_record", "id = " + recordId + " and tenant_id = " + branchId)).isOne();
+        assertThat(count("un_biz_record_value", "record_id = " + recordId + " and field_id = " + tenantFieldId)).isOne();
+        assertThat(count("un_biz_record", "id = " + recordId + " and tenant_id = " + branchId)).isOne();
 
         ResponseEntity<Map> removed = exchange(
                 "/api/admin/tenant-extensions/modules/" + moduleId + "/remove", HttpMethod.POST, branchToken,
@@ -730,7 +742,7 @@ class ModuleConfigurationHttpTest {
         assertThat(removed.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> removedExtension = (Map<String, Object>) data(removed).get("extension");
         assertThat(removedExtension).containsEntry("status", "DELETED");
-        assertThat(jdbc.queryForObject("select current_version_id is null from cfg_tenant_extension where id=?",
+        assertThat(jdbc.queryForObject("select current_version_id is null from un_cfg_tenant_extension where id=?",
                 Boolean.class, removedExtension.get("id"))).isTrue();
         Map<String, Object> fallbackRuntime = (Map<String, Object>) data(exchange(
                 "/api/runtime/modules/tenant_customer/configuration", HttpMethod.GET, branchToken, null)).get("configuration");
@@ -744,9 +756,9 @@ class ModuleConfigurationHttpTest {
                 Map.of("targetVersionId", extensionVersionId, "expectedVersion", removedExtension.get("version")));
         assertThat(rollback.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(((Map<?, ?>) data(rollback).get("extension")).get("status")).isEqualTo("PUBLISHED");
-        assertThat(count("cfg_tenant_extension_version", "extension_id = "
+        assertThat(count("un_cfg_tenant_extension_version", "extension_id = "
                 + ((Map<?, ?>) data(rollback).get("extension")).get("id"))).isOne();
-        assertThat(count("audit_event", "event_code in ('TENANT_EXTENSION_PUBLISHED','TENANT_EXTENSION_REMOVED',"
+        assertThat(count("un_audit_event", "event_code in ('TENANT_EXTENSION_PUBLISHED','TENANT_EXTENSION_REMOVED',"
                 + "'TENANT_EXTENSION_ROLLED_BACK') and tenant_id = " + branchId)).isEqualTo(3);
     }
 

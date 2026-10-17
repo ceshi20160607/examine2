@@ -1,0 +1,32 @@
+{
+  "step": "S19.6",
+  "candidate": "0.1.0-s19.6-dev2",
+  "frontend": "http://127.0.0.1:15173",
+  "localLoginVisible": true,
+  "directoryEntryVisible": true,
+  "passwordAbsentFromBrowserStorage": true,
+  "platformPage": {
+    "url": "http://127.0.0.1:15173/platform/dashboard",
+    "accountVisible": true,
+    "systemVisible": true
+  },
+  "systemPage": {
+    "url": "http://127.0.0.1:15173/systems/1",
+    "systemVisible": true,
+    "memberVisible": true
+  },
+  "systemAdminPage": {
+    "url": "http://127.0.0.1:15173/systems/1/admin?section=system-info",
+    "matched": true,
+    "denied": true,
+    "traceVisible": true
+  },
+  "adminPage": {
+    "url": "http://127.0.0.1:15173/platform/admin/identity-providers",
+    "providerVisible": true,
+    "publishedVisible": true
+  },
+  "screenshot": "projects/unexamine/ai/evidence/s19-unified-sso-browser.png",
+  "adminScreenshot": "projects/unexamine/ai/evidence/s19-unified-sso-admin-browser.png",
+  "mappingScreenshot": "projects/unexamine/ai/evidence/s19-unified-sso-mapping-browser.png"
+}

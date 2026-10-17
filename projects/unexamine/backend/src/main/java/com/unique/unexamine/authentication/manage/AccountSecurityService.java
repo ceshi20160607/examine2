@@ -58,7 +58,7 @@ public class AccountSecurityService {
                         .eq(PlatAccountMfa::getAccountId, context.accountId())
                         .orderByAsc(PlatAccountMfa::getId)).stream()
                 .map(value -> new MfaMethodView(value.getId(), value.getMethodType(), value.getDisplayLabel(),
-                        value.getStatus(), value.getVerifiedAt()))
+                        value.getStatus(), value.getVerifyTime()))
                 .toList();
         return view(account, credential, methods, sessions(context));
     }
@@ -89,45 +89,65 @@ public class AccountSecurityService {
         if (!passwordHasher.matches(request.currentPassword().toCharArray(), credential.getPasswordHash())) {
             throw new DomainException("CURRENT_PASSWORD_INVALID", "当前密码错误", HttpStatus.BAD_REQUEST);
         }
-        requireStrongPassword(request.newPassword());
-        List<PlatPasswordHistory> previous = passwordHistoryService.selectList(
-                Wrappers.<PlatPasswordHistory>lambdaQuery()
-                        .eq(PlatPasswordHistory::getAccountId, context.accountId())
-                        .orderByDesc(PlatPasswordHistory::getCredentialVersion)
-                        .last("limit 5"));
-        if (passwordHasher.matches(request.newPassword().toCharArray(), credential.getPasswordHash())
-                || previous.stream().anyMatch(value -> passwordHasher.matches(
-                request.newPassword().toCharArray(), value.getPasswordHash()))) {
-            throw new DomainException("PASSWORD_REUSED", "新密码不能与最近使用的密码相同", HttpStatus.BAD_REQUEST);
-        }
-
-        PlatPasswordHistory history = new PlatPasswordHistory();
-        history.setAccountId(context.accountId());
-        history.setPasswordHash(credential.getPasswordHash());
-        history.setCredentialVersion(credential.getCredentialVersion());
-        passwordHistoryService.insert(history);
-
-        credential.setPasswordHash(passwordHasher.hash(request.newPassword().toCharArray()));
-        credential.setCredentialVersion(credential.getCredentialVersion() + 1);
-        credential.setChangedAt(LocalDateTime.now());
-        credential.setMustChangePassword(false);
-        credential.setFailedAttempts(0);
-        credential.setLockedUntil(null);
-        credentialService.updateById(credential);
-
-        int revoked = 0;
-        for (AuthenticationSession session : activeSessions(context.accountId())) {
-            if (!session.getId().equals(context.sessionId())) {
-                session.setRevoked(true);
-                session.setRevokedReason("PASSWORD_CHANGED");
-                sessionService.updateById(session);
-                revoked++;
-            }
-        }
+        int revoked = replacePassword(context.accountId(), credential, request.newPassword(), context.sessionId());
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "ACCOUNT_PASSWORD_CHANGED", "PLATFORM_ACCOUNT", context.accountId().toString(), "SUCCESS",
                 Map.of("credentialVersion", credential.getCredentialVersion(), "revokedOtherSessions", revoked));
         return profile();
+    }
+
+    /** 仅供已校验一次性找回令牌的服务调用；重置后撤销该账号全部会话。 */
+    @Transactional
+    public void resetPassword(Long accountId, String newPassword, String traceId) {
+        PlatformAccount account = requireAccount(accountId);
+        if (!"ACTIVE".equals(account.getStatus())) {
+            throw new DomainException("ACCOUNT_DISABLED", "账号已停用", HttpStatus.FORBIDDEN);
+        }
+        PlatformAccountCredential credential = requireCredential(accountId);
+        int revoked = replacePassword(accountId, credential, newPassword, null);
+        auditRecorder.record(traceId, accountId, null, null, null,
+                "ACCOUNT_PASSWORD_RESET", "PLATFORM_ACCOUNT", accountId.toString(), "SUCCESS",
+                Map.of("credentialVersion", credential.getCredentialVersion(), "revokedSessions", revoked));
+    }
+
+    /** 改密和找回共用强度、历史与凭证更新规则，保留当前会话仅适用于已登录改密。 */
+    private int replacePassword(Long accountId, PlatformAccountCredential credential, String newPassword, Long retainedSessionId) {
+        requireStrongPassword(newPassword);
+        List<PlatPasswordHistory> previous = passwordHistoryService.selectList(
+                Wrappers.<PlatPasswordHistory>lambdaQuery()
+                        .eq(PlatPasswordHistory::getAccountId, accountId)
+                        .orderByDesc(PlatPasswordHistory::getCredentialVersion)
+                        .last("limit 5"));
+        if (passwordHasher.matches(newPassword.toCharArray(), credential.getPasswordHash())
+                || previous.stream().anyMatch(value -> passwordHasher.matches(
+                newPassword.toCharArray(), value.getPasswordHash()))) {
+            throw new DomainException("PASSWORD_REUSED", "新密码不能与最近使用的密码相同", HttpStatus.BAD_REQUEST);
+        }
+
+        PlatPasswordHistory history = new PlatPasswordHistory();
+        history.setAccountId(accountId);
+        history.setPasswordHash(credential.getPasswordHash());
+        history.setCredentialVersion(credential.getCredentialVersion());
+        passwordHistoryService.insert(history);
+
+        credential.setPasswordHash(passwordHasher.hash(newPassword.toCharArray()));
+        credential.setCredentialVersion(credential.getCredentialVersion() + 1);
+        credential.setChangeTime(LocalDateTime.now());
+        credential.setMustChangePassword(false);
+        credential.setFailedAttempts(0);
+        credential.setLockExpireTime(null);
+        credentialService.updateById(credential);
+
+        int revoked = 0;
+        for (AuthenticationSession session : activeSessions(accountId)) {
+            if (!session.getId().equals(retainedSessionId)) {
+                session.setRevoked(true);
+                session.setRevokedReason(retainedSessionId == null ? "PASSWORD_RESET" : "PASSWORD_CHANGED");
+                sessionService.updateById(session);
+                revoked++;
+            }
+        }
+        return revoked;
     }
 
     @Transactional
@@ -155,17 +175,17 @@ public class AccountSecurityService {
             List<MfaMethodView> methods,
             List<AccountSessionView> sessions) {
         return new AccountProfileView(account.getId(), account.getUsername(), account.getDisplayName(), account.getEmail(),
-                account.getMobile(), account.getLocale(), account.getTimezone(), account.getStatus(), account.getLastLoginAt(),
+                account.getMobile(), account.getLocale(), account.getTimezone(), account.getStatus(), account.getLastLoginTime(),
                 credential.getCredentialVersion(), account.getVersion(), methods, sessions);
     }
 
     private List<AccountSessionView> sessions(AuthenticatedContext context) {
         return sessionService.selectList(Wrappers.<AuthenticationSession>lambdaQuery()
                         .eq(AuthenticationSession::getAccountId, context.accountId())
-                        .orderByDesc(AuthenticationSession::getCreatedAt)).stream()
+                        .orderByDesc(AuthenticationSession::getCreateTime)).stream()
                 .map(value -> new AccountSessionView(value.getId(), value.getSystemId() == null ? "PLATFORM" : "SYSTEM",
-                        value.getSystemId(), value.getTenantId(), value.getMfaLevel(), value.getAccessExpiresAt(),
-                        value.getRefreshExpiresAt(), value.getCreatedAt(), value.getId().equals(context.sessionId()),
+                        value.getSystemId(), value.getTenantId(), value.getMfaLevel(), value.getAccessExpireTime(),
+                        value.getRefreshExpireTime(), value.getCreateTime(), value.getId().equals(context.sessionId()),
                         Boolean.TRUE.equals(value.getRevoked())))
                 .toList();
     }

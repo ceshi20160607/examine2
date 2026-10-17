@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "step": "B10.2d.1",
-  "nextStep": "B10.2d.2",
-  "artifactIntegrity": "passed",
-  "completionCredit": false,
-  "verified_time": "2026-09-20T17:26:51.068045+08:00",
-  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/flow-webhook-verification.json"
-}

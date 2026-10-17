@@ -264,7 +264,7 @@ public class RuntimeListViewService {
         }
         return new RuntimeListView(setting.getId(), stored.code(), stored.name(), stored.search(), safeFilters,
                 safeSort, stored.sortDirection(), safeVisible, safeFixed, stored.pageSize(), stored.defaultView(),
-                setting.getVersion(), setting.getUpdatedAt(), queryInvalid,
+                setting.getVersion(), setting.getUpdateTime(), queryInvalid,
                 lifecycle(stored.lifecycleState()), tenantScope(stored.tenantScope()));
     }
 

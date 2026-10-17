@@ -1,8 +1,0 @@
-{
-  "ok": true,
-  "step": "B11.3",
-  "nextStep": "B12.1",
-  "artifactIntegrity": "passed",
-  "completionCredit": false,
-  "note": "Receipt structure and file freshness passed; actual acceptance still requires current business results."
-}

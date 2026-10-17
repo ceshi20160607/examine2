@@ -21,6 +21,11 @@ public final class FlowDesignModels {
             @Size(max = 1000) String description) {
     }
 
+    /** 流程编码创建后固定，名称修改只提交显示名和当前版本。 */
+    public record RenameFlowRequest(@NotBlank @Size(max = 200) String name,
+                                    @NotNull Integer expectedVersion) {
+    }
+
     public record NodeInput(
             @NotBlank @Size(max = 100) String nodeKey,
             @NotBlank @Size(max = 64) String nodeType,
@@ -56,6 +61,10 @@ public final class FlowDesignModels {
             @NotNull Integer expectedDraftRevision,
             @NotBlank @Size(max = 1000) String changeSummary,
             Map<String, Object> simulationVariables) {
+    }
+
+    /** 流程停用与重新启用仅改变新发起资格，不改写已有实例的冻结版本。 */
+    public record ChangeStatusRequest(@NotBlank String status, @NotNull Integer expectedVersion) {
     }
 
     public record Issue(String code, String location, String message) {

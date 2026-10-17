@@ -10,12 +10,12 @@
         <result column="snapshot_json" property="snapshotJson" />
         <result column="revision_reason" property="revisionReason" />
         <result column="revised_by_account_id" property="revisedByAccountId" />
-        <result column="revised_at" property="revisedAt" />
+        <result column="revise_time" property="reviseTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, work_log_id, revision_number, snapshot_json, revision_reason, revised_by_account_id, revised_at
+        id, work_log_id, revision_number, snapshot_json, revision_reason, revised_by_account_id, revise_time
     </sql>
 
 </mapper>

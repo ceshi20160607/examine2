@@ -10,17 +10,23 @@
         <result column="code" property="code" />
         <result column="label" property="label" />
         <result column="path_code" property="pathCode" />
+        <result column="depth_level" property="depthLevel" />
+        <result column="depth_path" property="depthPath" />
         <result column="color" property="color" />
+        <result column="icon" property="icon" />
+        <result column="semantic_code" property="semanticCode" />
+        <result column="is_default" property="isDefault" />
+        <result column="board_enabled" property="boardEnabled" />
         <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, dictionary_id, parent_id, `code`, label, path_code, color, sort_order, `status`, created_at, updated_at, version
+        id, dictionary_id, parent_id, `code`, label, path_code, depth_level, depth_path, color, icon, semantic_code, is_default, board_enabled, sort_order, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

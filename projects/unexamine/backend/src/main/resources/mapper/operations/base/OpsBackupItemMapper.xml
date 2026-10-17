@@ -11,12 +11,12 @@
         <result column="size_bytes" property="sizeBytes" />
         <result column="sha256" property="sha256" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, backup_id, item_type, storage_uri, size_bytes, sha256, `status`, created_at
+        id, backup_id, item_type, storage_uri, size_bytes, sha256, `status`, create_time
     </sql>
 
 </mapper>

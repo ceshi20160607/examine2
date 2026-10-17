@@ -10,30 +10,48 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程当前发布指针
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_publication")
+@TableName("un_flow_publication")
 public class FlowPublication {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 流程定义ID
+     */
     @TableField("flow_id")
     private Long flowId;
 
+    /**
+     * 当前生效流程版本ID
+     */
     @TableField("current_version_id")
     private Long currentVersionId;
 
+    /**
+     * 最后修改人平台账号ID
+     */
     @TableField("updated_by_account_id")
     private Long updatedByAccountId;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -70,12 +88,12 @@ public class FlowPublication {
         this.updatedByAccountId = updatedByAccountId;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -93,7 +111,7 @@ public class FlowPublication {
             ", flowId = " + flowId +
             ", currentVersionId = " + currentVersionId +
             ", updatedByAccountId = " + updatedByAccountId +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

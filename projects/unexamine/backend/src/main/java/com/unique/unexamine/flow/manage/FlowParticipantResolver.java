@@ -2,6 +2,8 @@ package com.unique.unexamine.flow.manage;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.application.base.entity.AppDefinition;
+import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
 import com.unique.unexamine.authorization.manage.OrganizationRelationRepository;
 import com.unique.unexamine.flow.base.entity.FlowInstance;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
@@ -40,7 +42,7 @@ public class FlowParticipantResolver {
     private static final Set<String> POLICY_TYPES = Set.of(
             "PERSON", "ROLE", "DEPARTMENT", "RECORD_OWNER", "MANAGER",
             "DIRECT_MANAGER", "INITIATOR_MANAGER", "DEPARTMENT_MANAGER", "PERSON_FIELD",
-            "SUBORDINATES", "INITIATOR", "STARTER_SELECTED", "PREVIOUS_HANDLER");
+            "SUBORDINATES", "INITIATOR", "STARTER_SELECTED", "PREVIOUS_HANDLER", "EXTERNAL_PERSON");
 
     private final SystemTenantMemberBaseService tenantMemberService;
     private final SystemMemberBaseService memberService;
@@ -54,6 +56,7 @@ public class FlowParticipantResolver {
     private final PlatformAccountBaseService platformAccountService;
     private final PlatformDepartmentBaseService platformDepartmentService;
     private final com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService systemDirectoryService;
+    private final AppDefinitionBaseService applicationService;
 
     public FlowParticipantResolver(
             SystemTenantMemberBaseService tenantMemberService,
@@ -66,7 +69,8 @@ public class FlowParticipantResolver {
             PlatformMemberBaseService platformMemberService,
             PlatformAccountBaseService platformAccountService,
             PlatformDepartmentBaseService platformDepartmentService,
-            com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService systemDirectoryService) {
+            com.unique.unexamine.authorization.manage.SystemPeopleDirectoryService systemDirectoryService,
+            AppDefinitionBaseService applicationService) {
         this.tenantMemberService = tenantMemberService;
         this.memberService = memberService;
         this.memberRoleService = memberRoleService;
@@ -78,6 +82,7 @@ public class FlowParticipantResolver {
         this.platformAccountService = platformAccountService;
         this.platformDepartmentService = platformDepartmentService;
         this.systemDirectoryService = systemDirectoryService;
+        this.applicationService = applicationService;
     }
 
     /** 最小流程目录只提供有效人员身份与名称，不返回账号、联系方式、角色或管理关系。 */
@@ -269,7 +274,23 @@ public class FlowParticipantResolver {
 
     public String validatePolicy(AuthenticatedContext context, Map<String, Object> policy) {
         String type = string(policy.get("type")).toUpperCase();
-        if (!POLICY_TYPES.contains(type)) return "审批人来源必须选择人员、角色、部门、记录负责人、上下级或流程上下文";
+        if (!POLICY_TYPES.contains(type)) return "审批人来源必须选择人员、角色、部门、外部应用审批人或流程上下文";
+        if ("EXTERNAL_PERSON".equals(type)) {
+            Long applicationId = asLong(policy.get("applicationId"));
+            String externalId = string(policy.get("externalApproverId"));
+            if (applicationId == null || applicationId <= 0) return "请选择外部审批人所属应用";
+            if (externalId.isBlank() || externalId.length() > 100 || externalId.chars().anyMatch(Character::isISOControl)) {
+                return "外部审批人标识必须是 1 至 100 个非控制字符";
+            }
+            AppDefinition application = applicationService.selectById(applicationId);
+            if (application == null || !Objects.equals(application.getPlatformId(), context.platformId())
+                    || !Objects.equals(application.getOwnerSystemId(), context.systemId())
+                    || !Objects.equals(application.getOwnerTenantId(), context.tenantId())
+                    || !Set.of("DRAFT", "ACTIVE").contains(application.getStatus())) {
+                return "外部审批应用不属于当前平台或系统工作空间，或已被停用";
+            }
+            return null;
+        }
         if (context.systemId() == null) {
             if (!"PERSON".equals(type)) return "平台当前人员来源尚未接通，请选择指定平台人员；其他来源配置保留但不能发布";
             if (policy.containsKey("tenantMemberIds")) return "平台审批请选择平台人员，不能使用系统工作空间成员";

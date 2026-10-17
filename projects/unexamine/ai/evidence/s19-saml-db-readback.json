@@ -1,0 +1,16 @@
+{
+  "step": "S19.4",
+  "candidate": "0.1.0-s19.4-dev1",
+  "schema": "unexamine_s19_saml",
+  "flywayVersion": 23,
+  "providerPublished": 1,
+  "identityBound": 1,
+  "systemBindingActive": 1,
+  "successfulSsoLogCount": 2,
+  "systemEnterSuccessCount": 2,
+  "invalidTicketAuditCount": 1,
+  "deniedSystemAuditCount": 2,
+  "loginAuditTraceIdPresent": true,
+  "loginAuditRequestIdPresent": true,
+  "packageSha256": "89cd78610be621dcf561588f03ae521006cd955279d339234fe0d3ef0ba6d6fe"
+}

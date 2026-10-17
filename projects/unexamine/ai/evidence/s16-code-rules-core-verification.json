@@ -1,0 +1,128 @@
+{
+  "step": "S16.1",
+  "status": "verified_contribution",
+  "integration_gate": "G16_CODE_RULES",
+  "source_rows": [
+    "R2222",
+    "R2224",
+    "R2225",
+    "R2226",
+    "R2227",
+    "R2235",
+    "R2237",
+    "R2238",
+    "R2239",
+    "R2240",
+    "R2241"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/CreateSystemRequest.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemBootstrapService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/CreateModuleGroupRequest.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/CreateModuleRequest.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/RenameModuleRequest.java",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/tools/verify-cross-system-application.py",
+    "projects/unexamine/tools/verify-external-flow-configuration.py",
+    "projects/unexamine/tools/verify-external-flow.py",
+    "projects/unexamine/tools/verify-import-rollback.py",
+    "projects/unexamine/tools/verify-kpi-target.py",
+    "projects/unexamine/tools/verify-module-export.py",
+    "projects/unexamine/tools/verify-module-import.py",
+    "projects/unexamine/tools/verify-print-layout.py",
+    "projects/unexamine/tools/verify-print-template.py",
+    "projects/unexamine/tools/verify-print-version-pagination.py"
+  ],
+  "checks_actual_results": [
+    "System create rejected a hyphenated code with 400 VALIDATION_FAILED and duplicate s16_code_32be8e with 409 SYSTEM_CODE_EXISTS; valid system #164 retained the code after its display name changed.",
+    "In system #164, group, module, field and application create endpoints rejected hyphenated codes with 400, and duplicate module, field and application codes with 409. The accepted codes were client_group, client_record, external_code and client_api.",
+    "Module #82 name and field #182 name changed while codes remained client_record and external_code; stale module version returned 409 DRAFT_VERSION_CONFLICT. The published application #25 name changed while client_api and its external_code field grant remained stable.",
+    "The new module rename endpoint accepts only a name and expected version. The admin page renamed and published module #82, and the runtime title changed. A second module #83 proved its untouched default menu follows the rename to 订单台账; an independently named menu is left alone by the service condition.",
+    "Import template and export field catalog for module order_record both identify the field as order_code. The published application grant still identifies external_code; prior G7 print verification remains the print path baseline.",
+    "An unprivileged member in system #164 received 403 PERMISSION_DENIED for module rename. The browser, API and MySQL showed the same stable codes and changed names; after backend restart the runtime page, menu, published configuration and application read back.",
+    "Java 21 Maven package, frontend vue-tsc/Vite build, Python fixture syntax check and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s16-module-rename-runtime.png",
+    "projects/unexamine/ai/evidence/s16-module-rename-restart.png"
+  ],
+  "permission_or_failure_result": "Invalid and duplicate codes, stale rename version and unauthorized rename were rejected without changing the accepted code identities.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/CreateSystemRequest.java",
+      "sha256": "8b74bd013dfe5682d261cb8430c200393759dd6af63f573a831da709fa5740d0"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/system/manage/SystemBootstrapService.java",
+      "sha256": "df8c33be6da9467155038241ee7cf4da5cad89c804302bbc4292abdcb9ed551c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/CreateModuleGroupRequest.java",
+      "sha256": "62a2234ee246518b4ab1b87c375e57a82d34e9755c4a035f1fae0ddee9a83b38"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/CreateModuleRequest.java",
+      "sha256": "e3e1d0a2a45dca2962128c16e864e3267e752ab208a70bf5964549a0da5a58e7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "eaa26968548b65cd6ff2403f8c6fd30176aa625e7beedc8f69de27bd8294f22c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "83039d1c013df0cb0ff644164095e4bc517014fd8c2bbeb06b088c6faf6d8838"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/RenameModuleRequest.java",
+      "sha256": "05a74af22d83336e9ed21d5fb026debdf7f60d206d43c9a88fe0fa744bbed9cd"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "3c2219d34f157ea2c6583ef5ba0e38569c934d0cb8e7c31ef61a36646148898c"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-cross-system-application.py",
+      "sha256": "d11999ec6d0b97d3e023b9a781c8f38e193145f6386ff80040fa23cb813b056a"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow-configuration.py",
+      "sha256": "a7cf1692ffc5869a4376b05ad327ff5463c3225cc245a7c6b1a70a5242cdf52d"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow.py",
+      "sha256": "baac0e59b82b20abf9008b9a7355efbab42b86b1a642be9cfba74b08ac84355c"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-import-rollback.py",
+      "sha256": "61d2a25a54cd7acef6ffa7b7cf8c28381d3640c04e8816f9fc96e65e5fd825a4"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-kpi-target.py",
+      "sha256": "0c49979507829815f41f0fdef0c625f8c1f7fd63424a135d9bee41be06991b39"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-export.py",
+      "sha256": "d77c1e0b655c526186b685fc35b04825b729906d8e28f55561615af4b821b02d"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-import.py",
+      "sha256": "f5eb62fece11706acb8179582eaa15f4f936594dc01d83b525ee647c57f1fac0"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-layout.py",
+      "sha256": "1ac26d11d52702bfecaa03e796e82de9801aeffa91f561eb8bb169b0eb6a14a6"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-template.py",
+      "sha256": "f5bcabf185488691cb70f23fba365846e2d1df8a1aa155aed036bcbbf90c3698"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-print-version-pagination.py",
+      "sha256": "631503e87143f507a31eb30ce94dcfd01b2464687310de93dd821e87c371457f"
+    }
+  ],
+  "remaining": "S16.2 must address page, menu, role, Flow, print and dictionary code rules, including cross-tenant scope checks; S16.3 must integrate all code identities and complete G16.",
+  "next_step": "S16.2"
+}

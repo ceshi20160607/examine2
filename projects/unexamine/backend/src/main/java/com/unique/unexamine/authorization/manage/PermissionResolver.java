@@ -9,9 +9,15 @@ import com.unique.unexamine.foundation.base.entity.CoreCacheEpoch;
 import com.unique.unexamine.foundation.base.service.CoreCacheEpochBaseService;
 import com.unique.unexamine.foundation.manage.control.FoundationContextKeyFactory;
 import com.unique.unexamine.system.base.entity.SystemMemberRole;
+import com.unique.unexamine.system.base.entity.SystemMember;
+import com.unique.unexamine.system.base.entity.SystemTenantMember;
+import com.unique.unexamine.system.base.entity.SystemDefinition;
 import com.unique.unexamine.system.base.entity.SystemRole;
 import com.unique.unexamine.system.base.entity.SystemRolePermission;
 import com.unique.unexamine.system.base.service.SystemMemberRoleBaseService;
+import com.unique.unexamine.system.base.service.SystemMemberBaseService;
+import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
+import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
 import com.unique.unexamine.system.base.service.SystemRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
 import org.slf4j.Logger;
@@ -28,10 +34,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/** 合并租户角色授权，并为系统当前所属人提供不依赖角色的隐式授权。 */
 @Service
 public class PermissionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionResolver.class);
     private final SystemMemberRoleBaseService memberRoleService;
+    private final SystemMemberBaseService memberService;
+    private final SystemTenantMemberBaseService tenantMemberService;
+    private final SystemDefinitionBaseService systemService;
     private final SystemRoleBaseService roleService;
     private final SystemRolePermissionBaseService permissionService;
     private final CoreCacheEpochBaseService cacheEpochService;
@@ -41,6 +51,9 @@ public class PermissionResolver {
 
     public PermissionResolver(
             SystemMemberRoleBaseService memberRoleService,
+            SystemMemberBaseService memberService,
+            SystemTenantMemberBaseService tenantMemberService,
+            SystemDefinitionBaseService systemService,
             SystemRoleBaseService roleService,
             SystemRolePermissionBaseService permissionService,
             CoreCacheEpochBaseService cacheEpochService,
@@ -48,6 +61,9 @@ public class PermissionResolver {
             FoundationContextKeyFactory keyFactory,
             ObjectMapper objectMapper) {
         this.memberRoleService = memberRoleService;
+        this.memberService = memberService;
+        this.tenantMemberService = tenantMemberService;
+        this.systemService = systemService;
         this.roleService = roleService;
         this.permissionService = permissionService;
         this.cacheEpochService = cacheEpochService;
@@ -63,6 +79,14 @@ public class PermissionResolver {
     public PermissionResolutionResult resolveWithDiagnostics(Long systemId, Long tenantId, Long tenantMemberId) {
         long epoch = currentEpoch(systemId, tenantId);
         String cacheKey = keyFactory.permissionCacheKey(systemId, tenantId, tenantMemberId, epoch);
+        // 系统当前所属人权限随归属立即变化，不能复用角色或 Redis 里的旧快照。
+        if (isCurrentOwner(systemId, tenantId, tenantMemberId)) {
+            ResolvedPermissions owner = new ResolvedPermissions(List.of(),
+                    List.of(new PermissionGrant("*", "*", "*", List.of())),
+                    Map.of("*:*:*", new DataScopeExpression("ALL",
+                            List.of(new DataScopeTerm("ALL", NullNode.getInstance(), List.of())))));
+            return new PermissionResolutionResult(owner, epoch, "SYSTEM_OWNER", cacheKey);
+        }
         boolean redisFailed = false;
         try {
             String cached = redis.opsForValue().get(cacheKey);
@@ -89,6 +113,18 @@ public class PermissionResolver {
         }
         return new PermissionResolutionResult(resolved, epoch,
                 redisFailed ? "DATABASE_FALLBACK" : "DATABASE", cacheKey);
+    }
+
+    private boolean isCurrentOwner(Long systemId, Long tenantId, Long tenantMemberId) {
+        if (systemId == null || tenantId == null || tenantMemberId == null) return false;
+        SystemDefinition system = systemService.selectById(systemId);
+        SystemTenantMember tenantMember = tenantMemberService.selectById(tenantMemberId);
+        if (system == null || Boolean.TRUE.equals(system.getDeleted()) || !"ACTIVE".equals(system.getStatus())
+                || tenantMember == null || !systemId.equals(tenantMember.getSystemId())
+                || !tenantId.equals(tenantMember.getTenantId()) || !"ACTIVE".equals(tenantMember.getStatus())) return false;
+        SystemMember member = memberService.selectById(tenantMember.getSystemMemberId());
+        return member != null && systemId.equals(member.getSystemId()) && "ACTIVE".equals(member.getStatus())
+                && system.getCreatorAccountId() != null && system.getCreatorAccountId().equals(member.getAccountId());
     }
 
     private ResolvedPermissions resolveFromDatabase(Long tenantId, Long tenantMemberId) {

@@ -1,0 +1,61 @@
+{
+  "step": "S18.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0680",
+    "R0681",
+    "R0682",
+    "R0683",
+    "R0684",
+    "R0688",
+    "R0689",
+    "R0690",
+    "R0698",
+    "R0703",
+    "R0710",
+    "R0711",
+    "R0713",
+    "R0720",
+    "R0721",
+    "R0733",
+    "R0734",
+    "R0735",
+    "R0737",
+    "R0739",
+    "R0743",
+    "R0747",
+    "R0748",
+    "R0749",
+    "R0750",
+    "R0751",
+    "R0753",
+    "R0757"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/product.css"
+  ],
+  "checks_actual_results": [
+    "在隔离系统 #165 的真实后台页面建立并发布第二个采购明细模块 #85，REFERENCE 字段指向已发布的采购申请模块 #84；三个真实明细 #171/#172/#173 的负责人分别为 #248/#249/#248。普通成员 #249 获发布的 LIST/DETAIL/CREATE/UPDATE/EXPORT 与字段权限，数据范围 SELF。",
+    "真实页面建立模块关联数据源 #7：采购明细 INNER REFERENCE 关联采购申请，显式输出申请标题、物品名称和金额，金额 SUM。V1 发布后管理员 1350/2、成员 150/1；后续新增 #173 后旧 V1 管理员 1420/3。",
+    "数据源筛选改为物品名称 CONTAINS 纸，草稿 r2 预览管理员 220/2，而旧发布版仍为 1420/3；发布数据源 V2 后，未重新发布的仪表盘 V1 仍为 1420/3。重新保存、预览并发布仪表盘 #2 V2 后，管理员 220/2，成员 150/1。",
+    "成员系统首页的数字、关联列表和下钻真实页面仅显示自己的 #172，详情显示所属申请和金额；修复列表仅显示首个输出字段的问题，列表现展示所有已授权显式输出字段。",
+    "后端重启后 readiness HTTP 200 UP；管理员和成员页面、报表 API、仪表盘 API、业务列表及 MySQL 发布版本读回一致；前端 vue-tsc 与 Vite build、workspace-validate、git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-dashboard-datasource-readback.json"
+  ],
+  "permission_or_failure_result": "普通成员对负责人 #248 的采购明细 #171 直读 HTTP 403 PERMISSION_DENIED；数据源与仪表盘按成员 SELF 只聚合 #172，排除 #171/#173。旧发布版本在草稿变更及数据源新版本发布后仍保持旧筛选，直到仪表盘单独发布 V2。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+      "sha256": "e206a6b7215c7552b25ccdea9f43ea07d8525555e11dd9baffbfb94b338e1fa8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/product.css",
+      "sha256": "629506b09e58f3a1edf94972dc36d5a5a4bf9bd792a472f1a42574bff261beac"
+    }
+  ],
+  "remaining": "本步骤只覆盖同一系统关联数据源、系统首页的数字和列表、发布快照、SELF 权限与下钻。模块/个人首页、图表/KPI、打印、AI 在系统 #165 的跨功能组合和真实第三方身份/外部服务仍需后续有界验收；旧独立验证不代替同系统整体验收。",
+  "next_step": "S18.3"
+}

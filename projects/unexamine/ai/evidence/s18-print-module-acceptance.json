@@ -1,0 +1,56 @@
+{
+  "step": "S18.4",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1145",
+    "R1149",
+    "R1153",
+    "R1155",
+    "R1156",
+    "R1157",
+    "R1158",
+    "R1159",
+    "R1160",
+    "R1173",
+    "R1880",
+    "R1882",
+    "R1883",
+    "R1884",
+    "R1885",
+    "R1886",
+    "R2074",
+    "R2076",
+    "R2077",
+    "R2078",
+    "R2081",
+    "R2082",
+    "R2088"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "在系统 #165 的打印后台为采购明细模块 #85 创建模板 #40，选择金额、物品名称和关联申请，真实记录 #172 预览为 CNY 150.00、打印纸、办公用品采购；发布不可变 V1 #48。",
+    "普通成员起初无 PRINT 动作，运行态模板接口 403；从已发布角色增加仅本人 PRINT 后可以生成 PDF，但因 FILE 通道无字段读取权，打印任务 #118/#119 正确输出 0 字段。继续给三个字段增加 FILE 可读并发布，成员任务 #120 输出 3 字段。",
+    "模板修改页脚后的未发布草稿不覆盖 V1 运行态；预览并发布 V2 #49，当前版 V2、历史 V1 均可对成员 #172 生成 1 页 PDF，两个版本字段一致、页脚各保留原值；PDF 下载 HTTP 200 application/pdf、魔数 %PDF 且长度分别 1739/1751 字节。",
+    "发现成员打印弹窗仅显示当前版，修复后端运行态目录返回当前版优先及所有已发布历史版、前端按版本 ID 选择；重启后成员页面列出 V2/V1，选 V1 生成任务 #123，切回 V2 清除旧预览和下载状态。",
+    "JDK21 Maven package、vue-tsc/Vite build、workspace-validate、git diff --check 通过；新制品 SHA256 7A0F564BA8D9E66DC6CD5C80EF846B53E11AAAADE9CEE7DD925A49D76BA4884B 在 live 容器重启后 readiness 200 UP，页面/API/MySQL 回读一致。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-print-module-readback.json"
+  ],
+  "permission_or_failure_result": "普通成员打印负责人 #248 的记录 #173 在 V1/V2 均 HTTP 403 PERMISSION_DENIED，访问打印后台 HTTP 403；未授予 FILE 字段可读时 PDF 不输出字段，补齐可读后只输出已授权三字段。历史版本的选择和打印仍在当前成员记录/字段权限下重新校验。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+      "sha256": "21bcec34b5e8ad6563bdcd089ad8cd989e64a4c831ca628b00348c44a136c7e7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "839b4bcfb3562c0155d83b45d1d0049e40648fa80335b754d4d5da9b180ff716"
+    }
+  ],
+  "remaining": "同系统采购明细打印 V1/V2 已覆盖页面、API、数据库、权限与重启。下一步在系统 #165 验证系统 Agent 对同一数据的查询、受控建议与人工确认写入；维度图表、真实第三方身份/投递依赖及整站最终结论仍需后续有界验收。",
+  "next_step": "S18.5"
+}

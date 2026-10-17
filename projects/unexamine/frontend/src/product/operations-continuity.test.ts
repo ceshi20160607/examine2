@@ -17,8 +17,8 @@ describe('operations continuity helpers', () => {
     expect(verifiedBackup(backup)).toBe(false)
   })
 
-  it('keeps recoverable failure distinct from success', () => {
-    expect(upgradeOutcome({ status: 'SUCCESS' } as OperationsUpgrade)).toBe('升级完成')
-    expect(upgradeOutcome({ status: 'RECOVERABLE_FAILED' } as OperationsUpgrade)).toBe('失败但可恢复')
+  it('labels accepted upgrades and historical failures distinctly', () => {
+    expect(upgradeOutcome({ status: 'SUCCESS' } as OperationsUpgrade)).toBe('升级后验收通过')
+    expect(upgradeOutcome({ status: 'RECOVERABLE_FAILED' } as OperationsUpgrade)).toBe('旧记录：失败需恢复')
   })
 })

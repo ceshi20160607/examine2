@@ -136,16 +136,9 @@ export function userFacingWorkspaceName(name?: string | null) {
   return source
 }
 
-export function isVerificationArtifactName(name?: string | null) {
-  const source = String(name || '').trim()
-  return /^(?:C\d+|CYCLE[-_ ]?\d+|周期[一二三四五六七八九十百千万零〇两\d]+)/i.test(source)
-    || /(?:验收|探测)系统$/.test(source)
-}
-
 export function userFacingRecordNumber(value?: string | null, fallback = '业务记录') {
   const source = String(value || '').trim()
-  if (!source || /^(?:C\d{2,}|CYCLE[-_ ]?\d+|周期[一二三四五六七八九十百千万零〇两\d]+)/i.test(source)) return fallback
-  return source
+  return source || fallback
 }
 
 export function productDateTime(value?: string | null) {

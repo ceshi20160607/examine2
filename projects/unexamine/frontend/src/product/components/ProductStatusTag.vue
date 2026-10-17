@@ -4,7 +4,7 @@ import { productStatus } from '../presentation'
 
 const props = defineProps<{ status?: string | null; label?: string }>()
 const presentation = computed(() => productStatus(props.status))
-const displayLabel = computed(() => props.label ? productStatus(props.label).label : presentation.value.label)
+const displayLabel = computed(() => props.label?.trim() || presentation.value.label)
 </script>
 
 <template>

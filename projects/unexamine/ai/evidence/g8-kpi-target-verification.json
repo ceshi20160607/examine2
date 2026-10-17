@@ -1,0 +1,27 @@
+{
+  "step": "S08.1",
+  "status": "verified_contribution",
+  "integration_gate": "G8_KPI_TARGET_LOOP",
+  "source_rows": ["R2093", "R2097", "R2098", "R2099", "R2100", "R2101", "R2102"],
+  "changed_files": ["projects/unexamine/tools/verify-kpi-target.py"],
+  "checks_actual_results": [
+    "隔离系统 #151 的合同模块 #73 发布 NUMBER 金额字段，同一模块记录 #130/#131 分别保存 120、280；结构化 MODULE_REPORT 发布版本 #6 对已发布字段执行 SUM，草稿预览与计算实际值均为 400。",
+    "在同一系统配置 PERSON #226 的月目标 500、DEPARTMENT #153 的季度目标 300、ROLE #214 的年目标 500；三项计算结果分别为 80% 未达标、133.333333% 达标和 80% 未达标，周期键分别为 2026-10、2026-Q4、2026。预览解释数据源发布版本，计算记录保存来源哈希、样本记录与权限口径。",
+    "个人未达标只给有效接收成员生成一条消息和 KPI 提醒；同周期重算保持一条提醒。增加合同记录 #132、金额 150 后重算个人目标为 550、110% 达标，旧提醒变为 RESOLVED。管理员后台和运行态指标看板均显示实际值、目标值、达成率、明细与提醒状态，重启后重新打开页面仍能读回。",
+    "普通成员获合同 LIST/DETAIL 但范围 SELF 时可见获权 KPI，跨负责人合同不出现在其下钻；无合同 LIST 动作的成员列表为空，直读返回 KPI_VISIBILITY_DENIED。错误目标对象和不存在的数据源版本均返回 422 明确业务错误，月目标使用季度键返回 KPI_PERIOD_INVALID。",
+    "在仅用于验收的系统 #151 中短暂破坏数据源版本的引用，计算产生 STALE 结果并保留上次成功值 550、来源错误 REPORT_SOURCE_NOT_FOUND，未新增虚假提醒；立即恢复版本引用并重算回 ACHIEVED。数据库确认三种责任对象、三种周期、递增计算修订号、唯一提醒 RESOLVED 与 KPI 审计。DashboardHttpTest、Python 编译、工作区边界和 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g8-kpi-admin-restart.png",
+    "projects/unexamine/ai/evidence/g8-kpi-runtime-restart.png",
+    "projects/unexamine/ai/evidence/g8-kpi-achieved-resolved.png",
+    "projects/unexamine/tools/verify-kpi-target.py",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java"
+  ],
+  "permission_or_failure_result": "运行态 KPI 可见性按当前动作授权判定，下钻按成员当前 SELF 数据范围重新查询；未授权成员被拒绝。错误对象、错误周期和不存在版本明确拒绝；数据源暂不可用时标记 STALE 且不生成新提醒，恢复后重新计算成功。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/tools/verify-kpi-target.py", "sha256": "28687f451f0323a94d4a09b5ecb30bc4c1b22f0e4cc25e81e1b4b79aafaca0ef"}
+  ],
+  "remaining": "G8 当前需求下的目标闭环已通过同一业务系统验收；后续仍需系统体检等固定能力及最终整站验收。真实第三方凭据相关阻塞保持未完成。",
+  "next_step": "S09.1"
+}

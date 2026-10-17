@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 模块事件和动作的租户流程绑定
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_trigger_binding")
+@TableName("un_flow_trigger_binding")
 public class FlowTriggerBinding {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统ID
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置来源租户ID
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 关联业务模块ID
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 绑定的模块动作ID
+     */
     @TableField("action_id")
     private Long actionId;
 
+    /**
+     * 模块业务触发事件编码
+     */
     @TableField("trigger_event")
     private String triggerEvent;
 
+    /**
+     * 命中的流程定义ID；直接执行业务动作时为空
+     */
     @TableField("flow_id")
     private Long flowId;
 
+    /**
+     * 条件或绑定优先级
+     */
     @TableField("priority_order")
     private Integer priorityOrder;
 
+    /**
+     * 触发或连线条件表达式
+     */
     @TableField("condition_expression")
     private String conditionExpression;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -139,20 +178,20 @@ public class FlowTriggerBinding {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -176,8 +215,8 @@ public class FlowTriggerBinding {
             ", priorityOrder = " + priorityOrder +
             ", conditionExpression = " + conditionExpression +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

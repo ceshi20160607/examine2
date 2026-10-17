@@ -9,74 +9,134 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变的业务操作审计事件
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("audit_event")
+@TableName("un_audit_event")
 public class AuditEvent {
 
+    /**
+     * 操作审计事件主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 跨服务调用链追踪标识
+     */
     @TableField("trace_id")
     private String traceId;
 
+    /**
+     * 触发操作的请求标识
+     */
     @TableField("request_id")
     private String requestId;
 
+    /**
+     * 事件所属的平台或系统范围类型
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 执行操作的平台账号主键，系统事件也使用统一账号
+     */
     @TableField("actor_account_id")
     private Long actorAccountId;
 
+    /**
+     * 事件所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 事件所属系统主键，平台事件为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 事件所属租户主键，平台或系统公共事件为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 执行操作的系统成员主键，平台事件为空
+     */
     @TableField("member_id")
     private Long memberId;
 
+    /**
+     * 应用调用产生事件时的应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 审计事件业务类别
+     */
     @TableField("event_category")
     private String eventCategory;
 
+    /**
+     * 审计事件动作编码
+     */
     @TableField("event_code")
     private String eventCode;
 
+    /**
+     * 被操作业务对象类型
+     */
     @TableField("object_type")
     private String objectType;
 
+    /**
+     * 被操作业务对象标识
+     */
     @TableField("object_id")
     private String objectId;
 
+    /**
+     * 操作结果或错误编码
+     */
     @TableField("result_code")
     private String resultCode;
 
+    /**
+     * 发起操作的客户端 IP 地址
+     */
     @TableField("client_ip")
     private String clientIp;
 
+    /**
+     * 发起操作的客户端标识
+     */
     @TableField("user_agent")
     private String userAgent;
 
+    /**
+     * 执行时的权限判定快照
+     */
     @TableField("permission_snapshot")
     private String permissionSnapshot;
 
+    /**
+     * 不含敏感明文的审计事件详情
+     */
     @TableField("detail_json")
     private String detailJson;
 
-    @TableField("occurred_at")
-    private LocalDateTime occurredAt;
+    /**
+     * 审计事件发生时间
+     */
+    @TableField("occur_time")
+    private LocalDateTime occurTime;
 
     public Long getId() {
         return id;
@@ -230,12 +290,12 @@ public class AuditEvent {
         this.detailJson = detailJson;
     }
 
-    public LocalDateTime getOccurredAt() {
-        return occurredAt;
+    public LocalDateTime getOccurTime() {
+        return occurTime;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
-        this.occurredAt = occurredAt;
+    public void setOccurTime(LocalDateTime occurTime) {
+        this.occurTime = occurTime;
     }
 
     @Override
@@ -260,7 +320,7 @@ public class AuditEvent {
             ", userAgent = " + userAgent +
             ", permissionSnapshot = " + permissionSnapshot +
             ", detailJson = " + detailJson +
-            ", occurredAt = " + occurredAt +
+            ", occurTime = " + occurTime +
             "}";
     }
 }

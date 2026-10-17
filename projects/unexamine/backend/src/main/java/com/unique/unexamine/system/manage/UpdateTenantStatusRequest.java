@@ -4,5 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record UpdateTenantStatusRequest(
-        @NotBlank @Pattern(regexp = "ACTIVE|DISABLED") String status) {
+        @NotBlank @Pattern(regexp = "ACTIVE|DISABLED|ARCHIVED") String status,
+        Integer expectedVersion) {
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.notification.base.mapper.PlatTodoItemMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.notification.base.entity.PlatTodoItem">
+        <id column="id" property="id" />
+        <result column="platform_id" property="platformId" />
+        <result column="assignee_account_id" property="assigneeAccountId" />
+        <result column="todo_type" property="todoType" />
+        <result column="source_type" property="sourceType" />
+        <result column="source_id" property="sourceId" />
+        <result column="title" property="title" />
+        <result column="summary" property="summary" />
+        <result column="target_route" property="targetRoute" />
+        <result column="priority" property="priority" />
+        <result column="due_time" property="dueTime" />
+        <result column="status" property="status" />
+        <result column="complete_time" property="completeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, platform_id, assignee_account_id, todo_type, source_type, source_id, title, summary, target_route, priority, due_time, `status`, complete_time, create_time, update_time, version
+    </sql>
+
+</mapper>

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { AppstoreOutlined, ArrowRightOutlined, PlusOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons-vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductState from '../components/ProductState.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import PlatformShell from '../components/PlatformShell.vue'
-import { isVerificationArtifactName, userFacingWorkspaceName } from '../presentation'
+import { userFacingWorkspaceName } from '../presentation'
 import { clearSession, platformContext, platformTokens } from '../session'
 import { establishSystemSession } from '../system-entry'
 import type { SystemAccessRequest, SystemDirectoryItem } from '../types'
@@ -37,12 +37,27 @@ const error = ref('')
 const success = ref('')
 const requestForm = reactive({ reason: '', requestedRole: '' })
 const createForm = reactive({ name: '' })
-const visibleSystems = computed(() => systems.value.filter((system) => !isVerificationArtifactName(system.systemName)))
-const requestableSystems = computed(() => directory.value.filter((system) => !system.accessible && !isVerificationArtifactName(system.systemName)))
+const requestableSystems = computed(() => directory.value.filter((system) => !system.accessible))
+const directorySearch = ref('')
+const directoryPage = ref(1)
+const directoryPageSize = 10
+const filteredRequestableSystems = computed(() => {
+  const query = directorySearch.value.trim().toLocaleLowerCase()
+  return query ? requestableSystems.value.filter((system) =>
+    system.systemName.toLocaleLowerCase().includes(query)
+    || system.systemCode.toLocaleLowerCase().includes(query)) : requestableSystems.value
+})
+const pagedRequestableSystems = computed(() => filteredRequestableSystems.value.slice(
+  (directoryPage.value - 1) * directoryPageSize, directoryPage.value * directoryPageSize))
+watch(directorySearch, () => { directoryPage.value = 1 })
 const canCreateSystem = computed(() => platformContext.value?.permissions.some((permission) =>
   (permission.resourceType === '*' || permission.resourceType === 'PLATFORM')
   && (permission.resourceCode === '*' || permission.resourceCode === 'SYSTEM')
   && (permission.actionCode === '*' || permission.actionCode === 'CREATE')) ?? false)
+const emptySystemDescription = computed(() => canCreateSystem.value
+  ? '你可以新建系统，或从下方目录申请已有系统的访问权限。'
+  : requestableSystems.value.length ? '从下方目录申请已有系统的访问权限，或联系管理员开通。'
+    : '请联系系统管理员按你的平台账号开通成员身份。')
 const managementPath = computed(() => platformAdminEntryPath(platformContext.value?.permissions))
 
 async function loadSystems() {
@@ -62,6 +77,7 @@ async function loadSystems() {
     systems.value = accessible
     directory.value = allSystems
     accessRequests.value = mine
+    directoryPage.value = 1
   } catch (reason) {
     error.value = reason instanceof ApiError ? reason.message : '系统列表加载失败'
   } finally {
@@ -96,8 +112,9 @@ async function createSystem() {
     }, platformTokens.value.accessToken)
     createOpen.value = false
     await loadSystems()
-    success.value = `系统“${created.systemName}”已创建，正在进入“${userFacingWorkspaceName(created.defaultTenantName)}”。`
-    await enterSystem(created)
+    success.value = `系统“${created.systemName}”已创建，正在进入系统后台完成配置。`
+    await establishSystemSession(created.systemId)
+    await router.push(`/systems/${created.systemId}/admin`)
   } catch (reason) {
     error.value = reason instanceof ApiError ? reason.message : '系统创建失败'
   } finally {
@@ -161,11 +178,11 @@ onMounted(loadSystems)
         <a-button v-if="canCreateSystem" type="primary" @click="openCreateSystem"><PlusOutlined />新建系统</a-button>
       </template>
     </ProductPageHeader>
-    <a-alert v-if="error && visibleSystems.length" type="error" show-icon :message="error" class="section-alert" />
+    <a-alert v-if="error && systems.length" type="error" show-icon :message="error" class="section-alert" />
     <a-alert v-if="success" type="success" show-icon :message="success" class="section-alert" closable @close="success = ''" />
     <a-spin :spinning="loading">
-      <div v-if="visibleSystems.length" class="system-list">
-        <article v-for="system in visibleSystems" :key="system.systemId" :class="['system-row', { 'system-row--disabled': system.status !== 'ACTIVE' }]" @click="system.status === 'ACTIVE' && enterSystem(system)">
+      <div v-if="systems.length" class="system-list">
+        <article v-for="system in systems" :key="system.systemId" :class="['system-row', { 'system-row--disabled': system.status !== 'ACTIVE' }]" @click="system.status === 'ACTIVE' && enterSystem(system)">
           <div class="system-row__mark"><AppstoreOutlined /></div>
           <div class="system-row__main"><h2>{{ system.systemName }}</h2><p>独立业务工作区</p></div>
           <div class="system-row__meta"><span>{{ userFacingWorkspaceName(system.defaultTenantName) }}</span><ProductStatusTag :status="system.status" /></div>
@@ -177,14 +194,19 @@ onMounted(loadSystems)
       <ProductState v-else-if="!loading && error" state="error" title="系统列表加载失败" :description="error">
         <template #actions><a-button type="primary" @click="loadSystems">重新加载</a-button></template>
       </ProductState>
-      <ProductState v-else-if="!loading" state="empty" title="当前账号还没有可进入的系统" description="可以新建系统，或从下方目录申请已有系统的访问权限。">
+      <ProductState v-else-if="!loading" state="empty" title="当前账号还没有可进入的系统" :description="emptySystemDescription">
         <template v-if="canCreateSystem" #actions><a-button type="primary" @click="openCreateSystem"><PlusOutlined />新建系统</a-button></template>
       </ProductState>
 
       <section v-if="requestableSystems.length" class="access-directory panel-card">
         <div class="panel-title"><strong>申请访问其他系统</strong><span>批准前不会获得任何业务权限</span></div>
-        <article v-for="system in requestableSystems" :key="system.systemId" class="access-directory__row">
-          <div><strong>{{ system.systemName }}</strong><small>{{ userFacingWorkspaceName(system.defaultTenantName) }}</small></div>
+        <div class="access-directory__tools">
+          <a-input-search v-model:value="directorySearch" allow-clear placeholder="搜索系统名称或标识" aria-label="搜索可申请系统" />
+          <span>共 {{ filteredRequestableSystems.length }} 个系统</span>
+        </div>
+        <a-empty v-if="!filteredRequestableSystems.length" description="没有匹配的系统" />
+        <article v-for="system in pagedRequestableSystems" :key="system.systemId" class="access-directory__row">
+          <div><strong>{{ system.systemName }}</strong><small>{{ userFacingWorkspaceName(system.defaultTenantName) }} · 系统标识：{{ system.systemCode }}</small></div>
           <div class="access-directory__state">
             <ProductStatusTag v-if="system.accessRequestStatus" :status="system.accessRequestStatus" />
             <a-tag v-else>未申请</a-tag>
@@ -194,11 +216,14 @@ onMounted(loadSystems)
             <SendOutlined />{{ system.accessRequestStatus === 'REJECTED' ? '重新申请' : '申请访问' }}
           </a-button>
         </article>
+        <div v-if="filteredRequestableSystems.length > directoryPageSize" class="access-directory__pagination">
+          <a-pagination v-model:current="directoryPage" :page-size="directoryPageSize" :total="filteredRequestableSystems.length" :show-size-changer="false" size="small" />
+        </div>
       </section>
     </a-spin>
 
     <a-modal :open="Boolean(requestTarget)" title="申请系统访问" :confirm-loading="submitting" ok-text="提交申请" @ok="submitAccessRequest" @cancel="requestTarget = null">
-      <a-alert type="info" show-icon :message="`目标：${requestTarget?.systemName ?? ''} / ${userFacingWorkspaceName(requestTarget?.defaultTenantName)}`" class="section-alert" />
+      <a-alert type="info" show-icon :message="`目标：${requestTarget?.systemName ?? ''} / ${userFacingWorkspaceName(requestTarget?.defaultTenantName)} / ${requestTarget?.systemCode ?? ''}`" class="section-alert" />
       <a-form layout="vertical">
         <a-form-item label="申请理由" required><a-textarea v-model:value="requestForm.reason" :maxlength="1000" :rows="4" show-count /></a-form-item>
         <a-form-item label="期望角色"><a-input v-model:value="requestForm.requestedRole" :maxlength="100" placeholder="例如：销售成员（最终角色由管理员决定）" /></a-form-item>

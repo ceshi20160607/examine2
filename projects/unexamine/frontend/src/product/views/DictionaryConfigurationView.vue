@@ -24,6 +24,8 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
 const dictionaryModal = ref(false)
+const renameModal = ref(false)
+const renameName = ref('')
 const itemDrawer = ref(false)
 const publicationModal = ref(false)
 const publication = ref<DictionaryPublicationCheck>()
@@ -36,7 +38,7 @@ const itemOptions = computed(() => selected.value?.items
   .map(item => ({ value: item.id, label: `${'　'.repeat(Math.max(item.pathCode.split(',').length - 1, 0))}${item.label}` })) || [])
 
 function generatedCode(prefix: string, name: string) {
-  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '')
+  const latin = name.trim().toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '')
   return `${prefix}_${latin || Date.now().toString(36)}`.slice(0, 96)
 }
 
@@ -78,6 +80,26 @@ async function createDictionary() {
     Object.assign(dictionaryForm, { code: '', name: '', hierarchical: true })
     message.success('字典草稿已创建；未发布前运行端不可见')
     await load(created.dictionary.id)
+  } catch (cause) { message.error(explain(cause)) } finally { saving.value = false }
+}
+
+function openRename() {
+  if (!selected.value) return
+  renameName.value = selected.value.dictionary.name
+  renameModal.value = true
+}
+
+async function renameDictionary() {
+  if (!selected.value || !renameName.value.trim()) return message.warning('请填写字典名称')
+  saving.value = true
+  try {
+    const id = selected.value.dictionary.id
+    await api(`/api/admin/dictionaries/${id}/name`, {
+      method: 'PUT', body: JSON.stringify({ name: renameName.value.trim(), version: selected.value.dictionary.version }),
+    }, token.value)
+    renameModal.value = false
+    await load(id)
+    message.success('字典名称已保存，请重新发布后在业务页面生效')
   } catch (cause) { message.error(explain(cause)) } finally { saving.value = false }
 }
 
@@ -172,7 +194,7 @@ onMounted(load)
       </aside>
       <main v-if="selected" class="dictionary-editor">
         <div class="panel-title"><span><strong>{{ selected.dictionary.name }}</strong><small>{{ selected.dictionary.hierarchical ? '树形/级联字典' : '普通列表字典' }}</small></span>
-          <span><a-button @click="beginItem()"><PlusOutlined />添加顶级项</a-button><a-button type="primary" :loading="saving" @click="checkPublication"><CloudUploadOutlined />检查并发布</a-button></span></div>
+          <span><a-button @click="openRename">修改名称</a-button><a-button @click="beginItem()"><PlusOutlined />添加顶级项</a-button><a-button type="primary" :loading="saving" @click="checkPublication"><CloudUploadOutlined />检查并发布</a-button></span></div>
         <div class="dictionary-item-list">
           <button v-for="item in selected.items" :key="item.id" :style="{ paddingLeft: `${18 + (item.pathCode.split(',').length - 1) * 24}px` }" @click="editItem(item)">
             <span class="dictionary-color" :style="{ background: item.color || '#dbe4f0' }" /><span><strong>{{ item.label }}</strong><small>{{ item.parentId ? '下级选项' : '顶级选项' }}</small></span>
@@ -204,6 +226,10 @@ onMounted(load)
   <a-modal v-model:open="dictionaryModal" title="新建数据字典" :confirm-loading="saving" @ok="createDictionary">
     <a-form layout="vertical"><a-form-item label="名称" required><a-input v-model:value="dictionaryForm.name" placeholder="例如：行政区划" /></a-form-item>
       <a-form-item label="类型"><a-radio-group v-model:value="dictionaryForm.hierarchical"><a-radio :value="false">普通列表</a-radio><a-radio :value="true">树形/级联</a-radio></a-radio-group></a-form-item></a-form>
+  </a-modal>
+  <a-modal v-model:open="renameModal" title="修改字典名称" :confirm-loading="saving" @ok="renameDictionary">
+    <a-form layout="vertical"><a-form-item label="字典名称" required><a-input v-model:value="renameName" :maxlength="200" /></a-form-item></a-form>
+    <a-alert type="info" show-icon message="字典编码保持不变；重新发布后业务页面使用新名称。" />
   </a-modal>
   <a-drawer v-model:open="itemDrawer" :title="editingItem ? '编辑字典项草稿' : '添加字典项'" width="430">
     <a-form layout="vertical"><a-form-item v-if="selected?.dictionary.hierarchical" label="父级"><a-select v-model:value="itemForm.parentId" allow-clear :options="itemOptions" /></a-form-item>

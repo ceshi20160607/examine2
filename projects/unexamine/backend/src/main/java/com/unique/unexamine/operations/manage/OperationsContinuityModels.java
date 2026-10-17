@@ -38,11 +38,16 @@ public final class OperationsContinuityModels {
             @NotBlank @Pattern(regexp = "^[a-fA-F0-9]{64}$") String sha256,
             @NotBlank String verificationStatus) { }
 
+    /** 隔离恢复脚本的证据，数据库版本、表数和目标库必须来自实际导入后的读回。 */
     public record RestoreVerificationEvidence(
             @NotNull Long backupId,
             @NotBlank String environment,
             @NotBlank String status,
             @NotBlank String databaseRestore,
+            @NotBlank String restoredDatabaseVersion,
+            @NotNull @Min(1) Integer restoredTableCount,
+            @NotBlank @Pattern(regexp = "^unexamine_drill_[A-Za-z0-9_]{3,80}$") String targetDatabaseName,
+            @NotBlank String targetHost,
             @NotBlank String fileObjects,
             @NotBlank String configurationVersion,
             @NotBlank String secretReferences,

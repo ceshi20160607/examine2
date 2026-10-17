@@ -1,0 +1,20 @@
+{
+  "step": "S18.12",
+  "status": "verified_contribution",
+  "source_rows": ["R2805", "R2816", "R2817", "R2824", "R2969"],
+  "changed_files": [],
+  "checks_actual_results": [
+    "只共享采购明细 #178 时，分租户列表可见 90 的明细，但详情不显示未共享申请 #177 的名称，直接读取 #177 返回 404，关联图表/KPI 保持 175。",
+    "再共享申请 #177 后，关联详情显示其名称，图表/KPI 只增加获权的 90 至 265；先撤销申请、再撤销明细，共享范围和图表逐步回落，源记录不删除。",
+    "MySQL 核对两条共享均已撤销且版本递增；同一发布制品重启后，分租户列表 [176,172]、图表 175，主租户图表 329.5，普通成员页面不再显示 #178。"
+  ],
+  "readback": ["projects/unexamine/ai/evidence/s18-related-share-readback.json"],
+  "permission_or_failure_result": "关联字段逐记录校验，未共享目标显示无权提示且关联数据源不纳入该值；撤销即时生效，未授权直读为 404。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/TenantShareScopeService.java", "sha256": "3a58aee2ab2a3867ac987f4d7230ce8aa03bd7387fa1b18400e03b3d6bea59c9"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java", "sha256": "da0ab656ccd14956c115414c404f04660f85174777203ca781508c8ce346fac1"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportService.java", "sha256": "67a27f627a4e3ede7b20ca00cee30f03277436ba4827e1eb60e59821fff0a864"}
+  ],
+  "remaining": "全产品最终验收和真实外部依赖仍未完成。",
+  "next_step": "S18.13"
+}

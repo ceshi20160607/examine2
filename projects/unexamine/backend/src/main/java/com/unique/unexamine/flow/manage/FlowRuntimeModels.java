@@ -173,6 +173,12 @@ public final class FlowRuntimeModels {
                                 String resultCode, Integer version) {
     }
 
+    /** 模块审批只接受目标记录与幂等键，Flow 和租户由当前发布绑定解析。 */
+    public record StartModuleApprovalRequest(
+            @NotBlank String moduleCode,
+            @NotNull Long recordId,
+            @NotBlank @Size(max = 180) String idempotencyKey) { }
+
     /** 父子流程关系只公开流程名称、版本和运行状态，不公开变量映射或子流程业务数据。 */
     public record SubflowView(String relation, Long instanceId, Long executionId, String nodeKey,
                               Long flowId, String flowName, Long flowVersionId, Integer flowVersionNumber,

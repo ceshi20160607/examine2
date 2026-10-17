@@ -1,0 +1,43 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev10",
+  "status": "platform_audit_page_scope_detail_and_denials_verified",
+  "platformEventTotal": 275,
+  "firstEvent": {
+    "id": 960,
+    "platformId": 1,
+    "systemId": null,
+    "tenantId": null,
+    "eventCode": "AUTH_LOGIN",
+    "occurTime": "2026-10-17T15:04:26.86+08:00"
+  },
+  "page": {
+    "heading": "操作审计",
+    "filteredRow": "2026-10-16T18:52:31.922+08:00\tAPPLICATION_VERSION_PUBLISHED\tSUCCESS\tAPPLICATION · 2\t账号 1\n成员 —\tbd7fc5b42431497aaed5daa8bb3fb13a\nbd7fc5b42431497aaed5daa8bb3fb13a\t详情",
+    "timeCell": "2026-10-16T18:52:31.922+08:00",
+    "hasKeyValueEditor": false
+  },
+  "detail": {
+    "event": "APPLICATION_VERSION_PUBLISHED\nSUCCESS\n对象\tAPPLICATION · 2\t操作者\t账号 1 / 成员 —\nrequestId\tbd7fc5b42431497aaed5daa8bb3fb13a\ttraceId\tbd7fc5b42431497aaed5daa8bb3fb13a\n权限快照\n—\n业务详情\n{\n  \"versionId\": 2,\n  \"snapshotHash\": \"a51ae329bc07572bae29093b91bf32d0fbb4c0671986ddae7fc6920802082fec\",\n  \"changeSummary\": \"发布应用草稿 r2\",\n  \"versionNum",
+    "sensitiveTag": "可看敏感值",
+    "retentionVisible": false
+  },
+  "systemEventId": 962,
+  "crossScope": {
+    "status": 404,
+    "code": "AUDIT_EVENT_NOT_FOUND"
+  },
+  "wrongContext": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "registration": {
+    "status": 200,
+    "code": "OK"
+  },
+  "noPermission": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "credentialNote": "Fresh account password remained in process memory and was excluded from evidence."
+}

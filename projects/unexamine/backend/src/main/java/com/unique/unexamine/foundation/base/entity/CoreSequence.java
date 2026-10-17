@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 租户业务编号规则及当前序号
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_sequence")
+@TableName("un_core_sequence")
 public class CoreSequence {
 
+    /**
+     * 租户业务编号序列主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 编号序列所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 编号序列所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 租户范围内的编号序列编码
+     */
     @TableField("sequence_code")
     private String sequenceCode;
 
+    /**
+     * 生成业务编号的格式模板
+     */
     @TableField("pattern")
     private String pattern;
 
+    /**
+     * 计数器重置周期类型
+     */
     @TableField("reset_period")
     private String resetPeriod;
 
+    /**
+     * 当前计数周期标识
+     */
     @TableField("current_period_key")
     private String currentPeriodKey;
 
+    /**
+     * 当前周期已分配的最大序号
+     */
     @TableField("current_value")
     private Long currentValue;
 
+    /**
+     * 每次分配增加的序号步长
+     */
     @TableField("step_value")
     private Integer stepValue;
 
+    /**
+     * 编号序列启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 编号序列创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 编号序列更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 编号序列乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -139,20 +178,20 @@ public class CoreSequence {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -176,8 +215,8 @@ public class CoreSequence {
             ", currentValue = " + currentValue +
             ", stepValue = " + stepValue +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

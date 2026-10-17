@@ -1,0 +1,34 @@
+{
+  "step": "S06.3",
+  "status": "verified_contribution",
+  "integration_gate": "G6_MODULE_DATA_EXCHANGE",
+  "source_rows": ["R2052", "R2055", "R2056", "R2065", "R2069", "R2070"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ImportModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+    "projects/unexamine/frontend/src/product/components/ModuleImportDrawer.vue",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/tools/verify-import-rollback.py"
+  ],
+  "checks_actual_results": [
+    "隔离系统 #74 的客户模块 #26 有唯一客户编码字段和原始客户记录 #66。新增 UPDATE_ONLY 严格更新策略，同时保留 UPDATE 的新增并更新语义。Excel 三行预演得到更新 1、错误 2：文件第 3 行重复 EX-001 为 IMPORT_DUPLICATE_MATCH_IN_FILE，第 4 行 MISSING-001 为 IMPORT_MATCH_NOT_FOUND；预演未改原记录。执行后仅更新有效行，批次 #12 完整回滚，原始标题恢复。",
+    "批次 #13 用 UPDATE 新增并更新两行；导入后经正常 PUT 将原记录 #66 改成‘导入后人工修改’。回滚只撤销本批新增的记录 #67，原记录因版本变化被标记 IMPORT_ROLLBACK_VERSION_CONFLICT，批次为 ROLLBACK_PARTIAL。再次回滚仍保留 1 个未解决冲突和人工修改，没有误标成全部回滚。",
+    "普通成员导入新记录 #68，未获 DELETE 动作时回滚得到行级 PERMISSION_DENIED 和 ROLLBACK_PARTIAL。补齐并发布 DELETE ALL 后，使用新会话重试同一批次 #14，记录被正常软删除，行状态及批次为 ROLLED_BACK，旧冲突 error_json 已清除。批次预读仅用 Base service 核对目标系统、租户、模块与版本，真正删除仍走运行态当前 DELETE 权限、数据范围和版本校验。",
+    "真实系统页面显示当前模块记录标题仍为人工修改；导入抽屉可从历史批次切换，显示严格更新的重复、无匹配错误和部分回滚的后续修改冲突及已回滚新增行。数据库读回批次 #12/#14 为 ROLLED_BACK、#13 为 ROLLBACK_PARTIAL，行级错误和软删除标志一致。Docker 重启后批次状态及冲突数不变。Java 21 Maven package、前端 vue-tsc/Vite build、Python 语法、工作区边界及相关 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s06-import-strict-update.png",
+    "projects/unexamine/ai/evidence/s06-import-rollback-partial.png",
+    "projects/unexamine/tools/verify-import-rollback.py"
+  ],
+  "permission_or_failure_result": "仅更新匹配策略拒绝无匹配行，文件内重复在预演阶段报错。批次回滚需要当前记录动作权限并重新校验导入后版本；未获删除权限或记录后续修改时只保留对应行的冲突，修正权限后可重试，仍不覆盖后续业务修改。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java", "sha256": "2ef32e346860300c1424c5e0933ca8bdd49763c5011ce98f3e9264ada5c5c6a6"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ImportModels.java", "sha256": "6b7142b94992b39927a8de76f874a9ff1cb15e0d1e29458673e4acd8ab4ad780"},
+    {"path": "projects/unexamine/frontend/src/product/components/ModuleImportDrawer.vue", "sha256": "8d2b6d250962c8eb0c69278f30807bfdd018877915d718f0afe8413dc2e423bd"},
+    {"path": "projects/unexamine/frontend/src/product/types.ts", "sha256": "b26410dcdefe263bef3e84bbbe675fdc76a2cb7900187783a92feb26752b707e"},
+    {"path": "projects/unexamine/tools/verify-import-rollback.py", "sha256": "d5f46fce2dfdc0d76fae5468975ebaaead31f6a185eb14d925cc357aeb5f4040"}
+  ],
+  "remaining": "G6 的模块导出、导入、预演、唯一匹配、失败行、完整和部分回滚已组合验收；继续 S07.1 打印模板。真实第三方凭据及整站综合验收尚未完成。",
+  "next_step": "S07.1"
+}

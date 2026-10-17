@@ -1,0 +1,40 @@
+{
+  "step": "S03.3",
+  "status": "verified_contribution",
+  "integration_gate": "G3_DASHBOARD_APPLICATION_AGENT",
+  "source_rows": ["R0408", "R0417", "R0683", "R1209", "R1210", "R1231"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/application/manage/ApplicationScopeHttpTest.java"
+  ],
+  "checks_actual_results": [
+    "同一 G1 系统后台通过真实页面建立系统应用，发布销售商机 LIST 授权，负责人仅 G1 Worker，字段仅商机名称；本地 Docker 来源地址加入白名单后发布 V2。",
+    "外部凭证签名调用成功，un_app_call #3 的业务结果 total=2、记录 #11 和 #10，未返回管理员负责的另外三条；修复字段展示元数据泄露后，fields 和 fieldPresentation 均只含获权字段 field_481782d69b。",
+    "原 nonce 重放被拒；后台停用应用后使用新 nonce 和新幂等键的真实签名请求返回 HTTP 403 APPLICATION_DISABLED。调用成功、拒绝、停用、Agent 确认写入均有审计事件。临时测试密钥文件已删除，应用保持停用。",
+    "普通成员从系统仪表盘下钻记录 #11，销售商机列表共 2 条且详情显示负责人 G1 Worker、自定义商机名称；Agent 新查询也回答 2 条、只使用获权字段，保留 #11 的可点击来源。管理员看板显示 5 条，且包含 #11。",
+    "再次重启预览后端后健康接口 HTTP 200；成员看板仍为 2 条、管理员看板仍为 5 条，Agent 持久会话及来源可重开。数据库读回记录 #11 的 owner_member_id=2、created_by_member_id=1、主记录和自定义值仍在，应用仍为 DISABLED。",
+    "前端 vue-tsc/Vite build、Java 21 后端 package、workspace-validate 和 git diff --check 通过。Windows 宿主机 ApplicationScopeHttpTest 无法启动 Undertow：JDK Selector.open() 本身因 loopback connection 失败，导致 XNIO007004；该用例未计通过，修复后的字段响应已在预览容器真实签名链路中验证。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s03-3-app-published.png",
+    "projects/unexamine/ai/evidence/s03-3-app-signed-list.png",
+    "projects/unexamine/ai/evidence/s03-3-worker-record-after-app.png",
+    "projects/unexamine/ai/evidence/s03-3-agent-current-query.png",
+    "projects/unexamine/ai/evidence/s03-3-worker-dashboard-after-app.png",
+    "projects/unexamine/ai/evidence/s03-3-admin-dashboard-after-app.png",
+    "projects/unexamine/ai/evidence/s03-3-agent-restarted.png",
+    "projects/unexamine/ai/evidence/s03-dashboard-permission-verification.json",
+    "projects/unexamine/ai/evidence/s03-agent-confirmed-write-verification.json"
+  ],
+  "permission_or_failure_result": "来源 IP 不在白名单先被 APPLICATION_SOURCE_IP_DENIED 拒绝；加白名单后仅返回负责人 G1 Worker 的两条记录。原 nonce 重放拒绝；停用后 HTTP 403 APPLICATION_DISABLED。发现并修复未授权金额在 fieldPresentation.displayValue 中泄露，复测业务返回两种字段映射均只含获权字段。详情内的快捷助手入口因缺该入口上下文授权而拒绝，未返回业务数据；G3 使用已发布 Agent 的权限内查询入口完成组合验收。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java", "sha256": "e1560ed5acf7767f48a1781c29431cb6e9f64a66c353c0e687630ee6651e7d76"},
+    {"path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue", "sha256": "ae205f0ea00d9b6f46f9a441ad61fd23110fec52951bea188ea36b5a47f39071"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/application/manage/ApplicationScopeHttpTest.java", "sha256": "4479a3e055bb5cf77c5b90ae9abfa30178c7177f7decaa4e7319bd577c21c3c2"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java", "sha256": "d08648d4ab1897e6383f72e6897ff1ec6765adfbab707709484c7ef51c0d76b6"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryService.java", "sha256": "09abd666e1a232104ee1603739386ea4d4fa0f5ceac1aaa1e024ef742f3f1845"}
+  ],
+  "remaining": "G3 在同一系统与商机 #11 的本地组合旅程已验证；需求 R2971 的外部 Flow 草稿、校验、发布、待办、实例及审批接口仍未贯通，整站及真实第三方接入仍需分别验收。详情快捷助手入口的上下文授权需在后续 AI 入口任务包核查。",
+  "next_step": "S04.1"
+}

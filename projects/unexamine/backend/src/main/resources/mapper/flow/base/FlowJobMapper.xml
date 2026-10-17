@@ -14,20 +14,20 @@
         <result column="idempotency_key" property="idempotencyKey" />
         <result column="attempt_count" property="attemptCount" />
         <result column="max_attempts" property="maxAttempts" />
-        <result column="next_run_at" property="nextRunAt" />
-        <result column="locked_at" property="lockedAt" />
+        <result column="next_run_time" property="nextRunTime" />
+        <result column="lock_time" property="lockTime" />
         <result column="locked_by" property="lockedBy" />
         <result column="last_error_code" property="lastErrorCode" />
         <result column="last_error_message" property="lastErrorMessage" />
-        <result column="completed_at" property="completedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="complete_time" property="completeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, execution_id, node_key, job_type, `status`, payload_json, idempotency_key, attempt_count, max_attempts, next_run_at, locked_at, locked_by, last_error_code, last_error_message, completed_at, created_at, updated_at, version
+        id, instance_id, execution_id, node_key, job_type, `status`, payload_json, idempotency_key, attempt_count, max_attempts, next_run_time, lock_time, locked_by, last_error_code, last_error_message, complete_time, create_time, update_time, version
     </sql>
 
 </mapper>

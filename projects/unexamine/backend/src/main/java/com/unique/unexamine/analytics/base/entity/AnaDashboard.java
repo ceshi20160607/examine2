@@ -10,54 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台、系统、模块或个人仪表盘草稿
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ana_dashboard")
+@TableName("un_ana_dashboard")
 public class AnaDashboard {
 
+    /**
+     * 仪表盘主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 运行上下文，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统仪表盘所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 租户扩展仪表盘所属租户主键
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 唯一归属层级，PLATFORM、SYSTEM 或 TENANT
+     */
+    @TableField("scope_type")
+    private String scopeType;
+
+    /**
+     * 归属层级对应的平台、系统或租户主键
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 平台首页、系统首页、模块首页或个人首页
+     */
+    @TableField("dashboard_kind")
+    private String dashboardKind;
+
+    /**
+     * 模块首页绑定的同系统模块主键，租户使用共享模块时运行态复核发布与共享权限
+     */
+    @TableField("module_id")
+    private Long moduleId;
+
+    /**
+     * 个人仪表盘所有者账号主键
+     */
+    @TableField("owner_account_id")
+    private Long ownerAccountId;
+
+    /**
+     * 同一归属层级内稳定的仪表盘编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 仪表盘显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 仪表盘用途说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 当前可视化草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 草稿、已发布或停用状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 创建者账号主键
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -100,6 +172,46 @@ public class AnaDashboard {
 
     public void setOwnerTenantId(Long ownerTenantId) {
         this.ownerTenantId = ownerTenantId;
+    }
+
+    public String getScopeType() {
+        return scopeType;
+    }
+
+    public void setScopeType(String scopeType) {
+        this.scopeType = scopeType;
+    }
+
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
+    }
+
+    public String getDashboardKind() {
+        return dashboardKind;
+    }
+
+    public void setDashboardKind(String dashboardKind) {
+        this.dashboardKind = dashboardKind;
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
+    }
+
+    public Long getOwnerAccountId() {
+        return ownerAccountId;
+    }
+
+    public void setOwnerAccountId(Long ownerAccountId) {
+        this.ownerAccountId = ownerAccountId;
     }
 
     public String getCode() {
@@ -150,20 +262,20 @@ public class AnaDashboard {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -182,14 +294,19 @@ public class AnaDashboard {
             ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", ownerTenantId = " + ownerTenantId +
+            ", scopeType = " + scopeType +
+            ", scopeOwnerId = " + scopeOwnerId +
+            ", dashboardKind = " + dashboardKind +
+            ", moduleId = " + moduleId +
+            ", ownerAccountId = " + ownerAccountId +
             ", code = " + code +
             ", name = " + name +
             ", description = " + description +
             ", draftRevision = " + draftRevision +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

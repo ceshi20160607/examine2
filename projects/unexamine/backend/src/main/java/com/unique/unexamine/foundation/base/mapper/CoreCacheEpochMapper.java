@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 按上下文隔离的缓存命名空间失效版本 Mapper 接口
  * </p>
  *
  * @author Template Base

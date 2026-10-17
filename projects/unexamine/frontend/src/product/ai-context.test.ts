@@ -13,8 +13,8 @@ describe('AI contextual query presentation', () => {
       tenantScope: 'ALL', search: '', filters: [], fieldCodes: ['customer_name'], dataScopes: {}, sourcePath: '/systems/10',
     })
     expect(summary).toContain('系统 #10')
-    expect(summary).toContain('租户 #12')
-    expect(summary).toContain('customer/LIST')
+    expect(summary).toContain('工作空间 #12')
+    expect(summary).toContain('customer/列表')
     expect(summary).toContain('本租户及获权共享')
     expect(summary).toContain('无组合筛选')
   })

@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台内业务系统
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_system")
+@TableName("un_sys_system")
 public class SystemDefinition {
 
+    /**
+     * 平台内业务系统主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 平台内系统编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 系统展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 系统用途说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 系统标识文件标识
+     */
     @TableField("logo_file_id")
     private Long logoFileId;
 
+    /**
+     * 当前系统所属平台账号标识，所属权转移时更新
+     */
     @TableField("creator_account_id")
     private Long creatorAccountId;
 
+    /**
+     * 系统租户运行模式
+     */
     @TableField("tenant_mode")
     private String tenantMode;
 
+    /**
+     * 系统运行状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 系统是否已逻辑删除
+     */
     @TableField("deleted")
     private Boolean deleted;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台内业务系统创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台内业务系统更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台内业务系统乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -139,20 +178,20 @@ public class SystemDefinition {
         this.deleted = deleted;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -176,8 +215,8 @@ public class SystemDefinition {
             ", tenantMode = " + tenantMode +
             ", status = " + status +
             ", deleted = " + deleted +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

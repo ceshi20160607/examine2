@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { CopyOutlined, ExclamationCircleOutlined, LinkOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import ProductPage from '../components/ProductPage.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
-import { tenantModeLabel, userFacingWorkspaceName } from '../presentation'
-import { platformContext, platformTokens, setSystemSession, systemContext, systemTokens, type CurrentContext, type SessionTokens } from '../session'
-import type { SystemAccessRequest, SystemDomain, SystemRoleOption, SystemSettings, SystemTenant, TenantModeMigration, TenantModeMigrationPreflight } from '../types'
+import { userFacingWorkspaceName } from '../presentation'
+import { clearSystemSession, platformContext, platformTokens, setSystemSession, systemContext, systemTokens, type CurrentContext, type SessionTokens } from '../session'
+import type { SystemAccessRequest, SystemDomain, SystemRoleOption, SystemSettings, SystemTenant } from '../types'
 
 interface EntryResult {
   systemId: number
@@ -28,11 +29,17 @@ interface EntryResult {
 }
 
 const emit = defineEmits<{ contextChanged: [] }>()
+const router = useRouter()
+interface OwnerCandidate { accountId: number; username: string; displayName: string }
 const settings = ref<SystemSettings | null>(null)
+const ownerDrawer = ref(false)
+const ownerQuery = ref('')
+const ownerCandidates = ref<OwnerCandidate[]>([])
+const selectedOwnerId = ref<number | null>(null)
+const ownerSearching = ref(false)
+const ownerTransferring = ref(false)
 const tenants = ref<SystemTenant[]>([])
 const domains = ref<SystemDomain[]>([])
-const migrations = ref<TenantModeMigration[]>([])
-const migrationPreflight = ref<TenantModeMigrationPreflight | null>(null)
 const accessRequests = ref<SystemAccessRequest[]>([])
 const accessRoles = ref<SystemRoleOption[]>([])
 const loading = ref(false)
@@ -42,13 +49,16 @@ const deciding = ref<number | null>(null)
 const error = ref('')
 const success = ref('')
 const tenantDrawer = ref(false)
+const loginPresentationDrawer = ref(false)
+const loginPresentationTenant = ref<SystemTenant | null>(null)
+const archiveCandidate = ref<SystemTenant | null>(null)
 const domainDrawer = ref(false)
-const migrationConfirm = ref(false)
-const migrationComment = ref('')
 const form = reactive({ name: '', tenantMode: 'SINGLE' as 'SINGLE' | 'MULTI' })
 const tenantForm = reactive({ code: '', name: '' })
+const loginPresentationForm = reactive({ loginTitle: '', loginSubtitle: '' })
 const domainForm = reactive({
   id: null as number | null,
+  tenantId: undefined as number | undefined,
   domainType: 'CUSTOM' as 'SUBDOMAIN' | 'CUSTOM',
   host: '',
   basePath: '/',
@@ -57,30 +67,21 @@ const domainForm = reactive({
 })
 const roleSelections = reactive<Record<number, number[]>>({})
 const decisionComments = reactive<Record<number, string>>({})
-const migrationTarget = computed<'SINGLE' | 'MULTI'>(() => settings.value?.tenantMode === 'MULTI' ? 'SINGLE' : 'MULTI')
-
 type SettingsTask = 'basic' | 'workspaces' | 'domains' | 'access'
 
 const activeTask = ref<SettingsTask>('basic')
 const settingsTasks = computed(() => [
-  { key: 'basic' as const, label: '基础信息', description: '系统名称与运行模式', count: null },
-  { key: 'workspaces' as const, label: '工作空间', description: '空间管理与运行模式发布', count: tenants.value.length },
+  { key: 'basic' as const, label: '基础信息', description: '系统名称与多租户开关', count: null },
+  { key: 'workspaces' as const, label: '工作空间', description: '空间管理', count: tenants.value.length },
   { key: 'domains' as const, label: '访问地址', description: '域名验证与发布', count: domains.value.length },
   { key: 'access' as const, label: '访问审批', description: '处理待加入系统的成员', count: accessRequests.value.length },
 ])
 const activeTaskDefinition = computed(() => settingsTasks.value.find(item => item.key === activeTask.value) ?? {
   key: 'basic' as const,
   label: '基础信息',
-  description: '系统名称与运行模式',
+  description: '系统名称与多租户开关',
   count: null,
 })
-
-const impactLabels: Record<string, string> = {
-  tenantCount: '工作空间总数',
-  secondaryTenantCount: '其他工作空间',
-  nonMainRecordCount: '其他工作空间业务数据',
-  activeShareCount: '有效跨工作空间共享',
-}
 
 function showError(reason: unknown, fallback: string) {
   error.value = reason instanceof ApiError ? `${reason.message}${reason.traceId ? `（追踪号：${reason.traceId}）` : ''}` : fallback
@@ -91,18 +92,16 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [systemSettings, systemTenants, systemDomains, migrationRows, pendingRequests, roles] = await Promise.all([
+    const [systemSettings, systemTenants, systemDomains, pendingRequests, roles] = await Promise.all([
       api<SystemSettings>('/api/admin/system/settings', {}, systemTokens.value.accessToken),
       api<SystemTenant[]>('/api/admin/system/tenants', {}, systemTokens.value.accessToken),
       api<SystemDomain[]>('/api/admin/system/domains', {}, systemTokens.value.accessToken),
-      api<TenantModeMigration[]>('/api/admin/system/tenant-mode-migrations', {}, systemTokens.value.accessToken),
       api<SystemAccessRequest[]>('/api/admin/system/access-requests?status=PENDING', {}, systemTokens.value.accessToken),
       api<SystemRoleOption[]>('/api/admin/system/access-request-roles', {}, systemTokens.value.accessToken),
     ])
     settings.value = systemSettings
     tenants.value = systemTenants
     domains.value = systemDomains
-    migrations.value = migrationRows
     accessRequests.value = pendingRequests
     accessRoles.value = roles
     for (const request of pendingRequests) {
@@ -116,74 +115,6 @@ async function load() {
   } finally {
     loading.value = false
   }
-}
-
-async function runMigrationPreflight() {
-  if (!systemTokens.value?.accessToken) return
-  saving.value = true
-  error.value = ''
-  success.value = ''
-  migrationConfirm.value = false
-  try {
-    migrationPreflight.value = await api<TenantModeMigrationPreflight>('/api/admin/system/tenant-mode-migrations/preflight', {
-      method: 'POST', body: JSON.stringify({ toMode: migrationTarget.value }),
-    }, systemTokens.value.accessToken)
-    success.value = migrationPreflight.value.allowed
-      ? '发布检查通过，请核对影响范围并二次确认。'
-      : '发布检查已完成，必须先处理全部阻断项；当前模式未发生变化。'
-  } catch (reason) {
-    showError(reason, '租户模式发布检查失败')
-  } finally {
-    saving.value = false
-  }
-}
-
-async function requestMigration() {
-  if (!systemTokens.value?.accessToken || !migrationPreflight.value?.allowed || !migrationConfirm.value) return
-  saving.value = true
-  error.value = ''
-  success.value = ''
-  try {
-    const requested = await api<TenantModeMigration>('/api/admin/system/tenant-mode-migrations', {
-      method: 'POST', body: JSON.stringify({ toMode: migrationPreflight.value.toMode }),
-    }, systemTokens.value.accessToken)
-    success.value = '运行模式变更申请已提交，须由具备权限的管理员审批后执行。'
-    migrationPreflight.value = null
-    migrationConfirm.value = false
-    await load()
-  } catch (reason) {
-    showError(reason, '租户模式迁移申请失败')
-  } finally {
-    saving.value = false
-  }
-}
-
-async function decideMigration(migration: TenantModeMigration, approved: boolean) {
-  if (!systemTokens.value?.accessToken) return
-  saving.value = true
-  error.value = ''
-  success.value = ''
-  try {
-    const result = await api<TenantModeMigration>(`/api/admin/system/tenant-mode-migrations/${migration.id}/decision`, {
-      method: 'POST',
-      body: JSON.stringify({ approved, comment: migrationComment.value.trim() || null, expectedVersion: migration.version }),
-    }, systemTokens.value.accessToken)
-    success.value = result.status === 'COMPLETED'
-      ? `运行模式变更已完成，系统现在按${result.toMode === 'MULTI' ? '多工作空间' : '单工作空间'}模式运行。`
-      : result.status === 'REJECTED' ? '迁移申请已拒绝，系统继续按原模式运行。' : `迁移结果：${result.status}，系统继续按原模式运行。`
-    migrationComment.value = ''
-    await load()
-  } catch (reason) {
-    await load()
-    showError(reason, '租户模式迁移审批或执行失败')
-  } finally {
-    saving.value = false
-  }
-}
-
-function parseSnapshot(value?: string): Record<string, unknown> {
-  if (!value) return {}
-  try { return JSON.parse(value) as Record<string, unknown> } catch { return {} }
 }
 
 async function decideAccess(request: SystemAccessRequest, decision: 'APPROVE' | 'REJECT') {
@@ -227,18 +158,59 @@ async function saveSettings() {
   success.value = ''
   try {
     const result = await api<SystemSettings>('/api/admin/system/settings', {
-      method: 'PUT', body: JSON.stringify({ name: form.name.trim(), tenantMode: settings.value?.tenantMode ?? form.tenantMode }),
+      method: 'PUT', body: JSON.stringify({ name: form.name.trim(), tenantMode: form.tenantMode }),
     }, systemTokens.value.accessToken)
     settings.value = result
     if (systemContext.value && systemTokens.value) {
-      setSystemSession(systemTokens.value, { ...systemContext.value, systemName: result.name })
+      setSystemSession(systemTokens.value, { ...systemContext.value, systemName: result.name,
+        tenantSwitchContext: systemContext.value.tenantSwitchContext ? {
+          ...systemContext.value.tenantSwitchContext,
+          tenantSwitchable: result.tenantMode === 'MULTI',
+          disabledReason: result.tenantMode === 'MULTI' ? undefined : '单租户系统只使用根租户',
+        } : undefined })
     }
-    success.value = result.tenantMode === 'MULTI' ? '系统设置已保存，可以创建并切换工作空间。' : '系统设置已保存。'
+    success.value = result.tenantMode === 'MULTI'
+      ? '多租户已开启；原租户和共享授权按各自原状态恢复生效。'
+      : '多租户已关闭；非主租户及共享暂停访问，原配置和数据保留。'
     await load()
   } catch (reason) {
     showError(reason, '系统设置保存失败')
   } finally {
     saving.value = false
+  }
+}
+
+async function searchOwnerCandidates() {
+  if (!systemTokens.value?.accessToken || ownerQuery.value.trim().length < 2) return
+  ownerSearching.value = true
+  selectedOwnerId.value = null
+  error.value = ''
+  try {
+    ownerCandidates.value = await api<OwnerCandidate[]>(
+      `/api/admin/system/settings/owner-candidates?query=${encodeURIComponent(ownerQuery.value.trim())}`,
+      {}, systemTokens.value.accessToken)
+  } catch (reason) {
+    showError(reason, '受让人查询失败')
+  } finally {
+    ownerSearching.value = false
+  }
+}
+
+async function transferOwner() {
+  if (!systemTokens.value?.accessToken || !settings.value || selectedOwnerId.value === null) return
+  ownerTransferring.value = true
+  error.value = ''
+  try {
+    await api<SystemSettings>('/api/admin/system/settings/owner', {
+      method: 'PUT',
+      body: JSON.stringify({ accountId: selectedOwnerId.value, expectedVersion: settings.value.version }),
+    }, systemTokens.value.accessToken)
+    clearSystemSession()
+    await router.push('/platform')
+  } catch (reason) {
+    showError(reason, '系统所属人转让失败')
+  } finally {
+    ownerTransferring.value = false
   }
 }
 
@@ -268,12 +240,33 @@ async function changeTenantStatus(tenant: SystemTenant) {
   error.value = ''
   try {
     await api<SystemTenant>(`/api/admin/system/tenants/${tenant.id}/status`, {
-      method: 'PUT', body: JSON.stringify({ status: tenant.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE' }),
+      method: 'PUT', body: JSON.stringify({ status: tenant.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE',
+        expectedVersion: tenant.version }),
     }, systemTokens.value.accessToken)
-    success.value = tenant.status === 'ACTIVE' ? '工作空间已停用，已有会话已失效。' : '工作空间已启用。'
+    success.value = tenant.status === 'ACTIVE' ? '工作空间已停用，已有会话已失效。'
+      : tenant.status === 'ARCHIVED' ? '工作空间已恢复，原业务数据仍归属该空间。' : '工作空间已启用。'
     await load()
   } catch (reason) {
     showError(reason, '租户状态修改失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function archiveTenant() {
+  const tenant = archiveCandidate.value
+  if (!tenant || !systemTokens.value?.accessToken) return
+  saving.value = true
+  error.value = ''
+  try {
+    await api<SystemTenant>(`/api/admin/system/tenants/${tenant.id}/status`, {
+      method: 'PUT', body: JSON.stringify({ status: 'ARCHIVED', expectedVersion: tenant.version }),
+    }, systemTokens.value.accessToken)
+    archiveCandidate.value = null
+    success.value = '工作空间已归档；业务数据和配置保留，原会话已失效。'
+    await load()
+  } catch (reason) {
+    showError(reason, '工作空间归档失败')
   } finally {
     saving.value = false
   }
@@ -322,6 +315,7 @@ async function switchTenant(tenant: SystemTenant) {
 
 function openDomain(domain?: SystemDomain) {
   domainForm.id = domain?.id ?? null
+  domainForm.tenantId = domain?.tenantId ?? tenants.value.find(tenant => tenant.main && tenant.status === 'ACTIVE')?.id
   domainForm.domainType = domain?.domainType ?? 'CUSTOM'
   domainForm.host = domain?.host ?? ''
   domainForm.basePath = domain?.basePath ?? '/'
@@ -332,7 +326,7 @@ function openDomain(domain?: SystemDomain) {
 }
 
 async function saveDomain() {
-  if (!systemTokens.value?.accessToken || !domainForm.host.trim() || !domainForm.basePath.trim()) return
+  if (!systemTokens.value?.accessToken || !domainForm.tenantId || !domainForm.host.trim() || !domainForm.basePath.trim()) return
   saving.value = true
   error.value = ''
   success.value = ''
@@ -341,6 +335,7 @@ async function saveDomain() {
       method: 'POST',
       body: JSON.stringify({
         id: domainForm.id,
+        tenantId: domainForm.tenantId,
         domainType: domainForm.domainType,
         host: domainForm.host.trim(),
         basePath: domainForm.basePath.trim(),
@@ -356,6 +351,39 @@ async function saveDomain() {
   } finally {
     saving.value = false
   }
+}
+
+function openLoginPresentation(tenant: SystemTenant) {
+  loginPresentationTenant.value = tenant
+  loginPresentationForm.loginTitle = tenant.loginTitle || ''
+  loginPresentationForm.loginSubtitle = tenant.loginSubtitle || ''
+  loginPresentationDrawer.value = true
+}
+
+async function saveLoginPresentation() {
+  const tenant = loginPresentationTenant.value
+  if (!tenant || !systemTokens.value?.accessToken) return
+  saving.value = true
+  error.value = ''
+  success.value = ''
+  try {
+    await api<SystemTenant>(`/api/admin/system/tenants/${tenant.id}/login-presentation`, {
+      method: 'PUT', body: JSON.stringify({ loginTitle: loginPresentationForm.loginTitle.trim() || null,
+        loginSubtitle: loginPresentationForm.loginSubtitle.trim() || null, expectedVersion: tenant.version }),
+    }, systemTokens.value.accessToken)
+    loginPresentationDrawer.value = false
+    loginPresentationTenant.value = null
+    success.value = '工作空间登录展示已保存，专属登录页将显示最新文案。'
+    await load()
+  } catch (reason) {
+    showError(reason, '登录展示保存失败')
+  } finally { saving.value = false }
+}
+
+async function copyDomainAccess(domain: SystemDomain) {
+  if (domain.status !== 'PUBLISHED') return
+  await navigator.clipboard.writeText(`${domain.tlsRequired ? 'https' : 'http'}://${domain.host}${domain.basePath}`)
+  success.value = `“${domain.tenantName || '当前工作空间'}”的已发布访问地址已复制。`
 }
 
 async function verifyDomain(domain: SystemDomain) {
@@ -396,6 +424,13 @@ async function copyProof(value: string) {
   success.value = '验证证明已复制。'
 }
 
+async function copyTenantAccess(tenant: SystemTenant) {
+  if (!settings.value) return
+  const path = `/access/id/${settings.value.systemId}/${tenant.id}`
+  await navigator.clipboard.writeText(new URL(path, window.location.origin).toString())
+  success.value = `“${tenant.name}”的专属登录地址已复制。`
+}
+
 onMounted(load)
 </script>
 
@@ -422,18 +457,31 @@ onMounted(load)
           <div class="panel-title"><strong>系统基础信息</strong><span>基础设置</span></div>
           <a-form layout="vertical" class="settings-form">
             <a-form-item label="系统名称" required><a-input v-model:value="form.name" :maxlength="200" /></a-form-item>
-            <a-form-item label="工作空间模式" required>
-              <a-radio-group v-model:value="form.tenantMode" disabled>
-                <a-radio value="SINGLE">单工作空间</a-radio><a-radio value="MULTI">多工作空间</a-radio>
+            <a-form-item label="多租户开关" required>
+              <a-radio-group v-model:value="form.tenantMode">
+                <a-radio value="SINGLE">关闭，仅主租户</a-radio><a-radio value="MULTI">开启，可选其他租户</a-radio>
               </a-radio-group>
             </a-form-item>
-            <a-alert type="info" show-icon message="工作空间模式变更必须通过独立检查、审批和后台迁移，不能随基础信息直接修改。" class="mode-warning" />
             <a-alert v-if="form.tenantMode !== settings?.tenantMode" type="warning" show-icon class="mode-warning">
               <template #icon><ExclamationCircleOutlined /></template>
-              <template #message>{{ form.tenantMode === 'MULTI' ? '启用后可创建其他工作空间，原空间继续作为主工作空间。' : '存在其他工作空间时不能退回单工作空间。' }}</template>
+              <template #message>{{ form.tenantMode === 'MULTI' ? '开启后恢复原有有效租户及共享授权的访问，也可新建租户。' : '关闭后只显示主租户；其他租户会话失效，共享暂停生效，原状态和数据保留。' }}</template>
             </a-alert>
             <a-button type="primary" :loading="saving" @click="saveSettings">保存设置</a-button>
           </a-form>
+          <div v-if="settings?.ownerAccountId === systemContext?.accountId" class="owner-transfer">
+            <strong>系统所属人</strong>
+            <p>你拥有此系统的全部配置和数据查看权限。转让后这项隐式权限立即移交，当前系统会话结束。</p>
+            <a-button @click="ownerDrawer = true">转让系统所属人</a-button>
+          </div>
+          <a-modal v-model:open="ownerDrawer" title="转让系统所属人" ok-text="确认转让" :ok-button-props="{ disabled: selectedOwnerId === null }" :confirm-loading="ownerTransferring" @ok="transferOwner">
+            <p>选择平台有效账号。转让后，对方成为系统当前所属人并可管理全部配置；你将失去所属人的隐式权限。</p>
+            <a-input-search v-model:value="ownerQuery" placeholder="输入用户名或姓名，至少 2 个字" :loading="ownerSearching" @search="searchOwnerCandidates" />
+            <a-radio-group v-model:value="selectedOwnerId" class="owner-candidates">
+              <a-radio v-for="candidate in ownerCandidates" :key="candidate.accountId" :value="candidate.accountId">
+                {{ candidate.displayName || candidate.username }}（{{ candidate.username }}）
+              </a-radio>
+            </a-radio-group>
+          </a-modal>
       </section>
 
       <template v-else-if="activeTask === 'workspaces'">
@@ -441,48 +489,22 @@ onMounted(load)
           <div class="panel-title"><strong>工作空间</strong><a-button v-if="settings?.tenantMode === 'MULTI'" size="small" @click="tenantDrawer = true"><PlusOutlined />新建工作空间</a-button></div>
           <a-alert v-if="settings?.tenantMode === 'SINGLE'" type="info" show-icon message="当前只有一个工作空间，无需切换。" class="tenant-hint" />
           <div v-for="tenant in tenants" :key="tenant.id" class="tenant-row">
-            <div><strong>{{ userFacingWorkspaceName(tenant.name) }}</strong><small>{{ tenant.current ? '当前使用的业务空间' : '可切换的业务空间' }}</small></div>
-            <div class="tenant-row__state"><a-tag v-if="tenant.main" color="blue">主工作空间</a-tag><a-tag :color="tenant.status === 'ACTIVE' ? 'green' : 'default'">{{ tenant.status === 'ACTIVE' ? '启用' : '停用' }}</a-tag></div>
+            <div><strong>{{ userFacingWorkspaceName(tenant.name) }}</strong><small>{{ tenant.current ? '当前使用的业务空间' : '可切换的业务空间' }} · 登录页：{{ tenant.loginTitle || `登录${tenant.name}` }}</small></div>
+            <div class="tenant-row__state"><a-tag v-if="tenant.main" color="blue">主工作空间</a-tag><a-tag :color="tenant.status === 'ACTIVE' ? 'green' : 'default'">{{ tenant.status === 'ACTIVE' ? '启用' : tenant.status === 'ARCHIVED' ? '已归档' : '停用' }}</a-tag></div>
             <div class="tenant-row__actions">
+              <a-button v-if="tenant.status === 'ACTIVE'" size="small" @click="copyTenantAccess(tenant)"><CopyOutlined />复制登录地址</a-button>
+              <a-button size="small" @click="openLoginPresentation(tenant)">登录展示</a-button>
               <a-button v-if="settings?.tenantMode === 'MULTI' && tenant.status === 'ACTIVE' && !tenant.current" size="small" :loading="switching === tenant.id" @click="switchTenant(tenant)">切换进入</a-button>
               <a-tag v-if="tenant.current" color="processing">当前</a-tag>
-              <a-button v-if="!tenant.main" size="small" danger="" @click="changeTenantStatus(tenant)">{{ tenant.status === 'ACTIVE' ? '停用' : '启用' }}</a-button>
+              <a-button v-if="!tenant.main && tenant.status === 'DISABLED'" size="small" danger @click="archiveCandidate = tenant">归档</a-button>
+              <a-button v-if="!tenant.main" size="small" :danger="tenant.status === 'ACTIVE'" @click="changeTenantStatus(tenant)">{{ tenant.status === 'ACTIVE' ? '停用' : tenant.status === 'ARCHIVED' ? '恢复' : '启用' }}</a-button>
             </div>
           </div>
         </section>
-        <section class="panel-card migration-card">
-        <div class="panel-title">
-          <div><strong>工作空间模式发布</strong><small>当前：{{ settings?.tenantMode === 'MULTI' ? '多工作空间' : '单工作空间' }}</small></div>
-          <a-button :loading="saving" @click="runMigrationPreflight">发布检查：切换为{{ migrationTarget === 'MULTI' ? '多工作空间' : '单工作空间' }}</a-button>
-        </div>
-        <a-alert type="warning" show-icon message="这是高风险独立流程：先做影响检查，再提交审批；只有专门权限可以批准并执行，失败或阻断时保持原模式。" class="tenant-hint" />
-        <div v-if="migrationPreflight" class="migration-preflight">
-          <div class="migration-impact">
-            <div v-for="(value, key) in migrationPreflight.impact" :key="key"><span>{{ impactLabels[key] ?? key }}</span><strong>{{ value }}</strong></div>
-          </div>
-          <a-alert v-if="migrationPreflight.allowed" type="success" show-icon message="发布检查通过，没有发现阻断项。" />
-          <a-alert v-else type="error" show-icon message="发布检查未通过，系统仍保持原租户模式。">
-            <template #description><ul><li v-for="blocker in migrationPreflight.blockers" :key="blocker">{{ blocker }}</li></ul></template>
-          </a-alert>
-          <ol class="migration-steps"><li v-for="step in migrationPreflight.migrationSteps" :key="step">{{ step }}</li></ol>
-          <div v-if="migrationPreflight.allowed" class="migration-confirm">
-            <a-checkbox v-model:checked="migrationConfirm">我已核对工作空间、业务数据、共享与缓存影响，确认提交变更审批</a-checkbox>
-            <a-button danger :disabled="!migrationConfirm" :loading="saving" @click="requestMigration">提交迁移审批</a-button>
-          </div>
-        </div>
-        <a-empty v-if="!migrations.length" description="尚无工作空间模式变更记录" />
-        <article v-for="migration in migrations" :key="migration.id" class="migration-row">
-          <div><strong>{{ tenantModeLabel(migration.fromMode) }} → {{ tenantModeLabel(migration.toMode) }}</strong><small>工作空间模式变更申请</small></div>
-          <ProductStatusTag :status="migration.status" />
-          <div class="migration-snapshot"><span v-for="(value, key) in (parseSnapshot(migration.impactSnapshotJson).impact as Record<string, unknown> ?? {})" :key="key">{{ impactLabels[key] ?? key }} {{ value }}</span></div>
-          <div v-if="migration.status === 'PENDING_APPROVAL'" class="migration-decision">
-            <a-input v-model:value="migrationComment" :maxlength="1000" placeholder="审批说明" />
-            <a-button :loading="saving" @click="decideMigration(migration, false)">拒绝</a-button>
-            <a-popconfirm title="确认立即执行租户模式迁移？" ok-text="确认执行" cancel-text="取消" @confirm="decideMigration(migration, true)"><a-button danger :loading="saving">批准并执行</a-button></a-popconfirm>
-          </div>
-          <a-alert v-if="migration.status === 'BLOCKED' || migration.status === 'FAILED'" type="error" show-icon message="执行未完成，原租户模式继续可用。" />
-        </article>
-        </section>
+        <a-modal :open="Boolean(archiveCandidate)" title="归档工作空间" ok-text="确认归档" :confirm-loading="saving" @ok="archiveTenant" @cancel="archiveCandidate = null">
+          <p>归档后成员无法进入此工作空间，现有会话立即失效。业务记录、模块配置与成员关系保留在原空间，后续可恢复。</p>
+          <p>请先确认该空间已停用，并已处理需要继续访问的共享和应用调用。</p>
+        </a-modal>
       </template>
 
       <section v-else-if="activeTask === 'domains'" class="panel-card domain-card">
@@ -492,7 +514,7 @@ onMounted(load)
         <article v-for="domain in domains" :key="domain.id" class="domain-row">
           <div class="domain-row__address">
             <strong><LinkOutlined />{{ domain.tlsRequired ? 'https' : 'http' }}://{{ domain.host }}{{ domain.basePath }}</strong>
-            <small>{{ domain.domainType === 'CUSTOM' ? '自定义域名' : '平台子域名' }}</small>
+            <small>{{ domain.tenantName || '未绑定工作空间' }} · {{ domain.domainType === 'CUSTOM' ? '自定义域名' : '平台子域名' }}</small>
           </div>
           <ProductStatusTag :status="domain.status" />
           <div class="domain-row__proof">
@@ -501,6 +523,7 @@ onMounted(load)
           </div>
           <div class="tenant-row__actions">
             <a-button size="small" @click="copyProof(domain.verificationToken)"><CopyOutlined />复制证明</a-button>
+            <a-button v-if="domain.status === 'PUBLISHED'" size="small" @click="copyDomainAccess(domain)"><CopyOutlined />复制访问地址</a-button>
             <a-button size="small" @click="openDomain(domain)">修改</a-button>
             <a-button v-if="domain.status !== 'PUBLISHED'" size="small" :loading="saving" @click="verifyDomain(domain)">验证</a-button>
             <a-button v-if="domain.status === 'VERIFIED'" size="small" :loading="saving" @click="publishDomain(domain)">发布</a-button>
@@ -536,6 +559,8 @@ onMounted(load)
     </a-drawer>
     <a-drawer v-model:open="domainDrawer" title="配置域名 / 访问地址" width="520">
       <a-form layout="vertical">
+        <a-form-item label="所属工作空间" required><a-select v-model:value="domainForm.tenantId" show-search option-filter-prop="label"
+          :options="tenants.filter(tenant => tenant.status === 'ACTIVE').map(tenant => ({ value: tenant.id, label: userFacingWorkspaceName(tenant.name) }))" /></a-form-item>
         <a-form-item label="地址类型" required><a-radio-group v-model:value="domainForm.domainType"><a-radio value="SUBDOMAIN">平台子域名</a-radio><a-radio value="CUSTOM">自定义域名</a-radio></a-radio-group></a-form-item>
         <a-form-item label="主机" required extra="只填写域名或主机名，可带端口；不要填写协议和路径。"><a-input v-model:value="domainForm.host" placeholder="portal.example.com" /></a-form-item>
         <a-form-item label="基础路径" required><a-input v-model:value="domainForm.basePath" placeholder="/" /></a-form-item>
@@ -544,5 +569,18 @@ onMounted(load)
       </a-form>
       <template #footer><div class="drawer-footer"><a-button @click="domainDrawer = false">取消</a-button><a-button type="primary" :loading="saving" @click="saveDomain">保存并生成证明</a-button></div></template>
     </a-drawer>
+    <a-drawer v-model:open="loginPresentationDrawer" :title="`${loginPresentationTenant?.name || '工作空间'} · 登录展示`" width="520">
+      <a-form layout="vertical">
+        <a-form-item label="登录标题" extra="留空时显示“登录工作空间名称”。"><a-input v-model:value="loginPresentationForm.loginTitle" :maxlength="200" /></a-form-item>
+        <a-form-item label="登录说明" extra="留空时显示系统默认说明。"><a-textarea v-model:value="loginPresentationForm.loginSubtitle" :maxlength="500" :rows="3" /></a-form-item>
+      </a-form>
+      <template #footer><div class="drawer-footer"><a-button @click="loginPresentationDrawer = false">取消</a-button><a-button type="primary" :loading="saving" @click="saveLoginPresentation">保存登录展示</a-button></div></template>
+    </a-drawer>
   </ProductPage>
 </template>
+
+<style scoped>
+.owner-transfer { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color, #edf0f2); }
+.owner-transfer p { margin: 8px 0 12px; color: #667085; }
+.owner-candidates { display: grid; gap: 10px; margin-top: 16px; }
+</style>

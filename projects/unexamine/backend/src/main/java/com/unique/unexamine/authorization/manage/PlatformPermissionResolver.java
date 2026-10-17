@@ -20,6 +20,9 @@ import java.util.Map;
 
 @Service
 public class PlatformPermissionResolver {
+    /** 活跃平台成员的基础能力；不授予任何系统、租户或平台后台管理权限。 */
+    private static final PermissionGrant MEMBER_SYSTEM_CREATE =
+            new PermissionGrant("PLATFORM", "SYSTEM", "CREATE", List.of());
     private final PlatformMemberBaseService memberService;
     private final PlatformMemberRoleBaseService memberRoleService;
     private final PlatformRolePermissionBaseService permissionService;
@@ -51,13 +54,13 @@ public class PlatformPermissionResolver {
                         .eq(PlatformMemberRole::getMemberId, member.getId()))
                 .stream().map(PlatformMemberRole::getRoleId).distinct().sorted().toList();
         if (roleIds.isEmpty()) {
-            return new ResolvedPermissions(List.of(), List.of(), Map.of());
+            return new ResolvedPermissions(List.of(), List.of(MEMBER_SYSTEM_CREATE), Map.of());
         }
         // 停用角色的历史成员关联保留，但不再贡献有效授权。
         roleIds = roleService.selectList(Wrappers.<PlatformRole>lambdaQuery()
                         .eq(PlatformRole::getPlatformId, platformId).eq(PlatformRole::getStatus, "ACTIVE")
                         .in(PlatformRole::getId, roleIds)).stream().map(PlatformRole::getId).distinct().sorted().toList();
-        if (roleIds.isEmpty()) return new ResolvedPermissions(List.of(), List.of(), Map.of());
+        if (roleIds.isEmpty()) return new ResolvedPermissions(List.of(), List.of(MEMBER_SYSTEM_CREATE), Map.of());
         List<PlatformRolePermission> rows = permissionService.selectList(
                 Wrappers.<PlatformRolePermission>lambdaQuery()
                         .eq(PlatformRolePermission::getPlatformId, platformId)
@@ -80,7 +83,19 @@ public class PlatformPermissionResolver {
             String[] key = entry.getKey().split(":", 3);
             permissions.add(new PermissionGrant(key[0], key[1], key[2], List.copyOf(entry.getValue())));
         }
+        // 平台成员默认可建系统，但显式拒绝仍优先于基础能力。
+        boolean createDenied = rows.stream().anyMatch(row -> "DENY".equals(row.getEffect())
+                && matches(row.getResourceType(), "PLATFORM")
+                && matches(row.getResourceCode(), "SYSTEM")
+                && matches(row.getActionCode(), "CREATE"));
+        if (!createDenied && permissions.stream().noneMatch(grant -> MEMBER_SYSTEM_CREATE.key().equals(grant.key()))) {
+            permissions.add(MEMBER_SYSTEM_CREATE);
+        }
         return new ResolvedPermissions(roleIds, List.copyOf(permissions), Map.of());
+    }
+
+    private boolean matches(String configured, String requested) {
+        return "*".equals(configured) || requested.equals(configured);
     }
 
     private String key(PlatformRolePermission permission) {

@@ -10,48 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台角色的正向资源动作授权
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_role_permission")
+@TableName("un_plat_role_permission")
 public class PlatformRolePermission {
 
+    /**
+     * 平台角色授权主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 平台角色标识
+     */
     @TableField("role_id")
     private Long roleId;
 
+    /**
+     * 授权资源类型
+     */
     @TableField("resource_type")
     private String resourceType;
 
+    /**
+     * 授权资源编码
+     */
     @TableField("resource_code")
     private String resourceCode;
 
+    /**
+     * 允许执行的动作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 数据范围类型
+     */
     @TableField("data_scope_type")
     private String dataScopeType;
 
+    /**
+     * 数据范围参数
+     */
     @TableField("data_scope_json")
     private String dataScopeJson;
 
+    /**
+     * 授权效果，仅允许正向授权
+     */
     @TableField("effect")
     private String effect;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -128,20 +164,20 @@ public class PlatformRolePermission {
         this.effect = effect;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -164,8 +200,8 @@ public class PlatformRolePermission {
             ", dataScopeType = " + dataScopeType +
             ", dataScopeJson = " + dataScopeJson +
             ", effect = " + effect +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -1,0 +1,75 @@
+{
+  "step": "S18.1",
+  "environment": {
+    "application": "http://127.0.0.1:15179",
+    "backend": "http://127.0.0.1:18081",
+    "database": "unexamine_drill_s17_files_1054",
+    "backendRelease": "s18-v1",
+    "schemaVersion": 21,
+    "readinessAfterDeploymentAndRestart": "UP"
+  },
+  "system": {
+    "id": 165,
+    "ownerAccountId": 163,
+    "tenantMode": "SINGLE",
+    "rootTenantId": 166,
+    "moduleCode": "module_926d727cac",
+    "moduleId": 84,
+    "moduleGroup": "业务运营",
+    "moduleName": "采购申请",
+    "publishedFields": ["申请事项", "申请金额", "申请附件"],
+    "memberRole": "采购办理人",
+    "memberDataScope": "SELF",
+    "memberFileChannel": "申请附件可读可写",
+    "memberFlowChannel": "三个采购字段可读"
+  },
+  "business": {
+    "ownerRecordId": 166,
+    "memberRecordIds": [167, 168, 169, 170],
+    "memberEditedRecord": {"id": 167, "amountBefore": "300.00", "amountAfter": "350.00"},
+    "memberExport": {"batchId": 26, "format": "XLSX", "status": "COMPLETED", "rows": 1, "fileId": 160},
+    "attachments": [
+      {"recordId": 166, "fileId": 159, "name": "purchase-note-v2.txt"},
+      {"recordId": 167, "fileId": 161, "name": "purchase-note-v2.txt"}
+    ],
+    "existingFileDownloadedAfterDeployment": {
+      "fileId": 159,
+      "sha256": "e3a6aab265bbb1ce65462938762fa1d75ca6a0014eec04a5a21e9f9077a89e7c",
+      "matchesDatabaseSha256": true
+    }
+  },
+  "flow": {
+    "definitionId": 25,
+    "publishedVersion": 1,
+    "moduleCreateTrigger": "AFTER_EXECUTION",
+    "completedInstances": [
+      {"id": 38, "recordId": 168, "approver": "system owner"},
+      {"id": 39, "recordId": 169, "approver": "system owner", "originalSubmittedFieldsVisible": true},
+      {"id": 40, "recordId": 170, "transferredTo": "ordinary member", "approvedBy": "ordinary member", "originalSubmittedFieldsVisible": true}
+    ],
+    "memberCompletionMessage": "visible and navigable after published FLOW runtime permission and page reload"
+  },
+  "application": {
+    "id": 27,
+    "scope": "SYSTEM:165/TENANT:166",
+    "resource": "module_926d727cac:LIST",
+    "ownerMemberIds": [249],
+    "currentVersion": 2,
+    "initialDeniedCall": {"id": 162, "reason": "Docker gateway 172.17.0.1 absent from test IP allowlist"},
+    "successfulCalls": [
+      {"id": 163, "total": 3, "recordIds": [169, 168, 167]},
+      {"id": 164, "afterRestart": true, "total": 3, "recordIds": [169, 168, 167]}
+    ],
+    "ownerRecordExcluded": 166
+  },
+  "permission": {
+    "ordinaryMemberListAfterFinalRecord": [170, 167, 169, 168],
+    "ordinaryMemberOwnerRecordDetail": {"recordId": 166, "http": 403, "code": "PERMISSION_DENIED"},
+    "systemOwnerOwnerRecordDetail": {"recordId": 166, "http": 200}
+  },
+  "implementationFindings": [
+    "编辑记录后附件面板原先保持旧查询结果；详情面板按记录更新时间重建后页面即时读回新文件。",
+    "AFTER_EXECUTION 流程原先未冻结字段配置，审批页缺少原提交字段；现在新实例保存冻结配置并按查看者当前权限投影。",
+    "Docker 启动原先未挂载文件存储目录，更新容器会丢失新文件；迁出本次现有文件并挂载宿主目录后，重启下载摘要与数据库一致。"
+  ]
+}

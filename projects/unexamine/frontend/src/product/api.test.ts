@@ -55,7 +55,7 @@ describe('unified API contract', () => {
     vi.stubGlobal('sessionStorage', memoryStorage())
     platformTokens.value = {
       accessToken: 'expired-access', refreshToken: 'valid-refresh',
-      accessExpiresAt: '2099-01-01T00:00:00Z', refreshExpiresAt: '2099-01-02T00:00:00Z',
+      accessExpireTime: '2099-01-01T00:00:00Z', refreshExpireTime: '2099-01-02T00:00:00Z',
     }
     const fetcher = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({
@@ -64,7 +64,7 @@ describe('unified API contract', () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({
         code: 'OK', message: 'success', data: {
           accessToken: 'rotated-access', refreshToken: 'rotated-refresh',
-          accessExpiresAt: '2099-02-01T00:00:00Z', refreshExpiresAt: '2099-02-02T00:00:00Z',
+          accessExpireTime: '2099-02-01T00:00:00Z', refreshExpireTime: '2099-02-02T00:00:00Z',
         }, requestId: 'refresh',
       }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
       .mockResolvedValueOnce(new Response(JSON.stringify({

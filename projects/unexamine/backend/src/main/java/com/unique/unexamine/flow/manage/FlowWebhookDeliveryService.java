@@ -30,15 +30,10 @@ import java.util.Map;
 public class FlowWebhookDeliveryService {
     private final OperationsSecretResolver secretResolver;
     private final ObjectMapper objectMapper;
-    private final HttpClient httpClient;
 
     public FlowWebhookDeliveryService(OperationsSecretResolver secretResolver, ObjectMapper objectMapper) {
         this.secretResolver = secretResolver;
         this.objectMapper = objectMapper;
-        this.httpClient = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
     }
 
     /** 同一 eventId 的请求体和幂等头保持稳定，接收方可在超时重试时防止重复处理。 */
@@ -87,6 +82,11 @@ public class FlowWebhookDeliveryService {
                 .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
                 .build();
         try {
+            // 系统启动不依赖外部回调客户端；实际投递时才初始化网络资源。
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.NEVER)
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
             HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw failure("FLOW_WEBHOOK_RESPONSE_REJECTED", "外部服务返回非成功状态");
@@ -101,6 +101,8 @@ public class FlowWebhookDeliveryService {
             Thread.currentThread().interrupt();
             throw failure("FLOW_WEBHOOK_INTERRUPTED", "外部服务调用被中断");
         } catch (IOException unavailable) {
+            throw failure("FLOW_WEBHOOK_UNAVAILABLE", "外部服务当前不可用");
+        } catch (java.io.UncheckedIOException unavailable) {
             throw failure("FLOW_WEBHOOK_UNAVAILABLE", "外部服务当前不可用");
         }
     }

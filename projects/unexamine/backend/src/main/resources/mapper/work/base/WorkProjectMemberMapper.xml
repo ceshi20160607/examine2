@@ -10,12 +10,12 @@
         <result column="tenant_member_id" property="tenantMemberId" />
         <result column="project_role" property="projectRole" />
         <result column="status" property="status" />
-        <result column="joined_at" property="joinedAt" />
+        <result column="join_time" property="joinTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, project_id, account_id, tenant_member_id, project_role, `status`, joined_at
+        id, project_id, account_id, tenant_member_id, project_role, `status`, join_time
     </sql>
 
 </mapper>

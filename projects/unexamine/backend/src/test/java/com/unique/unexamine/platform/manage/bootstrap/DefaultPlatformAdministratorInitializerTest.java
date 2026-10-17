@@ -50,24 +50,24 @@ class DefaultPlatformAdministratorInitializerTest {
     @Test
     void createsDefaultAdministratorOnceWithoutResettingCredential() throws Exception {
         String originalHash = jdbc.queryForObject(
-                "select c.password_hash from plat_account_credential c join plat_account a on a.id = c.account_id where a.username = 'admin'",
+                "select c.password_hash from un_plat_account_credential c join un_plat_account a on a.id = c.account_id where a.username = 'admin'",
                 String.class);
         Integer originalVersion = jdbc.queryForObject(
-                "select c.credential_version from plat_account_credential c join plat_account a on a.id = c.account_id where a.username = 'admin'",
+                "select c.credential_version from un_plat_account_credential c join un_plat_account a on a.id = c.account_id where a.username = 'admin'",
                 Integer.class);
 
         initializer.run(applicationArguments);
 
-        assertThat(jdbc.queryForObject("select count(*) from plat_account where username = 'admin'", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from plat_account_credential", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from plat_member", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from plat_member_role", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from plat_role_permission", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from audit_event where event_code = 'PLATFORM_DEFAULT_ADMIN_CREATED'", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_account where username = 'admin'", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_account_credential", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_member", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_member_role", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_role_permission", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_audit_event where event_code = 'PLATFORM_DEFAULT_ADMIN_CREATED'", Integer.class)).isOne();
         assertThat(originalHash).doesNotContain("123123aa");
         assertThat(passwordHasher.matches("123123aa".toCharArray(), originalHash)).isTrue();
-        assertThat(jdbc.queryForObject("select password_hash from plat_account_credential", String.class)).isEqualTo(originalHash);
-        assertThat(jdbc.queryForObject("select credential_version from plat_account_credential", Integer.class)).isEqualTo(originalVersion);
+        assertThat(jdbc.queryForObject("select password_hash from un_plat_account_credential", String.class)).isEqualTo(originalHash);
+        assertThat(jdbc.queryForObject("select credential_version from un_plat_account_credential", Integer.class)).isEqualTo(originalVersion);
     }
 
     @Test

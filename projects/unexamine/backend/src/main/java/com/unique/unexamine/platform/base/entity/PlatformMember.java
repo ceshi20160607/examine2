@@ -10,39 +10,66 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台成员
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_member")
+@TableName("un_plat_member")
 public class PlatformMember {
 
+    /**
+     * 平台成员主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 对应平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 所属平台部门标识
+     */
     @TableField("department_id")
     private Long departmentId;
 
+    /**
+     * 平台成员职务名称
+     */
     @TableField("title")
     private String title;
 
+    /**
+     * 平台成员状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台成员创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台成员更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台成员乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -95,20 +122,20 @@ public class PlatformMember {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -128,8 +155,8 @@ public class PlatformMember {
             ", departmentId = " + departmentId +
             ", title = " + title +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

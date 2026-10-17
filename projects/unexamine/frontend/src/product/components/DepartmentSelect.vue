@@ -17,9 +17,15 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{ 'update:modelValue': [value: number | undefined]; change: [] }>()
-const options = computed(() => props.departments
-  .filter(item => !props.excludedValues.includes(item.id))
-  .map(item => ({ value: item.id, label: item.fullName })))
+const options = computed(() => {
+  const departments = props.departments.filter(item => !props.excludedValues.includes(item.id))
+  // 完整路径仍重名时才补充编号，确保转移目标可辨认。
+  return departments.map(item => ({
+    value: item.id,
+    label: departments.some(other => other.id !== item.id && other.fullName === item.fullName)
+      ? `${item.fullName} · 部门编号 ${item.id}` : item.fullName,
+  }))
+})
 
 function update(value: number | undefined) {
   emit('update:modelValue', value)

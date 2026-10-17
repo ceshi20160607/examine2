@@ -9,53 +9,92 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变流程事件历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_history_event")
+@TableName("un_flow_history_event")
 public class FlowHistoryEvent {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 关联节点执行轮次ID
+     */
     @TableField("execution_id")
     private Long executionId;
 
+    /**
+     * 所属流程待办任务ID
+     */
     @TableField("task_id")
     private Long taskId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 历史事件类型
+     */
     @TableField("event_type")
     private String eventType;
 
+    /**
+     * 历史事件显示名称
+     */
     @TableField("event_name")
     private String eventName;
 
+    /**
+     * 事件操作者平台账号ID
+     */
     @TableField("actor_account_id")
     private Long actorAccountId;
 
+    /**
+     * 事件操作者租户成员ID
+     */
     @TableField("actor_tenant_member_id")
     private Long actorTenantMemberId;
 
+    /**
+     * 事件发生前状态
+     */
     @TableField("before_status")
     private String beforeStatus;
 
+    /**
+     * 事件发生后状态
+     */
     @TableField("after_status")
     private String afterStatus;
 
+    /**
+     * 事件业务详情快照
+     */
     @TableField("detail_json")
     private String detailJson;
 
-    @TableField("occurred_at")
-    private LocalDateTime occurredAt;
+    /**
+     * 事件或异常发生时间
+     */
+    @TableField("occur_time")
+    private LocalDateTime occurTime;
 
     public Long getId() {
         return id;
@@ -153,12 +192,12 @@ public class FlowHistoryEvent {
         this.detailJson = detailJson;
     }
 
-    public LocalDateTime getOccurredAt() {
-        return occurredAt;
+    public LocalDateTime getOccurTime() {
+        return occurTime;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
-        this.occurredAt = occurredAt;
+    public void setOccurTime(LocalDateTime occurTime) {
+        this.occurTime = occurTime;
     }
 
     @Override
@@ -176,7 +215,7 @@ public class FlowHistoryEvent {
             ", beforeStatus = " + beforeStatus +
             ", afterStatus = " + afterStatus +
             ", detailJson = " + detailJson +
-            ", occurredAt = " + occurredAt +
+            ", occurTime = " + occurTime +
             "}";
     }
 }

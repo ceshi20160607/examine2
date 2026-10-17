@@ -10,6 +10,9 @@ export type PlatformAdminCapability =
   | 'ai'
   | 'message'
   | 'work'
+  | 'audit'
+  | 'organization'
+  | 'authorization'
 
 function matches(granted: string, required: string) {
   return granted === '*' || granted === required
@@ -34,6 +37,13 @@ export function hasRuntimeModuleAccess(permissions: Permission[] | undefined) {
   return permissions?.some((permission) =>
     matches(permission.resourceType, 'MODULE')
       && ['*', 'LIST', 'DETAIL', 'CREATE', 'UPDATE'].includes(permission.actionCode)) ?? false
+}
+
+/** 模块 SHARE 授权可进入系统后台维护跨工作空间范围，不要求同时具备模块搭建权限。 */
+export function hasModuleShareManagementAccess(permissions: Permission[] | undefined) {
+  return permissions?.some(permission =>
+    matches(permission.resourceType, 'MODULE') && matches(permission.actionCode, 'SHARE')
+      || permission.resourceType === 'PLATFORM' && permission.resourceCode === '*' && permission.actionCode === '*') ?? false
 }
 
 export function hasResourceAccess(permissions: Permission[] | undefined, ...resourceTypes: string[]) {
@@ -83,7 +93,30 @@ export function hasPlatformAdminCapability(
       return allowsAnyAction(permissions, 'MESSAGE', 'PLATFORM', ['MANAGE'])
     case 'work':
       return hasWorkConfigurationAccess(permissions, 'PLATFORM')
+    case 'audit':
+      return allowsPermission(permissions, 'PLATFORM', 'AUDIT', 'VIEW')
+    case 'organization':
+      return allowsPermission(permissions, 'PLATFORM', 'ORGANIZATION', 'VIEW')
+    case 'authorization':
+      return allowsPermission(permissions, 'PLATFORM', 'AUTHORIZATION', 'VIEW')
   }
+}
+
+/** 同一路由承载多个平台后台栏目，入口权限必须按当前栏目而不是统一按配置权限判断。 */
+export function canOpenPlatformConfigurationCategory(
+  permissions: Permission[] | undefined, category: string,
+) {
+  const capability: PlatformAdminCapability | undefined = {
+    PLATFORM_INFO: 'configuration',
+    ORGANIZATION: 'organization',
+    AUTHORIZATION: 'authorization',
+    DICTIONARY: 'configuration',
+    SYSTEM: 'configuration',
+    BUSINESS_PARAMETER: 'configuration',
+    AUDIT: 'audit',
+    OPERATIONS: 'configuration',
+  }[category] as PlatformAdminCapability | undefined
+  return capability ? hasPlatformAdminCapability(permissions, capability) : false
 }
 
 export function platformAdminEntryPath(permissions: Permission[] | undefined) {
@@ -94,6 +127,9 @@ export function platformAdminEntryPath(permissions: Permission[] | undefined) {
   if (hasPlatformAdminCapability(permissions, 'ai')) return '/platform/admin/ai'
   if (hasPlatformAdminCapability(permissions, 'message')) return '/platform/admin/messages'
   if (hasPlatformAdminCapability(permissions, 'work')) return '/platform/admin/work'
+  if (hasPlatformAdminCapability(permissions, 'audit')) return '/platform/admin/configurations?category=AUDIT'
+  if (hasPlatformAdminCapability(permissions, 'organization')) return '/platform/admin/configurations?category=ORGANIZATION'
+  if (hasPlatformAdminCapability(permissions, 'authorization')) return '/platform/admin/configurations?category=AUTHORIZATION'
   return null
 }
 
@@ -104,7 +140,7 @@ export function buildPlatformNavigation(permissions: Permission[] | undefined) {
     ...(hasResourceAccess(permissions, 'FLOW') ? [{ code: 'flow', label: '流程', path: '/platform/flows' }] : []),
     ...(hasResourceAccess(permissions, 'APPLICATION') ? [{ code: 'applications', label: '应用', path: '/platform/applications' }] : []),
     ...(hasWorkRuntimeAccess(permissions, 'PLATFORM') ? [{ code: 'tasks', label: '任务', path: '/platform/tasks' }] : []),
-    ...(hasResourceAccess(permissions, 'AI') ? [{ code: 'assistant', label: '智能助手', path: '/platform/ai' }] : []),
+    { code: 'assistant', label: '智能助手', path: '/platform/ai' },
   ]
 }
 

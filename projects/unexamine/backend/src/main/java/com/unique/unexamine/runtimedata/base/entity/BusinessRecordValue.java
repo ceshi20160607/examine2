@@ -11,62 +11,116 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务主记录的自定义字段值
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_record_value")
+@TableName("un_biz_record_value")
 public class BusinessRecordValue {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务记录所属模块主键
+     */
+    @TableField("module_id")
+    private Long moduleId;
+
+    /**
+     * 业务主记录主键
+     */
     @TableField("record_id")
     private Long recordId;
 
+    /**
+     * 模块字段配置主键
+     */
     @TableField("field_id")
     private Long fieldId;
 
+    /**
+     * 写入时字段的稳定业务编码
+     */
     @TableField("field_code")
     private String fieldCode;
 
+    /**
+     * 字段值存储类型
+     */
     @TableField("value_type")
     private String valueType;
 
+    /**
+     * 文本类型原始值
+     */
     @TableField("value_text")
     private String valueText;
 
+    /**
+     * 数值类型原始值
+     */
     @TableField("value_number")
     private BigDecimal valueNumber;
 
+    /**
+     * 日期类型原始值
+     */
     @TableField("value_date")
     private LocalDate valueDate;
 
-    @TableField("value_datetime")
-    private LocalDateTime valueDatetime;
+    /**
+     * 日期时间类型原始值
+     */
+    @TableField("value_time")
+    private LocalDateTime valueTime;
 
+    /**
+     * 布尔类型原始值
+     */
     @TableField("value_boolean")
     private Boolean valueBoolean;
 
+    /**
+     * 关联业务记录主键
+     */
     @TableField("value_reference_id")
     private Long valueReferenceId;
 
+    /**
+     * 附件文件主键
+     */
     @TableField("value_file_id")
     private Long valueFileId;
 
+    /**
+     * 复杂类型原始值
+     */
     @TableField("value_json")
     private String valueJson;
 
+    /**
+     * 用于检索的标准化文本
+     */
     @TableField("normalized_text")
     private String normalizedText;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最近修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     public Long getId() {
         return id;
@@ -74,6 +128,14 @@ public class BusinessRecordValue {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
     }
 
     public Long getRecordId() {
@@ -132,12 +194,12 @@ public class BusinessRecordValue {
         this.valueDate = valueDate;
     }
 
-    public LocalDateTime getValueDatetime() {
-        return valueDatetime;
+    public LocalDateTime getValueTime() {
+        return valueTime;
     }
 
-    public void setValueDatetime(LocalDateTime valueDatetime) {
-        this.valueDatetime = valueDatetime;
+    public void setValueTime(LocalDateTime valueTime) {
+        this.valueTime = valueTime;
     }
 
     public Boolean getValueBoolean() {
@@ -180,26 +242,27 @@ public class BusinessRecordValue {
         this.normalizedText = normalizedText;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     @Override
     public String toString() {
         return "BusinessRecordValue{" +
             "id = " + id +
+            ", moduleId = " + moduleId +
             ", recordId = " + recordId +
             ", fieldId = " + fieldId +
             ", fieldCode = " + fieldCode +
@@ -207,14 +270,14 @@ public class BusinessRecordValue {
             ", valueText = " + valueText +
             ", valueNumber = " + valueNumber +
             ", valueDate = " + valueDate +
-            ", valueDatetime = " + valueDatetime +
+            ", valueTime = " + valueTime +
             ", valueBoolean = " + valueBoolean +
             ", valueReferenceId = " + valueReferenceId +
             ", valueFileId = " + valueFileId +
             ", valueJson = " + valueJson +
             ", normalizedText = " + normalizedText +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             "}";
     }
 }

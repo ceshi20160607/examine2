@@ -21,7 +21,7 @@ export function verifiedBackup(item?: OperationsBackup) {
 }
 
 export function upgradeOutcome(item: OperationsUpgrade) {
-  if (item.status === 'SUCCESS') return '升级完成'
-  if (item.status === 'RECOVERABLE_FAILED') return '失败但可恢复'
+  if (item.status === 'SUCCESS') return '升级后验收通过'
+  if (item.status === 'RECOVERABLE_FAILED') return '旧记录：失败需恢复'
   return '执行中'
 }

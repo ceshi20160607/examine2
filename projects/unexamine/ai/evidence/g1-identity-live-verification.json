@@ -1,0 +1,23 @@
+{
+  "integration_gate": "G1_IDENTITY_TWO_MODULES",
+  "status": "verified",
+  "date": "2026-10-09",
+  "requirement_source": "docs/user_requirement.md",
+  "business_journey": "平台账号创建系统与主租户，后台发布客户档案和销售商机，普通成员从模块组新建、列表和详情读回两种字段结构的业务记录。",
+  "actual_results": [
+    "隔离 MySQL 首装 18 个模块成功。平台账号在真实页面创建系统和两个不同字段的模块，并发布客户经营模块组导航。",
+    "管理员在客户档案创建客户，在销售商机创建金额 125000 的记录；页面列表、详情与数据库主记录和自定义值读回一致。",
+    "后台关闭多租户时页面只显示主租户，重新开启后恢复已建立的非主租户；后端服务重启后页面仍能读回销售商机。",
+    "普通成员在两个模块只列出本人负责人记录，新建客户和金额 8000 的商机后，列表与详情均读回；数据库共 4 条主记录、6 条自定义值，成员新记录负责人为 2、缺省创建人为系统所属人 1。",
+    "系统管理及运行态定向 HTTP 用例覆盖所属权转移、旧会话撤销、租户边界、字段及动作权限拒绝；无关账号跨系统访问拒绝。"
+  ],
+  "ui_evidence": [
+    "projects/unexamine/ai/evidence/g1-browser-two-modules.png",
+    "projects/unexamine/ai/evidence/g1-browser-opportunity-amount.png",
+    "projects/unexamine/ai/evidence/g1-browser-tenant-restored.png",
+    "projects/unexamine/ai/evidence/g1-browser-worker-own-record.png",
+    "projects/unexamine/ai/evidence/g1-browser-worker-two-modules.png"
+  ],
+  "substep_receipt": "projects/unexamine/ai/evidence/s01-baseline-verification.json",
+  "limits": "本门禁只核验基础账号、租户与双模块运行态；动作 Flow 与仪表盘、应用、Agent 的跨能力旅程仍由 G2/G3 单独验收。"
+}

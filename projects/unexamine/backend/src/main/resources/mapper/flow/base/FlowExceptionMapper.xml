@@ -15,14 +15,14 @@
         <result column="resolved_by_account_id" property="resolvedByAccountId" />
         <result column="resolved_by_tenant_member_id" property="resolvedByTenantMemberId" />
         <result column="resolution_comment" property="resolutionComment" />
-        <result column="occurred_at" property="occurredAt" />
-        <result column="resolved_at" property="resolvedAt" />
+        <result column="occur_time" property="occurTime" />
+        <result column="resolve_time" property="resolveTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, node_key, exception_type, error_code, error_message, policy_action, `status`, resolved_by_account_id, resolved_by_tenant_member_id, resolution_comment, occurred_at, resolved_at, version
+        id, instance_id, node_key, exception_type, error_code, error_message, policy_action, `status`, resolved_by_account_id, resolved_by_tenant_member_id, resolution_comment, occur_time, resolve_time, version
     </sql>
 
 </mapper>

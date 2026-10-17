@@ -15,9 +15,10 @@ import java.util.Map;
 public final class OperationsSecurityModels {
     private OperationsSecurityModels() { }
 
+    /** 备份密钥同应用等密钥一样由系统后台创建，只返回一次明文。 */
     public record CreateSecretRequest(
             @NotBlank @Pattern(regexp = "[A-Za-z][A-Za-z0-9._-]{2,99}") String secretCode,
-            @NotBlank @Pattern(regexp = "APPLICATION|SSO|WEBHOOK|MODEL") String secretType,
+            @NotBlank @Pattern(regexp = "APPLICATION|SSO|WEBHOOK|MODEL|BACKUP") String secretType,
             @NotEmpty @Size(max = 20) List<@NotBlank @Size(max = 100) String> consumerCodes,
             @NotBlank @Size(max = 200) String approvalReference,
             @NotBlank String confirmation) { }

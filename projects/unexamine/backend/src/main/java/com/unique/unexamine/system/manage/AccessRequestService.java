@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.authorization.manage.TenantMemberQuotaService;
 import com.unique.unexamine.platform.base.entity.PlatSsoIdentity;
 import com.unique.unexamine.platform.base.entity.PlatSsoProvider;
 import com.unique.unexamine.platform.base.entity.PlatformAccount;
@@ -45,6 +46,7 @@ public class AccessRequestService {
     private final SystemTenantBaseService tenantService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final TenantMemberQuotaService tenantMemberQuotaService;
     private final SystemRoleBaseService roleService;
     private final SystemMemberRoleBaseService memberRoleService;
     private final PlatformAccountBaseService accountService;
@@ -59,6 +61,7 @@ public class AccessRequestService {
             SystemTenantBaseService tenantService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
+            TenantMemberQuotaService tenantMemberQuotaService,
             SystemRoleBaseService roleService,
             SystemMemberRoleBaseService memberRoleService,
             PlatformAccountBaseService accountService,
@@ -71,6 +74,7 @@ public class AccessRequestService {
         this.tenantService = tenantService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
+        this.tenantMemberQuotaService = tenantMemberQuotaService;
         this.roleService = roleService;
         this.memberRoleService = memberRoleService;
         this.accountService = accountService;
@@ -143,7 +147,7 @@ public class AccessRequestService {
     public List<AccessRequestView> mine(AuthenticatedContext context) {
         return requestService.selectList(Wrappers.<SysAccessRequest>lambdaQuery()
                         .eq(SysAccessRequest::getAccountId, context.accountId())
-                        .orderByDesc(SysAccessRequest::getCreatedAt, SysAccessRequest::getId))
+                        .orderByDesc(SysAccessRequest::getCreateTime, SysAccessRequest::getId))
                 .stream().map(this::view).toList();
     }
 
@@ -156,7 +160,7 @@ public class AccessRequestService {
         if (status != null && !status.isBlank()) {
             query.eq(SysAccessRequest::getStatus, status.strip().toUpperCase());
         }
-        query.orderByAsc(SysAccessRequest::getCreatedAt, SysAccessRequest::getId);
+        query.orderByAsc(SysAccessRequest::getCreateTime, SysAccessRequest::getId);
         return requestService.selectList(query).stream().map(this::view).toList();
     }
 
@@ -228,7 +232,7 @@ public class AccessRequestService {
         request.setApprovedRoleIdsJson(toJson(roleIds));
         request.setApprovedDataScopeJson(toJson(scope));
         request.setDecisionTraceId(traceId);
-        request.setDecidedAt(LocalDateTime.now());
+        request.setDecideTime(LocalDateTime.now());
         if (requestService.updateById(request) != 1) {
             throw conflict();
         }
@@ -246,7 +250,7 @@ public class AccessRequestService {
                         .eq(SysAccessRequest::getSystemId, system.getId())
                         .eq(SysAccessRequest::getTenantId, tenant.getId())
                         .eq(SysAccessRequest::getAccountId, accountId)
-                        .orderByDesc(SysAccessRequest::getCreatedAt, SysAccessRequest::getId))
+                        .orderByDesc(SysAccessRequest::getCreateTime, SysAccessRequest::getId))
                 .stream().findFirst().orElse(null);
         return new SystemDirectoryItem(system.getId(), system.getCode(), system.getName(), system.getTenantMode(),
                 tenant.getId(), tenant.getName(), accessible, latest == null ? null : latest.getId(),
@@ -291,6 +295,10 @@ public class AccessRequestService {
                         .eq(SystemTenantMember::getTenantId, context.tenantId())
                         .eq(SystemTenantMember::getSystemMemberId, member.getId()))
                 .stream().findFirst().orElse(null);
+        if (tenantMember == null || !"ACTIVE".equals(tenantMember.getStatus())) {
+            // 申请获批时新增或恢复租户成员都占用一个有效成员名额。
+            tenantMemberQuotaService.checkBeforeActivate(context.systemId(), context.tenantId());
+        }
         if (tenantMember == null) {
             tenantMember = new SystemTenantMember();
             tenantMember.setSystemId(context.systemId());
@@ -320,7 +328,7 @@ public class AccessRequestService {
     private IdentityReference identity(Long accountId) {
         PlatSsoIdentity identity = ssoIdentityService.selectList(Wrappers.<PlatSsoIdentity>lambdaQuery()
                         .eq(PlatSsoIdentity::getAccountId, accountId)
-                        .orderByDesc(PlatSsoIdentity::getLastLoginAt, PlatSsoIdentity::getId))
+                        .orderByDesc(PlatSsoIdentity::getLastLoginTime, PlatSsoIdentity::getId))
                 .stream().findFirst().orElse(null);
         if (identity == null) {
             return new IdentityReference("LOCAL", null);
@@ -341,7 +349,7 @@ public class AccessRequestService {
                 request.getRequestReason(), request.getRequestedRole(), request.getStatus(), request.getDecidedByMemberId(),
                 request.getDecisionComment(), readList(request.getApprovedRoleIdsJson()),
                 readMap(request.getApprovedDataScopeJson()), request.getRequestTraceId(), request.getDecisionTraceId(),
-                request.getCreatedAt(), request.getDecidedAt(), request.getVersion());
+                request.getCreateTime(), request.getDecideTime(), request.getVersion());
     }
 
     private SystemDefinition requireSystem(Long systemId) {

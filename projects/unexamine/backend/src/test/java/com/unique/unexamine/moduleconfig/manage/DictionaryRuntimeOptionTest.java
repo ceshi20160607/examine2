@@ -2,7 +2,9 @@ package com.unique.unexamine.moduleconfig.manage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.moduleconfig.manage.repository.DictionaryUsageRepository;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -20,7 +22,8 @@ class DictionaryRuntimeOptionTest {
     private final ObjectMapper json = new ObjectMapper();
     private final AuthenticatedContext context = mock(AuthenticatedContext.class);
     private final DictionaryConfigurationService service = spy(new DictionaryConfigurationService(
-            null, null, null, null, null, json, null));
+            null, null, null, null, mock(SystemTenantBaseService.class), null, json,
+            mock(DictionaryUsageRepository.class)));
 
     private DictionaryModels.RuntimeDictionary options(String code, String status) throws Exception {
         return new DictionaryModels.RuntimeDictionary(1L, "stage", "阶段", false, 2L, 1, 0,

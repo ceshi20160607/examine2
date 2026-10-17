@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/** 身份源版本；createdTime 与 publishedTime 分别记录草稿建立和发布时点。 */
 public record SsoProviderVersionView(
         Long id,
         Integer versionNumber,
@@ -20,6 +21,6 @@ public record SsoProviderVersionView(
         String testStatus,
         Map<String, Object> testReport,
         String status,
-        LocalDateTime createdAt,
-        LocalDateTime publishedAt) {
+        LocalDateTime createdTime,
+        LocalDateTime publishedTime) {
 }

@@ -1,0 +1,17 @@
+{
+  "step": "S19.1",
+  "status": "approval_pending",
+  "moduleId": 1,
+  "moduleCode": "module_ae3286711c",
+  "recordId": 1,
+  "actionId": 26,
+  "flowId": 1,
+  "bindingId": 1,
+  "roles": {
+    "s19_operator": 4,
+    "s19_approver": 5
+  },
+  "instanceId": 2,
+  "taskId": 2,
+  "flowVersionId": 1
+}

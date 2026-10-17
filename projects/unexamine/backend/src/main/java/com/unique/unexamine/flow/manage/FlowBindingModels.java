@@ -26,12 +26,19 @@ public final class FlowBindingModels {
             JsonNode condition,
             Boolean mutuallyExclusive,
             Boolean replaceExisting,
-            ScheduleConfig schedule) {
+            ScheduleConfig schedule,
+            Map<String, String> approvalStatusMapping) {
+        public PublishBindingRequest(Long moduleId, Long actionId, String triggerEvent, Long flowId,
+                String executionMode, Integer priorityOrder, String conditionExpression, JsonNode condition,
+                Boolean mutuallyExclusive, Boolean replaceExisting, ScheduleConfig schedule) {
+            this(moduleId, actionId, triggerEvent, flowId, executionMode, priorityOrder, conditionExpression,
+                    condition, mutuallyExclusive, replaceExisting, schedule, Map.of());
+        }
         public PublishBindingRequest(Long moduleId, Long actionId, String triggerEvent, Long flowId,
                 String executionMode, Integer priorityOrder, String conditionExpression, JsonNode condition,
                 Boolean mutuallyExclusive, Boolean replaceExisting) {
             this(moduleId, actionId, triggerEvent, flowId, executionMode, priorityOrder, conditionExpression,
-                    condition, mutuallyExclusive, replaceExisting, null);
+                    condition, mutuallyExclusive, replaceExisting, null, Map.of());
         }
     }
 
@@ -59,6 +66,7 @@ public final class FlowBindingModels {
             JsonNode condition,
             boolean mutuallyExclusive,
             ScheduleConfig schedule,
+            Map<String, String> approvalStatusMapping,
             String status,
             Integer version,
             LocalDateTime updatedAt) {
@@ -77,6 +85,7 @@ public final class FlowBindingModels {
             Map<String, Object> definitionSnapshot,
             String executionMode,
             boolean mutuallyExclusive,
+            Map<String, String> approvalStatusMapping,
             String resolutionReason,
             LocalDateTime resolvedAt) {
     }

@@ -10,57 +10,114 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统角色的字段读取写入策略
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("auth_field_policy")
+@TableName("un_auth_field_policy")
 public class AuthorizationFieldPolicy {
 
+    /**
+     * 字段访问策略主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 策略范围类型，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台策略为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台策略为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 业务查询使用的角色标识
+     */
     @TableField("role_id")
     private Long roleId;
 
+    /**
+     * 平台策略对应的平台角色标识
+     */
+    @TableField("platform_role_id")
+    private Long platformRoleId;
+
+    /**
+     * 系统策略对应的系统角色标识
+     */
+    @TableField("system_role_id")
+    private Long systemRoleId;
+
+    /**
+     * 策略约束的资源编码
+     */
     @TableField("resource_code")
     private String resourceCode;
 
+    /**
+     * 策略约束的字段编码
+     */
     @TableField("field_code")
     private String fieldCode;
 
+    /**
+     * 策略生效渠道
+     */
     @TableField("`channel`")
     private String channel;
 
+    /**
+     * 是否允许读取字段
+     */
     @TableField("readable")
     private Boolean readable;
 
+    /**
+     * 是否允许写入字段
+     */
     @TableField("writable")
     private Boolean writable;
 
+    /**
+     * 字段脱敏规则
+     */
     @TableField("mask_strategy")
     private String maskStrategy;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -113,6 +170,22 @@ public class AuthorizationFieldPolicy {
         this.roleId = roleId;
     }
 
+    public Long getPlatformRoleId() {
+        return platformRoleId;
+    }
+
+    public void setPlatformRoleId(Long platformRoleId) {
+        this.platformRoleId = platformRoleId;
+    }
+
+    public Long getSystemRoleId() {
+        return systemRoleId;
+    }
+
+    public void setSystemRoleId(Long systemRoleId) {
+        this.systemRoleId = systemRoleId;
+    }
+
     public String getResourceCode() {
         return resourceCode;
     }
@@ -161,20 +234,20 @@ public class AuthorizationFieldPolicy {
         this.maskStrategy = maskStrategy;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -194,14 +267,16 @@ public class AuthorizationFieldPolicy {
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
             ", roleId = " + roleId +
+            ", platformRoleId = " + platformRoleId +
+            ", systemRoleId = " + systemRoleId +
             ", resourceCode = " + resourceCode +
             ", fieldCode = " + fieldCode +
             ", channel = " + channel +
             ", readable = " + readable +
             ", writable = " + writable +
             ", maskStrategy = " + maskStrategy +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

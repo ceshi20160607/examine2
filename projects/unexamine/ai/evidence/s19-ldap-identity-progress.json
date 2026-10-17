@@ -1,0 +1,13 @@
+{
+  "step": "S19.5",
+  "status": "in_progress",
+  "source_rows": ["R0342", "R0343", "R0344", "R0345", "R0346"],
+  "current_findings": [
+    "S19.4 已用隔离候选包和签名 SAML2 夹具完成页面、API、MySQL 与重启组合验收；execution-verify 通过，G18 仍为 in_progress。",
+    "当前 LDAP/AD 草稿包含 directoryEndpoint、bindDn 和 bindSecretRef，目录端点要求 ldaps；发布前检查仍将协议标为运行态未接入，连接检查在未配置探活地址时仅核对 URI 格式。",
+    "运行登录只接入 OIDC、OAuth2、SAML2；登录页对发布身份源只有跳转型 start 操作，目录凭据输入、服务账号搜索、用户 bind 和平台账号绑定尚未形成完整路径。",
+    "下一步先核对现有属性映射、系统成员映射和审计可复用边界，再选定可隔离验证的 LDAPS 夹具与浏览器凭据流程；不得将 AD 或真实企业目录视为已签收。"
+  ],
+  "next_exact": "实现一条通过安全 LDAPS、服务账号搜索与用户 bind 的 LDAP 登录路径，复用显式平台账号和已确认系统成员映射，并完成正反向页面、API、MySQL 与重启验收。",
+  "remaining": "G18_PRODUCT_RELEASE 进行中；AD、企业微信/钉钉、JIT、统一登录审计、真实外部身份源、历史打印字节和全量追溯继续开放。"
+}

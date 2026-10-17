@@ -10,45 +10,78 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_platform")
+@TableName("un_plat_platform")
 public class PlatformDefinition {
 
+    /**
+     * 平台配置主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 平台唯一编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 平台展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 平台标识文件标识
+     */
     @TableField("logo_file_id")
     private Long logoFileId;
 
+    /**
+     * 平台联系人姓名
+     */
     @TableField("contact_name")
     private String contactName;
 
+    /**
+     * 平台联系人邮箱
+     */
     @TableField("contact_email")
     private String contactEmail;
 
+    /**
+     * 平台运行设置
+     */
     @TableField("settings_json")
     private String settingsJson;
 
+    /**
+     * 平台启用状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台配置创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台配置更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台配置乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -117,20 +150,20 @@ public class PlatformDefinition {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -152,8 +185,8 @@ public class PlatformDefinition {
             ", contactEmail = " + contactEmail +
             ", settingsJson = " + settingsJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

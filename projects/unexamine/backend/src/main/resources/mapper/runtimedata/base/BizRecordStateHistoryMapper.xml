@@ -12,12 +12,12 @@
         <result column="source_type" property="sourceType" />
         <result column="source_id" property="sourceId" />
         <result column="changed_by_member_id" property="changedByMemberId" />
-        <result column="changed_at" property="changedAt" />
+        <result column="change_time" property="changeTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, record_id, from_status, to_status, reason, source_type, source_id, changed_by_member_id, changed_at
+        id, record_id, from_status, to_status, reason, source_type, source_id, changed_by_member_id, change_time
     </sql>
 
 </mapper>

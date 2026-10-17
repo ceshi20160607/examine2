@@ -13,13 +13,13 @@
         <result column="index_key_hash" property="indexKeyHash" />
         <result column="unique_key_hash" property="uniqueKeyHash" />
         <result column="index_key_text" property="indexKeyText" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, module_id, record_id, query_index_id, index_key_hash, unique_key_hash, index_key_text, created_at, updated_at
+        id, system_id, tenant_id, module_id, record_id, query_index_id, index_key_hash, unique_key_hash, index_key_text, create_time, update_time
     </sql>
 
 </mapper>

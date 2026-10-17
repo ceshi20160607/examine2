@@ -10,33 +10,54 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 按上下文隔离的缓存命名空间失效版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_cache_epoch")
+@TableName("un_core_cache_epoch")
 public class CoreCacheEpoch {
 
+    /**
+     * 缓存失效世代主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 缓存归属的业务上下文标识
+     */
     @TableField("context_key")
     private String contextKey;
 
+    /**
+     * 需要失效的缓存命名空间
+     */
     @TableField("cache_namespace")
     private String cacheNamespace;
 
+    /**
+     * 当前缓存失效世代号
+     */
     @TableField("epoch_value")
     private Long epochValue;
 
+    /**
+     * 推进缓存世代的业务原因
+     */
     @TableField("reason")
     private String reason;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 缓存世代最后更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 缓存世代乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -81,12 +102,12 @@ public class CoreCacheEpoch {
         this.reason = reason;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -105,7 +126,7 @@ public class CoreCacheEpoch {
             ", cacheNamespace = " + cacheNamespace +
             ", epochValue = " + epochValue +
             ", reason = " + reason +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -7,20 +7,22 @@
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
+        <result column="source_module_id" property="sourceModuleId" />
         <result column="source_record_id" property="sourceRecordId" />
         <result column="action_id" property="actionId" />
+        <result column="target_module_id" property="targetModuleId" />
         <result column="status" property="status" />
         <result column="mapping_snapshot_json" property="mappingSnapshotJson" />
         <result column="idempotency_key" property="idempotencyKey" />
         <result column="created_by_member_id" property="createdByMemberId" />
-        <result column="created_at" property="createdAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="finish_time" property="finishTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, source_record_id, action_id, `status`, mapping_snapshot_json, idempotency_key, created_by_member_id, created_at, finished_at, version
+        id, system_id, tenant_id, source_module_id, source_record_id, action_id, target_module_id, `status`, mapping_snapshot_json, idempotency_key, created_by_member_id, create_time, finish_time, version
     </sql>
 
 </mapper>

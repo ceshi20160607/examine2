@@ -1,0 +1,66 @@
+{
+  "step": "S18.6",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0700",
+    "R0701",
+    "R0702",
+    "R0712",
+    "R0713",
+    "R0715",
+    "R0716",
+    "R0717",
+    "R0718",
+    "R0748",
+    "R0750",
+    "R0753",
+    "R0757",
+    "R2708",
+    "R2781",
+    "R2969"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+    "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "隔离 MySQL 数据卷恢复后，复用系统 #165、模块 #84/#85、来源 #8/#9 和系统首页 #2；Flyway 21 版、服务 readiness UP。",
+    "管理员与成员在同一已发布关联来源上按物品分组：管理员 4 组总额 1509.5，成员仅 #172/#174 两组总额 239.5；普通成员直接读管理员记录 #173 返回 403。",
+    "隔离夹具把成员记录 #174 创建日期设为 10 月 9 日后，日趋势按 9 日/10 日升序：成员分别 89.5/150，管理员分别 89.5/1420。成员页面两个日期入口分别仅下钻 #174/#172，条件为 GTE/LT 半开区间。",
+    "Top 3 排名按金额降序：管理员 1200、150、89.5；成员仅 150、89.5。三个图表在普通成员首页可见，分组图点击后按当前权限筛选。",
+    "不存在的数据源返回 404 REPORT_SOURCE_NOT_FOUND；普通成员后台来源预览返回 403 REPORT_ADMIN_DENIED，管理员预览正常。",
+    "服务重启后仪表盘仍读到已发布 V3 #5；数据库来源 #8 V1 #10、来源 #9 V2 #12 和仪表盘发布指针 #5 一致；浏览器重开结果一致。",
+    "修正下钻列表加载中误报筛选失效的提示，加载期显示正在恢复，完成后显示 2 个筛选。JDK21 Maven package、ReportDefinitionContractTest、vue-tsc/Vite build、15 项前端测试、workspace-validate 和 git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-dashboard-chart-readback.json"
+  ],
+  "permission_or_failure_result": "成员来源和图表只汇总本人有权的 #172/#174，日期及物品下钻继续受模块 LIST、字段和负责人范围校验；后台预览 403，越权记录 403，无效来源 404；重启后发布版本与权限口径未扩大。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/ReportService.java",
+      "sha256": "67a27f627a4e3ede7b20ca00cee30f03277436ba4827e1eb60e59821fff0a864"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+      "sha256": "0782ef5e2ba671b9b26844e3553cf197176f8217dc05e04ee140a1c23be72db5"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+      "sha256": "76747f7b80b0434d891acf680e448860eeac4434f3ea99587eea454fd5998377"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+      "sha256": "aadfa94718445bf3021460642dd48f4e6f8e166848bc67bd241e225fd1bfa3c2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "772482bdd53e721d0c50f94744528696bf101419c8f55410516aa5d2f210a4e6"
+    }
+  ],
+  "remaining": "S18.6 图表旅程已完成；下一步在同一产品隔离系统验证多租户开关、共享数据与仪表盘权限组合。真实第三方凭证及全产品终验仍不能据此记完成。",
+  "next_step": "S18.7"
+}

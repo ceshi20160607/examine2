@@ -10,60 +10,108 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统消息渠道投递及失败重试记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("msg_delivery")
+@TableName("un_msg_delivery")
 public class MsgDelivery {
 
+    /**
+     * 系统消息渠道投递主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统消息主键
+     */
     @TableField("message_id")
     private Long messageId;
 
+    /**
+     * 投递目标账号主键
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 投递渠道
+     */
     @TableField("`channel`")
     private String channel;
 
+    /**
+     * 脱敏后的投递目的地
+     */
     @TableField("destination_masked")
     private String destinationMasked;
 
+    /**
+     * 投递状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 已执行的投递次数
+     */
     @TableField("attempt_count")
     private Integer attemptCount;
 
-    @TableField("next_attempt_at")
-    private LocalDateTime nextAttemptAt;
+    /**
+     * 下一次允许重试时间
+     */
+    @TableField("next_attempt_time")
+    private LocalDateTime nextAttemptTime;
 
+    /**
+     * 外部渠道返回的消息标识
+     */
     @TableField("provider_message_id")
     private String providerMessageId;
 
+    /**
+     * 外部渠道投递回执
+     */
     @TableField("provider_receipt_json")
     private String providerReceiptJson;
 
+    /**
+     * 最近一次失败摘要，不含密钥
+     */
     @TableField("last_error")
     private String lastError;
 
-    @TableField("sent_at")
-    private LocalDateTime sentAt;
+    /**
+     * 发送成功时间
+     */
+    @TableField("send_time")
+    private LocalDateTime sendTime;
 
-    @TableField("delivered_at")
-    private LocalDateTime deliveredAt;
+    /**
+     * 渠道确认送达时间
+     */
+    @TableField("deliver_time")
+    private LocalDateTime deliverTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 投递记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 投递记录更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -124,12 +172,12 @@ public class MsgDelivery {
         this.attemptCount = attemptCount;
     }
 
-    public LocalDateTime getNextAttemptAt() {
-        return nextAttemptAt;
+    public LocalDateTime getNextAttemptTime() {
+        return nextAttemptTime;
     }
 
-    public void setNextAttemptAt(LocalDateTime nextAttemptAt) {
-        this.nextAttemptAt = nextAttemptAt;
+    public void setNextAttemptTime(LocalDateTime nextAttemptTime) {
+        this.nextAttemptTime = nextAttemptTime;
     }
 
     public String getProviderMessageId() {
@@ -156,36 +204,36 @@ public class MsgDelivery {
         this.lastError = lastError;
     }
 
-    public LocalDateTime getSentAt() {
-        return sentAt;
+    public LocalDateTime getSendTime() {
+        return sendTime;
     }
 
-    public void setSentAt(LocalDateTime sentAt) {
-        this.sentAt = sentAt;
+    public void setSendTime(LocalDateTime sendTime) {
+        this.sendTime = sendTime;
     }
 
-    public LocalDateTime getDeliveredAt() {
-        return deliveredAt;
+    public LocalDateTime getDeliverTime() {
+        return deliverTime;
     }
 
-    public void setDeliveredAt(LocalDateTime deliveredAt) {
-        this.deliveredAt = deliveredAt;
+    public void setDeliverTime(LocalDateTime deliverTime) {
+        this.deliverTime = deliverTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -206,14 +254,14 @@ public class MsgDelivery {
             ", destinationMasked = " + destinationMasked +
             ", status = " + status +
             ", attemptCount = " + attemptCount +
-            ", nextAttemptAt = " + nextAttemptAt +
+            ", nextAttemptTime = " + nextAttemptTime +
             ", providerMessageId = " + providerMessageId +
             ", providerReceiptJson = " + providerReceiptJson +
             ", lastError = " + lastError +
-            ", sentAt = " + sentAt +
-            ", deliveredAt = " + deliveredAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", sendTime = " + sendTime +
+            ", deliverTime = " + deliverTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

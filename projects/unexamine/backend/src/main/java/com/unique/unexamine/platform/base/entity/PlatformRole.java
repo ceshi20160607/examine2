@@ -10,42 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台角色
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_role")
+@TableName("un_plat_role")
 public class PlatformRole {
 
+    /**
+     * 平台角色主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 平台内角色编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 角色展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 角色用途说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 是否为平台内置角色
+     */
     @TableField("built_in")
     private Boolean builtIn;
 
+    /**
+     * 平台角色状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台角色创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 平台角色更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 平台角色乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -106,20 +136,20 @@ public class PlatformRole {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -140,8 +170,8 @@ public class PlatformRole {
             ", description = " + description +
             ", builtIn = " + builtIn +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

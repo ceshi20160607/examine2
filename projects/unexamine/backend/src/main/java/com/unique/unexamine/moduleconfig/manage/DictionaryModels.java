@@ -22,9 +22,15 @@ public final class DictionaryModels {
             @NotNull Boolean hierarchical) {
     }
 
+    /** 字典名称可编辑；编码由字段配置与运行数据长期引用。 */
+    public record RenameDictionaryRequest(
+            @NotBlank @Size(max = 200) String name,
+            @NotNull @Min(0) Integer version) {
+    }
+
     public record CreateItemRequest(
             Long parentId,
-            @NotBlank @Pattern(regexp = "[A-Za-z0-9][A-Za-z0-9_.-]{0,99}") String code,
+            @NotBlank @Pattern(regexp = "[A-Za-z0-9_]{1,100}") String code,
             @NotBlank @Size(max = 200) String label,
             @Size(max = 32) String color,
             @Min(0) Integer sortOrder) {

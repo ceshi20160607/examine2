@@ -1,0 +1,119 @@
+{
+  "step": "S19.4",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0342",
+    "R0343",
+    "R0344",
+    "R0345",
+    "R0346"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SamlResponseVerifier.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SsoProviderAdministrationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/EnterpriseSsoService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationController.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/SamlResponseVerifierTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+    "projects/unexamine/frontend/src/product/views/PlatformSsoProvidersView.vue",
+    "projects/unexamine/deploy/guides/administrator.md",
+    "projects/unexamine/tools/SamlIdpFixture.java",
+    "projects/unexamine/tools/verify-product-release-saml-setup.mjs",
+    "projects/unexamine/tools/verify-product-release-saml-denials.mjs",
+    "projects/unexamine/tools/verify-product-release-saml-browser.mjs",
+    "projects/unexamine/tools/verify-product-release-saml-db.py",
+    "projects/unexamine/ai/planning/product-closure-audit.md",
+    "projects/unexamine/ai/planning/spark-execution-plan.md"
+  ],
+  "checks_actual_results": [
+    "SAML2 新发布版本经真实 RSA X.509 证书解析、ACS 路由和可选连接探活预检后才进入登录运行态；旧发布版本需要重新建版本并验证。SP 发起 Redirect AuthnRequest，后端 ACS 使用配置证书验签完整 POST Response，核对 Issuer、受众、Destination、Recipient、InResponseTo、时间、一次性 RelayState 和短效交接码，再沿用显式平台账号绑定与系统成员映射。",
+    "JDK 21 后端编译和打包通过；SamlResponseVerifierTest 两项用例通过，Testcontainers 的签名 SAML2 HTTP 用例通过，覆盖草稿隐藏、预检发布、浏览器协议请求、签名 ACS、平台及系统进入、越权系统 403、签名篡改、错误受众与请求、过期断言、ACS/交接重放、域名越界、邮箱未验证、无平台绑定和过期状态。既有 OIDC/OAuth2 定向 HTTP 回归通过。前端生产构建通过，41 个文件的 172 项测试通过。",
+    "最终本地候选 0.1.0-s19.4-dev1 的 ZIP SHA-256 为 89cd78610be621dcf561588f03ae521006cd955279d339234fe0d3ef0ba6d6fe，manifest v2 与前端逐文件 SHA-256、JAR SHA-256、Flyway V23 已封入。全新隔离 MySQL 库从版本 0 首装到 V23；停启该包后，Edge 再次从已发布 SAML2 入口经过本地 IdP 授权页、签名 POST 与 ACS 返回平台，进入已映射系统，未授权系统为 403，管理员页面显示已发布版本及通过的预检。两次浏览器旅程的页面截图已经人工查看。",
+    "同一隔离库读回 1 个安全标记已发布身份源、1 个显式平台身份绑定、1 个有效系统成员映射、两次 SSO_LOGIN 和两次 SYSTEM_ENTER 成功审计；错误交接与无权系统有失败审计，成功登录具有 traceId 和 requestId。系统成员结果仍通过映射日志与进入日志分别追踪，统一 SSO_LOGIN 的 systemMemberMapping 仍为 NOT_APPLICABLE。",
+    "SAML HTTP-Redirect 参数首轮定向测试发现原始 Base64 中的加号未转义，修正查询参数编码后全部目标测试通过。workspace-validate、相关 git diff --check、三个 Node 脚本语法检查和 Python 读回脚本编译通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s19-saml-live-setup.json",
+    "projects/unexamine/ai/evidence/s19-saml-live-denials.json",
+    "projects/unexamine/ai/evidence/s19-saml-browser.json",
+    "projects/unexamine/ai/evidence/s19-saml-browser.png",
+    "projects/unexamine/ai/evidence/s19-saml-admin-browser.png",
+    "projects/unexamine/ai/evidence/s19-saml-db-readback.json",
+    "projects/unexamine/release/0.1.0-s19.4-dev1.zip",
+    "projects/unexamine/release/s19-saml-install/runtime/last-deployment.json"
+  ],
+  "permission_or_failure_result": "未授权系统进入为 403；无效、过期或重放状态及签名篡改的 ACS 为 401；签名身份域名越界、邮箱未验证或平台映射缺失为 403。草稿发布前不出现在登录页。测试证书与私钥仅位于忽略的隔离安装目录，发布包和回执不含私钥。",
+  "candidate": {
+    "packageVersion": "0.1.0-s19.4-dev1",
+    "packageArchive": "projects/unexamine/release/0.1.0-s19.4-dev1.zip",
+    "packageSha256": "89cd78610be621dcf561588f03ae521006cd955279d339234fe0d3ef0ba6d6fe",
+    "backendSha256": "69fc5b37593aca5b728b1045c7cca292ccc30b49b7a0b22dca2eeecc828a85cf",
+    "frontendFileCount": 4,
+    "databaseVersion": "23"
+  },
+  "control_limit": "协议验收使用本地自签测试证书与隔离 IdP，不代表真实企业 IdP 已联调。当前只支持 SP 发起的未签名 Redirect 请求和签名完整 Response 的 POST 回调；要求 SP 请求签名、仅签 Assertion、加密断言或 IdP 主动登录的提供方仍不适用。LDAP/AD、企业微信/钉钉、平台 JIT 和完整统一系统成员登录审计未完成；内存中的短效状态跨实例与重启交接未验。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SamlResponseVerifier.java",
+      "sha256": "26d085a65257a97b9e9224f309eecb21be2649fa08287f21925aad6d831d1238"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/SsoProviderAdministrationService.java",
+      "sha256": "a3b21496853d8b70812226971dcdd1904f0e710fc3267487b5194411fdaccdb1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/EnterpriseSsoService.java",
+      "sha256": "7e32d84f6cce6c71d5f56eafe57f5535f6216c9f2e0c5392ff4e91d1ec343eef"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authentication/manage/AuthenticationController.java",
+      "sha256": "5663c4222b0aab95e5100651103d61651f4bf654c062effeb9c010bfb582f345"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/SamlResponseVerifierTest.java",
+      "sha256": "2f5283c60bcf8d330eb08b46b8d63d028b4eef0abb8e87c1afadcb7ced6bc56d"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/authentication/manage/AuthenticationRegistrationHttpTest.java",
+      "sha256": "0571b04091fbe44f0ee44fcd0dd9d7843c218c25a794ff8a8c26cb5153f75fef"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/PlatformSsoProvidersView.vue",
+      "sha256": "bffe7719918c82091656ee647c8e044a7784d9c65bf1247297b2f15cd2936e2f"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/administrator.md",
+      "sha256": "35b14782e22f18f1d46acea7fc0d70b13bb99d734ff61db7223c6960d7d7c6b4"
+    },
+    {
+      "path": "projects/unexamine/tools/SamlIdpFixture.java",
+      "sha256": "8f6eadb49406897006d00220ad1d73f89eda78394e57225447dd395029adee1f"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-saml-setup.mjs",
+      "sha256": "d26a787649d7d1f25350f4339e3c3fb3b91853cf0a6a9ca96e33bd703ed172cd"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-saml-denials.mjs",
+      "sha256": "c331dba3d308089fe8af502c8f72aef1488d7a694f915e68550ba335c15033ff"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-saml-browser.mjs",
+      "sha256": "5d25ea106e8d4583d79bb2311cf639bb1ae92ec3eb65152c1176087ae8e3738e"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-saml-db.py",
+      "sha256": "d4c71c7389a9e969ea4e69be4d88d9e32642095f25d647abce4cbe7bb791e0ab"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/product-closure-audit.md",
+      "sha256": "188bbf40b7f324d8c15a51555f68fb19729fe793b8d10884e937b56910bdbe4e"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/spark-execution-plan.md",
+      "sha256": "0f6f10be2bdf47b2f1e2904e82dbba8bc48cd0387a8224ec914fc9eedd2440e8"
+    }
+  ],
+  "remaining": "G18_PRODUCT_RELEASE 保持进行中。第 5.1 节剩余目录与企业渠道、JIT、完整审计及真实 IdP；历史打印字节和全量需求追溯仍为发布阻断。S18.39 保持未验证与延后。",
+  "next_step": "S19.5"
+}

@@ -1,0 +1,31 @@
+{
+  "step": "S18.38",
+  "status": "verified_contribution",
+  "source_rows": ["R0887", "R0889", "R2743"],
+  "changed_files": [
+    "projects/unexamine/tools/verify-flow-gateway.py",
+    "projects/unexamine/tools/verify-flow-gateway-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "On isolated V23 module #94, new Flow #30 paired PARALLEL split with MERGE. An invalid missing merge and a conditional parallel edge each failed publication before any version existed. Valid draft simulation visited both branch approval nodes, the merge and end.",
+    "The published APPROVAL action replaced binding #10 with a new binding to Flow version #30. Record #195 started instance #59 with concurrent member_review task #55 and owner_review task #56. A separate Edge click started instance #60 and rendered both pending task cards plus split progress.",
+    "For instance #59, member tenant #258 approved first; the instance stayed WAITING, owner_review remained pending and GATEWAY_JOIN count stayed zero. The owner then approved and the instance completed with exactly one join. For browser instance #60 the owner approved first and the member second; the same waiting and single-join behavior held.",
+    "An unrelated member received 403 for initiation and task action. Prior Flow instances #53-#58 retained their version, runtime snapshot and status; print job #134 PDF hash, dashboard #8 and conversion record state were unchanged. A separate JVM on port 18082 read both completed parallel instances and their join counts back.",
+    "Python compilation, Node syntax and workspace validation passed. S18.37's Java 21 Maven package remained the deployed artifact; no Java or schema files changed in this step."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-flow-gateway-live.json",
+    "projects/unexamine/ai/evidence/s18-flow-gateway-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-flow-gateway-runtime-browser.png",
+    "projects/unexamine/ai/evidence/s18-flow-gateway-instance-browser.png",
+    "projects/unexamine/ai/evidence/s18-flow-conditions-live.json",
+    "projects/unexamine/ai/evidence/s18-module-conversion-live.json"
+  ],
+  "permission_or_failure_result": "Broken split/merge pairing and conditional parallel edge were refused before publication; the unauthorized member could neither start the module approval nor handle a branch task. Both valid approval orders waited for both branches and recorded exactly one join.",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/tools/verify-flow-gateway.py", "sha256": "93c561d1679f43d071b215ae11e11b1d055a6d1407086ebd333bf86f5ab527a4"},
+    {"path": "projects/unexamine/tools/verify-flow-gateway-browser.mjs", "sha256": "7f2e0dc51d8f4344a0d9fdacb6b94a1f7e49c8808a255c2630e60d7458c69ac2"}
+  ],
+  "remaining": "Inclusive gateway and other Flow node or binding combinations remain open. Fresh multi-system/multi-tenant release acceptance, missing historical print bytes in the isolated copy, external SSO and release documentation also remain open; whole-product completion is not claimed.",
+  "next_step": "S18.39"
+}

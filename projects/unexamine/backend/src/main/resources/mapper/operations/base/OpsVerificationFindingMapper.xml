@@ -13,14 +13,14 @@
         <result column="evidence_json" property="evidenceJson" />
         <result column="status" property="status" />
         <result column="resolved_by_account_id" property="resolvedByAccountId" />
-        <result column="resolved_at" property="resolvedAt" />
-        <result column="created_at" property="createdAt" />
+        <result column="resolve_time" property="resolveTime" />
+        <result column="create_time" property="createTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, verification_run_id, severity, finding_code, title, detail_text, evidence_json, `status`, resolved_by_account_id, resolved_at, created_at, version
+        id, verification_run_id, severity, finding_code, title, detail_text, evidence_json, `status`, resolved_by_account_id, resolve_time, create_time, version
     </sql>
 
 </mapper>

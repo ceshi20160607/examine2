@@ -1,0 +1,19 @@
+{
+  "step": "S18.11",
+  "status": "verified_contribution",
+  "source_rows": ["R0313", "R0314", "R0415", "R0416", "R0417", "R0683", "R2805", "R2969"],
+  "changed_files": ["projects/unexamine/frontend/src/product/components/BusinessActionReceipt.vue"],
+  "checks_actual_results": [
+    "同一普通成员从页面创建采购申请 #177、自定义金额 90，并自动发起 Flow #42；系统所属人在待办页同意，完整历史和 MySQL 状态均为完成。",
+    "成员页面创建关联明细 #178，金额 90 与引用 #177 同次持久；主租户已发布图表增加当日 90、合计 329.5，另一个固定过滤来源保持 150；分租户未共享新数据，结果仍为 175。",
+    "应用 #27 签名 LIST 包含 #177 且排除无授权负责人 #166；签名 DETAIL 和跨租户调用均被 HTTP 403 拒绝，调用日志落库；重启后签名 LIST 和浏览器/API/MySQL 读回一致。",
+    "修复跨模块切换时已失效操作回执留下虚假审批横幅；前端 vue-tsc/Vite build、同制品重启 readiness、workspace-validate 和 git diff --check 通过。"
+  ],
+  "readback": ["projects/unexamine/ai/evidence/s18-integrated-procurement-readback.json"],
+  "permission_or_failure_result": "应用动作未授权和目标租户越界分别拒绝；无共享关系的分租户页面与仪表盘不出现新主租户记录。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/frontend/src/product/components/BusinessActionReceipt.vue", "sha256": "deea51a9fa7b13c57ae1f3906221b49bd1a5319501c706c103cb2cb0984da085"}
+  ],
+  "remaining": "全产品终验和真实第三方依赖尚未完成；下一步核对关联记录共享与未获权关联字段的权限边界。",
+  "next_step": "S18.12"
+}

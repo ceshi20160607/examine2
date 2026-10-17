@@ -1,0 +1,13 @@
+{
+  "moduleCode": "approval_accept_5b69b5d6",
+  "dashboardId": 7,
+  "dashboardVersionId": 13,
+  "runtimeButton": {
+    "width": 88,
+    "height": 36,
+    "text": "模块首页"
+  },
+  "route": "/systems/143?workspace=module-home&module=approval_accept_5b69b5d6",
+  "runtimeScreenshot": "projects/unexamine/ai/evidence/s18-module-dashboard-runtime-browser.png",
+  "dashboardScreenshot": "projects/unexamine/ai/evidence/s18-module-dashboard-page-browser.png"
+}

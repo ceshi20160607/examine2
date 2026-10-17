@@ -50,7 +50,8 @@ const form = reactive({
   outputFields: objects(initial.outputFields).map(qualified).filter(Boolean),
   metricOperation: String(initialMetric.operation || 'COUNT') as 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX',
   metricField: qualified(initialMetric),
-  dimensionType: String(initialDimension.type || 'STATUS') as 'FIELD' | 'TIME' | 'PERSON' | 'DEPARTMENT' | 'STATUS',
+  dimensionType: String(initialDimension.type || 'NONE') as 'NONE' | 'FIELD' | 'TIME' | 'PERSON' | 'DEPARTMENT' | 'STATUS',
+  dimensionInterval: String(initialDimension.interval || 'DAY') as 'DAY' | 'MONTH' | 'QUARTER' | 'YEAR',
   dimensionField: qualified(initialDimension),
   filters: initialFilters.map(filter => ({ field: qualified(filter), operator: String(filter.operator || 'EQ'),
     value: String(filter.value ?? '') })),
@@ -125,6 +126,7 @@ const filterOptions = computed(() => valueFieldOptions.value.filter(option => {
 const numericOptions = computed(() => valueFieldOptions.value.filter(option =>
   ['NUMBER', 'DECIMAL', 'INTEGER', 'LONG', 'MONEY', 'PERCENT'].includes(option.field.fieldType)))
 const dimensionOptions = computed(() => valueFieldOptions.value.filter(option => {
+  if (form.dimensionType === 'NONE') return false
   const type = option.field.fieldType
   if (form.dimensionType === 'TIME') return ['DATE', 'DATETIME'].includes(type)
   if (form.dimensionType === 'PERSON') return ['MEMBER', 'PERSON', 'USER', 'SYSTEM_CREATED_BY', 'SYSTEM_UPDATED_BY'].includes(type)
@@ -149,7 +151,8 @@ const dimensionLabels: Record<string, string> = { FIELD: '业务字段', TIME: '
 const operatorLabels: Record<string, string> = { EQ: '等于', NE: '不等于', CONTAINS: '包含', GT: '大于', GTE: '大于或等于', LT: '小于', LTE: '小于或等于', EMPTY: '为空', NOT_EMPTY: '不为空' }
 
 function emitDefinition() {
-  emit('definition', buildReportDefinition(form))
+  emit('definition', buildReportDefinition({ ...form,
+    dimensionType: form.dimensionType === 'NONE' ? undefined : form.dimensionType }))
 }
 function addFilter() { form.filters.push({ field: '', operator: 'EQ', value: '' }) }
 function filterType(field: string) { return fieldOptions.value.find(option => option.value === field)?.field.fieldType }
@@ -173,6 +176,14 @@ function filterChoices(field: string, selected: string) {
     ? [...options, { value: selected, label: '原筛选值当前不可用', disabled: true }] : options
 }
 watch(form, emitDefinition, { deep: true, immediate: true })
+watch([() => form.dimensionType, dimensionOptions, () => form.dimensionField], ([type, options]) => {
+  if (type === 'NONE') {
+    form.dimensionField = ''
+  } else if (metadata.value && !options.some(option => option.value === form.dimensionField)) {
+    // 分组方式变更后使用当前可读的适配字段，避免页面显示分组但实际按无分组执行。
+    form.dimensionField = (options.find(option => option.field.code !== 'id') || options[0])?.value || ''
+  }
+}, { immediate: true, flush: 'sync' })
 watch(() => form.primaryModuleCode, code => {
   if (form.relatedModuleCode === code) form.relatedModuleCode = ''
   if (form.thirdModuleCode === code) form.thirdModuleCode = ''
@@ -259,9 +270,12 @@ onMounted(loadMetadata)
         <div class="form-grid"><a-form-item label="来源关联字段"><a-select v-model:value="form.thirdParentField" show-search :options="thirdParentRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item><a-form-item label="第三模块关联字段"><a-select v-model:value="form.thirdRelationField" show-search :options="thirdRelationOptions.map(field => ({ value: field.code, label: field.name }))" /></a-form-item></div>
       </template>
     </div>
-    <a-form-item label="显式输出字段（未选择和无权字段不会返回）"><a-select v-model:value="form.outputFields" mode="multiple" show-search :options="valueFieldOptions" /></a-form-item>
+    <a-form-item label="显式输出字段（必选，未选择和无权字段不会返回）"><a-select v-model:value="form.outputFields" mode="multiple" show-search :options="valueFieldOptions" /></a-form-item>
+    <a-alert v-if="!form.outputFields.length" type="warning" show-icon message="请至少选择一个输出字段，保存和发布结构化数据源需要明确返回哪些字段。" />
     <div class="form-grid form-grid--three"><a-form-item label="统计方式"><a-select v-model:value="form.metricOperation" :options="metadata?.metricOperations.map(value => ({ value, label: metricLabels[value] || '统计' }))" /></a-form-item><a-form-item label="统计字段"><a-select v-model:value="form.metricField" allow-clear show-search :disabled="form.metricOperation === 'COUNT'" :options="numericOptions" /></a-form-item><a-form-item label="明细展示条数"><a-input-number v-model:value="form.limit" :min="1" :max="50" /></a-form-item></div>
-    <div class="form-grid"><a-form-item label="分组方式"><a-select v-model:value="form.dimensionType" :options="metadata?.dimensionTypes.map(value => ({ value, label: dimensionLabels[value] || '业务字段' }))" /></a-form-item><a-form-item label="分组字段"><a-select v-model:value="form.dimensionField" allow-clear show-search :options="dimensionOptions" /></a-form-item></div>
+    <div class="form-grid"><a-form-item label="分组方式"><a-select v-model:value="form.dimensionType" :options="[{ value: 'NONE', label: '不分组（汇总统计）' }, ...(metadata?.dimensionTypes.map(value => ({ value, label: dimensionLabels[value] || '业务字段' })) || [])]" /></a-form-item><a-form-item label="分组字段"><a-select v-model:value="form.dimensionField" show-search :disabled="form.dimensionType === 'NONE'" :options="dimensionOptions" :placeholder="form.dimensionType === 'NONE' ? '不分组' : '选择分组字段'" /></a-form-item></div>
+    <a-form-item v-if="form.dimensionType === 'TIME'" label="时间分组粒度"><a-select v-model:value="form.dimensionInterval" :options="[{ value: 'DAY', label: '按日' }, { value: 'MONTH', label: '按月' }, { value: 'QUARTER', label: '按季度' }, { value: 'YEAR', label: '按年' }]" /></a-form-item>
+    <a-alert v-if="form.dimensionType !== 'NONE' && !form.dimensionField" type="warning" show-icon :message="dimensionOptions.length ? '请选择分组字段，否则统计将按无分组执行。' : '当前分组方式没有可读的适配字段，请更换分组方式或发布可读字段。'" />
     <div class="panel-title"><strong>固定筛选条件</strong><a-button size="small" @click="addFilter">添加条件</a-button></div>
     <div v-for="(filter, index) in form.filters" :key="index" class="form-grid form-grid--three">
       <a-form-item label="筛选字段"><a-select v-model:value="filter.field" show-search :options="filterOptions" @change="filter.value = ''; filter.operator = 'EQ'" /></a-form-item>

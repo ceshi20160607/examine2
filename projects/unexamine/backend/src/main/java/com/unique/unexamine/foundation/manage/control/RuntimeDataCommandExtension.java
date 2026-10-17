@@ -72,7 +72,7 @@ public class RuntimeDataCommandExtension {
         return new FoundationControlModels.CommandResult(result.idempotencyRecordId(), result.outboxId(),
                 result.idempotencyKey(), operationCode, result.value() == null ? "flow-instance:" + result.flowInstanceId()
                         : "business-record:" + result.value().id(), result.status(),
-                result.replayed(), event.getCreatedAt().toString(), event.getStatus());
+                result.replayed(), event.getCreateTime().toString(), event.getStatus());
     }
 
     private CreateRuntimeRecordRequest buildCreateRequest(Map<String, Object> payload) {
@@ -88,6 +88,7 @@ public class RuntimeDataCommandExtension {
         if (participants == null) {
             participants = new ArrayList<>();
         }
+        // 通用动作与表单、导入、应用共用创建人规则；缺失值留给运行态按当前系统所属人补齐。
         return new CreateRuntimeRecordRequest(
                 title,
                 textOrNull(payload.get("recordNumber")),
@@ -95,7 +96,9 @@ public class RuntimeDataCommandExtension {
                 asLong(payload.get("ownerMemberId")),
                 asLong(payload.get("departmentId")),
                 participants,
-                normalizedFields);
+                normalizedFields,
+                null,
+                asLong(payload.get("createdByMemberId")));
     }
 
     private UpdateRuntimeRecordRequest buildUpdateRequest(Map<String, Object> payload) {
@@ -137,7 +140,7 @@ public class RuntimeDataCommandExtension {
         if (reason == null) {
             reason = "系统运行命令";
         }
-        return new RecordLifecycleRequest(reason, version);
+        return new RecordLifecycleRequest(reason, version, asLong(payload.get("replacementRecordId")));
     }
 
     private Map<String, Object> asMap(Object value) {

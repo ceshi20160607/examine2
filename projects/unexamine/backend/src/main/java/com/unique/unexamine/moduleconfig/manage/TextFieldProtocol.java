@@ -14,8 +14,9 @@ import java.util.regex.PatternSyntaxException;
 
 /** Shared configuration and value protocol for text-family module fields. */
 public final class TextFieldProtocol {
+    /** 条码和二维码保存识别出的文本，沿用普通文本的长度与格式规则。 */
     public static final Set<String> TYPES = Set.of(
-            "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD");
+            "TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "BARCODE", "QRCODE");
     public static final Set<String> PATTERN_MODES = Set.of(
             "NONE", "DIGITS", "LETTERS", "ALPHANUMERIC", "CHINESE", "CUSTOM");
 

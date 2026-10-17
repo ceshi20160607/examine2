@@ -5,8 +5,11 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiAgent">
         <id column="id" property="id" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="owner_tenant_id" property="ownerTenantId" />
+        <result column="model_id" property="modelId" />
         <result column="model_grant_id" property="modelGrantId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
@@ -17,15 +20,17 @@
         <result column="confirmation_policy_json" property="confirmationPolicyJson" />
         <result column="fallback_policy_json" property="fallbackPolicyJson" />
         <result column="status" property="status" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="created_by_platform_member_account_id" property="createdByPlatformMemberAccountId" />
         <result column="created_by_member_id" property="createdByMemberId" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, model_grant_id, `code`, `name`, `description`, draft_revision, system_prompt_text, context_policy_json, confirmation_policy_json, fallback_policy_json, `status`, created_by_member_id, created_at, updated_at, version
+        id, context_type, platform_id, system_id, owner_tenant_id, model_id, model_grant_id, `code`, `name`, `description`, draft_revision, system_prompt_text, context_policy_json, confirmation_policy_json, fallback_policy_json, `status`, created_by_account_id, created_by_platform_member_account_id, created_by_member_id, create_time, update_time, version
     </sql>
 
 </mapper>

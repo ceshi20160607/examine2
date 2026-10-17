@@ -10,6 +10,7 @@
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="assignee_account_id" property="assigneeAccountId" />
+        <result column="assignee_member_id" property="assigneeMemberId" />
         <result column="todo_type" property="todoType" />
         <result column="source_type" property="sourceType" />
         <result column="source_id" property="sourceId" />
@@ -17,17 +18,17 @@
         <result column="summary" property="summary" />
         <result column="target_route" property="targetRoute" />
         <result column="priority" property="priority" />
-        <result column="due_at" property="dueAt" />
+        <result column="due_time" property="dueTime" />
         <result column="status" property="status" />
-        <result column="completed_at" property="completedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="complete_time" property="completeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, assignee_account_id, todo_type, source_type, source_id, title, summary, target_route, priority, due_at, `status`, completed_at, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, assignee_account_id, assignee_member_id, todo_type, source_type, source_id, title, summary, target_route, priority, due_time, `status`, complete_time, create_time, update_time, version
     </sql>
 
 </mapper>

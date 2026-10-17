@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.base.entity.AuditEvent;
 import com.unique.unexamine.audit.base.service.AuditEventBaseService;
+import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.authentication.manage.AuthenticationContextHolder;
+import com.unique.unexamine.platform.base.entity.PlatformDefinition;
+import com.unique.unexamine.platform.base.service.PlatformDefinitionBaseService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +17,13 @@ import java.util.Map;
 @Service
 public class AuditRecorder {
     private final AuditEventBaseService auditService;
+    private final PlatformDefinitionBaseService platformService;
     private final ObjectMapper objectMapper;
 
-    public AuditRecorder(AuditEventBaseService auditService, ObjectMapper objectMapper) {
+    public AuditRecorder(AuditEventBaseService auditService, PlatformDefinitionBaseService platformService,
+                         ObjectMapper objectMapper) {
         this.auditService = auditService;
+        this.platformService = platformService;
         this.objectMapper = objectMapper;
     }
 
@@ -53,6 +60,7 @@ public class AuditRecorder {
         event.setTraceId(traceId);
         event.setRequestId(traceId);
         event.setContextType(systemId == null ? "PLATFORM" : "SYSTEM");
+        event.setPlatformId(platformIdFor(systemId));
         event.setActorAccountId(actorAccountId);
         event.setSystemId(systemId);
         event.setTenantId(tenantId);
@@ -98,6 +106,7 @@ public class AuditRecorder {
         event.setTraceId(traceId);
         event.setRequestId(traceId);
         event.setContextType(systemId == null ? "PLATFORM" : "SYSTEM");
+        event.setPlatformId(platformIdFor(systemId));
         event.setActorAccountId(actorAccountId);
         event.setSystemId(systemId);
         event.setTenantId(tenantId);
@@ -113,6 +122,17 @@ public class AuditRecorder {
         event.setDetailJson(toJson(detail));
         auditService.insert(event);
         return event.getId();
+    }
+
+    /** 无请求上下文的单平台任务可归属唯一平台；多平台时不猜测归属。 */
+    private Long platformIdFor(Long systemId) {
+        AuthenticatedContext context = AuthenticationContextHolder.currentOrNull();
+        if (context != null && context.platformId() != null) {
+            return context.platformId();
+        }
+        if (systemId != null) return null;
+        java.util.List<PlatformDefinition> platforms = platformService.selectList(null);
+        return platforms.size() == 1 ? platforms.getFirst().getId() : null;
     }
 
     private String categoryOf(String eventCode) {

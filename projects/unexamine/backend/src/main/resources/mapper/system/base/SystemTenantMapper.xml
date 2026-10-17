@@ -8,18 +8,20 @@
         <result column="system_id" property="systemId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
+        <result column="login_title" property="loginTitle" />
+        <result column="login_subtitle" property="loginSubtitle" />
         <result column="is_main" property="main" />
         <result column="main_marker" property="mainMarker" />
         <result column="creator_account_id" property="creatorAccountId" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, `code`, `name`, is_main, main_marker, creator_account_id, `status`, created_at, updated_at, version
+        id, system_id, `code`, `name`, login_title, login_subtitle, is_main, main_marker, creator_account_id, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

@@ -19,9 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequirePermission(resourceType = "PLATFORM", resourceCode = "AI", actionCode = "MANAGE")
 public class PlatformAiConfigurationController {
     private final PlatformAiConfigurationService service;
+    private final PlatformAiAgentService agents;
 
-    public PlatformAiConfigurationController(PlatformAiConfigurationService service) {
+    public PlatformAiConfigurationController(PlatformAiConfigurationService service,
+            PlatformAiAgentService agents) {
         this.service = service;
+        this.agents = agents;
     }
 
     @GetMapping
@@ -52,6 +55,38 @@ public class PlatformAiConfigurationController {
             @Valid @RequestBody AiConfigurationModels.GrantRequest body,
             HttpServletRequest request) {
         return ApiResult.ok(service.grant(AuthenticationContextHolder.require(), modelId, systemId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    /** 撤销当前系统的模型授权。 */
+    @PostMapping("/models/{modelId}/grants/{systemId}/revoke")
+    public ApiResult<AiConfigurationModels.GrantView> revoke(
+            @PathVariable Long modelId, @PathVariable Long systemId, HttpServletRequest request) {
+        return ApiResult.ok(service.revoke(AuthenticationContextHolder.require(), modelId, systemId,
+                TraceIdFilter.current(request)));
+    }
+
+    /** 平台 Agent 只能绑定平台模型与平台资源能力。 */
+    @PostMapping("/agents")
+    public ApiResult<AiConfigurationModels.PlatformAgentView> createAgent(
+            @Valid @RequestBody AiConfigurationModels.PlatformAgentRequest body, HttpServletRequest request) {
+        return ApiResult.ok(agents.create(AuthenticationContextHolder.require(), body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PutMapping("/agents/{agentId}/draft")
+    public ApiResult<AiConfigurationModels.PlatformAgentView> saveAgentDraft(
+            @PathVariable Long agentId, @Valid @RequestBody AiConfigurationModels.PlatformAgentRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(agents.saveDraft(AuthenticationContextHolder.require(), agentId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/agents/{agentId}/publish")
+    public ApiResult<AiConfigurationModels.PlatformAgentView> publishAgent(
+            @PathVariable Long agentId, @Valid @RequestBody AiConfigurationModels.PublishRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(agents.publish(AuthenticationContextHolder.require(), agentId, body,
                 TraceIdFilter.current(request)));
     }
 }

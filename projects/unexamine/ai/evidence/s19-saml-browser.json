@@ -1,0 +1,36 @@
+{
+  "step": "S19.4",
+  "candidate": "0.1.0-s19.4-dev1",
+  "frontend": "http://127.0.0.1:15185",
+  "localLoginVisible": true,
+  "samlEntryVisible": true,
+  "authorizationPage": {
+    "url": "http://127.0.0.1:18213/sso",
+    "title": "隔离 SAML2 身份源"
+  },
+  "platformPage": {
+    "url": "http://127.0.0.1:15185/platform",
+    "title": "Unexamine",
+    "accountVisible": true,
+    "systemVisible": true
+  },
+  "deniedSystemEntry": {
+    "status": 403,
+    "code": "SYSTEM_ACCESS_DENIED"
+  },
+  "systemPage": {
+    "url": "http://127.0.0.1:15185/systems/1",
+    "title": "Unexamine",
+    "systemVisible": true,
+    "memberVisible": true
+  },
+  "adminPage": {
+    "url": "http://127.0.0.1:15185/platform/admin/identity-providers",
+    "providerVisible": true,
+    "publishedVisible": true,
+    "preflightVisible": true,
+    "verifiedEmailVisible": true
+  },
+  "screenshot": "projects/unexamine/ai/evidence/s19-saml-browser.png",
+  "adminScreenshot": "projects/unexamine/ai/evidence/s19-saml-admin-browser.png"
+}

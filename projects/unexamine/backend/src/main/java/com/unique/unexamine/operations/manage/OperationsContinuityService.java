@@ -10,12 +10,14 @@ import com.unique.unexamine.operations.base.entity.OpsBackup;
 import com.unique.unexamine.operations.base.entity.OpsBackupItem;
 import com.unique.unexamine.operations.base.entity.OpsRelease;
 import com.unique.unexamine.operations.base.entity.OpsRestoreDrill;
+import com.unique.unexamine.operations.base.entity.OpsSecretRef;
 import com.unique.unexamine.operations.base.entity.OpsUpgrade;
 import com.unique.unexamine.operations.base.entity.OpsUpgradeStep;
 import com.unique.unexamine.operations.base.service.OpsBackupBaseService;
 import com.unique.unexamine.operations.base.service.OpsBackupItemBaseService;
 import com.unique.unexamine.operations.base.service.OpsReleaseBaseService;
 import com.unique.unexamine.operations.base.service.OpsRestoreDrillBaseService;
+import com.unique.unexamine.operations.base.service.OpsSecretRefBaseService;
 import com.unique.unexamine.operations.base.service.OpsUpgradeBaseService;
 import com.unique.unexamine.operations.base.service.OpsUpgradeStepBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
@@ -55,6 +57,7 @@ public class OperationsContinuityService {
     private final OpsUpgradeBaseService upgrades;
     private final OpsUpgradeStepBaseService upgradeSteps;
     private final OpsReleaseBaseService releases;
+    private final OpsSecretRefBaseService secretRefs;
     private final Flyway flyway;
     private final ObjectMapper objectMapper;
     private final AuditRecorder auditRecorder;
@@ -68,6 +71,7 @@ public class OperationsContinuityService {
             OpsUpgradeBaseService upgrades,
             OpsUpgradeStepBaseService upgradeSteps,
             OpsReleaseBaseService releases,
+            OpsSecretRefBaseService secretRefs,
             Flyway flyway,
             ObjectMapper objectMapper,
             AuditRecorder auditRecorder,
@@ -79,6 +83,7 @@ public class OperationsContinuityService {
         this.upgrades = upgrades;
         this.upgradeSteps = upgradeSteps;
         this.releases = releases;
+        this.secretRefs = secretRefs;
         this.flyway = flyway;
         this.objectMapper = objectMapper;
         this.auditRecorder = auditRecorder;
@@ -120,7 +125,7 @@ public class OperationsContinuityService {
             throw new DomainException("BACKUP_INSUFFICIENT_SPACE", "可用空间不足，备份未开始", HttpStatus.CONFLICT,
                     Map.of("requiredBytes", input.requiredBytes(), "availableBytes", input.availableBytes()));
         }
-        validateKeyReference(input.encryptionKeyReference());
+        OpsSecretRef encryptionKey = requireBackupKey(context, input.encryptionKeyReference());
         Map<String, OperationsContinuityModels.BackupArtifactRequest> itemIndex = validateItems(input.items());
         LocalDateTime now = LocalDateTime.now();
         String manifestHash = sha256(json(Map.of(
@@ -128,16 +133,18 @@ public class OperationsContinuityService {
                 "configVersion", release.getConfigVersion(), "consistencyPoint", format(consistencyPoint), "items", input.items())));
         OpsBackup row = new OpsBackup();
         row.setContextType("SYSTEM");
+        row.setPlatformId(context.platformId());
         row.setSystemId(context.systemId());
+        row.setScopeOwnerId(context.systemId());
         row.setBackupType(encodeType(input.backupType(), release.getId()));
         row.setStatus("VERIFIED");
         row.setManifestHash(manifestHash);
-        row.setEncryptionKeyRef(input.encryptionKeyReference());
-        row.setRetentionUntil(now.plusDays(input.retentionDays()));
+        row.setEncryptionSecretRefId(encryptionKey.getId());
+        row.setRetentionUntilTime(now.plusDays(input.retentionDays()));
         row.setRequestedByAccountId(context.accountId());
-        row.setStartedAt(consistencyPoint);
-        row.setFinishedAt(now);
-        row.setCreatedAt(now);
+        row.setStartTime(consistencyPoint);
+        row.setFinishTime(now);
+        row.setCreateTime(now);
         row.setVersion(0);
         backups.insert(row);
         REQUIRED_ITEMS.forEach(type -> {
@@ -149,7 +156,7 @@ public class OperationsContinuityService {
             item.setSizeBytes(artifact.sizeBytes());
             item.setSha256(artifact.sha256().toLowerCase(Locale.ROOT));
             item.setStatus("VERIFIED");
-            item.setCreatedAt(now);
+            item.setCreateTime(now);
             backupItems.insert(item);
         });
         audit(context, requestId, "OPERATIONS_BACKUP_VERIFIED", "OPS_BACKUP", row.getId(), "VERIFIED",
@@ -202,6 +209,10 @@ public class OperationsContinuityService {
         Map<String, Object> verification = new LinkedHashMap<>();
         verification.put("source", "restore-drill.ps1");
         verification.put("databaseRestore", supplied.databaseRestore());
+        verification.put("restoredDatabaseVersion", supplied.restoredDatabaseVersion());
+        verification.put("restoredTableCount", supplied.restoredTableCount());
+        verification.put("targetDatabaseName", supplied.targetDatabaseName());
+        verification.put("targetHost", supplied.targetHost());
         verification.put("fileObjects", supplied.fileObjects());
         verification.put("configurationVersion", supplied.configurationVersion());
         verification.put("secretReferences", supplied.secretReferences());
@@ -209,16 +220,16 @@ public class OperationsContinuityService {
         verification.put("items", supplied.items());
         verification.put("manifestHash", backup.getManifestHash());
         verification.put("itemCount", items.size());
-        verification.put("consistencyPoint", format(backup.getStartedAt()));
+        verification.put("consistencyPoint", format(backup.getStartTime()));
         OpsRestoreDrill row = new OpsRestoreDrill();
         row.setBackupId(backupId);
         row.setEnvironmentCode(input.environmentCode());
         row.setStatus("PASSED");
         row.setVerificationJson(json(verification));
         row.setRequestedByAccountId(context.accountId());
-        row.setStartedAt(now);
-        row.setFinishedAt(now);
-        row.setCreatedAt(now);
+        row.setStartTime(now);
+        row.setFinishTime(now);
+        row.setCreateTime(now);
         row.setVersion(0);
         drills.insert(row);
         audit(context, requestId, "OPERATIONS_RESTORE_DRILL_COMPLETED", "OPS_RESTORE_DRILL", row.getId(), "PASSED",
@@ -243,7 +254,8 @@ public class OperationsContinuityService {
                 && release.getConfigVersion().equals(input.sourceConfigVersion()), "源数据库和配置版本必须与发布快照一致");
         addCheck(checks, "TARGET_VERSION", "目标版本", databaseVersion().equals(input.targetDatabaseVersion())
                 && configVersion.equals(input.targetConfigVersion()), "目标数据库和配置版本必须与当前运行时一致");
-        boolean conflict = input.configurationMapping().values().stream().anyMatch("CONFLICT"::equalsIgnoreCase);
+        boolean conflict = input.configurationMapping().values().stream()
+                .anyMatch(value -> "CONFLICT".equalsIgnoreCase(value) || "FAIL_DURING_APPLY".equalsIgnoreCase(value));
         addCheck(checks, "MAPPING", "配置映射冲突", !conflict, "预检不允许未裁决的配置映射冲突");
         String expected = "UPGRADE " + input.releaseId() + " WITH BACKUP " + input.backupId();
         addCheck(checks, "APPROVAL", "升级审批", expected.equals(input.confirmation())
@@ -274,6 +286,8 @@ public class OperationsContinuityService {
         impact.put("approvalReference", input.approvalReference());
         impact.put("preflight", preflight);
         impact.put("configurationMapping", input.configurationMapping());
+        impact.put("executionMode", "POST_DEPLOYMENT_VERIFICATION");
+        impact.put("deploymentEntry", "deploy.ps1");
         impact.put("dependencies", List.of("DATABASE", "CONFIGURATION", "FILE_REFERENCES", "SECRET_REFERENCES"));
         Map<String, Object> rollback = new LinkedHashMap<>();
         rollback.put("backupId", input.backupId());
@@ -281,47 +295,39 @@ public class OperationsContinuityService {
         rollback.put("sourceConfigVersion", input.sourceConfigVersion());
         rollback.put("manifestHash", requireBackup(context, input.backupId()).getManifestHash());
         rollback.put("oldSnapshotInterpretable", true);
+        rollback.put("treatment", "使用部署脚本的失败记录和已验证备份执行明确的前向修复或隔离恢复");
         OpsUpgrade row = new OpsUpgrade();
         row.setReleaseId(input.releaseId());
         row.setBackupId(input.backupId());
         row.setContextType("SYSTEM");
+        row.setPlatformId(context.platformId());
         row.setSystemId(context.systemId());
+        row.setScopeOwnerId(context.systemId());
         row.setImpactReportJson(json(impact));
         row.setStatus("RUNNING");
         row.setRollbackPointJson(json(rollback));
         row.setRequestedByAccountId(context.accountId());
-        row.setStartedAt(now);
-        row.setCreatedAt(now);
+        row.setStartTime(now);
+        row.setCreateTime(now);
         row.setVersion(0);
         upgrades.insert(row);
         addStep(row.getId(), 1, "BACKUP_GATE", "UNVERIFIED", "VERIFIED", Map.of("backupId", input.backupId()), "PASSED", null);
-        addStep(row.getId(), 2, "DATABASE_MIGRATION", input.sourceDatabaseVersion(), input.targetDatabaseVersion(),
-                Map.of("idempotent", true, "alreadyApplied", input.sourceDatabaseVersion().equals(input.targetDatabaseVersion())), "PASSED", null);
-        boolean failDuringApply = input.configurationMapping().values().stream()
-                .anyMatch("FAIL_DURING_APPLY"::equalsIgnoreCase);
-        addStep(row.getId(), 3, "CONFIGURATION_MIGRATION", input.sourceConfigVersion(), input.targetConfigVersion(),
-                input.configurationMapping(), failDuringApply ? "FAILED" : "PASSED",
-                failDuringApply ? "配置写入阶段失败；已停止开放新版本" : null);
-        if (failDuringApply) {
-            addStep(row.getId(), 4, "AUTOMATIC_ROLLBACK", input.targetConfigVersion(), input.sourceConfigVersion(),
-                    Map.of("database", "NO_CHANGE_OR_FORWARD_FIX", "configuration", "RESTORED_FROM_BACKUP"), "ROLLED_BACK", null);
-            row.setStatus("RECOVERABLE_FAILED");
-            rollback.put("completedSteps", List.of("BACKUP_GATE", "DATABASE_MIGRATION"));
-            rollback.put("rolledBackSteps", List.of("CONFIGURATION_MIGRATION"));
-            rollback.put("pendingManualSteps", List.of("修复配置映射后使用同一不可变备份重新执行"));
-        } else {
-            addStep(row.getId(), 4, "REFERENCE_VALIDATION", input.sourceConfigVersion(), input.targetConfigVersion(),
-                    Map.of("databaseReferences", "VALID", "fileReferences", "VALID", "secretReferences", "REFERENCE_ONLY"), "PASSED", null);
-            addStep(row.getId(), 5, "COMPLETE", input.sourceConfigVersion(), input.targetConfigVersion(),
-                    Map.of("runtimeDatabaseVersion", databaseVersion(), "runtimeConfigVersion", configVersion), "PASSED", null);
-            row.setStatus("SUCCESS");
-            rollback.put("completedSteps", List.of("BACKUP_GATE", "DATABASE_MIGRATION", "CONFIGURATION_MIGRATION",
-                    "REFERENCE_VALIDATION", "COMPLETE"));
-            rollback.put("rolledBackSteps", List.of());
-            rollback.put("pendingManualSteps", List.of());
-        }
+        // 升级由固定部署脚本执行；接口只验证已经启动的数据库与配置版本，不能伪造迁移或自动回滚。
+        addStep(row.getId(), 2, "DATABASE_VERSION_CHECK", input.sourceDatabaseVersion(), input.targetDatabaseVersion(),
+                Map.of("runtimeDatabaseVersion", databaseVersion()), "PASSED", null);
+        addStep(row.getId(), 3, "CONFIGURATION_VERSION_CHECK", input.sourceConfigVersion(), input.targetConfigVersion(),
+                input.configurationMapping(), "PASSED", null);
+        addStep(row.getId(), 4, "REFERENCE_VALIDATION", input.sourceConfigVersion(), input.targetConfigVersion(),
+                Map.of("databaseReferences", "VALID", "fileReferences", "VALID", "secretReferences", "REFERENCE_ONLY"), "PASSED", null);
+        addStep(row.getId(), 5, "COMPLETE", input.sourceConfigVersion(), input.targetConfigVersion(),
+                Map.of("runtimeDatabaseVersion", databaseVersion(), "runtimeConfigVersion", configVersion), "PASSED", null);
+        row.setStatus("SUCCESS");
+        rollback.put("completedSteps", List.of("BACKUP_GATE", "DATABASE_VERSION_CHECK", "CONFIGURATION_VERSION_CHECK",
+                "REFERENCE_VALIDATION", "COMPLETE"));
+        rollback.put("rolledBackSteps", List.of());
+        rollback.put("pendingManualSteps", List.of());
         row.setRollbackPointJson(json(rollback));
-        row.setFinishedAt(LocalDateTime.now());
+        row.setFinishTime(LocalDateTime.now());
         upgrades.updateById(row);
         audit(context, requestId, "OPERATIONS_UPGRADE_EXECUTED", "OPS_UPGRADE", row.getId(), row.getStatus(),
                 Map.of("releaseId", input.releaseId(), "backupId", input.backupId(),
@@ -339,8 +345,8 @@ public class OperationsContinuityService {
         step.setTargetVersion(target);
         step.setMappingJson(json(mapping));
         step.setStatus(status);
-        step.setStartedAt(LocalDateTime.now());
-        step.setFinishedAt(LocalDateTime.now());
+        step.setStartTime(LocalDateTime.now());
+        step.setFinishTime(LocalDateTime.now());
         step.setErrorMessage(error);
         upgradeSteps.insert(step);
     }
@@ -365,10 +371,23 @@ public class OperationsContinuityService {
         return index;
     }
 
-    private void validateKeyReference(String reference) {
+    /** 备份只接受当前系统已启用的备份专用密钥引用，不持久化任意客户端字符串。 */
+    private OpsSecretRef requireBackupKey(AuthenticatedContext context, String reference) {
         if (!reference.matches("^[A-Za-z0-9._:/-]{3,255}$") || reference.toLowerCase(Locale.ROOT).contains("plaintext")) {
             throw new DomainException("BACKUP_KEY_REFERENCE_INVALID", "只能保存密钥引用，不能保存密钥明文", HttpStatus.CONFLICT);
         }
+        OpsSecretRef ref = secretRefs.selectList(new LambdaQueryWrapper<OpsSecretRef>()
+                .eq(OpsSecretRef::getContextType, "SYSTEM")
+                .eq(OpsSecretRef::getPlatformId, context.platformId())
+                .eq(OpsSecretRef::getSystemId, context.systemId())
+                .eq(OpsSecretRef::getScopeOwnerId, context.systemId())
+                .eq(OpsSecretRef::getReferencePath, reference)
+                .eq(OpsSecretRef::getProvider, "INTERNAL_ENCRYPTED_BACKUP")
+                .eq(OpsSecretRef::getStatus, "ACTIVE").last("LIMIT 1")).stream().findFirst().orElse(null);
+        if (ref == null) {
+            throw new DomainException("BACKUP_KEY_REFERENCE_INVALID", "备份加密密钥引用不存在或不属于当前系统", HttpStatus.CONFLICT);
+        }
+        return ref;
     }
 
     private void validateRestoreEvidence(
@@ -389,7 +408,9 @@ public class OperationsContinuityService {
         boolean headerValid = backup.getId().equals(evidence.backupId())
                 && input.environmentCode().equals(evidence.environment())
                 && "PASSED".equals(evidence.status())
-                && "READABLE".equals(evidence.databaseRestore())
+                && "RESTORED".equals(evidence.databaseRestore())
+                && release.getDatabaseVersion().equals(evidence.restoredDatabaseVersion())
+                && evidence.restoredTableCount() > 0
                 && "EXTRACTED".equals(evidence.fileObjects())
                 && release.getConfigVersion().equals(evidence.configurationVersion())
                 && "REFERENCE_ONLY_ROTATE_ON_RESTORE".equals(evidence.secretReferences());
@@ -450,10 +471,20 @@ public class OperationsContinuityService {
 
     private OperationsContinuityModels.BackupView backupView(OpsBackup row) {
         return new OperationsContinuityModels.BackupView(row.getId(), backupReleaseId(row), row.getSystemId(),
-                plainType(row), row.getStatus(), format(row.getStartedAt()), row.getManifestHash(),
-                row.getEncryptionKeyRef(), "REFERENCE_ONLY_ROTATE_ON_RESTORE", format(row.getRetentionUntil()),
-                row.getRequestedByAccountId(), format(row.getStartedAt()), format(row.getFinishedAt()),
-                format(row.getCreatedAt()), items(row.getId()).stream().map(this::itemView).toList());
+                plainType(row), row.getStatus(), format(row.getStartTime()), row.getManifestHash(),
+                backupKeyPath(row), "REFERENCE_ONLY_ROTATE_ON_RESTORE", format(row.getRetentionUntilTime()),
+                row.getRequestedByAccountId(), format(row.getStartTime()), format(row.getFinishTime()),
+                format(row.getCreateTime()), items(row.getId()).stream().map(this::itemView).toList());
+    }
+
+    /** 页面只回显受控引用路径，不读取或返回备份加密材料。 */
+    private String backupKeyPath(OpsBackup backup) {
+        OpsSecretRef ref = secretRefs.selectById(backup.getEncryptionSecretRefId());
+        if (ref == null || !"INTERNAL_ENCRYPTED_BACKUP".equals(ref.getProvider())
+                || !backup.getSystemId().equals(ref.getSystemId())) {
+            throw new DomainException("BACKUP_KEY_REFERENCE_MISSING", "备份加密密钥引用已失效", HttpStatus.CONFLICT);
+        }
+        return ref.getReferencePath();
     }
 
     private OperationsContinuityModels.BackupItemView itemView(OpsBackupItem row) {
@@ -464,7 +495,7 @@ public class OperationsContinuityService {
     private OperationsContinuityModels.RestoreDrillView drillView(OpsRestoreDrill row) {
         return new OperationsContinuityModels.RestoreDrillView(row.getId(), row.getBackupId(), row.getEnvironmentCode(),
                 row.getStatus(), parseMap(row.getVerificationJson()), row.getRequestedByAccountId(),
-                format(row.getStartedAt()), format(row.getFinishedAt()), format(row.getCreatedAt()));
+                format(row.getStartTime()), format(row.getFinishTime()), format(row.getCreateTime()));
     }
 
     private OperationsContinuityModels.UpgradeView upgradeView(OpsUpgrade row) {
@@ -472,14 +503,14 @@ public class OperationsContinuityService {
                 .eq(OpsUpgradeStep::getUpgradeId, row.getId()).orderByAsc(OpsUpgradeStep::getStepNumber));
         return new OperationsContinuityModels.UpgradeView(row.getId(), row.getReleaseId(), row.getBackupId(),
                 row.getSystemId(), row.getStatus(), parseMap(row.getImpactReportJson()), parseMap(row.getRollbackPointJson()),
-                row.getRequestedByAccountId(), format(row.getStartedAt()), format(row.getFinishedAt()),
-                format(row.getCreatedAt()), steps.stream().map(this::stepView).toList());
+                row.getRequestedByAccountId(), format(row.getStartTime()), format(row.getFinishTime()),
+                format(row.getCreateTime()), steps.stream().map(this::stepView).toList());
     }
 
     private OperationsContinuityModels.UpgradeStepView stepView(OpsUpgradeStep row) {
         return new OperationsContinuityModels.UpgradeStepView(row.getStepNumber(), row.getStepType(),
                 row.getSourceVersion(), row.getTargetVersion(), parseMap(row.getMappingJson()), row.getStatus(),
-                format(row.getStartedAt()), format(row.getFinishedAt()), row.getErrorMessage());
+                format(row.getStartTime()), format(row.getFinishTime()), row.getErrorMessage());
     }
 
     private List<OpsBackupItem> items(Long backupId) {

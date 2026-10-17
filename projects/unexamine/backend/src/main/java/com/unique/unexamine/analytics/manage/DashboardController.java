@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,8 +44,33 @@ public class DashboardController {
     }
 
     @GetMapping("/runtime")
-    public ApiResult<DashboardModels.RuntimeDashboard> runtime(HttpServletRequest request) {
-        return ApiResult.ok(service.runtime(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
+    public ApiResult<DashboardModels.RuntimeDashboard> runtime(
+            @RequestParam(required = false) String moduleCode, HttpServletRequest request) {
+        return ApiResult.ok(service.runtime(AuthenticationContextHolder.require(), moduleCode,
+                TraceIdFilter.current(request)));
+    }
+
+    /** 当前账号的个人首页，无需系统配置管理权限。 */
+    @GetMapping("/personal")
+    public ApiResult<DashboardModels.PersonalOverview> personalOverview() {
+        return ApiResult.ok(service.personalOverview(AuthenticationContextHolder.require()));
+    }
+
+    @PutMapping("/personal")
+    public ApiResult<DashboardModels.DashboardView> savePersonal(
+            @Valid @RequestBody DashboardModels.PersonalDashboardRequest body, HttpServletRequest request) {
+        return ApiResult.ok(service.savePersonal(AuthenticationContextHolder.require(), body,
+                TraceIdFilter.current(request)));
+    }
+
+    @GetMapping("/personal/preview")
+    public ApiResult<DashboardModels.Preview> personalPreview(HttpServletRequest request) {
+        return ApiResult.ok(service.personalPreview(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
+    }
+
+    @GetMapping("/personal/runtime")
+    public ApiResult<DashboardModels.RuntimeDashboard> personalRuntime(HttpServletRequest request) {
+        return ApiResult.ok(service.personalRuntime(AuthenticationContextHolder.require(), TraceIdFilter.current(request)));
     }
 
     @GetMapping("/admin")

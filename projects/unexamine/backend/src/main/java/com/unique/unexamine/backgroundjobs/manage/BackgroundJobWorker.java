@@ -1,11 +1,10 @@
 package com.unique.unexamine.backgroundjobs.manage;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.manage.AuditRecorder;
-import com.unique.unexamine.backgroundjobs.base.entity.JobAttempt;
 import com.unique.unexamine.backgroundjobs.base.entity.JobBackground;
-import com.unique.unexamine.backgroundjobs.base.service.JobAttemptBaseService;
 import com.unique.unexamine.backgroundjobs.base.service.JobBackgroundBaseService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,10 +17,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/** Redis 工作器：运行态和重试事实留在 Redis，终态经 Base 写入业务审计表。 */
 @Component
 public class BackgroundJobWorker {
     private static final DefaultRedisScript<Long> EXTEND_LOCK = new DefaultRedisScript<>("""
@@ -39,7 +40,6 @@ public class BackgroundJobWorker {
 
     private final BackgroundJobService service;
     private final JobBackgroundBaseService jobs;
-    private final JobAttemptBaseService attempts;
     private final JdbcTemplate jdbc;
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper;
@@ -49,19 +49,13 @@ public class BackgroundJobWorker {
     private final long staleSeconds;
     private final long lockSeconds;
 
-    public BackgroundJobWorker(BackgroundJobService service,
-                               JobBackgroundBaseService jobs,
-                               JobAttemptBaseService attempts,
-                               JdbcTemplate jdbc,
-                               StringRedisTemplate redis,
-                               ObjectMapper objectMapper,
-                               TransactionTemplate transactions,
-                               AuditRecorder auditRecorder,
+    public BackgroundJobWorker(BackgroundJobService service, JobBackgroundBaseService jobs,
+                               JdbcTemplate jdbc, StringRedisTemplate redis, ObjectMapper objectMapper,
+                               TransactionTemplate transactions, AuditRecorder auditRecorder,
                                @Value("${unexamine.jobs.stale-seconds:30}") long staleSeconds,
                                @Value("${unexamine.jobs.lock-seconds:45}") long lockSeconds) {
         this.service = service;
         this.jobs = jobs;
-        this.attempts = attempts;
         this.jdbc = jdbc;
         this.redis = redis;
         this.objectMapper = objectMapper;
@@ -78,32 +72,25 @@ public class BackgroundJobWorker {
             recoverQueue();
             runOnce();
         } catch (RuntimeException ignored) {
-            // Redis/database health is exposed in Operations. The next finite poll retries coordination.
+            // Redis 或数据库短暂不可用时，下一轮重新扫描未完成的业务申请。
         }
     }
 
     public boolean runOnce() {
         ZSetOperations.TypedTuple<String> due;
-        try {
-            due = redis.opsForZSet().popMin(BackgroundJobService.READY_QUEUE);
-        } catch (RuntimeException exception) {
-            return false;
-        }
+        try { due = redis.opsForZSet().popMin(service.readyQueue()); }
+        catch (RuntimeException exception) { return false; }
         if (due == null || due.getValue() == null) return false;
         if (due.getScore() != null && due.getScore() > System.currentTimeMillis()) {
-            redis.opsForZSet().add(BackgroundJobService.READY_QUEUE, due.getValue(), due.getScore());
+            redis.opsForZSet().add(service.readyQueue(), due.getValue(), due.getScore());
             return false;
         }
         long jobId;
-        try {
-            jobId = Long.parseLong(due.getValue());
-        } catch (NumberFormatException exception) {
-            return false;
-        }
-        String lockKey = BackgroundJobService.LOCK_PREFIX + jobId;
+        try { jobId = Long.parseLong(due.getValue()); }
+        catch (NumberFormatException exception) { return false; }
+        String lockKey = service.lockKey(jobId);
         String lockToken = workerId + ':' + UUID.randomUUID();
-        Boolean locked = redis.opsForValue().setIfAbsent(lockKey, lockToken, Duration.ofSeconds(lockSeconds));
-        if (!Boolean.TRUE.equals(locked)) {
+        if (!Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(lockKey, lockToken, Duration.ofSeconds(lockSeconds)))) {
             service.enqueue(jobId, LocalDateTime.now().plusSeconds(1));
             return false;
         }
@@ -113,196 +100,214 @@ public class BackgroundJobWorker {
             execute(job, lockKey, lockToken);
             return true;
         } finally {
-            try {
-                redis.execute(RELEASE_LOCK, List.of(lockKey), lockToken);
-            } catch (RuntimeException ignored) {
-                // Token-owned lock has a short TTL and cannot be deleted by another worker.
-            }
+            try { redis.execute(RELEASE_LOCK, List.of(lockKey), lockToken); }
+            catch (RuntimeException ignored) { /* 令牌锁到期后由 Redis 自行释放。 */ }
         }
     }
 
+    /** 锁已失效且心跳过期的作业才允许恢复，避免与仍在工作的处理器同时执行。 */
     public void recoverStale() {
-        LocalDateTime cutoff = jdbc.queryForObject("select timestampadd(second, ?, now(3))",
-                LocalDateTime.class, -staleSeconds);
-        List<Map<String, Object>> stale = jdbc.queryForList(
-                "select id, attempt_count, max_attempts from job_background where status='RUNNING' and heartbeat_at < ? limit 50",
-                cutoff);
-        for (Map<String, Object> row : stale) {
-            long id = ((Number) row.get("id")).longValue();
-            int attempt = ((Number) row.get("attempt_count")).intValue();
-            int max = ((Number) row.get("max_attempts")).intValue();
+        LocalDateTime cutoff = LocalDateTime.now().minusSeconds(staleSeconds);
+        for (JobBackground job : pending()) {
+            Map<Object, Object> state = service.runtime(job);
+            if (!"RUNNING".equals(state.get("status"))) continue;
+            LocalDateTime heartbeat = date(state.get("heartbeatAt"));
+            if (heartbeat != null && !heartbeat.isBefore(cutoff)) continue;
+            if (Boolean.TRUE.equals(redis.hasKey(service.lockKey(job.getId())))) continue;
+            int attempt = (int) number(state.get("attemptCount"), 0);
+            int max = (int) number(state.get("maxAttempts"), 3);
             boolean exhausted = attempt >= max;
-            LocalDateTime databaseNow = jdbc.queryForObject("select now(3)", LocalDateTime.class);
-            int updated = jdbc.update("update job_background set status=?, next_run_at=?, finished_at=?, "
-                            + "error_code='WORKER_HEARTBEAT_EXPIRED', error_message='工作器心跳过期，已安全释放领取', "
-                            + "version=version+1 where id=? and status='RUNNING' and heartbeat_at < ?",
-                    exhausted ? "PERMANENT_FAILED" : "RETRY_WAIT",
-                    exhausted ? null : databaseNow, exhausted ? databaseNow : null, id, cutoff);
-            if (updated == 1) {
-                jdbc.update("update job_attempt set status='TIMED_OUT', finished_at=now(3), "
-                        + "error_code='WORKER_HEARTBEAT_EXPIRED', error_message='工作器心跳过期' "
-                        + "where job_id=? and attempt_number=? and status='RUNNING'", id, attempt);
-                JobBackground job = jobs.selectById(id);
-                service.publishRedisState(job);
-                if (!exhausted) service.enqueue(id, LocalDateTime.now());
-                try {
-                    auditRecorder.record("job-" + id + "-heartbeat-timeout", job.getCreatedByAccountId(), job.getSystemId(),
-                            job.getTenantId(), null, "BACKGROUND_JOB_HEARTBEAT_EXPIRED", "BACKGROUND_JOB",
-                            String.valueOf(id), exhausted ? "PERMANENT_FAILED" : "RETRY_WAIT",
-                            Map.of("attempt", attempt, "maxAttempts", max));
-                } catch (RuntimeException ignored) {
-                    // Recovery state is already durable; audit unavailability must not create a duplicate claim.
-                }
+            service.finishAttempt(job.getId(), "TIMED_OUT", "WORKER_HEARTBEAT_EXPIRED", "工作器心跳过期");
+            if (exhausted) {
+                if (!finishDatabase(job, "FAILED", Map.of("attemptCount", attempt),
+                        "WORKER_HEARTBEAT_EXPIRED", "工作器心跳过期，已达到重试上限")) continue;
+                service.updateRuntime(job.getId(), Map.of("status", "PERMANENT_FAILED",
+                        "updatedAt", LocalDateTime.now().toString()));
+                service.expireRuntime(job.getId());
+            } else {
+                LocalDateTime now = LocalDateTime.now();
+                service.updateRuntime(job.getId(), Map.of("status", "RETRY_WAIT", "nextRunAt", now.toString(),
+                        "heartbeatAt", "", "errorCode", "WORKER_HEARTBEAT_EXPIRED",
+                        "errorMessage", "工作器心跳过期", "updatedAt", now.toString()));
+                service.enqueue(job.getId(), now);
             }
+            try {
+                auditRecorder.record("job-" + job.getId() + "-heartbeat-timeout", job.getCreatedByAccountId(),
+                        job.getSystemId(), job.getTenantId(), null, "BACKGROUND_JOB_HEARTBEAT_EXPIRED",
+                        "BACKGROUND_JOB", String.valueOf(job.getId()),
+                        exhausted ? "PERMANENT_FAILED" : "RETRY_WAIT",
+                        Map.of("attempt", attempt, "maxAttempts", max));
+            } catch (RuntimeException ignored) { /* 主业务终态已经写入，审计副写失败不重复执行。 */ }
         }
     }
 
     private void recoverQueue() {
-        List<Map<String, Object>> due = jdbc.queryForList(
-                "select id, next_run_at from job_background where status in ('QUEUED','RETRY_WAIT') "
-                        + "and (next_run_at is null or next_run_at <= now(3)) and attempt_count < max_attempts "
-                        + "order by created_at limit 50");
-        for (Map<String, Object> row : due) {
-            long id = ((Number) row.get("id")).longValue();
-            service.enqueue(id, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        for (JobBackground job : pending()) {
+            Map<Object, Object> state = service.runtime(job);
+            String status = String.valueOf(state.getOrDefault("status", "QUEUED"));
+            if (!List.of("QUEUED", "RETRY_WAIT").contains(status)) continue;
+            LocalDateTime next = date(state.get("nextRunAt"));
+            if (next == null || !next.isAfter(now)) service.enqueue(job.getId(), now);
         }
     }
 
+    private List<JobBackground> pending() {
+        return jobs.selectList(new LambdaQueryWrapper<JobBackground>()
+                .isNull(JobBackground::getFinalStatus)
+                .orderByAsc(JobBackground::getCreateTime).last("limit 200"));
+    }
+
     private JobBackground claim(long jobId) {
-        return transactions.execute(status -> {
-            int updated = jdbc.update("update job_background set status='RUNNING', attempt_count=attempt_count+1, "
-                            + "started_at=coalesce(started_at, now(3)), heartbeat_at=now(3), next_run_at=null, "
-                            + "error_code=null, error_message=null, version=version+1 where id=? "
-                            + "and status in ('QUEUED','RETRY_WAIT') and (next_run_at is null or next_run_at <= now(3)) "
-                            + "and attempt_count < max_attempts",
-                    jobId);
-            if (updated != 1) return null;
-            JobBackground job = jobs.selectById(jobId);
-            JobAttempt attempt = new JobAttempt();
-            attempt.setJobId(jobId);
-            attempt.setAttemptNumber(job.getAttemptCount());
-            attempt.setWorkerId(workerId);
-            attempt.setStatus("RUNNING");
-            attempt.setStartedAt(LocalDateTime.now());
-            attempts.insert(attempt);
-            service.publishRedisState(job);
-            return job;
-        });
+        JobBackground job = jobs.selectById(jobId);
+        if (job == null || job.getFinalStatus() != null) return null;
+        Map<Object, Object> state = service.runtime(job);
+        String status = String.valueOf(state.getOrDefault("status", "QUEUED"));
+        if (!List.of("QUEUED", "RETRY_WAIT").contains(status)) return null;
+        LocalDateTime next = date(state.get("nextRunAt"));
+        if (next != null && next.isAfter(LocalDateTime.now())) {
+            service.enqueue(jobId, next);
+            return null;
+        }
+        int count = (int) number(state.get("attemptCount"), 0);
+        int max = (int) number(state.get("maxAttempts"), 3);
+        if (count >= max) return null;
+        LocalDateTime now = LocalDateTime.now();
+        service.updateRuntime(jobId, Map.of("status", "RUNNING", "attemptCount", String.valueOf(count + 1),
+                "heartbeatAt", now.toString(), "startedAt",
+                state.get("startedAt") == null ? now.toString() : String.valueOf(state.get("startedAt")),
+                "nextRunAt", "", "errorCode", "", "errorMessage", "", "updatedAt", now.toString()));
+        service.beginAttempt(jobId, count + 1, workerId, now);
+        return job;
     }
 
     private void execute(JobBackground job, String lockKey, String lockToken) {
-        int attempt = job.getAttemptCount();
+        int attempt = (int) number(service.runtime(job).get("attemptCount"), 1);
+        Map<String, Object> result;
         try {
             assertHardLimits(job);
             BackgroundJobHandler handler = service.handler(job.getJobType());
             if (handler == null) throw new IllegalStateException("Job handler is no longer registered");
             BackgroundJobExecution execution = new BackgroundJobExecution(job.getId(), attempt,
                     new BackgroundJobExecution.Reporter() {
-                        @Override
-                        public void heartbeat(long processed, long total) {
+                        @Override public void heartbeat(long processed, long total) {
                             reportProgress(job.getId(), processed, total, lockKey, lockToken);
                         }
-
-                        @Override
-                        public void item(String itemKey, Long rowNumber, String itemStatus, Map<String, Object> result,
-                                         String errorCode, String errorMessage, long processed, long total) {
-                            reportItem(job.getId(), itemKey, rowNumber, itemStatus, result, errorCode, errorMessage);
+                        @Override public void item(String itemKey, Long rowNumber, String itemStatus,
+                                                   Map<String, Object> result, String errorCode,
+                                                   String errorMessage, long processed, long total) {
+                            if (!ownsLock(lockKey, lockToken)) throw new IllegalStateException("作业锁已失效");
+                            service.recordItem(job.getId(), itemKey, rowNumber, itemStatus, result,
+                                    errorCode, truncate(errorMessage));
                             reportProgress(job.getId(), processed, total, lockKey, lockToken);
                         }
                     });
-            Map<String, Object> result = handler.execute(job.getJobType(), service.parameters(job), execution);
-            succeed(job, result == null ? Map.of() : result);
+            result = handler.execute(job.getJobType(), service.parameters(job), execution);
         } catch (Exception exception) {
-            fail(job, exception);
+            fail(job, attempt, exception, lockKey, lockToken);
+            return;
         }
+        // 业务执行成功后的归档异常不能被当作处理器失败重试，否则可能重复业务副作用。
+        succeed(job, result == null ? Map.of() : result, lockKey, lockToken);
     }
 
     private void assertHardLimits(JobBackground job) {
-        Integer active = jdbc.queryForObject("select count(*) from sys_system s join sys_tenant t on t.system_id=s.id "
+        Integer active = jdbc.queryForObject("select count(*) from un_sys_system s join un_sys_tenant t on t.system_id=s.id "
                         + "where s.id=? and t.id=? and s.status='ACTIVE' and t.status='ACTIVE'",
                 Integer.class, job.getSystemId(), job.getTenantId());
-        if (active == null || active != 1) {
-            throw new IllegalStateException("System or tenant is no longer active");
-        }
+        if (active == null || active != 1) throw new IllegalStateException("System or tenant is no longer active");
     }
 
     private void reportProgress(long jobId, long processed, long total, String lockKey, String lockToken) {
-        jdbc.update("update job_background set progress_current=?, progress_total=?, heartbeat_at=now(3), "
-                        + "version=version+1 where id=? and status='RUNNING'",
-                Math.max(0, processed), Math.max(0, total), jobId);
+        if (!ownsLock(lockKey, lockToken)) throw new IllegalStateException("作业锁已失效");
+        Long extended = redis.execute(EXTEND_LOCK, List.of(lockKey), lockToken, String.valueOf(lockSeconds * 1000));
+        if (extended == null || extended != 1L) throw new IllegalStateException("作业锁续期失败");
+        service.updateRuntime(jobId, Map.of("progressCurrent", String.valueOf(Math.max(0, processed)),
+                "progressTotal", String.valueOf(Math.max(0, total)), "heartbeatAt", LocalDateTime.now().toString(),
+                "updatedAt", LocalDateTime.now().toString()));
+    }
+
+    private void succeed(JobBackground job, Map<String, Object> result, String lockKey, String lockToken) {
+        if (!ownsLock(lockKey, lockToken)) return;
+        if (!finishDatabase(job, "SUCCEEDED", result, null, null)) return;
+        service.finishAttempt(job.getId(), "SUCCEEDED", null, null);
+        Map<Object, Object> state = service.runtime(jobs.selectById(job.getId()));
+        service.updateRuntime(job.getId(), Map.of("status", "SUCCEEDED",
+                "progressCurrent", String.valueOf(number(state.get("progressTotal"), 0)),
+                "updatedAt", LocalDateTime.now().toString()));
+        service.expireRuntime(job.getId());
         try {
-            redis.execute(EXTEND_LOCK, List.of(lockKey), lockToken, String.valueOf(lockSeconds * 1000));
-        } catch (RuntimeException ignored) {
-            // Database heartbeat still allows deterministic recovery.
-        }
-        service.publishRedisState(jobs.selectById(jobId));
+            auditRecorder.record("job-" + job.getId() + "-attempt-" + number(state.get("attemptCount"), 1),
+                    job.getCreatedByAccountId(), job.getSystemId(), job.getTenantId(), null,
+                    "BACKGROUND_JOB_SUCCEEDED", "BACKGROUND_JOB", String.valueOf(job.getId()), "SUCCEEDED",
+                    Map.of("attempt", number(state.get("attemptCount"), 1), "summary", result));
+        } catch (RuntimeException ignored) { /* 终态已归档，不因附加审计失败而重复执行。 */ }
     }
 
-    private void reportItem(long jobId, String itemKey, Long rowNumber, String status, Map<String, Object> result,
-                            String errorCode, String errorMessage) {
-        jdbc.update("insert into job_item_result(job_id,item_key,`row_number`,`status`,result_json,error_code,error_message) "
-                        + "values(?,?,?,?,cast(? as json),?,?) on duplicate key update `row_number`=values(`row_number`), "
-                        + "`status`=values(`status`),result_json=values(result_json),error_code=values(error_code), "
-                        + "error_message=values(error_message),updated_at=now(3)",
-                jobId, itemKey, rowNumber, status, json(result), errorCode, truncate(errorMessage));
-    }
-
-    private void succeed(JobBackground job, Map<String, Object> result) {
-        transactions.executeWithoutResult(status -> {
-            jdbc.update("update job_background set status='SUCCEEDED', progress_current=progress_total, "
-                            + "result_summary_json=cast(? as json), error_code=null, error_message=null, "
-                            + "heartbeat_at=now(3), finished_at=now(3), version=version+1 where id=? and status='RUNNING'",
-                    json(result), job.getId());
-            jdbc.update("update job_attempt set status='SUCCEEDED', finished_at=now(3) "
-                    + "where job_id=? and attempt_number=? and status='RUNNING'", job.getId(), job.getAttemptCount());
-        });
-        JobBackground reread = jobs.selectById(job.getId());
-        service.publishRedisState(reread);
-        try {
-            auditRecorder.record("job-" + job.getId() + "-attempt-" + job.getAttemptCount(), job.getCreatedByAccountId(),
-                    job.getSystemId(), job.getTenantId(), null, "BACKGROUND_JOB_SUCCEEDED", "BACKGROUND_JOB",
-                    String.valueOf(job.getId()), "SUCCEEDED", Map.of("attempt", job.getAttemptCount(), "summary", result));
-        } catch (RuntimeException ignored) {
-            // A completed handler must never be retried only because the secondary audit write is unavailable.
-        }
-    }
-
-    private void fail(JobBackground job, Exception exception) {
-        boolean exhausted = job.getAttemptCount() >= job.getMaxAttempts();
+    private void fail(JobBackground job, int attempt, Exception exception, String lockKey, String lockToken) {
+        if (!ownsLock(lockKey, lockToken)) return;
+        Map<Object, Object> state = service.runtime(job);
+        int max = (int) number(state.get("maxAttempts"), 3);
+        boolean exhausted = attempt >= max;
         String code = exception instanceof IllegalArgumentException ? "JOB_PARAMETER_INVALID" : "JOB_EXECUTION_FAILED";
         String message = truncate(exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage());
-        long retryDelaySeconds = Math.min(30, 1L << job.getAttemptCount());
-        LocalDateTime retryAt = exhausted ? null : jdbc.queryForObject(
-                "select timestampadd(second, ?, now(3))", LocalDateTime.class, retryDelaySeconds);
-        transactions.executeWithoutResult(status -> {
-            jdbc.update("update job_background set status=?, next_run_at=?, finished_at=?, error_code=?, error_message=?, "
-                            + "heartbeat_at=now(3), version=version+1 where id=? and status='RUNNING'",
-                    exhausted ? "PERMANENT_FAILED" : "RETRY_WAIT", retryAt,
-                    exhausted ? LocalDateTime.now() : null, code, message, job.getId());
-            jdbc.update("update job_attempt set status='FAILED', finished_at=now(3), error_code=?, error_message=? "
-                            + "where job_id=? and attempt_number=? and status='RUNNING'",
-                    code, message, job.getId(), job.getAttemptCount());
-        });
-        JobBackground reread = jobs.selectById(job.getId());
-        service.publishRedisState(reread);
-        if (!exhausted) service.enqueue(job.getId(), LocalDateTime.now().plusSeconds(retryDelaySeconds));
-        try {
-            auditRecorder.record("job-" + job.getId() + "-attempt-" + job.getAttemptCount(), job.getCreatedByAccountId(),
-                    job.getSystemId(), job.getTenantId(), null, "BACKGROUND_JOB_FAILED", "BACKGROUND_JOB",
-                    String.valueOf(job.getId()), reread.getStatus(), Map.of(
-                            "attempt", job.getAttemptCount(), "maxAttempts", job.getMaxAttempts(), "errorCode", code,
-                            "willRetry", !exhausted));
-        } catch (RuntimeException ignored) {
-            // Retry state is authoritative and remains bounded even if secondary audit storage is unavailable.
+        service.finishAttempt(job.getId(), "FAILED", code, message);
+        if (exhausted) {
+            if (!finishDatabase(job, "FAILED", Map.of("attemptCount", attempt), code, message)) return;
+            service.updateRuntime(job.getId(), Map.of("status", "PERMANENT_FAILED", "updatedAt", LocalDateTime.now().toString()));
+            service.expireRuntime(job.getId());
+        } else {
+            long delay = Math.min(30, 1L << attempt);
+            LocalDateTime next = LocalDateTime.now().plusSeconds(delay);
+            service.updateRuntime(job.getId(), Map.of("status", "RETRY_WAIT", "nextRunAt", next.toString(),
+                    "errorCode", code, "errorMessage", message, "updatedAt", LocalDateTime.now().toString()));
+            service.enqueue(job.getId(), next);
         }
+        try {
+            auditRecorder.record("job-" + job.getId() + "-attempt-" + attempt, job.getCreatedByAccountId(),
+                    job.getSystemId(), job.getTenantId(), null, "BACKGROUND_JOB_FAILED", "BACKGROUND_JOB",
+                    String.valueOf(job.getId()), exhausted ? "PERMANENT_FAILED" : "RETRY_WAIT",
+                    Map.of("attempt", attempt, "maxAttempts", max, "errorCode", code, "willRetry", !exhausted));
+        } catch (RuntimeException ignored) { /* 重试运行态已写入 Redis。 */ }
+    }
+
+    /** 只写一次终态；乐观锁避免超时恢复与工作器完成同时覆盖最终结果。 */
+    private boolean finishDatabase(JobBackground job, String finalStatus, Map<String, Object> result,
+                                   String errorCode, String errorMessage) {
+        Boolean written = transactions.execute(status -> {
+            JobBackground current = jobs.selectById(job.getId());
+            if (current == null || current.getFinalStatus() != null) return false;
+            current.setFinalStatus(finalStatus);
+            current.setResultSummaryJson(json(result));
+            current.setErrorCode(errorCode);
+            current.setErrorMessage(errorMessage);
+            current.setFinishTime(LocalDateTime.now());
+            current.setUpdateTime(LocalDateTime.now());
+            return jobs.updateById(current) == 1;
+        });
+        return Boolean.TRUE.equals(written);
+    }
+
+    private boolean ownsLock(String key, String token) {
+        try { return token.equals(redis.opsForValue().get(key)); }
+        catch (RuntimeException exception) { return false; }
+    }
+
+    private LocalDateTime date(Object value) {
+        if (value == null || String.valueOf(value).isBlank()) return null;
+        try { return LocalDateTime.parse(String.valueOf(value)); }
+        catch (DateTimeParseException exception) { return null; }
+    }
+
+    private long number(Object value, long fallback) {
+        if (value == null) return fallback;
+        try { return Long.parseLong(String.valueOf(value)); }
+        catch (NumberFormatException exception) { return fallback; }
     }
 
     private String json(Object value) {
-        try {
-            return objectMapper.writeValueAsString(value);
-        } catch (JsonProcessingException exception) {
-            return "{}";
-        }
+        try { return objectMapper.writeValueAsString(value); }
+        catch (JsonProcessingException exception) { return "{}"; }
     }
 
     private String truncate(String value) {

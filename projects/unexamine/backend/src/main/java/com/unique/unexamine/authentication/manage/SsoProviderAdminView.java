@@ -9,5 +9,6 @@ public record SsoProviderAdminView(
         String status,
         Long publishedVersionId,
         Integer publishedVersionNumber,
+        boolean requiresRevalidation,
         List<SsoProviderVersionView> versions) {
 }

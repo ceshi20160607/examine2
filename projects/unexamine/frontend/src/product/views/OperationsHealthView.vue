@@ -130,7 +130,7 @@ onMounted(async () => {
       <article class="panel-card"><small>关键依赖</small><strong>{{ passed }}/{{ health?.items.length ?? 5 }}</strong><span>{{ failed ? `${failed} 项阻断` : '全部通过' }}</span></article>
       <article class="panel-card"><small>服务版本</small><strong>{{ health?.releaseVersion || '—' }}</strong><span>当前运行实例</span></article>
       <article class="panel-card"><small>数据库迁移</small><strong>V{{ health?.migrationVersion || '—' }}</strong><span>Flyway 实际版本</span></article>
-      <article class="panel-card"><small>后台作业</small><strong>{{ jobsActive }}</strong><span>排队/运行 · {{ health?.jobs.failed ?? 0 }} 失败</span></article>
+      <article class="panel-card"><small>后台作业</small><strong>{{ health?.jobs.available ? jobsActive : '不可用' }}</strong><span>{{ health?.jobs.available ? `排队/运行 · ${health.jobs.failed} 失败` : 'Redis 作业状态暂不可读取' }}</span></article>
     </div>
 
     <section class="panel-card operations-dependencies">

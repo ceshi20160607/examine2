@@ -10,69 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 大文件上传会话及目标范围
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("file_upload_session")
+@TableName("un_file_upload_session")
 public class FileUploadSession {
 
+    /**
+     * 上传会话主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 上传作用域：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 上传所属平台
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统上传所属系统，平台上传为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统上传所属租户，平台上传为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 实际写入的存储后端主键
+     */
     @TableField("storage_backend_id")
     private Long storageBackendId;
 
+    /**
+     * 上传人的平台账号主键
+     */
     @TableField("uploader_account_id")
     private Long uploaderAccountId;
 
+    /**
+     * 上传时的原始文件名
+     */
     @TableField("original_name")
     private String originalName;
 
+    /**
+     * 客户端声明的媒体类型
+     */
     @TableField("content_type")
     private String contentType;
 
+    /**
+     * 上传完成后预期的文件字节数
+     */
     @TableField("expected_size")
     private Long expectedSize;
 
+    /**
+     * 可选的完整文件 SHA-256 校验值
+     */
     @TableField("expected_sha256")
     private String expectedSha256;
 
+    /**
+     * 存储后端内的目标对象键
+     */
     @TableField("object_key")
     private String objectKey;
 
+    /**
+     * 上传会话状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 上传令牌哈希，不保存原始令牌
+     */
     @TableField("upload_token_hash")
     private String uploadTokenHash;
 
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    /**
+     * 上传会话过期时间
+     */
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
-    @TableField("completed_at")
-    private LocalDateTime completedAt;
+    /**
+     * 上传完成时间
+     */
+    @TableField("complete_time")
+    private LocalDateTime completeTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -189,36 +246,36 @@ public class FileUploadSession {
         this.uploadTokenHash = uploadTokenHash;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
+    public LocalDateTime getExpireTime() {
+        return expireTime;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
+    public LocalDateTime getCompleteTime() {
+        return completeTime;
     }
 
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
+    public void setCompleteTime(LocalDateTime completeTime) {
+        this.completeTime = completeTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -246,10 +303,10 @@ public class FileUploadSession {
             ", objectKey = " + objectKey +
             ", status = " + status +
             ", uploadTokenHash = " + uploadTokenHash +
-            ", expiresAt = " + expiresAt +
-            ", completedAt = " + completedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", expireTime = " + expireTime +
+            ", completeTime = " + completeTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

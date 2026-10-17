@@ -8,20 +8,22 @@
         <result column="release_id" property="releaseId" />
         <result column="backup_id" property="backupId" />
         <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
         <result column="impact_report_json" property="impactReportJson" />
         <result column="status" property="status" />
         <result column="rollback_point_json" property="rollbackPointJson" />
         <result column="requested_by_account_id" property="requestedByAccountId" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
-        <result column="created_at" property="createdAt" />
+        <result column="start_time" property="startTime" />
+        <result column="finish_time" property="finishTime" />
+        <result column="create_time" property="createTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, release_id, backup_id, context_type, system_id, impact_report_json, `status`, rollback_point_json, requested_by_account_id, started_at, finished_at, created_at, version
+        id, release_id, backup_id, context_type, platform_id, system_id, scope_owner_id, impact_report_json, `status`, rollback_point_json, requested_by_account_id, start_time, finish_time, create_time, version
     </sql>
 
 </mapper>

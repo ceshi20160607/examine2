@@ -9,12 +9,12 @@
         <result column="target_tenant_member_id" property="targetTenantMemberId" />
         <result column="action_code" property="actionCode" />
         <result column="result_code" property="resultCode" />
-        <result column="occurred_at" property="occurredAt" />
+        <result column="occur_time" property="occurTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, share_id, target_tenant_member_id, action_code, result_code, occurred_at
+        id, share_id, target_tenant_member_id, action_code, result_code, occur_time
     </sql>
 
 </mapper>

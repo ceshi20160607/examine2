@@ -10,54 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程异常与处置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_exception")
+@TableName("un_flow_exception")
 public class FlowException {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 流程异常类型
+     */
     @TableField("exception_type")
     private String exceptionType;
 
+    /**
+     * 失败错误编码
+     */
     @TableField("error_code")
     private String errorCode;
 
+    /**
+     * 失败原因说明
+     */
     @TableField("error_message")
     private String errorMessage;
 
+    /**
+     * 异常策略选择的处置动作
+     */
     @TableField("policy_action")
     private String policyAction;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 异常处置人平台账号ID
+     */
     @TableField("resolved_by_account_id")
     private Long resolvedByAccountId;
 
+    /**
+     * 异常处置人在运行租户的成员ID
+     */
     @TableField("resolved_by_tenant_member_id")
     private Long resolvedByTenantMemberId;
 
+    /**
+     * 异常处置说明
+     */
     @TableField("resolution_comment")
     private String resolutionComment;
 
-    @TableField("occurred_at")
-    private LocalDateTime occurredAt;
+    /**
+     * 事件或异常发生时间
+     */
+    @TableField("occur_time")
+    private LocalDateTime occurTime;
 
-    @TableField("resolved_at")
-    private LocalDateTime resolvedAt;
+    /**
+     * 绑定解析时间
+     */
+    @TableField("resolve_time")
+    private LocalDateTime resolveTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -150,20 +192,20 @@ public class FlowException {
         this.resolutionComment = resolutionComment;
     }
 
-    public LocalDateTime getOccurredAt() {
-        return occurredAt;
+    public LocalDateTime getOccurTime() {
+        return occurTime;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
-        this.occurredAt = occurredAt;
+    public void setOccurTime(LocalDateTime occurTime) {
+        this.occurTime = occurTime;
     }
 
-    public LocalDateTime getResolvedAt() {
-        return resolvedAt;
+    public LocalDateTime getResolveTime() {
+        return resolveTime;
     }
 
-    public void setResolvedAt(LocalDateTime resolvedAt) {
-        this.resolvedAt = resolvedAt;
+    public void setResolveTime(LocalDateTime resolveTime) {
+        this.resolveTime = resolveTime;
     }
 
     public Integer getVersion() {
@@ -188,8 +230,8 @@ public class FlowException {
             ", resolvedByAccountId = " + resolvedByAccountId +
             ", resolvedByTenantMemberId = " + resolvedByTenantMemberId +
             ", resolutionComment = " + resolutionComment +
-            ", occurredAt = " + occurredAt +
-            ", resolvedAt = " + resolvedAt +
+            ", occurTime = " + occurTime +
+            ", resolveTime = " + resolveTime +
             ", version = " + version +
             "}";
     }

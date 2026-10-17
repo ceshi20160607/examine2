@@ -1,0 +1,34 @@
+{
+  "step": "S18.14",
+  "status": "in_progress",
+  "observed_at": "2026-10-12",
+  "source_rows": ["R0340", "R0342", "R0683", "R2877", "R2878", "R2882", "R2951", "R2969"],
+  "business_rule": "每个租户独立配置并发布仪表盘首页及组件；主租户已发布数据源可在当前租户权限内显式复用。外部渠道、企业 SSO 和密码找回投递仅在后台有效配置后启用。",
+  "superseded_evidence": "S18.7—S18.10 及 S18.13 中的分租户自动继承主租户仪表盘结论已失效；S18.13 的平台系统目录验证仍适用。",
+  "release": {
+    "backend": "s18-v11",
+    "jar_sha256": "E3BE8E08757AB336D795946CBBB5C9579673F180A3060DA1D86CFD7EADB5AECE",
+    "backend_port": 18081,
+    "frontend_port": 15179,
+    "database": "unexamine_drill_s17_files_1054"
+  },
+  "checks_actual_results": [
+    "workspace-validate 和 execution-context 在最新需求哈希 00e980711a9b3b88684f93c075a8fc92222df16ba89425648b0ba5174fd04d27 下通过。",
+    "JDK 21 定向测试 PasswordResetDeliveryTest 2/2、DashboardHttpTest 2/2 通过；测试覆盖分租户没有首页时不回退主租户、发布后只显示本租户组件、主租户首页保持独立及已授权主租户数据源复用。",
+    "后端 Maven package、前端 vue-tsc/Vite build、git diff --check 通过。",
+    "Docker 后端 s18-v11 经同制品重启 readiness UP；系统 #165 主租户 #166 读到自己的首页 #2 和 5 个组件，分租户 #167 读到自己的首页 #6 和 1 个 KPI（值 175），空租户 #168 读到 configured=false 且 0 组件。",
+    "MySQL 中首页 #2/#6 分别归属租户 #166/#167 且各有发布版本 #5/#11；分租户模块首页 #5 独立发布为版本 #9。",
+    "普通成员访问分租户仪表盘后台返回 403；匿名密码找回可用性返回 false，申请接口返回 503，未配置 SSO 提供者列表为空。"
+  ],
+  "test_adjustment": "新增分租户发布样本后，另一个测试中按整个测试库精确断言 2 条 DASHBOARD_PUBLISHED 审计事件失效；改为至少 2 条并重新执行定向测试，最终 4/4 通过。该断言原本不限定系统。",
+  "browser_acceptance": {
+    "status": "pending",
+    "reason": "浏览器工具访问现有本地标签页被 URL 策略拒绝；依工具限制未尝试其他浏览器入口或间接控制。已向用户请求当前页面截图，API 与数据库读回不能冒充真实页面验收。",
+    "required_views": [
+      "系统 #165 分租户 #167 运行态首页只显示本租户发布的一个 KPI",
+      "空租户 #168 运行态首页显示未配置而不显示主租户组件",
+      "未配置密码找回投递的登录页不出现可用的找回入口"
+    ]
+  },
+  "next_exact": "取得上述页面画面并核对与当前 API 一致；如页面正确，运行 execution-verify 并推进准确的下一子步。"
+}

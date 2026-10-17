@@ -51,7 +51,7 @@ public class RequestObservationFilter extends OncePerRequestFilter {
         int status = response.getStatus();
         String resultCode = status < 400 ? "SUCCESS" : "HTTP_" + status;
         try {
-            jdbc.update("insert into ops_request_log(request_id,trace_id,system_id,tenant_id,account_id,client_source,"
+            jdbc.update("insert into un_ops_request_log(request_id,trace_id,system_id,tenant_id,account_id,client_source,"
                             + "http_method,request_path,status_code,result_code,duration_millis) values(?,?,?,?,?,?,?,?,?,?,?)",
                     requestId, requestId,
                     context == null ? null : context.systemId(), context == null ? null : context.tenantId(),

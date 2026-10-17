@@ -12,14 +12,19 @@
         <result column="description" property="description" />
         <result column="built_in" property="builtIn" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
+        <result column="draft_code" property="draftCode" />
+        <result column="draft_name" property="draftName" />
+        <result column="draft_description" property="draftDescription" />
+        <result column="draft_permissions_json" property="draftPermissionsJson" />
+        <result column="draft_field_policies_json" property="draftFieldPoliciesJson" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, `code`, `name`, `description`, built_in, `status`, created_at, updated_at, version
+        id, system_id, tenant_id, `code`, `name`, `description`, built_in, `status`, create_time, update_time, version, draft_code, draft_name, draft_description, draft_permissions_json, draft_field_policies_json
     </sql>
 
 </mapper>

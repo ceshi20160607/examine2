@@ -1,0 +1,22 @@
+{
+  "moduleVersions": {
+    "count": 104,
+    "sha256": "7886047dcecd5ba0bd086fe397ecef6c659856dc365987af6c95e0d9fb11357b"
+  },
+  "templatePointers": {
+    "count": 38,
+    "sha256": "502aa836d0201a08682f9fb72fad64a3e8cb1cec506edd26cb8a9599f46d66ec"
+  },
+  "printJobs": {
+    "count": 130,
+    "sha256": "8d5d790030f5d80b9548796fde94273f3f976785850355ad0b0d99df57211240"
+  },
+  "records": {
+    "count": 182,
+    "sha256": "7a7785c7063d1435c0ba9d265a236b95bb58fa6d8c1eb50c6f361b2b7efd16a7"
+  },
+  "legacyPublishedWithoutPrint": {
+    "modules": 31,
+    "templates": 35
+  }
+}

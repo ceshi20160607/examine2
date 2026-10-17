@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.notification.base.mapper.PlatMsgUserPreferenceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.notification.base.entity.PlatMsgUserPreference">
+        <id column="id" property="id" />
+        <result column="platform_id" property="platformId" />
+        <result column="account_id" property="accountId" />
+        <result column="event_code" property="eventCode" />
+        <result column="channel" property="channel" />
+        <result column="enabled" property="enabled" />
+        <result column="quiet_hours_json" property="quietHoursJson" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, platform_id, account_id, event_code, `channel`, enabled, quiet_hours_json, create_time, update_time, version
+    </sql>
+
+</mapper>

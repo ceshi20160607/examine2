@@ -2,6 +2,7 @@ package com.unique.unexamine.authorization.manage;
 
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.flow.manage.FlowParticipantResolver;
 import com.unique.unexamine.platform.manage.registration.RegistrationRequest;
 import com.unique.unexamine.platform.manage.registration.RegistrationResult;
 import com.unique.unexamine.platform.manage.registration.RegistrationTransactionService;
@@ -48,6 +49,8 @@ class IdentityOrganizationContextIntegrationTest {
     private SystemAuthorizationManagementService authorizationService;
     @Autowired
     private SystemPeopleDirectoryService directoryService;
+    @Autowired
+    private FlowParticipantResolver participantResolver;
     @Autowired
     private JdbcTemplate jdbc;
 
@@ -106,27 +109,37 @@ class IdentityOrganizationContextIntegrationTest {
         });
 
         long superRoleId = jdbc.queryForObject(
-                "select id from sys_role where tenant_id=? and code='SYSTEM_SUPER_ADMIN'", Long.class, owner.tenantId());
+                "select id from un_sys_role where tenant_id=? and code='SYSTEM_SUPER_ADMIN'", Long.class, owner.tenantId());
         int ownerVersion = jdbc.queryForObject(
-                "select version from sys_tenant_member where id=?", Integer.class, ownerTenantMemberId);
+                "select version from un_sys_tenant_member where id=?", Integer.class, ownerTenantMemberId);
         assertThatThrownBy(() -> authorizationService.assignMember(context, ownerTenantMemberId,
                 new SystemAuthorizationModels.MemberAssignmentRequest(rootDepartment(owner.tenantId()),
                         target.tenantMemberId(), "客户运营负责人", List.of(superRoleId), ownerVersion),
                 "organization-cycle"))
                 .isInstanceOf(DomainException.class)
                 .hasMessageContaining("循环");
-        assertThat(jdbc.queryForObject("select count(*) from sys_member_reporting_line where tenant_id=?",
+        assertThat(jdbc.queryForObject("select count(*) from un_sys_member_reporting_line where tenant_id=?",
                 Integer.class, owner.tenantId())).isEqualTo(1);
+
+        // 停用平台账号后，人员字段和流程审批候选都不能继续选择该成员。
+        long targetAccountId = jdbc.queryForObject("select id from un_plat_account where username='org_sales'", Long.class);
+        jdbc.update("update un_plat_account set status='DISABLED' where id=?", targetAccountId);
+        assertThat(directoryService.directory(context, null).people())
+                .noneMatch(person -> target.tenantMemberId().equals(person.tenantMemberId()));
+        assertThat(directoryService.recordOptions(context, true, true).people())
+                .noneMatch(person -> target.systemMemberId().equals(person.systemMemberId()));
+        assertThat(participantResolver.directory(context).people())
+                .noneMatch(person -> target.tenantMemberId().equals(person.tenantMemberId()));
     }
 
     private AuthenticatedContext ownerContext(RegistrationResult owner) {
-        long accountId = jdbc.queryForObject("select id from plat_account where username='org_owner'", Long.class);
-        long platformId = jdbc.queryForObject("select platform_id from plat_member where account_id=?", Long.class, accountId);
-        long memberId = jdbc.queryForObject("select id from sys_member where system_id=? and account_id=?",
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username='org_owner'", Long.class);
+        long platformId = jdbc.queryForObject("select platform_id from un_plat_member where account_id=?", Long.class, accountId);
+        long memberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
                 Long.class, owner.systemId(), accountId);
-        long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+        long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
                 Long.class, owner.tenantId(), memberId);
-        long roleId = jdbc.queryForObject("select id from sys_role where tenant_id=? and code='SYSTEM_SUPER_ADMIN'",
+        long roleId = jdbc.queryForObject("select id from un_sys_role where tenant_id=? and code='SYSTEM_SUPER_ADMIN'",
                 Long.class, owner.tenantId());
         PermissionGrant wildcard = new PermissionGrant("*", "*", "*", List.of(roleId));
         DataScopeExpression all = new DataScopeExpression("ALL",
@@ -137,7 +150,7 @@ class IdentityOrganizationContextIntegrationTest {
     }
 
     private long rootDepartment(long tenantId) {
-        return jdbc.queryForObject("select id from sys_department where tenant_id=? and parent_id is null",
+        return jdbc.queryForObject("select id from un_sys_department where tenant_id=? and parent_id is null",
                 Long.class, tenantId);
     }
 }

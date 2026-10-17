@@ -95,6 +95,7 @@ function executeCommand(command: CommandCenterItem) {
             >
               <component :is="navigationIcons[item.code as keyof typeof navigationIcons]" class="side-nav__icon" /><span>{{ item.label }}</span>
             </button>
+            <button type="button" class="side-nav__item" :class="{ 'side-nav__item--active': route.path === '/platform/my-dashboard' }" @click="router.push('/platform/my-dashboard')"><UserOutlined class="side-nav__icon" /><span>我的首页</span></button>
           </nav>
         </div>
         <div class="side-nav__footer">

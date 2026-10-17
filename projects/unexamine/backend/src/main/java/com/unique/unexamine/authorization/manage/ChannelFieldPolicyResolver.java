@@ -34,6 +34,22 @@ public class ChannelFieldPolicyResolver {
     public Map<String, FieldAccessDecision> resolve(AuthenticatedContext context, String resourceCode,
                                                      String actionCode, String channel, List<String> fieldCodes) {
         String normalizedChannel = normalizeChannel(channel);
+        // 系统所属人由统一权限解析器直接授予全权；应用则使用已发布授权，字段清单由应用入口校验。
+        // 两者都没有角色，不能落入普通成员“无角色即拒绝”的字段规则。
+        List<PermissionGrant> direct = context.permissions() == null ? List.of() : context.permissions();
+        boolean systemOwner = direct.stream().anyMatch(grant -> "*".equals(grant.resourceType())
+                && "*".equals(grant.resourceCode()) && "*".equals(grant.actionCode()));
+        boolean application = "APPLICATION".equals(context.mfaLevel()) && direct.stream().anyMatch(grant ->
+                matches(grant.resourceType(), "MODULE") && matches(grant.resourceCode(), resourceCode)
+                        && matches(grant.actionCode(), actionCode));
+        if (systemOwner || application) {
+            Map<String, FieldAccessDecision> result = new LinkedHashMap<>();
+            for (String fieldCode : fieldCodes.stream().distinct().toList()) {
+                result.put(fieldCode, new FieldAccessDecision(fieldCode, normalizedChannel, true, true,
+                        null, List.of(), systemOwner ? "系统所属人具有全部字段权限" : "字段已由应用发布授权校验"));
+            }
+            return result;
+        }
         List<SystemRolePermission> grants = context.roleIds().isEmpty() ? List.of() : permissionService.selectList(
                         Wrappers.<SystemRolePermission>lambdaQuery()
                                 .eq(SystemRolePermission::getSystemId, context.systemId())

@@ -1,0 +1,32 @@
+{
+  "step": "S15.4",
+  "status": "verified_contribution",
+  "integration_gate": "G15_LOCAL_EVENTS",
+  "source_rows": ["R2206", "R2208", "R2209", "R2210", "R2211", "R2212", "R2213", "R2214", "R2215", "R2216", "R2218"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventAuditListener.java"
+  ],
+  "checks_actual_results": [
+    "A production LocalBusinessEventListener wrote LOCAL_BUSINESS_EVENT_DELIVERED audit records inside the local outbox dispatch transaction. Java 21 clean package and focused LocalBusinessEventDeliveryTest passed.",
+    "Real record #164 created, updated and deleted; Flow instances #36/#37 started and reached completed/rejected states; clean file #154, import batch #18 and export batch #25 completed. These actions produced nine distinct event types across ten source facts.",
+    "Each scoped source fact has exactly one PUBLISHED local outbox row with retry_count 0 and one matching subscriber audit entry. Payload keys contain only event type, source, system, tenant, module, context, actor references and occurred time; no record fields, file bytes or secret values.",
+    "The approval action replay reported replayed=true without a second FLOW_APPROVED event. Failed checksum upload session #21 remained FAILED without FILE_UPLOADED; unauthorized reader record update returned 403 without RECORD_UPDATED. Unrelated viewer read of Flow #36 returned 403 FLOW_INSTANCE_VIEW_DENIED.",
+    "The existing import Flow trigger rows IMPORT_BATCH:18:IMPORT_COMPLETED and IMPORT_BATCH:18:EXCEPTION remained PUBLISHED, and export batch #25 still generated its existing in-app completion message.",
+    "The member page in system #161 displayed import #18 with four rows, two successes and two errors. After backend restart the same page and API read back import #18 COMPLETED_WITH_ERRORS, export #25 COMPLETED with three rows, file #154 ACTIVE, Flow #36 COMPLETED and Flow #37 REJECTED. No local outbox row remained un-published.",
+    "workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g15-import-page.png",
+    "projects/unexamine/ai/evidence/g15-import-restart-page.png"
+  ],
+  "permission_or_failure_result": "Viewer Flow access and reader record mutation were denied; failed checksum upload and replayed approval produced no duplicate successful fact.",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventAuditListener.java", "sha256": "a55d43f2f38eeb1b59a367e7afa36fe46a33b3df45425bba517608cecc2e9d36"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventExtension.java", "sha256": "445e7f1ed9ebfd0ea112561c05e4c86ad8a2c4d03dad37708ac0367454ca0002"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventPublisher.java", "sha256": "d506181f6984f229209816c04cc939dccdd962cef322a3b7160f98cf256e64f8"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEvent.java", "sha256": "79fc03d8165fa918c7935b2171d9ea68131c7b465a0bf4c0a7fd6ab03d0e9f8d"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/foundation/manage/event/LocalBusinessEventDeliveryTest.java", "sha256": "d9f4e340a3a5ff522168c100759f7e3bd950112fed0f9c4d1acbda527b2fe5e4"}
+  ],
+  "remaining": "Requirements after 14.15, whole-product acceptance and live third-party credentials remain. The local interface is ready for concrete notification or automation listeners; those consumers are not claimed by this gate.",
+  "next_step": "S16.1"
+}

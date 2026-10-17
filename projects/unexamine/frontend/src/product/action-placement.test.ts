@@ -47,6 +47,7 @@ describe('published action placement and access', () => {
     expect(selectionActionReason('DELETE',0,true)).toBeTruthy()
     expect(selectionActionReason('DELETE',2,true)).toBe('')
     expect(supportsBatchAction({ ...action('DELETE','BATCH'), actionType:'BUILTIN' })).toBe(true)
+    expect(supportsBatchAction({ ...action('ARCHIVE','BATCH'), actionType:'BUILTIN' })).toBe(true)
     expect(supportsBatchAction({ ...action('DELETE','ROW'), actionType:'BUILTIN' })).toBe(false)
     expect(supportsBatchAction({ ...action('TRANSFER','BATCH'), actionType:'BUILTIN' })).toBe(false)
     expect(supportsBatchAction({ ...action('CONVERT','BATCH'), actionType:'BUILTIN' })).toBe(true)

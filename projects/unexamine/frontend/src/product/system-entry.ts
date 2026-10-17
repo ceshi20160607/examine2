@@ -27,17 +27,32 @@ export interface SystemEntryResult {
 }
 
 export async function establishSystemSession(systemId: number) {
+  return enterSystem(`/api/systems/${systemId}/enter`)
+}
+
+/** 专属入口按指定空间进入，不能退回该账号的默认空间。 */
+export async function establishTenantSession(systemId: number, tenantId: number, tenantMode: string) {
+  return enterSystem(tenantMode === 'SINGLE'
+    ? `/api/systems/${systemId}/enter`
+    : `/api/systems/${systemId}/tenants/${tenantId}/enter`, tenantId)
+}
+
+async function enterSystem(path: string, expectedTenantId?: number) {
   const token = platformTokens.value?.accessToken
   const platform = platformContext.value
   if (!token || !platform) throw new Error('平台会话已失效，请重新登录')
 
-  const entry = await api<SystemEntryResult>(`/api/systems/${systemId}/enter`, {
+  const entry = await api<SystemEntryResult>(path, {
     method: 'POST',
     body: JSON.stringify({
       previousSystemId: systemContext.value?.systemId ?? null,
       previousTenantId: systemContext.value?.tenantId ?? null,
     }),
   }, token)
+
+  if (expectedTenantId && entry.tenantId !== expectedTenantId) {
+    throw new Error('专属入口与当前工作空间不一致，请重新打开登录地址')
+  }
 
   setSystemSession(entry.tokens, {
     accountId: platform.accountId,

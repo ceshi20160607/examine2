@@ -10,90 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 后台作业业务申请与最终审计；运行状态和重试事实保存在 Redis
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("job_background")
+@TableName("un_job_background")
 public class JobBackground {
 
+    /**
+     * 后台作业业务申请主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 申请层级，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统层申请所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统层申请所属租户主键，可为空表示系统公共作业
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 作业业务类型，如导入、导出、打印或文件处理
+     */
     @TableField("job_type")
     private String jobType;
 
+    /**
+     * 发起作业的业务对象类型
+     */
     @TableField("source_type")
     private String sourceType;
 
+    /**
+     * 发起作业的业务对象标识
+     */
     @TableField("source_id")
     private String sourceId;
 
+    /**
+     * 提交时固定的业务参数，不包含运行队列状态
+     */
     @TableField("parameter_json")
     private String parameterJson;
 
+    /**
+     * 申请时固定的权限与数据范围快照
+     */
     @TableField("authorization_snapshot_json")
     private String authorizationSnapshotJson;
 
-    @TableField("`status`")
-    private String status;
+    /**
+     * 完成后写入的最终审计状态，成功、带警告成功、失败或取消
+     */
+    @TableField("final_status")
+    private String finalStatus;
 
-    @TableField("progress_current")
-    private Long progressCurrent;
-
-    @TableField("progress_total")
-    private Long progressTotal;
-
-    @TableField("max_attempts")
-    private Integer maxAttempts;
-
-    @TableField("attempt_count")
-    private Integer attemptCount;
-
-    @TableField("next_run_at")
-    private LocalDateTime nextRunAt;
-
-    @TableField("heartbeat_at")
-    private LocalDateTime heartbeatAt;
-
+    /**
+     * 最终结果、结果文件引用及统计摘要
+     */
     @TableField("result_summary_json")
     private String resultSummaryJson;
 
+    /**
+     * 最终失败错误码
+     */
     @TableField("error_code")
     private String errorCode;
 
+    /**
+     * 最终失败原因摘要
+     */
     @TableField("error_message")
     private String errorMessage;
 
+    /**
+     * 发起申请的平台账号主键
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 业务申请时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 最终结果归档时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 业务审计记录更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
-
+    /**
+     * 业务审计记录乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -178,60 +214,12 @@ public class JobBackground {
         this.authorizationSnapshotJson = authorizationSnapshotJson;
     }
 
-    public String getStatus() {
-        return status;
+    public String getFinalStatus() {
+        return finalStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Long getProgressCurrent() {
-        return progressCurrent;
-    }
-
-    public void setProgressCurrent(Long progressCurrent) {
-        this.progressCurrent = progressCurrent;
-    }
-
-    public Long getProgressTotal() {
-        return progressTotal;
-    }
-
-    public void setProgressTotal(Long progressTotal) {
-        this.progressTotal = progressTotal;
-    }
-
-    public Integer getMaxAttempts() {
-        return maxAttempts;
-    }
-
-    public void setMaxAttempts(Integer maxAttempts) {
-        this.maxAttempts = maxAttempts;
-    }
-
-    public Integer getAttemptCount() {
-        return attemptCount;
-    }
-
-    public void setAttemptCount(Integer attemptCount) {
-        this.attemptCount = attemptCount;
-    }
-
-    public LocalDateTime getNextRunAt() {
-        return nextRunAt;
-    }
-
-    public void setNextRunAt(LocalDateTime nextRunAt) {
-        this.nextRunAt = nextRunAt;
-    }
-
-    public LocalDateTime getHeartbeatAt() {
-        return heartbeatAt;
-    }
-
-    public void setHeartbeatAt(LocalDateTime heartbeatAt) {
-        this.heartbeatAt = heartbeatAt;
+    public void setFinalStatus(String finalStatus) {
+        this.finalStatus = finalStatus;
     }
 
     public String getResultSummaryJson() {
@@ -266,36 +254,28 @@ public class JobBackground {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -319,21 +299,14 @@ public class JobBackground {
             ", sourceId = " + sourceId +
             ", parameterJson = " + parameterJson +
             ", authorizationSnapshotJson = " + authorizationSnapshotJson +
-            ", status = " + status +
-            ", progressCurrent = " + progressCurrent +
-            ", progressTotal = " + progressTotal +
-            ", maxAttempts = " + maxAttempts +
-            ", attemptCount = " + attemptCount +
-            ", nextRunAt = " + nextRunAt +
-            ", heartbeatAt = " + heartbeatAt +
+            ", finalStatus = " + finalStatus +
             ", resultSummaryJson = " + resultSummaryJson +
             ", errorCode = " + errorCode +
             ", errorMessage = " + errorMessage +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", finishTime = " + finishTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -6,8 +6,8 @@ export const actionLocations: Array<{ value: ActionLocation; label: string }> = 
   { value: 'BATCH', label: '批量操作区' }, { value: 'ROW', label: '列表行' },
   { value: 'DETAIL_HEADER', label: '详情头部' }, { value: 'DETAIL_MORE', label: '详情更多操作' },
 ]
-const recordCodes = new Set(['DETAIL', 'UPDATE', 'ARCHIVE', 'DELETE', 'RESTORE', 'TRANSFER', 'CONVERT', 'SHARE'])
-const moduleCodes = new Set(['LIST', 'CREATE', 'IMPORT', 'EXPORT'])
+const recordCodes = new Set(['DETAIL', 'UPDATE', 'ARCHIVE', 'DELETE', 'RESTORE', 'TRANSFER', 'CONVERT', 'SHARE', 'APPROVAL'])
+const moduleCodes = new Set(['LIST', 'CREATE', 'IMPORT', 'EXPORT', 'DASHBOARD'])
 type ActionIdentity = string | Pick<ConfiguredAction, 'code' | 'actionType'>
 /** 配置消费方按动作类型判定；字符串入口保留旧 ACTION_ 调用兼容。 */
 function actionIdentity(action: ActionIdentity) {
@@ -27,7 +27,7 @@ export function actionsAtLocation(actions: ConfiguredAction[], location: ActionL
 }
 export function actionAllowsLifecycle(action: ActionIdentity, state: 'ACTIVE' | 'ARCHIVED' | 'DELETED') {
   const { code, custom } = actionIdentity(action)
-  if (custom || ['CREATE', 'IMPORT', 'UPDATE', 'ARCHIVE', 'TRANSFER', 'CONVERT'].includes(code)) return state === 'ACTIVE'
+  if (custom || ['CREATE', 'IMPORT', 'UPDATE', 'ARCHIVE', 'TRANSFER', 'CONVERT', 'APPROVAL'].includes(code)) return state === 'ACTIVE'
   if (code === 'DELETE') return state !== 'DELETED'
   if (code === 'RESTORE') return state !== 'ACTIVE'
   return true
@@ -36,11 +36,12 @@ export function actionAllowsRecord(action: ActionIdentity, record: Pick<RuntimeR
   const { code } = actionIdentity(action)
   if (record.shared && !record.sharedActions.includes(code)) return false
   if (code === 'SHARE' && (!record.ownedByCurrentTenant || record.shared)) return false
+  if (code === 'APPROVAL' && (!record.ownedByCurrentTenant || record.shared)) return false
   if (code === 'CONVERT' && !hasConversionTargets) return false
   return actionAllowsLifecycle(action, record.deleted ? 'DELETED' : record.archived ? 'ARCHIVED' : 'ACTIVE')
 }
 export function supportsBatchAction(action?: Pick<ConfiguredAction, 'code' | 'actionType' | 'location'>) {
-  return action?.location === 'BATCH' && (action.actionType === 'CUSTOM' || ['DELETE', 'CONVERT'].includes(action.code))
+  return action?.location === 'BATCH' && (action.actionType === 'CUSTOM' || ['ARCHIVE', 'DELETE', 'CONVERT'].includes(action.code))
 }
 export function selectionActionReason(action: ActionIdentity, selectedCount: number, batch = false) {
   if (!requiresRecord(action)) return ''

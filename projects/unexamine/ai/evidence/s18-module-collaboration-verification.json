@@ -1,0 +1,62 @@
+{
+  "step": "S18.27",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0444",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordCommentService.java"
+  ],
+  "checks_actual_results": [
+    "所属人在模块 #92 的详情动作草稿中关闭评论和团队成员，发布 V3；浏览器详情页隐藏评论页签和团队角色信息，编辑表单隐藏成员角色控件。",
+    "V3 下直接发表评论、带成员新建、修改成员和转交预演中的成员变更均返回 403；不改变团队的普通编辑仍成功，旧评论和成员数据保留。非布尔开关草稿返回 422。",
+    "所属人在后台草稿重新开启两个开关；发布前评论写入仍返回 403。发布 V4 后评论 #4 和记录 #185 的协作成员 #251 成功写入，引用 #182 与子表行保持完整。",
+    "后端 JDK 21 Maven package、前端 npm run build 和 git diff --check 通过；后端重启 readiness UP，真实页面、API 与 MySQL 重新读回 V3/V4、记录、评论和团队成员。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-collaboration-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-config-disabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-publication-disabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-runtime-disabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-form-disabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-config-enabled-draft.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-publication-enabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-runtime-enabled.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-runtime-restart.png",
+    "projects/unexamine/ai/evidence/s18-module-collaboration-member-denied.png"
+  ],
+  "permission_or_failure_result": "关闭的发布版本对评论和团队成员新写入返回 MODULE_COMMENT_DISABLED/MODULE_TEAM_DISABLED（403），草稿开启未发布仍拒绝；无权成员运行目录不含模块 #92，详情 API 403 且浏览器转至有权模块；非法字符串开关返回 MODULE_FUNCTION_CONFIG_INVALID（422）。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "b8d42b386c1e64e4eef10a6564142831e92d7ea59ede30b593fe2452e24a7146"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "f15b6a1df6b1de8732da899a661d023514f535e75b6df44e483c880e648920c2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "a3def39a8d081829889c167a084f157e3937d2f3ae5fc0a45d17dbcbf442e875"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "ec52c6086def49464b033640fd4940abd0e2d02ea5dfe3558d9eb955398c07ae"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordCommentService.java",
+      "sha256": "c657c70975f7e49e900a08f6d46b2dbefb7899121f63986f408d42aae60d906b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "42a83112ebfde4aa07895e0a86b8d52ec5fb200f78bbfc0248c401b4f67dbadc"
+    }
+  ],
+  "remaining": "S18.27 已完成评论和团队成员的模块级开关。R0453 的打印、审批和仪表盘入口仍需后续有界验收；S18.28 先验证打印动作与模板入口的统一配置。",
+  "next_step": "S18.28"
+}

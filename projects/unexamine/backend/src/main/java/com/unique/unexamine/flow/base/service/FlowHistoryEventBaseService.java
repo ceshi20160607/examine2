@@ -2,6 +2,7 @@
 package com.unique.unexamine.flow.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.flow.base.entity.FlowHistoryEvent;
 import com.unique.unexamine.flow.base.mapper.FlowHistoryEventMapper;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,20 @@ public class FlowHistoryEventBaseService {
 
     public List<FlowHistoryEvent> selectList(Wrapper<FlowHistoryEvent> query) {
         return mapper.selectList(query);
+    }
+
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public FlowHistoryEvent selectOne(Wrapper<FlowHistoryEvent> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<FlowHistoryEvent> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<FlowHistoryEvent> selectPage(IPage<FlowHistoryEvent> page, Wrapper<FlowHistoryEvent> query) {
+        return mapper.selectPage(page, query);
     }
 }

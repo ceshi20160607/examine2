@@ -2,8 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError, api } from '../api'
+import { formatDashboardMetric } from '../dashboard'
 import { kpiStatusLabel } from '../kpi'
-import { productDateTime } from '../presentation'
+import { productDateTime, productStatus } from '../presentation'
 import { systemTokens } from '../session'
 import type { KpiDefinition, KpiOverview } from '../types'
 
@@ -28,18 +29,32 @@ function choose(kpi: KpiDefinition) {
   void router.replace({ path: route.path, query: { ...route.query, workspace: 'kpi', kpiId: kpi.id } })
 }
 
-function itemText(item: Record<string, unknown>) {
-  return Object.entries(item).filter(([, value]) => value !== null && typeof value !== 'object')
-    .slice(0, 4).map(([key, value]) => `${key}: ${String(value)}`).join(' · ')
+function drillTitle(item: Record<string, unknown>) {
+  return typeof item.title === 'string' && item.title.trim() ? item.title : '未命名业务数据'
+}
+
+function drillRoute(item: Record<string, unknown>) {
+  const systemId = route.path.match(/^\/systems\/(\d+)/)?.[1]
+  const destination = item.route
+  return systemId && typeof destination === 'string'
+    && destination.startsWith(`/systems/${systemId}?workspace=runtime&module=`)
+    ? destination : undefined
+}
+
+function openDrill(item: Record<string, unknown>) {
+  const destination = drillRoute(item)
+  if (destination) void router.push(destination)
 }
 
 function responsibilityLabel(type: string, ids: number[]) {
   if (!ids.length) return '未指定负责人'
-  return type === 'DEPARTMENT' ? `${ids.length} 个负责部门` : `${ids.length} 位负责人`
+  if (type === 'DEPARTMENT') return `${ids.length} 个责任部门`
+  if (type === 'ROLE') return `${ids.length} 个责任角色`
+  return `${ids.length} 位负责人`
 }
 
 function reminderStatusLabel(status: string) {
-  return ({ SENT: '已发送', ACKNOWLEDGED: '已确认', FAILED: '发送失败' } as Record<string, string>)[status] || '处理中'
+  return ({ SENT: '已发送', ACKNOWLEDGED: '已确认', RESOLVED: '已解决', FAILED: '发送失败' } as Record<string, string>)[status] || '处理中'
 }
 
 async function acknowledge(reminderId: number) {
@@ -67,16 +82,16 @@ onMounted(load)
       </aside>
 
       <main v-if="selected" class="kpi-workspace__detail">
-        <a-alert v-if="selected.latestResult?.stale" type="warning" show-icon message="数据源本次不可用，当前展示上次成功快照" description="系统没有将失败计算伪装成零值或已达标，也没有发送新的达标/未达标提醒。" />
+        <a-alert v-if="selected.latestResult?.stale" type="warning" show-icon :message="selected.latestResult.actualValue === null ? '当前权限下无法读取指标数据' : '数据源本次不可用，当前展示上次成功快照'" description="系统没有将失败计算伪装成零值或已达标，也没有发送新的达标/未达标提醒。" />
         <section class="panel-card kpi-score-card">
           <div class="panel-title"><strong>{{ selected.name }}</strong><span>{{ responsibilityLabel(selected.responsibleType, selected.responsibleIds) }}</span></div>
-          <div v-if="selected.latestResult" class="kpi-preview__metrics">
-            <span><small>实际值</small><strong>{{ selected.latestResult.actualValue }}</strong></span>
-            <span><small>目标值</small><strong>{{ selected.targetOperator === 'GTE' ? '≥' : '≤' }} {{ selected.latestResult.targetValue }}</strong></span>
+          <div v-if="selected.latestResult && selected.latestResult.actualValue !== null" class="kpi-preview__metrics">
+            <span><small>实际值</small><strong>{{ formatDashboardMetric(selected.latestResult.actualValue) }}</strong></span>
+            <span><small>目标值</small><strong>{{ selected.targetOperator === 'GTE' ? '≥' : '≤' }} {{ formatDashboardMetric(selected.latestResult.targetValue) }}</strong></span>
             <span><small>达成率</small><strong>{{ Number(selected.latestResult.achievementRate).toFixed(2) }}%</strong></span>
             <span><small>状态</small><strong>{{ kpiStatusLabel(selected.latestResult.status) }}</strong></span>
           </div>
-          <a-empty v-else :image="false" description="尚无计算结果，需由管理员预览并执行计算" />
+          <a-empty v-else :image="false" :description="selected.latestResult ? '当前权限下无法读取指标数据' : '尚无计算结果，需由管理员预览并执行计算'" />
           <p v-if="selected.latestResult" class="kpi-source-line">周期 {{ selected.latestResult.periodKey }} · 计算于 {{ productDateTime(selected.latestResult.calculatedAt) }}</p>
         </section>
 
@@ -88,7 +103,7 @@ onMounted(load)
         <section v-if="selected.latestResult" class="panel-card kpi-drill-panel">
           <div class="panel-title"><strong>授权明细</strong><a-tag :color="selected.latestResult.drillAvailable ? 'blue' : 'default'">{{ selected.latestResult.drillAvailable ? '下钻已授权' : '仅看板可见' }}</a-tag></div>
           <a-alert v-if="!selected.latestResult.drillAvailable" type="info" show-icon message="你可以查看指标汇总，但没有明细下钻权限。" />
-          <div v-else-if="selected.latestResult.drillItems.length" class="kpi-drill-list"><article v-for="(item, index) in selected.latestResult.drillItems" :key="String(item.id || index)"><strong>明细 {{ index + 1 }}</strong><span>{{ itemText(item) }}</span></article></div>
+          <div v-else-if="selected.latestResult.drillItems.length" class="kpi-drill-list"><article v-for="(item, index) in selected.latestResult.drillItems" :key="String(item.id || index)"><span><strong>{{ drillTitle(item) }}</strong><small>{{ productStatus(typeof item.status === 'string' ? item.status : null).label }}</small></span><a-button type="link" :disabled="!drillRoute(item)" @click="openDrill(item)">查看详情</a-button></article></div>
           <a-empty v-else :image="false" description="当前授权范围没有明细记录" />
         </section>
       </main>

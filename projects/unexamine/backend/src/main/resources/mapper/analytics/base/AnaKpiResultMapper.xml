@@ -6,20 +6,28 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaKpiResult">
         <id column="id" property="id" />
         <result column="kpi_id" property="kpiId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
         <result column="period_key" property="periodKey" />
         <result column="dimension_key" property="dimensionKey" />
+        <result column="calculation_batch_key" property="calculationBatchKey" />
+        <result column="calculation_revision" property="calculationRevision" />
+        <result column="kpi_config_version" property="kpiConfigVersion" />
+        <result column="data_source_version_id" property="dataSourceVersionId" />
+        <result column="source_scope_type" property="sourceScopeType" />
+        <result column="source_scope_owner_id" property="sourceScopeOwnerId" />
         <result column="actual_value" property="actualValue" />
         <result column="target_value" property="targetValue" />
         <result column="achievement_rate" property="achievementRate" />
         <result column="status" property="status" />
         <result column="explanation_json" property="explanationJson" />
-        <result column="calculated_at" property="calculatedAt" />
-        <result column="created_at" property="createdAt" />
+        <result column="calculate_time" property="calculateTime" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, kpi_id, period_key, dimension_key, actual_value, target_value, achievement_rate, `status`, explanation_json, calculated_at, created_at
+        id, kpi_id, scope_type, scope_owner_id, period_key, dimension_key, calculation_batch_key, calculation_revision, kpi_config_version, data_source_version_id, source_scope_type, source_scope_owner_id, actual_value, target_value, achievement_rate, `status`, explanation_json, calculate_time, create_time
     </sql>
 
 </mapper>

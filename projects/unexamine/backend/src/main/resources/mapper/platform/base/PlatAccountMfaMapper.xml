@@ -9,16 +9,16 @@
         <result column="method_type" property="methodType" />
         <result column="secret_ref" property="secretRef" />
         <result column="display_label" property="displayLabel" />
-        <result column="verified_at" property="verifiedAt" />
+        <result column="verify_time" property="verifyTime" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, account_id, method_type, secret_ref, display_label, verified_at, `status`, created_at, updated_at, version
+        id, account_id, method_type, secret_ref, display_label, verify_time, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

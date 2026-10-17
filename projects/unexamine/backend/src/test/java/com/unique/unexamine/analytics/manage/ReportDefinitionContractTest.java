@@ -30,7 +30,7 @@ class ReportDefinitionContractTest {
     private final ModulePublicationService publications = mock(ModulePublicationService.class);
     private final RuntimeDataService runtimeData = mock(RuntimeDataService.class);
     private final ReportService reports = new ReportService(null, null, null, publications,
-            runtimeData, null, null, json);
+            runtimeData, null, null, json, null);
     private final AuthenticatedContext actor = new AuthenticatedContext(null, 1L, 1L, 10L, 20L,
             30L, 40L, "tester", "测试人", "NONE", List.of(), List.of(), Map.of());
 

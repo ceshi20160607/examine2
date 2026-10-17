@@ -1,0 +1,55 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "system_application_page_rollback_and_restore_runtime_verified",
+  "originalVersionId": 5,
+  "rolledVersionId": 6,
+  "restoredVersionId": 7,
+  "before": {
+    "external": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    },
+    "internal": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    }
+  },
+  "during": {
+    "external": {
+      "status": 403,
+      "code": "APPLICATION_ACCESS_CHANNEL_DENIED",
+      "recordIds": []
+    },
+    "internal": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    }
+  },
+  "after": {
+    "external": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    },
+    "internal": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    }
+  },
+  "credentialNote": "Rotated one-time credential stayed in memory and was excluded from evidence."
+}

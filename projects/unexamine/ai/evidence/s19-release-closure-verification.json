@@ -1,0 +1,158 @@
+{
+  "step": "S19.2",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1891",
+    "R1900",
+    "R1901",
+    "R1902",
+    "R1903",
+    "R1904",
+    "R1905",
+    "R1906",
+    "R1907",
+    "R2319",
+    "R2328"
+  ],
+  "changed_files": [
+    "projects/unexamine/deploy/README.md",
+    "projects/unexamine/deploy/local.env.example",
+    "projects/unexamine/deploy/env/development.env.example",
+    "projects/unexamine/deploy/env/test.env.example",
+    "projects/unexamine/deploy/env/production.nonsecret.env.example",
+    "projects/unexamine/deploy/package-manifest.example.json",
+    "projects/unexamine/deploy/scripts/common.ps1",
+    "projects/unexamine/deploy/scripts/build-package.ps1",
+    "projects/unexamine/deploy/scripts/deploy.ps1",
+    "projects/unexamine/deploy/scripts/start.ps1",
+    "projects/unexamine/deploy/scripts/backup.ps1",
+    "projects/unexamine/deploy/scripts/restore-drill.ps1",
+    "projects/unexamine/deploy/guides/README.md",
+    "projects/unexamine/deploy/guides/administrator.md",
+    "projects/unexamine/deploy/guides/member.md",
+    "projects/unexamine/deploy/guides/application-access.md",
+    "projects/unexamine/deploy/guides/printing-and-settings.md",
+    "projects/unexamine/deploy/guides/troubleshooting.md",
+    "projects/unexamine/tools/verify-product-release-package-browser.mjs",
+    "projects/unexamine/ai/planning/product-closure-audit.md",
+    "projects/unexamine/ai/planning/spark-execution-plan.md"
+  ],
+  "checks_actual_results": [
+    "The current JDK 21 JAR and frontend dist produced release 0.1.0-s19.2-dev6: manifest v2, Flyway V23, SHA-256 for the JAR and every frontend file, non-secret examples, SQL scripts, operations scripts and five independent guides. The ZIP SHA-256 and packaged Markdown links were checked.",
+    "An isolated database preflight read version 0. The first installation migrated to V23 and then failed closed because the required default-admin deployment key was absent; runtime/last-deployment.json required recovery and the service stopped. The missing configuration was added to examples and instructions, a unique key was supplied outside the repository, and the same database was brought up by the forward-fix path without deleting data.",
+    "Release dev6 then deployed as a same-schema update using the native MySQL client. Backend readiness passed; an Nginx reverse proxy served packaged frontend assets and API. Edge logged in as the initial administrator, created one system, and re-entered that system after an explicit stop/start and after the update.",
+    "For dev6, backup.ps1 created a transactional SQL dump, file archive, configuration snapshot and secret-reference-only plan. All four recorded sizes and hashes matched. restore-drill.ps1 imported into a new database and extracted files. Source and restored schemas each had 191 total tables, Flyway V23 and the same created system; a file marker SHA-256 matched. The marker proves file archive mechanics, not historical business PDF recovery.",
+    "All 10 deployment PowerShell scripts parsed; the package browser script parsed. A changed frontend index was rejected by the new SHA-256 guard, and a schema v1 manifest retained the legacy restart path. workspace-validate and targeted whitespace checks passed. The unchanged backend and frontend candidates had already passed the S19.1 package/build and 172/172 frontend tests."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s19-release-closure-progress.json",
+    "projects/unexamine/ai/evidence/s19-package-install-failure.json",
+    "projects/unexamine/ai/evidence/s19-package-backup-restore.json",
+    "projects/unexamine/ai/evidence/s19-package-browser.json",
+    "projects/unexamine/ai/evidence/s19-package-browser.png",
+    "projects/unexamine/release/0.1.0-s19.2-dev6.zip",
+    "projects/unexamine/release/0.1.0-s19.2-dev6.zip.sha256.json",
+    "projects/unexamine/release/0.1.0-s19.2-dev6/manifest.json",
+    "projects/unexamine/release/s19-independent-install/runtime/last-deployment.json",
+    "projects/unexamine/release/s19-independent-install/backups/full-2-20261015T091536479Z/backup-result.json",
+    "projects/unexamine/release/s19-independent-install/drills/s19-drill-v2/backup-2-429db5b0635b4a2390a78a035df701bb/verification.json"
+  ],
+  "permission_or_failure_result": "Missing bootstrap key prevented first-run administrator creation after Flyway V23; the deployment remained stopped with explicit recovery evidence. Tampered frontend bytes failed manifest validation. No secrets were written into the package or verification receipt.",
+  "candidate": {
+    "packageVersion": "0.1.0-s19.2-dev6",
+    "packageArchive": "projects/unexamine/release/0.1.0-s19.2-dev6.zip",
+    "packageSha256": "d4ef2a24557086fca0eb223bdf1e9857ba5153f171f590f8d8711d54b047739b",
+    "backendSha256": "06d67ed3d8dc946bc55ea0c136a19e24b876495fc40a756a472857bd6eb16ba0",
+    "frontendFileCount": 4,
+    "databaseVersion": "23"
+  },
+  "control_limit": "The independent package test used a local Nginx container and isolated MySQL schemas. Its recovered file was an explicit marker, not a linked business PDF. Production environment credentials, external identity providers and full functional acceptance were not asserted.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/deploy/README.md",
+      "sha256": "3eb2191405233da3dcba83dea535c7fd0f4620a59d01a0da7594cca84284765f"
+    },
+    {
+      "path": "projects/unexamine/deploy/local.env.example",
+      "sha256": "054464514ced3bf99af4edbc9fab65ec34aeb926a83e00940c804509ae8affd2"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/development.env.example",
+      "sha256": "669591221d7b23c8fc60d9c8e784122525c220a1d3993b9d4a65cafe32373970"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/test.env.example",
+      "sha256": "ba4e4cd374ca0842b7da3a072e61fc08ba007ce42b7bfa62f48e4756b117b54c"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/production.nonsecret.env.example",
+      "sha256": "d96f60b0e28eb42953daed26b3780f3fe29da1fe05cab335e5a82def68eb07ff"
+    },
+    {
+      "path": "projects/unexamine/deploy/package-manifest.example.json",
+      "sha256": "b0b9cfea0b8e2f2609e4c48bcf8e3ed5af632a84c2f15e916fb69a194f03204d"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/common.ps1",
+      "sha256": "aa6352739c014a66d3c13590e57ea128ceea944575fdef5d6610e5bafe061cb7"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/build-package.ps1",
+      "sha256": "29efa930cea63259e4d964b0b2eca4d1b20b4754149e16bc83c548edc643ab0d"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/deploy.ps1",
+      "sha256": "195258cbe85018e3cc29b1c909627bba6f6aecb84103b2c4aeea718bd260a5d9"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/start.ps1",
+      "sha256": "bac8bca1bcdefae92a7410e7e38ba52da6ce5319a26ba53fcc084a28b712ad0e"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/backup.ps1",
+      "sha256": "e67b2b8b8a413b5f1b7d8534f84e7205e245d4d3be48a802318d8a2f4eb53906"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/restore-drill.ps1",
+      "sha256": "4cefbe49cb40b1dc77677913f3fec43ce6b71f809647a844306f1cd9e5b236cd"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/README.md",
+      "sha256": "41671c603aa7c72e1cae92fb07bd631df51e6ce9d32725259743723a7a7bd7fb"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/administrator.md",
+      "sha256": "235d9bc039cbcef35527786c8fe11e6fb8f4cb93e68bc98c98f8354979376ab3"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/member.md",
+      "sha256": "3f6d6626f2670533b8eab0850ca582f60b49386f9b8083e5faa3f90ccfb9e408"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/application-access.md",
+      "sha256": "ddb87b1c8da7ab48b9ffd3799ac76e5f01d068a4591e0355cc88840547015781"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/printing-and-settings.md",
+      "sha256": "22e4b5234c8a01a02c8cfafdfa080f67468f710d5bfbfaa6b467b24ede42f633"
+    },
+    {
+      "path": "projects/unexamine/deploy/guides/troubleshooting.md",
+      "sha256": "39bdd91b51fbce2840ad6802d8419e1fb8d1697e9d6f0c75fae717213ddaa9c6"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-package-browser.mjs",
+      "sha256": "0e9dea23dd42a3d9dd031cb991a59b4c5962f1ecc32826f7b48e0a118030a743"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/product-closure-audit.md",
+      "sha256": "cefe29ceba0d4bd486c7cdb0f1c92d6460702068e63014b6a1cbfb10567eb48b"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/spark-execution-plan.md",
+      "sha256": "5abee7e1e47c211cb6c08e66b6b12309ccb53a489a6ae2a972976225ab2dbf25"
+    }
+  ],
+  "remaining": "G18_PRODUCT_RELEASE remains in progress. Non-OIDC enterprise SSO is explicitly incomplete, historical PDF bytes in the earlier isolated copy remain unmatched, and most requirement ledger rows lack current full-domain acceptance. S18.39 remains unverified and deferred. Production hosting and external integrations are not signed off by this local package drill.",
+  "next_step": "S19.3"
+}

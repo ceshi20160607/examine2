@@ -39,10 +39,12 @@ public final class AiConfirmedWriteModels {
             String entryType) {
     }
 
+    /** 仅暴露 Agent 与当前用户同时有权处理的字段；子表列在确认页逐行核对。 */
     public record FieldCandidate(
             String code,
             String label,
             String fieldType,
+            List<String> childFieldCodes,
             boolean required,
             boolean writable,
             JsonNode value,
@@ -90,7 +92,8 @@ public final class AiConfirmedWriteModels {
             Long ownerMemberId,
             Long departmentId,
             @NotNull List<Long> participantMemberIds,
-            @NotNull @Size(max = 100) Map<@Pattern(regexp = "[a-z][a-z0-9_]{1,99}") String, JsonNode> fields) {
+            @NotNull @Size(max = 100) Map<@Pattern(regexp = "[a-z][a-z0-9_]{1,99}") String, JsonNode> fields,
+            @Size(max = 100) List<@Pattern(regexp = "[a-z][a-z0-9_]{1,99}") String> reviewedFieldCodes) {
     }
 
     public record CancelRequest(@NotNull Integer expectedVersion) {

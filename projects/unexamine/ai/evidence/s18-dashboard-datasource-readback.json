@@ -1,0 +1,84 @@
+{
+  "step": "S18.2",
+  "checkedTime": "2026-10-10T21:33:30.570674+08:00",
+  "systemId": 165,
+  "moduleIds": [
+    84,
+    85
+  ],
+  "sourceId": 7,
+  "dashboardId": 2,
+  "users": {
+    "owner": {
+      "sourceValue": "220.00000000",
+      "sourceRowIds": [
+        173,
+        172
+      ],
+      "dashboardVersion": 2,
+      "dashboardComponentValues": [
+        "220.00000000",
+        "220.00000000"
+      ],
+      "dashboardComponentRowIds": [
+        [
+          173,
+          172
+        ],
+        [
+          173,
+          172
+        ]
+      ],
+      "moduleRecordIds": [
+        173,
+        172,
+        171
+      ],
+      "ownerRecordDirectHttp": 200,
+      "ownerRecordDirectCode": "OK"
+    },
+    "member": {
+      "sourceValue": "150.00000000",
+      "sourceRowIds": [
+        172
+      ],
+      "dashboardVersion": 2,
+      "dashboardComponentValues": [
+        "150.00000000",
+        "150.00000000"
+      ],
+      "dashboardComponentRowIds": [
+        [
+          172
+        ],
+        [
+          172
+        ]
+      ],
+      "moduleRecordIds": [
+        172
+      ],
+      "ownerRecordDirectHttp": 403,
+      "ownerRecordDirectCode": "PERMISSION_DENIED"
+    }
+  },
+  "restartReadiness": {
+    "http": 200,
+    "status": "UP"
+  },
+  "databaseRows": [
+    "module:84:module_926d727cac:ACTIVE",
+    "module:85:module_9e79cfdee4:ACTIVE",
+    "record:171:85:248",
+    "record:172:85:249",
+    "record:173:85:248",
+    "source:7:8:PUBLISHED",
+    "source_version:7:1",
+    "source_version:8:2",
+    "dashboard:2:PUBLISHED:2",
+    "dashboard_version:2:1",
+    "dashboard_version:3:2",
+    "dashboard_publication:2:3"
+  ]
+}

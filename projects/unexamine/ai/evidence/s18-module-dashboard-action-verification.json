@@ -1,0 +1,94 @@
+{
+  "step": "S18.32",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java",
+    "projects/unexamine/frontend/src/product/action-placement.ts",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/ModuleDashboardView.vue",
+    "projects/unexamine/tools/verify-module-dashboard-action.py",
+    "projects/unexamine/tools/verify-module-dashboard-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "Fresh V22 MySQL integration test passed: old module action draft and unrelated field draft stayed invisible, targeted action publication exposed only DASHBOARD, draft disable stayed private, published disable returned 409, rollback restored the page.",
+    "The same test passed new module action-before-dashboard behavior, 403 for a member with LIST but no DASHBOARD permission, no main-tenant dashboard fallback in a same-system branch tenant, and 404 for a different system.",
+    "Isolated MySQL #143/#144: existing module #93 and new module #94 published separate module dashboards #7/#8. Old module targeted action publication preserved unrelated field draft and APPROVAL action; approval instance #52 remained WAITING after dashboard disable/rollback.",
+    "Actual Edge browser showed DASHBOARD button in runtime and clicked through to tenant dashboard #7/version #13. Final screenshot shows only published permitted module dashboard entries in navigation.",
+    "After backend restart, dashboards #7/#8 still resolved to their published versions #13/#14. Existing print transition readback #67 and approval instances #47/#49/#51 remained available under the latest JAR.",
+    "JDK 21 Maven targeted DashboardHttpTest passed with 1 test, 0 errors and 0 failures; Maven package and frontend vue-tsc/Vite build passed. Python/Node syntax and scoped git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-dashboard-action-live.json",
+    "projects/unexamine/ai/evidence/s18-module-dashboard-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-dashboard-runtime-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-dashboard-page-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-legacy-print-restart-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-approval-action-live.json"
+  ],
+  "permission_or_failure_result": "Missing published action and published disable 409; LIST-only member without DASHBOARD 403; same-system branch with no own dashboard configured=false; different system 404; platform context 422.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "5bde0d1328bdf6c2e7c2cd719a29560cd2815097274f7f0d0465ae42b62ba899"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "f223d62901f24f9cbbd5dacd292076d0c3148f23b43692e265f5d7e8efb7b442"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "fb1bdd9b6ceaed524882827221cc6949a3812138d5b1c1282ddd736ee0111959"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+      "sha256": "0be79952fb9845c7646591c879e43d14547510713cda3ac49c9a4dbb2e553401"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardController.java",
+      "sha256": "7660db079d0a3159565fa2b5536d50bf5e5cd59aeb1897830dcdc096ab52a59b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "e54cf58961e1f4c44d442010fe58295aa74e1d3651c38609f188b66d5e280336"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "6469e6c9c12e54762773a013bb0d040abb4e07dddb386d0b61c06105e17aa61e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleDashboardView.vue",
+      "sha256": "c2cf1d394936b7a8b4942321ff7bbaad9405e94baa93beb57fa58c46ce13d72c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+      "sha256": "5468df43e23b5c3d19ff945d2163bdcce5f6822b3d9723ee743e0c83ee6de4e8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/action-placement.ts",
+      "sha256": "06b79efb9a1be721b51a68a701972072a2a420604ad2aa75f58f9637bc755068"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/analytics/manage/DashboardHttpTest.java",
+      "sha256": "5e02ec9bfe46b05b28c1391d3d2bbdf171e768f96bc7024c79483c1858f793c5"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-dashboard-action.py",
+      "sha256": "add97b3ab661540dcedd2c4b9f583db3632409f53e799cda41d8b28f072368a7"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-dashboard-browser.mjs",
+      "sha256": "192294a7f985c63f632cd9935c0ceefdf9e9c3a4498798ffc7531f447f972e0c"
+    }
+  ],
+  "remaining": "Legacy module dashboards published before DASHBOARD action existed will be denied until the owner adds and publishes the action; automatic upgrade compatibility is not yet implemented. Full action combinations, historical print file bytes in the isolated copy, non-OIDC SSO, complete product journeys and final manuals/release package remain open. Product completion is not verified.",
+  "next_step": "S18.33"
+}

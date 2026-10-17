@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Empty, message } from 'ant-design-vue'
 import { ReloadOutlined } from '@ant-design/icons-vue'
 import { ApiError, api } from '../api'
@@ -25,6 +25,22 @@ const busy = ref(false)
 const preferenceOpen = ref(false)
 const preferenceBusy = ref(false)
 const preferences = ref<MessagePreferenceView[]>([])
+let active = true
+let listGeneration = 0
+const identity = computed(() => {
+  const context = current.value
+  return JSON.stringify([props.context, context?.platformId, context?.accountId, context?.systemId,
+    context?.tenantId, context?.memberId, context?.tenantMemberId, context?.contextRevision,
+    context?.roleIds, context?.permissions, context?.dataScopes])
+})
+
+function requestContext() {
+  return { token: token.value, identity: identity.value }
+}
+
+function requestCurrent(context: ReturnType<typeof requestContext>) {
+  return active && context.token === token.value && context.identity === identity.value
+}
 
 function can(action: string) {
   return allowsPermission(current.value?.permissions, 'MESSAGE', contextCode.value, action)
@@ -56,26 +72,33 @@ function sourceLabel(value: string) {
 
 async function load() {
   if (!token.value || !can('VIEW')) return
+  const context = requestContext()
+  const request = ++listGeneration
   loading.value = true
   try {
-    inbox.value = await api<MessageInboxView>(`/api/messages?status=${encodeURIComponent(status.value)}&sourceType=${encodeURIComponent(sourceType.value)}&page=${page.value}&pageSize=${pageSize}`, {}, token.value)
-  } catch (error) { message.error(describeError(error)) }
-  finally { loading.value = false }
+    const result = await api<MessageInboxView>(`/api/messages?status=${encodeURIComponent(status.value)}&sourceType=${encodeURIComponent(sourceType.value)}&page=${page.value}&pageSize=${pageSize}`, {}, context.token)
+    if (requestCurrent(context) && request === listGeneration) inbox.value = result
+  } catch (error) { if (requestCurrent(context) && request === listGeneration) message.error(describeError(error)) }
+  finally { if (requestCurrent(context) && request === listGeneration) loading.value = false }
 }
 
 async function openPreferences() {
   if (!token.value) return
+  const context = requestContext()
   preferenceBusy.value = true
   try {
-    preferences.value = await api<MessagePreferenceView[]>('/api/messages/preferences', {}, token.value)
+    const result = await api<MessagePreferenceView[]>('/api/messages/preferences', {}, context.token)
+    if (!requestCurrent(context)) return
+    preferences.value = result
     preferenceOpen.value = true
-  } catch (error) { message.error(describeError(error)) }
-  finally { preferenceBusy.value = false }
+  } catch (error) { if (requestCurrent(context)) message.error(describeError(error)) }
+  finally { if (requestCurrent(context)) preferenceBusy.value = false }
 }
 
 async function savePreference(row: MessagePreferenceView) {
   if (!token.value) return
   if (Boolean(row.quietStart) !== Boolean(row.quietEnd)) return message.warning('免打扰开始和结束时间需要同时填写')
+  const context = requestContext()
   preferenceBusy.value = true
   try {
     const saved = await api<MessagePreferenceView>('/api/messages/preferences', {
@@ -84,11 +107,12 @@ async function savePreference(row: MessagePreferenceView) {
         quietStart: row.quietStart || undefined, quietEnd: row.quietEnd || undefined,
         expectedVersion: row.version,
       }),
-    }, token.value)
+    }, context.token)
+    if (!requestCurrent(context)) return
     preferences.value = preferences.value.map(item => item.channel === saved.channel ? saved : item)
     message.success(`${messageChannelLabel(saved.channel)}通知偏好已保存`)
-  } catch (error) { message.error(describeError(error)); await openPreferences() }
-  finally { preferenceBusy.value = false }
+  } catch (error) { if (requestCurrent(context)) { message.error(describeError(error)); await openPreferences() } }
+  finally { if (requestCurrent(context)) preferenceBusy.value = false }
 }
 
 async function changePage(next: number) {
@@ -99,41 +123,62 @@ async function changePage(next: number) {
 
 async function readAll() {
   if (!token.value) return
+  const context = requestContext()
   busy.value = true
   try {
-    await api('/api/messages/read-all', { method: 'POST' }, token.value)
+    await api('/api/messages/read-all', { method: 'POST' }, context.token)
+    if (!requestCurrent(context)) return
     await load()
-    message.success('当前工作范围内的消息已全部标记为已读')
-  } catch (error) { message.error(describeError(error)) }
-  finally { busy.value = false }
+    if (requestCurrent(context)) message.success('当前工作范围内的消息已全部标记为已读')
+  } catch (error) { if (requestCurrent(context)) message.error(describeError(error)) }
+  finally { if (requestCurrent(context)) busy.value = false }
 }
 
 async function markRead(row: MessageItemView) {
   if (!token.value || row.recipientStatus !== 'UNREAD') return
-  try { await api(`/api/messages/${row.id}/read`, { method: 'POST' }, token.value); await load() }
-  catch (error) { message.error(describeError(error)) }
+  const context = requestContext()
+  try {
+    await api(`/api/messages/${row.id}/read`, { method: 'POST' }, context.token)
+    if (requestCurrent(context)) await load()
+  } catch (error) { if (requestCurrent(context)) message.error(describeError(error)) }
 }
 
 async function archive(row: MessageItemView) {
   if (!token.value) return
+  const context = requestContext()
   try {
-    await api(`/api/messages/${row.id}/archive`, { method: 'POST' }, token.value)
+    await api(`/api/messages/${row.id}/archive`, { method: 'POST' }, context.token)
+    if (!requestCurrent(context)) return
     await load()
-    message.success('消息已归档')
-  } catch (error) { message.error(describeError(error)) }
+    if (requestCurrent(context)) message.success('消息已归档')
+  } catch (error) { if (requestCurrent(context)) message.error(describeError(error)) }
 }
 
 async function openMessage(row: MessageItemView) {
   if (!token.value || !row.targetType || !row.targetCurrentlyAccessible) return
+  const context = requestContext()
   try {
-    const result = await api<MessageOpenResult>(`/api/messages/${row.id}/open`, { method: 'POST' }, token.value)
+    const result = await api<MessageOpenResult>(`/api/messages/${row.id}/open`, { method: 'POST' }, context.token)
+    if (!requestCurrent(context)) return
     await load()
-    emit('openTarget', result)
-  } catch (error) { message.error(describeError(error)) }
+    if (requestCurrent(context)) emit('openTarget', result)
+  } catch (error) { if (requestCurrent(context)) message.error(describeError(error)) }
 }
 
 watch([status, sourceType], () => { page.value = 1; void load() })
+watch([identity, token], () => {
+  listGeneration++
+  inbox.value = { messages: [], unreadCount: 0, total: 0, page: 1, pageSize, hasPrevious: false, hasNext: false }
+  page.value = 1
+  preferences.value = []
+  preferenceOpen.value = false
+  loading.value = false
+  busy.value = false
+  preferenceBusy.value = false
+  if (token.value) void load()
+}, { flush: 'sync' })
 onMounted(load)
+onBeforeUnmount(() => { active = false; listGeneration++; inbox.value.messages = [] })
 </script>
 
 <template>

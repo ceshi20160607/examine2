@@ -12,14 +12,14 @@
         <result column="condition_expression" property="conditionExpression" />
         <result column="priority_order" property="priorityOrder" />
         <result column="config_json" property="configJson" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, flow_id, edge_key, source_node_key, target_node_key, condition_expression, priority_order, config_json, created_at, updated_at, version
+        id, flow_id, edge_key, source_node_key, target_node_key, condition_expression, priority_order, config_json, create_time, update_time, version
     </sql>
 
 </mapper>

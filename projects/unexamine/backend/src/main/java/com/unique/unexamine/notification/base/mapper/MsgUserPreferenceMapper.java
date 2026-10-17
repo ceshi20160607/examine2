@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 系统租户成员消息渠道和免打扰偏好 Mapper 接口
  * </p>
  *
  * @author Template Base

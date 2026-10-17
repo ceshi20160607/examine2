@@ -1,0 +1,13 @@
+{
+  "step": "G6",
+  "status": "verified",
+  "integration_gate": "G6_MODULE_DATA_EXCHANGE",
+  "business_result": "系统管理员发布客户模块自定义唯一字段和导出列；普通成员在运行态按负责人范围导出、上传 Excel、预演新增与更新、查看错误行及异步任务，同一模块导出核对导入结果。严格更新、文件内重复、完整与部分回滚、当前权限及重启持久化均已实测。",
+  "contributions": [
+    "projects/unexamine/ai/evidence/s06-module-import-export-verification.json",
+    "projects/unexamine/ai/evidence/s06-module-import-verification.json",
+    "projects/unexamine/ai/evidence/s06-import-rollback-verification.json"
+  ],
+  "verified_surfaces": ["系统后台导出配置", "普通成员模块列表和导入抽屉", "HTTP 动作与拒绝", "CSV/Excel 和错误行文件", "异步作业", "数据库记录、索引与批次", "Docker 重启后读回"],
+  "limits": "本门禁只确认当前模块数据交换业务旅程；未据此推定打印模板、真实外部供应商连接或整站交付完成。"
+}

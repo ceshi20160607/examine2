@@ -9,32 +9,50 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 待办任务候选处理人
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_task_candidate")
+@TableName("un_flow_task_candidate")
 public class FlowTaskCandidate {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程待办任务ID
+     */
     @TableField("task_id")
     private Long taskId;
 
+    /**
+     * 候选主体类型
+     */
     @TableField("candidate_type")
     private String candidateType;
 
+    /**
+     * 候选主体标识
+     */
     @TableField("candidate_id")
     private String candidateId;
 
+    /**
+     * 默认继承或租户覆盖原因
+     */
     @TableField("resolution_reason")
     private String resolutionReason;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -76,12 +94,12 @@ public class FlowTaskCandidate {
         this.resolutionReason = resolutionReason;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -92,7 +110,7 @@ public class FlowTaskCandidate {
             ", candidateType = " + candidateType +
             ", candidateId = " + candidateId +
             ", resolutionReason = " + resolutionReason +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

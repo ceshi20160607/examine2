@@ -10,45 +10,78 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程草稿连线
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_edge")
+@TableName("un_flow_edge")
 public class FlowEdge {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 流程定义ID
+     */
     @TableField("flow_id")
     private Long flowId;
 
+    /**
+     * 流程连线稳定编码
+     */
     @TableField("edge_key")
     private String edgeKey;
 
+    /**
+     * 连线起点节点编码
+     */
     @TableField("source_node_key")
     private String sourceNodeKey;
 
+    /**
+     * 连线终点节点编码
+     */
     @TableField("target_node_key")
     private String targetNodeKey;
 
+    /**
+     * 触发或连线条件表达式
+     */
     @TableField("condition_expression")
     private String conditionExpression;
 
+    /**
+     * 条件或绑定优先级
+     */
     @TableField("priority_order")
     private Integer priorityOrder;
 
+    /**
+     * 节点或连线业务配置
+     */
     @TableField("config_json")
     private String configJson;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -117,20 +150,20 @@ public class FlowEdge {
         this.configJson = configJson;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -152,8 +185,8 @@ public class FlowEdge {
             ", conditionExpression = " + conditionExpression +
             ", priorityOrder = " + priorityOrder +
             ", configJson = " + configJson +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

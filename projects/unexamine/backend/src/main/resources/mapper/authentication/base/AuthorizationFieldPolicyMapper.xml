@@ -10,20 +10,22 @@
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="role_id" property="roleId" />
+        <result column="platform_role_id" property="platformRoleId" />
+        <result column="system_role_id" property="systemRoleId" />
         <result column="resource_code" property="resourceCode" />
         <result column="field_code" property="fieldCode" />
         <result column="channel" property="channel" />
         <result column="readable" property="readable" />
         <result column="writable" property="writable" />
         <result column="mask_strategy" property="maskStrategy" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, role_id, resource_code, field_code, `channel`, readable, writable, mask_strategy, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, role_id, platform_role_id, system_role_id, resource_code, field_code, `channel`, readable, writable, mask_strategy, create_time, update_time, version
     </sql>
 
 </mapper>

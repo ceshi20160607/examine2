@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaDashboardCacheMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaDashboardCache">
+        <id column="id" property="id" />
+        <result column="dashboard_id" property="dashboardId" />
+        <result column="dashboard_version_id" property="dashboardVersionId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="viewer_account_id" property="viewerAccountId" />
+        <result column="viewer_platform_account_id" property="viewerPlatformAccountId" />
+        <result column="viewer_system_member_id" property="viewerSystemMemberId" />
+        <result column="component_key" property="componentKey" />
+        <result column="permission_hash" property="permissionHash" />
+        <result column="query_hash" property="queryHash" />
+        <result column="payload_json" property="payloadJson" />
+        <result column="refresh_status" property="refreshStatus" />
+        <result column="expire_time" property="expireTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, dashboard_id, dashboard_version_id, scope_type, scope_owner_id, platform_id, system_id, tenant_id, viewer_account_id, viewer_platform_account_id, viewer_system_member_id, component_key, permission_hash, query_hash, payload_json, refresh_status, expire_time, create_time, update_time
+    </sql>
+
+</mapper>

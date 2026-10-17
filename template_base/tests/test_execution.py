@@ -119,6 +119,63 @@ class ExecutionTest(unittest.TestCase):
         with self.assertRaisesRegex(ExecutionError, "same declared unfinished step"):
             execution_context(self.workspace_path)
 
+    def test_parallel_packet_needs_explicit_admission_and_keeps_main_checkpoint(self) -> None:
+        with self.assertRaisesRegex(ExecutionError, "not an admitted unfinished packet"):
+            execution_context(self.workspace_path, "B2")
+        self.state["parallel_task_packets"] = {"B2": {
+            "step": "B2", "prerequisite_steps": ["B0"], "source_rows": ["R2"],
+            "entry_files": ["Action.java"], "acceptance": ["失败不产生目标记录"]}}
+        self.save()
+        branch = execution_context(self.workspace_path, "B2")
+        self.assertEqual("B2", branch["step"])
+        self.assertTrue(branch["parallelBranch"])
+        self.assertEqual(["R2"], [row["id"] for row in branch["requirements"]])
+        self.assertEqual("B1", execution_context(self.workspace_path)["step"])
+        self.state["parallel_task_packets"]["B2"]["prerequisite_steps"] = ["B1"]
+        self.save()
+        with self.assertRaisesRegex(ExecutionError, "prerequisite is not verified"):
+            execution_context(self.workspace_path, "B2")
+
+    def test_integration_gate_is_visible_and_cannot_be_an_empty_label(self) -> None:
+        self.state["current_scope"]["integration_gate"] = "G1"
+        self.save()
+        with self.assertRaisesRegex(ExecutionError, "not bound to a business journey"):
+            execution_context(self.workspace_path)
+        self.state["integration_gates"] = {"G1": {
+            "status": "unverified", "business_journey": "同一业务记录配置、执行并读回",
+            "required_evidence": ["真实页面", "数据库读回"], "next_exact": "执行连续验收"}}
+        self.save()
+        context = execution_context(self.workspace_path)
+        self.assertEqual("G1", context["integrationGate"]["id"])
+        self.assertFalse(context["completionCredit"])
+
+    def test_main_scope_cannot_leave_first_unfinished_business_gate(self) -> None:
+        self.control["enforceIntegrationGateOrder"] = True
+        self.state["integration_gate_order"] = ["G1", "G2"]
+        self.state["integration_gates"] = {
+            gate: {"status": status, "business_journey": "同一业务对象的连续旅程",
+                   "required_evidence": ["页面和数据库读回"], "next_exact": "继续当前旅程"}
+            for gate, status in (("G1", "verified"), ("G2", "unverified"))
+        }
+        self.state["integration_gates"]["G1"]["evidence"] = "projects/demo/ai/gate-g1.json"
+        self.write("projects/demo/ai/gate-g1.json", {
+            "integration_gate": "G1", "status": "verified_contribution"})
+        self.state["current_scope"]["integration_gate"] = "G1"
+        self.save()
+        with self.assertRaisesRegex(ExecutionError, "first unfinished integration gate: G2"):
+            execution_context(self.workspace_path)
+        self.state["current_scope"]["integration_gate"] = "G2"
+        self.save()
+        self.assertEqual("G2", execution_context(self.workspace_path)["integrationGate"]["id"])
+        self.write("projects/demo/ai/gate-g1.json", {
+            "integration_gate": "G2", "status": "verified_contribution"})
+        with self.assertRaisesRegex(ExecutionError, "verified integration gate evidence does not match"):
+            execution_context(self.workspace_path)
+        del self.state["integration_gate_order"]
+        self.save()
+        with self.assertRaisesRegex(ExecutionError, "integration gate order is required"):
+            execution_context(self.workspace_path)
+
     def test_path_escape_ambiguous_files_and_oversized_context_are_rejected(self) -> None:
         self.control["contextRoots"] = ["../outside"]
         self.save()

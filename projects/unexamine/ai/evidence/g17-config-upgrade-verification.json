@@ -1,0 +1,141 @@
+{
+  "step": "S17.3",
+  "status": "verified_contribution",
+  "integration_gate": "G17_CONFIG_UPGRADE",
+  "source_rows": [
+    "R2245",
+    "R2247",
+    "R2248",
+    "R2249",
+    "R2250",
+    "R2251",
+    "R2252",
+    "R2254",
+    "R2256",
+    "R2257",
+    "R2258",
+    "R2259",
+    "R2263",
+    "R2265",
+    "R2266",
+    "R2267",
+    "R2268",
+    "R2269",
+    "R2271",
+    "R2273",
+    "R2274",
+    "R2275",
+    "R2276",
+    "R2278",
+    "R2280",
+    "R2281"
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V21__operations_release_artifact_index.sql",
+    "projects/unexamine/db/migration/V21__operations_release_artifact_index.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/db/README.md",
+    "projects/unexamine/db/update/README.md",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsContinuityService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsDeploymentService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsContinuityHttpTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsDeploymentHttpTest.java",
+    "projects/unexamine/deploy/scripts/start.ps1",
+    "projects/unexamine/deploy/scripts/stop.ps1",
+    "projects/unexamine/deploy/scripts/rollback.ps1",
+    "projects/unexamine/frontend/src/product/views/OperationsContinuityView.vue",
+    "projects/unexamine/frontend/src/product/views/OperationsDeploymentView.vue"
+  ],
+  "checks_actual_results": [
+    "工程边界和 S17.3 execution-context 通过；db-prepare 生成 21 个 Flyway 版本、init/update/final SQL；代码生成库从 V20 升到 V21，Base 双轮重复生成一致，18 模块、188 表、752 文件，manage 未被生成器修改。",
+    "完成 V20/local-v2 的真实四类备份 #4 后，deploy.ps1 预检 READY 并实际部署 s17-v6；隔离库 Flyway V21、失败迁移 0、原业务记录 #165 保留，后端 readiness UP。",
+    "配置升级前真实备份 #5 覆盖数据库、文件、配置和仅引用密钥；restore-drill.ps1 在独立数据库 unexamine_drill_s17_v21_config 实际导入，读回 V21、189 张表、失败迁移 0、四项摘要一致。",
+    "使用相同 JAR SHA-256 的 s17-v6/local-v2 与 s17-v7/local-v3 经部署脚本和管理员 API 分别登记为 release #5/#6；s17-v7 预检与实际部署成功，API deployment #4 的清单、数据库、后端健康、前端入口和完成步骤 5/5 通过；重复登记返回同一 release #6。",
+    "升级 API #1 基于 release #1 与真实备份 #3 核对已经部署的 V20/local-v2 后持久化 SUCCESS；版本/配置不符和模拟执行标记均被拒绝。原生启动失败与回滚失败写入 FAILED_REQUIRES_RECOVERY、保留版本及处理方式，恢复原固定包后健康和业务页面继续可读。",
+    "管理员后台重开显示 s17-v7、V21、local-v3、deployment #4 SUCCESS 5/5；重新体检 #18 持久化读回 5/5 与 V21。普通成员访问部署接口 HTTP 403；数据库读回两版本同摘要及记录 #165。",
+    "后端 Maven -DskipTests package、前端 vue-tsc/Vite build、PowerShell 解析、git diff --check 通过。OperationsDeploymentHttpTest 的 Testcontainers 上下文在 Windows 运行时因 Redis SocketException 预检失败；这不算自动化测试通过，功能结论来自上述真实 API、MySQL、脚本和页面验收。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g17-v21-api-readback.json",
+    "projects/unexamine/ai/evidence/g17-v21-source-backup-result.json",
+    "projects/unexamine/ai/evidence/g17-v21-config-backup-result.json",
+    "projects/unexamine/ai/evidence/g17-v21-restore-verification.json",
+    "projects/unexamine/ai/evidence/g17-v7-config-deploy-success.json",
+    "projects/unexamine/ai/evidence/g17-native-deploy-failure.json",
+    "projects/unexamine/ai/evidence/g17-rollback-failure.json",
+    "projects/unexamine/ai/evidence/g17-upgrade-page.png",
+    "projects/unexamine/ai/evidence/g17-upgrade-restart-page.png",
+    "projects/unexamine/ai/evidence/g17-recovery-page.png"
+  ],
+  "permission_or_failure_result": "普通成员部署查询 HTTP 403；目标版本/配置、摘要、伪造备份或恢复目标不符被预检阻断；原生启动和回滚实测写入 FAILED_REQUIRES_RECOVERY 并明确保持停服及恢复步骤。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V21__operations_release_artifact_index.sql",
+      "sha256": "dc0d94bf59330cdb851721755d2dce2641e094f1f254d6884c3da1b2b05ea219"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V21__operations_release_artifact_index.sql",
+      "sha256": "dc0d94bf59330cdb851721755d2dce2641e094f1f254d6884c3da1b2b05ea219"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "a43fd340ccb5de16275dde4cf676eb7b8589d4363383172dc82c1d8298d1cc51"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "e84e2a20ec40990b3931adc0b5ae210340f18fbaf7d52e251296969ffc3b3f69"
+    },
+    {
+      "path": "projects/unexamine/db/README.md",
+      "sha256": "ecbeda40de0abe978441316e8d950b4f0926301ec75cf59ef7bde106434d8f1a"
+    },
+    {
+      "path": "projects/unexamine/db/update/README.md",
+      "sha256": "6cf1520491bb88fd15da10186bc703f7677a4900e5e99bc5554e3246fd783595"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "4a56cdb68315c1ad585aa3a4569425617b8cdccaff7638b4556fff1494140f92"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsContinuityService.java",
+      "sha256": "af91a03dbc27705d9b0fa65f9664038bfb3eb47c31f11528debdfb47e29b1855"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsDeploymentService.java",
+      "sha256": "ec4938fe08a30902c0cf20a81b2dc310b869e6d8090f6471a7fd68e0ea6ff0f7"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsContinuityHttpTest.java",
+      "sha256": "fa7ec8b03252c5d003f5676ee3101c4d660a9c04a451e2789edd577195c2b160"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsDeploymentHttpTest.java",
+      "sha256": "a8455b9094be7a67449b6df249bca1266c456a0fa0c496700586db0500398864"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/start.ps1",
+      "sha256": "4d1c3e7d1d89e0bcc040453bd8a19fc1f01ed09bb9f5e624bda5d4fd704e5aa0"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/stop.ps1",
+      "sha256": "ad296a71e3ab864455fde7174a52ec170c2475e035e2d9abed074de18c5e41be"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/rollback.ps1",
+      "sha256": "d3fd295d6b60fd95ed7936c8ccac13aa42685cdfddb58b2df2f0db4a19c342f4"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/OperationsContinuityView.vue",
+      "sha256": "1072ae754a31d27e938df703856e3cd27b4fb85820346dbd1601cb7707257cad"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/OperationsDeploymentView.vue",
+      "sha256": "4c0c0962d149bbd9764508ee7519d1343f97c76a9c7dcc01556b7dc8f5322944"
+    }
+  ],
+  "remaining": "G17 业务旅程已验收；全产品需求逐项交叉验收尚未完成。外部企业应用、SSO 和邮件真实凭证以及微信产品形态仍需外部条件；Windows Testcontainers 的 Redis 连通性使两项 HTTP 自动化测试未能启动。",
+  "next_step": "S18.1"
+}

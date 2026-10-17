@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DownloadOutlined, PlayCircleOutlined, ReloadOutlined, RollbackOutlined, UploadOutlined } from '@ant-design/icons-vue'
-import { message } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { api, ApiError } from '../api'
 import { authorizedBlob, fileScanLabel, importRowLabel, referenceToAccount, saveBlob, uploadControlledFile } from '../file'
@@ -18,7 +18,7 @@ const uploadProgress = ref(0)
 const sourceFile = ref<ControlledFileView>()
 const sourceHeaders = ref<string[]>([])
 const mapping = ref<Record<string, string>>({})
-const conflictPolicy = ref<'ERROR' | 'SKIP' | 'UPDATE'>('ERROR')
+const conflictPolicy = ref<'ERROR' | 'SKIP' | 'UPDATE' | 'UPDATE_ONLY'>('ERROR')
 const matchFieldCode = ref('recordNumber')
 const template = ref<ImportTemplateView>()
 const current = ref<ImportBatchView>()
@@ -114,11 +114,30 @@ async function preview() {
 }
 
 async function execute() {
-  if (!current.value || current.value.status !== 'PREVIEWED') return
+  const batch = current.value
+  if (!batch || batch.status !== 'PREVIEWED') return
+  const updateRows = batch.rows.filter(row => row.operation === 'UPDATE' && row.status !== 'ERROR')
+  if (updateRows.length) {
+    const fieldNames = [...new Set(Object.values(batch.columnMapping))]
+      .map(code => template.value?.columns.find(column => column.code === code)?.name || code)
+    Modal.confirm({
+      title: `导入覆盖 ${updateRows.length} 条已有记录的影响`,
+      content: `模块“${props.moduleName || props.moduleCode}”的本批次共 ${batch.totalRows} 行，预演将更新 ${updateRows.length} 条已有记录；映射字段：${fieldNames.join('、') || '无'}。执行时逐行重查负责人数据权限、字段可写权限和记录版本；不通过的行不会覆盖原记录，并显示失败原因。取消后批次仍停留在预演状态。`,
+      okText: '确认覆盖并执行', okType: 'danger', cancelText: '取消',
+      onOk: () => enqueue(batch),
+    })
+    return
+  }
+  await enqueue(batch)
+}
+
+/** 用弹窗打开时的批次版本提交，避免切换历史批次后执行到另一批数据。 */
+async function enqueue(batch: ImportBatchView) {
+  if (current.value?.id !== batch.id || current.value.status !== 'PREVIEWED') return
   loading.value = true
   try {
-    current.value = await api<ImportBatchView>(`/api/runtime/modules/${props.moduleCode}/imports/${current.value.id}/execute`, {
-      method: 'POST', body: JSON.stringify({ version: current.value.version }),
+    current.value = await api<ImportBatchView>(`/api/runtime/modules/${props.moduleCode}/imports/${batch.id}/execute`, {
+      method: 'POST', body: JSON.stringify({ version: batch.version }),
     }, token.value)
     message.success('导入批次已进入后台执行队列')
     schedulePoll()
@@ -151,7 +170,7 @@ async function rollback() {
     current.value = await api<ImportBatchView>(`/api/runtime/modules/${props.moduleCode}/imports/${current.value.id}/rollback`, {
       method: 'POST', body: JSON.stringify({ reason: '用户从导入结果页撤销本批次' }),
     }, token.value)
-    message.success(current.value.status === 'ROLLED_BACK' ? '本批次已安全回滚' : '部分记录已有后续修改，未被覆盖')
+    message.success(current.value.status === 'ROLLED_BACK' ? '本批次已安全回滚' : '部分记录未能回滚，请查看逐行原因')
     emit('recordsChanged')
     await loadHistory()
   } catch (reason) { message.error(reason instanceof ApiError ? reason.message : '批次回滚失败') }
@@ -220,7 +239,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
     <template v-if="sourceHeaders.length">
       <a-divider>字段映射</a-divider>
       <div class="import-mapping-grid"><div v-for="source in sourceHeaders" :key="source"><code>{{ source }}</code><span>→</span><a-select :value="mapping[source]" allow-clear placeholder="忽略此列" :options="mappingOptions(source)" @change="setMapping(source, $event)" /></div></div>
-      <div class="import-preview-actions"><a-select v-model:value="matchFieldCode" :options="matchOptions" style="min-width:190px" placeholder="选择唯一匹配字段" /><a-radio-group v-model:value="conflictPolicy" button-style="solid"><a-radio-button value="ERROR">重复时报错</a-radio-button><a-radio-button value="SKIP">跳过已有记录</a-radio-button><a-radio-button value="UPDATE">更新已有记录</a-radio-button></a-radio-group><a-button type="primary" :disabled="!canPreview" :loading="loading" @click="preview">开始预演</a-button></div>
+      <div class="import-preview-actions"><a-select v-model:value="matchFieldCode" :options="matchOptions" style="min-width:190px" placeholder="选择唯一匹配字段" /><a-radio-group v-model:value="conflictPolicy" button-style="solid"><a-radio-button value="ERROR">重复时报错</a-radio-button><a-radio-button value="SKIP">跳过已有记录</a-radio-button><a-radio-button value="UPDATE">新增并更新</a-radio-button><a-radio-button value="UPDATE_ONLY">仅更新匹配</a-radio-button></a-radio-group><a-button type="primary" :disabled="!canPreview" :loading="loading" @click="preview">开始预演</a-button></div>
     </template>
 
     <template v-if="current">
@@ -233,7 +252,7 @@ onBeforeUnmount(() => { if (pollTimer) window.clearTimeout(pollTimer) })
         <a-table-column title="匹配结果" width="100"><template #default="{ record }">{{ record.targetRecordId ? '已匹配' : '新记录' }}</template></a-table-column>
         <a-table-column title="说明" width="220"><template #default="{ record }">{{ record.errorMessage || (record.rollbackStatus ? importRowLabel(record.rollbackStatus) : '校验通过') }}</template></a-table-column>
       </a-table>
-      <div class="drawer-footer import-result-actions"><a-select v-if="history.length" placeholder="查看历史导入" style="width:240px" :options="history.map(batch => ({ value: batch.id, label: `${productDateTime(batch.createdAt)} · ${productStatus(batch.status).label}` }))" @change="openBatch" /><a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button><a-button v-if="current.failedRows" @click="downloadErrors"><DownloadOutlined />下载错误行</a-button><a-popconfirm v-if="['COMPLETED', 'COMPLETED_WITH_ERRORS', 'ROLLBACK_PARTIAL'].includes(current.status)" title="只会撤销本次导入且未被后续修改的记录，确认继续？" @confirm="rollback"><a-button danger :loading="loading"><RollbackOutlined />安全回滚</a-button></a-popconfirm><a-button v-if="current.status === 'PREVIEWED' && current.validRows" type="primary" :loading="loading" @click="execute"><PlayCircleOutlined />确认后台执行</a-button></div>
+      <div class="drawer-footer import-result-actions"><a-select v-if="history.length" placeholder="查看历史导入" style="width:240px" :options="history.map(batch => ({ value: batch.id, label: `${productDateTime(batch.createdAt)} · ${productStatus(batch.status).label}` }))" @change="openBatch" /><a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button><a-button v-if="current.failedRows" @click="downloadErrors"><DownloadOutlined />下载错误行</a-button><a-popconfirm v-if="['COMPLETED', 'COMPLETED_WITH_ERRORS', 'ROLLBACK_PARTIAL'].includes(current.status)" title="只撤销本批次、未被后续修改且当前有权操作的记录，确认继续？" @confirm="rollback"><a-button danger :loading="loading"><RollbackOutlined />安全回滚</a-button></a-popconfirm><a-button v-if="current.status === 'PREVIEWED' && current.validRows" type="primary" :loading="loading" @click="execute"><PlayCircleOutlined />确认后台执行</a-button></div>
     </template>
     <template #footer><div class="drawer-footer"><span>权限、字段可写范围和数据归属会在每一行执行时重新校验。</span><a-button @click="drawerOpen = false">关闭</a-button></div></template>
   </a-drawer>

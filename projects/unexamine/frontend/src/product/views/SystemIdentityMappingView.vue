@@ -178,13 +178,19 @@ async function loadLogs() {
 function resultColor(value: string) {
   if (value === 'READY' || value === 'SUCCESS') return 'green'
   if (value === 'ACCESS_REQUEST' || value === 'ACCESS_REQUEST_PENDING') return 'blue'
-  if (value === 'CONFLICT') return 'red'
+  if (value === 'CONFLICT' || value.endsWith('_DENIED')) return 'red'
   return 'orange'
 }
 
 function resultLabel(value: string) {
   return ({ READY: '可同步', SUCCESS: '成功', ACCESS_REQUEST: '转访问申请', ACCESS_REQUEST_PENDING: '等待访问审批',
-    MANUAL_REVIEW: '需要人工检查', CONFLICT: '存在冲突' } as Record<string, string>)[value] || productStatus(value).label
+    MANUAL_REVIEW: '需要人工检查', CONFLICT: '存在冲突', SYSTEM_ACCESS_DENIED: '系统成员无效',
+    TENANT_ACCESS_DENIED: '租户成员无效', TENANT_SWITCH_NOT_AVAILABLE: '不支持租户切换',
+    SYSTEM_CONFIGURATION_INVALID: '系统配置无效' } as Record<string, string>)[value] || productStatus(value).label
+}
+
+function compact(value: string | undefined, length: number) {
+  return value && value.length > length ? `${value.slice(0, length)}…` : value || '—'
 }
 
 function actionText(value: string) {
@@ -259,7 +265,7 @@ onMounted(load)
   </div>
 
   <section v-if="preflight" class="panel-card preflight-panel">
-    <div class="panel-title"><strong>3. 预检报告</strong><span>{{ productDateTime(preflight.createdAt) }}</span></div>
+    <div class="panel-title"><strong>3. 预检报告</strong><span>{{ productDateTime(preflight.createTime) }}</span></div>
     <div class="preflight-summary"><a-tag v-for="(count, outcome) in preflight.summary" :key="outcome" :color="resultColor(outcome)">{{ resultLabel(outcome) }} {{ count }}</a-tag></div>
     <a-table :data-source="preflight.items" :pagination="false" row-key="rowNumber" size="small" :scroll="{ x: 1100 }">
       <a-table-column title="外部身份" data-index="externalUserId" fixed="left" :width="150" />
@@ -278,7 +284,7 @@ onMounted(load)
     <div class="panel-title"><strong>同步任务</strong><span>{{ jobs.length }} 条</span></div>
     <a-empty v-if="!jobs.length" description="尚无同步任务" class="fixed-config-empty" />
     <div v-for="job in jobs" v-else :key="job.id" class="identity-job-row">
-      <span><strong>{{ productStatus(job.status).label }}</strong><small>{{ productDateTime(job.createdAt) }} · 已处理 {{ job.progressCurrent }}/{{ job.progressTotal }}</small></span>
+      <span><strong>{{ productStatus(job.status).label }}</strong><small>{{ productDateTime(job.createTime) }} · 已处理 {{ job.progressCurrent }}/{{ job.progressTotal }}</small></span>
       <a-tag :color="job.status === 'SUCCEEDED' ? 'green' : 'orange'">访问申请 {{ job.summary.accessRequests ?? 0 }}</a-tag>
     </div>
   </section>
@@ -294,15 +300,15 @@ onMounted(load)
       <a-input v-model:value="filters.traceId" placeholder="链路追踪号" />
       <a-input v-model:value="filters.failureReason" placeholder="失败原因" />
     </div>
-    <a-table :data-source="logs" row-key="id" size="small" :pagination="{ pageSize: 10 }" :scroll="{ x: 1050 }">
-      <a-table-column title="时间" :width="180"><template #default="{ record }">{{ productDateTime(record.occurredAt) }}</template></a-table-column>
-      <a-table-column title="身份源" data-index="identityProvider" :width="130" />
-      <a-table-column title="外部用户" data-index="externalUserId" :width="140" />
-      <a-table-column title="MFA / 设备" :width="170"><template #default="{ record }">{{ record.mfaLevel }} · {{ record.device }}</template></a-table-column>
-      <a-table-column title="追踪信息" :width="250"><template #default="{ record }"><code>{{ record.requestId }}</code><br /><code>{{ record.traceId }}</code></template></a-table-column>
-      <a-table-column title="结果" :width="170"><template #default="{ record }"><a-tag :color="resultColor(record.resultCode)">{{ resultLabel(record.resultCode) }}</a-tag></template></a-table-column>
-      <a-table-column title="成员匹配" :width="110"><template #default="{ record }">{{ record.systemMemberId ? '已匹配' : '未匹配' }}</template></a-table-column>
-      <a-table-column title="失败原因" data-index="failureReason" />
+    <a-table :data-source="logs" row-key="id" size="small" :pagination="{ pageSize: 10 }" :scroll="{ x: 1080 }">
+      <a-table-column title="时间" :width="135"><template #default="{ record }">{{ productDateTime(record.occurTime) }}</template></a-table-column>
+      <a-table-column title="身份源" data-index="identityProvider" :width="95" />
+      <a-table-column title="外部用户" data-index="externalUserId" :width="95" />
+      <a-table-column title="认证" :width="170"><template #default="{ record }">{{ record.authenticationMethod || '映射同步' }} · {{ record.mfaLevel || '未提供' }}<br /><small :title="record.device">{{ record.ip || '—' }} · {{ compact(record.device, 24) }}</small></template></a-table-column>
+      <a-table-column title="追踪信息" :width="185"><template #default="{ record }"><small>请求 <a-typography-text :copyable="{ text: record.requestId }" :title="record.requestId">{{ compact(record.requestId, 12) }}</a-typography-text></small><br /><small>链路 <a-typography-text :copyable="{ text: record.traceId }" :title="record.traceId">{{ compact(record.traceId, 12) }}</a-typography-text></small><br v-if="record.loginTraceId" /><small v-if="record.loginTraceId">登录 <a-typography-text :copyable="{ text: record.loginTraceId }" :title="record.loginTraceId">{{ compact(record.loginTraceId, 12) }}</a-typography-text></small></template></a-table-column>
+      <a-table-column title="结果" :width="120"><template #default="{ record }"><a-tag :color="resultColor(record.resultCode)">{{ resultLabel(record.resultCode) }}</a-tag></template></a-table-column>
+      <a-table-column title="账号 / 成员" :width="130"><template #default="{ record }">{{ record.accountBinding || '—' }} / {{ record.systemMemberMapping || (record.systemMemberId ? 'MATCHED' : 'UNMATCHED') }}</template></a-table-column>
+      <a-table-column title="失败原因" :width="150"><template #default="{ record }"><span :title="record.failureReason">{{ record.failureReason && record.failureReason !== 'NONE' ? resultLabel(record.failureReason) : '—' }}</span></template></a-table-column>
     </a-table>
   </section>
 </template>

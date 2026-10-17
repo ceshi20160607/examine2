@@ -11,12 +11,12 @@
         <result column="after_json" property="afterJson" />
         <result column="comment_text" property="commentText" />
         <result column="changed_by_account_id" property="changedByAccountId" />
-        <result column="changed_at" property="changedAt" />
+        <result column="change_time" property="changeTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, task_id, action_code, before_json, after_json, comment_text, changed_by_account_id, changed_at
+        id, task_id, action_code, before_json, after_json, comment_text, changed_by_account_id, change_time
     </sql>
 
 </mapper>

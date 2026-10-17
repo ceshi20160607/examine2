@@ -42,6 +42,15 @@ public class DictionaryConfigurationController {
                 TraceIdFilter.current(servletRequest)));
     }
 
+    /** 保存字典显示名称草稿，运行端在再次发布后使用新名称。 */
+    @PutMapping("/{dictionaryId}/name")
+    public ApiResult<DictionaryModels.DictionaryDraft> rename(@PathVariable Long dictionaryId,
+                                                                @Valid @RequestBody DictionaryModels.RenameDictionaryRequest request,
+                                                                HttpServletRequest servletRequest) {
+        return ApiResult.ok(service.rename(AuthenticationContextHolder.require(), dictionaryId, request,
+                TraceIdFilter.current(servletRequest)));
+    }
+
     @GetMapping("/{dictionaryId}")
     @RequirePermission(resourceType = "CONFIG", resourceCode = "DICTIONARY", actionCode = "PREVIEW")
     public ApiResult<DictionaryModels.DictionaryDraft> draft(@PathVariable Long dictionaryId) {

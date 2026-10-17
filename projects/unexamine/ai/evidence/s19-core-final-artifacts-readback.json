@@ -1,0 +1,41 @@
+{
+  "step": "S19.1",
+  "status": "browser_api_database_file_verified",
+  "moduleId": 1,
+  "moduleCode": "module_ae3286711c",
+  "recordId": 1,
+  "textCode": "field_bc62d57501",
+  "fileCode": "s19_customer_file",
+  "printTemplateId": 1,
+  "fileId": 1,
+  "fileName": "s19-customer-note.txt",
+  "fileSha256": "fc16ad609c6fd0cb7938808406437162ae21e1406fa411940c6ade80e5518baf",
+  "printJobId": 1,
+  "pdfSha256": "ceaa0445ccdb290a7c08208019f68a04e72b5929051f363e29009596cb7c069c",
+  "exportBatchId": 1,
+  "exportRows": [
+    [
+      "标题",
+      "客户名称"
+    ],
+    [
+      "S19 上海客户",
+      "上海客户已跟进"
+    ]
+  ],
+  "fileReferenceCount": 1,
+  "printOutputFileId": 2,
+  "exportResultFileId": 3,
+  "browser": {
+    "attachment": {
+      "text": "S19 上海客户编 辑未设置业务编号启用数据归属：主工作空间概览转化附件评论历史客户名称单行文本复制上海客户已跟进客户资料文件复制s19-customer-note.txt负责人s19_member负责部门全公司协作人—只读成员—关注人—创建时间2026/10/16 17:39更新时间2026/10/16 17:39客户资料附件按当前字段权限展示；请通过编辑记录替换或调整，必填校验与记录保存会在同一事务完成。刷新关 闭打印"
+    },
+    "printed": {
+      "text": "记录打印与 PDF 预览客户资料单 · v1 · A4按发布版本生成打开原始 PDF下载 PDF打印文件已生成，共 1 页使用模板版本 v1 · 完成于 2026/10/16 17:40PDF 内容预览 · 与下载文件使用同一打印任务快照客户资料单客户资料业务记录 · S19 上海客户客户名称上海客户已跟进经办人：________________S19 发布验收第 1 / 1 页"
+    },
+    "exporting": {
+      "text": "客户记录 · 数据导出当前筛选结果 · 无关键词 · 0 项高级筛选导出结果同时受当前筛选、列表与导出数据权限约束；勾选记录时再取勾选集合。文件格式ExcelCSV导出字段重新预估创建导出任务文件只供任务提交人下载。关 闭"
+    }
+  },
+  "storedAttachmentPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\unexamine-s19.11-final-files\\system\\1\\tenant\\1\\e9815963-b9d2-47f4-aa2c-b6c4b1e9b63c"
+}

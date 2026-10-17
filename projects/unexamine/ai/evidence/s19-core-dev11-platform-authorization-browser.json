@@ -1,0 +1,57 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev11",
+  "status": "platform_role_grant_and_member_assignment_verified",
+  "registration": {
+    "status": 200,
+    "code": "OK"
+  },
+  "role": {
+    "id": 5,
+    "name": "S19 平台角色 1792220912826",
+    "grants": [
+      "PLATFORM:AUTHORIZATION:VIEW",
+      "PLATFORM:ORGANIZATION:VIEW"
+    ]
+  },
+  "member": {
+    "id": 21,
+    "username": "s19_role_1792220911415"
+  },
+  "stale": {
+    "status": 409,
+    "code": "PLATFORM_AUTHORIZATION_VERSION_CONFLICT"
+  },
+  "wrongContext": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "limited": {
+    "role": 200,
+    "organization": 200,
+    "mutate": 403,
+    "system": 403
+  },
+  "revocation": {
+    "invalid": {
+      "status": 400,
+      "code": "PLATFORM_PERMISSION_INVALID"
+    },
+    "builtin": {
+      "status": 409,
+      "code": "PLATFORM_BUILTIN_ROLE_PROTECTED"
+    },
+    "update": {
+      "status": 200,
+      "code": "OK"
+    },
+    "organization": 403,
+    "rolePage": 200
+  },
+  "limitedPage": {
+    "heading": "角色权限",
+    "hasRoleTable": true,
+    "organizationNav": false
+  },
+  "credentialNote": "Fresh account password remained in process memory and was excluded from evidence."
+}

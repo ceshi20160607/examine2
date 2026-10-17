@@ -1,0 +1,65 @@
+{
+  "step": "S18.3",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0683",
+    "R0684",
+    "R0705",
+    "R0738",
+    "R0739",
+    "R0758",
+    "R1162",
+    "R1175",
+    "R2093",
+    "R2095",
+    "R2097",
+    "R2098",
+    "R2099",
+    "R2100",
+    "R2101",
+    "R2102"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/KpiWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue"
+  ],
+  "checks_actual_results": [
+    "在隔离系统 #165 的后台将关联采购明细数据源 #7 增加创建时间口径并发布 V3（版本行 #9）；建立月度个人 KPI #12，目标 ≥300、关联模块 #85 已发布数据，管理员计算结果 #21 为 220/73.333333%，2 条明细，向成员发送未达标提醒。",
+    "发现普通成员原可看到管理员计算快照的 220 汇总和来源 ID，修复 KPI 运行态按当前访问成员实时计算汇总、状态、达成率和可下钻来源；成员现为 150/50%、仅 #172，管理员仍为 220/73.333333%、#173/#172。",
+    "管理员从同一数据源发布模块首页 #3 V1，KPI 和列表组件在管理员与普通成员页面分别显示 220/2 与 150/1；成员点击 KPI 卡进入看板，只能查看本人 #172。",
+    "成员自行保存个人首页 #4，金额 150 与列表 #172；点击列表打开业务详情，所属申请与金额正确。管理员个人首页仍为空，证明个人配置隔离。",
+    "KPI 提醒改为不携带管理员口径数值；修正本次隔离测试环境中已产生的旧消息 #97，成员系统消息中心回读为泛化文案。源码的无权/数据源失败展示也避免把不可读快照称为成功值。",
+    "JDK21 Maven package、vue-tsc 与 Vite build、git diff --check 通过；后端容器重启后 readiness 200 UP，前端页面、API、MySQL 读回一致。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-kpi-dashboard-readback.json"
+  ],
+  "permission_or_failure_result": "成员直读负责人 #248 的明细 #173 为 HTTP 403，访问 KPI 后台列表为 HTTP 403；成员 KPI 解释及下钻只有 #172，不泄漏管理员 #173 的 ID 或汇总。若当前授权数据源不可用，运行态返回空实际值和 STALE，不向成员显示保存的管理员快照。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiService.java",
+      "sha256": "e3813999e4b64822d5dfd06b9bae68df3e314207fba4086c5a37f964d64fa10a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/notification/manage/MessageService.java",
+      "sha256": "616f4827f59cd5fddcd8672148e7e50271efbf7908585d96475016e052844cc1"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "d92434a79a84844f3b78ee695f372cf85e3cccbb88b5d2e91b8ad4071d9a8c31"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/KpiWorkspaceView.vue",
+      "sha256": "3995901084d74489b5d3f53f9bccad3de85da9eca7b82f8328c2cf1d3d5c64e6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+      "sha256": "2f824e6d8e1990f65c1803f5e84a7f8bba8f7d35c6cc31138de987ff74a6c809"
+    }
+  ],
+  "remaining": "本步完成同系统模块/个人首页与 KPI 月度个人目标联动。图表维度、打印模板、AI 对同一业务链的组合验收及真实外部身份/投递依赖仍需后续有界步骤；独立既有验证不能替代整站结论。",
+  "next_step": "S18.4"
+}

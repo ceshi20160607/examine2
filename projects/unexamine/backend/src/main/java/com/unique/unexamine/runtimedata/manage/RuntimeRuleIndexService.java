@@ -113,11 +113,29 @@ public class RuntimeRuleIndexService {
         }
     }
 
+    /** 新增预演按当前租户的唯一索引检查冲突，不依赖操作者可见记录范围。 */
     public void validateCreatePreview(
             AuthenticatedContext context,
             RuntimeModuleConfiguration configuration,
             Map<String, JsonNode> values) {
         validate(configuration, "CREATE", values);
+        validateUniquePreview(context, configuration, values, null);
+    }
+
+    /** 更新预演排除当前记录；匹配其他负责人的唯一值只返回冲突，不暴露其记录。 */
+    public void validateUpdatePreview(
+            AuthenticatedContext context,
+            RuntimeModuleConfiguration configuration,
+            Map<String, JsonNode> values,
+            Long recordId) {
+        validateUniquePreview(context, configuration, values, recordId);
+    }
+
+    private void validateUniquePreview(
+            AuthenticatedContext context,
+            RuntimeModuleConfiguration configuration,
+            Map<String, JsonNode> values,
+            Long recordId) {
         JsonNode fields = configuration.configuration().path("queryIndexFields");
         for (JsonNode index : configuration.configuration().path("queryIndexes")) {
             if (!index.path("uniqueIndex").asBoolean(false)) continue;
@@ -143,7 +161,8 @@ public class RuntimeRuleIndexService {
                     .eq(BizRecordIndex::getTenantId, context.tenantId())
                     .eq(BizRecordIndex::getModuleId, configuration.moduleId())
                     .eq(BizRecordIndex::getQueryIndexId, indexId)
-                    .eq(BizRecordIndex::getUniqueKeyHash, hash)).isEmpty();
+                    .eq(BizRecordIndex::getUniqueKeyHash, hash)
+                    .ne(recordId != null, BizRecordIndex::getRecordId, recordId)).isEmpty();
             if (occupied) {
                 throw uniqueViolation(configuration, index, definitions);
             }

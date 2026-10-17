@@ -69,7 +69,7 @@ function unwrap<T>(response: Response, payload: ApiEnvelope<T> & { data?: { trac
 
 async function refreshBeforeExpiry(scope: SessionScope, fallback: string) {
   const tokens = tokensForScope(scope)
-  const expiresAt = tokens ? Date.parse(tokens.accessExpiresAt) : Number.NaN
+  const expiresAt = tokens ? Date.parse(tokens.accessExpireTime) : Number.NaN
   if (!Number.isFinite(expiresAt) || expiresAt > Date.now() + 5_000) return fallback
   return await refreshSession(scope) ?? fallback
 }
@@ -87,7 +87,7 @@ async function refreshSession(scope: SessionScope): Promise<string | null> {
 
 async function rotateSession(scope: SessionScope): Promise<string | null> {
   const current = tokensForScope(scope)
-  if (!current?.refreshToken || Date.parse(current.refreshExpiresAt) <= Date.now()) {
+  if (!current?.refreshToken || Date.parse(current.refreshExpireTime) <= Date.now()) {
     clearSessionScope(scope)
     return null
   }

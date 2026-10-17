@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务操作幂等请求及首次执行结果
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_idempotency_record")
+@TableName("un_core_idempotency_record")
 public class CoreIdempotencyRecord {
 
+    /**
+     * 幂等请求记录主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 幂等键所属业务范围标识
+     */
     @TableField("context_key")
     private String contextKey;
 
+    /**
+     * 被保护的业务操作编码
+     */
     @TableField("operation_code")
     private String operationCode;
 
+    /**
+     * 调用方提供的幂等请求标识
+     */
     @TableField("idempotency_key")
     private String idempotencyKey;
 
+    /**
+     * 原始请求内容摘要，用于识别同键不同请求
+     */
     @TableField("request_hash")
     private String requestHash;
 
+    /**
+     * 幂等请求处理状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 首次执行的业务结果编码
+     */
     @TableField("response_code")
     private String responseCode;
 
+    /**
+     * 可供重复请求返回的首次执行结果
+     */
     @TableField("response_json")
     private String responseJson;
 
-    @TableField("locked_until")
-    private LocalDateTime lockedUntil;
+    /**
+     * 在途操作独占锁截止时间
+     */
+    @TableField("lock_expire_time")
+    private LocalDateTime lockExpireTime;
 
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    /**
+     * 幂等记录有效截止时间
+     */
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 幂等记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 幂等记录最后更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 幂等记录乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -123,36 +162,36 @@ public class CoreIdempotencyRecord {
         this.responseJson = responseJson;
     }
 
-    public LocalDateTime getLockedUntil() {
-        return lockedUntil;
+    public LocalDateTime getLockExpireTime() {
+        return lockExpireTime;
     }
 
-    public void setLockedUntil(LocalDateTime lockedUntil) {
-        this.lockedUntil = lockedUntil;
+    public void setLockExpireTime(LocalDateTime lockExpireTime) {
+        this.lockExpireTime = lockExpireTime;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
+    public LocalDateTime getExpireTime() {
+        return expireTime;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -174,10 +213,10 @@ public class CoreIdempotencyRecord {
             ", status = " + status +
             ", responseCode = " + responseCode +
             ", responseJson = " + responseJson +
-            ", lockedUntil = " + lockedUntil +
-            ", expiresAt = " + expiresAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", lockExpireTime = " + lockExpireTime +
+            ", expireTime = " + expireTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

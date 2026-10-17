@@ -1,0 +1,35 @@
+{
+  "step": "S02.1",
+  "status": "verified_contribution",
+  "integration_gate": "G2_ACTION_FLOW_WORK",
+  "source_rows": ["R2831", "R2832", "R2948"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java"
+  ],
+  "checks_actual_results": [
+    "系统后台在客户档案发布命名状态动作、在销售商机发布命名字段动作；两个模块均发布为版本 2，普通成员在运行态看到各自获权动作。",
+    "普通成员只获客户档案命名动作、LIST/DETAIL 和 SELF 范围，未获普通 UPDATE 仍可把本人客户记录 3 从 ACTIVE 改为 CONFIRMED；刷新页面和数据库读回一致。",
+    "普通成员只获销售商机命名动作、LIST/DETAIL 和 SELF 范围，未获普通 UPDATE 仍可把本人商机记录 4 的金额从 8000 改为 12000；刷新页面及字段值表读回为 12000.00000000。",
+    "审计事件 41 和 52 均为 BUSINESS_RECORD_UPDATED/SUCCESS/成员 2；事件 52 的字段审计记录金额 before=8000.0、after=12000.0。",
+    "RuntimeDataHttpTest.publishedNamedStatusActionUsesItsOwnPermissionWithoutOrdinaryEditGrant 在 MySQL 8.4 Testcontainers 通过，覆盖未发布不可见、命名动作授权、状态直写、旧版本 409、缺字段策略 403、字段动作成功及审计；Surefire tests=1, errors=0, failures=0。",
+    "Java 21 Maven 跳过测试的 package 编译通过；workspace-validate、execution-context 和 git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s02-browser-member-action-visible.png",
+    "projects/unexamine/ai/evidence/s02-browser-member-action-succeeded.png",
+    "projects/unexamine/ai/evidence/s02-browser-member-amount-action.png",
+    "projects/unexamine/backend/target/surefire-reports/TEST-com.unique.unexamine.runtimedata.manage.RuntimeDataHttpTest.xml"
+  ],
+  "permission_or_failure_result": "命名动作的页面可见和服务端执行均按同一动作编码授权，不额外要求普通 UPDATE；命名字段动作仍按自己的字段策略校验。未发布动作不可见、无字段策略返回 403、旧版本返回 409，失败后无部分写入。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java", "sha256": "692a2298e48afe061fbc13e2d7306c1ce2b00ef4520c52141f6b1349b00ddda4"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java", "sha256": "5652f3956e14c412af02479c7aa006873c0b1b740413a1b6f88b0ea14681c451"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeRecordAction.java", "sha256": "7172a2dbbbb8ab7b75525d76dfe466090fdc65a7eac92ff97c4cc74aa52d07aa"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java", "sha256": "1334646300fb2238b1487b7fd53455aa32734be4dae73109d031f5d36ce6f160"},
+    {"path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue", "sha256": "d7bd41f4d7c3864f771568cec6cd0504b31ddc5d94ae697c3195a44690b27c3e"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java", "sha256": "1032cdc7e0a35de6b4a5942362473174cf6d495be188400373fed19a763e1323"}
+  ],
+  "remaining": "G2 仍须在同一业务记录验证 Flow 审批后写入、转化、转移、工作协作及失败回滚；本步骤不能替代 G2 组合验收。",
+  "next_step": "S02.2"
+}

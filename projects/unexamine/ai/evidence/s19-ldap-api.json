@@ -1,0 +1,52 @@
+{
+  "step": "S19.5",
+  "candidate": "0.1.0-s19.5-dev1",
+  "frontend": "http://127.0.0.1:15173",
+  "database": "unexamine_s19_ldap",
+  "providerId": 1,
+  "versionId": 1,
+  "systemId": 1,
+  "tenantId": 1,
+  "draftHidden": true,
+  "trustedPreflight": "PASSED",
+  "published": "PUBLISHED",
+  "mappingAction": "BIND_EXISTING_MEMBER",
+  "mappingStatus": "SUCCEEDED",
+  "platformAccount": "s19_ldap_owner",
+  "failures": {
+    "wrongPassword": {
+      "status": 401,
+      "code": "SSO_DIRECTORY_CREDENTIAL_INVALID",
+      "traceId": "0bc5f42041ea41199561983968cae3e6"
+    },
+    "missingIdentity": {
+      "status": 401,
+      "code": "SSO_DIRECTORY_IDENTITY_MISSING",
+      "traceId": "c024edcd9e564655bdb311b8216ea135"
+    },
+    "conflictingIdentity": {
+      "status": 409,
+      "code": "SSO_DIRECTORY_IDENTITY_CONFLICT",
+      "traceId": "69c2ed2b7e8e446fb5a9eadb54b35642"
+    },
+    "disallowedDomain": {
+      "status": 403,
+      "code": "SSO_DOMAIN_NOT_ALLOWED",
+      "traceId": "6cb8042772364ec7a94e62ae056e7d7f"
+    },
+    "missingMapping": {
+      "status": 403,
+      "code": "SSO_MAPPING_MISSING",
+      "traceId": "6883ad6bb8884449863b8877551ced13"
+    },
+    "unauthorizedSystem": {
+      "status": 403,
+      "code": "SYSTEM_ACCESS_DENIED",
+      "traceId": "e912100702064d40bdfa1436bea0b80b"
+    }
+  },
+  "plainLdapPreflight": "FAILED",
+  "unsupportedMfaPreflight": "FAILED",
+  "localLoginAvailable": true,
+  "directoryBoundary": "Local LDAPS fixture with temporary trusted certificate; real LDAP/AD not claimed."
+}

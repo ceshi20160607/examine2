@@ -9,95 +9,176 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用调用审计与幂等结果
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_call")
+@TableName("un_app_call")
 public class AppCall {
 
+    /**
+     * 调用主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 被调用的目标应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 实际执行的不可变应用发布版本主键，前置拒绝时为空
+     */
     @TableField("application_version_id")
     private Long applicationVersionId;
 
+    /**
+     * 验签所用凭证版本，内部可信调用为0
+     */
     @TableField("credential_version")
     private Integer credentialVersion;
 
+    /**
+     * 命中的草稿授权主键，前置拒绝或授权历史清理后为空
+     */
     @TableField("grant_id")
     private Long grantId;
 
+    /**
+     * 调用请求唯一标识
+     */
     @TableField("request_id")
     private String requestId;
 
+    /**
+     * 跨服务追踪标识
+     */
     @TableField("trace_id")
     private String traceId;
 
-    @TableField("request_timestamp")
-    private LocalDateTime requestTimestamp;
+    /**
+     * 调用方签名请求时间
+     */
+    @TableField("request_time")
+    private LocalDateTime requestTime;
 
+    /**
+     * 本次签名请求的防重放随机值
+     */
     @TableField("nonce")
     private String nonce;
 
+    /**
+     * 调用方提供的幂等键
+     */
     @TableField("idempotency_key")
     private String idempotencyKey;
 
+    /**
+     * 调用方网络地址
+     */
     @TableField("source_address")
     private String sourceAddress;
 
+    /**
+     * 请求指向的目标系统主键
+     */
     @TableField("target_system_id")
     private Long targetSystemId;
 
+    /**
+     * 请求指向的目标租户主键
+     */
     @TableField("target_tenant_id")
     private Long targetTenantId;
 
+    /**
+     * 请求的资源类型
+     */
     @TableField("resource_type")
     private String resourceType;
 
+    /**
+     * 请求的资源业务编码
+     */
     @TableField("resource_id")
     private String resourceId;
 
+    /**
+     * 请求的动作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 规范化请求内容摘要
+     */
     @TableField("request_hash")
     private String requestHash;
 
+    /**
+     * 调用时已发布授权和目标身份的不可变权限快照
+     */
     @TableField("permission_snapshot_json")
     private String permissionSnapshotJson;
 
+    /**
+     * 调用处理状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 业务响应编码
+     */
     @TableField("response_code")
     private String responseCode;
 
+    /**
+     * 允许审计读取的业务响应结果
+     */
     @TableField("response_json")
     private String responseJson;
 
+    /**
+     * 调用产生或访问的目标业务对象引用
+     */
     @TableField("target_reference")
     private String targetReference;
 
+    /**
+     * 相同幂等请求复用结果的次数
+     */
     @TableField("replay_count")
     private Integer replayCount;
 
+    /**
+     * 请求处理耗时毫秒数
+     */
     @TableField("duration_millis")
     private Long durationMillis;
 
+    /**
+     * 不含敏感信息的错误摘要
+     */
     @TableField("error_message")
     private String errorMessage;
 
-    @TableField("called_at")
-    private LocalDateTime calledAt;
+    /**
+     * 开始调用时间
+     */
+    @TableField("call_time")
+    private LocalDateTime callTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 完成调用时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
     public Long getId() {
         return id;
@@ -155,12 +236,12 @@ public class AppCall {
         this.traceId = traceId;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getRequestTime() {
+        return requestTime;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setRequestTime(LocalDateTime requestTime) {
+        this.requestTime = requestTime;
     }
 
     public String getNonce() {
@@ -299,20 +380,20 @@ public class AppCall {
         this.errorMessage = errorMessage;
     }
 
-    public LocalDateTime getCalledAt() {
-        return calledAt;
+    public LocalDateTime getCallTime() {
+        return callTime;
     }
 
-    public void setCalledAt(LocalDateTime calledAt) {
-        this.calledAt = calledAt;
+    public void setCallTime(LocalDateTime callTime) {
+        this.callTime = callTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
     @Override
@@ -325,7 +406,7 @@ public class AppCall {
             ", grantId = " + grantId +
             ", requestId = " + requestId +
             ", traceId = " + traceId +
-            ", requestTimestamp = " + requestTimestamp +
+            ", requestTime = " + requestTime +
             ", nonce = " + nonce +
             ", idempotencyKey = " + idempotencyKey +
             ", sourceAddress = " + sourceAddress +
@@ -343,8 +424,8 @@ public class AppCall {
             ", replayCount = " + replayCount +
             ", durationMillis = " + durationMillis +
             ", errorMessage = " + errorMessage +
-            ", calledAt = " + calledAt +
-            ", finishedAt = " + finishedAt +
+            ", callTime = " + callTime +
+            ", finishTime = " + finishTime +
             "}";
     }
 }

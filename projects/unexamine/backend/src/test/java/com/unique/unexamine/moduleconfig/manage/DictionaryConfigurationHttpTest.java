@@ -132,14 +132,14 @@ class DictionaryConfigurationHttpTest {
                 HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", moduleRevision));
         long moduleVersionId = number(data(modulePublish).get("versionId"));
 
-        Long systemId = jdbc.queryForObject("select system_id from cfg_module where id=?", Long.class, moduleId);
-        Long tenantId = jdbc.queryForObject("select owner_tenant_id from cfg_module where id=?", Long.class, moduleId);
-        Long memberId = jdbc.queryForObject("select min(id) from sys_member where system_id=?", Long.class, systemId);
-        jdbc.update("insert into biz_record(system_id,tenant_id,module_id,created_config_version_id,updated_config_version_id,"
+        Long systemId = jdbc.queryForObject("select system_id from un_cfg_module where id=?", Long.class, moduleId);
+        Long tenantId = jdbc.queryForObject("select owner_tenant_id from un_cfg_module where id=?", Long.class, moduleId);
+        Long memberId = jdbc.queryForObject("select min(id) from un_sys_member where system_id=?", Long.class, systemId);
+        jdbc.update("insert into un_biz_record(system_id,tenant_id,module_id,created_config_version_id,updated_config_version_id,"
                         + "record_number,title,status,created_by_member_id,updated_by_member_id) values(?,?,?,?,?,?,?,?,?,?)",
                 systemId, tenantId, moduleId, moduleVersionId, moduleVersionId, "C22-001", "浙江客户", "ACTIVE", memberId, memberId);
-        Long recordId = jdbc.queryForObject("select max(id) from biz_record where module_id=?", Long.class, moduleId);
-        jdbc.update("insert into biz_record_value(record_id,field_id,field_code,value_type,value_text,normalized_text) "
+        Long recordId = jdbc.queryForObject("select max(id) from un_biz_record where module_id=?", Long.class, moduleId);
+        jdbc.update("insert into un_biz_record_value(record_id,field_id,field_code,value_type,value_text,normalized_text) "
                         + "values(?,?,?,?,?,?)", recordId, fieldId, "region", "TEXT", "hangzhou", "hangzhou");
 
         ResponseEntity<Map> disableInUse = exchange("/api/admin/dictionaries/" + dictionaryId + "/items/" + cityId,
@@ -165,9 +165,9 @@ class DictionaryConfigurationHttpTest {
         ResponseEntity<Map> versions = exchange("/api/admin/dictionaries/" + dictionaryId + "/versions",
                 HttpMethod.GET, owner.token(), null);
         assertThat((List<?>) versions.getBody().get("data")).hasSize(2);
-        assertThat(count("cfg_dictionary_version", "dictionary_id=" + dictionaryId)).isEqualTo(2);
-        assertThat(count("cfg_dictionary_publication", "dictionary_id=" + dictionaryId)).isOne();
-        assertThat(count("audit_event", "event_code='DICTIONARY_PUBLISHED' and object_type='DICTIONARY_VERSION'")).isEqualTo(2);
+        assertThat(count("un_cfg_dictionary_version", "dictionary_id=" + dictionaryId)).isEqualTo(2);
+        assertThat(count("un_cfg_dictionary_publication", "dictionary_id=" + dictionaryId)).isOne();
+        assertThat(count("un_audit_event", "event_code='DICTIONARY_PUBLISHED' and object_type='DICTIONARY_VERSION'")).isEqualTo(2);
 
         ResponseEntity<Map> crossContext = exchange("/api/admin/dictionaries/" + dictionaryId, HttpMethod.GET,
                 outsider.token(), null);

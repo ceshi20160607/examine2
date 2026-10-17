@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * AI 对话消息与结构化识别内容
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ai_message")
+@TableName("un_ai_message")
 public class AiMessage {
 
+    /**
+     * 对话消息主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属 AI 对话标识
+     */
     @TableField("conversation_id")
     private Long conversationId;
 
+    /**
+     * 消息角色：用户、助手或工具
+     */
     @TableField("role_type")
     private String roleType;
 
+    /**
+     * 消息正文
+     */
     @TableField("content_text")
     private String contentText;
 
+    /**
+     * 结构化识别结果或呈现内容
+     */
     @TableField("structured_content_json")
     private String structuredContentJson;
 
+    /**
+     * 模型调用用量与费用摘要
+     */
     @TableField("model_usage_json")
     private String modelUsageJson;
 
+    /**
+     * 失败错误码
+     */
     @TableField("error_code")
     private String errorCode;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -98,12 +122,12 @@ public class AiMessage {
         this.errorCode = errorCode;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -116,7 +140,7 @@ public class AiMessage {
             ", structuredContentJson = " + structuredContentJson +
             ", modelUsageJson = " + modelUsageJson +
             ", errorCode = " + errorCode +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

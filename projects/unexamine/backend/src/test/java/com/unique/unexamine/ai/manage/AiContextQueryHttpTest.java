@@ -1,5 +1,7 @@
 package com.unique.unexamine.ai.manage;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +35,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 class AiContextQueryHttpTest {
+    private static AiModelTestServer modelServer;
+
+    @BeforeAll
+    static void startModel() throws IOException {
+        modelServer = AiModelTestServer.start();
+    }
+
+    @AfterAll
+    static void stopModel() {
+        if (modelServer != null) modelServer.close();
+    }
+
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("unexamine")
@@ -62,7 +77,7 @@ class AiContextQueryHttpTest {
         Session owner = register("ai_query_owner", "ai_query_system", "ai-query-owner@example.com");
         String platformAdmin = login("admin", "123123aa");
         long modelId = number(data(exchange("/api/admin/platform/ai/models", HttpMethod.POST,
-                platformAdmin, model("c46_local_query", null))).get("id"));
+                platformAdmin, model("c46_local_query", modelServer.endpoint()))).get("id"));
         long grantId = number(data(exchange("/api/admin/platform/ai/models/" + modelId + "/grants/" + owner.systemId(),
                 HttpMethod.PUT, platformAdmin, Map.of("dailyTokenLimit", 40000, "concurrencyLimit", 2))).get("id"));
 
@@ -106,10 +121,10 @@ class AiContextQueryHttpTest {
         ResponseEntity<Map> persisted = exchange("/api/ai/conversations/" + conversationId,
                 HttpMethod.GET, owner.systemToken(), null);
         assertThat(((List<?>) data(persisted).get("messages"))).hasSize(2);
-        assertThat(count("ai_execution", "id=" + executionId + " and status='SUCCEEDED' and fallback_used=0")).isOne();
-        assertThat(count("ai_execution_step", "execution_id=" + executionId + " and status='SUCCEEDED'")).isOne();
+        assertThat(count("un_ai_execution", "id=" + executionId + " and status='SUCCEEDED' and fallback_used=0")).isOne();
+        assertThat(count("un_ai_execution_step", "execution_id=" + executionId + " and status='SUCCEEDED'")).isOne();
         String authorization = jdbc.queryForObject(
-                "select authorization_snapshot_json from ai_execution where id=?", String.class, executionId);
+                "select authorization_snapshot_json from un_ai_execution where id=?", String.class, executionId);
         assertThat(authorization).contains("customer_name", "systemId", "tenantId", "dataScopes")
                 .doesNotContain("c46-model-secret-never-persisted");
 
@@ -134,25 +149,25 @@ class AiContextQueryHttpTest {
         assertThat((List<?>) data(toolDegraded).get("sources")).isEmpty();
         assertThat(String.valueOf(data(toolDegraded).get("answer"))).contains("正常业务页面不受影响");
 
-        jdbc.update("update ai_model set endpoint_url='http://127.0.0.1:1/v1' where id=?", modelId);
+        jdbc.update("update un_ai_model set endpoint_url='http://127.0.0.1:1/v1' where id=?", modelId);
         ResponseEntity<Map> degraded = exchange("/api/ai/queries", HttpMethod.POST, owner.systemToken(), query(
                 agentId, null, "现在有多少客户？", List.of("customer_name"), owner.tenantId(), "MODULE_PAGE"));
         assertThat(data(degraded)).containsEntry("outcome", "DEGRADED")
-                .containsEntry("errorCode", "AI_MODEL_UNAVAILABLE").containsEntry("retryable", true);
+                .containsEntry("errorCode", "AI_MODEL_CALL_FAILED").containsEntry("retryable", true);
         assertThat((List<?>) data(degraded).get("sources")).isEmpty();
-        assertThat(String.valueOf(data(degraded).get("answer"))).contains("未生成或猜测任何业务结果", "重试");
+        assertThat(String.valueOf(data(degraded).get("answer"))).contains("未生成业务答案", "重试");
 
-        assertThat(count("ai_conversation", "system_id=" + owner.systemId() + " and tenant_id=" + owner.tenantId()))
+        assertThat(count("un_ai_conversation", "system_id=" + owner.systemId() + " and tenant_id=" + owner.tenantId()))
                 .isEqualTo(4);
-        assertThat(count("ai_execution", "status='REFUSED'")).isEqualTo(2);
-        assertThat(count("ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_MODEL_UNAVAILABLE'"))
+        assertThat(count("un_ai_execution", "status='REFUSED'")).isEqualTo(2);
+        assertThat(count("un_ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_MODEL_CALL_FAILED'"))
                 .isOne();
-        assertThat(count("ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_TOOL_EXECUTION_FAILED'"))
+        assertThat(count("un_ai_execution", "status='FAILED' and fallback_used=1 and error_code='AI_TOOL_EXECUTION_FAILED'"))
                 .isOne();
-        assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_SUCCEEDED' and object_id='" + executionId + "'"))
+        assertThat(count("un_audit_event", "event_code='AI_CONTEXT_QUERY_SUCCEEDED' and object_id='" + executionId + "'"))
                 .isOne();
-        assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_REFUSED'")).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='AI_CONTEXT_QUERY_DEGRADED'")).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='AI_CONTEXT_QUERY_REFUSED'")).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='AI_CONTEXT_QUERY_DEGRADED'")).isEqualTo(2);
     }
 
     private long publishAgent(Session owner, long grantId) {

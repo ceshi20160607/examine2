@@ -7,13 +7,16 @@ import { aiOutcomePresentation, aiScopeSummary } from '../ai-context'
 import { aiWriteCanConfirm, normalizedAiWriteFields } from '../ai-write'
 import { productDateTime, userFacingRecordNumber } from '../presentation'
 import { systemContext, systemTokens } from '../session'
+import RuntimeFieldInput from './RuntimeFieldInput.vue'
 import type {
   AiQueryOverview,
   AiQueryResult,
   AiWriteCandidate,
+  AiWriteFieldCandidate,
   AiWriteOverview,
   AiWriteResult,
   RuntimeField,
+  RuntimeModuleConfiguration,
   RuntimeModuleCatalogItem,
   RuntimeRecord,
 } from '../types'
@@ -46,8 +49,10 @@ const conversationId = ref<number>()
 const queryResult = ref<AiQueryResult>()
 const writeText = ref('')
 const candidate = ref<AiWriteCandidate>()
+const targetConfiguration = ref<RuntimeModuleConfiguration>()
 const writeResult = ref<AiWriteResult>()
 const explicitlyConfirmed = ref(false)
+const reviewedFieldCodes = ref<string[]>([])
 const writeForm = reactive({ title: '', recordNumber: '', status: 'ACTIVE', fields: {} as Record<string, unknown> })
 
 const queryAgents = computed(() => queryOverview.value.agents.filter((agent) => agent.moduleCodes.includes(props.moduleCode)))
@@ -61,7 +66,10 @@ const targetModules = computed(() => (selectedWriteAgent.value?.moduleCodes || [
   .filter((module): module is RuntimeModuleCatalogItem => Boolean(module))
   .map((module) => ({ value: module.moduleCode, label: module.moduleName })))
 const resultPresentation = computed(() => aiOutcomePresentation(queryResult.value?.outcome))
-const canConfirm = computed(() => aiWriteCanConfirm(candidate.value, explicitlyConfirmed.value, writeForm.title))
+const canConfirm = computed(() => aiWriteCanConfirm(candidate.value, explicitlyConfirmed.value, writeForm.title)
+  && candidate.value?.fields.every((field) => !field.recognized || field.confidence >= 0.8
+    || reviewedFieldCodes.value.includes(field.code)
+    || JSON.stringify(field.value) !== JSON.stringify(writeForm.fields[field.code])))
 const sourcePath = computed(() => `/systems/${systemContext.value?.systemId}?workspace=runtime&module=${props.moduleCode}&recordId=${props.record.id}`)
 const recordState = computed(() => props.record.deleted ? 'DELETED' : props.record.archived ? 'ARCHIVED' : 'ACTIVE')
 const emptyMessage = computed(() => {
@@ -119,7 +127,7 @@ async function ask(value?: string) {
         agentId: queryAgentId.value,
         conversationId: conversationId.value || null,
         question: question.value.trim(),
-        requestedFieldCodes: props.visibleFields.map((field) => field.code),
+        requestedFieldCodes: [],
         requestedTenantId: systemContext.value?.tenantId,
         entryContext: {
           entryType: 'RECORD_DETAIL',
@@ -152,6 +160,7 @@ async function recognize() {
   candidate.value = undefined
   writeResult.value = undefined
   explicitlyConfirmed.value = false
+  reviewedFieldCodes.value = []
   try {
     candidate.value = await api<AiWriteCandidate>('/api/ai/writes/recognize', {
       method: 'POST',
@@ -165,6 +174,8 @@ async function recognize() {
         entryType: 'RECORD_DETAIL',
       }),
     }, systemTokens.value.accessToken)
+    targetConfiguration.value = await api<RuntimeModuleConfiguration>(
+      `/api/runtime/modules/${candidate.value.moduleCode}/configuration`, {}, systemTokens.value.accessToken)
     applyCandidate()
   } catch (reason) {
     error.value = readable(reason, '没有生成可确认的业务草稿')
@@ -175,6 +186,7 @@ async function recognize() {
 
 function applyCandidate() {
   if (!candidate.value) return
+  reviewedFieldCodes.value = []
   writeForm.title = candidate.value.proposedTitle || ''
   writeForm.recordNumber = candidate.value.proposedRecordNumber || ''
   writeForm.status = candidate.value.proposedStatus || 'ACTIVE'
@@ -201,6 +213,7 @@ async function confirmWrite() {
         departmentId: null,
         participantMemberIds: [],
         fields: normalizedAiWriteFields(writeForm.fields),
+        reviewedFieldCodes: reviewedFieldCodes.value,
       }),
     }, systemTokens.value.accessToken)
     candidate.value = await api<AiWriteCandidate>(`/api/ai/writes/${candidate.value.pendingWriteId}`, {}, systemTokens.value.accessToken)
@@ -232,14 +245,26 @@ function inputType(fieldType: string) {
   return 'text'
 }
 
+function publishedField(candidateField: AiWriteFieldCandidate): RuntimeField | undefined {
+  return targetConfiguration.value?.configuration.fields.find((field) => field.code === candidateField.code)
+}
+
+function childFields(candidateField: AiWriteFieldCandidate): RuntimeField[] {
+  const parent = publishedField(candidateField)
+  return targetConfiguration.value?.configuration.fields.filter((field) => field.parentFieldId === parent?.id
+    && candidateField.childFieldCodes.includes(field.code) && field.access?.writable !== false) || []
+}
+
 function resetRecordContext() {
   queryResult.value = undefined
   conversationId.value = undefined
   question.value = ''
   candidate.value = undefined
+  targetConfiguration.value = undefined
   writeResult.value = undefined
   writeText.value = ''
   explicitlyConfirmed.value = false
+  reviewedFieldCodes.value = []
   targetModuleCode.value = props.moduleCode
   chooseAgents()
 }
@@ -279,7 +304,7 @@ onMounted(load)
             <div class="context-assistant__result-title"><strong>回答</strong><a-tag :color="resultPresentation.color">{{ resultPresentation.label }}</a-tag></div>
             <a-alert :type="resultPresentation.alert" show-icon :message="queryResult.answer"
               :description="queryResult.errorCode ? (queryResult.retryable ? '本次没有生成业务结果，可以稍后重试；当前页面仍可正常使用。' : '请求未通过权限或能力边界，没有返回业务数据。') : undefined" />
-            <details v-if="queryResult.scope"><summary>查看查询口径与来源</summary><p>{{ aiScopeSummary(queryResult.scope) }}</p><p>{{ queryResult.metricDefinition || '本次为当前记录详情读取。' }}</p><small>保存于 {{ productDateTime(queryResult.persistedAt) }}</small></details>
+            <details v-if="queryResult.scope"><summary>查看查询口径与来源</summary><p>{{ aiScopeSummary(queryResult.scope, moduleName) }}</p><p>{{ queryResult.metricDefinition || '本次为当前记录详情读取。' }}</p><small>保存于 {{ productDateTime(queryResult.persistedAt) }}</small></details>
             <button v-for="source in queryResult.sources" :key="source.recordId" type="button" class="context-source" @click="router.push(source.path)">
               <span><strong>{{ source.title }}</strong><small>{{ userFacingRecordNumber(source.recordNumber) }} · {{ Object.keys(source.fields).length }} 个有权字段</small></span><LinkOutlined />
             </button>
@@ -298,7 +323,10 @@ onMounted(load)
               :description="candidate.businessWritten ? '业务记录已经持久化。' : '下面内容仍是候选草稿，没有写入业务数据。'" />
             <a-form-item label="标题" required><a-input v-model:value="writeForm.title" /></a-form-item>
             <a-form-item v-for="field in candidate.fields" :key="field.code" :label="field.label" :required="field.required">
-              <a-switch v-if="field.fieldType === 'BOOLEAN'" v-model:checked="writeForm.fields[field.code]" :disabled="!field.writable" />
+              <RuntimeFieldInput v-if="field.fieldType === 'SUBTABLE' && publishedField(field) && field.writable"
+                v-model="writeForm.fields[field.code]" :field="publishedField(field)!" :child-fields="childFields(field)"
+                :token="systemTokens?.accessToken" />
+              <a-switch v-else-if="field.fieldType === 'BOOLEAN'" v-model:checked="writeForm.fields[field.code]" :disabled="!field.writable" />
               <a-input v-else-if="field.fieldType === 'REFERENCE' && Number(writeForm.fields[field.code]) === record.id" :value="record.title" disabled />
               <a-input-number v-else-if="inputType(field.fieldType) === 'number'" v-model:value="writeForm.fields[field.code]" :disabled="!field.writable" style="width:100%" />
               <a-date-picker v-else-if="field.fieldType === 'DATE'" v-model:value="writeForm.fields[field.code]" value-format="YYYY-MM-DD" :disabled="!field.writable" style="width:100%" />
@@ -306,6 +334,12 @@ onMounted(load)
               <a-textarea v-else-if="field.fieldType === 'MULTILINE_TEXT'" v-model:value="writeForm.fields[field.code]" :disabled="!field.writable" :rows="3" />
               <a-input v-else v-model:value="writeForm.fields[field.code]" :disabled="!field.writable" />
               <small>{{ field.recognized ? `识别可信度 ${Math.round(field.confidence * 100)}%` : '需要人工补充' }} · {{ field.note }}</small>
+              <a-checkbox v-if="field.recognized && field.confidence < 0.8"
+                :checked="reviewedFieldCodes.includes(field.code)"
+                @update:checked="(checked: boolean) => reviewedFieldCodes = checked
+                  ? [...reviewedFieldCodes, field.code] : reviewedFieldCodes.filter((code) => code !== field.code)">
+                我已逐项核对该字段
+              </a-checkbox>
             </a-form-item>
             <a-alert v-if="candidate.unknownSegments.length" type="warning" show-icon message="仍有未识别内容" :description="candidate.unknownSegments.join('；')" />
             <a-checkbox v-model:checked="explicitlyConfirmed" :disabled="candidate.businessWritten || ['REFUSED','CANCELLED'].includes(candidate.status)">我已核对目标模块和每个字段，确认执行真实写入</a-checkbox>

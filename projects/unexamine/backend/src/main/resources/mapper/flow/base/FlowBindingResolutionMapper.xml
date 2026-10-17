@@ -12,12 +12,12 @@
         <result column="binding_id" property="bindingId" />
         <result column="flow_version_id" property="flowVersionId" />
         <result column="resolution_reason" property="resolutionReason" />
-        <result column="resolved_at" property="resolvedAt" />
+        <result column="resolve_time" property="resolveTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, module_id, trigger_event, binding_id, flow_version_id, resolution_reason, resolved_at
+        id, system_id, tenant_id, module_id, trigger_event, binding_id, flow_version_id, resolution_reason, resolve_time
     </sql>
 
 </mapper>

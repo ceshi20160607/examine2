@@ -1,0 +1,13 @@
+{
+  "candidate": "0.1.0-s19.11-dev5",
+  "backendPort": 9999,
+  "publishedApplicationVersionId": 3,
+  "step": "S19.11",
+  "frontendPid": 31120,
+  "frontendStatus": 200,
+  "status": "post_restart_system_application_readback",
+  "signedEvidence": "s19-core-dev5-system-signed-app-restart-browser.json",
+  "backendPid": 31964,
+  "backendReadinessStatus": 200,
+  "internalEvidence": "s19-core-dev5-system-internal-restart-browser.json"
+}

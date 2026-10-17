@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import SystemAdminShell from '../components/SystemAdminShell.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductState from '../components/ProductState.vue'
-import { allowsPermission, hasWorkConfigurationAccess } from '../permissions'
+import { allowsPermission, hasModuleShareManagementAccess, hasWorkConfigurationAccess } from '../permissions'
 import { systemContext } from '../session'
 import AuditEventsView from './AuditEventsView.vue'
 import DictionaryConfigurationView from './DictionaryConfigurationView.vue'
@@ -12,6 +12,8 @@ import FixedConfigurationsView from './FixedConfigurationsView.vue'
 import FlowDesignerView from './FlowDesignerView.vue'
 import FoundationControlsView from './FoundationControlsView.vue'
 import ModuleConfigurationView from './ModuleConfigurationView.vue'
+import ModuleExportConfigurationView from './ModuleExportConfigurationView.vue'
+import ModuleSharingConfigurationView from './ModuleSharingConfigurationView.vue'
 import SystemAuthorizationView from './SystemAuthorizationView.vue'
 import SystemIdentityMappingView from './SystemIdentityMappingView.vue'
 import SystemSettingsView from './SystemSettingsView.vue'
@@ -25,7 +27,7 @@ import WorkConfigurationView from './WorkConfigurationView.vue'
 
 const route = useRoute()
 const router = useRouter()
-const templateSection = ref<'main' | 'tenant'>('main')
+const templateSection = ref<'main' | 'tenant' | 'sharing' | 'export'>('main')
 const moduleConfiguration = ref<InstanceType<typeof ModuleConfigurationView>>()
 const systemInfoSection = ref<'settings' | 'identity'>('settings')
 const parameterSection = ref<'settings' | 'dashboard' | 'print' | 'messages' | 'work'>('settings')
@@ -38,6 +40,7 @@ interface SystemAdminNavigationItem {
 
 const canManageSystem = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'SYSTEM', 'MANAGE'))
 const canManageModules = computed(() => allowsPermission(systemContext.value?.permissions, 'CONFIG', 'MODULE', 'MANAGE'))
+const canManageShares = computed(() => hasModuleShareManagementAccess(systemContext.value?.permissions))
 const canAudit = computed(() => allowsPermission(systemContext.value?.permissions, 'AUDIT', 'EVENT', 'VIEW'))
 const canDesignFlow = computed(() => allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'DESIGN')
   || allowsPermission(systemContext.value?.permissions, 'FLOW', 'SYSTEM', 'PUBLISH')
@@ -47,9 +50,7 @@ const canManageApplications = computed(() => allowsPermission(systemContext.valu
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', 'SYSTEM', 'MANAGE')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'VIEW')
   || allowsPermission(systemContext.value?.permissions, 'APPLICATION', '*', 'MANAGE'))
-const canManageAi = computed(() => allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'VIEW')
-  || allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'MANAGE')
-  || allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'PUBLISH'))
+const canManageAi = computed(() => allowsPermission(systemContext.value?.permissions, 'AI', 'SYSTEM', 'MANAGE'))
 const canManageMessages = computed(() => allowsPermission(systemContext.value?.permissions, 'MESSAGE', 'SYSTEM', 'MANAGE')
   || allowsPermission(systemContext.value?.permissions, 'MESSAGE', '*', 'MANAGE'))
 const canManageWork = computed(() => hasWorkConfigurationAccess(systemContext.value?.permissions, 'SYSTEM'))
@@ -66,8 +67,8 @@ const navigation = computed<SystemAdminNavigationItem[]>(() => [
     { key: 'roles', label: '角色权限', description: '菜单、动作、字段与数据范围' },
     { key: 'dictionary', label: '数据字典', description: '字典草稿、发布与版本' },
   ] : []),
-  ...(canManageModules.value ? [{ key: 'templates', label: '模板配置', description: '模块信息、字段、动作、流程与应用' }] : []),
-  ...(parameterSections.value.length ? [{ key: 'parameters', label: '业务参数', description: '首页、打印、消息与工作配置' }] : []),
+  ...(canManageModules.value || canManageShares.value ? [{ key: 'templates', label: '模板配置', description: '模块搭建与范围共享' }] : []),
+  ...(parameterSections.value.length ? [{ key: 'parameters', label: '其他业务参数', description: '首页、打印、消息与工作配置' }] : []),
   ...(canDesignFlow.value ? [{ key: 'flow', label: '流程配置', description: '设计、模拟、绑定与发布' }] : []),
   ...(canManageApplications.value ? [{ key: 'applications', label: '应用配置', description: '受控访问、授权与调用策略' }] : []),
   ...(canManageAi.value ? [{ key: 'ai', label: '智能助手配置', description: '模型授权、助手与使用范围' }] : []),
@@ -94,7 +95,8 @@ async function navigate(key: string) {
 
 function selectTemplateSection(value: unknown) {
   if (moduleConfiguration.value && !moduleConfiguration.value.canLeaveForm()) return
-  templateSection.value = value === 'tenant' ? 'tenant' : 'main'
+  templateSection.value = value === 'sharing' ? 'sharing' : value === 'tenant' ? 'tenant'
+    : value === 'export' ? 'export' : 'main'
 }
 
 function contextChanged() {
@@ -103,6 +105,10 @@ function contextChanged() {
 
 watch([requestedSection, navigation], syncActive, { immediate: true })
 watch(parameterSections, syncParameterSection, { immediate: true })
+watch([canManageModules, canManageShares], () => {
+  if (!canManageModules.value && canManageShares.value) templateSection.value = 'sharing'
+  else if (!canManageShares.value && templateSection.value === 'sharing') templateSection.value = 'main'
+}, { immediate: true })
 </script>
 
 <template>
@@ -126,10 +132,12 @@ watch(parameterSections, syncParameterSection, { immediate: true })
     </template>
     <template v-else-if="active === 'templates'">
       <ProductPageHeader kicker="系统管理" title="业务模块" description="从业务名称开始，按字段、页面和功能逐步搭建并发布。">
-        <template #actions><a-space><a-button :type="templateSection === 'main' ? 'primary' : 'default'" @click="selectTemplateSection('main')">模块搭建</a-button><a-button :type="templateSection === 'tenant' ? 'primary' : 'default'" @click="selectTemplateSection('tenant')">组织扩展</a-button></a-space></template>
+        <template #actions><a-space><a-button v-if="canManageModules" :type="templateSection === 'main' ? 'primary' : 'default'" @click="selectTemplateSection('main')">模块搭建</a-button><a-button v-if="canManageModules" :type="templateSection === 'tenant' ? 'primary' : 'default'" @click="selectTemplateSection('tenant')">租户扩展</a-button><a-button v-if="canManageModules" :type="templateSection === 'export' ? 'primary' : 'default'" @click="selectTemplateSection('export')">导出配置</a-button><a-button v-if="canManageShares" :type="templateSection === 'sharing' ? 'primary' : 'default'" @click="selectTemplateSection('sharing')">范围共享</a-button></a-space></template>
       </ProductPageHeader>
-      <ModuleConfigurationView v-if="templateSection === 'main'" ref="moduleConfiguration" />
-      <TenantExtensionsView v-else />
+      <ModuleConfigurationView v-if="templateSection === 'main' && canManageModules" ref="moduleConfiguration" />
+      <TenantExtensionsView v-else-if="templateSection === 'tenant' && canManageModules" />
+      <ModuleExportConfigurationView v-else-if="templateSection === 'export' && canManageModules" />
+      <ModuleSharingConfigurationView v-else-if="templateSection === 'sharing' && canManageShares" />
     </template>
     <FlowDesignerView v-else-if="active === 'flow'" context="system" />
     <ApplicationManagementView v-else-if="active === 'applications'" context="system" />

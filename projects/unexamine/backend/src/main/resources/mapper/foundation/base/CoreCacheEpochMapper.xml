@@ -9,13 +9,13 @@
         <result column="cache_namespace" property="cacheNamespace" />
         <result column="epoch_value" property="epochValue" />
         <result column="reason" property="reason" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_key, cache_namespace, epoch_value, reason, updated_at, version
+        id, context_key, cache_namespace, epoch_value, reason, update_time, version
     </sql>
 
 </mapper>

@@ -13,6 +13,7 @@
     <mybatis-plus.version>3.5.17</mybatis-plus.version>
     <flyway.version>13.0.0</flyway.version>
     <jackson.version>2.21.4</jackson.version>
+    <junit.version>5.12.2</junit.version>
   </properties>
 
   <dependencies>
@@ -56,6 +57,12 @@
       <artifactId>slf4j-simple</artifactId>
       <version>2.0.17</version>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -86,6 +93,11 @@
         <configuration>
           <mainClass>com.unique.templatebase.codegen.BaseCodeGenerator</mainClass>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.4</version>
       </plugin>
     </plugins>
   </build>

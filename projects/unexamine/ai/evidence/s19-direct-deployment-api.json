@@ -1,0 +1,13 @@
+{
+  "step": "S19.7",
+  "candidate": "0.1.0-s19.7-dev1",
+  "frontend": "http://127.0.0.1:15173",
+  "staticPage": true,
+  "apiProxy": true,
+  "healthProxy": true,
+  "systemId": 1,
+  "tenantId": 1,
+  "memberId": 1,
+  "createTraceId": "4d295698d05e45dd854a85d4dcbf104f",
+  "enterTraceId": "1b86039430eb4c7a8ab5fdf50c8a4635"
+}

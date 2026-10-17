@@ -14,27 +14,20 @@
         <result column="source_id" property="sourceId" />
         <result column="parameter_json" property="parameterJson" />
         <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
-        <result column="status" property="status" />
-        <result column="progress_current" property="progressCurrent" />
-        <result column="progress_total" property="progressTotal" />
-        <result column="max_attempts" property="maxAttempts" />
-        <result column="attempt_count" property="attemptCount" />
-        <result column="next_run_at" property="nextRunAt" />
-        <result column="heartbeat_at" property="heartbeatAt" />
+        <result column="final_status" property="finalStatus" />
         <result column="result_summary_json" property="resultSummaryJson" />
         <result column="error_code" property="errorCode" />
         <result column="error_message" property="errorMessage" />
         <result column="created_by_account_id" property="createdByAccountId" />
-        <result column="created_at" property="createdAt" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="finish_time" property="finishTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, job_type, source_type, source_id, parameter_json, authorization_snapshot_json, `status`, progress_current, progress_total, max_attempts, attempt_count, next_run_at, heartbeat_at, result_summary_json, error_code, error_message, created_by_account_id, created_at, started_at, finished_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, job_type, source_type, source_id, parameter_json, authorization_snapshot_json, final_status, result_summary_json, error_code, error_message, created_by_account_id, create_time, finish_time, update_time, version
     </sql>
 
 </mapper>

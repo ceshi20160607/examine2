@@ -1,0 +1,88 @@
+{
+  "step": "S16.2",
+  "status": "verified_contribution",
+  "integration_gate": "G16_CODE_RULES",
+  "source_rows": [
+    "R2222",
+    "R2228",
+    "R2229",
+    "R2230",
+    "R2233",
+    "R2235",
+    "R2237",
+    "R2238",
+    "R2239",
+    "R2240",
+    "R2241"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/RenameModulePageRequest.java",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/DictionaryConfigurationView.vue"
+  ],
+  "checks_actual_results": [
+    "Page list/form/detail codes remain fixed per module; module #83 LIST page #247 was renamed twice, then published as version 3. Draft and runtime kept pageCode=list and module code order_record; stale rename version returned 409 DRAFT_VERSION_CONFLICT.",
+    "Menu #83 retained code order_record after a manual rename to 订单中心 and a later module rename to 订单业务台账; browser after reload displayed the custom menu name and new module heading independently.",
+    "Role create rejected a hyphenated code (400) and duplicate (409); role #235 kept s16_reader through draft rename and publish. Attempt to change its code returned 409 ROLE_CODE_IMMUTABLE. Department #167 kept sales_zone; attempted code change returned 409 DEPARTMENT_CODE_IMMUTABLE.",
+    "Dictionary create rejected a hyphenated code (400); item create rejected a dotted code (400) and duplicate (409). Dictionary #1 and item #1 retained s16_options and level_one. Admin UI renamed dictionary to 客户等级 and published immutable version 2.",
+    "Unprivileged system member received 403 PERMISSION_DENIED for page and dictionary rename. MySQL readback showed stable page, menu, role, department, dictionary and item codes. Following backend restart, runtime API retained module publication version 3 with pageCode=list and browser showed 订单业务台账 under 订单中心.",
+    "Java 21 Maven package, frontend vue-tsc/Vite build, workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s16-dictionary-ui.png",
+    "projects/unexamine/ai/evidence/s16-page-publish-ui.png",
+    "projects/unexamine/ai/evidence/s16-runtime-restart.png"
+  ],
+  "permission_or_failure_result": "Illegal and duplicate identifiers, attempted post-create code mutation, stale rename version and unauthorized configuration edit were rejected.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationModels.java",
+      "sha256": "97bb65f1a9af92870a4e26aae87a22ec02282bf72a6e3a1993a96af8866d85b0"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/authorization/manage/SystemAuthorizationManagementService.java",
+      "sha256": "0b400eaf0a61d57064f0dca0197cfa5f4fdf8ab5504422e25d5c9871a2c89c50"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryModels.java",
+      "sha256": "beebbc4c6d22d36c25c06bc0aab54f217d692ffae169ab019c12b7568b2656a0"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationService.java",
+      "sha256": "d5bf34f8259bfe9874d404c992954ba7dbc474366fbec8c17a366a4accf66e38"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/DictionaryConfigurationController.java",
+      "sha256": "d5096bbe3b75c5b96331129dd93b77214789a1033c6b0a6dba0562df90a086a3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "42cb8bd9b7878652daae7553d09c749bfa656acba1054d8919a944b2b384a9f2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "8cd3f25ab180b7ec94e24601d4fa34d6c2d834d91b9a3b8e4d7d14a7b8332b4f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/RenameModulePageRequest.java",
+      "sha256": "fa1b447c268624e1ecbe0d3144e39ec055857066841db1c8ab7aee6696bb7da5"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "6865c9695d6c6207882cd7203fcaf9341594354e1fff89e5f9b22241b43a49a7"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/DictionaryConfigurationView.vue",
+      "sha256": "2c0fe9669e4373582e6c5e461df7076e98c3159e8365e65a041e506760df4c49"
+    }
+  ],
+  "remaining": "S16.3 must check Flow and print identifiers, and S16.4 must run G16 integration acceptance across code references and tenant scope.",
+  "next_step": "S16.3"
+}

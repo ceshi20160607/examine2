@@ -12,12 +12,12 @@
         <result column="to_department_id" property="toDepartmentId" />
         <result column="reason" property="reason" />
         <result column="changed_by_member_id" property="changedByMemberId" />
-        <result column="changed_at" property="changedAt" />
+        <result column="change_time" property="changeTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, record_id, from_owner_member_id, to_owner_member_id, from_department_id, to_department_id, reason, changed_by_member_id, changed_at
+        id, record_id, from_owner_member_id, to_owner_member_id, from_department_id, to_department_id, reason, changed_by_member_id, change_time
     </sql>
 
 </mapper>

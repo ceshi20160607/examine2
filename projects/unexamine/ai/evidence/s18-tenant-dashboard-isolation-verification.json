@@ -1,0 +1,38 @@
+{
+  "step": "S18.14",
+  "status": "verified_contribution",
+  "source_rows": ["R0340", "R0342", "R0683", "R2877", "R2878", "R2882", "R2951", "R2969"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardModels.java",
+    "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue",
+    "projects/unexamine/frontend/src/product/views/AuthView.vue"
+  ],
+  "checks_actual_results": [
+    "2026-10-12 的同制品定向测试、后端构建、前端构建、API、MySQL、权限和重启读回已记录在 s18-tenant-dashboard-isolation-progress.json。",
+    "2026-10-13 从旧数据库卷复制出独立验收副本；后端 s18-v11 与当前前端启动，Flyway 21 个迁移验证通过，readiness=UP。",
+    "协作租户 #167 的仪表盘通过真实后台页面保存草稿、预览 1 个 KPI（175）、发布第 2 版，并在所属人及普通成员页面只显示该租户 1 个组件；主租户 #166 仍显示自己的 5 个组件。",
+    "空租户 #168 的系统首页发现缺少未配置提示，已修改 DashboardRuntimeView.vue；真实页面显示未配置、0 个组件和创建入口。无会话登录页不展示未配置的找回密码或 SSO 入口。",
+    "后端再次重启后，主租户 5 个组件、协作租户 1 个 KPI 和空租户未配置状态均重新读回；匿名找回可用性 false、SSO 提供者列表为空。vue-tsc、Vite production build、git diff --check 均通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-tenant-dashboard-isolation-progress.json",
+    "projects/unexamine/ai/evidence/s18-tenant-dashboard-isolation-readback.json",
+    "projects/unexamine/ai/evidence/s18-browser-main-tenant-dashboard-runtime.png",
+    "projects/unexamine/ai/evidence/s18-browser-tenant-dashboard-preview.png",
+    "projects/unexamine/ai/evidence/s18-browser-tenant-dashboard-runtime.png",
+    "projects/unexamine/ai/evidence/s18-browser-empty-tenant-dashboard.png",
+    "projects/unexamine/ai/evidence/s18-browser-login-unconfigured-delivery.png"
+  ],
+  "permission_or_failure_result": "普通成员没有系统管理入口但能按本租户权限查看 KPI；空租户不回退主租户组件；未配置的找回投递和 SSO 入口不对外声称可用。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java", "sha256": "78cb708d1cb03cd814343ca40c411beb27b9bb09be5319e013a32f3cdc566864"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardModels.java", "sha256": "3422607f7c0036cecee0c56318e7407a40e220b226a46b7648629033e9eb45ce"},
+    {"path": "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue", "sha256": "0b1e9387e442f836c30efb3ad4477787c5ba0736f1e75cc33a6e9bc45f95569a"},
+    {"path": "projects/unexamine/frontend/src/product/views/DashboardRuntimeView.vue", "sha256": "50352d2ed115aece7a41002c469b1645ef338357e7c1dfc3f227c142d2e52fe8"},
+    {"path": "projects/unexamine/frontend/src/product/views/AuthView.vue", "sha256": "7e99d1674dd93c560a51e2a4b0ec67a68cda113f0b5d8c592ff3e17cb636ce63"}
+  ],
+  "remaining": "当前步骤已完成；整站交付仍需按当前需求进行跨角色、跨功能的最终验收。真实外部投递、SSO 和微信产品渠道仅在实际配置后分别验收，不阻塞未配置的核心系统。",
+  "next_step": "S18.15"
+}

@@ -8,7 +8,7 @@ import AiConfigurationView from './AiConfigurationView.vue'
 <template>
   <PlatformAdminShell>
     <ProductPage density="configuration">
-      <ProductPageHeader density="configuration" kicker="平台管理" title="智能助手" description="管理平台可用模型、使用额度和系统授权。" />
+      <ProductPageHeader density="configuration" kicker="平台管理" title="智能助手" description="管理平台模型、系统授权和平台 Agent。" />
       <AiConfigurationView context="platform" />
     </ProductPage>
   </PlatformAdminShell>

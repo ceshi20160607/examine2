@@ -5,16 +5,17 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.CfgQueryIndexField">
         <id column="id" property="id" />
+        <result column="module_id" property="moduleId" />
         <result column="query_index_id" property="queryIndexId" />
         <result column="field_id" property="fieldId" />
         <result column="sort_order" property="sortOrder" />
         <result column="sort_direction" property="sortDirection" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, query_index_id, field_id, sort_order, sort_direction, created_at
+        id, module_id, query_index_id, field_id, sort_order, sort_direction, create_time
     </sql>
 
 </mapper>

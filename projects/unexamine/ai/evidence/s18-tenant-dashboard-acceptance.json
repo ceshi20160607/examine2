@@ -1,0 +1,30 @@
+{
+  "step": "S18.7",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0379", "R0380", "R0381", "R0385", "R0393", "R0394", "R2811", "R2812",
+    "R2813", "R2826", "R2886", "R2905", "R2906", "R2907", "R2969"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java"
+  ],
+  "checks_actual_results": [
+    "在隔离系统 #165 的系统后台开启多租户，创建 #167 协作租户、成员和仅 LIST/DETAIL 与必要字段可读的 SELF 角色；主租户页面显式共享采购申请 #167 与关联明细 #172。",
+    "接收成员在真实页面中看到本租户明细 #176 加共享明细 #172；全部、本租户、共享给我分别为 2、1、1 条。主租户未共享记录 #168/#173 直接读取均 404；共享 #172 转化预演和执行均 404。",
+    "修复非主租户没有本租户发布首页时未继承主租户系统首页的缺口。接收成员读取主租户已发布首页 #2 V3，图表来源 #8/#9 在当前租户重新按权限计算 150+25=175，固定‘纸’筛选来源 #7 仅 150；模块角色暂时撤销后列表和来源分别 403，再恢复。",
+    "后台关闭多租户后，可选租户仅 #166，进入 #167 为 409；MySQL 中 #167、共享 #1/#2 和业务 #167/#172/#175/#176 均保持原归属及 ACTIVE。后台重开后入口、共享列表和 175 图表自动恢复。",
+    "JDK21 Maven package、workspace-validate、execution-context 和 git diff --check 通过；s18-v7 服务重启 readiness UP 后，浏览器/API/数据库发布版本与权限结果保持一致。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-tenant-dashboard-readback.json"
+  ],
+  "permission_or_failure_result": "共享只扩充已授权模块动作的数据范围；未共享记录与共享转化拒绝，成员撤销角色后列表及报表来源 403。单租户模式立即阻断非主租户进入，租户、共享与业务数据不被删除，重开自动恢复。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java",
+      "sha256": "81e190718d7ef3cff651d1aa731278d2346bf98f9a4c753fabae4519f747e1ff"
+    }
+  ],
+  "remaining": "主租户模块首页绑定的 KPI 目标按租户隔离，分租户继承时显示明确错误；下一步验证并完善本租户目标和首页覆盖。真实第三方依赖与全产品终验仍未完成。",
+  "next_step": "S18.8"
+}

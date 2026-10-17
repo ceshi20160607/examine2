@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 固定模型授权与权限策略快照的 AI 执行 Mapper 接口
  * </p>
  *
  * @author Template Base

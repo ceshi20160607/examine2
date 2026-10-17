@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ApartmentOutlined, BellOutlined, CheckSquareOutlined, DatabaseOutlined, FolderOpenOutlined, HomeOutlined, ProjectOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { ApartmentOutlined, BellOutlined, CheckSquareOutlined, DatabaseOutlined, DownOutlined, FolderOpenOutlined, HomeOutlined, ProjectOutlined, RobotOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductMark from './ProductMark.vue'
@@ -22,6 +22,9 @@ withDefaults(defineProps<{
   showFiles?: boolean
   showAi?: boolean
   showAdmin?: boolean
+  tenantSwitchable?: boolean
+  tenantOptions?: Array<{ id: number; name: string; main: boolean }>
+  tenantSwitching?: boolean
 }>(), {
   showRuntime: false,
   showFlow: false,
@@ -32,8 +35,11 @@ withDefaults(defineProps<{
   showFiles: false,
   showAi: false,
   showAdmin: false,
+  tenantSwitchable: false,
+  tenantOptions: () => [],
+  tenantSwitching: false,
 })
-const emit = defineEmits<{ navigate: [key: string]; command: [command: CommandCenterItem] }>()
+const emit = defineEmits<{ navigate: [key: string]; command: [command: CommandCenterItem]; switchTenant: [tenantId: number] }>()
 const router = useRouter()
 const route = useRoute()
 const notice = computed(() => ({
@@ -56,6 +62,19 @@ function dismissNotice() {
         <WorkspaceContext scope="system" :name="systemName || '当前系统'" :subtitle="userFacingWorkspaceName(tenantName)" interactive />
       </button>
       <div class="topbar__actions">
+        <a-dropdown v-if="tenantSwitchable" trigger="click" placement="bottomRight">
+          <a-button type="text" class="topbar-action tenant-switch-trigger" :loading="tenantSwitching" aria-label="切换租户">
+            <ApartmentOutlined /><span class="tenant-switch-label">{{ userFacingWorkspaceName(tenantName) }}</span><DownOutlined />
+          </a-button>
+          <template #overlay>
+            <a-menu @click="emit('switchTenant', Number($event.key))">
+              <a-menu-item v-for="tenant in tenantOptions" :key="String(tenant.id)" :disabled="tenant.id === systemContext?.tenantId || tenantSwitching">
+                {{ userFacingWorkspaceName(tenant.name) }}{{ tenant.main ? ' · 主租户' : '' }}{{ tenant.id === systemContext?.tenantId ? ' · 当前' : '' }}
+              </a-menu-item>
+              <a-menu-item v-if="!tenantOptions.length" key="empty" disabled>当前没有可切换的租户</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
         <CommandCenter @execute="emit('command', $event)" />
         <a-button v-if="showTodos" type="text" class="topbar-action" @click="router.push('/platform/todos')"><CheckSquareOutlined /><span>全部待办</span></a-button>
         <a-button v-if="showMessages" type="text" class="topbar-action" @click="router.push('/platform/messages')"><BellOutlined /><span>全部消息</span></a-button>
@@ -67,6 +86,7 @@ function dismissNotice() {
         <div class="system-nav__main">
           <p class="workspace-nav-title">系统工作区</p>
           <button :class="['system-nav__item', { active: activeKey === 'home' }]" @click="emit('navigate', 'home')"><HomeOutlined />系统首页</button>
+          <button :class="['system-nav__item', { active: activeKey === 'personal' }]" @click="emit('navigate', 'personal')"><UserOutlined />我的首页</button>
           <p v-if="showRuntime" class="nav-section-title">业务运行</p>
           <button v-if="showRuntime" :class="['system-nav__item', { active: activeKey === 'runtime' }]" @click="emit('navigate', 'runtime')"><DatabaseOutlined />业务模块</button>
           <button v-if="showFlow" :class="['system-nav__item', { active: activeKey === 'flow' }]" @click="emit('navigate', 'flow')"><ApartmentOutlined />流程</button>

@@ -10,54 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 模块动作草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module_action")
+@TableName("un_cfg_module_action")
 public class ConfiguredModuleAction {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块标识
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 范围内稳定编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 动作执行类型
+     */
     @TableField("action_type")
     private String actionType;
 
+    /**
+     * 动作展示位置
+     */
     @TableField("location")
     private String location;
 
+    /**
+     * 显示排序值
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 字段或动作的类型专属配置
+     */
     @TableField("config_json")
     private String configJson;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -150,20 +192,20 @@ public class ConfiguredModuleAction {
         this.configJson = configJson;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -188,8 +230,8 @@ public class ConfiguredModuleAction {
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", configJson = " + configJson +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

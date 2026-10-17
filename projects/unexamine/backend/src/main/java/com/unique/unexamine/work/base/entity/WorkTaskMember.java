@@ -9,32 +9,50 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 任务协作、关注和验收成员
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("work_task_member")
+@TableName("un_work_task_member")
 public class WorkTaskMember {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 关联任务标识
+     */
     @TableField("task_id")
     private Long taskId;
 
+    /**
+     * 参与人平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 任务参与人租户成员ID
+     */
     @TableField("tenant_member_id")
     private Long tenantMemberId;
 
+    /**
+     * 任务成员参与类型
+     */
     @TableField("member_type")
     private String memberType;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -76,12 +94,12 @@ public class WorkTaskMember {
         this.memberType = memberType;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -92,7 +110,7 @@ public class WorkTaskMember {
             ", accountId = " + accountId +
             ", tenantMemberId = " + tenantMemberId +
             ", memberType = " + memberType +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

@@ -93,18 +93,25 @@ class OperationsDeploymentHttpTest {
         assertThat(map(overview.get("runtime"))).containsEntry("environmentCode", "integration")
                 .containsEntry("backendVersion", "0.1.0-C54")
                 .containsEntry("frontendVersion", "0.1.0-C54")
-                .containsEntry("databaseVersion", "34")
+                .containsEntry("databaseVersion", "21")
                 .containsEntry("configVersion", "integration-v54")
                 .containsEntry("artifactSha256", SHA256)
                 .containsEntry("artifactDigestConfigured", true)
                 .containsEntry("ready", true);
 
+        // 同一后端制品可用于两个配置版本，发布版本号仍各自唯一。
+        jdbc.update("insert into un_ops_release(version_name,artifact_hash,database_version,config_version,compatibility_json,"
+                        + "release_notes,status,created_by_account_id) values (?,?,?,?,cast(? as json),?,?,?)",
+                "0.1.0-C54-CONFIG-A", SHA256, "21", "integration-v53",
+                "{\"frontendVersion\":\"0.1.0-C54\",\"databaseRollbackStrategy\":\"FORWARD_FIX\"}",
+                "同制品的另一配置版本", "REGISTERED", owner.accountId());
         Map<String, Object> release = data(exchange(base + "/releases", HttpMethod.POST, owner.token(), Map.of(
-                "versionName", "0.1.0-C54", "artifactSha256", SHA256, "databaseVersion", "34",
+                "versionName", "0.1.0-C54", "artifactSha256", SHA256, "databaseVersion", "21",
                 "configVersion", "integration-v54", "frontendVersion", "0.1.0-C54",
                 "databaseRollbackStrategy", "FORWARD_FIX", "releaseNotes", "C54 可恢复发布包")));
         long releaseId = number(release.get("id"));
         assertThat(release).containsEntry("status", "REGISTERED").containsEntry("artifactSha256", SHA256);
+        assertThat(count("un_ops_release", "artifact_hash='" + SHA256 + "'")).isEqualTo(2);
 
         Map<String, Object> deployed = data(exchange(base + "/execute", HttpMethod.POST, owner.token(), Map.of(
                 "releaseId", releaseId, "environmentCode", "integration",
@@ -122,8 +129,8 @@ class OperationsDeploymentHttpTest {
         assertThat(number(map(deployed.get("approval")).get("approvedByAccountId"))).isEqualTo(owner.accountId());
         assertThat(map(deployed.get("rollbackPoint"))).containsEntry("preBackupRequired", true)
                 .containsEntry("databaseStrategy", "FORWARD_FIX");
-        assertThat(count("ops_deployment", "id=" + deploymentId + " and status='SUCCESS'" )).isOne();
-        assertThat(jdbc.queryForObject("select concat(step_state_json) from ops_deployment where id=?", String.class, deploymentId))
+        assertThat(count("un_ops_deployment", "id=" + deploymentId + " and status='SUCCESS'" )).isOne();
+        assertThat(jdbc.queryForObject("select concat(step_state_json) from un_ops_deployment where id=?", String.class, deploymentId))
                 .contains("CAB-C54-001").contains("FRONTEND_SMOKE").contains("PASSED");
 
         Map<String, Object> mismatch = deploy(base, owner, releaseId, "WRONG-FRONTEND", "FORWARD_FIX", "CAB-C54-002");
@@ -148,14 +155,14 @@ class OperationsDeploymentHttpTest {
                 assertThat(map(value)).containsEntry("status", "PASSED"));
         assertThat(map(rollback.get("rollbackPoint"))).containsEntry("executionMode", "STABLE_SCRIPT_ATOMIC_SWAP")
                 .containsEntry("preBackupRequired", true).containsEntry("databaseStrategy", "REVERSIBLE");
-        assertThat(count("audit_event", "event_code in ('OPERATIONS_RELEASE_REGISTERED','OPERATIONS_DEPLOYMENT_EXECUTED','OPERATIONS_ROLLBACK_PREPARED')"))
+        assertThat(count("un_audit_event", "event_code in ('OPERATIONS_RELEASE_REGISTERED','OPERATIONS_DEPLOYMENT_EXECUTED','OPERATIONS_ROLLBACK_PREPARED')"))
                 .isEqualTo(6);
 
         revokePermissions(owner);
         ResponseEntity<Map> denied = exchange(base, HttpMethod.GET, owner.token(), null);
         assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(denied.getBody()).containsEntry("code", "PERMISSION_DENIED");
-        assertThat(count("audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:DEPLOY:MANAGE'" )).isOne();
+        assertThat(count("un_audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:DEPLOY:MANAGE'" )).isOne();
     }
 
     private Map<String, Object> deploy(String base, Fixture owner, long releaseId, String expectedFrontend,
@@ -172,18 +179,18 @@ class OperationsDeploymentHttpTest {
                 "email", username + "@example.com", "systemName", "C54 发布系统", "systemCode", systemCode));
         assertThat(registration.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> result = data(registration);
-        long accountId = jdbc.queryForObject("select id from plat_account where username=?", Long.class, username);
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username=?", Long.class, username);
         return new Fixture(accountId, number(result.get("systemId")), number(result.get("tenantId")),
                 String.valueOf(map(result.get("tokens")).get("accessToken")));
     }
 
     private void revokePermissions(Fixture fixture) {
-        jdbc.update("delete rp from sys_role_permission rp join sys_member_role mr on mr.role_id=rp.role_id "
-                        + "and mr.tenant_id=rp.tenant_id join sys_tenant_member tm on tm.id=mr.tenant_member_id "
-                        + "and tm.tenant_id=mr.tenant_id join sys_member sm on sm.id=tm.system_member_id "
+        jdbc.update("delete rp from un_sys_role_permission rp join un_sys_member_role mr on mr.role_id=rp.role_id "
+                        + "and mr.tenant_id=rp.tenant_id join un_sys_tenant_member tm on tm.id=mr.tenant_member_id "
+                        + "and tm.tenant_id=mr.tenant_id join un_sys_member sm on sm.id=tm.system_member_id "
                         + "and sm.system_id=tm.system_id where sm.account_id=? and sm.system_id=? and tm.tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
-        jdbc.update("update auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
+        jdbc.update("update un_auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
     }
 

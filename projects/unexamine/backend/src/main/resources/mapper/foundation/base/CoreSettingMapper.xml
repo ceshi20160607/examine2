@@ -15,14 +15,14 @@
         <result column="value_json" property="valueJson" />
         <result column="sensitive" property="sensitive" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, category, setting_key, value_type, value_json, `sensitive`, `status`, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, category, setting_key, value_type, value_json, `sensitive`, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

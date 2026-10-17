@@ -3,9 +3,10 @@ import { EyeOutlined, ReloadOutlined, SafetyCertificateOutlined, SearchOutlined 
 import { Empty } from 'ant-design-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api, ApiError } from '../api'
-import { systemTokens } from '../session'
+import { platformTokens, systemTokens } from '../session'
 import type { AuditEvent, AuditEventDetail, AuditEventList, AuditRetentionMarker, AuditRetentionPreflight } from '../types'
 
+const props = withDefaults(defineProps<{ context?: 'platform' | 'system' }>(), { context: 'system' })
 const loading = ref(false)
 const detailLoading = ref(false)
 const retentionLoading = ref(false)
@@ -25,7 +26,10 @@ const filters = reactive({
   occurredFrom: '', occurredTo: '',
 })
 const retention = reactive({ businessKey: '', reason: '', approvalReference: '', referenceImpactConfirmed: false })
-const token = computed(() => systemTokens.value?.accessToken || '')
+const token = computed(() => props.context === 'platform'
+  ? platformTokens.value?.accessToken || '' : systemTokens.value?.accessToken || '')
+const basePath = computed(() => props.context === 'platform'
+  ? '/api/admin/platform/audit-events' : '/api/admin/audit-events')
 
 function readable(reason: unknown, fallback: string) {
   return reason instanceof ApiError
@@ -41,7 +45,7 @@ async function load() {
     if (value !== undefined && value !== null && String(value).trim()) parameters.set(key, String(value).trim())
   })
   try {
-    const result = await api<AuditEventList>(`/api/admin/audit-events?${parameters}`, {}, token.value)
+    const result = await api<AuditEventList>(`${basePath.value}?${parameters}`, {}, token.value)
     events.value = result.events
     total.value = result.total
   } catch (reason) {
@@ -59,7 +63,7 @@ async function openDetail(event: AuditEvent) {
   marker.value = undefined
   Object.assign(retention, { businessKey: '', reason: '', approvalReference: '', referenceImpactConfirmed: false })
   try {
-    detail.value = await api<AuditEventDetail>(`/api/admin/audit-events/${event.id}`, {}, token.value)
+    detail.value = await api<AuditEventDetail>(`${basePath.value}/${event.id}`, {}, token.value)
     detailOpen.value = true
   } catch (reason) {
     error.value = readable(reason, '审计详情加载失败')
@@ -115,7 +119,7 @@ onMounted(load)
 
 <template>
   <div class="audit-page">
-    <div class="page-heading"><div><p class="eyebrow">后台配置</p><h1>操作审计</h1><p>按当前系统与租户查询；字段前后值二次鉴权，永久保留只接受精确对象和审批引用。</p></div>
+    <div class="page-heading"><div><p class="eyebrow">后台配置</p><h1>操作审计</h1><p>{{ context === 'platform' ? '只显示当前平台的操作记录；字段前后值按独立敏感权限展示。' : '按当前系统与租户查询；字段前后值二次鉴权，永久保留只接受精确对象和审批引用。' }}</p></div>
       <a-button :loading="loading" @click="load"><ReloadOutlined />刷新</a-button></div>
     <a-alert v-if="error" type="error" show-icon :message="error" class="section-alert" closable @close="error = ''" />
     <a-alert v-if="success" type="success" show-icon :message="success" class="section-alert" closable @close="success = ''" />
@@ -123,7 +127,7 @@ onMounted(load)
       <a-input v-model:value="filters.traceId" placeholder="traceId" allow-clear />
       <a-input v-model:value="filters.requestId" placeholder="requestId" allow-clear />
       <a-input-number v-model:value="filters.actorAccountId" placeholder="操作者账号 ID" :min="1" style="width:100%" />
-      <a-input-number v-model:value="filters.memberId" placeholder="成员 ID" :min="1" style="width:100%" />
+      <a-input-number v-if="context === 'system'" v-model:value="filters.memberId" placeholder="成员 ID" :min="1" style="width:100%" />
       <a-input v-model:value="filters.eventCode" placeholder="动作 / 事件编码" allow-clear />
       <a-input v-model:value="filters.objectType" placeholder="对象类型" allow-clear />
       <a-input v-model:value="filters.objectId" placeholder="对象 ID" allow-clear />
@@ -137,7 +141,7 @@ onMounted(load)
     </section>
     <section class="audit-table panel-card">
       <a-table :data-source="events" :loading="loading" row-key="id" :pagination="false" :scroll="{ x: 1350 }">
-        <a-table-column title="时间" data-index="occurredAt" :width="175" />
+        <a-table-column title="时间" data-index="occurTime" :width="175" />
         <a-table-column title="事件" data-index="eventCode" :width="230" />
         <a-table-column title="结果" data-index="resultCode" :width="150"><template #default="{ text }"><a-tag :color="text === 'SUCCESS' ? 'green' : 'orange'">{{ text }}</a-tag></template></a-table-column>
         <a-table-column title="对象" :width="210"><template #default="{ record }">{{ record.objectType || '—' }} · {{ record.objectId || '—' }}</template></a-table-column>
@@ -148,7 +152,7 @@ onMounted(load)
       <div class="record-pagination"><a-pagination v-model:current="page" v-model:page-size="pageSize" :total="total" show-size-changer @change="load" /></div>
     </section>
 
-    <a-drawer v-model:open="detailOpen" title="审计详情与永久保留" width="760" class="audit-detail-drawer">
+    <a-drawer v-model:open="detailOpen" :title="context === 'platform' ? '平台审计详情' : '审计详情与永久保留'" width="760" class="audit-detail-drawer">
       <template v-if="detail">
         <section class="audit-detail-summary panel-card">
           <div class="panel-title"><strong>{{ detail.event.eventCode }}</strong><a-tag :color="detail.event.resultCode === 'SUCCESS' ? 'green' : 'orange'">{{ detail.event.resultCode }}</a-tag></div>
@@ -168,7 +172,7 @@ onMounted(load)
             <p><span>修改前</span><strong>{{ fieldValue(field.beforeValueJson) }}</strong><span>修改后</span><strong>{{ fieldValue(field.afterValueJson) }}</strong></p>
           </article>
         </section>
-        <section class="panel-card audit-retention">
+        <section v-if="context === 'system'" class="panel-card audit-retention">
           <div class="panel-title"><strong>物理清理前的永久保留影响检查</strong><span>审计查询与清理分权</span></div>
           <a-alert v-if="!detail.event.objectType || !detail.event.objectId" type="warning" show-icon message="当前事件没有精确对象，不能提交永久保留。" />
           <a-button v-else :loading="retentionLoading" @click="runPreflight"><SafetyCertificateOutlined />检查当前精确对象</a-button>

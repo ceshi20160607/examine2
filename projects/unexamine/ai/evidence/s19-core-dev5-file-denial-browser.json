@@ -1,0 +1,18 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "file_center_authorized_anonymous_cross_system_denial",
+  "attachmentId": 6,
+  "authorized": {
+    "status": 200,
+    "text": "S19 current-candidate personal file center\n"
+  },
+  "anonymous": {
+    "status": 401,
+    "code": "AUTHENTICATION_REQUIRED"
+  },
+  "crossSystem": {
+    "status": 404,
+    "code": "BUSINESS_ATTACHMENT_NOT_FOUND"
+  }
+}

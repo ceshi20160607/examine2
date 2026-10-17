@@ -10,42 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程节点执行轮次
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_execution")
+@TableName("un_flow_execution")
 public class FlowExecution {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 父节点执行轮次ID
+     */
     @TableField("parent_execution_id")
     private Long parentExecutionId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 节点类型
+     */
     @TableField("node_type")
     private String nodeType;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("entered_at")
-    private LocalDateTime enteredAt;
+    /**
+     * 节点进入时间
+     */
+    @TableField("enter_time")
+    private LocalDateTime enterTime;
 
-    @TableField("left_at")
-    private LocalDateTime leftAt;
+    /**
+     * 节点离开时间
+     */
+    @TableField("leave_time")
+    private LocalDateTime leaveTime;
 
+    /**
+     * 节点执行结果编码
+     */
     @TableField("result_code")
     private String resultCode;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -98,20 +128,20 @@ public class FlowExecution {
         this.status = status;
     }
 
-    public LocalDateTime getEnteredAt() {
-        return enteredAt;
+    public LocalDateTime getEnterTime() {
+        return enterTime;
     }
 
-    public void setEnteredAt(LocalDateTime enteredAt) {
-        this.enteredAt = enteredAt;
+    public void setEnterTime(LocalDateTime enterTime) {
+        this.enterTime = enterTime;
     }
 
-    public LocalDateTime getLeftAt() {
-        return leftAt;
+    public LocalDateTime getLeaveTime() {
+        return leaveTime;
     }
 
-    public void setLeftAt(LocalDateTime leftAt) {
-        this.leftAt = leftAt;
+    public void setLeaveTime(LocalDateTime leaveTime) {
+        this.leaveTime = leaveTime;
     }
 
     public String getResultCode() {
@@ -139,8 +169,8 @@ public class FlowExecution {
             ", nodeKey = " + nodeKey +
             ", nodeType = " + nodeType +
             ", status = " + status +
-            ", enteredAt = " + enteredAt +
-            ", leftAt = " + leftAt +
+            ", enterTime = " + enterTime +
+            ", leaveTime = " + leaveTime +
             ", resultCode = " + resultCode +
             ", version = " + version +
             "}";

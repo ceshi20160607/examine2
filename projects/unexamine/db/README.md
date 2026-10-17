@@ -2,13 +2,21 @@
 
 本目录与 `backend` 平级，避免数据库设计隐藏在后端代码里。
 
-- `init/`：已冻结的首次完整表结构，共 18 个有序迁移、150 张表。
-- `update/`：首次结构冻结后新增的版本化升级 SQL，版本号必须大于 `init/` 中最后一个版本。
+- `init/`：按后端 18 个代码模块划分的首装源 SQL，记录冻结的初始建表定义；版本文件数和表数以 `db-prepare` 及空库执行读回为准。
+- `update/`：首装结构冻结后的版本化升级 SQL；当前包含 V19 外部 Flow 应用身份、V20 流程配置所属应用、V21 发布制品摘要索引、V22 旧打印模板兼容清单、V23 旧模块首页兼容清单和 V24 平台审计归属修复。新增升级版本号必须大于 `init/` 中最后一个版本。
+
+V22 升级前同时备份 MySQL 和文件存储。迁移只新建 `un_print_legacy_template` 并从当时活跃模块、当前发布快照和已发布打印模板写入兼容清单，不改写旧模块版本、模板、业务记录或打印任务。升级后核对清单数量及旧数据摘要；旧模板在正式发布 PRINT 动作前继续按原权限打印，新模板不进入清单。管理员发布 PRINT 后记录 `retired_time`，停用或回滚不会重新放开兼容入口。恢复备份时数据库与文件存储必须来自同一时间点，缺失文件字节的历史 PDF 不能视作已通过验收。
+
+V23 升级时从当时的模块和模块首页发布指针固定 `un_ana_legacy_module_dashboard` 清单，只收录缺少 DASHBOARD 动作的旧已发布首页。迁移不修改模块、首页的历史发布版本和草稿，也不扩大新页面的权限。旧成员仍需当前模块 LIST 权限，只能读清单中的本租户旧首页；管理员正式发布 DASHBOARD 动作后，拥有该动作权限的人可看当前页面，只有旧 LIST 权限的人继续限于旧首页。正式动作停用时两类入口都关闭。升级前备份数据库，升级后核对清单、发布指针、草稿修订及旧首页浏览器读回。
+
+V24 在数据库仅有一个平台时，为旧 `PLATFORM` 审计事件补齐平台主键，供平台后台按平台隔离查询。升级前备份数据库，升级后核对平台事件总数、已归属数和仍未归属数；多平台且缺少归属的旧事件保持隐藏，依据原始证据人工修复，不能直接分配给任意平台。
 - `init.sql`：由 `init/` 确定性合成的首次完整结构。
 - `update.sql`：由 `update/` 确定性合成的后续变更 SQL。
 - `final.sql`：由 `init.sql + update.sql` 确定性合成，表示从空库得到当前最终结构的完整执行链。
 - `migration/`：生成给 Flyway 使用的版本文件，禁止手改。
 
-首次基线已经从空 MySQL 8.4 执行成功，并生成 18 个模块、600 个 `base` 文件。当前 `final.sql` 由 18 个冻结基线迁移和 8 个后续升级迁移组成，共 26 个迁移；最新结构共 153 张表，并生成 18 个模块、612 个 `base` 文件。后续结构变化仍只能新增到 `update/`，运行 `python template_base/tools/tb.py db-prepare --project-root projects/unexamine`，在 MySQL 执行后，再运行 MyBatis-Plus Generator 全量替换受影响模块的代码包 `base`。业务代码只能写在模块的 `manage`。
+所有产品业务表统一 `un_` 前缀，例如平台 `un_plat_*`、系统 `un_sys_*`、Flow `un_flow_*`。现有记录都是测试数据，允许清库重建，不需要为这些记录编写迁移。结构变化先改所属模块的 SQL，运行 `python template_base/tools/tb.py db-prepare --project-root projects/unexamine`，在隔离空 MySQL 执行并验证约束后，再运行 MyBatis-Plus Generator 重新生成受影响模块的 `base`。业务代码只写在模块的 `manage`。
 
-自定义模块始终使用 `cfg_*` 定义表与 `biz_record`、`biz_record_value`、`biz_record_index`、`biz_record_relation` 等通用运行时表；系统页面创建模块时不得生成模块专用物理表或动态 Java。
+`tools/regenerate-base.ps1` 使用 `tools/base-codegen.json` 指向的独立代码生成库，并由生成器在**空库**执行当前 Flyway 首装文件；重组首装 SQL 后先清空该代码生成库，不能在已有表但无 Flyway 历史的库上执行生成器。生产或业务库不作为代码生成输入。
+
+自定义模块始终使用 `un_cfg_*` 定义表与 `un_biz_record`、`un_biz_record_value`、`un_biz_record_index`、`un_biz_record_relation` 等通用运行时表；系统页面创建模块时不得生成模块专用物理表或动态 Java。仪表盘数据源只使用有权模块和按已发布关系及条件配置的查询视图；已取消的外部 API、数据库直连数据源表不进入首装结构。

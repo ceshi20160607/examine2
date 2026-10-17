@@ -4,6 +4,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.ai.base.entity.AiModel;
+import com.unique.unexamine.ai.base.entity.AiSystemModelGrant;
+import com.unique.unexamine.ai.base.service.AiModelBaseService;
+import com.unique.unexamine.ai.base.service.AiSystemModelGrantBaseService;
+import com.unique.unexamine.ai.manage.AiModelGateway;
+import com.unique.unexamine.application.base.entity.AppDefinition;
+import com.unique.unexamine.application.base.service.AppDefinitionBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
@@ -22,9 +29,7 @@ import com.unique.unexamine.flow.base.entity.FlowPublication;
 import com.unique.unexamine.flow.base.entity.FlowTask;
 import com.unique.unexamine.flow.base.entity.FlowTaskCandidate;
 import com.unique.unexamine.flow.base.entity.FlowVersion;
-import com.unique.unexamine.flow.base.mapper.FlowInstanceMapper;
-import com.unique.unexamine.flow.base.mapper.FlowJobMapper;
-import com.unique.unexamine.flow.base.mapper.FlowTaskMapper;
+import com.unique.unexamine.flow.manage.repository.FlowRuntimeStateRepository;
 import com.unique.unexamine.flow.base.service.FlowActionBaseService;
 import com.unique.unexamine.flow.base.service.FlowDefinitionBaseService;
 import com.unique.unexamine.flow.base.service.FlowExceptionBaseService;
@@ -43,6 +48,8 @@ import com.unique.unexamine.file.base.service.FileObjectBaseService;
 import com.unique.unexamine.file.base.service.FileReferenceBaseService;
 import com.unique.unexamine.foundation.manage.control.BusinessActionApprovalCoordinator;
 import com.unique.unexamine.foundation.manage.control.BusinessAction;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEvent;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEventPublisher;
 import com.unique.unexamine.notification.manage.MessageService;
 import com.unique.unexamine.platform.base.entity.PlatformMember;
 import com.unique.unexamine.platform.base.service.PlatformMemberBaseService;
@@ -95,23 +102,29 @@ public class FlowRuntimeService {
     private final FlowHistoryEventBaseService historyService;
     private final FlowJobBaseService jobService;
     private final FlowParticipantResolver participantResolver;
+    private final AppDefinitionBaseService applicationService;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
     private final SystemMemberBaseService systemMemberService;
     private final PlatformMemberBaseService platformMemberService;
     private final RuntimeDataService runtimeDataService;
+    /** 模块审批从当前租户的已发布动作绑定解析 Flow，不接受客户端传入 Flow 编号。 */
+    private final FlowBindingService flowBindingService;
     private final MessageService messageService;
+    private final LocalBusinessEventPublisher localEvents;
     /** Webhook 使用应用发布快照和运维密钥签名，Flow 本身不管理地址与密钥。 */
     private final FlowWebhookDeliveryService webhookDeliveryService;
     private final PermissionResolver permissionResolver;
     private final PlatformPermissionResolver platformPermissionResolver;
-    private final FlowInstanceMapper instanceMapper;
-    private final FlowJobMapper jobMapper;
-    private final FlowTaskMapper taskMapper;
+    private final FlowRuntimeStateRepository stateRepository;
     /** 统一恢复原动作的真实发起人，审批目录与业务授权分别使用各自租户范围。 */
     private final BusinessActionApprovalCoordinator actionCoordinator;
     private final FlowConditionService flowConditions;
+    /** AI 节点使用系统当前授权模型，不借用平台或 Agent 身份。 */
+    private final AiModelGateway aiModelGateway;
+    private final AiSystemModelGrantBaseService aiGrants;
+    private final AiModelBaseService aiModels;
     /** 在途实例拥有自己的执行图；模板与其他实例不会被动态节点改写。 */
     private final FlowInstanceGraphService instanceGraphs;
     /** 当前节点前插暂停/恢复原组，人工审批及worker共用持久协议。 */
@@ -138,23 +151,27 @@ public class FlowRuntimeService {
             FlowHistoryEventBaseService historyService,
             FlowJobBaseService jobService,
             FlowParticipantResolver participantResolver,
+            AppDefinitionBaseService applicationService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
             SystemMemberBaseService systemMemberService,
             PlatformMemberBaseService platformMemberService,
-            RuntimeDataService runtimeDataService,
+             RuntimeDataService runtimeDataService,
+             FlowBindingService flowBindingService,
             MessageService messageService,
+            LocalBusinessEventPublisher localEvents,
             FlowWebhookDeliveryService webhookDeliveryService,
             PermissionResolver permissionResolver,
             PlatformPermissionResolver platformPermissionResolver,
-            FlowInstanceMapper instanceMapper,
-            FlowJobMapper jobMapper,
+            FlowRuntimeStateRepository stateRepository,
             BusinessActionApprovalCoordinator actionCoordinator, FlowConditionService flowConditions,
             com.unique.unexamine.foundation.manage.control.BusinessActionFormSubmissions formSubmissions,
-             PlatformTransactionManager transactionManager, FlowTaskMapper taskMapper,
+             PlatformTransactionManager transactionManager,
              FlowInstanceGraphService instanceGraphs, FlowNodeSuspensionService nodeSuspensions,
-             FileReferenceBaseService fileReferenceService, FileObjectBaseService fileObjectService) {
+             FileReferenceBaseService fileReferenceService, FileObjectBaseService fileObjectService,
+             AiModelGateway aiModelGateway, AiSystemModelGrantBaseService aiGrants,
+             AiModelBaseService aiModels) {
         this.definitionService = definitionService;
         this.instanceGraphs = instanceGraphs;
         this.nodeSuspensions = nodeSuspensions;
@@ -170,26 +187,30 @@ public class FlowRuntimeService {
         this.historyService = historyService;
         this.jobService = jobService;
         this.participantResolver = participantResolver;
+        this.applicationService = applicationService;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = FlowJsonStorage.mapper(objectMapper);
         this.systemMemberService = systemMemberService;
         this.platformMemberService = platformMemberService;
         this.runtimeDataService = runtimeDataService;
+        this.flowBindingService = flowBindingService;
         this.messageService = messageService;
+        this.localEvents = localEvents;
         this.webhookDeliveryService = webhookDeliveryService;
         this.permissionResolver = permissionResolver;
         this.platformPermissionResolver = platformPermissionResolver;
-        this.instanceMapper = instanceMapper;
-        this.jobMapper = jobMapper;
+        this.stateRepository = stateRepository;
         this.actionCoordinator = actionCoordinator;
         this.flowConditions = flowConditions;
+        this.aiModelGateway = aiModelGateway;
+        this.aiGrants = aiGrants;
+        this.aiModels = aiModels;
         this.formSubmissions = formSubmissions;
         this.jobTransaction = new TransactionTemplate(transactionManager);
         this.jobTransaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         // 扫描作业后可能等待人工动作的实例锁；目录和权限必须看锁等待结束后已提交的撤权、停用事实。
         this.jobTransaction.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
-        this.taskMapper = taskMapper;
         this.fileReferenceService = fileReferenceService;
         this.fileObjectService = fileObjectService;
     }
@@ -222,6 +243,7 @@ public class FlowRuntimeService {
                 .orderByAsc(FlowDefinition::getName).orderByAsc(FlowDefinition::getId);
         List<FlowRuntimeModels.FlowCatalogEntry> result = new ArrayList<>();
         for (FlowDefinition flow : definitionService.selectList(query)) {
+            if (!"PUBLISHED".equals(flow.getStatus())) continue;
             FlowPublication publication = publicationService.selectList(Wrappers.<FlowPublication>lambdaQuery()
                     .eq(FlowPublication::getFlowId, flow.getId())).stream().findFirst().orElse(null);
             if (publication == null || publication.getCurrentVersionId() == null) continue;
@@ -239,7 +261,7 @@ public class FlowRuntimeService {
         requireAction(context, "VIEW_RUNTIME");
         return scopedInstances(context).stream()
                 .filter(instance -> canView(context, instance))
-                .sorted(Comparator.comparing(FlowInstance::getStartedAt,
+                .sorted(Comparator.comparing(FlowInstance::getStartTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(instance -> view(context, instance)).toList();
     }
@@ -252,6 +274,72 @@ public class FlowRuntimeService {
             throw forbidden("FLOW_INSTANCE_VIEW_DENIED", "实例与业务对象权限交集不允许查看");
         }
         return view(context, instance);
+    }
+
+    /** 外部应用只读取自己的发起实例或分配给本应用审批人的实例摘要。 */
+    @Transactional(readOnly = true)
+    public Map<String, Object> applicationInstance(AuthenticatedContext context, Long expectedFlowId,
+            Long applicationId, String externalPrincipalId, Long instanceId) {
+        if (externalPrincipalId == null || externalPrincipalId.isBlank() || externalPrincipalId.length() > 100) {
+            throw forbidden("FLOW_EXTERNAL_PRINCIPAL_REQUIRED", "查询外部实例必须提供审批人标识");
+        }
+        FlowInstance instance = requireScoped(context, instanceId);
+        if (!Objects.equals(instance.getFlowId(), expectedFlowId)) {
+            throw forbidden("FLOW_EXTERNAL_FLOW_DENIED", "当前应用未获权查询此流程");
+        }
+        List<FlowTask> ownTasks = tasks(instanceId).stream()
+                .filter(task -> Objects.equals(task.getAssigneeApplicationId(), applicationId)
+                        && Objects.equals(task.getAssigneeExternalPrincipalId(), externalPrincipalId)).toList();
+        if ((!Objects.equals(instance.getSourceApplicationId(), applicationId)
+                || !Objects.equals(instance.getSourceExternalPrincipalId(), externalPrincipalId))
+                && ownTasks.isEmpty()) {
+            throw forbidden("FLOW_EXTERNAL_INSTANCE_DENIED", "该实例不属于当前应用外部身份范围");
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("instanceId", instance.getId());
+        result.put("title", instance.getTitle());
+        result.put("status", instance.getStatus());
+        result.put("flowVersionId", instance.getFlowVersionId());
+        result.put("startTime", instance.getStartTime());
+        result.put("finishTime", instance.getFinishTime());
+        result.put("tasks", ownTasks.stream().map(this::externalTaskSummary).toList());
+        return result;
+    }
+
+    /** 外部待办按应用与审批人双键查询，不能借应用发布范围读取系统成员的待办。 */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> applicationTasks(AuthenticatedContext context, Long expectedFlowId,
+            Long applicationId, String externalPrincipalId) {
+        if (externalPrincipalId == null || externalPrincipalId.isBlank() || externalPrincipalId.length() > 100) {
+            throw forbidden("FLOW_EXTERNAL_PRINCIPAL_REQUIRED", "查询外部待办必须提供审批人标识");
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (FlowTask task : taskService.selectList(Wrappers.<FlowTask>lambdaQuery()
+                .eq(FlowTask::getAssigneeApplicationId, applicationId)
+                .eq(FlowTask::getAssigneeExternalPrincipalId, externalPrincipalId)
+                .eq(FlowTask::getStatus, "PENDING").orderByDesc(FlowTask::getId))) {
+            FlowInstance instance = instanceService.selectById(task.getInstanceId());
+            if (instance == null || !Objects.equals(instance.getFlowId(), expectedFlowId)
+                    || !Objects.equals(instance.getSystemId(), context.systemId())
+                    || !Objects.equals(instance.getTenantId(), context.tenantId())
+                    || !Set.of("WAITING", "RUNNING").contains(instance.getStatus())
+                    || !hasActiveTaskExecution(task)) continue;
+            Map<String, Object> row = new LinkedHashMap<>(externalTaskSummary(task));
+            row.put("title", instance.getTitle());
+            result.add(row);
+        }
+        return result;
+    }
+
+    private Map<String, Object> externalTaskSummary(FlowTask task) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("taskId", task.getId());
+        row.put("instanceId", task.getInstanceId());
+        row.put("nodeKey", task.getNodeKey());
+        row.put("status", task.getStatus());
+        row.put("dueTime", task.getDueTime());
+        row.put("completeTime", task.getCompleteTime());
+        return row;
     }
 
     /** 从本人真实动作目录恢复申请，当前共享和业务权限失效的条目立即不再展示。 */
@@ -308,15 +396,15 @@ public class FlowRuntimeService {
         // 仅返回进入过的节点和系统生成历史，不沿用包含候选人、变量及原始错误的完整 InstanceView。
         List<FlowRuntimeModels.ProgressNode> progressNodes = executionService.selectList(
                         Wrappers.<FlowExecution>lambdaQuery().eq(FlowExecution::getInstanceId, instance.getId())
-                                .orderByAsc(FlowExecution::getEnteredAt).orderByAsc(FlowExecution::getId)).stream()
+                                .orderByAsc(FlowExecution::getEnterTime).orderByAsc(FlowExecution::getId)).stream()
                 .map(execution -> new FlowRuntimeModels.ProgressNode(execution.getNodeKey(),
                         progressNodeName(nodeIndex, execution.getNodeKey()), execution.getNodeType(), execution.getStatus(),
-                        execution.getEnteredAt(), execution.getLeftAt())).toList();
+                        execution.getEnterTime(), execution.getLeaveTime())).toList();
         List<FlowRuntimeModels.ProgressEvent> progressHistory = historyService.selectList(
                         Wrappers.<FlowHistoryEvent>lambdaQuery().eq(FlowHistoryEvent::getInstanceId, instance.getId())
-                                .orderByAsc(FlowHistoryEvent::getOccurredAt).orderByAsc(FlowHistoryEvent::getId)).stream()
+                                .orderByAsc(FlowHistoryEvent::getOccurTime).orderByAsc(FlowHistoryEvent::getId)).stream()
                 .map(event -> new FlowRuntimeModels.ProgressEvent(progressNodeName(nodeIndex, event.getNodeKey()),
-                        event.getEventName(), event.getBeforeStatus(), event.getAfterStatus(), event.getOccurredAt())).toList();
+                        event.getEventName(), event.getBeforeStatus(), event.getAfterStatus(), event.getOccurTime())).toList();
         String message = switch (instance.getStatus()) {
             case "EXCEPTION" -> "审批需要处理异常，请等待管理员处理。";
             case "WAITING" -> "正在等待审批处理，可刷新查看进度。";
@@ -329,7 +417,7 @@ public class FlowRuntimeService {
         return new FlowRuntimeModels.BusinessActionProgress(actionId, moduleCode, input.actionCode(),
                 delivery.mode().name(), delivery.businessStatus(), instance.getId(), definition.getName(),
                 version.getVersionNumber(), instance.getStatus(), progressNodeName(nodeIndex, instance.getCurrentNodeKey()),
-                instance.getStartedAt(), instance.getFinishedAt(), progressNodes, progressHistory,
+                instance.getStartTime(), instance.getFinishTime(), progressNodes, progressHistory,
                 businessView == null ? null : businessView.current(), businessView, message);
     }
 
@@ -368,7 +456,7 @@ public class FlowRuntimeService {
             throw conflict("FLOW_MANUAL_POSITION_CHANGED", "当前审批节点已处理，请重新读取实例");
         }
         suspended.setStatus("SUSPENDED");
-        suspended.setUpdatedAt(LocalDateTime.now());
+        suspended.setUpdateTime(LocalDateTime.now());
         if (taskService.updateById(suspended) != 1) {
             throw conflict("FLOW_MANUAL_POSITION_CHANGED", "当前审批节点已被其他操作更新");
         }
@@ -382,8 +470,11 @@ public class FlowRuntimeService {
         manualSnapshot.put("resumeTaskId", suspended.getId());
         manualSnapshot.put("resumeNodeKey", suspended.getNodeKey());
         manualSnapshot.put("statusMappings", safeNestedMappings(input.statusMappings()));
+        FlowExecution manualExecution = recordExecution(instance, nodeKey, "MANUAL_APPROVAL", "ACTIVE", null,
+                suspended.getExecutionId());
         FlowTask manual = new FlowTask();
-        manual.setInstanceId(instanceId); manual.setNodeKey(nodeKey); manual.setTaskType("MANUAL_APPROVAL");
+        manual.setInstanceId(instanceId); manual.setExecutionId(manualExecution.getId());
+        manual.setNodeKey(nodeKey); manual.setTaskType("MANUAL_APPROVAL");
         manual.setStatus("PENDING"); manual.setAssigneeAccountId(manualAssignee.accountId());
         manual.setAssigneeTenantMemberId(manualAssignee.tenantMemberId());
         manual.setAssigneeSnapshotJson(toJson(manualSnapshot)); manual.setVersion(0);
@@ -391,7 +482,7 @@ public class FlowRuntimeService {
         addCandidate(manual.getId(), manualAssignee,
                 "由" + displayName(context, participantResolver.currentTenantMemberId(context))
                         + "手动加签：" + input.reason().strip());
-        instance.setCurrentNodeKey(nodeKey); instance.setStatus("WAITING"); instance.setUpdatedAt(LocalDateTime.now());
+        instance.setCurrentNodeKey(nodeKey); instance.setStatus("WAITING"); instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "实例已被其他操作更新");
         }
@@ -518,7 +609,7 @@ public class FlowRuntimeService {
             advance(systemContext(instance), instance, instanceGraph(instance).snapshot(), preview.anchorNodeKey(),
                     variables(instanceId), null, key);
         }
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "实例已变化，请重新预览");
         action.setResultJson(toJson(result(instance)));
         if (actionService.updateById(action) != 1) throw conflict("FLOW_RUNTIME_NODE_SAVE_CONFLICT", "新增节点结果未保存，请重新读取实例");
@@ -648,7 +739,8 @@ public class FlowRuntimeService {
     @Transactional
     public FlowRuntimeModels.ActionResult start(
             AuthenticatedContext context, FlowRuntimeModels.StartRequest input, String traceId) {
-        if (input.idempotencyKey().startsWith("business-action:")) {
+        if (input.idempotencyKey().startsWith("business-action:")
+                || input.idempotencyKey().startsWith("module-approval:")) {
             throw invalid("FLOW_START_KEY_RESERVED", "该请求标识由业务动作保留使用");
         }
         requireAction(context, "START");
@@ -658,6 +750,9 @@ public class FlowRuntimeService {
         if (replay != null) {
             FlowInstance existing = requireScoped(context, replay.getInstanceId());
             return new FlowRuntimeModels.ActionResult(replay.getId(), true, view(context, existing));
+        }
+        if (!"PUBLISHED".equals(definition.getStatus())) {
+            throw conflict("FLOW_RUNTIME_FLOW_DISABLED", "流程已停用，不能发起新实例");
         }
         FlowPublication publication = publicationService.selectList(Wrappers.<FlowPublication>lambdaQuery()
                 .eq(FlowPublication::getFlowId, definition.getId())).stream().findFirst()
@@ -669,33 +764,82 @@ public class FlowRuntimeService {
         return startVersion(context, input, traceId, version, context.tenantId());
     }
 
+    /** 模块审批以发布动作和记录权限为入口，使用当前有效绑定的不可变 Flow 版本启动实例。 */
+    @Transactional
+    public FlowRuntimeModels.ActionResult startModuleApproval(
+            AuthenticatedContext context, FlowRuntimeModels.StartModuleApprovalRequest input, String traceId) {
+        RuntimeDataService.ApprovalRecord record = runtimeDataService.requireApprovalRecord(
+                context, input.moduleCode(), input.recordId(), traceId);
+        String key = "module-approval:" + input.idempotencyKey();
+        FlowAction replay = findStartReplay(context.accountId(), key);
+        if (replay != null) {
+            FlowInstance existing = requireScoped(context, replay.getInstanceId());
+            if (!Objects.equals(existing.getBusinessType(), "MODULE:" + input.moduleCode())
+                    || !Objects.equals(existing.getBusinessId(), record.recordId().toString())) {
+                throw conflict("MODULE_APPROVAL_KEY_CONFLICT", "幂等键已用于其他业务记录");
+            }
+            return new FlowRuntimeModels.ActionResult(replay.getId(), true, view(context, existing));
+        }
+        // 审批发起时冻结当前有权读取的业务字段，供绑定条件和 Flow 分支使用。
+        Map<String, Object> variables = new LinkedHashMap<>();
+        variables.put("recordId", record.recordId());
+        variables.put("fields", record.conditionFields());
+        record.conditionFields().forEach(variables::putIfAbsent);
+        FlowBindingModels.ResolutionView binding = flowBindingService.resolveManualAction(
+                context, record.moduleId(), record.actionId(), variables, traceId);
+        if (binding == null || !"FLOW_ONLY".equals(binding.executionMode()) || binding.flowId() == null) {
+            throw conflict("MODULE_APPROVAL_FLOW_REQUIRED", "审批动作尚未绑定可发起的系统 Flow");
+        }
+        FlowDefinition definition = definitionService.selectById(binding.flowId());
+        FlowVersion version = versionService.selectById(binding.flowVersionId());
+        if (definition == null || version == null || !"PUBLISHED".equals(definition.getStatus())
+                || !"SYSTEM".equals(definition.getContextType())
+                || !Objects.equals(definition.getSystemId(), context.systemId())
+                || !Objects.equals(definition.getOwnerTenantId(), binding.sourceTenantId())
+                || !Objects.equals(binding.requestedTenantId(), context.tenantId())
+                || !Objects.equals(version.getFlowId(), definition.getId())
+                || !Objects.equals(version.getDefinitionHash(), binding.definitionHash())
+                || !readMap(version.getSnapshotJson()).equals(binding.definitionSnapshot())) {
+            throw conflict("MODULE_APPROVAL_FLOW_INVALID", "审批绑定的 Flow 版本或租户范围已失效");
+        }
+        Map<String, Object> snapshot = Map.of("moduleId", record.moduleId(), "actionId", record.actionId(),
+                "actionCode", "APPROVAL", "recordId", record.recordId(), "tenantId", context.tenantId());
+        String title = record.title() == null || record.title().isBlank()
+                ? definition.getName() + " · 审批" : record.title() + " · 审批";
+        FlowRuntimeModels.StartRequest request = new FlowRuntimeModels.StartRequest(binding.flowId(), title,
+                "MODULE:" + input.moduleCode(), record.recordId().toString(), snapshot, variables, key);
+        return startVersion(context, request, traceId, version, context.tenantId());
+    }
+
     /**
      * 已发布应用只能发起应用版本冻结的 Flow 版本；Flow 后续改版不能悄悄改变原应用授权行为。
      */
     @Transactional
     public FlowRuntimeModels.ActionResult startApplication(
             AuthenticatedContext context, FlowRuntimeModels.StartRequest input,
-            Long flowVersionId, String definitionHash, String traceId) {
+            Long flowVersionId, String definitionHash, Long applicationId,
+            String externalPrincipalId, String traceId) {
         if (!input.idempotencyKey().startsWith("app-call:")) {
             throw invalid("APPLICATION_FLOW_START_KEY_INVALID", "应用发起缺少可信调用标识");
         }
         requireAction(context, "START");
         FlowDefinition definition = requireFlow(context, input.flowId());
-        if (!"PUBLISHED".equals(definition.getStatus())) {
-            throw conflict("APPLICATION_TARGET_FLOW_DISABLED", "应用授权的目标 Flow 已停用");
-        }
         requireBusinessAccess(context, input.businessType());
         FlowAction replay = findStartReplay(context.accountId(), input.idempotencyKey());
         if (replay != null) {
             FlowInstance existing = requireScoped(context, replay.getInstanceId());
             return new FlowRuntimeModels.ActionResult(replay.getId(), true, view(context, existing));
         }
+        if (!"PUBLISHED".equals(definition.getStatus())) {
+            throw conflict("APPLICATION_TARGET_FLOW_DISABLED", "应用授权的目标 Flow 已停用");
+        }
         FlowVersion version = versionService.selectById(flowVersionId);
         if (version == null || !Objects.equals(version.getFlowId(), definition.getId())
                 || !Objects.equals(version.getDefinitionHash(), definitionHash)) {
             throw conflict("APPLICATION_TARGET_FLOW_VERSION_INVALID", "应用冻结的目标 Flow 版本不存在或已损坏");
         }
-        return startVersion(context, input, traceId, version, context.tenantId());
+        return startVersion(context, input, traceId, version, context.tenantId(), null,
+                new ApplicationOrigin(applicationId, blankToNull(externalPrincipalId)));
     }
 
     /** 内部入口使用动作已校验的来源发布快照；发起人仍保留其实际租户身份和当前权限。 */
@@ -717,6 +861,10 @@ public class FlowRuntimeService {
         String key = "business-action:" + actionId;
         FlowAction replay = findStartReplay(actor.accountId(), key);
         if (replay != null) return replay.getInstanceId();
+        // 绑定解析与实例创建之间可能有管理员停用操作，发起前再次核对当前流程状态。
+        if (!"PUBLISHED".equals(definition.getStatus())) {
+            throw conflict("FLOW_RUNTIME_FLOW_DISABLED", "流程已停用，不能发起新实例");
+        }
         AuthenticatedContext context = actionCoordinator.currentActor(actor);
         Map<String, Object> intent = objectMapper.convertValue(action.payload(), new com.fasterxml.jackson.core.type.TypeReference<>() {});
         Map<String, Object> business = businessResult.isEmpty() ? intent : businessResult;
@@ -745,7 +893,9 @@ public class FlowRuntimeService {
         Object recordId = businessResult.getOrDefault("id", action.recordId());
         // The Flow reviews an intent. Its writeback/status nodes must not mutate the effective target before approval.
         if ("AFTER_APPROVAL".equals(binding.executionMode())) recordId = null;
-        String title = String.valueOf(business.getOrDefault("title", action.moduleCode() + " · " + action.actionCode()));
+        // 命名动作只提交变动字段时没有业务标题，待办须使用可读流程名，不能把模块和动作编码展示给成员。
+        String title = business.get("title") instanceof String value && !value.isBlank()
+                ? value : definition.getName() + " · 业务动作";
         var request = new FlowRuntimeModels.StartRequest(binding.flowId(), title, "MODULE:" + action.moduleCode(),
                 recordId == null ? null : recordId.toString(), snapshot, variables, key);
         return startVersion(context, request, action.traceId(), version, action.dataTenantId()).instance().id();
@@ -793,15 +943,23 @@ public class FlowRuntimeService {
     }
 
     private record SubflowParentLink(Long parentInstanceId, Long parentExecutionId, String parentNodeKey) { }
+    /** 外部身份仅在应用命名空间内有效，技术执行账号不作为外部审批人的身份。 */
+    private record ApplicationOrigin(Long applicationId, String externalPrincipalId) { }
 
     private FlowRuntimeModels.ActionResult startVersion(AuthenticatedContext context, FlowRuntimeModels.StartRequest input,
                                                         String traceId, FlowVersion version, Long dataTenantId) {
-        return startVersion(context, input, traceId, version, dataTenantId, null);
+        return startVersion(context, input, traceId, version, dataTenantId, null, null);
     }
 
     private FlowRuntimeModels.ActionResult startVersion(AuthenticatedContext context, FlowRuntimeModels.StartRequest input,
                                                         String traceId, FlowVersion version, Long dataTenantId,
                                                         SubflowParentLink parentLink) {
+        return startVersion(context, input, traceId, version, dataTenantId, parentLink, null);
+    }
+
+    private FlowRuntimeModels.ActionResult startVersion(AuthenticatedContext context, FlowRuntimeModels.StartRequest input,
+                                                        String traceId, FlowVersion version, Long dataTenantId,
+                                                        SubflowParentLink parentLink, ApplicationOrigin origin) {
         Map<String, Object> snapshot = readMap(version.getSnapshotJson());
         Map<String, Object> startNode = nodes(snapshot).stream()
                 .filter(node -> "START".equals(string(node.get("nodeType")))).findFirst()
@@ -817,10 +975,16 @@ public class FlowRuntimeService {
         instance.setBusinessType(blankToNull(input.businessType()));
         instance.setBusinessId(blankToNull(input.businessId()));
         instance.setBusinessSnapshotJson(toJson(safeMap(input.businessSnapshot())));
+        // 实例固定启动时的流程配置，后续发布版本不能改变已运行实例。
+        instance.setRuntimeSnapshotJson(toJson(snapshot));
         instance.setTitle(input.title().strip());
         instance.setCurrentNodeKey(string(startNode.get("nodeKey")));
         instance.setStatus("RUNNING");
         instance.setStartedByAccountId(context.accountId());
+        if (origin != null) {
+            instance.setSourceApplicationId(origin.applicationId());
+            instance.setSourceExternalPrincipalId(origin.externalPrincipalId());
+        }
         // 来源目录身份可为空；真实账号必填，不能为启动共享流程添加来源成员。
         instance.setStartedByTenantMemberId(participantResolver.tenantMemberIdForAccount(
                 context.systemId(), dataTenantId, context.accountId()));
@@ -838,6 +1002,12 @@ public class FlowRuntimeService {
         FlowAction action = insertAction(instance.getId(), null, string(startNode.get("nodeKey")), "START",
                 null, Map.of("flowId", version.getFlowId(), "variables", safeMap(input.variables())),
                 result(instance), input.idempotencyKey(), context.accountId());
+        if (origin != null) {
+            action.setActorApplicationId(origin.applicationId());
+            action.setActorExternalPrincipalId(origin.externalPrincipalId());
+        }
+        // 同一事务内的纯自动流程也先发起再通过；失败回滚时两个事件一并撤销。
+        publishFlowEvent(context, instance, LocalBusinessEvent.Type.FLOW_STARTED);
         advanceFromExecution(context, instance, snapshot, string(startNode.get("nodeKey")),
                 variables(instance.getId()), null, startExecution.getId());
         action.setResultJson(toJson(result(instance)));
@@ -853,6 +1023,27 @@ public class FlowRuntimeService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public FlowRuntimeModels.ActionResult handle(
             AuthenticatedContext context, Long taskId, FlowRuntimeModels.HandleTaskRequest input, String traceId) {
+        return handleTask(context, taskId, input, traceId, null);
+    }
+
+    /** 应用签名已校验动作授权；审批身份仅以应用 ID 和调用方传入的标识匹配冻结待办。 */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public FlowRuntimeModels.ActionResult handleApplication(AuthenticatedContext context, Long expectedFlowId,
+            Long applicationId, String externalPrincipalId, Long taskId,
+            FlowRuntimeModels.HandleTaskRequest input, String traceId) {
+        if (externalPrincipalId == null || externalPrincipalId.isBlank() || externalPrincipalId.length() > 100
+                || !Set.of("APPROVE", "REJECT").contains(input.actionCode().strip().toUpperCase(Locale.ROOT))) {
+            throw forbidden("FLOW_EXTERNAL_ACTION_INVALID", "外部审批必须提供有效审批人标识及同意或拒绝动作");
+        }
+        return handleTask(context, taskId, input, traceId,
+                new ExternalActor(expectedFlowId, applicationId, externalPrincipalId));
+    }
+
+    private record ExternalActor(Long flowId, Long applicationId, String principalId) { }
+
+    private FlowRuntimeModels.ActionResult handleTask(
+            AuthenticatedContext context, Long taskId, FlowRuntimeModels.HandleTaskRequest input,
+            String traceId, ExternalActor external) {
         requireAction(context, "HANDLE");
         String actionCode = input.actionCode().strip().toUpperCase(Locale.ROOT);
         if (!TASK_ACTIONS.contains(actionCode)) {
@@ -860,20 +1051,29 @@ public class FlowRuntimeService {
         }
         FlowTask initial = taskService.selectById(taskId);
         if (initial == null) throw notFound("FLOW_TASK_NOT_FOUND", "审批任务不存在");
+        if (external != null && !externalTaskMatches(initial, external)) {
+            throw forbidden("FLOW_EXTERNAL_APPROVER_DENIED", "外部审批人不匹配当前应用待办");
+        }
         // 同一实例的人工处理先串行，再锁具体任务；会签不能各自看到另一人仍待办而永久等待。
         FlowInstance scoped = requireScopedForUpdate(context, initial.getInstanceId());
+        if (external != null && !Objects.equals(scoped.getFlowId(), external.flowId())) {
+            throw forbidden("FLOW_EXTERNAL_FLOW_DENIED", "当前应用未获权办理此流程");
+        }
         FlowAction replay = findAction(scoped.getId(), input.idempotencyKey());
         if (replay != null) return replayTask(context, replay, taskId, input);
 
         FlowTask task = taskService.selectList(Wrappers.<FlowTask>lambdaQuery()
                 .eq(FlowTask::getId, taskId).last("FOR UPDATE")).stream().findFirst()
                 .orElseThrow(() -> notFound("FLOW_TASK_NOT_FOUND", "审批任务不存在"));
+        if (external != null && !externalTaskMatches(task, external)) {
+            throw forbidden("FLOW_EXTERNAL_APPROVER_DENIED", "外部审批人不匹配当前应用待办");
+        }
         FlowAction lockedReplay = findAction(scoped.getId(), input.idempotencyKey());
         if (lockedReplay != null) return replayTask(context, lockedReplay, taskId, input);
         if (!"PENDING".equals(task.getStatus())) {
             throw conflict("FLOW_TASK_ALREADY_HANDLED", "审批任务已处理，请读取实例最新结果");
         }
-        Long currentTenantMemberId = participantResolver.currentTenantMemberId(context);
+        Long currentTenantMemberId = external == null ? participantResolver.currentTenantMemberId(context) : null;
         FlowExecution taskExecution = taskExecution(task);
         if (!Set.of("WAITING", "RUNNING").contains(scoped.getStatus()) || taskExecution == null
                 || !"ACTIVE".equals(taskExecution.getStatus())) {
@@ -890,7 +1090,7 @@ public class FlowRuntimeService {
         if (Set.of("CLAIM", "UNCLAIM").contains(actionCode)) {
             return handleClaim(context, scoped, task, input, actionCode, operations, traceId);
         }
-        if (!isCurrentHandler(context, task)) {
+        if (external == null ? !isCurrentHandler(context, task) : !externalTaskMatches(task, external)) {
             throw forbidden("FLOW_TASK_HANDLER_DENIED", "只有当前有效处理人可以处理此任务");
         }
         if (operations.requireClaim() && task.getAssigneeAccountId() == null) {
@@ -918,6 +1118,10 @@ public class FlowRuntimeService {
         actionInput.put("targetTenantMemberId", input.targetTenantMemberId() == null ? "" : input.targetTenantMemberId());
         if (input.targetPlatformAccountId() != null) actionInput.put("targetPlatformAccountId", input.targetPlatformAccountId());
         actionInput.put("requestFingerprint", taskRequestFingerprint(input));
+        if (external != null) {
+            actionInput.put("applicationId", external.applicationId());
+            actionInput.put("externalPrincipalId", external.principalId());
+        }
         if (!"APPROVE".equals(actionCode) && input.attachmentIds() != null && !input.attachmentIds().isEmpty()) {
             throw invalid("FLOW_APPROVAL_ATTACHMENT_ACTION_INVALID", "审批附件只能随同意或完成填写一起提交");
         }
@@ -995,14 +1199,13 @@ public class FlowRuntimeService {
                     platform ? context.accountId() : currentTenantMemberId);
             // 转交替代领取归属，原池仅留审计，受让人不得取消领取回到原候选人。
             transferredSnapshot.remove("claimActorAccountId"); transferredSnapshot.remove("claimActorTenantMemberId");
-            task.setClaimedAt(null);
+            task.setClaimTime(null);
             task.setAssigneeSnapshotJson(toJson(transferredSnapshot));
-            task.setUpdatedAt(LocalDateTime.now());
+            task.setUpdateTime(LocalDateTime.now());
             if (taskService.updateById(task) != 1) {
                 throw conflict("FLOW_TASK_ALREADY_HANDLED", "审批任务已被其他处理人更新");
             }
-            taskMapper.update(null, Wrappers.<FlowTask>lambdaUpdate().eq(FlowTask::getId, task.getId())
-                    .eq(FlowTask::getVersion, task.getVersion()).set(FlowTask::getClaimedAt, null));
+            stateRepository.clearTransferredClaim(task);
             addCandidate(task.getId(), target,
                     "任务由" + actorName(context, currentTenantMemberId, context.accountId()) + "转交");
             messageService.notifyFlowEvent(context, scoped.getId(),
@@ -1012,8 +1215,8 @@ public class FlowRuntimeService {
                     List.of(target.accountId()));
         } else {
             task.setStatus(actionCode);
-            task.setCompletedAt(LocalDateTime.now());
-            task.setUpdatedAt(LocalDateTime.now());
+            task.setCompleteTime(LocalDateTime.now());
+            task.setUpdateTime(LocalDateTime.now());
             if (taskService.updateById(task) != 1) {
                 throw conflict("FLOW_TASK_ALREADY_HANDLED", "审批任务已被其他处理人更新");
             }
@@ -1031,12 +1234,12 @@ public class FlowRuntimeService {
                     resumeAfterManualNode(scoped, taskSnapshot);
                 } else if (activateNextApprovalTaskOrWait(scoped, task, taskSnapshot)) {
                     scoped.setStatus("WAITING");
-                    scoped.setUpdatedAt(LocalDateTime.now());
+                    scoped.setUpdateTime(LocalDateTime.now());
                     updateHandledInstance(scoped);
                 } else {
                     completeExecution(taskExecution, actionCode);
                     scoped.setStatus("RUNNING");
-                    scoped.setUpdatedAt(LocalDateTime.now());
+                    scoped.setUpdateTime(LocalDateTime.now());
                     updateHandledInstance(scoped);
                     advanceFromExecution(systemContext(scoped), scoped, snapshot, task.getNodeKey(),
                             variables(scoped.getId()), currentTenantMemberId, taskExecution.getId());
@@ -1054,15 +1257,15 @@ public class FlowRuntimeService {
                 cancelPendingJobs(scoped.getId(), null);
                 createReturnTask(scoped, task, taskSnapshot, returnPolicy, returnNodeKey, input.comment());
                 scoped.setStatus("WAITING");
-                scoped.setFinishedAt(null);
-                scoped.setUpdatedAt(LocalDateTime.now());
+                scoped.setFinishTime(null);
+                scoped.setUpdateTime(LocalDateTime.now());
                 updateHandledInstance(scoped);
             } else {
                 completeExecution(taskExecution, actionCode);
                 scoped.setStatus("REJECTED");
                 cancelUnfinishedTasks(scoped);
-                scoped.setFinishedAt(LocalDateTime.now());
-                scoped.setUpdatedAt(LocalDateTime.now());
+                scoped.setFinishTime(LocalDateTime.now());
+                scoped.setUpdateTime(LocalDateTime.now());
                 updateHandledInstance(scoped);
                 cancelPendingJobs(scoped.getId(), null);
                 cancelActiveExecutions(scoped.getId(), "INSTANCE_REJECTED");
@@ -1082,6 +1285,13 @@ public class FlowRuntimeService {
             FlowAction duplicateReplay = findAction(latest.getId(), input.idempotencyKey());
             if (duplicateReplay != null) return replayTask(context, duplicateReplay, taskId, input);
             throw duplicate;
+        }
+        if (external != null) {
+            action.setActorApplicationId(external.applicationId());
+            action.setActorExternalPrincipalId(external.principalId());
+            if (actionService.updateById(action) != 1) {
+                throw conflict("FLOW_ACTION_VERSION_CONFLICT", "外部审批来源保存失败，请重试");
+            }
         }
         if ("RETURN".equals(actionCode)) {
             FlowTask correction = tasks(latest.getId()).stream()
@@ -1108,7 +1318,15 @@ public class FlowRuntimeService {
                     List.of(latest.getStartedByAccountId()));
         }
         if ("REJECTED".equals(latest.getStatus())) failParentForTerminalSubflow(latest);
+        if ("REJECTED".equals(latest.getStatus())) {
+            publishFlowEvent(context, latest, LocalBusinessEvent.Type.FLOW_REJECTED);
+        }
         return new FlowRuntimeModels.ActionResult(action.getId(), false, view(context, latest));
+    }
+
+    private boolean externalTaskMatches(FlowTask task, ExternalActor external) {
+        return Objects.equals(task.getAssigneeApplicationId(), external.applicationId())
+                && Objects.equals(task.getAssigneeExternalPrincipalId(), external.principalId());
     }
 
     /** 退回配置随发布版本冻结；旧版本按退回发起人、重提后从头执行兼容。 */
@@ -1185,8 +1403,11 @@ public class FlowRuntimeService {
         Map<String, Object> targetNode = nodes(snapshot(instance)).stream()
                 .filter(node -> Objects.equals(returnNodeKey, node.get("nodeKey"))).findFirst()
                 .orElseThrow(() -> conflict("FLOW_RETURN_TARGET_INVALID", "退回目标已不在当前实例图中"));
+        FlowExecution returnExecution = recordExecution(instance, returnNodeKey, "RETURN_TASK", "ACTIVE", null,
+                taskExecutionId(source));
         FlowTask correction = new FlowTask();
         correction.setInstanceId(instance.getId());
+        correction.setExecutionId(returnExecution.getId());
         correction.setNodeKey(returnNodeKey);
         correction.setTaskType("RETURN_TASK");
         correction.setStatus("PENDING");
@@ -1268,14 +1489,14 @@ public class FlowRuntimeService {
             throw invalid("FLOW_NODE_FORM_NOT_AVAILABLE", "当前退回任务没有可安全修改的业务字段");
         }
         task.setStatus("RESUBMIT");
-        task.setCompletedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
+        task.setCompleteTime(LocalDateTime.now());
+        task.setUpdateTime(LocalDateTime.now());
         if (taskService.updateById(task) != 1) throw conflict("FLOW_TASK_ALREADY_HANDLED", "退回任务已变化，请刷新后重试");
         FlowAction action = insertAction(instance.getId(), task.getId(), task.getNodeKey(), "RESUBMIT",
                 blankToNull(input.comment()), actionInput, result(instance), input.idempotencyKey(), context.accountId());
         instance.setStatus("RUNNING");
-        instance.setFinishedAt(null);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setFinishTime(null);
+        instance.setUpdateTime(LocalDateTime.now());
         updateHandledInstance(instance);
         Map<String, Object> graph = snapshot(instance);
         if ("FROM_START".equals(policy.resubmitRoute())) {
@@ -1363,7 +1584,7 @@ public class FlowRuntimeService {
         }
         stored.put("delegation", delegation);
         task.setAssigneeSnapshotJson(toJson(stored));
-        task.setUpdatedAt(now);
+        task.setUpdateTime(now);
         if (taskService.updateById(task) != 1) {
             throw conflict("FLOW_TASK_ALREADY_HANDLED", "审批任务已被其他处理人更新，请刷新后重试");
         }
@@ -1479,25 +1700,26 @@ public class FlowRuntimeService {
             addedSnapshot.put("sequence", sequence); addedSnapshot.put("sequenceCount", sequence);
             addedSnapshot.put("resolvedPeople", List.of(personSnapshot(target)));
             FlowTask added = new FlowTask();
-            added.setInstanceId(instance.getId()); added.setNodeKey(task.getNodeKey()); added.setTaskType(task.getTaskType());
+            added.setInstanceId(instance.getId()); added.setExecutionId(task.getExecutionId());
+            added.setNodeKey(task.getNodeKey()); added.setTaskType(task.getTaskType());
             added.setStatus("SEQUENTIAL".equals(mode) ? "QUEUED" : "PENDING");
             added.setAssigneeAccountId(target.accountId()); added.setAssigneeTenantMemberId(target.tenantMemberId());
             added.setAssigneeSnapshotJson(toJson(addedSnapshot)); added.setVersion(0);
             // 会签新增人沿用当前绝对期限（含无期限）；顺序追加人沿用正常轮到他时的计时语义。
-            if ("ALL_SIGN".equals(mode)) added.setDueAt(task.getDueAt());
+            if ("ALL_SIGN".equals(mode)) added.setDueTime(task.getDueTime());
             taskService.insert(added); affected = added;
             addCandidate(added.getId(), target, "同节点加签：" + targetName);
-            if (added.getDueAt() != null) scheduleJob(instance, activeExecution(instance.getId(), task.getNodeKey()), task.getNodeKey(),
-                    "TASK_TIMEOUT", Map.of("taskId", added.getId()), "TASK_TIMEOUT:" + added.getId(), 1, added.getDueAt());
+            if (added.getDueTime() != null) scheduleJob(instance, activeExecution(instance.getId(), task.getNodeKey()), task.getNodeKey(),
+                    "TASK_TIMEOUT", Map.of("taskId", added.getId()), "TASK_TIMEOUT:" + added.getId(), 1, added.getDueTime());
         } else {
-            affected.setStatus("CANCELLED"); affected.setCompletedAt(now); affected.setUpdatedAt(now);
+            affected.setStatus("CANCELLED"); affected.setCompleteTime(now); affected.setUpdateTime(now);
             if (taskService.updateById(affected) != 1) throw conflict("FLOW_SIGN_CONCURRENT_UPDATE", "目标任务已变化，本次减签未保存");
             resolveTaskTimeoutIncidents(context, instance, affected);
             cancelPendingJobs(instance.getId(), affected.getId());
         }
-        task.setUpdatedAt(now);
+        task.setUpdateTime(now);
         if (taskService.updateById(task) != 1) throw conflict("FLOW_SIGN_CONCURRENT_UPDATE", "当前任务已变化，本次加减签未保存");
-        instance.setUpdatedAt(now); updateHandledInstance(instance);
+        instance.setUpdateTime(now); updateHandledInstance(instance);
         FlowAction recorded = insertAction(instance.getId(), task.getId(), task.getNodeKey(), action, blankToNull(input.comment()),
                 Map.of("requestFingerprint", taskRequestFingerprint(input), "targetId", targetId, "targetName", targetName,
                         "affectedTaskId", affected.getId(), "approvalMode", mode), result(instance), input.idempotencyKey(), context.accountId());
@@ -1538,14 +1760,10 @@ public class FlowRuntimeService {
         }
         LocalDateTime now = LocalDateTime.now();
         // Base 非空更新不清空处理人；一次带版本条件的显式更新同时处理领取和释放的空值。
-        int changed = taskMapper.update(null, Wrappers.<FlowTask>lambdaUpdate()
-                .eq(FlowTask::getId, task.getId()).eq(FlowTask::getVersion, task.getVersion()).eq(FlowTask::getStatus, "PENDING")
-                .set(FlowTask::getAssigneeAccountId, claim ? actor.accountId() : null)
-                .set(FlowTask::getAssigneeTenantMemberId, claim ? actor.tenantMemberId() : null)
-                .set(FlowTask::getClaimedAt, claim ? now : null).set(FlowTask::getAssigneeSnapshotJson, toJson(stored))
-                .set(FlowTask::getUpdatedAt, now).set(FlowTask::getVersion, task.getVersion() + 1));
+        int changed = stateRepository.changeClaim(task, claim, actor.accountId(), actor.tenantMemberId(),
+                toJson(stored), now);
         if (changed != 1) throw conflict("FLOW_TASK_CONCURRENT_UPDATE", "待办归属已变化，本次领取操作未保存");
-        instance.setUpdatedAt(now); updateHandledInstance(instance);
+        instance.setUpdateTime(now); updateHandledInstance(instance);
         FlowAction result = insertAction(instance.getId(), task.getId(), task.getNodeKey(), action, input.comment(),
                 Map.of("requestFingerprint", taskRequestFingerprint(input)), result(instance), input.idempotencyKey(), context.accountId());
         audit(context, traceId, "FLOW_TASK_" + action, "FLOW_TASK", task.getId(), Map.of("instanceId", instance.getId()));
@@ -1555,7 +1773,7 @@ public class FlowRuntimeService {
     /** 领取归属必须同时匹配受信标记和当前处理人；转交不会凭旧领取时间获得释放权。 */
     private boolean activeClaim(FlowTask task) {
         Map<String, Object> stored = readMap(task.getAssigneeSnapshotJson());
-        return task.getClaimedAt() != null && task.getAssigneeAccountId() != null
+        return task.getClaimTime() != null && task.getAssigneeAccountId() != null
                 && Objects.equals(string(stored.get("claimActorAccountId")), String.valueOf(task.getAssigneeAccountId()))
                 && (task.getAssigneeTenantMemberId() == null || Objects.equals(string(stored.get("claimActorTenantMemberId")),
                 String.valueOf(task.getAssigneeTenantMemberId())));
@@ -1597,7 +1815,8 @@ public class FlowRuntimeService {
 
     /** 只有冻结后续规则真正引用的人工审批才封存事实；旧实例不追认新增规则。 */
     private void rememberHumanApproval(FlowInstance instance, FlowTask task, FlowAction action, Map<String, Object> input) {
-        if (!"APPROVAL".equals(task.getTaskType()) || Boolean.TRUE.equals(readMap(task.getAssigneeSnapshotJson()).get("manual"))) return;
+        if (!"APPROVAL".equals(task.getTaskType()) || task.getAssigneeApplicationId() != null
+                || Boolean.TRUE.equals(readMap(task.getAssigneeSnapshotJson()).get("manual"))) return;
         boolean referenced = nodes(snapshot(instance)).stream().anyMatch(node -> {
             Map<String, Object> repeat = map(map(node.get("config")).get("repeatApproval"));
             return Boolean.TRUE.equals(repeat.get("enabled")) && repeat.get("sourceNodeKeys") instanceof List<?> keys
@@ -1653,6 +1872,7 @@ public class FlowRuntimeService {
         Map<String, Object> taskSnapshot = readMap(task.getAssigneeSnapshotJson());
         Map<String, Object> repeat = map(taskSnapshot.get("repeatApproval"));
         if (!"PENDING".equals(task.getStatus()) || !"APPROVAL".equals(task.getTaskType())
+                || task.getAssigneeApplicationId() != null
                 || Boolean.TRUE.equals(taskSnapshot.get("manual")) || !Boolean.TRUE.equals(repeat.get("enabled"))) return false;
         String manualReason = "指定前序范围内没有同一有效审批人的人工同意事实";
         boolean writing = false;
@@ -1676,7 +1896,8 @@ public class FlowRuntimeService {
                     FlowTask source = tasks(instance.getId()).stream().filter(item -> Objects.equals(item.getId(), approved.getTaskId())).findFirst().orElse(null);
                     if (source == null || !Objects.equals(source.getNodeKey(), approved.getNodeKey())
                             || !"APPROVAL".equals(source.getTaskType()) || !"APPROVE".equals(source.getStatus())
-                            || source.getCompletedAt() == null || approved.getActedByAccountId() == null
+                            || source.getAssigneeApplicationId() != null || approved.getActorApplicationId() != null
+                            || source.getCompleteTime() == null || approved.getActedByAccountId() == null
                             || Boolean.TRUE.equals(readMap(source.getAssigneeSnapshotJson()).get("manual"))) continue;
                     if (source.getAssigneeAccountId() != null && !Objects.equals(source.getAssigneeAccountId(), approved.getActedByAccountId())
                             || source.getAssigneeTenantMemberId() != null && !Objects.equals(source.getAssigneeTenantMemberId(), approved.getActedByTenantMemberId())) continue;
@@ -1707,7 +1928,7 @@ public class FlowRuntimeService {
                     } else if (origin != null || actionCoordinator.businessReadForFlow(instance) != null) continue;
                     validateTimeoutApproval(originActor, instance, task);
                     writing = true;
-                    task.setStatus("APPROVE"); task.setCompletedAt(LocalDateTime.now()); task.setUpdatedAt(LocalDateTime.now());
+                    task.setStatus("APPROVE"); task.setCompleteTime(LocalDateTime.now()); task.setUpdateTime(LocalDateTime.now());
                     updateTimeoutTask(task); cancelPendingJobs(instance.getId(), task.getId());
                     FlowExecution execution = activeExecution(instance.getId(), task.getNodeKey());
                     recordHistory(instance, execution == null ? null : execution.getId(), task.getId(), task.getNodeKey(), "TASK",
@@ -1929,7 +2150,12 @@ public class FlowRuntimeService {
             if (!origin.input().actionCode().equals(action.path("code").asText())
                     || !"CUSTOM".equals(action.path("actionType").asText())) continue;
             var config = readMap(action.path("configJson").asText("{}"));
-            return "UPDATE_FIELDS".equals(config.get("operation")) && config.get("parameterFieldCodes") instanceof List<?>;
+            if (!(config.get("parameterFieldCodes") instanceof List<?> parameters)) return false;
+            if ("UPDATE_FIELDS".equals(config.get("operation"))) return !parameters.isEmpty() && parameters.size() <= 20;
+            if (!"SET_STATUS".equals(config.get("operation")) || !parameters.isEmpty()
+                    || !(config.get("statusValue") instanceof String status)) return false;
+            return !status.isBlank() && status.length() <= 64 && status.equals(status.strip())
+                    && status.chars().noneMatch(Character::isISOControl);
         }
         return false;
     }
@@ -1995,8 +2221,8 @@ public class FlowRuntimeService {
         }
         String beforeStatus = instance.getStatus();
         instance.setStatus("WITHDRAW".equals(actionCode) ? "WITHDRAWN" : "TERMINATED");
-        instance.setFinishedAt(LocalDateTime.now());
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setFinishTime(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "实例已被其他操作更新");
         }
@@ -2039,7 +2265,7 @@ public class FlowRuntimeService {
             throw conflict("FLOW_INSTANCE_ALREADY_FINISHED", "流程已结束，不能继续催办");
         }
         List<FlowTask> current = tasks(instance.getId()).stream()
-                .filter(task -> "PENDING".equals(task.getStatus()) && task.getCompletedAt() == null
+                .filter(task -> "PENDING".equals(task.getStatus()) && task.getCompleteTime() == null
                         && Objects.equals(task.getNodeKey(), instance.getCurrentNodeKey())).toList();
         boolean starter = Objects.equals(instance.getStartedByAccountId(), context.accountId());
         boolean handler = allowed(context, "HANDLE") && current.stream().anyMatch(task -> isCurrentHandler(context, task));
@@ -2095,26 +2321,48 @@ public class FlowRuntimeService {
         }
         Long actorTenantMemberId = participantResolver.currentTenantMemberId(context);
         if ("RETRY".equals(actionCode)) {
-            FlowJob job = jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
-                            .eq(FlowJob::getInstanceId, instance.getId())
-                            .eq(FlowJob::getIdempotencyKey, "RETRY:" + incident.getId()))
-                    .stream().findFirst().orElse(null);
-            if (job == null) {
-                scheduleJob(instance, activeExecution(instance.getId(), incident.getNodeKey()), incident.getNodeKey(),
-                        "RETRY", Map.of("exceptionId", incident.getId(), "errorCode", incident.getErrorCode()),
-                        "RETRY:" + incident.getId(), 3, LocalDateTime.now());
+            if ("AI_COMPLETION".equals(incident.getExceptionType())) {
+                // AI 异常只重排原模型作业，保留原执行号并重新经过当前授权校验，不能走通用自动节点补偿。
+                FlowExecution execution = activeExecution(instance.getId(), incident.getNodeKey());
+                FlowJob aiJob = execution == null ? null : jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
+                                .eq(FlowJob::getInstanceId, instance.getId())
+                                .eq(FlowJob::getExecutionId, execution.getId())
+                                .eq(FlowJob::getJobType, "AI_COMPLETION")
+                                .eq(FlowJob::getStatus, "FAILED")
+                                .orderByDesc(FlowJob::getId).last("LIMIT 1 FOR UPDATE"))
+                        .stream().findFirst().orElse(null);
+                if (aiJob == null) throw conflict("FLOW_AI_RETRY_JOB_MISSING", "AI 节点原作业已变化，请读取最新状态");
+                aiJob.setPayloadJson(toJson(Map.of("exceptionId", incident.getId())));
+                aiJob.setStatus("PENDING");
+                aiJob.setNextRunTime(LocalDateTime.now());
+                aiJob.setCompleteTime(null);
+                aiJob.setLastErrorCode(null);
+                aiJob.setLastErrorMessage(null);
+                aiJob.setLockTime(null);
+                aiJob.setLockedBy(null);
+                if (jobService.updateById(aiJob) != 1) throw conflict("FLOW_AI_RETRY_JOB_CONFLICT", "AI 节点作业已变化");
             } else {
-                job.setStatus("PENDING");
-                job.setNextRunAt(LocalDateTime.now());
-                job.setLastErrorCode(null);
-                job.setLastErrorMessage(null);
-                jobService.updateById(job);
+                FlowJob job = jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
+                                .eq(FlowJob::getInstanceId, instance.getId())
+                                .eq(FlowJob::getIdempotencyKey, "RETRY:" + incident.getId()))
+                        .stream().findFirst().orElse(null);
+                if (job == null) {
+                    scheduleJob(instance, activeExecution(instance.getId(), incident.getNodeKey()), incident.getNodeKey(),
+                            "RETRY", Map.of("exceptionId", incident.getId(), "errorCode", incident.getErrorCode()),
+                            "RETRY:" + incident.getId(), 3, LocalDateTime.now());
+                } else {
+                    job.setStatus("PENDING");
+                    job.setNextRunTime(LocalDateTime.now());
+                    job.setLastErrorCode(null);
+                    job.setLastErrorMessage(null);
+                    jobService.updateById(job);
+                }
             }
             incident.setStatus("RETRY_SCHEDULED");
             instance.setStatus("WAITING");
         } else {
             incident.setStatus("RESOLVED");
-            incident.setResolvedAt(LocalDateTime.now());
+            incident.setResolveTime(LocalDateTime.now());
             incident.setResolvedByAccountId(context.accountId());
             incident.setResolvedByTenantMemberId(actorTenantMemberId);
             incident.setResolutionComment(input.comment().strip());
@@ -2153,7 +2401,7 @@ public class FlowRuntimeService {
                 .in(FlowException::getExceptionType, List.of("JOB_EXECUTION", "TIMEOUT"))
                 .in(FlowException::getStatus, List.of("OPEN", "RETRY_SCHEDULED")).last("FOR UPDATE"));
         for (FlowException incident : incidents) {
-            incident.setStatus("RESOLVED"); incident.setResolvedAt(LocalDateTime.now());
+            incident.setStatus("RESOLVED"); incident.setResolveTime(LocalDateTime.now());
             incident.setResolvedByAccountId(actor.accountId());
             incident.setResolvedByTenantMemberId(participantResolver.currentTenantMemberId(actor));
             incident.setResolutionComment("保留的原待办已由当前合法处理人处理");
@@ -2171,8 +2419,8 @@ public class FlowRuntimeService {
         int limit = Math.max(1, Math.min(requestedLimit, 50));
         List<Long> dueIds = jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
                         .eq(FlowJob::getStatus, "PENDING")
-                        .le(FlowJob::getNextRunAt, LocalDateTime.now())
-                        .orderByAsc(FlowJob::getNextRunAt).orderByAsc(FlowJob::getId)
+                        .le(FlowJob::getNextRunTime, LocalDateTime.now())
+                        .orderByAsc(FlowJob::getNextRunTime).orderByAsc(FlowJob::getId)
                         .last("LIMIT " + limit)).stream().map(FlowJob::getId).toList();
         int processed = 0;
         for (Long jobId : dueIds) {
@@ -2205,8 +2453,8 @@ public class FlowRuntimeService {
                 .eq(FlowInstance::getId, observed.getInstanceId()).last("FOR UPDATE"));
         FlowJob current = jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
                 .eq(FlowJob::getId, jobId).last("FOR UPDATE")).stream().findFirst().orElse(null);
-        return current != null && "PENDING".equals(current.getStatus()) && current.getNextRunAt() != null
-                && !current.getNextRunAt().isAfter(LocalDateTime.now()) ? current : null;
+        return current != null && "PENDING".equals(current.getStatus()) && current.getNextRunTime() != null
+                && !current.getNextRunTime().isAfter(LocalDateTime.now()) ? current : null;
     }
 
     /** 不恢复失效发起人权限、不伪造审批结果；异常保留待办并允许其他作业继续。 */
@@ -2233,19 +2481,24 @@ public class FlowRuntimeService {
         job.setAttemptCount((job.getAttemptCount() == null ? 0 : job.getAttemptCount()) + 1);
         boolean messageDelivery = "MESSAGE_DELIVERY".equals(job.getJobType());
         boolean webhookDelivery = "WEBHOOK_DELIVERY".equals(job.getJobType());
+        Long linkedIncidentId = numericBusinessId(String.valueOf(readMap(job.getPayloadJson()).get("exceptionId")));
+        FlowException linkedIncident = linkedIncidentId == null ? null : exceptionService.selectById(linkedIncidentId);
+        boolean aiCompletion = "AI_COMPLETION".equals(job.getJobType())
+                || "RETRY".equals(job.getJobType()) && linkedIncident != null
+                && "AI_COMPLETION".equals(linkedIncident.getExceptionType());
         if ((messageDelivery || webhookDelivery) && job.getAttemptCount() < job.getMaxAttempts()) {
             int retryDelayMinutes = Math.max(1, number(readMap(job.getPayloadJson()).get("retryDelayMinutes"), 5));
             job.setStatus("PENDING");
-            job.setNextRunAt(LocalDateTime.now().plusMinutes(retryDelayMinutes));
+            job.setNextRunTime(LocalDateTime.now().plusMinutes(retryDelayMinutes));
             job.setLastErrorCode(code);
             job.setLastErrorMessage(message);
-            job.setLockedAt(null);
+            job.setLockTime(null);
             job.setLockedBy(null);
             jobService.updateById(job);
             instance.setStatus("WAITING");
             instance.setErrorCode(null);
             instance.setErrorMessage(null);
-            instance.setUpdatedAt(LocalDateTime.now());
+            instance.setUpdateTime(LocalDateTime.now());
             instanceService.updateById(instance);
             recordHistory(instance, job.getExecutionId(), null, job.getNodeKey(),
                     webhookDelivery ? "FLOW_WEBHOOK_RETRY" : "FLOW_MESSAGE_RETRY",
@@ -2256,21 +2509,43 @@ public class FlowRuntimeService {
             return;
         }
         finishJob(job, "FAILED", code, message);
-        FlowException incident = new FlowException();
-        incident.setInstanceId(instance.getId()); incident.setNodeKey(job.getNodeKey());
-        incident.setExceptionType(messageDelivery ? "MESSAGE_DELIVERY"
-                : webhookDelivery ? "WEBHOOK_DELIVERY" : "JOB_EXECUTION");
-        incident.setErrorCode(code); incident.setErrorMessage(message);
-        incident.setPolicyAction("MANUAL"); incident.setStatus("OPEN"); incident.setVersion(0);
-        exceptionService.insert(incident);
+        FlowException incident = aiCompletion ? linkedIncident : null;
+        if (incident != null && (!Objects.equals(incident.getInstanceId(), instance.getId())
+                || !Objects.equals(incident.getNodeKey(), job.getNodeKey())
+                || !"AI_COMPLETION".equals(incident.getExceptionType()))) incident = null;
+        if (incident == null) {
+            incident = new FlowException();
+            incident.setInstanceId(instance.getId()); incident.setNodeKey(job.getNodeKey());
+            incident.setExceptionType(messageDelivery ? "MESSAGE_DELIVERY"
+                    : webhookDelivery ? "WEBHOOK_DELIVERY" : aiCompletion ? "AI_COMPLETION" : "JOB_EXECUTION");
+            incident.setErrorCode(code); incident.setErrorMessage(message);
+            incident.setPolicyAction("MANUAL"); incident.setStatus("OPEN"); incident.setVersion(0);
+            exceptionService.insert(incident);
+        } else {
+            // 人工重试失败恢复原 AI 异常，避免生成一个仍在“等待重试”的旧异常和一个新异常。
+            incident.setStatus("OPEN");
+            incident.setErrorCode(code);
+            incident.setErrorMessage(message);
+            if (exceptionService.updateById(incident) != 1) {
+                throw conflict("FLOW_INCIDENT_VERSION_CONFLICT", "流程异常已变化");
+            }
+        }
         instance.setStatus("EXCEPTION"); instance.setErrorCode(code); instance.setErrorMessage(message);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已被其他操作更新");
         recordHistory(instance, job.getExecutionId(), taskId, job.getNodeKey(), "INCIDENT",
                 (messageDelivery ? "站内消息投递失败："
-                        : webhookDelivery ? "应用回调投递失败：" : "超时或后台作业未执行：") + message,
+                        : webhookDelivery ? "应用回调投递失败："
+                        : aiCompletion ? "AI 节点模型调用失败：" : "超时或后台作业未执行：") + message,
                 null, "EXCEPTION", null, null,
                 Map.of("jobId", job.getId(), "errorCode", code));
+        if (aiCompletion) {
+            auditRecorder.record("flow-ai:" + instance.getId() + ":" + job.getId() + ":" + job.getAttemptCount(),
+                    instance.getStartedByAccountId(), instance.getSystemId(), instance.getTenantId(),
+                    null, "FLOW_AI_MODEL_CALLED", "FLOW_INSTANCE",
+                    String.valueOf(instance.getId()), "FAILED",
+                    Map.of("nodeKey", job.getNodeKey(), "errorCode", code, "jobId", job.getId()));
+        }
     }
 
     private void runJob(FlowJob job, String workerId) {
@@ -2283,7 +2558,7 @@ public class FlowRuntimeService {
         }
         job.setStatus("RUNNING");
         job.setAttemptCount((job.getAttemptCount() == null ? 0 : job.getAttemptCount()) + 1);
-        job.setLockedAt(LocalDateTime.now());
+        job.setLockTime(LocalDateTime.now());
         job.setLockedBy(workerId);
         jobService.updateById(job);
         AuthenticatedContext context = systemContext(instance);
@@ -2295,14 +2570,14 @@ public class FlowRuntimeService {
             instance.setStatus("RUNNING");
             instance.setErrorCode(null);
             instance.setErrorMessage(null);
-            instance.setUpdatedAt(LocalDateTime.now());
+            instance.setUpdateTime(LocalDateTime.now());
             instanceService.updateById(instance);
             clearInstanceError(instance.getId());
             recordHistory(instance, job.getExecutionId(), null, job.getNodeKey(), "FLOW_WAIT_RESUMED",
                     absolute ? "定时器已到达，流程继续" : "等待已结束，流程继续",
                     "WAITING", "RUNNING", null, null, Map.of("jobId", job.getId(),
                             "waitMode", absolute ? FlowWaitTimerPolicy.ABSOLUTE : FlowWaitTimerPolicy.DURATION,
-                            "nextRunAt", job.getNextRunAt().toString()));
+                            "nextRunAt", job.getNextRunTime().toString()));
             advanceFromExecution(context, instance, snapshot(instance), job.getNodeKey(),
                     variables(instance.getId()), null, job.getExecutionId());
             return;
@@ -2321,6 +2596,10 @@ public class FlowRuntimeService {
         }
         if ("WEBHOOK_DELIVERY".equals(job.getJobType())) {
             runWebhookDelivery(context, instance, job);
+            return;
+        }
+        if ("AI_COMPLETION".equals(job.getJobType())) {
+            runAiCompletion(context, instance, job);
             return;
         }
         finishJob(job, "FAILED", "FLOW_JOB_TYPE_UNSUPPORTED", "不支持的流程作业类型");
@@ -2354,7 +2633,7 @@ public class FlowRuntimeService {
         instance.setStatus("RUNNING");
         instance.setErrorCode(null);
         instance.setErrorMessage(null);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已被其他操作更新");
         }
@@ -2393,7 +2672,7 @@ public class FlowRuntimeService {
         instance.setStatus("RUNNING");
         instance.setErrorCode(null);
         instance.setErrorMessage(null);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已被其他操作更新");
         }
@@ -2408,11 +2687,95 @@ public class FlowRuntimeService {
                 variables(instance.getId()), null, execution.getId());
     }
 
+    /** 模型结果与 Flow 历史同事务提交；模型失败由作业异常入口记录，绝不当作自动节点成功。 */
+    private void runAiCompletion(AuthenticatedContext context, FlowInstance instance, FlowJob job) {
+        if (instance.getSystemId() == null) {
+            throw invalid("FLOW_AI_PLATFORM_UNSUPPORTED", "平台 Flow AI 节点不能使用系统模型");
+        }
+        Map<String, Object> definition = snapshot(instance);
+        Map<String, Object> node = nodes(definition).stream()
+                .filter(item -> Objects.equals(job.getNodeKey(), string(item.get("nodeKey")))
+                        && "AI".equals(string(item.get("nodeType"))))
+                .findFirst().orElseThrow(() -> invalid("FLOW_AI_NODE_INVALID", "AI 节点冻结配置不存在"));
+        FlowExecution execution = job.getExecutionId() == null ? null : executionService.selectById(job.getExecutionId());
+        if (execution == null || !Objects.equals(execution.getInstanceId(), instance.getId())
+                || !Objects.equals(execution.getNodeKey(), job.getNodeKey())
+                || !"ACTIVE".equals(execution.getStatus()) || !"WAITING".equals(instance.getStatus())) {
+            throw conflict("FLOW_AI_EXECUTION_INVALID", "AI 节点执行现场已变化");
+        }
+        Map<String, Object> config = map(node.get("config"));
+        FlowAiNodePolicy.Config policy;
+        try {
+            policy = FlowAiNodePolicy.parse(config);
+        } catch (IllegalArgumentException failure) {
+            throw invalid("FLOW_AI_CONFIG_INVALID", failure.getMessage());
+        }
+        AiSystemModelGrant grant = aiGrants.selectById(policy.modelGrantId());
+        AiModel model = grant == null ? null : aiModels.selectById(grant.getModelId());
+        if (grant == null || model == null || !"ACTIVE".equals(grant.getStatus())
+                || !"ACTIVE".equals(model.getStatus())
+                || !Objects.equals(grant.getSystemId(), instance.getSystemId())
+                || !Objects.equals(grant.getPlatformId(), instance.getPlatformId())
+                || !Objects.equals(model.getId(), storedLong(config.get("modelId")))
+                || !Objects.equals(model.getVersion(), number(config.get("modelConfigVersion"), -1))) {
+            throw forbidden("FLOW_AI_MODEL_NOT_GRANTED", "AI 节点模型授权或发布时模型版本已失效");
+        }
+        // 提示模板只能展开实例标题和流程名；网关继续执行个人信息脱敏、模型外发及额度约束。
+        String prompt = FlowAiNodePolicy.render(policy, Objects.toString(instance.getTitle(), ""),
+                Objects.toString(definition.get("name"), ""));
+        AiModelGateway.Completion completion = aiModelGateway.complete(context, policy.modelGrantId(),
+                "你是流程中的受控辅助节点。只根据给定流程元数据回答，不推断或请求未提供的业务字段。",
+                prompt, true, true);
+        String output = completion.text();
+        if (!policy.outputVariable().isEmpty()) {
+            saveVariables(instance.getId(), Map.of(policy.outputVariable(), output));
+        }
+        completeExecution(execution, "AI_COMPLETED");
+        finishJob(job, "COMPLETED", null, null);
+        instance.setStatus("RUNNING");
+        instance.setErrorCode(null);
+        instance.setErrorMessage(null);
+        instance.setUpdateTime(LocalDateTime.now());
+        if (instanceService.updateById(instance) != 1) {
+            throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程实例已变化，请重试");
+        }
+        clearInstanceError(instance.getId());
+        resolveJobIncident(job, "AI 模型重新调用成功");
+        LinkedHashMap<String, Object> detail = new LinkedHashMap<>();
+        detail.put("jobId", job.getId());
+        detail.put("modelGrantId", grant.getId());
+        detail.put("modelId", model.getId());
+        detail.put("modelConfigVersion", config.get("modelConfigVersion"));
+        detail.put("modelGrantVersionId", config.get("modelGrantVersionId"));
+        detail.put("promptTokens", completion.promptTokens());
+        detail.put("completionTokens", completion.completionTokens());
+        detail.put("outputVariable", policy.outputVariable());
+        detail.put("output", output);
+        recordHistory(instance, execution.getId(), null, job.getNodeKey(), "FLOW_AI_COMPLETED",
+                "AI 节点已生成结果", "WAITING", "RUNNING", null, null, detail);
+        auditRecorder.recordWithPermissionSnapshot("flow-ai:" + instance.getId() + ":" + execution.getId(),
+                context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "FLOW_AI_MODEL_CALLED", "FLOW_INSTANCE", String.valueOf(instance.getId()), "SUCCESS",
+                Map.of("roleIds", context.roleIds(), "permissions", context.permissions(),
+                        "dataScopes", context.dataScopes()),
+                Map.of("nodeKey", job.getNodeKey(), "modelGrantId", grant.getId(),
+                        "modelId", model.getId(), "executionId", execution.getId(),
+                        "outputLength", output.length(), "promptTokens", completion.promptTokens(),
+                        "completionTokens", completion.completionTokens()));
+        advanceFromExecution(context, instance, definition, job.getNodeKey(),
+                variables(instance.getId()), null, execution.getId());
+    }
+
     private void runRetryJob(AuthenticatedContext context, FlowInstance instance, FlowJob job) {
         Map<String, Object> definition = snapshot(instance);
         Map<String, Object> node = nodes(definition).stream()
                 .filter(item -> Objects.equals(job.getNodeKey(), string(item.get("nodeKey"))))
                 .findFirst().orElse(Map.of());
+        if ("AI".equals(string(node.get("nodeType")))) {
+            // 兼容既有通用 RETRY 作业：仍走受控 AI 作业入口，不能按普通自动节点空操作推进。
+            runAiCompletion(context, instance, job);
+            return;
+        }
         Map<String, Object> config = map(node.get("config"));
         String retryErrorCode = null;
         String retryErrorMessage = null;
@@ -2430,11 +2793,11 @@ public class FlowRuntimeService {
         if (retryErrorCode != null) {
             if (job.getAttemptCount() < job.getMaxAttempts()) {
                 job.setStatus("PENDING");
-                job.setNextRunAt(LocalDateTime.now().plusMinutes(
+                job.setNextRunTime(LocalDateTime.now().plusMinutes(
                         Math.max(1, number(map(node.get("exceptionPolicy")).get("retryDelayMinutes"), 5))));
                 job.setLastErrorCode(retryErrorCode);
                 job.setLastErrorMessage(retryErrorMessage);
-                job.setLockedAt(null);
+                job.setLockTime(null);
                 job.setLockedBy(null);
                 jobService.updateById(job);
                 instance.setStatus("WAITING");
@@ -2467,7 +2830,7 @@ public class FlowRuntimeService {
         instance.setStatus("RUNNING");
         instance.setErrorCode(null);
         instance.setErrorMessage(null);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         instanceService.updateById(instance);
         clearInstanceError(instance.getId());
         recordHistory(instance, retryExecution.getId(), null, job.getNodeKey(), "JOB", "自动重试成功",
@@ -2504,7 +2867,7 @@ public class FlowRuntimeService {
             String eventId = string(originalPayload.get("eventId"));
             if (eventId.isBlank()) eventId = "flow-webhook:" + instance.getId() + ":" + job.getExecutionId();
             String occurredTime = string(originalPayload.get("occurredTime"));
-            if (occurredTime.isBlank()) occurredTime = instance.getStartedAt().toString();
+            if (occurredTime.isBlank()) occurredTime = instance.getStartTime().toString();
             FlowWebhookDeliveryService.DeliveryResult delivered = webhookDeliveryService.deliver(
                     instance.getSystemId(), instance, job.getNodeKey(), string(node.get("name")), config,
                     eventId, occurredTime);
@@ -2676,13 +3039,13 @@ public class FlowRuntimeService {
         FlowTask task = taskId == null ? null : taskService.selectList(Wrappers.<FlowTask>lambdaQuery()
                 .eq(FlowTask::getId, taskId).last("FOR UPDATE")).stream().findFirst().orElse(null);
         if (task == null || !Objects.equals(task.getInstanceId(), instance.getId()) || !"PENDING".equals(task.getStatus())
-                || task.getCompletedAt() != null || task.getDueAt() == null || "EXCEPTION".equals(instance.getStatus())) {
+                || task.getCompleteTime() != null || task.getDueTime() == null || "EXCEPTION".equals(instance.getStatus())) {
             finishJob(job, "CANCELLED", null, null);
             return;
         }
         // 未到真实任务时限不能仅凭旧作业的调度时间处理；人工转交保留或取消时限后也走当前事实。
-        if (task.getDueAt().isAfter(LocalDateTime.now())) {
-            job.setNextRunAt(task.getDueAt());
+        if (task.getDueTime().isAfter(LocalDateTime.now())) {
+            job.setNextRunTime(task.getDueTime());
             jobService.updateById(job);
             finishJob(job, "PENDING", null, null);
             return;
@@ -2729,14 +3092,13 @@ public class FlowRuntimeService {
             assigned.put("resolvedPeople", List.of(personSnapshot(target)));
             assigned.put("timeoutTransferred", true);
             assigned.remove("claimActorAccountId"); assigned.remove("claimActorTenantMemberId");
-            task.setClaimedAt(null);
+            task.setClaimTime(null);
             task.setAssigneeSnapshotJson(toJson(assigned));
-            task.setDueAt(null);
-            task.setUpdatedAt(LocalDateTime.now());
+            task.setDueTime(null);
+            task.setUpdateTime(LocalDateTime.now());
             updateTimeoutTask(task);
             // Base 的非空更新策略不会清空旧截止时间，此处只对已锁定任务显式清空，不修改其他任务。
-            taskMapper.update(null, Wrappers.<FlowTask>lambdaUpdate().eq(FlowTask::getId, task.getId())
-                    .eq(FlowTask::getVersion, task.getVersion()).set(FlowTask::getDueAt, null).set(FlowTask::getClaimedAt, null));
+            stateRepository.clearTimeoutAndClaim(task);
             addCandidate(task.getId(), target, "处理超时，自动转交指定处理人");
             finishJob(job, "COMPLETED", null, null);
             recordHistory(instance, job.getExecutionId(), task.getId(), task.getNodeKey(), "TASK",
@@ -2750,8 +3112,8 @@ public class FlowRuntimeService {
         if ("AUTO_APPROVE".equals(action)) {
             validateTimeoutApproval(context, instance, task);
             task.setStatus("APPROVE");
-            task.setCompletedAt(LocalDateTime.now());
-            task.setUpdatedAt(LocalDateTime.now());
+            task.setCompleteTime(LocalDateTime.now());
+            task.setUpdateTime(LocalDateTime.now());
             updateTimeoutTask(task);
             finishJob(job, "COMPLETED", null, null);
             recordHistory(instance, job.getExecutionId(), task.getId(), task.getNodeKey(), "TASK",
@@ -2772,8 +3134,8 @@ public class FlowRuntimeService {
         }
         if ("AUTO_REJECT".equals(action)) {
             task.setStatus("REJECT");
-            task.setCompletedAt(LocalDateTime.now());
-            task.setUpdatedAt(LocalDateTime.now());
+            task.setCompleteTime(LocalDateTime.now());
+            task.setUpdateTime(LocalDateTime.now());
             updateTimeoutTask(task);
             FlowExecution timedExecution = taskExecution(task);
             if (timedExecution == null || !"ACTIVE".equals(timedExecution.getStatus())) {
@@ -2782,7 +3144,7 @@ public class FlowRuntimeService {
             completeExecution(timedExecution, "TIMEOUT_AUTO_REJECT");
             instance.setStatus("REJECTED");
             cancelUnfinishedTasks(instance);
-            instance.setFinishedAt(LocalDateTime.now());
+            instance.setFinishTime(LocalDateTime.now());
             if (instanceService.updateById(instance) != 1) throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已被其他操作更新");
             finishJob(job, "COMPLETED", null, null);
             recordHistory(instance, job.getExecutionId(), task.getId(), task.getNodeKey(), "TASK",
@@ -2794,6 +3156,7 @@ public class FlowRuntimeService {
                     "审批超时已拒绝：" + instance.getTitle(), "流程已按发布时配置自动拒绝，原业务操作不会生效；原因：超过处理时限。",
                     List.of(instance.getStartedByAccountId()));
             failParentForTerminalSubflow(instance);
+            publishFlowEvent(context, instance, LocalBusinessEvent.Type.FLOW_REJECTED);
             return;
         }
         if (!"INCIDENT".equals(action)) throw invalid("FLOW_TIMEOUT_POLICY_INVALID", "冻结超时策略无效，请人工处理");
@@ -2886,7 +3249,7 @@ public class FlowRuntimeService {
         if (incident == null || "RESOLVED".equals(incident.getStatus())) return;
         incident.setStatus("RESOLVED");
         incident.setResolutionComment(comment);
-        incident.setResolvedAt(LocalDateTime.now());
+        incident.setResolveTime(LocalDateTime.now());
         exceptionService.updateById(incident);
     }
 
@@ -2894,37 +3257,33 @@ public class FlowRuntimeService {
         job.setStatus(status);
         job.setLastErrorCode(errorCode);
         job.setLastErrorMessage(errorMessage);
-        job.setCompletedAt(Set.of("COMPLETED", "FAILED", "CANCELLED").contains(status)
+        job.setCompleteTime(Set.of("COMPLETED", "FAILED", "CANCELLED").contains(status)
                 ? LocalDateTime.now() : null);
-        job.setLockedAt(null);
+        job.setLockTime(null);
         job.setLockedBy(null);
         jobService.updateById(job);
         if (errorCode == null && errorMessage == null) {
-            jobMapper.update(null, Wrappers.<FlowJob>lambdaUpdate().eq(FlowJob::getId, job.getId())
-                    .set(FlowJob::getLastErrorCode, null)
-                    .set(FlowJob::getLastErrorMessage, null)
-                    .set(FlowJob::getLockedAt, null)
-                    .set(FlowJob::getLockedBy, null));
+            stateRepository.clearFinishedJobMetadata(job);
         }
     }
 
     /** 人工事项完成即取消其到期作业；终态取消全部未执行作业，页面和调度都不能保留无效时限。 */
     private void cancelPendingJobs(Long instanceId, Long taskId) {
-        var pending = Wrappers.<FlowJob>lambdaUpdate().eq(FlowJob::getInstanceId, instanceId)
-                .in(FlowJob::getStatus, "PENDING", "SUSPENDED");
-        if (taskId != null) pending.eq(FlowJob::getJobType, "TASK_TIMEOUT")
-                .apply("JSON_EXTRACT(payload_json, '$.taskId') = {0}", taskId);
         // 所有调用点均已锁定实例；只清理本实例的未执行行，不改已完成作业及历史失败事实。
-        jobMapper.update(null, pending.set(FlowJob::getStatus, "CANCELLED")
-                .set(FlowJob::getCompletedAt, LocalDateTime.now()).set(FlowJob::getLockedAt, null)
-                .set(FlowJob::getLockedBy, null).setSql("version = version + 1"));
+        stateRepository.cancelPendingJobs(instanceId, taskId);
     }
 
     private void clearInstanceError(Long instanceId) {
-        instanceMapper.update(null, Wrappers.<FlowInstance>lambdaUpdate()
-                .eq(FlowInstance::getId, instanceId)
-                .set(FlowInstance::getErrorCode, null)
-                .set(FlowInstance::getErrorMessage, null));
+        stateRepository.clearInstanceError(instanceId);
+    }
+
+    /** 发起、完成和拒绝共用同一安全事件事实；模块外流程不伪造模块编码。 */
+    private void publishFlowEvent(AuthenticatedContext actor, FlowInstance instance, LocalBusinessEvent.Type type) {
+        String businessType = instance.getBusinessType();
+        String moduleCode = businessType != null && businessType.startsWith("MODULE:")
+                ? businessType.substring("MODULE:".length()) : null;
+        localEvents.publish(actor, instance.getTenantId(), type,
+                "FLOW_INSTANCE", instance.getId().toString(), moduleCode);
     }
 
     private AuthenticatedContext systemContext(FlowInstance instance) {
@@ -3020,7 +3379,7 @@ public class FlowRuntimeService {
         if (existing != null) return;
         parent.setStatus("WAITING");
         parent.setCurrentNodeKey(parentExecution.getNodeKey());
-        parent.setUpdatedAt(LocalDateTime.now());
+        parent.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(parent) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "父流程状态已变化，未重复启动子流程");
         }
@@ -3069,7 +3428,7 @@ public class FlowRuntimeService {
         parent.setCurrentNodeKey(parentExecution.getNodeKey());
         parent.setErrorCode(null);
         parent.setErrorMessage(null);
-        parent.setUpdatedAt(LocalDateTime.now());
+        parent.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(parent) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "父流程状态已变化，子流程完成结果未重复应用");
         }
@@ -3148,8 +3507,8 @@ public class FlowRuntimeService {
             if (child == null || !ACTIVE_INSTANCE_STATUSES.contains(child.getStatus())) continue;
             String beforeStatus = child.getStatus();
             child.setStatus("TERMINATED");
-            child.setFinishedAt(LocalDateTime.now());
-            child.setUpdatedAt(LocalDateTime.now());
+            child.setFinishTime(LocalDateTime.now());
+            child.setUpdateTime(LocalDateTime.now());
             if (instanceService.updateById(child) != 1) {
                 throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "子流程状态已变化，请刷新后重试");
             }
@@ -3228,7 +3587,7 @@ public class FlowRuntimeService {
             String nodeType = string(next.get("nodeType"));
             FlowNodeSuspensionService.Restoration restored = nodeSuspensions.restore(instance, current);
             if (restored != null) {
-                instance.setCurrentNodeKey(current); instance.setStatus("WAITING"); instance.setUpdatedAt(LocalDateTime.now());
+                instance.setCurrentNodeKey(current); instance.setStatus("WAITING"); instance.setUpdateTime(LocalDateTime.now());
                 if (instanceService.updateById(instance) != 1) throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已变化，请重新读取");
                 insertAction(instance.getId(), null, current, "RUNTIME_NODE_RESUMED", "新增节点完成，继续原节点整组待办",
                         Map.of("frameActionId", restored.frameActionId()), result(instance), "RUNTIME_NODE_RESUMED:" + restored.frameActionId(), context.accountId());
@@ -3239,7 +3598,7 @@ public class FlowRuntimeService {
             }
             FlowExecution execution = recordExecution(instance, current, nodeType, "ACTIVE", null, parent);
             instance.setCurrentNodeKey(current);
-            instance.setUpdatedAt(LocalDateTime.now());
+            instance.setUpdateTime(LocalDateTime.now());
             Map<String, Object> config = map(next.get("config"));
             if ("GATEWAY".equals(nodeType)) {
                 String gatewayMode = FlowGatewayPolicy.mode(config);
@@ -3281,8 +3640,10 @@ public class FlowRuntimeService {
             }
             if ("END".equals(nodeType)) {
                 instance.setStatus("COMPLETED");
-                instance.setFinishedAt(LocalDateTime.now());
-                instanceService.updateById(instance);
+                instance.setFinishTime(LocalDateTime.now());
+                if (instanceService.updateById(instance) != 1) {
+                    throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程已变化，结束节点未重复提交");
+                }
                 completeExecution(execution, "COMPLETED");
                 cancelPendingJobs(instance.getId(), null);
                 insertAction(instance.getId(), null, current, "AUTO_END", null, Map.of(), result(instance),
@@ -3295,6 +3656,7 @@ public class FlowRuntimeService {
                                 ? "审批流程已完成，业务操作将按当前权限和数据版本执行，请在模块页面查看是否生效。"
                                 : "流程已到达结束节点，业务结果和完整处理历史可以在流程运行页查看。",
                         List.of(instance.getStartedByAccountId()));
+                publishFlowEvent(context, instance, LocalBusinessEvent.Type.FLOW_APPROVED);
                 return;
             }
             // 填写节点与审批共用人工任务锁和候选人解析，必须等待提交，不能落到自动执行分支。
@@ -3325,7 +3687,7 @@ public class FlowRuntimeService {
                 scheduleJob(instance, execution, current, "MESSAGE_DELIVERY", payload,
                         "MESSAGE:" + instance.getId() + ":" + execution.getId(), maxAttempts, LocalDateTime.now());
                 instance.setStatus("WAITING");
-                instance.setUpdatedAt(LocalDateTime.now());
+                instance.setUpdateTime(LocalDateTime.now());
                 instanceService.updateById(instance);
                 return;
             }
@@ -3346,7 +3708,7 @@ public class FlowRuntimeService {
                     scheduleJob(instance, execution, current, "TIMER", payload,
                             "TIMER:" + instance.getId() + ":" + execution.getId(), 1, dueTime);
                     instance.setStatus("WAITING");
-                    instance.setUpdatedAt(LocalDateTime.now());
+                    instance.setUpdateTime(LocalDateTime.now());
                     instanceService.updateById(instance);
                     return;
                 } catch (IllegalArgumentException failure) {
@@ -3362,7 +3724,7 @@ public class FlowRuntimeService {
                             Map.of("eventId", eventId, "occurredTime", LocalDateTime.now().toString(),
                                     "retryDelayMinutes", 1), eventId, callback.maxAttempts(), LocalDateTime.now());
                     instance.setStatus("WAITING");
-                    instance.setUpdatedAt(LocalDateTime.now());
+                    instance.setUpdateTime(LocalDateTime.now());
                     instanceService.updateById(instance);
                     return;
                 } catch (IllegalArgumentException failure) {
@@ -3370,9 +3732,12 @@ public class FlowRuntimeService {
                     return;
                 }
             }
-            if ("AI".equals(nodeType) && Boolean.TRUE.equals(config.get("simulateFailure"))) {
-                fail(instance, current, next, "SERVICE", "FLOW_RUNTIME_SERVICE_FAILED",
-                        "节点服务按测试配置返回失败");
+            if ("AI".equals(nodeType)) {
+                scheduleJob(instance, execution, current, "AI_COMPLETION", Map.of(),
+                        "AI:" + instance.getId() + ":" + execution.getId(), 1, LocalDateTime.now());
+                instance.setStatus("WAITING");
+                instance.setUpdateTime(LocalDateTime.now());
+                instanceService.updateById(instance);
                 return;
             }
             instanceService.updateById(instance);
@@ -3390,6 +3755,9 @@ public class FlowRuntimeService {
             AuthenticatedContext context, FlowInstance instance, Map<String, Object> node,
             Map<String, Object> variables, Long previousHandlerTenantMemberId) {
         Map<String, Object> policy = map(node.get("assigneePolicy"));
+        if ("EXTERNAL_PERSON".equals(string(policy.get("type")))) {
+            return createExternalApprovalTask(instance, node, policy);
+        }
         List<FlowParticipantResolver.ResolvedPerson> people = participantResolver.resolve(
                 participantContext(context, instance), policy, instance, variables, previousHandlerTenantMemberId);
         if (people.isEmpty()) {
@@ -3449,6 +3817,48 @@ public class FlowRuntimeService {
         return "WAITING";
     }
 
+    /** 外部待办仍属于当前实例的人工节点，仅身份在应用命名空间内比较，不生成平台人员映射。 */
+    private String createExternalApprovalTask(FlowInstance instance, Map<String, Object> node,
+                                              Map<String, Object> policy) {
+        Long applicationId = numericBusinessId(string(policy.get("applicationId")));
+        String externalId = string(policy.get("externalApproverId"));
+        AppDefinition application = applicationId == null ? null : applicationService.selectById(applicationId);
+        if (application == null || !"ACTIVE".equals(application.getStatus())
+                || !Objects.equals(application.getPlatformId(), instance.getPlatformId())
+                || !Objects.equals(application.getOwnerSystemId(), instance.getSystemId())
+                || !Objects.equals(application.getOwnerTenantId(), instance.getTenantId())
+                || externalId.isBlank()) {
+            fail(instance, string(node.get("nodeKey")), node, "ASSIGNEE",
+                    "FLOW_EXTERNAL_APPROVER_UNAVAILABLE", "外部审批应用或审批人标识已失效，请修正配置后处理异常");
+            return "FAILED";
+        }
+        String nodeKey = string(node.get("nodeKey"));
+        FlowExecution execution = activeExecution(instance.getId(), nodeKey);
+        if (execution == null) throw conflict("FLOW_TASK_EXECUTION_MISSING", "当前外部审批节点没有执行轮次");
+        FlowTask task = new FlowTask();
+        task.setInstanceId(instance.getId());
+        task.setExecutionId(execution.getId());
+        task.setNodeKey(nodeKey);
+        task.setTaskType("APPROVAL");
+        task.setStatus("PENDING");
+        task.setAssigneeApplicationId(applicationId);
+        task.setAssigneeExternalPrincipalId(externalId);
+        task.setAssigneeSnapshotJson(toJson(Map.of("policyType", "EXTERNAL_PERSON",
+                "applicationId", applicationId, "externalApproverId", externalId,
+                "approvalMode", "OR_SIGN", "executionId", execution.getId(),
+                "timeoutPolicy", map(node.get("timeoutPolicy")))));
+        int timeoutMinutes = timeoutMinutes(map(node.get("timeoutPolicy")));
+        if (timeoutMinutes > 0) task.setDueTime(LocalDateTime.now().plusMinutes(timeoutMinutes));
+        task.setVersion(0);
+        taskService.insert(task);
+        if (task.getDueTime() != null) scheduleJob(instance, execution, nodeKey, "TASK_TIMEOUT",
+                Map.of("taskId", task.getId()), "TASK_TIMEOUT:" + task.getId(), 1, task.getDueTime());
+        recordHistory(instance, execution.getId(), task.getId(), nodeKey, "TASK", "外部审批任务已创建",
+                "RUNNING", "WAITING", null, null,
+                Map.of("applicationId", applicationId, "externalApproverId", externalId));
+        return "WAITING";
+    }
+
     private FlowTask newApprovalTask(
             FlowInstance instance, Map<String, Object> node, Map<String, Object> policy,
             List<FlowParticipantResolver.ResolvedPerson> people, String approvalMode,
@@ -3469,6 +3879,7 @@ public class FlowRuntimeService {
         taskSnapshot.put("repeatApproval", map(map(node.get("config")).get("repeatApproval")));
         FlowExecution execution = activeExecution(instance.getId(), task.getNodeKey());
         if (execution == null) throw conflict("FLOW_TASK_EXECUTION_MISSING", "当前节点执行记录不存在，未创建审批任务");
+        task.setExecutionId(execution.getId());
         taskSnapshot.put("executionId", execution.getId());
         taskSnapshot.put("resolvedPeople", people.stream().map(this::personSnapshot).toList());
         if ("ALL_SIGN".equals(approvalMode)) {
@@ -3485,14 +3896,14 @@ public class FlowRuntimeService {
         Map<String, Object> timeoutPolicy = map(node.get("timeoutPolicy"));
         int timeoutMinutes = timeoutMinutes(timeoutPolicy);
         if (timeoutMinutes > 0 && "PENDING".equals(status)) {
-            task.setDueAt(LocalDateTime.now().plusMinutes(timeoutMinutes));
+            task.setDueTime(LocalDateTime.now().plusMinutes(timeoutMinutes));
         }
         task.setVersion(0);
         taskService.insert(task);
-        if (task.getDueAt() != null && "PENDING".equals(task.getStatus())) {
+        if (task.getDueTime() != null && "PENDING".equals(task.getStatus())) {
             scheduleJob(instance, activeExecution(instance.getId(), task.getNodeKey()), task.getNodeKey(),
                     "TASK_TIMEOUT", Map.of("taskId", task.getId()), "TASK_TIMEOUT:" + task.getId(),
-                    1, task.getDueAt());
+                    1, task.getDueTime());
         }
         return task;
     }
@@ -3522,7 +3933,7 @@ public class FlowRuntimeService {
             }
             for (FlowTask pending : effective) {
                 if (!"PENDING".equals(pending.getStatus())) continue;
-                pending.setStatus("CANCELLED"); pending.setCompletedAt(LocalDateTime.now()); pending.setUpdatedAt(LocalDateTime.now());
+                pending.setStatus("CANCELLED"); pending.setCompleteTime(LocalDateTime.now()); pending.setUpdateTime(LocalDateTime.now());
                 if (taskService.updateById(pending) != 1) throw conflict("FLOW_TASK_CONCURRENT_UPDATE", "会签参与任务已变化，请刷新后重试");
                 resolveTaskTimeoutIncidents(systemContext(instance), instance, pending);
                 cancelPendingJobs(instance.getId(), pending.getId());
@@ -3543,13 +3954,13 @@ public class FlowRuntimeService {
                 Map<String, Object> nextSnapshot = readMap(next.getAssigneeSnapshotJson());
                 Map<String, Object> timeout = map(nextSnapshot.get("timeoutPolicy"));
                 int timeoutMinutes = timeoutMinutes(timeout);
-                if (timeoutMinutes > 0) next.setDueAt(LocalDateTime.now().plusMinutes(timeoutMinutes));
-                next.setUpdatedAt(LocalDateTime.now());
+                if (timeoutMinutes > 0) next.setDueTime(LocalDateTime.now().plusMinutes(timeoutMinutes));
+                next.setUpdateTime(LocalDateTime.now());
                 taskService.updateById(next);
-                if (next.getDueAt() != null) {
+                if (next.getDueTime() != null) {
                     scheduleJob(instance, activeExecution(instance.getId(), next.getNodeKey()), next.getNodeKey(),
                             "TASK_TIMEOUT", Map.of("taskId", next.getId()), "TASK_TIMEOUT:" + next.getId(),
-                            1, next.getDueAt());
+                            1, next.getDueTime());
                 }
                 recordHistory(instance, null, next.getId(), next.getNodeKey(), "TASK", "顺序会签已进入下一处理人",
                         "QUEUED", "PENDING", null, null, Map.of());
@@ -3569,7 +3980,7 @@ public class FlowRuntimeService {
     private void cancelUnfinishedTasks(FlowInstance instance) {
         for (FlowTask task : tasks(instance.getId())) {
             if (!Set.of("PENDING", "QUEUED", "SUSPENDED").contains(task.getStatus())) continue;
-            task.setStatus("CANCELLED"); task.setCompletedAt(LocalDateTime.now()); task.setUpdatedAt(LocalDateTime.now());
+            task.setStatus("CANCELLED"); task.setCompleteTime(LocalDateTime.now()); task.setUpdateTime(LocalDateTime.now());
             if (taskService.updateById(task) != 1) throw conflict("FLOW_TASK_CONCURRENT_UPDATE", "流程任务已变化，请刷新后重试");
         }
         nodeSuspensions.cancel(instance);
@@ -3581,7 +3992,7 @@ public class FlowRuntimeService {
                 .eq(FlowExecution::getInstanceId, instanceId).eq(FlowExecution::getStatus, "ACTIVE"))) {
             execution.setStatus("CANCELLED");
             execution.setResultCode(resultCode);
-            execution.setLeftAt(LocalDateTime.now());
+            execution.setLeaveTime(LocalDateTime.now());
             executionService.updateById(execution);
         }
     }
@@ -3593,8 +4004,8 @@ public class FlowRuntimeService {
                     || !sameTaskExecution(handled, sibling)
                     || !Set.of("PENDING", "QUEUED").contains(sibling.getStatus())) continue;
             sibling.setStatus("CANCELLED");
-            sibling.setCompletedAt(LocalDateTime.now());
-            sibling.setUpdatedAt(LocalDateTime.now());
+            sibling.setCompleteTime(LocalDateTime.now());
+            sibling.setUpdateTime(LocalDateTime.now());
             taskService.updateById(sibling);
             cancelPendingJobs(instanceId, sibling.getId());
         }
@@ -3622,7 +4033,7 @@ public class FlowRuntimeService {
         if (failedExecution != null) {
             failedExecution.setStatus("FAILED");
             failedExecution.setResultCode(errorCode);
-            failedExecution.setLeftAt(LocalDateTime.now());
+            failedExecution.setLeaveTime(LocalDateTime.now());
             executionService.updateById(failedExecution);
         }
         Map<String, Object> policy = map(node.get("exceptionPolicy"));
@@ -3642,7 +4053,7 @@ public class FlowRuntimeService {
         instance.setStatus("EXCEPTION");
         instance.setErrorCode(errorCode);
         instance.setErrorMessage(message);
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         instanceService.updateById(instance);
         recordHistory(instance, null, null, nodeKey, "INCIDENT", "流程进入异常处理",
                 null, "EXCEPTION", null, instance.getStartedByTenantMemberId(),
@@ -3759,7 +4170,7 @@ public class FlowRuntimeService {
         if (duplicate || arrived < expected) {
             instance.setStatus("WAITING");
             instance.setCurrentNodeKey(arrival.getNodeKey());
-            instance.setUpdatedAt(LocalDateTime.now());
+            instance.setUpdateTime(LocalDateTime.now());
             if (instanceService.updateById(instance) != 1) {
                 throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程汇合状态已变化，请重新读取");
             }
@@ -3770,7 +4181,7 @@ public class FlowRuntimeService {
         if (findAction(instance.getId(), joinKey) != null) return GatewayJoinResult.WAITING;
         instance.setStatus("RUNNING");
         instance.setCurrentNodeKey(arrival.getNodeKey());
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程汇合状态已变化，请重新读取");
         }
@@ -3819,7 +4230,7 @@ public class FlowRuntimeService {
                 .stream().findAny().isPresent();
         if (pendingTask != null) instance.setCurrentNodeKey(pendingTask.getNodeKey());
         instance.setStatus(pendingTask != null || pendingJob ? "WAITING" : "RUNNING");
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "流程分支状态已变化，请重新读取");
         }
@@ -4062,7 +4473,7 @@ public class FlowRuntimeService {
             } else {
                 variable.setValueType(valueType(entry.getValue()));
                 variable.setValueJson(toJson(entry.getValue()));
-                variable.setUpdatedAt(LocalDateTime.now());
+                variable.setUpdateTime(LocalDateTime.now());
                 if (variableService.updateById(variable) != 1) {
                     throw conflict("FLOW_VARIABLE_VERSION_CONFLICT", "Flow 变量已被其他处理更新");
                 }
@@ -4118,59 +4529,66 @@ public class FlowRuntimeService {
                         candidatePerson == null ? "已失效成员" : candidatePerson.displayName(),
                         candidatePerson == null ? null : candidatePerson.departmentName(),
                         candidatePerson == null ? null : candidatePerson.positionTitle(),
-                        candidate.getResolutionReason(), candidate.getCreatedAt());
+                        candidate.getResolutionReason(), candidate.getCreateTime());
             }).toList();
             FlowApprovalAttachmentPolicy attachmentPolicy = approvalAttachmentPolicy(task, definitionSnapshot);
+            String assigneeName = task.getAssigneeApplicationId() == null
+                    ? assignee == null ? null : assignee.displayName()
+                    : externalActorName(task.getAssigneeApplicationId(), task.getAssigneeExternalPrincipalId());
             return new FlowRuntimeModels.TaskView(task.getId(), task.getNodeKey(), task.getTaskType(), task.getStatus(),
-                    "PENDING".equals(task.getStatus()) && task.getCompletedAt() == null
+                    "PENDING".equals(task.getStatus()) && task.getCompleteTime() == null
                             && allowed(context, "HANDLE") && isCurrentHandler(context, task),
-                    task.getAssigneeTenantMemberId(), assignee == null ? null : assignee.displayName(),
-                    assignee == null ? null : assignee.departmentName(),
+                    task.getAssigneeTenantMemberId(), assigneeName,
+                    task.getAssigneeApplicationId() == null
+                            ? assignee == null ? null : assignee.departmentName() : "外部应用审批",
                     assignee == null ? null : assignee.positionTitle(), publicAssigneeSnapshot(task),
-                    task.getDueAt(), task.getClaimedAt(), task.getCompletedAt(), task.getVersion(),
+                    task.getDueTime(), task.getClaimTime(), task.getCompleteTime(), task.getVersion(),
                     attachmentPolicy.required(), attachmentPolicy.minimumCount(), candidateViews);
         }).toList();
         List<FlowRuntimeModels.ActionView> actions = actionService.selectList(Wrappers.<FlowAction>lambdaQuery()
-                .eq(FlowAction::getInstanceId, instance.getId()).orderByAsc(FlowAction::getActedAt)
+                .eq(FlowAction::getInstanceId, instance.getId()).orderByAsc(FlowAction::getActTime)
                 .orderByAsc(FlowAction::getId)).stream().map(action -> {
             FlowParticipantResolver.ResolvedPerson actor = person(context, action.getActedByTenantMemberId());
             return new FlowRuntimeModels.ActionView(action.getId(), action.getTaskId(), action.getNodeKey(),
                     action.getActionCode(), action.getCommentText(), Map.of(),
                     Map.of(), action.getIdempotencyKey(), action.getActedByTenantMemberId(),
-                    actorName(context, action.getActedByTenantMemberId(), action.getActedByAccountId()), action.getActedAt());
+                    action.getActorApplicationId() == null
+                            ? actorName(context, action.getActedByTenantMemberId(), action.getActedByAccountId())
+                            : externalActorName(action.getActorApplicationId(), action.getActorExternalPrincipalId()),
+                    action.getActTime());
         }).toList();
         List<FlowRuntimeModels.ExceptionView> exceptions = exceptionService.selectList(
                 Wrappers.<FlowException>lambdaQuery().eq(FlowException::getInstanceId, instance.getId())
-                        .orderByAsc(FlowException::getOccurredAt)).stream().map(exception -> {
+                        .orderByAsc(FlowException::getOccurTime)).stream().map(exception -> {
             FlowParticipantResolver.ResolvedPerson resolver = person(context, exception.getResolvedByTenantMemberId());
             return new FlowRuntimeModels.ExceptionView(exception.getId(), exception.getNodeKey(),
                     exception.getExceptionType(), exception.getErrorCode(), publicErrorMessage(exception.getErrorCode()),
                     exception.getPolicyAction(), exception.getStatus(), exception.getResolvedByTenantMemberId(),
                     resolver == null ? null : resolver.displayName(), exception.getResolutionComment(),
-                    exception.getOccurredAt(), exception.getResolvedAt(), exception.getVersion());
+                    exception.getOccurTime(), exception.getResolveTime(), exception.getVersion());
         }).toList();
         List<FlowRuntimeModels.ExecutionView> executions = executionService.selectList(
                 Wrappers.<FlowExecution>lambdaQuery().eq(FlowExecution::getInstanceId, instance.getId())
-                        .orderByAsc(FlowExecution::getEnteredAt).orderByAsc(FlowExecution::getId)).stream()
+                        .orderByAsc(FlowExecution::getEnterTime).orderByAsc(FlowExecution::getId)).stream()
                 .map(execution -> new FlowRuntimeModels.ExecutionView(execution.getId(), execution.getParentExecutionId(),
-                        execution.getNodeKey(), execution.getNodeType(), execution.getStatus(), execution.getEnteredAt(),
-                        execution.getLeftAt(), execution.getResultCode(), execution.getVersion())).toList();
+                        execution.getNodeKey(), execution.getNodeType(), execution.getStatus(), execution.getEnterTime(),
+                        execution.getLeaveTime(), execution.getResultCode(), execution.getVersion())).toList();
         List<FlowRuntimeModels.SubflowView> subflows = subflowLinks(context, instance);
         List<FlowHistoryEvent> storedHistory = historyService.selectList(
                 Wrappers.<FlowHistoryEvent>lambdaQuery().eq(FlowHistoryEvent::getInstanceId, instance.getId())
-                        .orderByAsc(FlowHistoryEvent::getOccurredAt).orderByAsc(FlowHistoryEvent::getId));
+                        .orderByAsc(FlowHistoryEvent::getOccurTime).orderByAsc(FlowHistoryEvent::getId));
         List<FlowRuntimeModels.HistoryEventView> history = java.util.stream.IntStream.range(0, storedHistory.size())
                 .filter(index -> !redundantLegacyAction(storedHistory, index)).mapToObj(storedHistory::get)
-                .map(event -> new FlowRuntimeModels.HistoryEventView(event.getId(), event.getExecutionId(),
-                        event.getTaskId(), event.getNodeKey(), event.getEventType(), event.getEventName(),
-                        event.getActorTenantMemberId(), actorName(context, event.getActorTenantMemberId(), event.getActorAccountId()),
+                 .map(event -> new FlowRuntimeModels.HistoryEventView(event.getId(), event.getExecutionId(),
+                         event.getTaskId(), event.getNodeKey(), event.getEventType(), event.getEventName(),
+                         event.getActorTenantMemberId(), historyActorName(context, instance, tasks, event),
                         event.getBeforeStatus(), event.getAfterStatus(), publicHistoryDetail(event),
-                        event.getOccurredAt())).toList();
+                        event.getOccurTime())).toList();
         List<FlowRuntimeModels.JobView> jobs = jobService.selectList(Wrappers.<FlowJob>lambdaQuery()
-                        .eq(FlowJob::getInstanceId, instance.getId()).orderByAsc(FlowJob::getCreatedAt)).stream()
+                        .eq(FlowJob::getInstanceId, instance.getId()).orderByAsc(FlowJob::getCreateTime)).stream()
                 .map(job -> new FlowRuntimeModels.JobView(job.getId(), job.getExecutionId(), job.getNodeKey(),
-                        job.getJobType(), job.getStatus(), job.getAttemptCount(), job.getMaxAttempts(), job.getNextRunAt(),
-                        job.getLastErrorCode(), publicErrorMessage(job.getLastErrorCode()), job.getCompletedAt(), job.getVersion())).toList();
+                        job.getJobType(), job.getStatus(), job.getAttemptCount(), job.getMaxAttempts(), job.getNextRunTime(),
+                        job.getLastErrorCode(), publicErrorMessage(job.getLastErrorCode()), job.getCompleteTime(), job.getVersion())).toList();
         FlowTask handler = currentHandlerTask(context, instance, tasks);
         FlowManualOperationPolicy operationPolicy = handler == null || "RETURN_TASK".equals(handler.getTaskType())
                 ? null : manualOperationPolicy(handler, definitionSnapshot);
@@ -4186,6 +4604,12 @@ public class FlowRuntimeService {
                     .map(SystemMember::getDisplayName).filter(name -> name != null && !name.isBlank())
                     .findFirst().orElse(starterName);
         }
+        if (instance.getSourceApplicationId() != null) {
+            starterName = externalActorName(instance.getSourceApplicationId(),
+                    instance.getSourceExternalPrincipalId());
+        }
+        boolean externalPending = tasks.stream().anyMatch(task -> task.getAssigneeApplicationId() != null
+                && "PENDING".equals(task.getStatus()) && hasActiveTaskExecution(task));
         Map<String, Object> viewerNode = handler == null ? currentNode : nodes(definitionSnapshot).stream()
                 .filter(node -> Objects.equals(handler.getNodeKey(), string(node.get("nodeKey"))))
                 .findFirst().orElse(currentNode);
@@ -4205,12 +4629,37 @@ public class FlowRuntimeService {
                 string(currentNode.get("name")), instance.getStatus(), instance.getStartedByTenantMemberId(),
                 Objects.equals(instance.getStartedByAccountId(), context.accountId()),
                 starterName,
-                instance.getStartedAt(), instance.getFinishedAt(), instance.getErrorCode(), publicErrorMessage(instance.getErrorCode()),
+                instance.getStartTime(), instance.getFinishTime(), instance.getErrorCode(), publicErrorMessage(instance.getErrorCode()),
                 instance.getVersion(), graph.revision(), allowed.contains("ADD_RUNTIME_NODE")
                         ? runtimeNodeAnchors(instance, definitionSnapshot) : List.of(), Map.of(), taskViews, actions, exceptions,
                 executions, subflows, history, jobs, allowed,
                 operationPolicy == null ? List.of() : operationPolicy.opinionRequiredActions().stream().filter(allowed::contains).toList(),
-                nextStep(instance, currentNode, handler, allowed));
+                 nextStep(instance, currentNode, handler, allowed, externalPending));
+    }
+
+    /** 运行页显示真实外部来源，应用技术执行账号不冒充外部发起人与审批人。 */
+    private String externalActorName(Long applicationId, String principalId) {
+        AppDefinition application = applicationService.selectById(applicationId);
+        String name = application == null ? "应用 #" + applicationId : application.getName();
+        return principalId == null || principalId.isBlank() ? name : name + " · " + principalId;
+    }
+
+    private String historyActorName(AuthenticatedContext context, FlowInstance instance,
+            List<FlowTask> tasks, FlowHistoryEvent event) {
+        if ("INSTANCE".equals(event.getEventType()) && instance.getSourceApplicationId() != null) {
+            return externalActorName(instance.getSourceApplicationId(), instance.getSourceExternalPrincipalId());
+        }
+        if ("ACTION".equals(event.getEventType()) && event.getTaskId() != null) {
+            FlowTask task = tasks.stream().filter(item -> Objects.equals(item.getId(), event.getTaskId()))
+                    .findFirst().orElse(null);
+            if (task != null && task.getAssigneeApplicationId() != null) {
+                return externalActorName(task.getAssigneeApplicationId(), task.getAssigneeExternalPrincipalId());
+            }
+        }
+        if ("ACTION".equals(event.getEventType()) && event.getTaskId() == null
+                && "COMPLETED".equals(event.getAfterStatus())
+                && instance.getSourceApplicationId() != null) return "系统自动处理";
+        return actorName(context, event.getActorTenantMemberId(), event.getActorAccountId());
     }
 
     /** 引擎仍读取原始冻结快照；对外业务内容只走当前权限投影，绝不从 variables 补回。 */
@@ -4348,7 +4797,7 @@ public class FlowRuntimeService {
     /** 并行分支可同时存在多个真实待办；页面选择当前查看者可处理的一条，暂停任务不获得权限。 */
     private FlowTask currentHandlerTask(AuthenticatedContext context, FlowInstance instance, List<FlowTask> tasks) {
         if (!"WAITING".equals(instance.getStatus()) || !allowed(context, "HANDLE")) return null;
-        return tasks.stream().filter(task -> "PENDING".equals(task.getStatus()) && task.getCompletedAt() == null
+        return tasks.stream().filter(task -> "PENDING".equals(task.getStatus()) && task.getCompleteTime() == null
                 && isCurrentHandler(context, task) && hasActiveTaskExecution(task))
                 .findFirst().orElse(null);
     }
@@ -4432,7 +4881,8 @@ public class FlowRuntimeService {
         return List.copyOf(actions);
     }
 
-    private String nextStep(FlowInstance instance, Map<String, Object> node, FlowTask handler, List<String> allowed) {
+    private String nextStep(FlowInstance instance, Map<String, Object> node, FlowTask handler,
+            List<String> allowed, boolean externalPending) {
         if ("COMPLETED".equals(instance.getStatus())) return "Flow 已完成";
         if (allowed.contains("RESUBMIT") && handler != null) {
             Map<String, Object> policy = map(readMap(handler.getAssigneeSnapshotJson()).get("returnPolicy"));
@@ -4452,6 +4902,7 @@ public class FlowRuntimeService {
             if (Set.of("CC", "NOTIFICATION", "MESSAGE").contains(nodeType)) return "等待站内消息可靠投递完成";
             if (FlowExternalCallbackPolicy.supports(nodeType)) return "等待已发布应用回调可靠投递完成";
             // 没有人工待办的等待态来自后台作业，不能展示成已有审批人在处理。
+            if (handler == null && externalPending) return "等待外部应用审批人完成“" + string(node.get("name")) + "”";
             if (handler == null) return "等待后台作业完成后自动继续";
             return "等待处理人完成“" + string(node.get("name")) + "”";
         }
@@ -4539,12 +4990,12 @@ public class FlowRuntimeService {
         if (resume == null || !"SUSPENDED".equals(resume.getStatus())) {
             throw conflict("FLOW_MANUAL_RESUME_TASK_INVALID", "原审批任务已变化，不能继续实例");
         }
-        resume.setStatus("PENDING"); resume.setUpdatedAt(LocalDateTime.now());
+        resume.setStatus("PENDING"); resume.setUpdateTime(LocalDateTime.now());
         if (taskService.updateById(resume) != 1) {
             throw conflict("FLOW_MANUAL_RESUME_TASK_INVALID", "原审批任务已被其他操作更新");
         }
         instance.setCurrentNodeKey(resume.getNodeKey()); instance.setStatus("WAITING");
-        instance.setUpdatedAt(LocalDateTime.now());
+        instance.setUpdateTime(LocalDateTime.now());
         if (instanceService.updateById(instance) != 1) {
             throw conflict("FLOW_INSTANCE_VERSION_CONFLICT", "实例已被其他操作更新");
         }
@@ -4640,7 +5091,7 @@ public class FlowRuntimeService {
 
     private List<FlowTask> tasks(Long instanceId) {
         return taskService.selectList(Wrappers.<FlowTask>lambdaQuery()
-                .eq(FlowTask::getInstanceId, instanceId).orderByAsc(FlowTask::getCreatedAt)
+                .eq(FlowTask::getInstanceId, instanceId).orderByAsc(FlowTask::getCreateTime)
                 .orderByAsc(FlowTask::getId).last(currentRuntimeRead(), "FOR UPDATE"));
     }
 
@@ -4740,7 +5191,7 @@ public class FlowRuntimeService {
         if (execution == null) return;
         execution.setStatus("COMPLETED");
         execution.setResultCode(resultCode);
-        execution.setLeftAt(LocalDateTime.now());
+        execution.setLeaveTime(LocalDateTime.now());
         executionService.updateById(execution);
     }
 
@@ -4749,7 +5200,7 @@ public class FlowRuntimeService {
                         .eq(FlowExecution::getInstanceId, instanceId)
                         .eq(FlowExecution::getNodeKey, nodeKey)
                         .eq(FlowExecution::getStatus, "ACTIVE")
-                        .orderByDesc(FlowExecution::getEnteredAt).last(currentRuntimeRead() ? "LIMIT 1 FOR UPDATE" : "LIMIT 1"))
+                        .orderByDesc(FlowExecution::getEnterTime).last(currentRuntimeRead() ? "LIMIT 1 FOR UPDATE" : "LIMIT 1"))
                 .stream().findFirst().orElse(null);
     }
 
@@ -4794,7 +5245,7 @@ public class FlowRuntimeService {
         job.setIdempotencyKey(idempotencyKey);
         job.setAttemptCount(0);
         job.setMaxAttempts(Math.max(1, maxAttempts));
-        job.setNextRunAt(nextRunAt == null ? LocalDateTime.now() : nextRunAt);
+        job.setNextRunTime(nextRunAt == null ? LocalDateTime.now() : nextRunAt);
         job.setVersion(0);
         jobService.insert(job);
         boolean waitJob = "TIMER".equals(jobType);
@@ -4802,7 +5253,7 @@ public class FlowRuntimeService {
         LinkedHashMap<String, Object> historyDetail = new LinkedHashMap<>();
         historyDetail.put("jobType", jobType);
         historyDetail.put("maxAttempts", job.getMaxAttempts());
-        historyDetail.put("nextRunAt", job.getNextRunAt().toString());
+        historyDetail.put("nextRunAt", job.getNextRunTime().toString());
         if (waitJob) {
             historyDetail.put("waitMode", waitMode);
             Object durationMinutes = payload == null ? null : payload.get("durationMinutes");

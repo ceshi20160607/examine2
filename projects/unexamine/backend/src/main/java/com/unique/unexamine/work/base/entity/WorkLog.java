@@ -11,45 +11,78 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 用户手动创建的每日工作日志
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("work_log")
+@TableName("un_work_log")
 public class WorkLog {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务上下文类型：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台范围为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台范围为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 日志关联的同一工作范围项目标识
+     */
     @TableField("project_id")
     private Long projectId;
 
+    /**
+     * 日志作者平台账号标识
+     */
     @TableField("author_account_id")
     private Long authorAccountId;
 
+    /**
+     * 工作日志作者租户成员ID
+     */
     @TableField("author_tenant_member_id")
     private Long authorTenantMemberId;
 
+    /**
+     * 工作日志日期
+     */
     @TableField("work_date")
     private LocalDate workDate;
 
+    /**
+     * 标题
+     */
     @TableField("title")
     private String title;
 
+    /**
+     * 工作日志摘要
+     */
     @TableField("content_text")
     private String contentText;
 
@@ -83,9 +116,15 @@ public class WorkLog {
     @TableField("assistance_text")
     private String assistanceText;
 
+    /**
+     * 记录工时分钟数
+     */
     @TableField("duration_minutes")
     private Integer durationMinutes;
 
+    /**
+     * 业务状态
+     */
     @TableField("`status`")
     private String status;
 
@@ -113,24 +152,45 @@ public class WorkLog {
     @TableField("withdrawn_time")
     private LocalDateTime withdrawnTime;
 
+    /**
+     * 可配置字段值
+     */
     @TableField("custom_values_json")
     private String customValuesJson;
 
+    /**
+     * 关联业务对象类型
+     */
     @TableField("business_type")
     private String businessType;
 
+    /**
+     * 关联业务对象标识
+     */
     @TableField("business_id")
     private String businessId;
 
+    /**
+     * 关联业务对象标题快照
+     */
     @TableField("business_title")
     private String businessTitle;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -343,20 +403,20 @@ public class WorkLog {
         this.businessTitle = businessTitle;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -396,8 +456,8 @@ public class WorkLog {
             ", businessType = " + businessType +
             ", businessId = " + businessId +
             ", businessTitle = " + businessTitle +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

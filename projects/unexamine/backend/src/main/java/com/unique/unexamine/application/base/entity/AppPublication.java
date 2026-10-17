@@ -10,30 +10,48 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用当前生效版本指针
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_publication")
+@TableName("un_app_publication")
 public class AppPublication {
 
+    /**
+     * 发布指针主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 当前生效应用版本主键
+     */
     @TableField("current_version_id")
     private Long currentVersionId;
 
+    /**
+     * 修改发布指针的平台账号主键
+     */
     @TableField("updated_by_account_id")
     private Long updatedByAccountId;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 指针更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -70,12 +88,12 @@ public class AppPublication {
         this.updatedByAccountId = updatedByAccountId;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -93,7 +111,7 @@ public class AppPublication {
             ", applicationId = " + applicationId +
             ", currentVersionId = " + currentVersionId +
             ", updatedByAccountId = " + updatedByAccountId +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("biz_tenant_share")
+@TableName("un_biz_tenant_share")
 public class BizTenantShare {
 
     /**
@@ -88,8 +88,8 @@ public class BizTenantShare {
     /**
      * 授权失效时间，旧接口和字段保持兼容
      */
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
     /**
      * 来源租户授予授权的系统成员
@@ -100,14 +100,14 @@ public class BizTenantShare {
     /**
      * 最近授予时间，旧字段保持兼容
      */
-    @TableField("granted_at")
-    private LocalDateTime grantedAt;
+    @TableField("grant_time")
+    private LocalDateTime grantTime;
 
     /**
      * 授权撤销时间，历史授权不删除
      */
-    @TableField("revoked_at")
-    private LocalDateTime revokedAt;
+    @TableField("revoke_time")
+    private LocalDateTime revokeTime;
 
     /**
      * 授权修改的乐观锁版本
@@ -204,12 +204,12 @@ public class BizTenantShare {
         this.startTime = startTime;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
+    public LocalDateTime getExpireTime() {
+        return expireTime;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 
     public Long getGrantedByMemberId() {
@@ -220,20 +220,20 @@ public class BizTenantShare {
         this.grantedByMemberId = grantedByMemberId;
     }
 
-    public LocalDateTime getGrantedAt() {
-        return grantedAt;
+    public LocalDateTime getGrantTime() {
+        return grantTime;
     }
 
-    public void setGrantedAt(LocalDateTime grantedAt) {
-        this.grantedAt = grantedAt;
+    public void setGrantTime(LocalDateTime grantTime) {
+        this.grantTime = grantTime;
     }
 
-    public LocalDateTime getRevokedAt() {
-        return revokedAt;
+    public LocalDateTime getRevokeTime() {
+        return revokeTime;
     }
 
-    public void setRevokedAt(LocalDateTime revokedAt) {
-        this.revokedAt = revokedAt;
+    public void setRevokeTime(LocalDateTime revokeTime) {
+        this.revokeTime = revokeTime;
     }
 
     public Integer getVersion() {
@@ -258,10 +258,10 @@ public class BizTenantShare {
             ", permissionJson = " + permissionJson +
             ", status = " + status +
             ", startTime = " + startTime +
-            ", expiresAt = " + expiresAt +
+            ", expireTime = " + expireTime +
             ", grantedByMemberId = " + grantedByMemberId +
-            ", grantedAt = " + grantedAt +
-            ", revokedAt = " + revokedAt +
+            ", grantTime = " + grantTime +
+            ", revokeTime = " + revokeTime +
             ", version = " + version +
             "}";
     }

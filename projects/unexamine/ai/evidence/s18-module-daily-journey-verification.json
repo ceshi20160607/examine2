@@ -1,0 +1,41 @@
+{
+  "step": "S18.35",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/tools/verify-module-daily-journey.py",
+    "projects/unexamine/tools/verify-module-daily-journey-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "In the same published module #94, a two-row CSV import preview produced one valid CREATE and one IMPORT_TITLE_REQUIRED error and wrote no record before execution. Execution created record #188 while preserving the invalid row failure.",
+    "A published export configuration selected title, activity and owner; a CSV export of selected record #188 completed with exactly one row. Downloaded bytes were hashed and read unchanged in a separate JVM.",
+    "An invalid transfer target was rejected without changing #188. A newly role-scoped member then became its owner; the member could read #188 but received 403 for export. Actual Edge showed IMPORT/EXPORT in the owner runtime, the TRANSFER menu on #188, and the transferred record in the recipient runtime.",
+    "Attempted rollback of the import batch after the transfer returned ROLLBACK_PARTIAL with IMPORT_ROLLBACK_VERSION_CONFLICT; the newer record version and owner remained intact.",
+    "The existing print job #134 snapshot and PDF SHA-256, approval Flow instance #53 snapshot and current dashboard #8 stayed unchanged across import, export, transfer and rollback conflict. Backend #18082, started as a separate JVM against the same V23 database, read PDF/export bytes and owner back.",
+    "Python/Node syntax, workspace validation and scoped diff check passed. This packet changed verification tools and evidence; production code remained at the S18.33 Maven/Frontend tested version."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-live.json",
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-list-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-transfer-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-receiver-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-live.json"
+  ],
+  "permission_or_failure_result": "Invalid import title row was rejected; invalid owner target was rejected before transfer; the new owner with LIST/DETAIL but no EXPORT received 403 on export estimate; post-transfer import rollback recorded IMPORT_ROLLBACK_VERSION_CONFLICT and preserved the record.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/tools/verify-module-daily-journey.py",
+      "sha256": "e94ced2dda73d5e303f856a1dd0907af23b3d39836ffb6cd8b6237214c5b524d"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-daily-journey-browser.mjs",
+      "sha256": "30873aa9e3671b8840f11eee5dbdad000c32edda8e3616eb428021f3ceaf6b82"
+    }
+  ],
+  "remaining": "The integrated module journey covers transfer but has not covered conversion rules or other Flow nodes/conditions. Full fresh-install, two-system and multi-tenant journeys, missing historical print file bytes in the isolated copy, non-OIDC SSO, manuals and final release package remain open. Product completion is not verified.",
+  "next_step": "S18.36"
+}

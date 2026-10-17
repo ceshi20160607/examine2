@@ -2,6 +2,7 @@
 package com.unique.unexamine.print.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.print.base.entity.PrintTemplateVersion;
 import com.unique.unexamine.print.base.mapper.PrintTemplateVersionMapper;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,20 @@ public class PrintTemplateVersionBaseService {
 
     public List<PrintTemplateVersion> selectList(Wrapper<PrintTemplateVersion> query) {
         return mapper.selectList(query);
+    }
+
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public PrintTemplateVersion selectOne(Wrapper<PrintTemplateVersion> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<PrintTemplateVersion> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<PrintTemplateVersion> selectPage(IPage<PrintTemplateVersion> page, Wrapper<PrintTemplateVersion> query) {
+        return mapper.selectPage(page, query);
     }
 }

@@ -12,6 +12,7 @@ const records = ref<RuntimeRecordList['records']>([])
 const moduleCode = ref('')
 const recordId = ref<number>()
 const loading = ref(false)
+let clearingRecordForModuleChange = false
 const moduleOptions = computed(() => modules.value.filter(item => item.configurationMode !== 'SHARED_RECORDS')
   .map(item => ({ value: item.moduleCode, label: `${item.groupName} · ${item.moduleName}` })))
 const recordOptions = computed(() => {
@@ -42,6 +43,8 @@ async function loadRecords(code: string) {
 function selectModule(code?: string) {
   moduleCode.value = code || ''
   recordId.value = undefined
+  // 切换模块只清除旧记录；父表单回写空关联时不能把刚选的模块也清掉。
+  clearingRecordForModuleChange = true
   emit('update:modelValue', {})
   void loadRecords(moduleCode.value)
 }
@@ -54,6 +57,11 @@ function selectRecord(id?: number) {
 watch(() => props.modelValue, (value) => {
   const nextCode = value?.businessType?.replace(/^MODULE:/, '') || ''
   const nextId = value?.businessId ? Number(value.businessId) : undefined
+  if (clearingRecordForModuleChange && !nextCode && !nextId) {
+    clearingRecordForModuleChange = false
+    return
+  }
+  clearingRecordForModuleChange = false
   if (nextCode !== moduleCode.value) { moduleCode.value = nextCode; void loadRecords(nextCode) }
   recordId.value = nextId
 }, { immediate: true })

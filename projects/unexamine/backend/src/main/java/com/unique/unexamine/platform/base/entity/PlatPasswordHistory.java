@@ -9,29 +9,44 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 账号历史口令
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_password_history")
+@TableName("un_plat_password_history")
 public class PlatPasswordHistory {
 
+    /**
+     * 账号历史口令主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 历史口令哈希值
+     */
     @TableField("password_hash")
     private String passwordHash;
 
+    /**
+     * 对应口令凭据版本号
+     */
     @TableField("credential_version")
     private Integer credentialVersion;
 
-    @TableField("changed_at")
-    private LocalDateTime changedAt;
+    /**
+     * 该口令启用时间
+     */
+    @TableField("change_time")
+    private LocalDateTime changeTime;
 
     public Long getId() {
         return id;
@@ -65,12 +80,12 @@ public class PlatPasswordHistory {
         this.credentialVersion = credentialVersion;
     }
 
-    public LocalDateTime getChangedAt() {
-        return changedAt;
+    public LocalDateTime getChangeTime() {
+        return changeTime;
     }
 
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
+    public void setChangeTime(LocalDateTime changeTime) {
+        this.changeTime = changeTime;
     }
 
     @Override
@@ -80,7 +95,7 @@ public class PlatPasswordHistory {
             ", accountId = " + accountId +
             ", passwordHash = " + passwordHash +
             ", credentialVersion = " + credentialVersion +
-            ", changedAt = " + changedAt +
+            ", changeTime = " + changeTime +
             "}";
     }
 }

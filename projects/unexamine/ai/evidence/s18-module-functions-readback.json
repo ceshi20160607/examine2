@@ -1,0 +1,202 @@
+{
+  "step": "S18.26",
+  "environment": {
+    "systemId": 166,
+    "moduleId": 92,
+    "database": "unexamine_drill_s17_files_1054",
+    "backendReadiness": "UP"
+  },
+  "moduleVersions": [
+    {
+      "id": 97,
+      "version_number": 1
+    },
+    {
+      "id": 98,
+      "version_number": 2
+    }
+  ],
+  "ownerRecord185": {
+    "id": 185,
+    "title": "S18 模块功能导入记录",
+    "createdConfigVersionId": 98,
+    "referenceId": 182,
+    "referenceDisplay": "S18 目标备件",
+    "childRows": [
+      {
+        "rowKey": "53ab8b98-32a7-491a-a0e5-f311fb7db532",
+        "fields": {
+          "field_68acd4104b": "导入明细"
+        },
+        "displayFields": {
+          "field_68acd4104b": "导入明细"
+        }
+      }
+    ]
+  },
+  "mysql": {
+    "records": [
+      {
+        "id": 183,
+        "title": "S18 关联子表成功记录",
+        "deleted": 0,
+        "version": 0,
+        "created_config_version_id": 97
+      },
+      {
+        "id": 184,
+        "title": "S18 功能配置编辑记录",
+        "deleted": 1,
+        "version": 2,
+        "created_config_version_id": 98
+      },
+      {
+        "id": 185,
+        "title": "S18 模块功能导入记录",
+        "deleted": 0,
+        "version": 0,
+        "created_config_version_id": 98
+      }
+    ],
+    "comments": [
+      {
+        "id": 3,
+        "record_id": 184,
+        "body": "S18 功能配置评论验收",
+        "deleted": 0
+      }
+    ],
+    "childRows": [
+      {
+        "id": 160,
+        "record_id": 183,
+        "child_field_id": 201
+      },
+      {
+        "id": 162,
+        "record_id": 184,
+        "child_field_id": 201
+      },
+      {
+        "id": 163,
+        "record_id": 185,
+        "child_field_id": 201
+      }
+    ],
+    "relations": [
+      {
+        "source_record_id": 183,
+        "target_record_id": 182
+      },
+      {
+        "source_record_id": 184,
+        "target_record_id": 182
+      },
+      {
+        "source_record_id": 185,
+        "target_record_id": 182
+      }
+    ],
+    "importBatches": [
+      {
+        "id": 20,
+        "status": "COMPLETED",
+        "total_rows": 1,
+        "valid_rows": 1,
+        "success_rows": 1,
+        "failed_rows": 0
+      },
+      {
+        "id": 21,
+        "status": "PREVIEWED",
+        "total_rows": 1,
+        "valid_rows": 0,
+        "success_rows": 0,
+        "failed_rows": 1
+      }
+    ],
+    "exportBatches": [
+      {
+        "id": 30,
+        "status": "COMPLETED",
+        "total_rows": 1,
+        "exported_rows": 1,
+        "selected_fields_json": "[\"title\", \"status\", \"field_5cb199677c\", \"field_a1c14a8788\", \"field_2af2851b88\", \"field_68acd4104b\"]"
+      },
+      {
+        "id": 31,
+        "status": "COMPLETED",
+        "total_rows": 2,
+        "exported_rows": 2,
+        "selected_fields_json": "[\"title\", \"field_5cb199677c\", \"field_a1c14a8788\", \"status\", \"field_2af2851b88\"]"
+      }
+    ],
+    "invalidRecordCount": 0
+  },
+  "member": {
+    "catalogModuleIds": [
+      87,
+      86
+    ],
+    "denials": {
+      "/records": {
+        "http": 403,
+        "code": "PERMISSION_DENIED"
+      },
+      "/records/183": {
+        "http": 403,
+        "code": "PERMISSION_DENIED"
+      },
+      "/records/185": {
+        "http": 403,
+        "code": "PERMISSION_DENIED"
+      },
+      "/imports/template": {
+        "http": 403,
+        "code": "IMPORT_PERMISSION_DENIED"
+      },
+      "/exports/config": {
+        "http": 403,
+        "code": "EXPORT_PERMISSION_DENIED"
+      }
+    }
+  },
+  "exportBatch31Csv": {
+    "headers": [
+      "标题",
+      "验收说明",
+      "关联备件",
+      "状态",
+      "验收明细"
+    ],
+    "rowCount": 2,
+    "rows": [
+      [
+        "S18 模块功能导入记录",
+        "S18 导入说明",
+        "S18 目标备件",
+        "ACTIVE",
+        "[{\"rowKey\":\"53ab8b98-32a7-491a-a0e5-f311fb7db532\",\"fields\":{\"field_68acd4104b\":\"导入明细\"},\"displayFields\":{\"field_68acd4104b\":\"导入明细\"}}]"
+      ],
+      [
+        "S18 关联子表成功记录",
+        "S18 成功写入",
+        "S18 目标备件",
+        "ACTIVE",
+        "[{\"rowKey\":\"3c770a54-dafa-4ba8-a8d4-354f094b55d0\",\"fields\":{\"field_68acd4104b\":\"第一行\"},\"displayFields\":{\"field_68acd4104b\":\"第一行\"}}]"
+      ]
+    ]
+  },
+  "screenshots": [
+    "s18-module-functions-delete-config.png",
+    "s18-module-functions-publication-check.png",
+    "s18-module-functions-comment-team.png",
+    "s18-module-functions-delete-confirmation.png",
+    "s18-module-functions-delete-risk.png",
+    "s18-module-functions-deleted.png",
+    "s18-module-functions-import-completed.png",
+    "s18-module-functions-import-invalid.png",
+    "s18-module-functions-export-after-fix.png",
+    "s18-module-functions-member-denied.png"
+  ]
+}

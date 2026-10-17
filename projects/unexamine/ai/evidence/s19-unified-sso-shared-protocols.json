@@ -1,0 +1,36 @@
+{
+  "step": "S19.6",
+  "candidate": "0.1.0-s19.6-dev2",
+  "results": [
+    {
+      "protocol": "OAUTH2",
+      "provider": "s19-oauth2",
+      "systemId": 4,
+      "platformSessionId": 52,
+      "memberId": 4,
+      "loginTraceId": "747920184c6849ceb1163fae9f23445a",
+      "systemEntryTraceId": "001c56a737b544118408f47e2447156e",
+      "auditId": 138
+    },
+    {
+      "protocol": "SAML2",
+      "provider": "s19-saml2",
+      "systemId": 5,
+      "platformSessionId": 54,
+      "memberId": 5,
+      "loginTraceId": "7a6130d1fa4242f0baba1d861d100bcc",
+      "systemEntryTraceId": "c79c32616cd748ffb64763137a5e1275",
+      "auditId": 143
+    },
+    {
+      "protocol": "OIDC",
+      "provider": "s19-oidc",
+      "systemId": 6,
+      "platformSessionId": 56,
+      "memberId": 6,
+      "loginTraceId": "ccffc64daedc4574aea9ca5cc9038e15",
+      "systemEntryTraceId": "7213a32e250f40c086b2b1b1674ae2bc",
+      "auditId": 148
+    }
+  ]
+}

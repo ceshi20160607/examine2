@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.unique.unexamine.authentication.base.entity.AuthorizationPermissionVersion;
 import com.unique.unexamine.authentication.base.service.AuthorizationPermissionVersionBaseService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.platform.base.entity.PlatformAccount;
+import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemMember;
@@ -33,6 +35,7 @@ public class SystemPeopleDirectoryService {
     private final SystemDepartmentBaseService departmentService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final PlatformAccountBaseService accountService;
     private final SystemMemberRoleBaseService memberRoleService;
     private final SystemRoleBaseService roleService;
     private final AuthorizationPermissionVersionBaseService permissionVersionService;
@@ -42,6 +45,7 @@ public class SystemPeopleDirectoryService {
             SystemDepartmentBaseService departmentService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
+            PlatformAccountBaseService accountService,
             SystemMemberRoleBaseService memberRoleService,
             SystemRoleBaseService roleService,
             AuthorizationPermissionVersionBaseService permissionVersionService,
@@ -49,6 +53,7 @@ public class SystemPeopleDirectoryService {
         this.departmentService = departmentService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
+        this.accountService = accountService;
         this.memberRoleService = memberRoleService;
         this.roleService = roleService;
         this.permissionVersionService = permissionVersionService;
@@ -59,16 +64,30 @@ public class SystemPeopleDirectoryService {
     public SystemPeopleDirectoryModels.Directory directory(AuthenticatedContext context, String keyword) {
         requireSystemContext(context);
         List<SystemDepartment> departments = departmentService.selectList(Wrappers.<SystemDepartment>lambdaQuery()
+                        .eq(SystemDepartment::getSystemId, context.systemId())
                         .eq(SystemDepartment::getTenantId, context.tenantId())
                         .eq(SystemDepartment::getStatus, "ACTIVE"))
                 .stream().sorted(Comparator.comparing(SystemDepartment::getPathCode)).toList();
         Map<Long, SystemDepartment> departmentById = departments.stream()
                 .collect(Collectors.toMap(SystemDepartment::getId, Function.identity()));
         List<SystemTenantMember> memberships = tenantMemberService.selectList(Wrappers.<SystemTenantMember>lambdaQuery()
+                .eq(SystemTenantMember::getSystemId, context.systemId())
                 .eq(SystemTenantMember::getTenantId, context.tenantId()).eq(SystemTenantMember::getStatus, "ACTIVE"));
         Map<Long, SystemMember> members = memberService.selectList(Wrappers.<SystemMember>lambdaQuery()
                         .eq(SystemMember::getSystemId, context.systemId()).eq(SystemMember::getStatus, "ACTIVE"))
                 .stream().collect(Collectors.toMap(SystemMember::getId, Function.identity()));
+        // 候选人员必须能以有效平台账号进入当前系统，和流程实际解析处理人的条件一致。
+        List<Long> accountIds = members.values().stream().map(SystemMember::getAccountId)
+                .filter(java.util.Objects::nonNull).distinct().toList();
+        Set<Long> activeAccountIds = accountIds.isEmpty() ? Set.of() : accountService.selectList(
+                        Wrappers.<PlatformAccount>lambdaQuery()
+                                .in(PlatformAccount::getId, accountIds)
+                                .eq(PlatformAccount::getStatus, "ACTIVE"))
+                .stream().map(PlatformAccount::getId).collect(Collectors.toSet());
+        memberships = memberships.stream().filter(item -> {
+            SystemMember member = members.get(item.getSystemMemberId());
+            return member != null && activeAccountIds.contains(member.getAccountId());
+        }).toList();
         Map<Long, SystemRole> roles = roleService.selectList(Wrappers.<SystemRole>lambdaQuery()
                         .eq(SystemRole::getTenantId, context.tenantId()).eq(SystemRole::getStatus, "ACTIVE"))
                 .stream().collect(Collectors.toMap(SystemRole::getId, Function.identity()));

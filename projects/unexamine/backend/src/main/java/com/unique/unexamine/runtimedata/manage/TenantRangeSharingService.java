@@ -14,7 +14,6 @@ import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
@@ -34,16 +33,15 @@ public class TenantRangeSharingService {
     private final ChannelFieldPolicyResolver fields;
     private final DictionaryConfigurationService dictionaries;
     private final ObjectMapper json;
-    private final JdbcTemplate jdbc;
     private final AuditRecorder audit;
 
     public TenantRangeSharingService(BizTenantShareBaseService shares, SystemTenantBaseService tenants,
             ModulePublicationService publications, SharedSourceMetadataService metadata, TenantShareScopeService scope,
             RuntimeDataService runtime, PermissionChecker permissions, ChannelFieldPolicyResolver fields,
-            DictionaryConfigurationService dictionaries, ObjectMapper json, JdbcTemplate jdbc, AuditRecorder audit) {
+            DictionaryConfigurationService dictionaries, ObjectMapper json, AuditRecorder audit) {
         this.shares = shares; this.tenants = tenants; this.publications = publications;this.metadata = metadata;
         this.scope = scope; this.runtime = runtime; this.permissions = permissions; this.fields = fields;
-        this.dictionaries = dictionaries; this.json = json; this.jdbc = jdbc; this.audit = audit;
+        this.dictionaries = dictionaries; this.json = json; this.audit = audit;
     }
 
     /** 有外来共享目录不代表拥有来源配置，更不能以它再次共享。 */
@@ -85,7 +83,7 @@ public class TenantRangeSharingService {
         var publication = source(actor, code);
         return shares.selectList(Wrappers.<BizTenantShare>lambdaQuery().eq(BizTenantShare::getSystemId, actor.systemId())
                 .eq(BizTenantShare::getSourceTenantId, actor.tenantId()).eq(BizTenantShare::getModuleId, publication.moduleId())
-                .eq(BizTenantShare::getScopeType, "DATA_RANGE").orderByDesc(BizTenantShare::getGrantedAt, BizTenantShare::getId))
+                .eq(BizTenantShare::getScopeType, "DATA_RANGE").orderByDesc(BizTenantShare::getGrantTime, BizTenantShare::getId))
                 .stream().filter(share -> canManage(actor, code, share)).map(share -> view(actor, code, share)).toList();
     }
 
@@ -109,8 +107,9 @@ public class TenantRangeSharingService {
         });
         Set<String> allowed = new LinkedHashSet<>(List.of("LIST", "DETAIL"));
         if (request.allowedActions() != null) request.allowedActions().stream().filter(Objects::nonNull).map(String::strip).map(a -> a.toUpperCase(Locale.ROOT)).forEach(allowed::add);
-        if (allowed.stream().anyMatch(a -> !published.contains(a) || Set.of("CREATE", "SHARE", "RESTORE").contains(a)))
-            throw new DomainException("SHARE_ACTION_INVALID", "共享动作必须已发布且不能新建或再次共享", HttpStatus.UNPROCESSABLE_ENTITY);
+        // 共享只扩充可用动作的数据范围；转化必须由来源租户在本租户内执行。
+        if (allowed.stream().anyMatch(a -> !published.contains(a) || Set.of("CREATE", "SHARE", "RESTORE", "CONVERT").contains(a)))
+            throw new DomainException("SHARE_ACTION_INVALID", "共享动作必须已发布且不能新建、转化或再次共享", HttpStatus.UNPROCESSABLE_ENTITY);
         BizTenantShare share = request.id() == null ? new BizTenantShare() : owned(actor, code, publication.moduleId(), request.id());
         if (share.getId() != null && !Objects.equals(request.version(), share.getVersion())) throw conflict();
         share.setSystemId(actor.systemId());share.setModuleId(publication.moduleId());share.setSourceTenantId(actor.tenantId());
@@ -120,14 +119,18 @@ public class TenantRangeSharingService {
         snapshot.set("sourceShareScope", sourceScope);
         share.setScopeJson(snapshot.toString());share.setPermissionJson(json.valueToTree(Map.of("moduleCode", code, "allowedActions", allowed,
                 "grantorRoleIds", actor.roleIds(), "grantorAccountId", actor.accountId())).toString());
-        share.setStatus("ACTIVE");share.setStartTime(request.startTime());share.setExpiresAt(request.expireTime());
-        share.setGrantedByMemberId(actor.memberId());share.setGrantedAt(now);share.setRevokedAt(null);
+        share.setStatus("ACTIVE");share.setStartTime(request.startTime());share.setExpireTime(request.expireTime());
+        share.setGrantedByMemberId(actor.memberId());share.setGrantTime(now);share.setRevokeTime(null);
         if (share.getId() == null) { share.setVersion(0);shares.insert(share); }
         else {
             if (shares.updateById(share) != 1) throw conflict();
-            // Base 忽略 null；同一版本内清除旧时间，重新授权仍保留原 share_id 与使用历史。
-            if (jdbc.update("UPDATE biz_tenant_share SET start_time=?, expires_at=?, revoked_at=NULL WHERE id=? AND version=?",
-                    request.startTime(), request.expireTime(), share.getId(), share.getVersion()) != 1) throw conflict();
+            // 条件更新明确写入空时间，保留原授权主键、使用历史和上一笔 Base 更新的版本约束。
+            if (shares.update(Wrappers.<BizTenantShare>lambdaUpdate()
+                    .eq(BizTenantShare::getId, share.getId())
+                    .eq(BizTenantShare::getVersion, share.getVersion())
+                    .set(BizTenantShare::getStartTime, request.startTime())
+                    .set(BizTenantShare::getExpireTime, request.expireTime())
+                    .set(BizTenantShare::getRevokeTime, null)) != 1) throw conflict();
         }
         recordAudit(actor, code, share, "BUSINESS_MODULE_RANGE_SHARED", trace, "");
         return view(actor, code, shares.selectById(share.getId()));
@@ -138,7 +141,7 @@ public class TenantRangeSharingService {
         var publication = source(actor, code);var share = owned(actor, code, publication.moduleId(), id);
         if (!Objects.equals(request.version(), share.getVersion())) throw conflict();
         if ("REVOKED".equals(share.getStatus())) throw new DomainException("SHARE_NOT_ACTIVE", "该范围授权已撤销", HttpStatus.CONFLICT);
-        share.setStatus("REVOKED");share.setRevokedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
+        share.setStatus("REVOKED");share.setRevokeTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         if (shares.updateById(share) != 1) throw conflict();
         recordAudit(actor, code, share, "BUSINESS_MODULE_RANGE_SHARE_REVOKED", trace, request.reason().strip());
         return view(actor, code, shares.selectById(id));
@@ -174,7 +177,7 @@ public class TenantRangeSharingService {
         JsonNode visibleCondition = config.path("condition").deepCopy();protectCondition(visibleCondition, protectedFields);
         return new View(share.getId(), config.path("name").asText(), share.getSourceTenantId(), tenantName(share.getSourceTenantId()),
                 share.getTargetTenantId(), tenantName(share.getTargetTenantId()), code, actions, visibleCondition, status,
-                share.getStartTime(), share.getExpiresAt(), share.getGrantedAt(), share.getRevokedAt(), share.getGrantedByMemberId(), share.getVersion());
+                share.getStartTime(), share.getExpireTime(), share.getGrantTime(), share.getRevokeTime(), share.getGrantedByMemberId(), share.getVersion());
     }
     /** 历史条件仍保存在授权中，但来源当前失去字段读取权时不能通过授权列表读回比较值。 */
     private void protectCondition(JsonNode condition, Set<String> protectedFields) {

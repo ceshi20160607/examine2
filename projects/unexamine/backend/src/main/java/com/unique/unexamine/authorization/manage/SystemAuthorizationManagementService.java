@@ -34,6 +34,7 @@ import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
 import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.RuntimeModuleCatalogService;
 import com.unique.unexamine.moduleconfig.manage.SharedSourceMetadataService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpStatus;
@@ -54,37 +55,39 @@ import java.util.stream.Collectors;
 
 @Service
 public class SystemAuthorizationManagementService {
-    private static final Map<String, List<String>> FIXED_RESOURCES = Map.of(
-            "CONFIG:SYSTEM", List.of("MANAGE", "MIGRATE_TENANT_MODE"),
-            "CONFIG:MODULE", List.of("MANAGE", "PREVIEW", "PUBLISH", "ROLLBACK"),
-            "CONFIG:MODULE_FIELD", List.of("CONFIGURE_SENSITIVE"),
+    private static final Map<String, List<String>> FIXED_RESOURCES = Map.ofEntries(
+            Map.entry("CONFIG:SYSTEM", List.of("MANAGE")),
+            Map.entry("CONFIG:MODULE", List.of("MANAGE", "PREVIEW", "PUBLISH", "ROLLBACK")),
+            Map.entry("CONFIG:MODULE_FIELD", List.of("CONFIGURE_SENSITIVE")),
             // 设计与运行授权分别配置，目录必须覆盖真实服务检查，否则普通配置者永远无法被授权。
-            "FLOW:SYSTEM", List.of("VIEW", "DESIGN", "SIMULATE", "PUBLISH", "BIND_VIEW", "BIND_PUBLISH",
-                    "VIEW_RUNTIME", "START", "HANDLE", "TERMINATE", "ADD_MANUAL_NODE"),
+            Map.entry("FLOW:SYSTEM", List.of("VIEW", "DESIGN", "SIMULATE", "PUBLISH", "BIND_VIEW", "BIND_PUBLISH",
+                    "VIEW_RUNTIME", "START", "HANDLE", "TERMINATE", "ADD_MANUAL_NODE")),
             // 业务附件与审批页共用同一文件权限，普通角色必须能在权限页面明确配置。
-            "FILE:OBJECT", List.of("VIEW", "UPLOAD", "REFERENCE", "DELETE", "DOWNLOAD", "MANAGE"),
-            "AUDIT:EVENT", List.of("VIEW", "VIEW_SENSITIVE", "PURGE"),
-            "TODO:SYSTEM", List.of("VIEW", "HANDLE"),
-            "MESSAGE:SYSTEM", List.of("VIEW", "SEND", "MANAGE"),
-            "AI:SYSTEM", List.of("VIEW", "MANAGE", "PUBLISH"),
+            Map.entry("FILE:OBJECT", List.of("VIEW", "UPLOAD", "REFERENCE", "DELETE", "DOWNLOAD", "MANAGE")),
+            Map.entry("AUDIT:EVENT", List.of("VIEW", "VIEW_SENSITIVE", "PURGE")),
+            Map.entry("TODO:SYSTEM", List.of("VIEW", "HANDLE")),
+            Map.entry("MESSAGE:SYSTEM", List.of("VIEW", "SEND", "MANAGE")),
+            Map.entry("AI:SYSTEM", List.of("VIEW", "MANAGE", "PUBLISH")),
             // 工作台此前只有运行时检查、没有可配置资源，普通成员无法被授予真实任务权限。
-            "WORK:SYSTEM", List.of("VIEW", "CREATE_PROJECT", "MANAGE_PROJECT", "CREATE_TASK", "UPDATE_TASK",
+            Map.entry("WORK:SYSTEM", List.of("VIEW", "CREATE_PROJECT", "MANAGE_PROJECT", "CREATE_TASK", "UPDATE_TASK",
                     "CREATE_LOG", "UPDATE_LOG", "VIEW_OTHERS", "VIEW_ALL", "VIEW_CONFIG", "CONFIGURE",
-                    "PUBLISH_CONFIG", "VIEW_CALENDAR", "VIEW_DETAIL"));
+                    "PUBLISH_CONFIG", "VIEW_CALENDAR", "VIEW_DETAIL")));
     private static final Set<String> DATA_SCOPES = Set.of(
-            "ALL", "DEPARTMENT_AND_DESCENDANTS", "DEPARTMENT", "SELF_AND_SUBORDINATES", "SELF", "CUSTOM");
+            "ALL", "DEPARTMENT_AND_DESCENDANTS", "DEPARTMENT", "SELF_AND_SUBORDINATES", "SELF",
+            "SPECIFIED_MEMBERS", "SPECIFIED_DEPARTMENTS", "CUSTOM");
     private static final Set<String> CHANNELS = Set.of("PAGE", "APPLICATION", "FILE", "FLOW");
     private static final Set<String> MODULE_ACTIONS = Set.of(
             "LIST", "DETAIL", "CREATE", "UPDATE", "DELETE", "IMPORT", "EXPORT", "CONVERT", "PRINT");
     private static final Map<String, String> ACTION_NAMES = Map.ofEntries(
-            Map.entry("MANAGE", "管理"), Map.entry("MIGRATE_TENANT_MODE", "切换组织模式"),
+            Map.entry("MANAGE", "管理"),
             Map.entry("PREVIEW", "预览与检查"), Map.entry("PUBLISH", "发布"), Map.entry("ROLLBACK", "回滚发布"),
             Map.entry("CONFIGURE_SENSITIVE", "配置敏感字段"),
             Map.entry("VIEW_RUNTIME", "查看流程运行"), Map.entry("START", "发起流程"),
             Map.entry("DESIGN", "设计流程"), Map.entry("SIMULATE", "模拟流程"),
             Map.entry("BIND_VIEW", "查看动作绑定"), Map.entry("BIND_PUBLISH", "配置动作绑定"),
             Map.entry("HANDLE", "处理事项"), Map.entry("TERMINATE", "终止流程"), Map.entry("ADD_MANUAL_NODE", "添加审批节点"),
-            Map.entry("VIEW", "查看"), Map.entry("VIEW_SENSITIVE", "查看敏感信息"), Map.entry("PURGE", "清理"),
+            Map.entry("VIEW", "查看"), Map.entry("READ", "读取"),
+            Map.entry("VIEW_SENSITIVE", "查看敏感信息"), Map.entry("PURGE", "清理"),
             Map.entry("LIST", "查看列表"), Map.entry("DETAIL", "查看详情"), Map.entry("CREATE", "新建"),
             Map.entry("UPDATE", "编辑"), Map.entry("DELETE", "删除"), Map.entry("IMPORT", "导入"),
             Map.entry("EXPORT", "导出"), Map.entry("CONVERT", "转化"), Map.entry("PRINT", "打印"),
@@ -102,6 +105,7 @@ public class SystemAuthorizationManagementService {
     private final PlatformAccountBaseService accountService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final TenantMemberQuotaService tenantMemberQuotaService;
     /** 主租户模板可供当前租户配置角色，但数据访问仍受运行时共享和权限交集限制。 */
     private final SystemTenantBaseService tenantService;
     private final SystemRoleBaseService roleService;
@@ -116,9 +120,12 @@ public class SystemAuthorizationManagementService {
     private final PermissionChecker permissionChecker;
     private final PermissionResolver permissionResolver;
     private final OrganizationRelationRepository relationRepository;
+    private final SystemPeopleDirectoryService peopleDirectoryService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
     private final ModulePublicationService modulePublicationService;
+    /** 权限预览直接采用运行态目录，避免菜单显示与真实成员导航分叉。 */
+    private final RuntimeModuleCatalogService runtimeModuleCatalogService;
     /** 来源资源只来自当前有效共享，不枚举其他租户的全部扩展。 */
     private final SharedSourceMetadataService sharedSourceMetadata;
 
@@ -127,6 +134,7 @@ public class SystemAuthorizationManagementService {
             PlatformAccountBaseService accountService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
+            TenantMemberQuotaService tenantMemberQuotaService,
             SystemTenantBaseService tenantService,
             SystemRoleBaseService roleService,
             SystemMemberRoleBaseService memberRoleService,
@@ -140,13 +148,16 @@ public class SystemAuthorizationManagementService {
             PermissionChecker permissionChecker,
             PermissionResolver permissionResolver,
             OrganizationRelationRepository relationRepository,
+            SystemPeopleDirectoryService peopleDirectoryService,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper, ModulePublicationService modulePublicationService,
+            RuntimeModuleCatalogService runtimeModuleCatalogService,
             SharedSourceMetadataService sharedSourceMetadata) {
         this.departmentService = departmentService;
         this.accountService = accountService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
+        this.tenantMemberQuotaService = tenantMemberQuotaService;
         this.tenantService = tenantService;
         this.roleService = roleService;
         this.memberRoleService = memberRoleService;
@@ -160,9 +171,11 @@ public class SystemAuthorizationManagementService {
         this.permissionChecker = permissionChecker;
         this.permissionResolver = permissionResolver;
         this.relationRepository = relationRepository;
+        this.peopleDirectoryService = peopleDirectoryService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
         this.modulePublicationService = modulePublicationService;
+        this.runtimeModuleCatalogService = runtimeModuleCatalogService;
         this.sharedSourceMetadata = sharedSourceMetadata;
     }
 
@@ -201,17 +214,22 @@ public class SystemAuthorizationManagementService {
         } else {
             department = requireDepartment(context, input.id());
             requireVersion(input.expectedVersion(), department.getVersion());
+            if (input.code() != null && !input.code().isBlank()
+                    && !input.code().strip().equals(department.getCode())) {
+                throw new DomainException("DEPARTMENT_CODE_IMMUTABLE", "部门编码创建后不能修改", HttpStatus.CONFLICT);
+            }
             oldPath = department.getPathCode();
         }
-        SystemDepartment parent = input.parentId() == null ? null : requireDepartment(context, input.parentId());
+        SystemDepartment parent = input.parentId() == null ? null : requireActiveDepartment(context, input.parentId());
         if (department.getId() != null && parent != null
                 && (parent.getId().equals(department.getId()) || parent.getPathCode().startsWith(department.getPathCode() + "/"))) {
             throw new DomainException("ORGANIZATION_CYCLE", "部门不能移动到自身或下级部门", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         department.setParentId(parent == null ? null : parent.getId());
-        department.setCode(input.code() == null || input.code().isBlank()
-                ? department.getCode() == null ? stableCode("department") : department.getCode()
-                : input.code().strip());
+        if (department.getId() == null) {
+            department.setCode(input.code() == null || input.code().isBlank()
+                    ? stableCode("department") : input.code().strip());
+        }
         department.setName(input.name().strip());
         department.setSortOrder(input.sortOrder() == null ? 0 : input.sortOrder());
         department.setPathCode((parent == null ? "" : parent.getPathCode() + "/") + department.getCode());
@@ -236,6 +254,66 @@ public class SystemAuthorizationManagementService {
         return departmentView(departmentService.selectById(department.getId()));
     }
 
+    /** 拖拽移动先更新部门及其下级路径，再在同一事务中固定目标上级下的顺序。 */
+    @Transactional
+    public SystemAuthorizationModels.DepartmentView moveDepartment(
+            AuthenticatedContext context, Long departmentId,
+            SystemAuthorizationModels.DepartmentMoveRequest input, String traceId) {
+        requireContext(context);
+        SystemDepartment source = requireActiveDepartment(context, departmentId);
+        requireVersion(input.expectedVersion(), source.getVersion());
+        if (source.getParentId() == null) {
+            throw new DomainException("ROOT_DEPARTMENT_IMMOVABLE", "根部门不能移动", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        SystemDepartment target = requireActiveDepartment(context, input.targetDepartmentId());
+        if (source.getId().equals(target.getId())
+                || target.getPathCode().startsWith(source.getPathCode() + "/")) {
+            throw new DomainException("ORGANIZATION_CYCLE", "部门不能移动到自身或下级部门", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        String placement = input.placement().strip().toUpperCase();
+        if (!Set.of("INSIDE", "BEFORE", "AFTER").contains(placement)) {
+            throw new DomainException("DEPARTMENT_MOVE_PLACEMENT_INVALID", "请选择部门内或同级前后位置",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        Long parentId = "INSIDE".equals(placement) ? target.getId() : target.getParentId();
+        if (parentId == null) {
+            throw new DomainException("ROOT_DEPARTMENT_IMMOVABLE", "不能在根部门旁创建第二个根部门",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        saveDepartment(context, new SystemAuthorizationModels.DepartmentRequest(source.getId(), parentId,
+                source.getCode(), source.getName(), source.getSortOrder(), source.getVersion()), traceId);
+
+        List<SystemDepartment> siblings = new ArrayList<>(departments(context).stream()
+                .filter(item -> parentId.equals(item.getParentId()) && !source.getId().equals(item.getId()))
+                .sorted(Comparator.comparing((SystemDepartment item) -> item.getSortOrder() == null ? 0 : item.getSortOrder())
+                        .thenComparing(SystemDepartment::getId)).toList());
+        SystemDepartment moved = departmentService.selectById(source.getId());
+        int index = siblings.size();
+        if (!"INSIDE".equals(placement)) {
+            index = -1;
+            for (int candidate = 0; candidate < siblings.size(); candidate++) {
+                if (target.getId().equals(siblings.get(candidate).getId())) {
+                    index = candidate + ("AFTER".equals(placement) ? 1 : 0);
+                    break;
+                }
+            }
+            if (index < 0) throw conflict();
+        }
+        siblings.add(index, moved);
+        for (int position = 0; position < siblings.size(); position++) {
+            SystemDepartment sibling = siblings.get(position);
+            int sortOrder = (position + 1) * 10;
+            if (sibling.getSortOrder() != null && sibling.getSortOrder() == sortOrder) continue;
+            sibling.setSortOrder(sortOrder);
+            if (departmentService.updateById(sibling) != 1) throw conflict();
+        }
+        auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                "SYSTEM_DEPARTMENT_MOVED", "SYSTEM_DEPARTMENT", source.getId().toString(), "SUCCESS",
+                Map.of("targetDepartmentId", target.getId(), "placement", placement, "parentId", parentId));
+        return departmentView(departmentService.selectById(source.getId()));
+    }
+
+    /** 成员归属为空时回到当前租户有效根部门，避免产生无部门的有效成员。 */
     @Transactional
     public SystemAuthorizationModels.MemberView assignMember(
             AuthenticatedContext context, Long tenantMemberId,
@@ -243,11 +321,12 @@ public class SystemAuthorizationManagementService {
         requireContext(context);
         SystemTenantMember tenantMember = requireTenantMember(context, tenantMemberId);
         requireVersion(input.expectedVersion(), tenantMember.getVersion());
-        if (input.departmentId() != null) requireDepartment(context, input.departmentId());
+        Long departmentId = input.departmentId() == null ? rootDepartment(context).getId()
+                : requireActiveDepartment(context, input.departmentId()).getId();
         validateReportingLine(context, tenantMemberId, input.managerTenantMemberId());
         List<Long> distinctRoleIds = input.roleIds().stream().distinct().sorted().toList();
         for (Long roleId : distinctRoleIds) requireRole(context, roleId);
-        tenantMember.setDepartmentId(input.departmentId());
+        tenantMember.setDepartmentId(departmentId);
         if (tenantMemberService.updateById(tenantMember) != 1) throw conflict();
         memberRoleService.selectList(Wrappers.<SystemMemberRole>lambdaQuery()
                         .eq(SystemMemberRole::getTenantMemberId, tenantMemberId))
@@ -274,7 +353,7 @@ public class SystemAuthorizationManagementService {
         bumpCache(context.systemId(), context.tenantId(), permissionVersion);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "SYSTEM_MEMBER_AUTHORIZATION_ASSIGNED", "SYSTEM_TENANT_MEMBER", tenantMemberId.toString(), "SUCCESS",
-                Map.of("departmentId", input.departmentId() == null ? "" : input.departmentId(),
+                Map.of("departmentId", departmentId,
                         "manager", input.managerTenantMemberId() == null ? "" : input.managerTenantMemberId(),
                         "roleIds", distinctRoleIds, "permissionVersion", permissionVersion));
         SystemMember member = memberService.selectById(tenantMember.getSystemMemberId());
@@ -306,7 +385,7 @@ public class SystemAuthorizationManagementService {
             member.setEmployeeNumber(emptyToNull(input.employeeNumber()));
             member.setDisplayName(account.getDisplayName());
             member.setStatus("ACTIVE");
-            member.setJoinedAt(LocalDateTime.now());
+            member.setJoinTime(LocalDateTime.now());
             memberService.insert(member);
         } else {
             if (input.employeeNumber() != null && !input.employeeNumber().isBlank()) {
@@ -323,17 +402,21 @@ public class SystemAuthorizationManagementService {
         if (membership != null && "ACTIVE".equals(membership.getStatus())) {
             throw new DomainException("SYSTEM_MEMBER_EXISTS", "该成员已经在当前工作空间中", HttpStatus.CONFLICT);
         }
+        // 新建和恢复有效租户成员都会增加当前租户用量，角色调整不重复占用。
+        tenantMemberQuotaService.checkBeforeActivate(context.systemId(), context.tenantId());
         if (membership == null) {
             membership = new SystemTenantMember();
             membership.setSystemId(context.systemId());
             membership.setTenantId(context.tenantId());
             membership.setSystemMemberId(member.getId());
-            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId() : input.departmentId());
+            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId()
+                    : requireActiveDepartment(context, input.departmentId()).getId());
             membership.setTenantAdmin(false);
             membership.setStatus("ACTIVE");
             tenantMemberService.insert(membership);
         } else {
-            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId() : input.departmentId());
+            membership.setDepartmentId(input.departmentId() == null ? rootDepartment(context).getId()
+                    : requireActiveDepartment(context, input.departmentId()).getId());
             membership.setStatus("ACTIVE");
             tenantMemberService.updateById(membership);
         }
@@ -366,10 +449,28 @@ public class SystemAuthorizationManagementService {
             if (Boolean.TRUE.equals(role.getBuiltIn())) {
                 throw new DomainException("BUILT_IN_ROLE_IMMUTABLE", "内置角色不能通过普通授权流程修改", HttpStatus.CONFLICT);
             }
+            if (input.code() != null && !input.code().isBlank()
+                    && !input.code().strip().equals(role.getCode())) {
+                throw new DomainException("ROLE_CODE_IMMUTABLE", "角色编码创建后不能修改", HttpStatus.CONFLICT);
+            }
         }
-        role.setCode(input.code() == null || input.code().isBlank()
-                ? role.getCode() == null ? stableCode("role") : role.getCode()
-                : input.code().strip());
+        // 已发布角色的草稿只写在角色草稿字段；生效授权行必须等发布时才替换。
+        if (role.getId() != null && "ACTIVE".equals(role.getStatus())) {
+            role.setDraftCode(role.getCode());
+            role.setDraftName(input.name().strip());
+            role.setDraftDescription(input.description() == null ? "" : input.description());
+            role.setDraftPermissionsJson(writeRoleDraft(input.permissions()));
+            role.setDraftFieldPoliciesJson(writeRoleDraft(input.fieldPolicies()));
+            if (roleService.updateById(role) != 1) throw conflict();
+            auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
+                    "SYSTEM_AUTHORIZATION_ROLE_SAVED", "SYSTEM_ROLE", role.getId().toString(), "DRAFT",
+                    Map.of("permissions", input.permissions().size(), "fieldPolicies", input.fieldPolicies().size()));
+            return roleView(roleService.selectById(role.getId()));
+        }
+        if (role.getId() == null) {
+            role.setCode(input.code() == null || input.code().isBlank()
+                    ? stableCode("role") : input.code().strip());
+        }
         role.setName(input.name().strip());
         role.setDescription(input.description());
         role.setStatus("DRAFT");
@@ -394,16 +495,43 @@ public class SystemAuthorizationManagementService {
         requireContext(context);
         SystemRole role = requireRole(context, roleId);
         requireVersion(input.expectedVersion(), role.getVersion());
-        List<SystemAuthorizationModels.PermissionInput> permissions = permissionInputs(roleId);
-        List<SystemAuthorizationModels.FieldPolicyInput> policies = fieldPolicyInputs(roleId);
+        boolean editingPublishedRole = "ACTIVE".equals(role.getStatus());
+        if (editingPublishedRole && !hasRoleDraft(role)) {
+            throw new DomainException("ROLE_DRAFT_REQUIRED", "请先保存角色草稿再发布", HttpStatus.CONFLICT);
+        }
+        List<SystemAuthorizationModels.PermissionInput> permissions = editingPublishedRole
+                ? draftPermissionInputs(role) : permissionInputs(roleId);
+        List<SystemAuthorizationModels.FieldPolicyInput> policies = editingPublishedRole
+                ? draftFieldPolicyInputs(role) : fieldPolicyInputs(roleId);
         if (permissions.isEmpty()) {
             throw new DomainException("ROLE_PERMISSION_REQUIRED", "角色至少需要一项有效权限", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         List<SystemAuthorizationModels.ResourceView> catalog = resources(context);
         permissions.forEach(permission -> validatePermission(context, permission, catalog));
         policies.forEach(policy -> validateFieldPolicy(context, policy, catalog));
-        role.setStatus("ACTIVE");
-        if (roleService.updateById(role) != 1) throw conflict();
+        if (editingPublishedRole) {
+            if (!role.getCode().equals(role.getDraftCode())) {
+                throw new DomainException("ROLE_CODE_IMMUTABLE", "角色编码创建后不能修改", HttpStatus.CONFLICT);
+            }
+            role.setName(role.getDraftName());
+            role.setDescription(role.getDraftDescription());
+            try {
+                if (roleService.updateById(role) != 1) throw conflict();
+            } catch (RuntimeException exception) {
+                if (exception instanceof DomainException domainException) throw domainException;
+                throw new DomainException("ROLE_CODE_EXISTS", "当前租户已存在相同角色编码", HttpStatus.CONFLICT);
+            }
+            replaceRoleConfiguration(context, roleId, permissions, policies);
+            if (roleService.update(Wrappers.<SystemRole>lambdaUpdate().eq(SystemRole::getId, roleId)
+                    .set(SystemRole::getDraftCode, null)
+                    .set(SystemRole::getDraftName, null)
+                    .set(SystemRole::getDraftDescription, null)
+                    .set(SystemRole::getDraftPermissionsJson, null)
+                    .set(SystemRole::getDraftFieldPoliciesJson, null)) != 1) throw conflict();
+        } else {
+            role.setStatus("ACTIVE");
+            if (roleService.updateById(role) != 1) throw conflict();
+        }
         long version = latestVersion(context.systemId(), context.tenantId()) + 1;
         AuthorizationPermissionVersion row = new AuthorizationPermissionVersion();
         row.setContextType("SYSTEM");
@@ -432,7 +560,17 @@ public class SystemAuthorizationManagementService {
         }
         SystemTenantMember target = requireTenantMember(context, input.tenantMemberId());
         SystemMember systemMember = memberService.selectById(target.getSystemMemberId());
-        ResolvedPermissions resolved = permissionResolver.resolve(context.systemId(), context.tenantId(), target.getId());
+        PermissionResolutionResult resolution = permissionResolver.resolveWithDiagnostics(
+                context.systemId(), context.tenantId(), target.getId());
+        ResolvedPermissions resolved = resolution.permissions();
+        // 当前所属人的隐式权限来自系统归属，不能解释成不存在的角色贡献。
+        boolean systemOwner = "SYSTEM_OWNER".equals(resolution.source());
+        // 用目标成员的已生效权限计算运行态菜单；管理员自己的会话仅用于发起预览和审计。
+        AuthenticatedContext targetContext = new AuthenticatedContext(null, systemMember.getAccountId(),
+                context.platformId(), context.systemId(), context.tenantId(), systemMember.getId(), target.getId(),
+                null, systemMember.getDisplayName(), null, resolved.roleIds(),
+                resolved.permissions(), resolved.dataScopes());
+        var visibleMenus = runtimeModuleCatalogService.list(targetContext);
         List<SystemRole> activeRoles = resolved.roleIds().isEmpty() ? List.of() : roleService.selectList(
                 Wrappers.<SystemRole>lambdaQuery().eq(SystemRole::getTenantId, context.tenantId())
                         .eq(SystemRole::getStatus, "ACTIVE").in(SystemRole::getId, resolved.roleIds()));
@@ -464,7 +602,8 @@ public class SystemAuthorizationManagementService {
                 actionDecisions.add(new SystemAuthorizationModels.ActionDecision(resource.resourceType(),
                         resource.resourceCode(), resource.name(), action, allowed,
                         matchingGrants.stream().flatMap(grant -> grant.roleIds().stream()).distinct().sorted().toList(), scope,
-                        allowed ? "至少一个有效角色授予该动作；菜单动作和数据范围按角色并集合并"
+                        systemOwner ? "系统当前所属人隐式拥有全部管理与业务权限，不依赖角色授权"
+                                : allowed ? "至少一个有效角色授予该动作；菜单动作和数据范围按角色并集合并"
                                 : "没有有效角色授予该动作，按默认拒绝处理"));
             }
         }
@@ -477,25 +616,40 @@ public class SystemAuthorizationManagementService {
         List<SystemAuthorizationModels.FieldDecision> fieldDecisions = new ArrayList<>();
         for (SystemAuthorizationModels.ResourceView resource : catalog) {
             if (!"MODULE".equals(resource.resourceType())) continue;
-            Set<Long> resourceRoleIds = resolved.permissions().stream()
-                    .filter(grant -> matches(grant.resourceType(), "MODULE")
-                            && matches(grant.resourceCode(), resource.resourceCode()))
-                    .flatMap(grant -> grant.roleIds().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
-            for (String field : resource.fields()) {
-                List<AuthorizationFieldPolicy> policies = allPolicies.stream()
-                        .filter(policy -> resource.resourceCode().equals(policy.getResourceCode())
-                                && field.equals(policy.getFieldCode()) && "PAGE".equals(policy.getChannel())
-                                && resourceRoleIds.contains(policy.getRoleId())).toList();
-                boolean complete = !resourceRoleIds.isEmpty()
-                        && policies.stream().map(AuthorizationFieldPolicy::getRoleId).distinct().count() == resourceRoleIds.size();
-                boolean readable = complete && policies.stream().allMatch(policy -> Boolean.TRUE.equals(policy.getReadable()));
-                boolean writable = complete && policies.stream().allMatch(policy -> Boolean.TRUE.equals(policy.getWritable()));
-                List<String> masks = policies.stream().map(AuthorizationFieldPolicy::getMaskStrategy)
-                        .filter(value -> value != null && !value.isBlank()).distinct().sorted().toList();
-                fieldDecisions.add(new SystemAuthorizationModels.FieldDecision(resource.resourceCode(), field, "PAGE",
-                        readable, writable, masks, resourceRoleIds.stream().sorted().toList(),
-                        complete ? "字段策略在相关角色之间取硬限制交集"
-                                : "至少一个相关角色缺少字段策略，按默认拒绝处理"));
+            for (String action : resource.actions()) {
+                if (input.actionCode() != null && !input.actionCode().isBlank()
+                        && !input.actionCode().equals(action)) continue;
+                if (systemOwner) {
+                    for (String field : resource.fields()) {
+                        fieldDecisions.add(new SystemAuthorizationModels.FieldDecision(resource.resourceCode(), action,
+                                field, "PAGE", true, true, List.of(), List.of(),
+                                "系统当前所属人隐式拥有字段读取和写入权限，不依赖角色字段策略"));
+                    }
+                    continue;
+                }
+                // 字段硬限制只取授予当前动作的角色，不能让仅授予列表的角色影响详情预览。
+                Set<Long> actionRoleIds = resolved.permissions().stream()
+                        .filter(grant -> matches(grant.resourceType(), "MODULE")
+                                && matches(grant.resourceCode(), resource.resourceCode())
+                                && matches(grant.actionCode(), action))
+                        .flatMap(grant -> grant.roleIds().stream()).collect(Collectors.toCollection(LinkedHashSet::new));
+                if (actionRoleIds.isEmpty()) continue;
+                for (String field : resource.fields()) {
+                    List<AuthorizationFieldPolicy> policies = allPolicies.stream()
+                            .filter(policy -> resource.resourceCode().equals(policy.getResourceCode())
+                                    && field.equals(policy.getFieldCode()) && "PAGE".equals(policy.getChannel())
+                                    && actionRoleIds.contains(policy.getRoleId())).toList();
+                    boolean complete = policies.stream().map(AuthorizationFieldPolicy::getRoleId).distinct().count()
+                            == actionRoleIds.size();
+                    boolean readable = complete && policies.stream().allMatch(policy -> Boolean.TRUE.equals(policy.getReadable()));
+                    boolean writable = complete && policies.stream().allMatch(policy -> Boolean.TRUE.equals(policy.getWritable()));
+                    List<String> masks = policies.stream().map(AuthorizationFieldPolicy::getMaskStrategy)
+                            .filter(value -> value != null && !value.isBlank()).distinct().sorted().toList();
+                    fieldDecisions.add(new SystemAuthorizationModels.FieldDecision(resource.resourceCode(), action,
+                            field, "PAGE", readable, writable, masks, actionRoleIds.stream().sorted().toList(),
+                            complete ? "字段策略在授予当前动作的角色之间取硬限制交集"
+                                    : "至少一个授予当前动作的角色缺少字段策略，按默认拒绝处理"));
+                }
             }
         }
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
@@ -504,8 +658,9 @@ public class SystemAuthorizationManagementService {
                         "resourceCode", input.resourceCode() == null ? "" : input.resourceCode(),
                         "actionCode", input.actionCode() == null ? "" : input.actionCode(),
                         "targetRoleIds", resolved.roleIds()));
-        return new SystemAuthorizationModels.PermissionPreview(currentVersion,
-                memberView(target, systemMember, resolved.roleIds()), contributions, actionDecisions, fieldDecisions,
+        return new SystemAuthorizationModels.PermissionPreview(currentVersion, systemOwner,
+                memberView(target, systemMember, resolved.roleIds()), visibleMenus,
+                contributions, actionDecisions, fieldDecisions,
                 Map.of("menuAndAction", "UNION", "dataScope", "UNION",
                         "fieldAndChannelRestrictions", "INTERSECTION", "missingContext", "DEFAULT_DENY"));
     }
@@ -539,6 +694,8 @@ public class SystemAuthorizationManagementService {
             row.setSystemId(context.systemId());
             row.setTenantId(context.tenantId());
             row.setRoleId(roleId);
+            // 字段权限属于当前系统角色，保存时同时填写分域角色标识。
+            row.setSystemRoleId(roleId);
             row.setResourceCode(input.resourceCode());
             row.setFieldCode(input.fieldCode());
             row.setChannel(input.channel());
@@ -555,6 +712,7 @@ public class SystemAuthorizationManagementService {
             throw new DomainException("DATA_SCOPE_INVALID", "数据范围无效：" + input.dataScopeType(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         normalizeJson(input.dataScopeJson());
+        validateScopeTargets(context, input);
         String fixedKey = input.resourceType() + ":" + input.resourceCode();
         boolean valid = FIXED_RESOURCES.getOrDefault(fixedKey, List.of()).contains(input.actionCode());
         if ("MODULE".equals(input.resourceType())) {
@@ -730,9 +888,44 @@ public class SystemAuthorizationManagementService {
     }
 
     private SystemAuthorizationModels.RoleView roleView(SystemRole role) {
-        return new SystemAuthorizationModels.RoleView(role.getId(), role.getCode(), role.getName(), role.getDescription(),
-                Boolean.TRUE.equals(role.getBuiltIn()), role.getStatus(), permissionInputs(role.getId()),
-                fieldPolicyInputs(role.getId()), role.getVersion());
+        boolean pending = hasRoleDraft(role);
+        return new SystemAuthorizationModels.RoleView(role.getId(), pending ? role.getDraftCode() : role.getCode(),
+                pending ? role.getDraftName() : role.getName(),
+                pending ? role.getDraftDescription() : role.getDescription(),
+                Boolean.TRUE.equals(role.getBuiltIn()), role.getStatus(),
+                pending ? draftPermissionInputs(role) : permissionInputs(role.getId()),
+                pending ? draftFieldPolicyInputs(role) : fieldPolicyInputs(role.getId()), role.getVersion(),
+                pending || "DRAFT".equals(role.getStatus()));
+    }
+
+    private boolean hasRoleDraft(SystemRole role) {
+        return role.getDraftPermissionsJson() != null && !role.getDraftPermissionsJson().isBlank();
+    }
+
+    private String writeRoleDraft(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception exception) {
+            throw new IllegalStateException("角色草稿序列化失败", exception);
+        }
+    }
+
+    private List<SystemAuthorizationModels.PermissionInput> draftPermissionInputs(SystemRole role) {
+        try {
+            return objectMapper.readValue(role.getDraftPermissionsJson(), objectMapper.getTypeFactory()
+                    .constructCollectionType(List.class, SystemAuthorizationModels.PermissionInput.class));
+        } catch (Exception exception) {
+            throw new IllegalStateException("角色权限草稿内容无效", exception);
+        }
+    }
+
+    private List<SystemAuthorizationModels.FieldPolicyInput> draftFieldPolicyInputs(SystemRole role) {
+        try {
+            return objectMapper.readValue(role.getDraftFieldPoliciesJson(), objectMapper.getTypeFactory()
+                    .constructCollectionType(List.class, SystemAuthorizationModels.FieldPolicyInput.class));
+        } catch (Exception exception) {
+            throw new IllegalStateException("角色字段策略草稿内容无效", exception);
+        }
     }
 
     private List<SystemAuthorizationModels.PermissionInput> permissionInputs(Long roleId) {
@@ -783,9 +976,13 @@ public class SystemAuthorizationManagementService {
                 roleIds.stream().distinct().sorted().toList(), roleNames, tenantMember.getVersion());
     }
 
+    /** 直属上级必须是同一租户的有效成员，且调整后不能形成汇报环。 */
     private void validateReportingLine(AuthenticatedContext context, Long tenantMemberId, Long managerTenantMemberId) {
         if (managerTenantMemberId == null) return;
-        requireTenantMember(context, managerTenantMemberId);
+        SystemTenantMember manager = requireTenantMember(context, managerTenantMemberId);
+        if (!"ACTIVE".equals(manager.getStatus())) {
+            throw new DomainException("MANAGER_NOT_ACTIVE", "直属上级不是当前工作空间的有效成员", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
         if (tenantMemberId.equals(managerTenantMemberId)) {
             throw new DomainException("REPORTING_LINE_CYCLE", "直属上级不能是成员本人", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -802,7 +999,7 @@ public class SystemAuthorizationManagementService {
     }
 
     private SystemDepartment rootDepartment(AuthenticatedContext context) {
-        return departments(context).stream().filter(item -> item.getParentId() == null).findFirst()
+        return departments(context).stream().filter(item -> item.getParentId() == null && "ACTIVE".equals(item.getStatus())).findFirst()
                 .orElseThrow(() -> new DomainException("ROOT_DEPARTMENT_MISSING", "系统根部门不存在，请联系平台管理员",
                         HttpStatus.CONFLICT));
     }
@@ -830,6 +1027,48 @@ public class SystemAuthorizationManagementService {
         SystemDepartment value = departmentService.selectById(id);
         if (value == null || !context.tenantId().equals(value.getTenantId())) {
             throw new DomainException("DEPARTMENT_NOT_FOUND", "当前租户中不存在该部门", HttpStatus.NOT_FOUND);
+        }
+        return value;
+    }
+
+    /** 指定人员使用业务记录的系统成员 ID，候选必须与人员字段和流程目录同属当前有效工作空间。 */
+    private void validateScopeTargets(AuthenticatedContext context, SystemAuthorizationModels.PermissionInput input) {
+        boolean memberScope = "SPECIFIED_MEMBERS".equals(input.dataScopeType());
+        boolean departmentScope = "SPECIFIED_DEPARTMENTS".equals(input.dataScopeType());
+        if (!memberScope && !departmentScope) return;
+        if (!"MODULE".equals(input.resourceType())) {
+            throw new DomainException("DATA_SCOPE_INVALID", "指定成员或部门范围只适用于业务模块",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        JsonNode condition;
+        try {
+            condition = objectMapper.readTree(input.dataScopeJson());
+        } catch (Exception exception) {
+            throw new DomainException("DATA_SCOPE_JSON_INVALID", "请选择有效的成员或部门范围",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        JsonNode selected = condition == null ? null : condition.path(memberScope ? "memberIds" : "departmentIds");
+        if (selected == null || !selected.isArray() || selected.isEmpty()) {
+            throw new DomainException("DATA_SCOPE_TARGET_REQUIRED", "指定范围至少选择一名成员或一个部门",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        var directory = peopleDirectoryService.recordOptions(context, memberScope, departmentScope);
+        Set<Long> validIds = memberScope
+                ? directory.people().stream().map(SystemPeopleDirectoryModels.Person::systemMemberId).collect(Collectors.toSet())
+                : directory.departments().stream().map(SystemPeopleDirectoryModels.Department::id).collect(Collectors.toSet());
+        for (JsonNode target : selected) {
+            if (!target.isIntegralNumber() || !validIds.contains(target.longValue())) {
+                throw new DomainException("DATA_SCOPE_TARGET_INVALID", "指定成员或部门不属于当前有效工作空间",
+                        HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+        }
+    }
+
+    /** 新成员、归属和父部门只能选有效部门；已停用部门仍可供历史引用展示。 */
+    private SystemDepartment requireActiveDepartment(AuthenticatedContext context, Long id) {
+        SystemDepartment value = requireDepartment(context, id);
+        if (!"ACTIVE".equals(value.getStatus())) {
+            throw new DomainException("DEPARTMENT_DISABLED", "部门已停用，请选择有效部门", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return value;
     }

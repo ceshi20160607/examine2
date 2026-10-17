@@ -9,41 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 健康检查逐项结果
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_health_item")
+@TableName("un_ops_health_item")
 public class OpsHealthItem {
 
+    /**
+     * 健康检查项目主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属健康检查运行主键
+     */
     @TableField("health_run_id")
     private Long healthRunId;
 
+    /**
+     * 检查项稳定编码
+     */
     @TableField("check_code")
     private String checkCode;
 
+    /**
+     * 检查项显示名称
+     */
     @TableField("check_name")
     private String checkName;
 
+    /**
+     * 检查项业务类别
+     */
     @TableField("category")
     private String category;
 
+    /**
+     * 检查项结果状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 结果说明和修复建议
+     */
     @TableField("message")
     private String message;
 
+    /**
+     * 检查项数值与证据
+     */
     @TableField("metric_json")
     private String metricJson;
 
-    @TableField("checked_at")
-    private LocalDateTime checkedAt;
+    /**
+     * 检查项完成时间
+     */
+    @TableField("check_time")
+    private LocalDateTime checkTime;
 
     public Long getId() {
         return id;
@@ -109,12 +136,12 @@ public class OpsHealthItem {
         this.metricJson = metricJson;
     }
 
-    public LocalDateTime getCheckedAt() {
-        return checkedAt;
+    public LocalDateTime getCheckTime() {
+        return checkTime;
     }
 
-    public void setCheckedAt(LocalDateTime checkedAt) {
-        this.checkedAt = checkedAt;
+    public void setCheckTime(LocalDateTime checkTime) {
+        this.checkTime = checkTime;
     }
 
     @Override
@@ -128,7 +155,7 @@ public class OpsHealthItem {
             ", status = " + status +
             ", message = " + message +
             ", metricJson = " + metricJson +
-            ", checkedAt = " + checkedAt +
+            ", checkTime = " + checkTime +
             "}";
     }
 }

@@ -9,47 +9,80 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务记录按发布索引配置生成的查询键
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_record_index")
+@TableName("un_biz_record_index")
 public class BizRecordIndex {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务数据所属系统
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 业务数据归属租户
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 业务记录所属模块主键
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 业务主记录主键
+     */
     @TableField("record_id")
     private Long recordId;
 
+    /**
+     * 本模块查询索引定义主键
+     */
     @TableField("query_index_id")
     private Long queryIndexId;
 
+    /**
+     * 复合查询键的哈希摘要
+     */
     @TableField("index_key_hash")
     private String indexKeyHash;
 
+    /**
+     * 唯一索引的规范化键摘要；非唯一索引为空
+     */
     @TableField("unique_key_hash")
     private String uniqueKeyHash;
 
+    /**
+     * 可诊断的复合查询键原文
+     */
     @TableField("index_key_text")
     private String indexKeyText;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最近修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     public Long getId() {
         return id;
@@ -123,20 +156,20 @@ public class BizRecordIndex {
         this.indexKeyText = indexKeyText;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     @Override
@@ -151,8 +184,8 @@ public class BizRecordIndex {
             ", indexKeyHash = " + indexKeyHash +
             ", uniqueKeyHash = " + uniqueKeyHash +
             ", indexKeyText = " + indexKeyText +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             "}";
     }
 }

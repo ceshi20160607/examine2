@@ -1,0 +1,28 @@
+{
+  "step": "S19.1",
+  "status": "approval_mobile_browser_api_verified",
+  "moduleCode": "module_3817e163ba",
+  "recordId": 1,
+  "instanceId": 3,
+  "taskId": 2,
+  "browser": {
+    "pendingView": {
+      "url": "http://127.0.0.1:15180/systems/1?workspace=todos",
+      "title": "待办",
+      "card": "审批S19 上海客户 · 审批普通待处理请处理流程审批审批流程 · S19 上海客户 · 审批 · 发起人 s19_member打开来源同 意拒 绝"
+    },
+    "flowView": {
+      "url": "http://127.0.0.1:15180/systems/1?workspace=flow&instanceId=3&taskId=2",
+      "hero": "流程实例S19 上海客户 · 审批待审批流程版本 V1同 意拒 绝"
+    },
+    "completedView": {
+      "url": "http://127.0.0.1:15180/systems/1?workspace=flow&instanceId=3&taskId=2",
+      "hero": "流程实例S19 上海客户 · 审批已完成流程版本 V1"
+    }
+  },
+  "instanceStatus": "COMPLETED",
+  "mobileScreenshotPixels": [
+    390,
+    3208
+  ]
+}

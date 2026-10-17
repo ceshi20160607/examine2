@@ -10,39 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统模型授权草稿与状态
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ai_system_model_grant")
+@TableName("un_ai_system_model_grant")
 public class AiSystemModelGrant {
 
+    /**
+     * 模型授权主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 授权所属平台标识
+     */
+    @TableField("platform_id")
+    private Long platformId;
+
+    /**
+     * 平台模型标识
+     */
     @TableField("model_id")
     private Long modelId;
 
+    /**
+     * 获授权系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统可用额度与并发限制
+     */
     @TableField("usage_limit_json")
     private String usageLimitJson;
 
+    /**
+     * 授权状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 授权平台账号标识
+     */
     @TableField("granted_by_account_id")
     private Long grantedByAccountId;
 
-    @TableField("granted_at")
-    private LocalDateTime grantedAt;
+    /**
+     * 授权时间
+     */
+    @TableField("grant_time")
+    private LocalDateTime grantTime;
 
-    @TableField("revoked_at")
-    private LocalDateTime revokedAt;
+    /**
+     * 撤销时间
+     */
+    @TableField("revoke_time")
+    private LocalDateTime revokeTime;
 
+    /**
+     * 授权草稿乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -53,6 +86,14 @@ public class AiSystemModelGrant {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public Long getModelId() {
@@ -95,20 +136,20 @@ public class AiSystemModelGrant {
         this.grantedByAccountId = grantedByAccountId;
     }
 
-    public LocalDateTime getGrantedAt() {
-        return grantedAt;
+    public LocalDateTime getGrantTime() {
+        return grantTime;
     }
 
-    public void setGrantedAt(LocalDateTime grantedAt) {
-        this.grantedAt = grantedAt;
+    public void setGrantTime(LocalDateTime grantTime) {
+        this.grantTime = grantTime;
     }
 
-    public LocalDateTime getRevokedAt() {
-        return revokedAt;
+    public LocalDateTime getRevokeTime() {
+        return revokeTime;
     }
 
-    public void setRevokedAt(LocalDateTime revokedAt) {
-        this.revokedAt = revokedAt;
+    public void setRevokeTime(LocalDateTime revokeTime) {
+        this.revokeTime = revokeTime;
     }
 
     public Integer getVersion() {
@@ -123,13 +164,14 @@ public class AiSystemModelGrant {
     public String toString() {
         return "AiSystemModelGrant{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", modelId = " + modelId +
             ", systemId = " + systemId +
             ", usageLimitJson = " + usageLimitJson +
             ", status = " + status +
             ", grantedByAccountId = " + grantedByAccountId +
-            ", grantedAt = " + grantedAt +
-            ", revokedAt = " + revokedAt +
+            ", grantTime = " + grantTime +
+            ", revokeTime = " + revokeTime +
             ", version = " + version +
             "}";
     }

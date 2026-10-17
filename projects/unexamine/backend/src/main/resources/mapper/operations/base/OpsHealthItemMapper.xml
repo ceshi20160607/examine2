@@ -12,12 +12,12 @@
         <result column="status" property="status" />
         <result column="message" property="message" />
         <result column="metric_json" property="metricJson" />
-        <result column="checked_at" property="checkedAt" />
+        <result column="check_time" property="checkTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, health_run_id, check_code, check_name, category, `status`, message, metric_json, checked_at
+        id, health_run_id, check_code, check_name, category, `status`, message, metric_json, check_time
     </sql>
 
 </mapper>

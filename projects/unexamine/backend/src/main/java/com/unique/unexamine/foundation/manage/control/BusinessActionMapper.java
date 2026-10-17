@@ -15,6 +15,9 @@ public interface BusinessActionMapper {
     CoreIdempotencyRecord lockResult(@Param("id") long id);
     com.unique.unexamine.flow.base.entity.FlowInstance lockApprovalFlow(@Param("id") long id);
     java.util.List<Long> completedApprovalActions();
+    /** 同一业务记录存在尚未结算的审批申请时，普通编辑必须等审批结果落定。 */
+    int pendingApprovalForRecord(@Param("systemId") long systemId, @Param("tenantId") long tenantId,
+            @Param("moduleCode") String moduleCode, @Param("recordId") long recordId);
     int activeActor(@Param("actor") com.unique.unexamine.authentication.manage.AuthenticatedContext actor);
     /** 仅通过内部 START 标识关联服务端原动作，不能相信用户填写的流程业务快照。 */
     CoreEventOutbox boundFlowEvent(@Param("instanceId") long instanceId);

@@ -269,6 +269,8 @@ def _render_backend(data: dict[str, Any]) -> dict[str, str]:
             redis:
               host: ${{APP_REDIS_HOST:127.0.0.1}}
               port: ${{APP_REDIS_PORT:{local['redisPort']}}}
+              timeout: ${{APP_REDIS_TIMEOUT:3s}}
+              connect-timeout: ${{APP_REDIS_CONNECT_TIMEOUT:3s}}
           flyway:
             enabled: true
             clean-disabled: true

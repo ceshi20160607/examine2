@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +33,29 @@ public class ModuleExportController {
     public ModuleExportController(ModuleExportService service, BackgroundJobService jobs) {
         this.service = service;
         this.jobs = jobs;
+    }
+
+    @GetMapping("/config")
+    public ApiResult<ExportModels.ConfigOverview> config(
+            @PathVariable String moduleCode, HttpServletRequest request) {
+        return ApiResult.ok(service.config(AuthenticationContextHolder.require(), moduleCode,
+                TraceIdFilter.current(request)));
+    }
+
+    @PutMapping("/config")
+    public ApiResult<ExportModels.ConfigDraftView> saveConfig(
+            @PathVariable String moduleCode, @Valid @RequestBody ExportModels.SaveConfigRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.saveConfig(AuthenticationContextHolder.require(), moduleCode, input,
+                TraceIdFilter.current(request)));
+    }
+
+    @PostMapping("/config/publish")
+    public ApiResult<ExportModels.ConfigPublishedView> publishConfig(
+            @PathVariable String moduleCode, @Valid @RequestBody ExportModels.PublishConfigRequest input,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.publishConfig(AuthenticationContextHolder.require(), moduleCode, input,
+                TraceIdFilter.current(request)));
     }
 
     @PostMapping("/estimate")

@@ -1,0 +1,21 @@
+{
+  "step": "S18.20",
+  "status": "verified_contribution",
+  "source_rows": ["R0409", "R0410"],
+  "changed_files": [],
+  "checks_actual_results": [
+    "应用 #29 低限流版本首个签名请求 200，连续第二个 429；来源 IP 白名单不匹配时签名请求 403，均未自动停用。",
+    "阈值为 1 时，已授权目标执行中的错误筛选返回 400 并触发自动停用；后续调用 403，原凭证撤销。页面恢复签发 V2，V1 请求 401；阈值恢复为 5 后 V2 请求成功。",
+    "系统后台技术接入日志展示 requestId、来源、耗时、业务结果及失败文案；MySQL 调用记录与页面一致。后端重启健康检查 UP，原应用 #28 与导入应用 #29 各自签名访问成功。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-app-call-policy-progress.json",
+    "projects/unexamine/ai/evidence/s18-app-call-policy-log.png"
+  ],
+  "permission_or_failure_result": "仅已授权目标执行失败计入自动停用；签名、限流与 IP 拒绝不触发该策略。恢复后旧凭证无效，新凭证受 V5 授权约束。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java", "sha256": "66dbe6983e8a3de55befd29c32e41b8045b7b1ec07b29be901c86677ca017ab8"}
+  ],
+  "remaining": "S18.21 继续技术接入说明与错误示例的页面验收。",
+  "next_step": "S18.21"
+}

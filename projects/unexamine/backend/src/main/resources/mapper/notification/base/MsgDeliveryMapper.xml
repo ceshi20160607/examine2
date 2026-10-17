@@ -11,20 +11,20 @@
         <result column="destination_masked" property="destinationMasked" />
         <result column="status" property="status" />
         <result column="attempt_count" property="attemptCount" />
-        <result column="next_attempt_at" property="nextAttemptAt" />
+        <result column="next_attempt_time" property="nextAttemptTime" />
         <result column="provider_message_id" property="providerMessageId" />
         <result column="provider_receipt_json" property="providerReceiptJson" />
         <result column="last_error" property="lastError" />
-        <result column="sent_at" property="sentAt" />
-        <result column="delivered_at" property="deliveredAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="send_time" property="sendTime" />
+        <result column="deliver_time" property="deliverTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, message_id, account_id, `channel`, destination_masked, `status`, attempt_count, next_attempt_at, provider_message_id, provider_receipt_json, last_error, sent_at, delivered_at, created_at, updated_at, version
+        id, message_id, account_id, `channel`, destination_masked, `status`, attempt_count, next_attempt_time, provider_message_id, provider_receipt_json, last_error, send_time, deliver_time, create_time, update_time, version
     </sql>
 
 </mapper>

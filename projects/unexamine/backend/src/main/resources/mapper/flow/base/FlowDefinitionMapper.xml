@@ -9,20 +9,21 @@
         <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
         <result column="owner_tenant_id" property="ownerTenantId" />
+        <result column="owner_application_id" property="ownerApplicationId" />
         <result column="code" property="code" />
         <result column="name" property="name" />
         <result column="description" property="description" />
         <result column="draft_revision" property="draftRevision" />
         <result column="status" property="status" />
         <result column="created_by_account_id" property="createdByAccountId" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, owner_tenant_id, `code`, `name`, `description`, draft_revision, `status`, created_by_account_id, created_at, updated_at, version
+        id, context_type, platform_id, system_id, owner_tenant_id, owner_application_id, `code`, `name`, `description`, draft_revision, `status`, created_by_account_id, create_time, update_time, version
     </sql>
 
 </mapper>

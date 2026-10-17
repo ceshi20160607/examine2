@@ -2,6 +2,7 @@
 package com.unique.unexamine.work.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.work.base.entity.WorkLogRevision;
 import com.unique.unexamine.work.base.mapper.WorkLogRevisionMapper;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,20 @@ public class WorkLogRevisionBaseService {
 
     public List<WorkLogRevision> selectList(Wrapper<WorkLogRevision> query) {
         return mapper.selectList(query);
+    }
+
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public WorkLogRevision selectOne(Wrapper<WorkLogRevision> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<WorkLogRevision> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<WorkLogRevision> selectPage(IPage<WorkLogRevision> page, Wrapper<WorkLogRevision> query) {
+        return mapper.selectPage(page, query);
     }
 }

@@ -1,0 +1,10 @@
+{
+  "sourceCode": "dashboard_accept_1a4547cf",
+  "sourceRecordId": 188,
+  "targetCode": "approval_accept_5b69b5d6",
+  "targetRecordId": 189,
+  "sourceRelationVisible": true,
+  "targetRouteOpened": true,
+  "sourcePath": "projects/unexamine/ai/evidence/s18-module-conversion-source-browser.png",
+  "targetPath": "projects/unexamine/ai/evidence/s18-module-conversion-target-browser.png"
+}

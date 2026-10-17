@@ -1,0 +1,23 @@
+{
+  "step": "S19.6",
+  "candidate": "0.1.0-s19.6-dev2",
+  "enterprisePlatformSessionId": 29,
+  "localPlatformSessionId": 28,
+  "loginTraceId": "1406e4969ffa4767b876498770ece3df",
+  "acceptedEntryTraceId": "987bc3862994468586ed15f3235683d6",
+  "deniedEntryTraceId": "4a9dd411a5d6417992cffa36b9bbdcc7",
+  "authorizedSystemId": 1,
+  "tenantDeniedTraceId": "369bbb6438634bccadd3104d1471a117",
+  "tenantDeniedCode": "TENANT_SWITCH_NOT_AVAILABLE",
+  "disabledMemberTraceId": "79ab61c13a8c422d95bbcc42f9f04885",
+  "disabledMemberCode": "SYSTEM_ACCESS_DENIED",
+  "authorizedMemberId": 1,
+  "deniedSystemId": 3,
+  "deniedStatus": 403,
+  "deniedCode": "SYSTEM_ACCESS_DENIED",
+  "authorizedAuditId": 77,
+  "deniedAuditId": 80,
+  "tenantDeniedAuditId": 81,
+  "disabledMemberAuditId": 83,
+  "localEntryDistinct": true
+}

@@ -1,0 +1,371 @@
+{
+  "step": "S18.29",
+  "moduleId": 68,
+  "systemId": 143,
+  "templateId": 36,
+  "recordId": 121,
+  "before": {
+    "publicationVersion": 0,
+    "versionId": 73,
+    "versionNumber": 1,
+    "schemaHash": "5febd02e955871695081d7e8aaacec61c1209f2a7d1b46b0b1ace767fb914167",
+    "snapshotHash": "2a94c9eb3e6d37154c778cf0da9ebaca2f7519debb4510315ed9545898539669",
+    "actions": [
+      "LIST",
+      "DETAIL",
+      "CREATE",
+      "UPDATE",
+      "ARCHIVE",
+      "DELETE",
+      "RESTORE",
+      "TRANSFER",
+      "CONVERT",
+      "SHARE",
+      "IMPORT",
+      "EXPORT"
+    ],
+    "draftRevision": 7,
+    "jobs": [
+      [
+        105,
+        73,
+        44,
+        "SUCCEEDED",
+        136,
+        214
+      ],
+      [
+        106,
+        73,
+        45,
+        "SUCCEEDED",
+        137,
+        214
+      ],
+      [
+        107,
+        73,
+        44,
+        "SUCCEEDED",
+        138,
+        214
+      ],
+      [
+        108,
+        73,
+        46,
+        "SUCCEEDED",
+        139,
+        214
+      ],
+      [
+        109,
+        73,
+        44,
+        "SUCCEEDED",
+        140,
+        214
+      ],
+      [
+        110,
+        73,
+        44,
+        "SUCCEEDED",
+        141,
+        214
+      ],
+      [
+        111,
+        73,
+        44,
+        "SUCCEEDED",
+        142,
+        216
+      ],
+      [
+        112,
+        73,
+        44,
+        "SUCCEEDED",
+        143,
+        216
+      ],
+      [
+        113,
+        73,
+        44,
+        "SUCCEEDED",
+        144,
+        214
+      ],
+      [
+        114,
+        73,
+        44,
+        "SUCCEEDED",
+        145,
+        214
+      ],
+      [
+        115,
+        73,
+        44,
+        "SUCCEEDED",
+        146,
+        216
+      ]
+    ],
+    "templatePublication": [
+      34,
+      44
+    ]
+  },
+  "after": {
+    "publicationVersion": 1,
+    "versionId": 104,
+    "versionNumber": 2,
+    "schemaHash": "4e4cb9c2db4f1ceafb93725315be5c6188169d1d599f06582e8bd8d6b555926a",
+    "snapshotHash": "634e44318885f0fbaeca6363d9c0e750dc54347561d75d631fafe96d6d39f81f",
+    "actions": [
+      "LIST",
+      "DETAIL",
+      "CREATE",
+      "UPDATE",
+      "ARCHIVE",
+      "DELETE",
+      "RESTORE",
+      "TRANSFER",
+      "CONVERT",
+      "SHARE",
+      "IMPORT",
+      "EXPORT",
+      "PRINT"
+    ],
+    "draftRevision": 8,
+    "jobs": [
+      [
+        105,
+        73,
+        44,
+        "SUCCEEDED",
+        136,
+        214
+      ],
+      [
+        106,
+        73,
+        45,
+        "SUCCEEDED",
+        137,
+        214
+      ],
+      [
+        107,
+        73,
+        44,
+        "SUCCEEDED",
+        138,
+        214
+      ],
+      [
+        108,
+        73,
+        46,
+        "SUCCEEDED",
+        139,
+        214
+      ],
+      [
+        109,
+        73,
+        44,
+        "SUCCEEDED",
+        140,
+        214
+      ],
+      [
+        110,
+        73,
+        44,
+        "SUCCEEDED",
+        141,
+        214
+      ],
+      [
+        111,
+        73,
+        44,
+        "SUCCEEDED",
+        142,
+        216
+      ],
+      [
+        112,
+        73,
+        44,
+        "SUCCEEDED",
+        143,
+        216
+      ],
+      [
+        113,
+        73,
+        44,
+        "SUCCEEDED",
+        144,
+        214
+      ],
+      [
+        114,
+        73,
+        44,
+        "SUCCEEDED",
+        145,
+        214
+      ],
+      [
+        115,
+        73,
+        44,
+        "SUCCEEDED",
+        146,
+        216
+      ],
+      [
+        126,
+        73,
+        44,
+        "SUCCEEDED",
+        179,
+        216
+      ],
+      [
+        127,
+        73,
+        44,
+        "SUCCEEDED",
+        180,
+        214
+      ],
+      [
+        128,
+        73,
+        44,
+        "SUCCEEDED",
+        181,
+        214
+      ],
+      [
+        129,
+        73,
+        44,
+        "SUCCEEDED",
+        182,
+        214
+      ]
+    ],
+    "templatePublication": [
+      34,
+      44
+    ]
+  },
+  "denials": {
+    "before": "PRINT_ACTION_NOT_PUBLISHED",
+    "memberTransition": "PERMISSION_DENIED",
+    "staleVersion": "MODULE_CONFLICT",
+    "duplicate": "LEGACY_PRINT_ACTION_DRAFT_EXISTS",
+    "memberPrint": "ALLOWED"
+  },
+  "memberPdf": {
+    "jobId": 126,
+    "path": "projects/unexamine/ai/evidence/s18-module-legacy-print-member.pdf",
+    "sha256": "a745b09da2c230cd22710cd4a397ea0cac33ac5b5cfbc2dd3315551309403823",
+    "bytes": 14654
+  },
+  "newPdf": {
+    "jobId": 130,
+    "path": "projects/unexamine/ai/evidence/s18-module-legacy-print-new.pdf",
+    "sha256": "9d8663bd4af7b9fe2d5f8471dd9065a10d7ef8b4dc5394ec3bd093a41d39578c",
+    "bytes": 14710
+  },
+  "historicalPdfs": [
+    {
+      "jobId": 105,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 106,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 107,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 108,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 109,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 110,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 111,
+      "status": "CURRENT_FIELD_PERMISSION_REVOKED",
+      "reader": "member",
+      "httpStatus": 403,
+      "code": "PRINT_JOB_FIELD_ACCESS_REVOKED"
+    },
+    {
+      "jobId": 112,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "member",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 113,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 114,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "owner",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    },
+    {
+      "jobId": 115,
+      "status": "MISSING_BLOB_IN_ISOLATED_FIXTURE",
+      "reader": "member",
+      "httpStatus": 404,
+      "code": "FILE_CONTENT_MISSING"
+    }
+  ],
+  "note": "First apply passed old-version and old-job immutability assertions before member print returned 200."
+}

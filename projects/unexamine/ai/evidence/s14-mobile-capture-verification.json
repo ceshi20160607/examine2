@@ -1,0 +1,87 @@
+{
+  "step": "S14.3",
+  "status": "verified_contribution",
+  "integration_gate": "G14_DAILY_PRODUCTIVITY",
+  "source_rows": [
+    "R2200",
+    "R2938"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/package.json",
+    "projects/unexamine/frontend/package-lock.json",
+    "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+    "projects/unexamine/frontend/src/product/components/RuntimeAttachmentFieldInput.vue",
+    "projects/unexamine/frontend/src/product/field-capabilities.ts",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TextFieldProtocol.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocol.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/TenantShareScopeService.java"
+  ],
+  "checks_actual_results": [
+    "同一 Vue 应用在 390×844 窄视口将已发布模块 #78 的记录显示为卡片；运行态新建表单提供二维码扫码录入、照片拍摄和普通选择文件入口。",
+    "发现 BARCODE/QRCODE 原只能配置草稿、不能发布或保存；将其按文本字段接入发布校验、长度与格式规则、运行时保存和条件类型，测试模块发布版本 #82。",
+    "上传测试二维码图后本地识别出 G14-SCAN-QR-151；从拍照入口上传 PNG，安全扫描 CLEAN 后保存业务记录 #151，主记录、扫码值与照片字段 #148 同次读回。",
+    "无效码图给出重拍或手输提示，保持原扫码值不变；普通成员无模块创建权限，直接带扫码值和文件 ID 创建返回 403 PERMISSION_DENIED。",
+    "手机详情可读码值、附件缩略图、预览与下载；MySQL un_biz_record_value 对 QRCODE 保存 value_text，对 IMAGE 保存 value_file_id，文件引用指向记录 #151。后端重启后页面、API、文件扫描和引用仍一致。",
+    "桌面尺寸重开同一运行态表单仍提供普通选择文件；前端 vue-tsc/Vite build、后端 Java 21 Maven clean package、workspace-validate 和 git diff --check 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s14-mobile-scan-photo-form.png",
+    "projects/unexamine/ai/evidence/s14-mobile-photo-detail.png",
+    "projects/unexamine/ai/evidence/s14-mobile-scan-failure.png",
+    "projects/unexamine/ai/evidence/s14-mobile-restart.png",
+    "projects/unexamine/ai/evidence/s14-scan-fixture.png",
+    "projects/unexamine/ai/evidence/s14-photo-fixture.png"
+  ],
+  "permission_or_failure_result": "无效码图不覆盖既有字段；普通成员直接创建被 403 拒绝，附件不会进入无权业务记录。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/package.json",
+      "sha256": "a02c839d44f6b44b0cf5c9c0f3d41b62705b62e963b610a91818dd932afadec0"
+    },
+    {
+      "path": "projects/unexamine/frontend/package-lock.json",
+      "sha256": "04829bf93fb84a5125a0af6776af5be9264ff5de0ad8c8fa667d9c0725eabd85"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "7e02f79fe37c118f3f50a8463b6a853a0027311ff86bf839df1925deb23d6133"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeAttachmentFieldInput.vue",
+      "sha256": "930e2a48001847ec92762d4a82a1275e0fcfc45cc6365317fd80786f0f4492b2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/field-capabilities.ts",
+      "sha256": "a7bbe0046bf2a9e023d947af48d36fbd1cd6d1aaa696bc6bc4d4aa7123449b75"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TextFieldProtocol.java",
+      "sha256": "eb764396fb19edcc86b097dfcc5843428c1dbb09c51a11253ef49c693e3a31dc"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "42a83112ebfde4aa07895e0a86b8d52ec5fb200f78bbfc0248c401b4f67dbadc"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "b11ddc2ef55ed9ce009fb93a08e1bde2f1a46203b06e2b4a33a84fd02b308cb3"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/StructuredConditionProtocol.java",
+      "sha256": "31a83d9e91cfe523c6aec25efd9be8e9ecd9d112b959268e4f1735838c31c219"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "26ff22c297ec928f84e6fe8766b65dd6a47fd41d7e15939f30eb089acaf42a37"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/TenantShareScopeService.java",
+      "sha256": "3a58aee2ab2a3867ac987f4d7230ce8aa03bd7387fa1b18400e03b3d6bea59c9"
+    }
+  ],
+  "remaining": "S14.4 仍需把命令中心、个人视图、表单草稿及移动扫码拍照在同一业务旅程内复核，才能判定 G14；npm 审计中的原有 Vue/source-map-js 高危依赖另入整体 hardening。",
+  "next_step": "S14.4"
+}

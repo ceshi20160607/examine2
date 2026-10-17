@@ -61,9 +61,9 @@ export const fieldTypes: FieldTypeDefinition[] = [
 ]
 
 const definitions = new Map(fieldTypes.map((field) => [field.type, field]))
-const textRuntimeFieldTypes = new Set(['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD'])
+const textRuntimeFieldTypes = new Set(['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL', 'ID_CARD', 'BARCODE', 'QRCODE'])
 const nonUniqueFieldTypes = new Set([
-  'RICH_TEXT', 'JSON', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE',
+  'RICH_TEXT', 'JSON', 'ADDRESS', 'LOCATION', 'SECRET', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP', 'SUBTABLE', 'SIGNATURE',
   'LOOKUP', 'FORMULA', 'SUMMARY', 'CALCULATION', 'AGGREGATE', 'AI_FILL',
   'SYSTEM_CREATED_BY', 'SYSTEM_CREATED_AT', 'SYSTEM_UPDATED_BY', 'SYSTEM_UPDATED_AT',
 ])
@@ -80,10 +80,30 @@ export function supportsTextConstraints(fieldType: string) {
   return textRuntimeFieldTypes.has(fieldType) || ['RICH_TEXT', 'SECRET'].includes(fieldType)
 }
 export function isSharedRuntimeField(fieldType: string) {
-  return isBasicRuntimeField(fieldType) || ['RICH_TEXT', 'JSON', 'MONEY', 'SINGLE_SELECT', 'MULTI_SELECT', 'STATUS', 'SECRET'].includes(fieldType)
+  return isBasicRuntimeField(fieldType) || ['DATE_RANGE', 'TIME', 'TIME_RANGE', 'RICH_TEXT', 'JSON', 'MONEY', 'PERCENT', 'RATING', 'PROGRESS', 'ADDRESS', 'LOCATION', 'SINGLE_SELECT', 'MULTI_SELECT', 'TAG', 'STATUS', 'SECRET'].includes(fieldType)
 }
-export function supportsFieldSearch(fieldType: string) { return !['JSON', 'SECRET'].includes(fieldType) }
-export function supportsContentSort(fieldType: string) { return !['RICH_TEXT', 'JSON', 'SECRET'].includes(fieldType) }
+
+/** 地址和位置在列表、详情使用同一业务摘要，不将 JSON 对象直接展示给用户。 */
+export function formatPlaceFieldValue(fieldType: string, value: unknown) {
+  if (!['ADDRESS', 'LOCATION'].includes(fieldType)) return undefined
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '—'
+  const part = value as Record<string, unknown>
+  if (fieldType === 'ADDRESS') return ['province', 'city', 'district', 'detail']
+    .map(key => typeof part[key] === 'string' ? part[key] : '').join('') || '—'
+  const coordinate = `${part.latitude ?? ''}, ${part.longitude ?? ''}`
+  return typeof part.name === 'string' && part.name ? `${part.name}（${coordinate}）` : coordinate
+}
+
+/** 日期和时间范围按业务的起止值展示，保存值仍保持两个元素的数组。 */
+export function formatTemporalFieldValue(fieldType: string, value: unknown) {
+  if (fieldType === 'TIME') return typeof value === 'string' ? value : '—'
+  if (fieldType !== 'DATE_RANGE' && fieldType !== 'TIME_RANGE') return undefined
+  if (!Array.isArray(value) || value.length !== 2) return '—'
+  const [start, end] = value
+  return typeof start === 'string' && typeof end === 'string' && start && end ? `${start} ～ ${end}` : '—'
+}
+export function supportsFieldSearch(fieldType: string) { return !['JSON', 'ADDRESS', 'LOCATION', 'SECRET'].includes(fieldType) }
+export function supportsContentSort(fieldType: string) { return !['RICH_TEXT', 'JSON', 'ADDRESS', 'LOCATION', 'SECRET', 'MULTI_SELECT', 'TAG'].includes(fieldType) }
 
 export function builtInTextFormat(fieldType: string) {
   return ({
@@ -104,6 +124,34 @@ export function defaultEditor(fieldType: string): 'TEXT' | 'NUMBER' | 'DATE' | '
   if (fieldType === 'DATETIME') return 'DATETIME'
   if (fieldFamily(fieldType) === 'NUMBER') return 'NUMBER'
   return 'TEXT'
+}
+
+/** 金额始终按字段发布配置显示；用字符串补位，避免前端浮点换算改写业务金额。 */
+export function moneyConfiguration(configJson?: string) {
+  let config: { currency?: unknown; precision?: unknown } = {}
+  try { config = JSON.parse(configJson || '{}') as typeof config } catch { /* 无效配置由服务端发布校验处理。 */ }
+  const configured = Number(config.precision)
+  return {
+    currency: typeof config.currency === 'string' ? config.currency.trim() : '',
+    precision: Number.isInteger(configured) && configured >= 0 && configured <= 6 ? configured : 2,
+  }
+}
+
+export function moneyPrecisionError(value: unknown, precision: number) {
+  if (value === undefined || value === null || value === '') return ''
+  const match = /^-?\d+(?:\.(\d+))?$/.exec(String(value).trim())
+  if (!match) return '' // 数字格式仍由输入控件和服务端校验。
+  return (match[1] || '').replace(/0+$/, '').length > precision ? `最多保留 ${precision} 位小数` : ''
+}
+
+export function formatMoneyValue(value: unknown, configJson?: string) {
+  const { currency, precision } = moneyConfiguration(configJson)
+  const raw = String(value).trim()
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(raw)
+  if (!match) return currency ? `${currency} ${raw}` : raw
+  const fraction = (match[3] || '').padEnd(precision, '0')
+  const amount = `${match[1]}${match[2]}${precision ? `.${fraction}` : ''}`
+  return currency ? `${currency} ${amount}` : amount
 }
 
 export function filterOperators(fieldType?: string) {

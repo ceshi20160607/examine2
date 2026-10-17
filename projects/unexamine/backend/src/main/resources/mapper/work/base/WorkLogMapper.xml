@@ -30,14 +30,14 @@
         <result column="business_type" property="businessType" />
         <result column="business_id" property="businessId" />
         <result column="business_title" property="businessTitle" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, project_id, author_account_id, author_tenant_member_id, work_date, title, content_text, completed_text, in_progress_text, next_plan_text, risk_text, assistance_text, duration_minutes, `status`, visibility_type, visible_role_ids_json, submitted_time, withdrawn_time, custom_values_json, business_type, business_id, business_title, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, project_id, author_account_id, author_tenant_member_id, work_date, title, content_text, completed_text, in_progress_text, next_plan_text, risk_text, assistance_text, duration_minutes, `status`, visibility_type, visible_role_ids_json, submitted_time, withdrawn_time, custom_values_json, business_type, business_id, business_title, create_time, update_time, version
     </sql>
 
 </mapper>

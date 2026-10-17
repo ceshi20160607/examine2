@@ -2,6 +2,7 @@
 package com.unique.unexamine.moduleconfig.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModuleVersion;
 import com.unique.unexamine.moduleconfig.base.mapper.ConfiguredModuleVersionMapper;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,20 @@ public class ConfiguredModuleVersionBaseService {
 
     public List<ConfiguredModuleVersion> selectList(Wrapper<ConfiguredModuleVersion> query) {
         return mapper.selectList(query);
+    }
+
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public ConfiguredModuleVersion selectOne(Wrapper<ConfiguredModuleVersion> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<ConfiguredModuleVersion> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<ConfiguredModuleVersion> selectPage(IPage<ConfiguredModuleVersion> page, Wrapper<ConfiguredModuleVersion> query) {
+        return mapper.selectPage(page, query);
     }
 }

@@ -1,0 +1,60 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "same_package_backup_and_isolated_restore_passed",
+  "backup": {
+    "releaseId": 19115,
+    "databaseVersion": "23",
+    "databaseTableCount": 191,
+    "consistencyPoint": "2026-10-16T11:00:46.0430157Z",
+    "items": [
+      {
+        "itemType": "DATABASE",
+        "sizeBytes": 1769109,
+        "sha256": "43e5c65c61e254711b1b873cc64c896252cfe3f6bb7b0c2960b065b070cbd67b",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "itemType": "FILE_STORAGE",
+        "sizeBytes": 2845,
+        "sha256": "28f78c32d99606c8be765c36120bce0f69022ba7180dcee5c67ab68ea6bcd704",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "itemType": "CONFIGURATION",
+        "sizeBytes": 326,
+        "sha256": "dc7e8dbc31136e861b26cfaecbb1927f1b23e976d8df8f3dd18735a90d81ef6c",
+        "verificationStatus": "VERIFIED"
+      },
+      {
+        "itemType": "SECRET_REFERENCES",
+        "sizeBytes": 229,
+        "sha256": "ebad15452a11e473ab4583cec40cffaf5ecb20cc8187675b0ce34b4572480499",
+        "verificationStatus": "VERIFIED"
+      }
+    ]
+  },
+  "drill": {
+    "status": "PASSED",
+    "targetDatabaseName": "unexamine_drill_s1911_dev5_20261016",
+    "restoredDatabaseVersion": "23",
+    "restoredTableCount": 191,
+    "fileObjects": "EXTRACTED",
+    "secretReferences": "REFERENCE_ONLY_ROTATE_ON_RESTORE"
+  },
+  "sourceCounts": {
+    "flow_definitions": 3,
+    "application_calls": 11,
+    "applications": 2,
+    "dashboards": 2,
+    "records": 6
+  },
+  "restoredCounts": {
+    "flow_definitions": 3,
+    "application_calls": 11,
+    "applications": 2,
+    "dashboards": 2,
+    "records": 6
+  },
+  "countsMatch": true
+}

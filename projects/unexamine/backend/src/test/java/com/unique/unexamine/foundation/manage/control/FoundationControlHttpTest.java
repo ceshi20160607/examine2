@@ -81,15 +81,15 @@ class FoundationControlHttpTest {
         assertThat(data(first)).containsEntry("replayed", false).containsEntry("extensionStatus", "PENDING");
         assertThat(data(replay)).containsEntry("replayed", true).containsEntry("extensionStatus", "PUBLISHED");
         assertThat(data(replay).get("resultReference")).isEqualTo(data(first).get("resultReference"));
-        assertThat(count("core_idempotency_record", "idempotency_key='cycle19-command-001'")).isOne();
-        assertThat(count("core_event_outbox", "aggregate_type='FOUNDATION_COMMAND' and status='PUBLISHED'")).isOne();
+        assertThat(count("un_core_idempotency_record", "idempotency_key='cycle19-command-001'")).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='FOUNDATION_COMMAND' and status='PUBLISHED'")).isOne();
 
         ResponseEntity<Map> changedPayload = exchange(base + "/commands", HttpMethod.POST, owner.systemToken(),
                 Map.of("idempotencyKey", "cycle19-command-001", "applicationCode", "system-admin",
                         "operationCode", "CONFIG_RELOAD", "payload", Map.of("reason", "different")));
         assertThat(changedPayload.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(changedPayload.getBody()).containsEntry("code", "IDEMPOTENCY_KEY_REUSED");
-        assertThat(count("core_event_outbox", "aggregate_type='FOUNDATION_COMMAND'")).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_type='FOUNDATION_COMMAND'")).isOne();
 
         Map<String, Object> concurrentCommand = Map.of(
                 "idempotencyKey", "cycle19-concurrent-001",
@@ -107,8 +107,8 @@ class FoundationControlHttpTest {
                     assertThat(result.getStatusCode()).as("parallel idempotency: %s", result.getBody()).isEqualTo(HttpStatus.OK));
             assertThat(duplicates.stream().map(result -> data(result).get("resultReference")).distinct()).hasSize(1);
         }
-        assertThat(count("core_idempotency_record", "idempotency_key='cycle19-concurrent-001'")).isOne();
-        assertThat(count("core_event_outbox", "aggregate_id=(select cast(id as char) from core_idempotency_record "
+        assertThat(count("un_core_idempotency_record", "idempotency_key='cycle19-concurrent-001'")).isOne();
+        assertThat(count("un_core_event_outbox", "aggregate_id=(select cast(id as char) from un_core_idempotency_record "
                 + "where idempotency_key='cycle19-concurrent-001')")).isOne();
 
         for (int index = 0; index < 4; index++) {
@@ -128,7 +128,7 @@ class FoundationControlHttpTest {
         ResponseEntity<Map> isolatedResult = exchange(base + "/commands", HttpMethod.POST, isolated.systemToken(), command);
         assertThat(isolatedResult.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(isolatedResult)).containsEntry("replayed", false);
-        assertThat(count("core_idempotency_record", "idempotency_key='cycle19-command-001'")).isEqualTo(2);
+        assertThat(count("un_core_idempotency_record", "idempotency_key='cycle19-command-001'")).isEqualTo(2);
 
         ResponseEntity<Map> invalidated = exchange(base + "/cache/permission/invalidate", HttpMethod.POST,
                 owner.systemToken(), Map.of("reason", "integration version advance"));
@@ -169,7 +169,7 @@ class FoundationControlHttpTest {
                     .as("quota responses: %s", quotaResults.stream().map(result -> result.getStatusCode() + ":" + result.getBody()).toList())
                     .hasSize(3);
         }
-        assertThat(jdbc.queryForObject("select used_value from core_quota_usage where quota_policy_id=?", Long.class, quotaId))
+        assertThat(jdbc.queryForObject("select used_value from un_core_quota_usage where quota_policy_id=?", Long.class, quotaId))
                 .isEqualTo(3L);
 
         ResponseEntity<Map> sequence = exchange(base + "/sequences", HttpMethod.POST, owner.systemToken(), Map.of(
@@ -189,9 +189,9 @@ class FoundationControlHttpTest {
             assertThat(allocated).allSatisfy(result -> assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK));
             assertThat(new HashSet<>(allocated.stream().map(result -> data(result).get("value")).toList())).hasSize(8);
         }
-        assertThat(jdbc.queryForObject("select current_value from core_sequence where id=?", Long.class, sequenceId))
+        assertThat(jdbc.queryForObject("select current_value from un_core_sequence where id=?", Long.class, sequenceId))
                 .isEqualTo(8L);
-        assertThat(count("audit_event", "event_code in ('FOUNDATION_FEATURE_FLAG_SAVED','FOUNDATION_QUOTA_SAVED','FOUNDATION_SEQUENCE_SAVED')"))
+        assertThat(count("un_audit_event", "event_code in ('FOUNDATION_FEATURE_FLAG_SAVED','FOUNDATION_QUOTA_SAVED','FOUNDATION_SEQUENCE_SAVED')"))
                 .isEqualTo(3);
     }
 

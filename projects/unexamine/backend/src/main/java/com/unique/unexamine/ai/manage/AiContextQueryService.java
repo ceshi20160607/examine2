@@ -23,6 +23,11 @@ import com.unique.unexamine.ai.base.service.AiExecutionStepBaseService;
 import com.unique.unexamine.ai.base.service.AiMessageBaseService;
 import com.unique.unexamine.ai.base.service.AiModelBaseService;
 import com.unique.unexamine.ai.base.service.AiSystemModelGrantBaseService;
+import com.unique.unexamine.analytics.base.entity.AnaDataSource;
+import com.unique.unexamine.analytics.base.entity.AnaDataSourceVersion;
+import com.unique.unexamine.analytics.base.service.AnaDataSourceBaseService;
+import com.unique.unexamine.analytics.base.service.AnaDataSourceVersionBaseService;
+import com.unique.unexamine.analytics.manage.ReportModels;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.ChannelFieldPolicyResolver;
@@ -37,9 +42,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URI;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -55,7 +57,7 @@ import java.util.Set;
 public class AiContextQueryService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
     private static final Set<String> BUILT_IN_FIELDS = Set.of(
-            "title", "recordNumber", "status", "ownerMemberId", "departmentId", "createdAt", "updatedAt",
+            "id", "title", "recordNumber", "status", "ownerMemberId", "departmentId", "createdAt", "updatedAt",
             "dataTenantName");
 
     private final AiAgentBaseService agentService;
@@ -67,10 +69,13 @@ public class AiContextQueryService {
     private final AiExecutionStepBaseService stepService;
     private final AiSystemModelGrantBaseService grantService;
     private final AiModelBaseService modelService;
+    private final AnaDataSourceBaseService dataSourceService;
+    private final AnaDataSourceVersionBaseService dataSourceVersionService;
     private final AiAuthorizedQueryExecutor authorizedQueryExecutor;
     private final PermissionChecker permissionChecker;
     private final ChannelFieldPolicyResolver fieldPolicyResolver;
     private final PlatformAiConfigurationService platformConfigurationService;
+    private final AiModelGateway modelGateway;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
 
@@ -84,10 +89,13 @@ public class AiContextQueryService {
             AiExecutionStepBaseService stepService,
             AiSystemModelGrantBaseService grantService,
             AiModelBaseService modelService,
+            AnaDataSourceBaseService dataSourceService,
+            AnaDataSourceVersionBaseService dataSourceVersionService,
             AiAuthorizedQueryExecutor authorizedQueryExecutor,
             PermissionChecker permissionChecker,
             ChannelFieldPolicyResolver fieldPolicyResolver,
             PlatformAiConfigurationService platformConfigurationService,
+            AiModelGateway modelGateway,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper) {
         this.agentService = agentService;
@@ -99,10 +107,13 @@ public class AiContextQueryService {
         this.stepService = stepService;
         this.grantService = grantService;
         this.modelService = modelService;
+        this.dataSourceService = dataSourceService;
+        this.dataSourceVersionService = dataSourceVersionService;
         this.authorizedQueryExecutor = authorizedQueryExecutor;
         this.permissionChecker = permissionChecker;
         this.fieldPolicyResolver = fieldPolicyResolver;
         this.platformConfigurationService = platformConfigurationService;
+        this.modelGateway = modelGateway;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
     }
@@ -123,7 +134,7 @@ public class AiContextQueryService {
                                 .eq(AiConversation::getSystemId, context.systemId())
                                 .eq(AiConversation::getTenantId, context.tenantId())
                                 .eq(AiConversation::getAccountId, context.accountId())
-                                .orderByDesc(AiConversation::getUpdatedAt).last("limit 25"))
+                                .orderByDesc(AiConversation::getUpdateTime).last("limit 25"))
                 .stream().map(item -> summary(item, names.get(item.getAgentId()))).toList();
         return new AiContextQueryModels.Overview(agents, conversations);
     }
@@ -139,11 +150,15 @@ public class AiContextQueryService {
                 .filter(item -> moduleCode.equals(item.moduleCode()) && actionCode.equals(item.actionCode()))
                 .findFirst().orElse(null);
         String entryType = input.entryContext().entryType().strip().toUpperCase(Locale.ROOT);
-        List<String> requestedFields = normalizeFields(input.requestedFieldCodes(), tool);
+        List<String> requestedFields = normalizeFields(context, moduleCode, actionCode,
+                input.requestedFieldCodes(), tool);
         AiConversation conversation = conversation(context, input, published, moduleCode, entryType);
+        Map<String, Object> requestContent = new LinkedHashMap<>();
+        requestContent.put("entryContext", entryContext(moduleCode, entryType, input.entryContext()));
+        requestContent.put("requestedFieldCodes", requestedFields);
+        if (input.dataSourceId() != null) requestContent.put("dataSourceId", input.dataSourceId());
         AiMessage requestMessage = message(conversation.getId(), "USER", input.question().strip(),
-                Map.of("entryContext", entryContext(moduleCode, entryType, input.entryContext()),
-                        "requestedFieldCodes", requestedFields), null, null);
+                requestContent, null, null);
         AiExecution execution = execution(conversation, requestMessage, published.version());
 
         String refusal = refusalReason(context, input, published.snapshot(), tool, moduleCode, entryType,
@@ -151,6 +166,11 @@ public class AiContextQueryService {
         if (refusal != null) {
             return finish(context, traceId, conversation, execution, tool, input, requestedFields,
                     "REFUSED", refusal, "AI_QUERY_SCOPE_DENIED", false, null, List.of(), null);
+        }
+
+        if (input.dataSourceId() != null) {
+            return queryReport(context, input, traceId, published, conversation, execution, tool,
+                    moduleCode, requestedFields);
         }
 
         ModelAvailability availability = modelAvailability(context, published.snapshot());
@@ -164,9 +184,24 @@ public class AiContextQueryService {
         try {
             QueryData data = executeAuthorizedQuery(context, input, moduleCode, actionCode, requestedFields, traceId);
             String metricDefinition = metricDefinition(context, input, moduleCode, actionCode);
-            String answer = answer(input.question(), moduleCode, data);
+            AiModelGateway.Completion completion;
+            try {
+                completion = modelGateway.complete(context,
+                        published.snapshot().path("modelBinding").path("modelGrantId").asLong(),
+                        "只能根据本次提供的授权来源回答；没有来源时说明没有可见数据，不得编造记录。\n"
+                                + published.snapshot().path("agent").path("systemPrompt").asText(),
+                        writeJson(Map.of("question", input.question(), "moduleCode", moduleCode,
+                                "total", data.total(), "sources", data.sources())),
+                        true,
+                        published.snapshot().path("contextPolicy").path("allowExternalData").asBoolean(false));
+            } catch (DomainException failure) {
+                return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                        "DEGRADED", "模型调用失败：" + failure.getMessage() + "。未生成业务答案，请稍后重试。",
+                        failure.code(), true, null, List.of(), availability);
+            }
             return finish(context, traceId, conversation, execution, tool, input, requestedFields,
-                    "SUCCEEDED", answer, null, false, metricDefinition, data.sources(), availability);
+                    "SUCCEEDED", completion.text(), null, false, metricDefinition, data.sources(),
+                    availability.withUsage(completion));
         } catch (DomainException exception) {
             String answer = "当前业务上下文读取失败，未生成或猜测任何业务结果；正常业务页面不受影响。"
                     + (exception.status().is5xxServerError() ? "请稍后重试。" : "请返回业务页面确认记录与权限。" );
@@ -185,12 +220,26 @@ public class AiContextQueryService {
         requireSystem(context);
         AiConversation conversation = requireConversation(context, conversationId);
         AiAgent agent = agentService.selectById(conversation.getAgentId());
+        PublishedAgent currentAgent = publishedAgents(context).stream()
+                .filter(item -> Objects.equals(item.agent().getId(), conversation.getAgentId())
+                        && Objects.equals(item.version().getId(), conversation.getAgentVersionId()))
+                .findFirst().orElse(null);
         List<AiContextQueryModels.MessageView> messages = messageService.selectList(
                         Wrappers.<AiMessage>lambdaQuery().eq(AiMessage::getConversationId, conversationId)
-                                .orderByAsc(AiMessage::getCreatedAt).orderByAsc(AiMessage::getId))
-                .stream().map(item -> new AiContextQueryModels.MessageView(item.getId(), item.getRoleType(),
-                        item.getContentText(), readMap(item.getStructuredContentJson()), readMap(item.getModelUsageJson()),
-                        item.getErrorCode(), item.getCreatedAt())).toList();
+                                .orderByAsc(AiMessage::getCreateTime).orderByAsc(AiMessage::getId))
+                .stream().map(item -> {
+                    Map<String, Object> structured = readMap(item.getStructuredContentJson());
+                    if (structured.get("report") != null
+                            && !historyReportAllowed(context, conversation, currentAgent, structured)) {
+                        // 历史数值不能在成员撤权、来源换版或 Agent 撤销后继续从会话读回。
+                        return new AiContextQueryModels.MessageView(item.getId(), item.getRoleType(),
+                                "此历史统计已失去当前授权或来源版本已变化，请重新查询。", Map.of(), Map.of(),
+                                "AI_QUERY_SCOPE_DENIED", item.getCreateTime());
+                    }
+                    return new AiContextQueryModels.MessageView(item.getId(), item.getRoleType(),
+                            item.getContentText(), structured, readMap(item.getModelUsageJson()),
+                            item.getErrorCode(), item.getCreateTime());
+                }).toList();
         return new AiContextQueryModels.ConversationDetail(
                 summary(conversation, agent == null ? null : agent.getName()), messages);
     }
@@ -210,23 +259,47 @@ public class AiContextQueryService {
             String metricDefinition,
             List<AiContextQueryModels.Source> sources,
             ModelAvailability availability) {
+        return finish(context, traceId, conversation, execution, tool, input, requestedFields, outcome,
+                answer, errorCode, retryable, metricDefinition, sources, availability, null);
+    }
+
+    private AiContextQueryModels.QueryResult finish(
+            AuthenticatedContext context,
+            String traceId,
+            AiConversation conversation,
+            AiExecution execution,
+            ToolScope tool,
+            AiContextQueryModels.QueryRequest input,
+            List<String> requestedFields,
+            String outcome,
+            String answer,
+            String errorCode,
+            boolean retryable,
+            String metricDefinition,
+            List<AiContextQueryModels.Source> sources,
+            ModelAvailability availability,
+            AiContextQueryModels.ReportFact report) {
         LocalDateTime finishedAt = LocalDateTime.now();
         AiContextQueryModels.QueryScope scope = scope(context, input, requestedFields);
         AiContextQueryModels.QueryResult result = new AiContextQueryModels.QueryResult(
                 conversation.getId(), execution.getId(), outcome, answer, errorCode, retryable, scope,
-                metricDefinition, sources, finishedAt);
+                metricDefinition, sources, finishedAt, report);
         step(execution.getId(), tool, input, scope, result, outcome, answer);
         execution.setStatus("SUCCEEDED".equals(outcome) ? "SUCCEEDED" : "REFUSED".equals(outcome) ? "REFUSED" : "FAILED");
         execution.setFallbackUsed("DEGRADED".equals(outcome));
-        execution.setFinishedAt(finishedAt);
+        execution.setFinishTime(finishedAt);
         execution.setErrorCode(errorCode);
         execution.setErrorMessage(errorCode == null ? null : answer);
         execution.setAuthorizationSnapshotJson(writeJson(authorizationSnapshot(context, tool, scope)));
         executionService.updateById(execution);
         Map<String, Object> modelUsage = new LinkedHashMap<>();
         modelUsage.put("executionMode", availability == null ? "NONE" : availability.mode());
-        modelUsage.put("fabricated", false);
+        modelUsage.put("modelGenerated", availability != null && availability.promptTokens() != null);
         modelUsage.put("sourceCount", sources.size());
+        if (availability != null && availability.promptTokens() != null) {
+            modelUsage.put("promptTokens", availability.promptTokens());
+            modelUsage.put("completionTokens", availability.completionTokens());
+        }
         message(conversation.getId(), "ASSISTANT", answer, result, modelUsage, errorCode);
         conversation.setStatus("ACTIVE");
         conversationService.updateById(conversation);
@@ -238,6 +311,194 @@ public class AiContextQueryService {
                         "moduleCode", scope.moduleCode(), "actionCode", scope.actionCode(),
                         "sourceCount", sources.size(), "retryable", retryable));
         return result;
+    }
+
+    /** 只回答所选已发布报表的固定口径，数值和趋势均来自当前成员权限下的真实聚合。 */
+    private AiContextQueryModels.QueryResult queryReport(
+            AuthenticatedContext context, AiContextQueryModels.QueryRequest input, String traceId,
+            PublishedAgent published, AiConversation conversation, AiExecution execution, ToolScope tool,
+            String moduleCode, List<String> requestedFields) {
+        if (!reportGrantActive(context, published.snapshot())) {
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "REFUSED", "当前 Agent 的模型授权已失效，不能继续使用报表查询。",
+                    "AI_QUERY_SCOPE_DENIED", false, null, List.of(), null);
+        }
+        Long authorizedVersion;
+        try {
+            authorizedVersion = authorizedReportVersion(context, input, published.snapshot(), moduleCode);
+        } catch (RuntimeException exception) {
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "DEGRADED", "统计来源暂时无法核验，未读取或猜测任何业务结果，请稍后重试。",
+                    "AI_TOOL_EXECUTION_FAILED", true, null, List.of(), null);
+        }
+        if (authorizedVersion == null) {
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "REFUSED", "当前 Agent 无权使用该已发布统计来源，或请求条件与来源固定口径不一致。",
+                    "AI_QUERY_SCOPE_DENIED", false, null, List.of(), null);
+        }
+        try {
+            ReportModels.Result result = authorizedQueryExecutor.report(context, input.dataSourceId(), traceId);
+            // 发布指针并发切换时，不能把未经过 Agent 工具授权复核的新版本结果返回给会话。
+            if (!authorizedVersion.equals(result.dataSourceVersionId())) {
+                return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                        "REFUSED", "统计来源的发布版本已变化，请重新选择后查询。",
+                        "AI_QUERY_SCOPE_DENIED", true, null, List.of(), null);
+            }
+            AiContextQueryModels.ReportFact fact = new AiContextQueryModels.ReportFact(
+                    input.dataSourceId(), result.value(), result.groups(), result.metricDefinition(),
+                    result.dataSourceVersionId(), result.dataSourceVersionNumber());
+            String value = result.value() == null ? "暂无数值" : String.valueOf(result.value());
+            String answer = "已按所选已发布数据源的固定口径统计，结果为 " + value
+                    + "。口径：" + result.metricDefinition();
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "SUCCEEDED", answer, null, false, result.metricDefinition(), List.of(),
+                    new ModelAvailability(false, null, "DETERMINISTIC_REPORT"), fact);
+        } catch (DomainException exception) {
+            boolean denied = exception.status().is4xxClientError()
+                    && !HttpStatus.UNPROCESSABLE_ENTITY.equals(exception.status());
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    denied ? "REFUSED" : "DEGRADED",
+                    denied ? "当前成员无权读取该统计来源或来源已失效。"
+                            : "当前统计来源无法按已发布口径完成计算，请检查来源配置后重试。",
+                    denied ? "AI_QUERY_SCOPE_DENIED" : "AI_TOOL_EXECUTION_FAILED",
+                    !denied, null, List.of(), null);
+        } catch (RuntimeException exception) {
+            return finish(context, traceId, conversation, execution, tool, input, requestedFields,
+                    "DEGRADED", "统计查询暂时不可用，未生成或猜测任何业务结果，请稍后重试。",
+                    "AI_TOOL_EXECUTION_FAILED", true, null, List.of(), null);
+        }
+    }
+
+    private boolean reportGrantActive(AuthenticatedContext context, JsonNode agentSnapshot) {
+        long grantId = agentSnapshot.path("modelBinding").path("modelGrantId").asLong(0);
+        AiSystemModelGrant grant = grantId == 0 ? null : grantService.selectById(grantId);
+        AiModel model = grant == null || grant.getModelId() == null ? null
+                : modelService.selectById(grant.getModelId());
+        return grant != null && context.platformId().equals(grant.getPlatformId())
+                && context.systemId().equals(grant.getSystemId())
+                && "ACTIVE".equals(grant.getStatus()) && model != null
+                && context.platformId().equals(model.getPlatformId()) && "ACTIVE".equals(model.getStatus());
+    }
+
+    private boolean historyReportAllowed(AuthenticatedContext context, AiConversation conversation,
+                                         PublishedAgent currentAgent, Map<String, Object> structured) {
+        if (currentAgent == null || !reportGrantActive(context, currentAgent.snapshot())) return false;
+        JsonNode report = objectMapper.valueToTree(structured.get("report"));
+        long sourceId = report.path("dataSourceId").asLong(0);
+        long versionId = report.path("dataSourceVersionId").asLong(0);
+        long executionId = objectMapper.valueToTree(structured.get("executionId")).asLong(0);
+        if (sourceId < 1 || versionId < 1 || executionId < 1) return false;
+        AiExecution execution = executionService.selectById(executionId);
+        if (execution == null || !Objects.equals(execution.getConversationId(), conversation.getId())) return false;
+        JsonNode authorization = readTree(execution.getAuthorizationSnapshotJson());
+        // 两侧都先经过 JSON 解析；直接比较 LongNode 与反序列化后的 IntNode 会误遮蔽刚保存的结果。
+        if (authorization.path("accountId").asLong(-1) != context.accountId()
+                || authorization.path("memberId").asLong(-1) != context.memberId()
+                || !readTree(writeJson(context.roleIds())).equals(authorization.path("roleIds"))
+                || !readTree(writeJson(context.permissions())).equals(authorization.path("permissions"))
+                || !readTree(writeJson(context.dataScopes())).equals(authorization.path("dataScopes"))) {
+            return false;
+        }
+        String moduleCode = String.valueOf(readMap(conversation.getEntryContextJson()).get("moduleCode"));
+        try {
+            return Objects.equals(versionId, authorizedReportVersion(context, sourceId,
+                    currentAgent.snapshot(), moduleCode, List.of()));
+        } catch (RuntimeException exception) {
+            return false;
+        }
+    }
+
+    /** 来源快照只用于前置核验 Agent 工具；正式统计仍由 ReportService 重新校验当前权限。 */
+    private Long authorizedReportVersion(AuthenticatedContext context, AiContextQueryModels.QueryRequest input,
+                                         JsonNode agentSnapshot, String moduleCode) {
+        var entry = input.entryContext();
+        if (entry.recordId() != null || !"ACTIVE".equals(defaultValue(entry.lifecycleState(), "ACTIVE"))
+                || !"ALL".equals(defaultValue(entry.tenantScope(), "ALL"))
+                || !defaultValue(entry.search(), "").isBlank() || !entry.filters().isEmpty()) return null;
+        return authorizedReportVersion(context, input.dataSourceId(), agentSnapshot, moduleCode,
+                input.requestedFieldCodes());
+    }
+
+    private Long authorizedReportVersion(AuthenticatedContext context, Long dataSourceId,
+                                         JsonNode agentSnapshot, String moduleCode, List<String> requestedFields) {
+        AnaDataSource source = dataSourceService.selectById(dataSourceId);
+        if (source == null || source.getCurrentVersionId() == null || !"SYSTEM".equals(source.getContextType())
+                || !Objects.equals(context.platformId(), source.getPlatformId())
+                || !Objects.equals(context.systemId(), source.getSystemId())
+                || !Objects.equals(context.tenantId(), source.getOwnerTenantId())) return null;
+        AnaDataSourceVersion version = dataSourceVersionService.selectById(source.getCurrentVersionId());
+        if (version == null || !Objects.equals(source.getId(), version.getDataSourceId())
+                || !Objects.equals(source.getScopeType(), version.getScopeType())
+                || !Objects.equals(source.getScopeOwnerId(), version.getScopeOwnerId())) return null;
+        JsonNode snapshot = readTree(version.getSnapshotJson());
+        if (!"SYSTEM".equals(snapshot.path("contextType").asText())
+                || snapshot.path("platformId").asLong(-1) != context.platformId()
+                || snapshot.path("systemId").asLong(-1) != context.systemId()
+                || snapshot.path("ownerTenantId").asLong(-1) != context.tenantId()
+                || !"MODULE_REPORT".equals(snapshot.path("sourceType").asText())) return null;
+        JsonNode definition = snapshot.path("definition");
+        JsonNode modules = definition.path("modules");
+        if (!modules.isArray() || modules.isEmpty()
+                || !moduleCode.equals(modules.get(0).path("moduleCode").asText())) return null;
+        Map<String, ToolScope> toolsByAlias = new LinkedHashMap<>();
+        List<ToolScope> tools = queryTools(agentSnapshot);
+        for (JsonNode module : modules) {
+            String alias = module.path("alias").asText();
+            String code = module.path("moduleCode").asText();
+            ToolScope match = tools.stream().filter(item -> code.equals(item.moduleCode())
+                    && "LIST".equals(item.actionCode())).findFirst().orElse(null);
+            if (alias.isBlank() || code.isBlank() || toolsByAlias.containsKey(alias) || match == null
+                    || !permissionChecker.allows(context, "MODULE", code, "LIST")) return null;
+            toolsByAlias.put(alias, match);
+        }
+        return reportFieldsAuthorized(context, definition, toolsByAlias, requestedFields)
+                ? version.getId() : null;
+    }
+
+    private boolean reportFieldsAuthorized(AuthenticatedContext context, JsonNode definition,
+                                           Map<String, ToolScope> toolsByAlias,
+                                           List<String> requestedFields) {
+        for (String section : List.of("outputFields", "filters")) {
+            JsonNode fields = definition.path(section);
+            if (!fields.isArray()) return false;
+            for (JsonNode field : fields) {
+                if (!reportFieldAuthorized(context, field.path("alias").asText(), field.path("fieldCode").asText(),
+                        toolsByAlias, requestedFields)) return false;
+            }
+        }
+        JsonNode metric = definition.path("metric");
+        if (!"COUNT".equalsIgnoreCase(metric.path("operation").asText("COUNT"))
+                && !reportFieldAuthorized(context, metric.path("alias").asText(), metric.path("fieldCode").asText(),
+                toolsByAlias, requestedFields)) return false;
+        for (String section : List.of("dimension", "sort", "timeField")) {
+            JsonNode field = definition.path(section);
+            if (field.isObject() && !field.isEmpty()
+                    && !reportFieldAuthorized(context, field.path("alias").asText(), field.path("fieldCode").asText(),
+                    toolsByAlias, requestedFields)) return false;
+        }
+        JsonNode relations = definition.path("relations");
+        if (!relations.isArray()) return false;
+        for (JsonNode relation : relations) {
+            if (!reportFieldAuthorized(context, relation.path("leftAlias").asText(), relation.path("leftField").asText(),
+                    toolsByAlias, requestedFields)
+                    || !reportFieldAuthorized(context, relation.path("rightAlias").asText(), relation.path("rightField").asText(),
+                    toolsByAlias, requestedFields)) return false;
+        }
+        return true;
+    }
+
+    private boolean reportFieldAuthorized(AuthenticatedContext context, String alias, String fieldCode,
+                                          Map<String, ToolScope> toolsByAlias,
+                                          List<String> requestedFields) {
+        ToolScope tool = toolsByAlias.get(alias);
+        if (tool == null || fieldCode.isBlank()) return false;
+        if (BUILT_IN_FIELDS.contains(fieldCode)) return true;
+        if (!tool.fieldCodes().contains(fieldCode)
+                || (!requestedFields.isEmpty() && !requestedFields.contains(fieldCode))) return false;
+        FieldAccessDecision decision = fieldPolicyResolver.resolveIntersection(
+                context, tool.moduleCode(), "LIST", List.of("PAGE"), List.of(fieldCode)).get(fieldCode);
+        return decision != null && decision.readable()
+                && (decision.maskStrategy() == null || decision.maskStrategy().isBlank());
     }
 
     private QueryData executeAuthorizedQuery(
@@ -267,13 +528,22 @@ public class AiContextQueryService {
     private AiContextQueryModels.Source source(
             AuthenticatedContext context, String moduleCode, RuntimeRecordView record, List<String> fields) {
         LinkedHashMap<String, Object> values = new LinkedHashMap<>();
+        LinkedHashMap<String, AiContextQueryModels.SourceField> presentation = new LinkedHashMap<>();
         for (String field : fields) {
             JsonNode value = record.fields().get(field);
-            if (value != null) values.put(field, objectMapper.convertValue(value, Object.class));
+            if (value != null) {
+                values.put(field, objectMapper.convertValue(value, Object.class));
+                var visible = record.fieldPresentation().get(field);
+                if (visible != null) {
+                    presentation.put(field, new AiContextQueryModels.SourceField(
+                            visible.name(), visible.displayValue()));
+                }
+            }
         }
         String path = "/systems/" + context.systemId() + "?workspace=runtime&module=" + moduleCode
                 + "&recordId=" + record.id();
-        return new AiContextQueryModels.Source(record.id(), record.recordNumber(), record.title(), path, values);
+        return new AiContextQueryModels.Source(record.id(), record.recordNumber(), record.title(), path,
+                values, presentation);
     }
 
     private String refusalReason(
@@ -335,22 +605,9 @@ public class AiContextQueryService {
         if (!platformConfigurationService.credentialAvailable(model.getCredentialRef())) {
             return new ModelAvailability(false, "模型凭证引用不可解析", "UNAVAILABLE");
         }
-        String endpoint = model.getEndpointUrl();
-        if (endpoint == null || endpoint.isBlank()) {
-            return "LOCAL".equalsIgnoreCase(model.getProvider())
-                    ? new ModelAvailability(true, null, "LOCAL_SECURE_QUERY")
-                    : new ModelAvailability(false, "模型端点未配置", "UNAVAILABLE");
-        }
-        try {
-            URI uri = URI.create(endpoint);
-            int port = uri.getPort() > 0 ? uri.getPort() : "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
-            try (Socket socket = new Socket()) {
-                socket.connect(new InetSocketAddress(uri.getHost(), port), 700);
-            }
-            return new ModelAvailability(true, null, "MODEL_GATEWAY_SECURE_QUERY");
-        } catch (Exception exception) {
-            return new ModelAvailability(false, "模型端点连接失败", "UNAVAILABLE");
-        }
+        return model.getEndpointUrl() == null || model.getEndpointUrl().isBlank()
+                ? new ModelAvailability(false, "模型端点未配置", "UNAVAILABLE")
+                : new ModelAvailability(true, null, "MODEL_COMPLETION");
     }
 
     private AiConversation conversation(
@@ -374,11 +631,14 @@ public class AiContextQueryService {
             return existing;
         }
         AiConversation created = new AiConversation();
+        created.setContextType("SYSTEM");
+        created.setPlatformId(context.platformId());
         created.setSystemId(context.systemId());
         created.setTenantId(context.tenantId());
         created.setAgentId(published.agent().getId());
         created.setAgentVersionId(published.version().getId());
         created.setAccountId(context.accountId());
+        created.setSystemMemberId(context.memberId());
         created.setEntryContextJson(writeJson(entryContext(moduleCode, entryType, input.entryContext())));
         String title = input.question().strip();
         created.setTitle(title.length() > 120 ? title.substring(0, 120) : title);
@@ -391,12 +651,25 @@ public class AiContextQueryService {
     private AiExecution execution(AiConversation conversation, AiMessage request, AiAgentVersion version) {
         AiExecution execution = new AiExecution();
         execution.setConversationId(conversation.getId());
+        execution.setContextType("SYSTEM");
+        execution.setPlatformId(conversation.getPlatformId());
+        execution.setSystemId(conversation.getSystemId());
+        execution.setTenantId(conversation.getTenantId());
+        execution.setAgentId(conversation.getAgentId());
         execution.setRequestMessageId(request.getId());
         execution.setAgentVersionId(version.getId());
+        execution.setModelId(version.getModelId());
+        execution.setModelConfigVersion(version.getModelConfigVersion());
+        execution.setModelGrantId(version.getModelGrantId());
+        execution.setModelGrantVersionId(version.getModelGrantVersionId());
+        execution.setCredentialRef(version.getCredentialRef());
+        execution.setCredentialVersion(version.getCredentialVersion());
+        execution.setPolicyVersion(version.getPolicyVersion());
         execution.setAuthorizationSnapshotJson("{}");
+        execution.setPolicySnapshotJson(version.getPolicySnapshotJson());
         execution.setStatus("RUNNING");
         execution.setFallbackUsed(false);
-        execution.setStartedAt(LocalDateTime.now());
+        execution.setStartTime(LocalDateTime.now());
         execution.setVersion(0);
         executionService.insert(execution);
         return execution;
@@ -412,24 +685,29 @@ public class AiContextQueryService {
             String errorMessage) {
         AiExecutionStep step = new AiExecutionStep();
         step.setExecutionId(executionId);
+        step.setAgentId(executionService.selectById(executionId).getAgentId());
         step.setStepNumber(1);
-        step.setStepType("AUTHORIZED_QUERY");
+        step.setStepType(input.dataSourceId() == null ? "AUTHORIZED_QUERY" : "AUTHORIZED_REPORT_QUERY");
         step.setToolId(tool == null || tool.toolId() == 0 ? null : tool.toolId());
-        step.setInputJson(writeJson(Map.of(
-                "question", input.question().strip(), "publishedToolId", tool == null ? 0 : tool.toolId(),
-                "retrievalScope", scope)));
+        Map<String, Object> stepInput = new LinkedHashMap<>();
+        stepInput.put("question", modelGateway.maskSensitive(input.question().strip()));
+        stepInput.put("publishedToolId", tool == null ? 0 : tool.toolId());
+        stepInput.put("retrievalScope", scope);
+        if (input.dataSourceId() != null) stepInput.put("dataSourceId", input.dataSourceId());
+        step.setInputJson(writeJson(stepInput));
         step.setOutputJson(writeJson(Map.of(
-                "outcome", outcome, "sourceCount", result.sources().size(), "fabricated", false)));
+                "outcome", outcome, "sourceCount", result.sources().size(),
+                "modelGenerated", "SUCCEEDED".equals(outcome) && result.report() == null)));
         step.setStatus("SUCCEEDED".equals(outcome) ? "SUCCEEDED" : outcome);
-        step.setStartedAt(executionStarted(executionId));
-        step.setFinishedAt(LocalDateTime.now());
+        step.setStartTime(executionStarted(executionId));
+        step.setFinishTime(LocalDateTime.now());
         step.setErrorMessage("SUCCEEDED".equals(outcome) ? null : errorMessage);
         stepService.insert(step);
     }
 
     private LocalDateTime executionStarted(Long executionId) {
         AiExecution execution = executionService.selectById(executionId);
-        return execution == null ? LocalDateTime.now() : execution.getStartedAt();
+        return execution == null ? LocalDateTime.now() : execution.getStartTime();
     }
 
     private AiMessage message(
@@ -441,7 +719,7 @@ public class AiContextQueryService {
         message.setStructuredContentJson(structured == null ? null : writeJson(structured));
         message.setModelUsageJson(modelUsage == null ? null : writeJson(modelUsage));
         message.setErrorCode(errorCode);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreateTime(LocalDateTime.now());
         messageService.insert(message);
         return message;
     }
@@ -511,10 +789,18 @@ public class AiContextQueryService {
         return result;
     }
 
-    private List<String> normalizeFields(List<String> requested, ToolScope tool) {
-        List<String> normalized = requested.stream().map(value -> value.strip().toLowerCase(Locale.ROOT))
+    private List<String> normalizeFields(AuthenticatedContext context, String moduleCode, String actionCode,
+            List<String> requested, ToolScope tool) {
+        List<String> normalized = requested.stream().map(String::strip)
                 .filter(value -> !value.isBlank()).distinct().sorted().toList();
-        return normalized.isEmpty() && tool != null ? tool.fieldCodes() : normalized;
+        if (!normalized.isEmpty() || tool == null) return normalized;
+        // 页面没有点名字段时，仅使用 Agent 与当前成员同时可读的字段；点名越权字段仍交给拒绝逻辑处理。
+        Map<String, FieldAccessDecision> decisions = fieldPolicyResolver.resolveIntersection(
+                context, moduleCode, actionCode, List.of("PAGE"), tool.fieldCodes());
+        return tool.fieldCodes().stream().filter(field -> {
+            FieldAccessDecision decision = decisions.get(field);
+            return decision != null && decision.readable();
+        }).toList();
     }
 
     private boolean entryAllowed(JsonNode snapshot, String entryType) {
@@ -537,7 +823,7 @@ public class AiContextQueryService {
     private AiContextQueryModels.ConversationSummary summary(AiConversation conversation, String agentName) {
         return new AiContextQueryModels.ConversationSummary(conversation.getId(), conversation.getAgentId(),
                 conversation.getAgentVersionId(), agentName, conversation.getTitle(), conversation.getStatus(),
-                readMap(conversation.getEntryContextJson()), conversation.getUpdatedAt());
+                readMap(conversation.getEntryContextJson()), conversation.getUpdateTime());
     }
 
     private Map<String, Object> entryContext(
@@ -557,18 +843,6 @@ public class AiContextQueryService {
         }
         return "按普通业务列表同一套权限、租户范围、生命周期、搜索和组合筛选计算；总数为筛选后的可见记录数，来源最多展示 "
                 + (input.entryContext().pageSize() == null ? 5 : Math.min(input.entryContext().pageSize(), 20)) + " 条。";
-    }
-
-    private String answer(String question, String moduleCode, QueryData data) {
-        boolean listIntent = question.contains("哪些") || question.contains("列出")
-                || question.toLowerCase(Locale.ROOT).contains("list");
-        if (data.total() == 0) return "在已说明的权限与筛选范围内，没有找到可见的 " + moduleCode + " 记录。";
-        if (listIntent) {
-            String titles = data.sources().stream().map(AiContextQueryModels.Source::title)
-                    .filter(Objects::nonNull).limit(5).reduce((left, right) -> left + "、" + right).orElse("（无标题）");
-            return "在已说明的权限与筛选范围内共找到 " + data.total() + " 条；当前列出：" + titles + "。";
-        }
-        return "在已说明的权限与筛选范围内，共有 " + data.total() + " 条可见的 " + moduleCode + " 记录。";
     }
 
     private boolean scopeKeyMatches(String key, String resourceId, String actionCode) {
@@ -623,6 +897,14 @@ public class AiContextQueryService {
     private record QueryData(long total, List<AiContextQueryModels.Source> sources) {
     }
 
-    private record ModelAvailability(boolean available, String reason, String mode) {
+    private record ModelAvailability(boolean available, String reason, String mode,
+                                     Integer promptTokens, Integer completionTokens) {
+        private ModelAvailability(boolean available, String reason, String mode) {
+            this(available, reason, mode, null, null);
+        }
+
+        private ModelAvailability withUsage(AiModelGateway.Completion value) {
+            return new ModelAvailability(true, null, mode, value.promptTokens(), value.completionTokens());
+        }
     }
 }

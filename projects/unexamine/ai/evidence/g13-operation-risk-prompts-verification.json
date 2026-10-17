@@ -1,0 +1,21 @@
+{
+  "integration_gate": "G13_OPERATION_RISK_PROMPTS",
+  "status": "verified",
+  "source": "docs/user_requirement.md#14.13",
+  "business_journey": "系统管理员与普通成员在模块、字段、Flow、导入、批量删除及角色授权八类危险操作前看到具体影响；取消不提交，确认按当前权限与版本执行。",
+  "contributions": [
+    "projects/unexamine/ai/evidence/s13-field-flow-risk-prompts-verification.json",
+    "projects/unexamine/ai/evidence/s13-module-field-flow-lifecycle-verification.json",
+    "projects/unexamine/ai/evidence/s13-data-and-permission-risk-prompts-verification.json"
+  ],
+  "integrated_checks": [
+    "字段停用、Flow 发布：页面提示历史值和新表单范围、新实例版本和在途冻结；取消无变化，确认持久化。",
+    "模块/字段删除、Flow 停用：未发布草稿可软删除，已发布或仍被引用配置拒绝；Flow 停用阻止新实例，已有实例继续；页面、API、MySQL、权限和重启一致。",
+    "导入覆盖：预演命中数和映射字段、逐行权限/版本重检及取消效果可见；隔离的无审批模块 #78 批次 #16 覆盖成功，审批绑定模块 #73 批次 #15 失败但原记录未变化。",
+    "批量删除：页面显示 2 条目标、可恢复性及引用失败处理；取消无写入，确认后 #144/#145 入回收站，页面恢复 #144。",
+    "角色授权：提示有效成员、最终动作、字段读写、数据范围和即时生效；取消保持旧动作，确认撤销 DELETE 后普通成员新请求无该动作且直接 API 403；测试结束恢复原权限。",
+    "后端容器重启后恢复健康，业务页面/API 与 MySQL 对导入批次、记录状态及角色版本一致；前端构建、workspace-validate 和对应子步骤工程回执通过。"
+  ],
+  "remaining": "G13 当前需求第 14.13 节已验收；产品整体仍有 14.14 等后续需求及真实第三方凭据依赖，不能据此宣称整站完成。",
+  "next_step": "S14.1"
+}

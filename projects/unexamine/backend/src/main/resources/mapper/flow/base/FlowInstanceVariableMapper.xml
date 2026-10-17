@@ -9,13 +9,13 @@
         <result column="variable_key" property="variableKey" />
         <result column="value_type" property="valueType" />
         <result column="value_json" property="valueJson" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, variable_key, value_type, value_json, updated_at, version
+        id, instance_id, variable_key, value_type, value_json, update_time, version
     </sql>
 
 </mapper>

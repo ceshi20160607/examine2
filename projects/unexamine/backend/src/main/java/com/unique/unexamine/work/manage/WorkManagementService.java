@@ -8,6 +8,7 @@ import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.authorization.manage.PermissionChecker;
 import com.unique.unexamine.notification.manage.MessageService;
+import com.unique.unexamine.notification.manage.RuntimeTargetAccessReader;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.work.base.entity.WorkProject;
@@ -71,6 +72,8 @@ public class WorkManagementService {
     private final WorkLogTaskLinkBaseService workLogTaskLinkService;
     private final WorkParticipantResolver participantResolver;
     private final RuntimeDataService runtimeDataService;
+    /** 任务可继续访问时，关联业务的拒绝读取需与任务外层事务隔离。 */
+    private final RuntimeTargetAccessReader runtimeTargetAccessReader;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
@@ -88,6 +91,7 @@ public class WorkManagementService {
             WorkLogTaskLinkBaseService workLogTaskLinkService,
             WorkParticipantResolver participantResolver,
             RuntimeDataService runtimeDataService,
+            RuntimeTargetAccessReader runtimeTargetAccessReader,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
@@ -103,6 +107,7 @@ public class WorkManagementService {
         this.workLogTaskLinkService = workLogTaskLinkService;
         this.participantResolver = participantResolver;
         this.runtimeDataService = runtimeDataService;
+        this.runtimeTargetAccessReader = runtimeTargetAccessReader;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
@@ -115,7 +120,7 @@ public class WorkManagementService {
         requireAction(context, "VIEW");
         return scopedProjects(context).stream()
                 .filter(project -> canViewProject(context, project))
-                .sorted(Comparator.comparing(WorkProject::getUpdatedAt,
+                .sorted(Comparator.comparing(WorkProject::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(project -> view(context, project, false)).toList();
     }
@@ -355,8 +360,8 @@ public class WorkManagementService {
         task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
         task.setOwnerAccountId(owner.accountId());
         task.setOwnerTenantMemberId(owner.tenantMemberId());
-        task.setStartAt(input.startAt());
-        task.setDueAt(input.dueAt());
+        task.setStartTime(input.startAt());
+        task.setDueTime(input.dueAt());
         task.setCustomValuesJson(nullableJson(
                 workConfigurationService.validateConfiguredValues(context, "TASK", input.configuredValues())));
         task.setBusinessType(business.type());
@@ -380,7 +385,7 @@ public class WorkManagementService {
         requireAction(context, "VIEW");
         return scopedOrdinaryTasks(context).stream()
                 .filter(task -> taskVisibleTo(context, task))
-                .sorted(Comparator.comparing(WorkTask::getUpdatedAt,
+                .sorted(Comparator.comparing(WorkTask::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(task -> view(context, task, false)).toList();
     }
@@ -427,8 +432,8 @@ public class WorkManagementService {
         task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
         task.setOwnerAccountId(owner.accountId());
         task.setOwnerTenantMemberId(owner.tenantMemberId());
-        task.setStartAt(input.startAt());
-        task.setDueAt(input.dueAt());
+        task.setStartTime(input.startAt());
+        task.setDueTime(input.dueAt());
         task.setCustomValuesJson(nullableJson(
                 workConfigurationService.validateConfiguredValues(context, "TASK", input.configuredValues())));
         task.setBusinessType(business.type());
@@ -499,8 +504,8 @@ public class WorkManagementService {
         if (input.actualHours() != null) task.setActualHours(input.actualHours());
         if (input.labels() != null) task.setLabelsJson(nullableListJson(normalizeLabels(input.labels())));
         if (input.checklist() != null) task.setChecklistJson(nullableListJson(normalizeChecklist(input.checklist())));
-        task.setStartAt(input.startAt());
-        task.setDueAt(input.dueAt());
+        task.setStartTime(input.startAt());
+        task.setDueTime(input.dueAt());
         task.setCustomValuesJson(nullableJson(
                 workConfigurationService.validateConfiguredValues(context, "TASK", input.configuredValues())));
         task.setBusinessType(business.type());
@@ -557,12 +562,12 @@ public class WorkManagementService {
         requireTaskModification(context, task);
         requireVersion(task, input.expectedVersion());
         requireTaskActive(task);
-        requireValidTimes(task.getStartAt(), input.dueTime());
-        if (task.getDueAt() != null && !input.dueTime().isAfter(task.getDueAt())) {
+        requireValidTimes(task.getStartTime(), input.dueTime());
+        if (task.getDueTime() != null && !input.dueTime().isAfter(task.getDueTime())) {
             throw invalid("WORK_TASK_DELAY_TIME_INVALID", "延期后的截止时间必须晚于当前截止时间");
         }
         String before = toJson(snapshot(task));
-        task.setDueAt(input.dueTime());
+        task.setDueTime(input.dueTime());
         updateTaskOrConflict(task);
         WorkTask updated = requireOwnedTask(context, taskId);
         insertHistory(updated, "DELAY_REQUESTED", before, snapshot(updated), input.reason().strip(), context.accountId());
@@ -591,7 +596,7 @@ public class WorkManagementService {
         task.setCompletionNote(input.completionNote().strip());
         task.setCompletionSubmittedTime(LocalDateTime.now());
         task.setCompletionAcceptedTime(null);
-        task.setCompletedAt(null);
+        task.setCompleteTime(null);
         updateTaskOrConflict(task);
         WorkTask updated = requireOwnedTask(context, taskId);
         insertHistory(updated, "COMPLETION_SUBMITTED", before, snapshot(updated),
@@ -618,7 +623,7 @@ public class WorkManagementService {
         LocalDateTime now = LocalDateTime.now();
         task.setStatus("COMPLETED");
         task.setProgressPercent(new BigDecimal("100"));
-        task.setCompletedAt(now);
+        task.setCompleteTime(now);
         task.setCompletionAcceptedTime(now);
         updateTaskOrConflict(task);
         WorkTask updated = requireOwnedTask(context, taskId);
@@ -646,7 +651,7 @@ public class WorkManagementService {
         if (task.getProgressPercent() != null && task.getProgressPercent().compareTo(new BigDecimal("100")) >= 0) {
             task.setProgressPercent(new BigDecimal("90"));
         }
-        task.setCompletedAt(null);
+        task.setCompleteTime(null);
         task.setCompletionSubmittedTime(null);
         task.setCompletionAcceptedTime(null);
         task.setArchiveTime(null);
@@ -747,8 +752,8 @@ public class WorkManagementService {
                 + "-v" + task.getVersion();
         String subject = "CREATED".equals(eventType)
                 ? "新任务：" + task.getTitle() : "任务已" + statusName + "：" + task.getTitle();
-        String content = "负责人和协作成员可在任务工作区查看；当前状态：" + statusName
-                + (task.getBusinessTitle() == null ? "" : "；关联业务：" + task.getBusinessTitle());
+        // 消息会送给任务参与人；参与任务不等于获准读取关联业务记录。
+        String content = "负责人和协作成员可在任务工作区查看；当前状态：" + statusName;
         messageService.notifyWorkTaskEvent(context, task, eventKey, subject, content, taskRecipientAccountIds(task));
         if (task.getBusinessType() == null || task.getBusinessId() == null) return;
         Long recordId;
@@ -814,14 +819,30 @@ public class WorkManagementService {
 
     private WorkManagementModels.TaskView view(
             AuthenticatedContext context, WorkTask task, boolean includeHistory) {
+        // 任务参与资格不扩大关联记录的数据权限；每次展示都按当前身份重查记录。
+        String visibleBusinessTitle = null;
+        boolean businessVisible = false;
+        if (task.getBusinessType() != null && task.getBusinessType().startsWith("MODULE:")
+                && task.getBusinessId() != null) {
+            try {
+                var record = runtimeTargetAccessReader.detail(context, task.getBusinessType().substring(7),
+                        Long.valueOf(task.getBusinessId()), "work-task-view");
+                visibleBusinessTitle = record.title();
+                businessVisible = true;
+            } catch (DomainException | NumberFormatException ignored) {
+                // 记录已删除、权限被撤销或上下文不符时只展示任务自身内容。
+            }
+        }
         List<WorkTaskMember> taskMembers = taskMembers(task.getId());
         List<WorkManagementModels.PersonView> collaborators = peopleOfType(context, taskMembers, "COLLABORATOR");
         List<WorkManagementModels.PersonView> followers = peopleOfType(context, taskMembers, "FOLLOWER");
         List<WorkManagementModels.PersonView> acceptors = peopleOfType(context, taskMembers, "ACCEPTOR");
+        boolean showBusiness = businessVisible;
         List<WorkManagementModels.HistoryView> history = includeHistory ? histories(task.getId()).stream()
                 .map(item -> new WorkManagementModels.HistoryView(item.getId(), item.getActionCode(),
-                        fromJson(item.getBeforeJson()), fromJson(item.getAfterJson()), item.getCommentText(),
-                        displayName(context, null, item.getChangedByAccountId()), item.getChangedAt())).toList() : List.of();
+                        businessSnapshot(fromJson(item.getBeforeJson()), showBusiness),
+                        businessSnapshot(fromJson(item.getAfterJson()), showBusiness), item.getCommentText(),
+                        displayName(context, null, item.getChangedByAccountId()), item.getChangeTime())).toList() : List.of();
         WorkParticipantResolver.ResolvedPerson owner = participantResolver.find(
                 context, task.getOwnerTenantMemberId(), task.getOwnerAccountId());
         List<WorkManagementModels.LinkedLogView> linkedLogs = includeHistory
@@ -835,11 +856,22 @@ public class WorkManagementService {
                 task.getTitle(), task.getDescription(), task.getTaskType(), task.getPriority(), task.getStatus(),
                 overdue ? "已逾期" : taskStatusName(task.getStatus()), overdue, task.getProgressPercent(),
                 task.getEstimatedHours(), task.getActualHours(), stringList(task.getLabelsJson()),
-                checklist(task.getChecklistJson()), personView(context, owner), task.getStartAt(), task.getDueAt(),
-                task.getCompletedAt(), task.getCompletionNote(), task.getCompletionSubmittedTime(),
-                task.getCompletionAcceptedTime(), task.getArchiveTime(), task.getBusinessType(), task.getBusinessId(),
-                task.getBusinessTitle(), fromJson(task.getCustomValuesJson()), task.getVersion(), collaborators,
+                checklist(task.getChecklistJson()), personView(context, owner), task.getStartTime(), task.getDueTime(),
+                task.getCompleteTime(), task.getCompletionNote(), task.getCompletionSubmittedTime(),
+                task.getCompletionAcceptedTime(), task.getArchiveTime(),
+                businessVisible ? task.getBusinessType() : null, businessVisible ? task.getBusinessId() : null,
+                visibleBusinessTitle, fromJson(task.getCustomValuesJson()), task.getVersion(), collaborators,
                 followers, acceptors, history, linkedLogs, subtasks, taskActions(context, task, taskMembers));
+    }
+
+    /** 历史快照同样不能绕过当前业务记录权限泄露关联标识和标题。 */
+    private Map<String, Object> businessSnapshot(Map<String, Object> snapshot, boolean businessVisible) {
+        if (businessVisible || snapshot.isEmpty()) return snapshot;
+        Map<String, Object> visible = new LinkedHashMap<>(snapshot);
+        visible.remove("businessType");
+        visible.remove("businessId");
+        visible.remove("businessTitle");
+        return visible;
     }
 
     private List<WorkManagementModels.LinkedLogView> linkedLogs(
@@ -851,7 +883,7 @@ public class WorkManagementService {
         if (logIds.isEmpty()) return List.of();
         return workLogService.selectList(Wrappers.<WorkLog>lambdaQuery()
                         .in(WorkLog::getId, logIds)
-                        .orderByDesc(WorkLog::getWorkDate, WorkLog::getUpdatedAt))
+                        .orderByDesc(WorkLog::getWorkDate, WorkLog::getUpdateTime))
                 .stream()
                 .filter(log -> Objects.equals(log.getPlatformId(), context.platformId()))
                 .filter(log -> Objects.equals(log.getSystemId(), context.systemId()))
@@ -860,7 +892,7 @@ public class WorkManagementService {
                         log.getId(), log.getWorkDate(), log.getTitle(), log.getContentText(),
                         log.getDurationMinutes(), log.getStatus(),
                         displayName(context, log.getAuthorTenantMemberId(), log.getAuthorAccountId()),
-                        log.getUpdatedAt()))
+                        log.getUpdateTime()))
                 .toList();
     }
 
@@ -1072,9 +1104,9 @@ public class WorkManagementService {
         result.put("labels", stringList(task.getLabelsJson()));
         result.put("checklist", checklist(task.getChecklistJson()));
         result.put("ownerTenantMemberId", task.getOwnerTenantMemberId());
-        result.put("startAt", task.getStartAt());
-        result.put("dueAt", task.getDueAt());
-        result.put("completedAt", task.getCompletedAt());
+        result.put("startAt", task.getStartTime());
+        result.put("dueAt", task.getDueTime());
+        result.put("completedAt", task.getCompleteTime());
         result.put("completionNote", task.getCompletionNote());
         result.put("completionSubmittedTime", task.getCompletionSubmittedTime());
         result.put("completionAcceptedTime", task.getCompletionAcceptedTime());
@@ -1220,7 +1252,7 @@ public class WorkManagementService {
     private List<WorkTask> projectTasks(Long projectId) {
         return taskService.selectList(Wrappers.<WorkTask>lambdaQuery()
                 .eq(WorkTask::getProjectId, projectId).isNull(WorkTask::getDeleteTime)
-                .orderByDesc(WorkTask::getUpdatedAt));
+                .orderByDesc(WorkTask::getUpdateTime));
     }
 
     private List<WorkTask> childTasks(Long taskId) {
@@ -1236,7 +1268,7 @@ public class WorkManagementService {
 
     private List<WorkTaskHistory> histories(Long taskId) {
         return taskHistoryService.selectList(Wrappers.<WorkTaskHistory>lambdaQuery()
-                .eq(WorkTaskHistory::getTaskId, taskId).orderByDesc(WorkTaskHistory::getChangedAt));
+                .eq(WorkTaskHistory::getTaskId, taskId).orderByDesc(WorkTaskHistory::getChangeTime));
     }
 
     private void requireAction(AuthenticatedContext context, String action) {
@@ -1300,7 +1332,7 @@ public class WorkManagementService {
     }
 
     private boolean isOverdue(WorkTask task) {
-        return task.getDueAt() != null && task.getDueAt().isBefore(LocalDateTime.now())
+        return task.getDueTime() != null && task.getDueTime().isBefore(LocalDateTime.now())
                 && !Set.of("COMPLETED", "CANCELLED", "ARCHIVED").contains(task.getStatus());
     }
 

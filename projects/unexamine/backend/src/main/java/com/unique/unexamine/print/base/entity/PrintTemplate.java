@@ -10,57 +10,102 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 绑定业务模块的打印模板草稿
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("print_template")
+@TableName("un_print_template")
 public class PrintTemplate {
 
+    /**
+     * 打印模板草稿主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 模板所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 模板配置所属租户主键
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 模板绑定的业务模块主键
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 模块内模板编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 模板展示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 纸张尺寸
+     */
     @TableField("page_size")
     private String pageSize;
 
+    /**
+     * 页面方向
+     */
     @TableField("orientation")
     private String orientation;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 页眉、页脚、签章区和明细表格等草稿布局
+     */
     @TableField("template_json")
     private String templateJson;
 
+    /**
+     * 草稿、已发布或停用等模板状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 创建模板的系统成员主键
+     */
     @TableField("created_by_member_id")
     private Long createdByMemberId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 草稿乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -161,20 +206,20 @@ public class PrintTemplate {
         this.createdByMemberId = createdByMemberId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -200,8 +245,8 @@ public class PrintTemplate {
             ", templateJson = " + templateJson +
             ", status = " + status +
             ", createdByMemberId = " + createdByMemberId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

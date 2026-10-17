@@ -1,0 +1,41 @@
+{
+  "step": "S18.34",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/tools/verify-module-action-integration.py",
+    "projects/unexamine/tools/verify-module-action-integration-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "Isolated V23 system #143/tenant #144 new module #94 published PRINT, APPROVAL and DASHBOARD together. Draft PRINT/APPROVAL stayed absent at runtime before module publication; after publication all three actions were active.",
+    "Record #187 generated PDF print job #134, approval Flow instance #53 and module dashboard #8/version #14. Published DASHBOARD disable returned 409 for home while print remained available and a second approval instance #54 started; rollback restored home #8.",
+    "Print job #134 PDF SHA-256 and stored template/module snapshot references, and original Flow instance #53 published Flow version and business/runtime snapshots were unchanged after disable and rollback.",
+    "A separate JVM on port 18082 read the restored three actions, dashboard #8, PDF #134 and original Flow snapshot from the same V23 MySQL and file storage.",
+    "The LIST-only member for another module received 403 from module configuration, dashboard, print templates, record and approval initiation on module #94.",
+    "Actual Edge browser found PRINT and APPROVAL in record #187 drawer, clicked the published DASHBOARD button and rendered page #8. Runtime/detail/dashboard screenshots inspected; Python and Node syntax, workspace validation and scoped diff check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-action-integration-live.json",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-runtime-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-detail-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-page-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-dashboard-upgrade-verification.json"
+  ],
+  "permission_or_failure_result": "All five cross-module entrypoints returned 403 to a member without module #94 grants. Unpublished draft actions stayed hidden; published DASHBOARD disable returned 409 while PRINT and APPROVAL continued, and rollback restored the page.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/tools/verify-module-action-integration.py",
+      "sha256": "c622b193c278c72852d0d59f16455bcd7bc07b118a9bde47cd8ec9d5242704ed"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-action-integration-browser.mjs",
+      "sha256": "351c9396d06bce6d299d0b9c1935ee61e7d73795d2955fc1d1a96369f274f2fc"
+    }
+  ],
+  "remaining": "This verifies one three-action business combination on an upgraded isolated database, not all module actions. Import/export, transfer/conversion, other approval nodes and conditions, complete two-system/multi-tenant journeys, missing historical print file bytes, non-OIDC SSO, final manuals and release package remain open. Product completion is not verified.",
+  "next_step": "S18.35"
+}

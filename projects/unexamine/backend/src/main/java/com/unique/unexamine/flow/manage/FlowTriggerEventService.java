@@ -119,7 +119,7 @@ public class FlowTriggerEventService {
         event.setEventType("EXCEPTION");
         event.setPayloadJson(write(payload));
         event.setStatus("PENDING");
-        event.setAvailableAt(LocalDateTime.now());
+        event.setAvailableTime(LocalDateTime.now());
         event.setRetryCount(0);
         event.setVersion(0);
         outboxService.insert(event);
@@ -186,7 +186,7 @@ public class FlowTriggerEventService {
             payload.put("occurredTime", LocalDateTime.now().toString());
             event.setPayloadJson(write(payload));
             event.setStatus("PENDING");
-            event.setAvailableAt(LocalDateTime.now());
+            event.setAvailableTime(LocalDateTime.now());
             event.setRetryCount(0);
             event.setVersion(0);
             outboxService.insert(event);
@@ -249,20 +249,20 @@ public class FlowTriggerEventService {
         event.setPayloadJson(write(payload));
         event.setStatus("PENDING");
         // 发件箱以 JVM 本地时间轮询；容器可能运行在 UTC，需把上海业务时刻换算到同一时间轴。
-        event.setAvailableAt(toPersistenceTime(missed ? now : scheduledTime));
+        event.setAvailableTime(toPersistenceTime(missed ? now : scheduledTime));
         event.setRetryCount(0);
         event.setVersion(0);
         outboxService.insert(event);
-        if (!event.getAvailableAt().isAfter(now)) dispatcher.dispatch(event.getId());
+        if (!event.getAvailableTime().isAfter(now)) dispatcher.dispatch(event.getId());
     }
 
     private LocalDateTime scheduledTime(CoreEventOutbox event) {
         String value = string(read(event.getPayloadJson()).get("sourceId"));
-        if (value == null) return event.getAvailableAt();
+        if (value == null) return event.getAvailableTime();
         try {
             return LocalDateTime.parse(value);
         } catch (java.time.format.DateTimeParseException ignored) {
-            return event.getAvailableAt();
+            return event.getAvailableTime();
         }
     }
 
@@ -308,7 +308,7 @@ public class FlowTriggerEventService {
                 "PUBLISHED".equals(event.getStatus()) || event.getLastError() == null || event.getLastError().isBlank()
                         ? null : "触发失败，系统将自动重试",
                 string(payload.get("occurredTime")), "SCHEDULED".equals(event.getEventType())
-                        ? scheduledTime(event) : event.getAvailableAt(), event.getPublishedAt(),
+                        ? scheduledTime(event) : event.getAvailableTime(), event.getPublishTime(),
                 string(payload.get("deliveryResult")), string(variables.get("actionCode")),
                 string(variables.get("errorCategory")), string(variables.get("ruleName")),
                 longValue(variables.get("recordId")));

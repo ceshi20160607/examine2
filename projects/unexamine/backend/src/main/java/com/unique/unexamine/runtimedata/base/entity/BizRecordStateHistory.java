@@ -9,41 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务记录状态变更历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_record_state_history")
+@TableName("un_biz_record_state_history")
 public class BizRecordStateHistory {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务主记录主键
+     */
     @TableField("record_id")
     private Long recordId;
 
+    /**
+     * 变更前业务状态
+     */
     @TableField("from_status")
     private String fromStatus;
 
+    /**
+     * 变更后的业务状态
+     */
     @TableField("to_status")
     private String toStatus;
 
+    /**
+     * 业务变更原因
+     */
     @TableField("reason")
     private String reason;
 
+    /**
+     * 发起状态变更的来源类型
+     */
     @TableField("source_type")
     private String sourceType;
 
+    /**
+     * 发起状态变更的来源对象标识
+     */
     @TableField("source_id")
     private String sourceId;
 
+    /**
+     * 执行变更的系统成员主键
+     */
     @TableField("changed_by_member_id")
     private Long changedByMemberId;
 
-    @TableField("changed_at")
-    private LocalDateTime changedAt;
+    /**
+     * 业务变更发生时间
+     */
+    @TableField("change_time")
+    private LocalDateTime changeTime;
 
     public Long getId() {
         return id;
@@ -109,12 +136,12 @@ public class BizRecordStateHistory {
         this.changedByMemberId = changedByMemberId;
     }
 
-    public LocalDateTime getChangedAt() {
-        return changedAt;
+    public LocalDateTime getChangeTime() {
+        return changeTime;
     }
 
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
+    public void setChangeTime(LocalDateTime changeTime) {
+        this.changeTime = changeTime;
     }
 
     @Override
@@ -128,7 +155,7 @@ public class BizRecordStateHistory {
             ", sourceType = " + sourceType +
             ", sourceId = " + sourceId +
             ", changedByMemberId = " + changedByMemberId +
-            ", changedAt = " + changedAt +
+            ", changeTime = " + changeTime +
             "}";
     }
 }

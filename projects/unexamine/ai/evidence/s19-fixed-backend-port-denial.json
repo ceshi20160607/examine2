@@ -1,0 +1,12 @@
+{
+  "step": "S19.9",
+  "oldEnvironmentDenied": "Backend service port must be 9999",
+  "oldPackageDenied": "Backend readiness must use fixed port 9999",
+  "oldRollbackTargetDenied": "Rollback target backend readiness must use fixed port 9999",
+  "currentRelease": "0.1.0-s19.9-dev1",
+  "backendPortStillListening": true,
+  "dockerContainers": [
+    "mysql",
+    "redis"
+  ]
+}

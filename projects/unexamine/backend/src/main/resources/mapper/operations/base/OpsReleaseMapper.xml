@@ -13,12 +13,12 @@
         <result column="release_notes" property="releaseNotes" />
         <result column="status" property="status" />
         <result column="created_by_account_id" property="createdByAccountId" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, version_name, artifact_hash, database_version, config_version, compatibility_json, release_notes, `status`, created_by_account_id, created_at
+        id, version_name, artifact_hash, database_version, config_version, compatibility_json, release_notes, `status`, created_by_account_id, create_time
     </sql>
 
 </mapper>

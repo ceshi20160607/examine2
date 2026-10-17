@@ -9,50 +9,98 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程操作及幂等记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_action")
+@TableName("un_flow_action")
 public class FlowAction {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 所属流程待办任务ID
+     */
     @TableField("task_id")
     private Long taskId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 流程操作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 操作意见正文
+     */
     @TableField("comment_text")
     private String commentText;
 
+    /**
+     * 本次操作输入快照
+     */
     @TableField("input_json")
     private String inputJson;
 
+    /**
+     * 本次操作结果快照
+     */
     @TableField("result_json")
     private String resultJson;
 
+    /**
+     * 操作幂等键
+     */
     @TableField("idempotency_key")
     private String idempotencyKey;
 
+    /**
+     * 操作人平台账号ID
+     */
     @TableField("acted_by_account_id")
     private Long actedByAccountId;
 
+    /**
+     * 操作人在实际运行租户的成员ID
+     */
     @TableField("acted_by_tenant_member_id")
     private Long actedByTenantMemberId;
 
-    @TableField("acted_at")
-    private LocalDateTime actedAt;
+    /**
+     * 外部操作来源应用ID；内部操作为空
+     */
+    @TableField("actor_application_id")
+    private Long actorApplicationId;
+
+    /**
+     * 应用命名空间内的外部操作人标识
+     */
+    @TableField("actor_external_principal_id")
+    private String actorExternalPrincipalId;
+
+    /**
+     * 操作发生时间
+     */
+    @TableField("act_time")
+    private LocalDateTime actTime;
 
     public Long getId() {
         return id;
@@ -142,12 +190,28 @@ public class FlowAction {
         this.actedByTenantMemberId = actedByTenantMemberId;
     }
 
-    public LocalDateTime getActedAt() {
-        return actedAt;
+    public Long getActorApplicationId() {
+        return actorApplicationId;
     }
 
-    public void setActedAt(LocalDateTime actedAt) {
-        this.actedAt = actedAt;
+    public void setActorApplicationId(Long actorApplicationId) {
+        this.actorApplicationId = actorApplicationId;
+    }
+
+    public String getActorExternalPrincipalId() {
+        return actorExternalPrincipalId;
+    }
+
+    public void setActorExternalPrincipalId(String actorExternalPrincipalId) {
+        this.actorExternalPrincipalId = actorExternalPrincipalId;
+    }
+
+    public LocalDateTime getActTime() {
+        return actTime;
+    }
+
+    public void setActTime(LocalDateTime actTime) {
+        this.actTime = actTime;
     }
 
     @Override
@@ -164,7 +228,9 @@ public class FlowAction {
             ", idempotencyKey = " + idempotencyKey +
             ", actedByAccountId = " + actedByAccountId +
             ", actedByTenantMemberId = " + actedByTenantMemberId +
-            ", actedAt = " + actedAt +
+            ", actorApplicationId = " + actorApplicationId +
+            ", actorExternalPrincipalId = " + actorExternalPrincipalId +
+            ", actTime = " + actTime +
             "}";
     }
 }

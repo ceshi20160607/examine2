@@ -1,0 +1,45 @@
+{
+  "step": "S18.16",
+  "observed_at": "2026-10-13",
+  "environment": "独立复制的 unexamine_s18_acceptance_copy MySQL 卷、系统 #166、后端 s18-v12 与当前前端；原 MySQL 数据卷未连接验收服务。",
+  "module": {
+    "module_id": 86,
+    "published_version_id": 94,
+    "attachment_field_id": 193,
+    "flow_id": 26,
+    "published_flow_version_id": 25,
+    "role_id": 243
+  },
+  "member_journey": [
+    "普通成员 #168 打开本人记录 #179 详情，设备编号由 EQ-S18-001 编辑为 EQ-S18-001-EDIT 并保存；无匹配搜索返回 0 条，标题搜索与巡检合格=是的服务端筛选返回 1 条。",
+    "新增巡检附件字段并发布模块 V2；角色发布 PAGE 读写、FILE 读写、FLOW 只读，以及附件查看/上传/引用/下载动作。成员上传 52 B 的 s18-inspection-note.txt，保存记录后详情与列表读回，下载字节与上传内容相同。",
+    "Flow V2 将审批人设为普通成员；所属人发起 S18 成员待审 02，成员待办出现该任务并同意，流程完成且正式记录 #181 生成。角色的 DETAIL 为 ALL、LIST 与 EXPORT 为 SELF，FLOW 字段只读；审批详情可核对原提交的 EQ-S18-APPROVAL。",
+    "系统消息显示该审批待办与导出完成通知；真实页面保留处理人与流程版本。"
+  ],
+  "scope_and_export": {
+    "owner_api": "HTTP 200，列表 3 条：记录 #179、#180、#181。",
+    "member_api": "HTTP 200，列表仅本人记录 #179；角色 DETAIL=ALL，LIST=SELF，EXPORT=SELF。",
+    "unrelated_api": "HTTP 403 / TENANT_CONTEXT_UNAVAILABLE，直接运行页跳回平台。",
+    "member_admin_api": "HTTP 403 / PERMISSION_DENIED。",
+    "export_batch_id": 29,
+    "export_result": "CSV 完成 1/1 行，只有记录 #179，附件列为 s18-inspection-note.txt；不包含所属人记录 #180/#181。",
+    "bug_fixed": "首次 Excel 导出将 ATTACHMENT 值输出为内部文件 ID 168；ModuleExportService 已改为使用当前权限裁剪后的 displayValue，重建并重启后 Excel/CSV 均输出文件名。"
+  },
+  "database": {
+    "business_records": [179, 180, 181],
+    "file_id": 168,
+    "file_scan_status": "CLEAN",
+    "flow_instances": [43, 44, 45],
+    "latest_export_batch": "#29 CSV COMPLETED，1/1 行，提交成员 #251。",
+    "role_field_policies": "附件 PAGE/FILE 可读可写、FLOW 仅可读；其余 3 个业务字段 PAGE 可读可写、FLOW 仅可读。"
+  },
+  "restart": "后端 s18-v12 再次重启后 readiness=UP；成员 API/页面仍为 1 条、无关账号仍为 403、管理员 API 仍为 403，附件重新下载为同样 52 B，Flow V2 审批历史和字段、消息均读回。",
+  "artifacts": [
+    "projects/unexamine/ai/evidence/s18-member-scope-export.csv",
+    "projects/unexamine/ai/evidence/s18-member-permission-export-fixed.xlsx",
+    "projects/unexamine/ai/evidence/s18-member-attachment-readback.png",
+    "projects/unexamine/ai/evidence/s18-member-flow-v2-approved.png",
+    "projects/unexamine/ai/evidence/s18-member-messages.png",
+    "projects/unexamine/ai/evidence/s18-member-scope-runtime.png"
+  ]
+}

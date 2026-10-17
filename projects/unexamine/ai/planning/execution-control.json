@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "mode": "bounded_steps",
+  "enforceIntegrationGateOrder": true,
   "state": "projects/unexamine/ai/planning/spark-state.json",
   "contextRoots": [
     "projects/unexamine/backend/src/main/java/com/unique/unexamine",
@@ -13,16 +14,18 @@
     "targetThreadId": "01a06f53-2b57-7333-8b55-0d0183b53303",
     "cadenceMinutes": 20,
     "desiredStatus": "PAUSED",
-    "prompt": "在 D:\\workspace\\01_project\\snow\\cursor\\examine2 按根 AGENTS.md 接续已授权开发。先运行 python template_base/tools/tb.py execution-context --workspace workspace.json，再严格执行项目输出的当前步骤与 policy；执行契约、任务范围、验收、停止和接续规则均以工程文件为准。没有有意义的变化或需要用户处理的问题时保持安静。"
+    "prompt": "在 D:\\workspace\\01_project\\snow\\cursor\\examine2 按根 AGENTS.md 接续已授权开发。先读 product-closure-audit.md、spark-execution-plan.md 和 spark-state.json，再运行 project-status 与 execution-context；G18_PRODUCT_RELEASE 未完成时，围绕整站交付和真实阻断工作，不回到孤立 Flow 步骤。没有有意义的变化或需要用户处理的问题时保持安静。"
   },
   "policy": {
     "authority": "根 AGENTS.md 和当前完整交付方案规定执行契约；docs/user_requirement.md 是唯一产品需求源。spark-* 路径仅保留兼容引用，不指定模型。",
     "model": "使用当前会话模型，委派分支继承当前模型；不再分配 Spark 模型。",
     "taskAllocation": "按 state.task_packet 组合业务相关任务，先评估公共依赖与真实剩余工期，预计总工期不超过 240 分钟；不是实际计时。公共骨架与契约稳定后接入依赖功能。并行须写明文件归属、实际前置证据、迁移/构建/测试资源和合并顺序；公共文件及同一运行夹具串行。",
     "entry": "python template_base/tools/tb.py execution-context --workspace workspace.json",
-    "scope": "只展开当前原文、入口文件及直接依赖；保留既有修改和全部未完成需求，不重新审计或规划全项目。",
+    "scope": "现有 product-closure-audit.md 是整站对账断点；每次重开先读并只更新新增事实，不重复从头审计。G18_PRODUCT_RELEASE 未完成时按同一候选制品的整站旅程和真实阻断选题，孤立的 S18.39 等功能组合保持未验。唯一产品需求源仍是 docs/user_requirement.md，保留既有修改和全部未完成需求。",
     "dependencies": "每个 current_scope 显式列出 prerequisite_steps；前置步骤 verified 且对应证据存在才可实施。依赖实现变化时重新验证受影响行为，不把历史验证当成当前完成。",
     "checkpoint": "先写真实业务验证记录，运行 execution-verify --workspace workspace.json --receipt <记录路径>；校验通过后更新准确断点及下一步骤范围。结构/哈希通过不能代替页面、API、持久化、权限和失败结果。",
+    "integrationGate": "公共契约在下游消费前须以同一业务对象贯通配置、发布、保存、读回、当前权限和页面；下游发现上游缺口时记录根因并把工作归回上游，保留未完成状态。G1–G17 只证明各自指定场景；G18_PRODUCT_RELEASE 约束同一候选制品的整站旅程、全量需求和交付物。工程入口拒绝主任务越过首个未完成门槛，已通过门槛须有匹配的业务回执；局部贡献不折算产品完成。",
+    "parallelGate": "独立并行包须在 spark-state.json 的 parallel_task_packets 明确登记，使用 execution-context --workspace workspace.json --step <包步骤> 校验，并绑定 integration_gates 中的业务旅程。源码构建或单动作通过只是代码贡献，不能据此晋级门槛或让用户再次喊继续。",
     "loop": "每次检查点结束重新调用 entry，实施已准入任务包内的下一可执行步骤；不得无记录扩张到包外。整包开发完成后先整理、组合验证和形成验收结论，再准入下一包。不因单步完成或上下文压缩等待用户喊继续。",
     "blockers": "外部依赖记录具体阻塞与解锁条件，按既有方案选择独立可执行步骤；不得缩减需求或把阻塞项标为完成。",
     "stopping": "采用 template_base/agents/workflow.json 的真实停止条件；其中全部周期完成在本轮解释为全部有效需求与最终真实验收通过，不读取旧周期完成数。",

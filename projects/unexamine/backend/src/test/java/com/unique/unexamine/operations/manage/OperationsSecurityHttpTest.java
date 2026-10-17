@@ -94,14 +94,14 @@ class OperationsSecurityHttpTest {
                 .containsEntry("activeVersion", "v1").containsEntry("oldVersionStatus", "ACTIVE")
                 .containsEntry("failureCode", "CONSUMER_CANARY_FAILED");
 
-        String originalHash = jdbc.queryForObject("select password_hash from plat_account_credential where account_id=?", String.class,
+        String originalHash = jdbc.queryForObject("select password_hash from un_plat_account_credential where account_id=?", String.class,
                 owner.accountId());
-        jdbc.update("update plat_account_credential set password_hash='plaintext-is-forbidden' where account_id=?", owner.accountId());
+        jdbc.update("update un_plat_account_credential set password_hash='plaintext-is-forbidden' where account_id=?", owner.accountId());
         Map<String, Object> blockedSecurity = data(exchange(base + "/security-runs", HttpMethod.POST, owner.token(), Map.of(
                 "approvalReference", "CAB-C56-SEC-002", "confirmation", "RUN SECURITY BASELINE")));
         assertThat(blockedSecurity).containsEntry("status", "FAILED");
         long blockedSecurityRunId = number(blockedSecurity.get("id"));
-        jdbc.update("update plat_account_credential set password_hash=? where account_id=?", originalHash, owner.accountId());
+        jdbc.update("update un_plat_account_credential set password_hash=? where account_id=?", originalHash, owner.accountId());
 
         Map<String, Object> blockedPrepared = prepare(base, owner, refId, "CAB-C56-ROT-003");
         long blockedRotationId = number(map(blockedPrepared.get("rotation")).get("id"));
@@ -144,12 +144,12 @@ class OperationsSecurityHttpTest {
                 "materialReference", "ops-aesgcm");
         assertThat(list(overview.get("secretRefs"))).singleElement().satisfies(value ->
                 assertThat(map(value)).containsEntry("currentVersion", "v2").containsEntry("status", "ACTIVE"));
-        assertThat(jdbc.queryForObject("select concat(verification_json) from ops_secret_rotation where id=?",
+        assertThat(jdbc.queryForObject("select concat(verification_json) from un_ops_secret_rotation where id=?",
                 String.class, failedRotationId)).doesNotContain(failedIssuedSecret).contains("materialDestroyed");
-        assertThat(count("ops_secret_rotation", "secret_ref_id=" + refId)).isEqualTo(4);
-        assertThat(count("ops_verification_run", "system_id=" + owner.systemId())).isEqualTo(5);
-        assertThat(count("ops_verification_finding", "status='OPEN'" )).isEqualTo(5);
-        assertThat(count("audit_event", "event_code like 'OPERATIONS_SECRET_%' or "
+        assertThat(count("un_ops_secret_rotation", "secret_ref_id=" + refId)).isEqualTo(4);
+        assertThat(count("un_ops_verification_run", "system_id=" + owner.systemId())).isEqualTo(5);
+        assertThat(count("un_ops_verification_finding", "status='OPEN'" )).isEqualTo(5);
+        assertThat(count("un_audit_event", "event_code like 'OPERATIONS_SECRET_%' or "
                 + "event_code in ('OPERATIONS_SECURITY_BASELINE_EXECUTED','OPERATIONS_PERFORMANCE_BASELINE_EXECUTED')"))
                 .isGreaterThanOrEqualTo(10);
 
@@ -157,7 +157,7 @@ class OperationsSecurityHttpTest {
         ResponseEntity<Map> denied = exchange(base, HttpMethod.GET, owner.token(), null);
         assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(denied.getBody()).containsEntry("code", "PERMISSION_DENIED");
-        assertThat(count("audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:SECURITY:READ'"))
+        assertThat(count("un_audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:SECURITY:READ'"))
                 .isOne();
     }
 
@@ -191,18 +191,18 @@ class OperationsSecurityHttpTest {
                 "email", username + "@example.com", "systemName", "C56 安全系统", "systemCode", systemCode));
         assertThat(registration.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> result = data(registration);
-        long accountId = jdbc.queryForObject("select id from plat_account where username=?", Long.class, username);
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username=?", Long.class, username);
         return new Fixture(accountId, number(result.get("systemId")), number(result.get("tenantId")),
                 String.valueOf(map(result.get("tokens")).get("accessToken")));
     }
 
     private void revokePermissions(Fixture fixture) {
-        jdbc.update("delete rp from sys_role_permission rp join sys_member_role mr on mr.role_id=rp.role_id "
-                        + "and mr.tenant_id=rp.tenant_id join sys_tenant_member tm on tm.id=mr.tenant_member_id "
-                        + "and tm.tenant_id=mr.tenant_id join sys_member sm on sm.id=tm.system_member_id "
+        jdbc.update("delete rp from un_sys_role_permission rp join un_sys_member_role mr on mr.role_id=rp.role_id "
+                        + "and mr.tenant_id=rp.tenant_id join un_sys_tenant_member tm on tm.id=mr.tenant_member_id "
+                        + "and tm.tenant_id=mr.tenant_id join un_sys_member sm on sm.id=tm.system_member_id "
                         + "and sm.system_id=tm.system_id where sm.account_id=? and sm.system_id=? and tm.tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
-        jdbc.update("update auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
+        jdbc.update("update un_auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
     }
 

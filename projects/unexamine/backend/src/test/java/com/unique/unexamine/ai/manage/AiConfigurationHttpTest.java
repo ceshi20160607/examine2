@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -59,7 +57,7 @@ class AiConfigurationHttpTest {
                 platformAdmin, model("missing_model", "不可用模型", "property:test.ai.missing"));
         assertThat(missingCredential.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
         assertThat(missingCredential.getBody().get("code")).isEqualTo("AI_MODEL_CREDENTIAL_UNAVAILABLE");
-        assertThat(count("ai_model", "code='missing_model'")).isZero();
+        assertThat(count("un_ai_model", "code='missing_model'")).isZero();
 
         ResponseEntity<Map> grantedModelResponse = exchange("/api/admin/platform/ai/models", HttpMethod.POST,
                 platformAdmin, model("granted_chat", "系统授权模型", "property:test.ai.secret"));
@@ -80,7 +78,7 @@ class AiConfigurationHttpTest {
                 Map.of("dailyTokenLimit", 40000, "concurrencyLimit", 2));
         assertThat(grantResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         long grantId = number(data(grantResponse).get("id"));
-        assertThat(count("audit_event", "event_code='AI_MODEL_GRANTED' and object_id='" + grantId + "'")).isOne();
+        assertThat(count("un_audit_event", "event_code='AI_MODEL_GRANTED' and object_id='" + grantId + "'")).isOne();
 
         ResponseEntity<Map> systemOverview = exchange("/api/admin/system/ai", HttpMethod.GET, owner.systemToken(), null);
         List<Map<String, Object>> available = (List<Map<String, Object>>) data(systemOverview).get("availableModels");
@@ -120,17 +118,18 @@ class AiConfigurationHttpTest {
         assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
         long versionId = number(data(published).get("versionId"));
         assertThat(data(published)).containsEntry("versionNumber", 1);
-        assertThat(count("ai_agent_version", "id=" + versionId + " and agent_id=" + agentId)).isOne();
-        assertThat(count("ai_agent_publication", "agent_id=" + agentId + " and current_version_id=" + versionId)).isOne();
-        assertThat(count("audit_event", "event_code='AI_AGENT_PUBLISHED' and object_id='" + versionId + "'")).isOne();
-        String snapshot = jdbc.queryForObject("select snapshot_json from ai_agent_version where id=?", String.class, versionId);
+        assertThat(count("un_ai_agent_version", "id=" + versionId + " and agent_id=" + agentId)).isOne();
+        assertThat(count("un_ai_agent_publication", "agent_id=" + agentId + " and current_version_id=" + versionId)).isOne();
+        assertThat(count("un_audit_event", "event_code='AI_AGENT_PUBLISHED' and object_id='" + versionId + "'")).isOne();
+        String snapshot = jdbc.queryForObject("select snapshot_json from un_ai_agent_version where id=?", String.class, versionId);
         assertThat(snapshot).contains("authorizationSnapshot", "customer_name", "writeActionsRequireConfirmation")
                 .doesNotContain("c45-model-secret-never-persisted");
 
-        assertThatThrownBy(() -> jdbc.update("update ai_agent_version set version_number=99 where id=?", versionId))
-                .isInstanceOf(DataAccessException.class).hasMessageContaining("ai_agent_version is immutable");
-        assertThatThrownBy(() -> jdbc.update("delete from ai_agent_version where id=?", versionId))
-                .isInstanceOf(DataAccessException.class).hasMessageContaining("ai_agent_version is immutable");
+        // 已发布版本由业务代码固定；数据库不再依靠触发器拦截直写。
+        ResponseEntity<Map> repeatedPublish = exchange("/api/admin/system/ai/agents/" + agentId + "/publish",
+                HttpMethod.POST, owner.systemToken(), Map.of("expectedDraftRevision", draftRevision));
+        assertThat(repeatedPublish.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(count("un_ai_agent_version", "agent_id=" + agentId)).isOne();
 
         Map<String, Object> excessive = agent("wildcard_agent", "越权范围草稿", grantId, "*");
         ResponseEntity<Map> excessiveDraft = exchange("/api/admin/system/ai/agents", HttpMethod.POST,
@@ -147,11 +146,11 @@ class AiConfigurationHttpTest {
                 HttpMethod.POST, owner.systemToken(), Map.of("expectedDraftRevision", excessiveRevision));
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(blocked.getBody().get("code")).isEqualTo("AI_AGENT_PUBLICATION_INVALID");
-        assertThat(count("ai_agent_version", "agent_id=" + excessiveId)).isZero();
-        assertThat(count("audit_event", "event_code='AI_AGENT_PUBLISH_BLOCKED' and object_id='" + excessiveId
+        assertThat(count("un_ai_agent_version", "agent_id=" + excessiveId)).isZero();
+        assertThat(count("un_audit_event", "event_code='AI_AGENT_PUBLISH_BLOCKED' and object_id='" + excessiveId
                 + "' and result_code='AI_AGENT_PUBLICATION_INVALID'")).isOne();
 
-        jdbc.update("update ai_system_model_grant set status='REVOKED', revoked_at=now(3) where id=?", grantId);
+        jdbc.update("update un_ai_system_model_grant set status='REVOKED', revoke_time=now(3) where id=?", grantId);
         ResponseEntity<Map> revokedPreview = exchange("/api/admin/system/ai/agents/" + agentId + "/preview",
                 HttpMethod.GET, owner.systemToken(), null);
         assertThat(data(revokedPreview).get("valid")).isEqualTo(false);

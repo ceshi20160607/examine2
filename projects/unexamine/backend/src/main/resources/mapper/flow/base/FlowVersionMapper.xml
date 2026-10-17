@@ -13,12 +13,12 @@
         <result column="simulation_result_json" property="simulationResultJson" />
         <result column="change_summary" property="changeSummary" />
         <result column="published_by_account_id" property="publishedByAccountId" />
-        <result column="published_at" property="publishedAt" />
+        <result column="publish_time" property="publishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, flow_id, version_number, draft_revision, definition_hash, snapshot_json, simulation_result_json, change_summary, published_by_account_id, published_at
+        id, flow_id, version_number, draft_revision, definition_hash, snapshot_json, simulation_result_json, change_summary, published_by_account_id, publish_time
     </sql>
 
 </mapper>

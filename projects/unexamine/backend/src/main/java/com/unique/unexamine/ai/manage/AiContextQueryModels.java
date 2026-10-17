@@ -1,5 +1,6 @@
 package com.unique.unexamine.ai.manage;
 
+import com.unique.unexamine.analytics.manage.ReportModels;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -65,7 +66,8 @@ public final class AiContextQueryModels {
             @NotBlank @Size(max = 2000) String question,
             @NotNull @Size(max = 50) List<@Pattern(regexp = "[a-z][a-z0-9_]{1,99}") String> requestedFieldCodes,
             @Min(1) Long requestedTenantId,
-            @NotNull @Valid EntryContextRequest entryContext) {
+            @NotNull @Valid EntryContextRequest entryContext,
+            @Min(1) Long dataSourceId) {
     }
 
     public record QueryScope(
@@ -87,7 +89,18 @@ public final class AiContextQueryModels {
             String recordNumber,
             String title,
             String path,
-            Map<String, Object> fields) {
+            Map<String, Object> fields,
+            Map<String, SourceField> fieldPresentation) {
+    }
+
+    /** 仅附带本次 Agent 工具和成员同时有权读取的字段展示值。 */
+    public record SourceField(String name, String displayValue) {
+    }
+
+    /** 已发布报表按当前成员权限重新计算的事实，数值不由模型生成。 */
+    public record ReportFact(Long dataSourceId, Object value, List<ReportModels.Group> groups,
+                             String metricDefinition, Long dataSourceVersionId,
+                             Integer dataSourceVersionNumber) {
     }
 
     public record QueryResult(
@@ -100,7 +113,8 @@ public final class AiContextQueryModels {
             QueryScope scope,
             String metricDefinition,
             List<Source> sources,
-            LocalDateTime persistedAt) {
+            LocalDateTime persistedAt,
+            ReportFact report) {
     }
 
     public record MessageView(

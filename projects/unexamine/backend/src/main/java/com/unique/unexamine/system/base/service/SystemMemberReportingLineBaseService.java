@@ -2,6 +2,7 @@
 package com.unique.unexamine.system.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.system.base.entity.SystemMemberReportingLine;
 import com.unique.unexamine.system.base.mapper.SystemMemberReportingLineMapper;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,41 @@ public class SystemMemberReportingLineBaseService {
         return mapper.selectList(query);
     }
 
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public SystemMemberReportingLine selectOne(Wrapper<SystemMemberReportingLine> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<SystemMemberReportingLine> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<SystemMemberReportingLine> selectPage(IPage<SystemMemberReportingLine> page, Wrapper<SystemMemberReportingLine> query) {
+        return mapper.selectPage(page, query);
+    }
+
     public int updateById(SystemMemberReportingLine entity) {
         return mapper.updateById(entity);
     }
 
+    /** 按条件更新记录，调用方负责限定租户和目标范围。 */
+    public int update(SystemMemberReportingLine entity, Wrapper<SystemMemberReportingLine> query) {
+        return mapper.update(entity, query);
+    }
+
+    /** 使用更新条件中的赋值表达式更新记录。 */
+    public int update(Wrapper<SystemMemberReportingLine> query) {
+        return mapper.update(null, query);
+    }
+
     public int deleteById(Serializable id) {
         return mapper.deleteById(id);
+    }
+
+    /** 按条件删除记录，调用方负责限定租户和目标范围。 */
+    public int delete(Wrapper<SystemMemberReportingLine> query) {
+        return mapper.delete(query);
     }
 }

@@ -1,0 +1,18 @@
+{
+  "moduleCode": "dashboard_accept_1a4547cf",
+  "dashboardId": 8,
+  "dashboardVersionId": 14,
+  "runtimeButton": {
+    "width": 88,
+    "height": 36,
+    "text": "模块首页"
+  },
+  "route": "/systems/143?workspace=module-home&module=dashboard_accept_1a4547cf",
+  "runtimeScreenshot": "projects/unexamine/ai/evidence/s18-module-action-integration-runtime-browser.png",
+  "detailScreenshot": "projects/unexamine/ai/evidence/s18-module-action-integration-detail-browser.png",
+  "detailActions": {
+    "approval": true,
+    "print": true
+  },
+  "dashboardScreenshot": "projects/unexamine/ai/evidence/s18-module-action-integration-page-browser.png"
+}

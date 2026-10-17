@@ -1,0 +1,64 @@
+{
+  "step": "S11.1",
+  "status": "verified_contribution",
+  "integration_gate": "G11_RECORD_ARCHIVE_RECOVERY",
+  "source_rows": [
+    "R2146",
+    "R2148",
+    "R2149",
+    "R2150",
+    "R2151",
+    "R2152"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/frontend/src/product/action-placement.ts",
+    "projects/unexamine/frontend/src/product/action-placement.test.ts",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/tools/verify-record-archive.py"
+  ],
+  "checks_actual_results": [
+    "系统 #151 已发布合同模块 #73 的 ARCHIVE 动作设为批量位置，普通成员 #227 有 ARCHIVE、DELETE、RESTORE 的 SELF 范围。真实页面选两条本人负责的记录批量归档，正常列表减少、归档列表增加；归档页和回收站分别恢复后回到正常列表。",
+    "再次批量归档两条记录时，先把其中一条的版本推进；页面返回一条成功、一条 409 失败，失败项刷新后单独重试成功。成功项没有重复执行，未知网络结果不会盲目重放。",
+    "恢复后通过 API 和数据库读回发现 archive_time/delete_time 原本残留；修复为同事务内显式清空。重新打包并重启后，记录 #133、#134、#135 均正常，两个时间列为 NULL；记录 #136、#137 位于归档，回收站为空。重启后真实页面归档列表显示两条。",
+    "无角色成员读归档列表和归档返回 403；普通成员归档非本人负责的 #130 返回 403；恢复旧版本返回 409。verify-record-archive.py readback 151 返回 active [133,134,135]、archived [136,137]、recycle []、outsiderDenied true。后端 Maven 打包、前端 vue-tsc/Vite 构建、动作位置 Vitest 7/7、Python 编译、workspace-validate 与 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g11-batch-archive.png",
+    "projects/unexamine/ai/evidence/g11-recycle-bin.png",
+    "projects/unexamine/ai/evidence/g11-batch-conflict.png",
+    "projects/unexamine/ai/evidence/g11-batch-retry.png",
+    "projects/unexamine/ai/evidence/g11-archive-restart.png",
+    "projects/unexamine/tools/verify-record-archive.py"
+  ],
+  "permission_or_failure_result": "负责人 SELF 与动作权限同时生效；无角色成员和他人记录均 403，过期乐观锁版本 409；页面仅重试明确拒绝的失败项。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "6a589d1d3113bd574f1c3e69efd58a459424384039947d6ab400826851452f8b"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/action-placement.ts",
+      "sha256": "6b9698a678368e2c34ebbc9591327b5f54e1c6717b9dcf942ea179dbaaa1cccb"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/action-placement.test.ts",
+      "sha256": "3e63b471d3c28bf2de5b9738259a487f7ff6b0d30dbf5329b4fbd0c802f5e90a"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "1d183e481a2a431838af429c266e19f0638525f510a4b65519228a961aa88ef6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "af6a7c67143746c1fc6c06d91f3b464ebc1317f699fc163700fa9e7d8b26d6a5"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-record-archive.py",
+      "sha256": "2f57e4c4377dc53373d79fb9c87c88a206c5c047de6eec37171f53869f83a7ac"
+    }
+  ],
+  "remaining": "G11 业务链已在隔离系统实测通过；下一步核对 14.12 审批后可配置业务状态联动、审批中编辑限制和撤回恢复。真实第三方依赖及整站验收尚未完成。",
+  "next_step": "S12.1"
+}

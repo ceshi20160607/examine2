@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import { builtInTextFormat, defaultEditor, fieldTypes, supportsTextConstraints, supportsUniqueValue, supportsFieldSearch } from '../field-capabilities'
+import { builtInTextFormat, defaultEditor, fieldTypes, moneyPrecisionError, supportsTextConstraints, supportsUniqueValue, supportsFieldSearch } from '../field-capabilities'
 import StructuredSchemaEditor from './StructuredSchemaEditor.vue'
 import StructuredValueEditor from './StructuredValueEditor.vue'
 import RichTextEditor from './RichTextEditor.vue'
 import { emptyJsonValue, type JsonSchema } from '../structured-content'
 export interface FieldConfigurationForm {
   code: string; name: string; fieldType: string; required: boolean; uniqueValue: boolean; searchable: boolean
-  dictionaryId?: number; referenceModuleId?: number; sortOrder: number; status: string; optionsText: string
+  dictionaryId?: number; referenceModuleId?: number; parentFieldId?: number; sortOrder: number; status: string; optionsText: string
   defaultValue?: unknown; placeholder: string; minLength?: number; maxLength?: number
   patternMode: string; customPattern: string; richTextMode: string; jsonSchema: JsonSchema
   currency: string; precision: number; maxDepth: number; allowIntermediate: boolean; saveMode: string
   cascadeDisplayFieldCode: string; cascadeValueFieldCode: string; cascadeParentFieldCode: string
   sequenceCode: string; expression: string; modelCode: string; humanConfirmation: boolean; sensitive: boolean; readOnly: boolean; version: number
+  multiple: boolean; minRows: number; maxRows: number
 }
 defineProps<{
   fieldForm: FieldConfigurationForm; editing?: boolean; fieldConfigurationIssue: string
   dictionaryOptions: Array<{ value: number; label: string }>; referenceModuleOptions: Array<{ value: number; label: string }>
+  subtableOptions: Array<{ value: number; label: string }>
   cascadeDisplayOptions: Array<{ value: string; label: string }>; cascadeValueOptions: Array<{ value: string; label: string }>
   cascadeParentOptions: Array<{ value: string; label: string }>; cascadeTargetError: string
   availableAiModels: Array<{ code: string; name: string; provider: string }>
@@ -30,10 +32,13 @@ const patternModeOptions = [
       <a-form layout="vertical">
         <a-form-item label="字段类型"><a-select v-if="!editing" v-model:value="fieldForm.fieldType" show-search :options="fieldTypes.map(item => ({ value: item.type, label: `${item.name} · ${item.hint}` }))" /><a-input v-else :value="fieldTypes.find((item) => item.type === fieldForm.fieldType)?.name" disabled /></a-form-item>
         <a-form-item label="字段名称" required><a-input v-model:value="fieldForm.name" placeholder="例如：客户名称、联系电话、跟进结果" /></a-form-item>
+        <a-form-item v-if="fieldForm.fieldType !== 'SUBTABLE' && !fieldForm.fieldType.startsWith('SYSTEM_')" label="所属子表" extra="选择后此字段作为当前模块的明细列；已保存字段不能改换所属子表。">
+          <a-select v-model:value="fieldForm.parentFieldId" allow-clear :disabled="editing" :options="subtableOptions" placeholder="不选择则为主记录字段" />
+        </a-form-item>
         <div class="form-grid"><a-form-item label="排序"><a-input-number v-model:value="fieldForm.sortOrder" :min="0" /></a-form-item>
           <a-form-item label="是否必填"><a-switch v-model:checked="fieldForm.required" /></a-form-item></div>
         <div class="form-grid"><a-form-item label="可搜索"><a-switch v-model:checked="fieldForm.searchable" :disabled="!supportsFieldSearch(fieldForm.fieldType)" /></a-form-item>
-          <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="!supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
+          <a-form-item label="唯一值" extra="在当前组织和模块内约束非空值；由数据库并发保证。"><a-switch v-model:checked="fieldForm.uniqueValue" :disabled="Boolean(fieldForm.parentFieldId) || !supportsUniqueValue(fieldForm.fieldType)" /></a-form-item></div>
         <a-form-item label="提示文案"><a-input v-model:value="fieldForm.placeholder" placeholder="页面输入提示" /></a-form-item>
         <template v-if="supportsTextConstraints(fieldForm.fieldType)">
           <a-alert v-if="builtInTextFormat(fieldForm.fieldType)" type="info" show-icon class="section-alert" :message="builtInTextFormat(fieldForm.fieldType)" />
@@ -44,12 +49,13 @@ const patternModeOptions = [
         </template>
         <a-form-item v-if="fieldForm.fieldType === 'RICH_TEXT'" label="格式工具栏"><a-radio-group v-model:value="fieldForm.richTextMode"><a-radio value="BASIC">基础格式</a-radio><a-radio value="FULL">含列表、标题和链接</a-radio></a-radio-group></a-form-item>
         <a-form-item v-if="fieldForm.fieldType === 'JSON'" label="内容结构" extra="添加属性、选择类型和必填条件；支持嵌套属性组和多行列表。"><StructuredSchemaEditor v-model="fieldForm.jsonSchema" /></a-form-item>
-        <a-form-item v-if="fieldForm.fieldType !== 'SECRET'" label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
+        <a-form-item v-if="!['SECRET', 'SUBTABLE'].includes(fieldForm.fieldType)" label="默认值" extra="可留空；创建记录时会自动带入并接受同一套服务端校验。">
           <RichTextEditor v-if="fieldForm.fieldType === 'RICH_TEXT'" v-model="fieldForm.defaultValue" :mode="fieldForm.richTextMode" :max-length="fieldForm.maxLength" />
           <template v-else-if="fieldForm.fieldType === 'JSON'">
             <a-button v-if="fieldForm.defaultValue === undefined" @click="fieldForm.defaultValue = emptyJsonValue(fieldForm.jsonSchema)">设置默认内容</a-button>
             <template v-else><StructuredValueEditor v-model="fieldForm.defaultValue" :schema="fieldForm.jsonSchema" /><a-button size="small" @click="fieldForm.defaultValue = undefined">不设置默认值</a-button></template>
           </template>
+          <template v-else-if="fieldForm.fieldType === 'MONEY'"><a-input-number v-model:value="fieldForm.defaultValue as string | number" string-mode style="width:100%" :placeholder="`输入${fieldForm.currency || ''}金额，最多 ${fieldForm.precision} 位小数`" /><small v-if="moneyPrecisionError(fieldForm.defaultValue, fieldForm.precision)" class="field-money-error">{{ moneyPrecisionError(fieldForm.defaultValue, fieldForm.precision) }}</small></template>
           <a-input-number v-else-if="defaultEditor(fieldForm.fieldType) === 'NUMBER'" v-model:value="fieldForm.defaultValue as number" style="width:100%" placeholder="输入默认数字" />
           <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATE'" v-model:value="fieldForm.defaultValue as string" value-format="YYYY-MM-DD" style="width:100%" placeholder="选择默认日期" />
           <a-date-picker v-else-if="defaultEditor(fieldForm.fieldType) === 'DATETIME'" v-model:value="fieldForm.defaultValue as string" show-time value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" placeholder="选择默认日期和时间" />
@@ -79,9 +85,11 @@ const patternModeOptions = [
         <template v-if="fieldForm.fieldType === 'MONEY'">
           <div class="form-grid"><a-form-item label="币种" required><a-input v-model:value="fieldForm.currency" placeholder="CNY" /></a-form-item><a-form-item label="小数精度" required><a-input-number v-model:value="fieldForm.precision" :min="0" :max="6" /></a-form-item></div>
         </template>
-        <a-form-item v-if="['REFERENCE', 'LOOKUP', 'SUBTABLE', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType)" label="目标模块" required extra="选择要关联的业务模块，运行页展示目标记录的业务名称。">
+        <a-form-item v-if="['REFERENCE', 'LOOKUP', 'SUMMARY', 'AGGREGATE'].includes(fieldForm.fieldType)" label="目标模块" required extra="选择要关联的业务模块，运行页展示目标记录的业务名称。">
           <a-select v-model:value="fieldForm.referenceModuleId" show-search :options="referenceModuleOptions" />
         </a-form-item>
+        <a-form-item v-if="fieldForm.fieldType === 'REFERENCE'" label="关联方式" extra="多选时保存目标记录 ID 列表，并逐条检查目标记录权限。"><a-radio-group v-model:value="fieldForm.multiple"><a-radio :value="false">单选</a-radio><a-radio :value="true">多选</a-radio></a-radio-group></a-form-item>
+        <template v-if="fieldForm.fieldType === 'SUBTABLE'"><a-alert type="info" show-icon message="子表明细保存在当前模块；请保存容器后再添加列字段。" class="section-alert" /><div class="form-grid"><a-form-item label="最少行数"><a-input-number v-model:value="fieldForm.minRows" :min="0" :max="100" /></a-form-item><a-form-item label="最多行数"><a-input-number v-model:value="fieldForm.maxRows" :min="1" :max="100" /></a-form-item></div></template>
         <a-form-item v-if="fieldForm.fieldType === 'AUTO_NUMBER'" label="编号规则" required><a-input v-model:value="fieldForm.sequenceCode" placeholder="例如：客户编号" /></a-form-item>
         <a-form-item v-if="['FORMULA', 'CALCULATION'].includes(fieldForm.fieldType)" label="表达式" required><a-textarea v-model:value="fieldForm.expression" :rows="4" placeholder="例如 amount * tax_rate" /></a-form-item>
         <template v-if="fieldForm.fieldType === 'AI_FILL'">
@@ -93,3 +101,6 @@ const patternModeOptions = [
         <a-alert v-if="fieldConfigurationIssue" type="warning" show-icon :message="fieldConfigurationIssue" />
       </a-form>
 </template>
+<style scoped>
+.field-money-error { display: block; margin-top: 4px; color: #dc2626; }
+</style>

@@ -1,0 +1,102 @@
+{
+  "step": "S04.2",
+  "status": "verified_contribution",
+  "integration_gate": "G4_EXTERNAL_FLOW",
+  "source_rows": [
+    "R0398",
+    "R0939",
+    "R2971"
+  ],
+  "changed_files": [
+    "projects/unexamine/db/update/V20__flow_application_owner.sql",
+    "projects/unexamine/db/migration/V20__flow_application_owner.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/db/README.md",
+    "projects/unexamine/backend/base-codegen-manifest.json",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowDefinition.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+    "projects/unexamine/tools/verify-external-flow.py",
+    "projects/unexamine/tools/verify-external-flow-configuration.py",
+    "projects/unexamine/tools/verify-platform-external-flow.py"
+  ],
+  "checks_actual_results": [
+    "V20 为 un_flow_definition 添加配置所属应用 ID 与索引，保留原后台 Flow 的空归属；中文字段备注、无外键和触发器。workspace-validate、db-prepare、隔离空库 Base 生成通过：18 模块、188 表、752 文件，manage 未被生成器改写；Java 21 后端 package 和前端 vue-tsc/Vite build 通过。",
+    "系统 #12 的应用 #17 先只发布 CREATE_DRAFT：VIEW_DRAFT 和 PUBLISH 均返回 403 APPLICATION_GRANT_DENIED。经应用签名建立 Flow #13，另一应用 #18 读取返回 404 FLOW_NOT_FOUND；扩大目标系统返回 403 APPLICATION_TARGET_SCOPE_EXPANSION。重新发布五项草稿动作后，错误乐观锁版本返回 409 FLOW_DRAFT_VERSION_CONFLICT，空草稿校验未通过；有效节点保存、校验、发布得到 Flow 版本 #12。",
+    "在同一 Flow #13 上再保存不支持的节点，校验显示 NODE_TYPE_INVALID，发布返回 422 FLOW_PUBLICATION_INVALID；原发布指针仍为版本 #12 且定义保持 PUBLISHED。应用 #17 继续按冻结的发布版本发起实例 #16、查询外部待办，错误审批人查询为空且办理返回 403 FLOW_EXTERNAL_APPROVER_DENIED；容器重启后待办 #16 仍可查询，正确标识办理后 COMPLETED。",
+    "平台应用 #16 在 PLATFORM 范围通过相同五项草稿授权建立、保存、校验和发布平台 Flow #12，发布版本 #11；重新发布运行授权后外部发起实例 #15、查询待办 #15 和审批完成。平台流程的 system_id、owner_tenant_id 均为空，未误落系统租户。",
+    "系统后台真实页面显示应用 #17 的五项独立 Flow 配置授权及四项运行授权；调用弹窗出现可编辑的 Flow 配置 JSON。Flow 设计器读回应用创建的流程与 V1 当前运行版本；无效新草稿未替换现行版本。数据库读回系统 Flow #13 owner_application_id=17、draft_revision=3/current_version_id=12；平台 Flow #12 owner_application_id=16/current_version_id=11；两实例及任务均记录各自应用和外部审批人标识。S04.1 旧脚本回归仍通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s04-2-application-grants.png",
+    "projects/unexamine/ai/evidence/s04-2-flow-call-form.png",
+    "projects/unexamine/ai/evidence/s04-2-flow-designer-current-version.png",
+    "projects/unexamine/db/update/V20__flow_application_owner.sql",
+    "projects/unexamine/tools/verify-external-flow-configuration.py",
+    "projects/unexamine/tools/verify-platform-external-flow.py"
+  ],
+  "permission_or_failure_result": "应用配置五种草稿动作逐项按当前发布授权校验；同系统其他应用无法读取或改写当前应用 Flow，系统范围不可扩大，错误修订号与无效节点不能覆盖现行发布版；外部审批人不匹配不能办理。配置与运行调用均有应用调用记录、请求标识和审计。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/update/V20__flow_application_owner.sql",
+      "sha256": "6ce01cbf006b42c40f634871d2ede3a34e8f8fab30f2106acf1217b582751bf6"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V20__flow_application_owner.sql",
+      "sha256": "6ce01cbf006b42c40f634871d2ede3a34e8f8fab30f2106acf1217b582751bf6"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "218be43facc7b84749114b576e7ba02fb7c12936d9065e8f79ef43274ad320d6"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "5eed2f091c7bb862720043049f5df0d45921540099d16f317189fee2d6e252d6"
+    },
+    {
+      "path": "projects/unexamine/db/README.md",
+      "sha256": "c91538decaa67d327c415e7eae498393d0dbb3ba8f5481b7bd9641760b5c3f4e"
+    },
+    {
+      "path": "projects/unexamine/backend/base-codegen-manifest.json",
+      "sha256": "4a56cdb68315c1ad585aa3a4569425617b8cdccaff7638b4556fff1494140f92"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/base/entity/FlowDefinition.java",
+      "sha256": "459854ed1915754503a1560950c461788fe9645359d36be772173fb02fd2d92b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "ac59c8575cc1d7630863dfab5327bb43d6f94edcc466c1ea0f46c609616e7b68"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+      "sha256": "4eb1012fe5782637d8f9bd7111064bef5ccbb4d29dd0789e4f6161b2e875d586"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+      "sha256": "abb5d6a5a32fdf15dc1860795746d9a728f2431b0e5a4e9e60bdff322486dd36"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "e4d9fbddfaf4375faf7f5b4ed77a86ac490a6e95685adac5b4336c0f6361126d"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow.py",
+      "sha256": "dfd2c50b4c03b8c650030c49c5fbb533c15aae80bf61c5a836b8721fb97401fb"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow-configuration.py",
+      "sha256": "07adf92104f56073ecf6ceb3fd11d024eaa157b68556f1d6d9bffb1ccb20c29e"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-platform-external-flow.py",
+      "sha256": "df1afb35de771000ee9339c89a68f20eb7a79ee6ae54d55d0985cd44d4d1bc6b"
+    }
+  ],
+  "remaining": "G4 主旅程已完成本地系统层、平台层、页面、签名、持久化及重启组合验收。下一包验证系统间通过目标应用访问模块与 Flow；真实企业第三方凭据/回调、邮件送达与最终整站验收仍需另行完成，现有外部依赖阻塞不折算完成。",
+  "next_step": "S05.1"
+}

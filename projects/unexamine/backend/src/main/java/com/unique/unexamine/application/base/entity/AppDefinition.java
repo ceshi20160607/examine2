@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("app_definition")
+@TableName("un_app_definition")
 public class AppDefinition {
 
     /**
@@ -100,14 +100,14 @@ public class AppDefinition {
     /**
      * 创建时间，旧字段保持兼容
      */
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     /**
      * 更新时间，旧字段保持兼容
      */
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     /**
      * 应用修改的乐观锁版本
@@ -220,20 +220,20 @@ public class AppDefinition {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -260,8 +260,8 @@ public class AppDefinition {
             ", draftRevision = " + draftRevision +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -1,0 +1,23 @@
+{
+  "step": "S18.8",
+  "status": "verified_contribution",
+  "source_rows": ["R0683", "R0684", "R0692", "R0705", "R1172", "R2801", "R2802", "R2804", "R2805", "R2877", "R2969"],
+  "changed_files": [],
+  "checks_actual_results": [
+    "协作租户管理员在真实后台页面复用主租户已发布来源 #8 V10，创建并计算本租户 KPI #13；175 只来自本租户记录 #176 和明确共享的 #172。",
+    "协作租户管理员在可视化首页配置中保存、预览并发布采购明细模块本租户仪表盘 #5 V1；成员在模块首页和 KPI 页面看到 175/200 与仅两条授权下钻记录。",
+    "撤销成员角色后模块首页、KPI 和来源分别为 403；成员页面清空未授权内容，恢复角色后可用。",
+    "MySQL 中主租户和协作租户仪表盘、KPI、结果均分别归属；服务重启后浏览器与 API 读回主租户 220/300 和协作租户 175/200。"
+  ],
+  "readback": ["projects/unexamine/ai/evidence/s18-tenant-kpi-readback.json"],
+  "permission_or_failure_result": "成员只能按当前租户、模块动作、字段、负责人和有效共享范围重新计算；角色撤销后汇总、来源及下钻均不可用，未借用主租户发布者权限。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/KpiService.java", "sha256": "e3813999e4b64822d5dfd06b9bae68df3e314207fba4086c5a37f964d64fa10a"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java", "sha256": "81e190718d7ef3cff651d1aa731278d2346bf98f9a4c753fabae4519f747e1ff"},
+    {"path": "projects/unexamine/frontend/src/product/views/KpiConfigurationView.vue", "sha256": "fd0205d2c88070b1197224df6d07450ef34372cd72d302c1388bb13e6622489d"},
+    {"path": "projects/unexamine/frontend/src/product/views/DashboardConfigurationView.vue", "sha256": "76747f7b80b0434d891acf680e448860eeac4434f3ea99587eea454fd5998377"},
+    {"path": "projects/unexamine/frontend/src/product/views/ModuleDashboardView.vue", "sha256": "525e8e2ec958716ac76cb7295d631260dd338ed44cd7a0f527b8b54513ea3ad7"}
+  ],
+  "remaining": "本步骤只验证租户独立目标与首页发布。主租户已有模块首页组件与分租户新增组件在同一模块如何继承、替换和保留强制项仍需单独验收；真实第三方接入与全产品终验也未完成。",
+  "next_step": "S18.9"
+}

@@ -10,54 +10,102 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程定义与草稿作用域
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_definition")
+@TableName("un_flow_definition")
 public class FlowDefinition {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 流程所属上下文类型
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台ID
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统ID
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置来源租户ID
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 配置此流程的应用ID；系统后台配置为空
+     */
+    @TableField("owner_application_id")
+    private Long ownerApplicationId;
+
+    /**
+     * 稳定业务编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 业务说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 创建人平台账号ID
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -100,6 +148,14 @@ public class FlowDefinition {
 
     public void setOwnerTenantId(Long ownerTenantId) {
         this.ownerTenantId = ownerTenantId;
+    }
+
+    public Long getOwnerApplicationId() {
+        return ownerApplicationId;
+    }
+
+    public void setOwnerApplicationId(Long ownerApplicationId) {
+        this.ownerApplicationId = ownerApplicationId;
     }
 
     public String getCode() {
@@ -150,20 +206,20 @@ public class FlowDefinition {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -182,14 +238,15 @@ public class FlowDefinition {
             ", platformId = " + platformId +
             ", systemId = " + systemId +
             ", ownerTenantId = " + ownerTenantId +
+            ", ownerApplicationId = " + ownerApplicationId +
             ", code = " + code +
             ", name = " + name +
             ", description = " + description +
             ", draftRevision = " + draftRevision +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

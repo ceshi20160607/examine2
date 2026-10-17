@@ -1,0 +1,53 @@
+{
+  "scope": "隔离开发实例 system 164 / database unexamine_drill_s17_files_1054",
+  "schemaUpgrade": {
+    "source": "V20",
+    "target": "V21",
+    "failedMigrations": 0,
+    "index": "artifact_hash 普通索引，version_name 唯一索引",
+    "businessRecord165Retained": true
+  },
+  "sameArtifactReleases": [
+    {
+      "id": 5,
+      "version": "s17-v6",
+      "databaseVersion": "21",
+      "configVersion": "local-v2",
+      "artifactSha256": "32760ccb89ef0abce972a937bc33a44584329e81964264e7ca3299e9d924eade"
+    },
+    {
+      "id": 6,
+      "version": "s17-v7",
+      "databaseVersion": "21",
+      "configVersion": "local-v3",
+      "artifactSha256": "32760ccb89ef0abce972a937bc33a44584329e81964264e7ca3299e9d924eade"
+    }
+  ],
+  "deployment": {
+    "id": 4,
+    "releaseId": 6,
+    "status": "SUCCESS",
+    "steps": [
+      "MANIFEST",
+      "DATABASE",
+      "BACKEND_HEALTH",
+      "FRONTEND_SMOKE",
+      "COMPLETE"
+    ],
+    "allPassed": true,
+    "repeatedReleaseRegistrationSameId": true
+  },
+  "permission": {
+    "ordinaryMemberDeploymentsGet": 403
+  },
+  "restartAndPage": {
+    "runtimeBackendVersion": "s17-v7",
+    "databaseVersion": "21",
+    "configVersion": "local-v3",
+    "healthRun": 18,
+    "healthItemsPassed": "5/5",
+    "adminPageShowsRelease": "s17-v7",
+    "adminPageShowsDeployment": "#4 SUCCESS 5/5"
+  },
+  "targetedTest": "OperationsDeploymentHttpTest compiles, but Windows Testcontainers startup preflight fails to connect to Redis (SocketException); real API, MySQL and browser paths above passed."
+}

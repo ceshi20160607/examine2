@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import { computed, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ApiError, api } from '../api'
 import { productDateTime } from '../presentation'
 import type { PeopleDirectoryOption, WorkTask } from '../types'
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<{
   canFileView?: boolean
   canFileWrite?: boolean
 }>(), { canFileView: false, canFileWrite: false })
+const router = useRouter()
 const emit = defineEmits<{
   updated: [task: WorkTask]
   deleted: [taskId: number]
@@ -33,6 +35,22 @@ const commentBusy = ref(false)
 const actionForm = reactive({ memberId: undefined as number | undefined, dueTime: '', comment: '', actualHours: undefined as number | undefined })
 const progressForm = reactive({ progressPercent: 0, actualHours: undefined as number | undefined, comment: '' })
 const commentText = ref('')
+const linkedModuleCode = computed(() => props.task.businessType?.startsWith('MODULE:')
+  ? props.task.businessType.slice(7) : '')
+
+/** 关联任务不授予业务详情权限；跳转前以当前身份重新读取目标记录。 */
+async function openLinkedBusiness() {
+  const moduleCode = linkedModuleCode.value
+  const recordId = Number(props.task.businessId)
+  const systemId = props.task.systemId
+  if (props.context !== 'system' || !systemId || !moduleCode || !Number.isInteger(recordId) || recordId <= 0) return
+  try {
+    await api(`/api/runtime/modules/${encodeURIComponent(moduleCode)}/records/${recordId}`, {}, props.token)
+    await router.push({ path: `/systems/${systemId}`, query: {
+      workspace: 'runtime', module: moduleCode, recordId: String(recordId),
+    } })
+  } catch (reason) { message.error(readable(reason)) }
+}
 
 watch(() => props.task, (task) => {
   progressForm.progressPercent = Number(task.progressPercent || 0)
@@ -168,7 +186,10 @@ async function addComment() {
       <a-descriptions-item label="预计 / 实际工时">{{ task.estimatedHours ?? '—' }} / {{ task.actualHours ?? '—' }} 小时</a-descriptions-item>
       <a-descriptions-item label="截止时间">{{ task.dueAt ? productDateTime(task.dueAt) : '未设置' }}</a-descriptions-item>
       <a-descriptions-item v-if="task.completionNote" label="完成说明" :span="2">{{ task.completionNote }}</a-descriptions-item>
-      <a-descriptions-item v-if="task.businessTitle" label="关联业务" :span="2">{{ task.businessTitle }}</a-descriptions-item>
+      <a-descriptions-item v-if="task.businessTitle" label="关联业务" :span="2">
+        {{ task.businessTitle }}
+        <a-button v-if="context === 'system' && linkedModuleCode && task.businessId" type="link" size="small" @click="openLinkedBusiness">打开业务记录</a-button>
+      </a-descriptions-item>
     </a-descriptions>
 
     <div v-if="task.labels.length" class="work-task-detail__tags"><a-tag v-for="label in task.labels" :key="label">{{ label }}</a-tag></div>

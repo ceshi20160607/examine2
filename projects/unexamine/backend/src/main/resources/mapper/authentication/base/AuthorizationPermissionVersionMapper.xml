@@ -12,12 +12,12 @@
         <result column="version_number" property="versionNumber" />
         <result column="reason" property="reason" />
         <result column="changed_by_account_id" property="changedByAccountId" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, version_number, reason, changed_by_account_id, created_at
+        id, context_type, platform_id, system_id, tenant_id, version_number, reason, changed_by_account_id, create_time
     </sql>
 
 </mapper>

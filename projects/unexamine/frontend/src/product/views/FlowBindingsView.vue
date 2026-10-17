@@ -32,6 +32,7 @@ const form = reactive({
   executionMode: 'DIRECT',
   priorityOrder: 0,
   mutuallyExclusive: true,
+  approvalStatusMapping: { COMPLETED: '', REJECTED: '', WITHDRAWN: '' } as Record<string, string>,
 })
 const schedule = reactive<FlowScheduleConfig>({
   scheduleMode: 'INTERVAL', intervalValue: 1, intervalUnit: 'DAY',
@@ -47,7 +48,7 @@ const pointLoading = ref(false)
 const pointReady = ref(false)
 const savedSnapshot = ref('')
 const preview = ref<{ matched: boolean; conditions: Array<{ field: string; operator: string; matched: boolean }> }>()
-function snapshot() { return JSON.stringify({ actionId: form.actionId, mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value, schedule: form.triggerEvent === 'SCHEDULED' ? schedule : undefined }) }
+function snapshot() { return JSON.stringify({ actionId: form.actionId, mode: form.executionMode, flowId: form.flowId, priority: form.priorityOrder, exclusive: form.mutuallyExclusive, condition: condition.value, schedule: form.triggerEvent === 'SCHEDULED' ? schedule : undefined, approvalStatusMapping: form.executionMode === 'AFTER_APPROVAL' && ['CREATE', 'UPDATE'].includes(form.triggerEvent) ? form.approvalStatusMapping : undefined }) }
 const dirty = computed(() => Boolean(savedSnapshot.value && savedSnapshot.value !== snapshot()))
 const reliableEvent = computed(() => ['SCHEDULED', 'IMPORT_COMPLETED', 'EXCEPTION'].includes(form.triggerEvent))
 const testFields = computed(() => conditionFields.value.filter(field => conditionFieldCodes(condition.value).includes(field.code)))
@@ -73,10 +74,18 @@ function changeManualAction(actionId?: number) {
   if (!canLeave()) return
   savedSnapshot.value = ''
   form.actionId = actionId
+  if (manualActions.value.some(action => action.id === actionId && action.code === 'APPROVAL')) form.executionMode = 'FLOW_ONLY'
   void loadBindings()
 }
 
-const publishedFlows = computed(() => flows.value.filter(flow => !!flow.currentVersionId))
+const publishedFlows = computed(() => flows.value.filter(flow => {
+  if (!flow.currentVersionId) return false
+  if (!approvalActionSelected.value) return true
+  const nodes = flow.versions.find(version => version.id === flow.currentVersionId)?.snapshot.nodes
+  return Array.isArray(nodes) && nodes.some(node => node && typeof node === 'object'
+    && 'nodeType' in node && node.nodeType === 'APPROVAL')
+}))
+const approvalActionSelected = computed(() => manualActions.value.some(action => action.id === form.actionId && action.code === 'APPROVAL'))
 const rows = computed(() => [...bindings.value.currentTenant, ...bindings.value.inheritedDefaults])
 const contextModule = computed(() => modules.value.find(module => module.moduleId === form.moduleId))
 function returnToModule() {
@@ -175,6 +184,7 @@ async function loadBindings() {
   conditionFields.value = []; sampleRecords.value = []; eventDeliveries.value = []; savedSnapshot.value = ''
   useSample(); condition.value = emptyCondition()
   form.flowId = undefined; form.executionMode = reliableEvent.value ? 'FLOW_ONLY' : 'DIRECT'; form.priorityOrder = 0; form.mutuallyExclusive = true
+  form.approvalStatusMapping = { COMPLETED: '', REJECTED: '', WITHDRAWN: '' }
   Object.assign(schedule, { scheduleMode: 'INTERVAL', intervalValue: 1, intervalUnit: 'DAY', dailyTime: '09:00', weekDay: 1, misfirePolicy: 'FIRE_ONCE' })
   if (!token.value || !form.moduleId || !can('VIEW')) return
   const moduleId = form.moduleId, triggerEvent = form.triggerEvent
@@ -183,7 +193,8 @@ async function loadBindings() {
     const module = modules.value.find(item => item.moduleId === moduleId)
     if (triggerEvent === 'MANUAL' && module) {
       const runtime = await api<RuntimeModuleConfiguration>(`/api/runtime/modules/${module.moduleCode}/configuration`, {}, token.value)
-      manualActions.value = runtime.configuration.actions.filter(action => action.actionType === 'CUSTOM' && action.status === 'ACTIVE')
+      manualActions.value = runtime.configuration.actions.filter(action =>
+        (action.actionType === 'CUSTOM' || action.code === 'APPROVAL') && action.status === 'ACTIVE')
       if (!manualActions.value.some(action => action.id === form.actionId)) form.actionId = manualActions.value[0]?.id
     } else form.actionId = undefined
     const scopedActionId = form.actionId
@@ -205,9 +216,11 @@ async function loadBindings() {
       form.flowId = current.flowId
       form.executionMode = reliableEvent.value ? 'FLOW_ONLY' : current.executionMode
       form.priorityOrder = current.priorityOrder; form.mutuallyExclusive = current.mutuallyExclusive
+      form.approvalStatusMapping = { COMPLETED: current.approvalStatusMapping?.COMPLETED || '', REJECTED: current.approvalStatusMapping?.REJECTED || '', WITHDRAWN: current.approvalStatusMapping?.WITHDRAWN || '' }
       condition.value = bindingCondition(current.condition, current.conditionExpression)
       if (current.schedule) Object.assign(schedule, current.schedule)
     }
+    if (approvalActionSelected.value) form.executionMode = 'FLOW_ONLY'
     savedSnapshot.value = snapshot()
     if (!reliableEvent.value && module && allowsPermission(systemContext.value?.permissions, 'MODULE', module.moduleCode, 'LIST')) {
       const result = await api<{ records: RuntimeRecord[] }>(`/api/runtime/modules/${module.moduleCode}/records?page=1&pageSize=20`, {}, token.value)
@@ -229,6 +242,7 @@ async function publish(replaceExisting = false) {
         flowId: form.flowId, triggerEvent: form.triggerEvent,
         executionMode: form.executionMode, priorityOrder: form.priorityOrder,
         condition: condition.value, mutuallyExclusive: form.mutuallyExclusive,
+        approvalStatusMapping: form.approvalStatusMapping,
         schedule: form.triggerEvent === 'SCHEDULED' ? { ...schedule } : undefined,
       }, replaceExisting)),
     }, token.value)
@@ -325,18 +339,26 @@ onMounted(loadCatalog)
               <a-select v-model:value="schedule.misfirePolicy" :options="[{value:'FIRE_ONCE',label:'恢复后补执行一次'},{value:'SKIP',label:'跳过错过的执行'}]" />
             </a-form-item>
           </template>
-          <a-form-item v-if="form.triggerEvent === 'MANUAL'" label="手动动作" required extra="动作来自模块的已发布配置；每个动作可独立设置条件和审批方式。">
-            <a-select :value="form.actionId" placeholder="选择手动动作" :options="manualActions.map(item => ({ value: item.id, label: item.name }))" @update:value="changeManualAction" />
+          <a-form-item v-if="form.triggerEvent === 'MANUAL'" label="模块动作" required extra="动作来自模块的已发布配置；审批动作只支持“仅启动流程”。">
+            <a-select :value="form.actionId" placeholder="选择模块动作" :options="manualActions.map(item => ({ value: item.id, label: item.name }))" @update:value="changeManualAction" />
           </a-form-item>
           <a-alert v-if="form.triggerEvent === 'MANUAL' && pointReady && !manualActions.length" type="warning" show-icon class="section-alert" message="当前模块没有可配置的已发布手动动作" description="请先在模块配置中用字段选择器新增手动动作并发布。" />
           <a-form-item v-if="form.executionMode !== 'DIRECT'" label="已发布流程" required>
             <a-select v-model:value="form.flowId" placeholder="选择流程" :options="publishedFlows.map(item => ({ value: item.id, label: `${item.name} · ${versionLabel(item.versions.find(v => v.id === item.currentVersionId)?.versionNumber)}` }))" />
           </a-form-item>
           <div class="flow-binding-form__row">
-            <a-form-item label="执行方式"><a-select v-model:value="form.executionMode" :disabled="reliableEvent" :options="(reliableEvent ? ['FLOW_ONLY'] : ['AFTER_EXECUTION','DIRECT','AFTER_APPROVAL','FLOW_ONLY']).map(value => ({ value, label: modeLabel(value) }))" /></a-form-item>
+            <a-form-item label="执行方式"><a-select v-model:value="form.executionMode" :disabled="reliableEvent || approvalActionSelected" :options="(reliableEvent || approvalActionSelected ? ['FLOW_ONLY'] : ['AFTER_EXECUTION','DIRECT','AFTER_APPROVAL','FLOW_ONLY']).map(value => ({ value, label: modeLabel(value) }))" /></a-form-item>
             <a-form-item label="优先级"><a-input-number v-model:value="form.priorityOrder" :min="0" style="width:100%" /></a-form-item>
           </div>
           <a-alert class="section-alert" type="info" show-icon :message="reliableEvent ? '事件事实保存后可靠启动流程；重复投递不会重复创建实例。' : ({DIRECT:'按正常业务保存，不启动流程。', AFTER_EXECUTION:'先保存业务数据，成功后启动流程；流程投递失败可以重试。', AFTER_APPROVAL:'先启动审批，通过前不保存业务数据。', FLOW_ONLY:'只启动流程，不保存本次业务变更。'} as Record<string,string>)[form.executionMode]" />
+          <template v-if="form.executionMode === 'AFTER_APPROVAL' && ['CREATE', 'UPDATE'].includes(form.triggerEvent)">
+            <a-alert class="section-alert" type="info" show-icon message="审批结果与业务状态" description="审批中的已有记录暂停普通编辑；下面的状态编码随绑定发布，并由本次申请固定。留空表示该结果不修改记录状态。" />
+            <div class="flow-binding-form__row">
+              <a-form-item label="审批通过后状态"><a-input v-model:value="form.approvalStatusMapping.COMPLETED" placeholder="例如 APPROVED" /></a-form-item>
+              <a-form-item label="审批拒绝后状态"><a-input v-model:value="form.approvalStatusMapping.REJECTED" placeholder="例如 REJECTED" /></a-form-item>
+            </div>
+            <a-form-item label="发起人撤回后状态"><a-input v-model:value="form.approvalStatusMapping.WITHDRAWN" placeholder="例如 DRAFT" /></a-form-item>
+          </template>
           <a-form-item label="命中条件" :extra="form.triggerEvent === 'SCHEDULED' ? '可按计划时间、周期方式和是否补执行组合条件。' : form.triggerEvent === 'EXCEPTION' ? '可先按异常来源区分导入失败和模块校验，再按动作、规则或导入统计组合条件。' : reliableEvent ? '可按导入结果、总行数、成功行数和失败行数组合条件。' : '字段来自当前模块的发布版本，并受页面与流程字段权限限制。'">
             <ConditionGroupEditor v-model="condition" :fields="conditionFields" />
           </a-form-item>
@@ -355,6 +377,7 @@ onMounted(loadCatalog)
               <div><a-tag :color="binding.scopeType === 'TENANT_OVERRIDE' ? 'purple' : 'blue'">{{ binding.scopeType === 'TENANT_OVERRIDE' ? '当前工作空间' : '系统公共' }}</a-tag><a-tag :color="binding.status === 'ACTIVE' ? 'green' : 'default'">{{ binding.status === 'ACTIVE' ? '启用' : '已停用' }}</a-tag></div>
               <strong>{{ binding.triggerEvent === 'MANUAL' ? actionName(binding.actionId) : eventLabel(binding.triggerEvent) }} → {{ binding.executionMode === 'DIRECT' ? '直接保存' : flowName(binding.flowId) }}</strong>
               <p>{{ modeLabel(binding.executionMode) }} · {{ binding.flowVersionNumber ? versionLabel(binding.flowVersionNumber) : '不启动流程' }} · 优先级 {{ binding.priorityOrder }}</p>
+              <small v-if="Object.keys(binding.approvalStatusMapping || {}).length">状态联动：{{ Object.entries(binding.approvalStatusMapping).map(([result, status]) => `${({ COMPLETED:'通过', REJECTED:'拒绝', WITHDRAWN:'撤回' } as Record<string,string>)[result] || result} → ${status}`).join('，') }}<br /></small>
               <small v-if="binding.schedule">周期：{{ scheduleSummary(binding.schedule) }}<br /></small>
               <small>条件：{{ conditionSummary(bindingCondition(binding.condition,binding.conditionExpression), conditionFields) }} · 已发布</small>
             </article>

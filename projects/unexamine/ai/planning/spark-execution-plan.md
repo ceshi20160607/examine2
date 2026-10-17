@@ -1,377 +1,92 @@
-# 当前系统完整交付执行方案
+# 当前交付执行方案
 
-状态：按子步骤实施中。准确断点、未完成项和当前行为证据见 `spark-state.json`。模型不需要重新设计系统，按下列子步骤修改现有实现。
+`docs/user_requirement.md` 是唯一产品需求源。[product-baseline.md](product-baseline.md) 汇总已确认的产品主线，便于审阅；发生歧义时回到需求原文。`spark-requirement-ledger.json` 仅索引原文行，`spark-state.json` 只记录当前步骤、依赖和组合验收，不承袭旧周期完成率。文件名中的 `spark` 是现有工程引用，不指定模型。
 
-2026-09-23 用户要求按平台/系统基础能力、统一动作与现有代码生成器重新评估实施顺序；复评见 `core-platform-reassessment-2026-09-23.md`。该文件只调整后续任务包准入的判断，不改变唯一需求源、既有代码或 B15.1 未完成状态。正式换包前须修订执行控制与精确断点，不能借复评跳过 B15.1 验证。
+## 产品目标与边界
 
-执行模型：使用当前会话模型；并行委派时继承当前模型，不再安排 Spark 模型。保留 `spark-*` 路径以维持需求索引、证据和断点引用，不重新生成或迁移历史记录。
+平台账号可创建和进入多个系统。系统所属人隐式拥有该系统完整管理和数据权限；后台配置组织、角色、模块组、模块、字段、页面、动作、Flow、应用、仪表盘与 AI；普通成员在运行态按发布配置处理业务记录。固定产品能力有物理业务表，用户自定义模块使用配置表、通用主记录、字段值、索引和关系；主记录与自定义值同次保存。每个业务动作先校验动作授权，再按负责人当前组织归属、角色数据范围与有效共享范围确定可访问记录。
 
-## 1. 接手入口与范围
+系统默认单租户并自动建立主租户。后台多租户开关只控制非主租户显示和访问，关闭不改数据、租户状态或共享配置，再开启自动恢复。系统之间及外部访问统一经目标平台或系统的应用授权。应用使用已发布的动作、字段与负责人/部门范围，所选人员后续角色变化不影响应用；异常人员排除，部门失效报错。Flow 内外使用同一引擎，外部经应用接口配置、发布、发起、查询、办理；外部审批人标识由调用方提供并与待办要求比较。Flow 节点可调用外部 API。仪表盘仅用有权模块或按模块关系、条件配置并发布的数据源，不提供外部 API 或数据库直连数据源。
 
-1. 读根 AGENTS.md、本文件及 `spark-state.json`，取 `next_step`。
-2. 从 `spark-requirement-ledger.json` 筛选当前工作包的条目，再读取其指向的 `docs/user_requirement.md` 原文。不要每轮读取整个账本、整个仓库或历史报告。
-3. 读本步骤指定源码及直接调用方，确认当前实现。账本初始 `unverified` 表示没有本轮证据，**不表示代码都不存在或必须重写**。
-4. 完成本步骤实现和最小有效验证，更新状态；依赖满足则继续下一个步骤。无需每步询问用户是否继续。上下文不足时记录断点，下一轮从断点继续。
+## 当前保留、删除与实现顺序
 
-首次读完整方案，此后只读固定契约、当前包及状态中的断点。账本较大，故按行保存记录方便筛选；**不要把整个 JSON 输出到上下文**。例如在仓库根读取当前包摘要：
+- 保留可用的 `template_base` 确定性入口、按模块 SQL、Base 生成器、分层的业务管理代码与已存在的配置/记录主链；是否达标以当前需求和实际业务验收判断。
+- 删除旧需求碎片、旧架构/任务/排期/完成率及不再适用的测试证据，避免作为产品规则再次进入实施。代码中的租户合并/平台准入、旧应用身份映射、仪表盘外部连接等路径按当前需求和真实引用清理。
+- 表名统一 `un_`，按代码模块维护首装 SQL，由工程工具生成 `db/init.sql`、`db/update.sql`、`db/final.sql`。表和字段写中文备注，时间列用 `*_time`，不建外键或触发器。当前只有测试数据，允许空库重建。表变化先空库验证和生成 Base，再适配 manage、接口及页面。
+- 先贯通平台账号、建系统、所属权、系统成员、后台配置与两个不同模块的运行态 CRUD；再贯通负责人/角色/共享的数据范围、动作与 Flow；随后贯通应用、仪表盘、AI 和其他固定能力。每个开发包围绕可观察业务结果，估算不超过 240 分钟。
 
-```powershell
-$sparkPacket = 'B01'
-$sparkLedger = Get-Content -Raw -Encoding utf8 projects/unexamine/ai/planning/spark-requirement-ledger.json | ConvertFrom-Json
-$sparkLedger.rows | Where-Object { $_.owner -eq $sparkPacket -or $_.contributors -contains $sparkPacket } | Select-Object id,line,section,excerpt,status
-```
+## 2026-10-15 产品级执行校正
 
-这些是原文行级索引，包含需求、解释和工程约束，不能把行数称为独立功能数量。B00 只追踪核心调用链，不必逐行审阅全账本。执行当前包前，将相关原文中的每个实际行为落实到本子步骤或该包后续子步骤，不把未展开的细节丢到“已有能力”。需求源若改变，按原文及条款哈希对齐受影响行，保留原证据和历史映射，失效部分重新验证；禁止整本重置后批量勾选。
+用户要求以整体产品是否符合 `docs/user_requirement.md` 为先，不再沿局部 Flow 节点逐项推进。当前构建和证据盘点见 [全局收口对账](product-closure-audit.md)：G1–G17 的 `verified` 只对应各自指定场景；整站交付仍未验收。前端生产构建与 172/172 项测试通过；核心业务全量追溯、当前候选同版验收和最终部署包仍待闭合。按需 SSO 的未配置身份源与渠道、隔离测试库缺失的旧 PDF 字节，不单独阻断核心交付。台账 2041/2087 原文行未验证只表示追溯未闭合，不换算功能完成率。
 
-这是完整产品计划。B00—B19 是能力归属，不是 20 次大重构，也不是固定时长周期；其中的编号子步骤才是一次编辑的边界。某子步骤仍太大时，只细分该步骤并记录到 state，不能重新规划全项目、改变需求或另起一套架构。
+`S19.1` 已用同一空库候选制品贯通两个系统、次租户、管理员、成员、审批人、无权限账号和跨系统应用的选定业务旅程；桌面与手机页面、API、数据库、文件字节和重启结果见[回执](../evidence/s19-product-release-verification.json)。`S19.2` 已生成含部署、数据库和五份使用说明的版本化候选包，逐文件校验前端；另一个隔离库完成 V23 首装、同版更新、Nginx 页面登录、备份及新库恢复，见[回执](../evidence/s19-release-closure-verification.json)，其附带服务与用户要求的直接部署方式冲突，已由 S19.7 的直连包替代。`S19.3` 在新隔离库用 `0.1.0-s19.3-dev2` 验证通用 OAuth2 的配置预检、授权码/PKCE、浏览器回调、显式账号绑定、已确认系统成员映射、越权拒绝、审计和重启；[页面回执](../evidence/s19-oauth2-browser.json)与[数据库读回](../evidence/s19-oauth2-db-readback.json)只覆盖本地协议夹具。`S19.4` 已在新 V23 隔离包 `0.1.0-s19.4-dev1` 上用签名 SAML2 协议夹具完成证书预检、浏览器 Redirect/POST、ACS 验签、显式账号和系统成员映射、越权拒绝、审计及重启读回；详见[浏览器](../evidence/s19-saml-browser.json)与[数据库](../evidence/s19-saml-db-readback.json)证据。`S19.5` 复用本地 Docker MySQL/Redis，在独立 V23 库和本机 LDAPS 夹具验证实际 TLS/Bind/搜索预检、发布、浏览器凭据登录、已确认账号和系统成员、拒绝与重启读回；详见[API](../evidence/s19-ldap-api.json)、[页面](../evidence/s19-ldap-browser.json)和[数据库](../evidence/s19-ldap-db-readback.json)。`S19.6` 在同一候选上验证 LDAP/OIDC/OAuth2/SAML2 的平台会话与实际系统成员准入审计，含浏览器、API、拒绝和重启读回；见[回执](../evidence/s19-unified-sso-audit-verification.json)。S19.7 已在现有 Docker MySQL/Redis 上验证独立 V23 空库首装、单 Node 前端与单 Java 后端、同源 API、Edge 登录、同版更新、停启、备份、回切和持久化读回；发布包不含 Compose 或 Nginx，[回执](../evidence/s19-direct-deployment-verification.json)记录范围。S19.8 又用现行 `0.1.0-s19.8-dev1` 直连包把同包备份恢复到新隔离库，核对 V23、191 张表、系统记录、文件字节及四件制品哈希；已有库、错误端口和篡改备份被拒绝，[回执](../evidence/s19-direct-restore-verification.json)记录范围。S19.9 将当前直连候选包后端端口统一为 9999，前端同源代理、发布与回切预检、环境示例和本机运行实例均已核验；同包备份恢复结果见[回执](../evidence/s19-fixed-backend-port-verification.json)。S19.10 的 JIT 改动在验收前停止，未部署新候选，已移除未验证运行态改动。S19.11 按第 2.3 节与第 10 章，在新隔离空库和同一候选制品上验管理员、普通成员主链与实际交付物；只登记新数据上的真实失败。只有实际配置相应身份源或渠道时，才把 AD 特定行为、企业渠道和真实身份源联调列入该配置验收。旧测试库缺失的 PDF 字节不属于新增交付要求。该包仍受 `G18_PRODUCT_RELEASE` 约束，估算上限 240 分钟。`S18.39` 包容网关仍为未验证需求，只有当前发布旅程证实其阻断时才纳入。不得从局部回执推断整站完成。
 
-唯一需求源为 `docs/user_requirement.md`。按原文附录的冲突优先级解释；A.17 记录本次对话澄清。本文件负责工程方案与执行顺序，不授权删减需求。旧 task graph、schedule、Cxx 完成记录、旧架构决策不是继续开发的入口，也不能把其完成状态直接复制到本账本。旧复审只提供线索，结论须以当前源码和运行行为核验。
+## 历史断点与场景证据
 
-### 1.1 关联任务与并行分配
+本轮已清理 `ai` 中的旧分析、旧周期和失效证据，仅保留当前需求索引、产品基线、执行断点及当前结构下的验证记录。`S01.11` 已验证 18 个模块 SQL、188 张 `un_` 表的空库首装；`S01.12` 已核对 752 个 Base 文件与手写 SQL 表名；`S01.13` 已清理仪表盘外部数据源并通过局部接口验证。`S01.2` 已完成平台账号、系统所属权、租户模式及两个不同模块的 G1 真实页面与持久化组合验证。`S02.1`—`S02.6` 分步验证两个模块的命名动作、Flow 审批后写入、负责人转移、唯一转化、批量失败项重试，以及评论、任务、待办和消息；`S02.7` 已在重启后完成页面、HTTP、数据库和权限撤销/恢复的 G2 组合验收，回执为 `ai/evidence/g2-current-integration-verification.json`。`S01.3` 已验证系统与平台应用的组织范围、发布授权、异常人员和部门、默认负责人、签名调用与持久化。`S03.1` 和 `S03.2` 分别完成仪表盘、Agent 的独立旅程；`S03.3` 又在同一商机 #11 上验证应用签名、负责人和字段裁剪、停用拒绝、看板和 Agent 重开，回执为 `ai/evidence/g3-dashboard-application-agent-verification.json`。`S04.1` 与 `S04.2` 已在系统和平台范围贯通应用逐项配置 Flow 草稿、校验、发布、外部发起与审批，覆盖错误应用、越界、错误审批人、无效节点、旧版本、重启、页面和数据库读回；G4 回执为 `ai/evidence/s04-external-flow-configuration-verification.json`。`S05.1` 已在两个独立系统完成目标应用对模块和 Flow 的调用、权限拒绝、页面、审计与重启验证，G5 回执为 `ai/evidence/s05-cross-system-application-verification.json`。`S06.1`—`S06.3` 已完成模块内 CSV/Excel 导出、Excel 导入预演、唯一匹配与重复检查、异步任务、完整及部分回滚、页面与重启的 G6 组合验收，回执为 `ai/evidence/g6-module-data-exchange-verification.json`。`S07.1` 已贯通系统后台打印模板草稿与发布、普通成员详情预览和 PDF、字段及负责人权限、撤权与重启读回，回执为 `ai/evidence/s07-print-template-verification.json`。`S07.2` 已验收历史版本、关联展示值、明细分页、套打偏移、子表列撤权和重启，回执为 `ai/evidence/s07-print-version-pagination-verification.json`。`S07.3` 已验证 A5 横向长内容完整分页、固定区域换行、当前脱敏撤权与重启，回执为 `ai/evidence/s07-print-layout-verification.json`。`S07.4` 已在同一隔离系统组合核对 v1/v2、业务打印、后台与普通成员页面、API、A5 长内容 PDF、权限、数据库审计与重启，G7 回执为 `ai/evidence/g7-print-template-verification.json`。`S08.1` 已在系统 #151 贯通合同字段汇总、人员月目标、部门季目标、角色年目标、达成率、普通成员权限、提醒状态变化、页面、数据库和重启，G8 回执为 `ai/evidence/g8-kpi-target-verification.json`。`S09.1` 已在同一系统核对八类体检信息、Redis 故障与恢复、成员权限、页面、数据库及重启，G9 回执为 `ai/evidence/g9-system-health-verification.json`；Windows 本机 JDK 的 Netty selector 故障导致一项 Testcontainers HTTP 用例未通过，真实服务链路已验证。`S10.1` 已对照系统所属人、普通成员和无角色成员的真实菜单、动作、字段及负责人数据范围，核对角色发布即时生效、拒绝、审计、页面与重启，G10 回执为 `ai/evidence/g10-permission-preview-verification.json`。`S11.1` 已在同一模块核对批量归档、回收站、恢复、部分失败重试、负责人权限、状态时间清理和重启读回，G11 回执为 `ai/evidence/g11-record-archive-recovery-verification.json`。`S12.1` 已在系统 #151 核对可配置审批状态映射、审批中写入限制、通过/拒绝/撤回、发布绑定快照、权限与重启，G12 回执为 `ai/evidence/g12-approval-business-status-verification.json`。`S13.1` 已验证字段停用和 Flow 发布的具体影响提示、取消与确认、权限和版本拒绝、页面及重启，回执为 `ai/evidence/s13-field-flow-risk-prompts-verification.json`。`S13.2` 已在隔离系统验证模块/字段删除、引用保护、Flow 停用及在途实例续办，含页面、API、数据库、权限和重启，回执为 `ai/evidence/s13-module-field-flow-lifecycle-verification.json`。`S13.3` 已在系统 #151 核对导入覆盖、批量删除和权限发布的取消/确认、权限拒绝、MySQL 与重启读回，回执为 `ai/evidence/s13-data-and-permission-risk-prompts-verification.json`；G13 组合回执为 `ai/evidence/g13-operation-risk-prompts-verification.json`。`S14.1` 已验证全局搜索、最近访问、收藏菜单和快捷创建，且补齐普通模块/详情访问的最近记录，回执为 `ai/evidence/s14-daily-entry-verification.json`。`S14.2` 已在系统 #151 验证个人列与筛选视图、草稿恢复/放弃、字段错误定位、成员隔离、撤权及重启，回执为 `ai/evidence/s14-personal-workspace-verification.json`。`S14.3` 已在手机窄视口验证二维码扫码、照片上传、字段发布/保存、失败、权限、数据库和重启，回执为 `ai/evidence/s14-mobile-capture-verification.json`。`S14.4` 已在同一记录上完成命令中心、个人视图、草稿、扫码照片和权限/重启组合验收；`S15.1` 已完成业务记录创建、修改、删除的本地事件扩展点，并修复重启时地址筛选覆盖个人视图的回归。S15.2 已验证 Flow 事件；S15.3 已验证文件上传、导入和导出完成事件；S15.4 已经内建本地订阅者贯通九类事件、失败与重复边界、页面和重启读回，G15 回执为 ai/evidence/g15-local-events-verification.json。S16.1 已验证系统、应用、模块和字段编码及显示名称修改；S16.2 已验证页面、菜单、角色、部门和字典的编码稳定性及后台改名发布，S16.3 已验证 Flow 和打印模板的编码、改名、应用授权及发布；S16.4 已在同一系统组合验证所有编码、导入导出/应用/打印引用、权限和重启，G16 回执为 ai/evidence/g16-code-rules-verification.json；S17.1—S17.3 已贯通真实备份、隔离恢复、Flyway V20→V21、同一制品的不同配置版本发布、失败恢复，以及页面/API/数据库/权限/重启；G17 回执为 `ai/evidence/g17-config-upgrade-verification.json`。S18.1 已在新建隔离系统 #165 由页面贯通模块配置、角色、Flow、业务记录、附件、导出、消息与应用签名访问，并核对 API、MySQL、权限拒绝和重启；原提交字段快照、附件详情刷新及 Docker 文件持久化缺口已修复，回执为 `ai/evidence/s18-product-acceptance-inventory.json`。S18.2 已在同一系统发布关联数据源与系统首页，验证发布版本快照、SELF 范围、下钻、页面/API/数据库/权限和重启，回执为 `ai/evidence/s18-dashboard-datasource-acceptance.json`。S18.3 已在同一系统发布模块首页、保存成员个人首页并贯通 KPI 月目标；修复普通成员看到管理员 KPI 汇总与来源 ID 的越权问题，成员/管理员分别为 150/1 与 220/2，提醒消息不携带管理员口径数值，页面/API/数据库/权限和重启回执为 `ai/evidence/s18-kpi-dashboard-acceptance.json`。S18.4 已在同一采购明细模块发布打印模板 V1/V2，补齐成员仅本人 PRINT 与三个 FILE 字段读取权限；成员页面现可选择历史 V1 或当前 V2，PDF 显示金额、物品和关联申请，越权记录仍拒绝，回执为 `ai/evidence/s18-print-module-acceptance.json`。S18.5 已在同一采购数据上发布系统 Agent，验证成员仅查询本人记录、越权和模型故障降级、确认前不写入及确认后保存记录 #174、审计和重启读回；回执为 `ai/evidence/s18-ai-procurement-acceptance.json`，本地模型夹具不计真实第三方验收。S18.6 已在同一采购数据上验证分组、两日时间趋势及 Top 图表的权限、排序、日期下钻与重启发布读回，回执为 `ai/evidence/s18-dashboard-chart-acceptance.json`。S18.7—S18.10 中关于仪表盘自动继承、叠加、替换及来源标签的验收基于旧理解，已由用户确认的租户独立规则覆盖；这些旧结论不再作为当前产品验收依据。S18.11 verified a new procurement application #177 through member form, Flow approval, linked detail #178, dashboard recomputation and signed application access, and fixed a stale cross-module action receipt; receipt: `ai/evidence/s18-integrated-procurement-acceptance.json`. S18.12 verified permission-aware linked-record sharing: detail only showed a redacted relation and excluded it from joined analytics, both grants added exactly 90, and sequential revocation removed access after restart; receipt: `ai/evidence/s18-related-share-acceptance.json`. S18.13 已完成平台系统目录搜索、分页和同名标识修复，以及当时制品的跨功能读回；其中分租户仪表盘继承结论已失效。S18.14 当前按用户确认修正为租户仪表盘独立发布：不自动继承主租户页面或组件，已授权数据源仍可显式复用；外部渠道按后台配置启用，未配置渠道及其真实凭证不阻塞核心系统。
 
-沿用 B00—B19 的能力归属、原文绑定和未完成项，按实际业务关联组合本轮任务包。每包先写业务结果、关联子步骤、公共依赖、预计工期、文件与资源归属、组合验收；预计总工期不超过 240 分钟，不使用实际计时器。估算基于当前代码与待补缺口，不能按需求数量平均分摊或为凑四小时压低估算。发现新缺口时只调整受影响任务并保留剩余项。
+## 工程入口和验收
 
-公共骨架先行：身份与权限上下文、模块发布与类型协议、动作输入/回执及事务语义、公共字段渲染和页面容器先稳定，再接入审批、应用及其他消费方。相关字段的配置、发布、存储、编辑、展示应按字段家族贯通；相关动作的鉴权、执行、回执、Flow 与渠道适配应按同一动作契约贯通，不能只按前后端目录分别宣布完成。B03/B04 及延后字段、页面事项仍须完整验证，不因已贯通主链而消失。
+每次实施前运行 `python template_base/tools/tb.py workspace-validate --workspace workspace.json` 和 `python template_base/tools/tb.py execution-context --workspace workspace.json`；独立并行步骤指定 `--step`。步骤的真实业务结果写入当前证据，运行 `execution-verify --workspace workspace.json --receipt <路径>` 后再更新准确断点。该命令只校验来源绑定与文件完整性，不能证明产品完成。必须在同一业务对象上实测配置、发布、页面、API、持久化读回、当前权限和失败路径。并行任务要先满足依赖，明确文件归属，共享数据库、生成器和构建测试资源串行使用。
 
-并行以真实依赖和写入冲突判断。公共协议稳定后，不同文件的后端能力与前端组件可并行；不同字段家族也须确认不争用公共注册入口。同一大 Service、生成目录、迁移编号、共享业务数据、后端重启或构建输出不同时写入。包级先后关系仍保留；如具体子任务能独立开展，先在 state 写明实际前置证据、读写边界及合并顺序，不以整包编号机械串行，也不绕过依赖校验。
+S18.14 已按当前租户独立发布规则完成验收：主租户 5 个组件、协作租户独立发布的 1 个 KPI、空租户未配置画面、未配置找回投递和 SSO 的登录入口，均取得真实浏览器画面；同一验收副本的 API、MySQL、权限、构建及后端重启读回也已核对。回执为 `ai/evidence/s18-tenant-dashboard-isolation-verification.json`，画面和环境读回为 `ai/evidence/s18-tenant-dashboard-isolation-readback.json`。S18.15 已在新系统 #166 完成“系统 → 模块组 → 模块”的页面建模、字段/动作/菜单/角色/Flow 发布、成员邀请、审批后保存、无关账号拒绝及重启读回；补齐单模块组的运行态顶栏导航，回执为 `ai/evidence/s18-fresh-system-modeling-verification.json`。S18.16 已在同一系统完成普通成员的编辑、查询、详情、附件、审批办理、消息和仅本人范围的真实导出；附件导出原先输出内部文件 ID，现输出权限内文件名，并通过构建、API、MySQL、真实页面及后端重启读回，回执为 `ai/evidence/s18-member-daily-work-verification.json`。S18.17 下一步验证系统应用的内外部受控访问及资源范围，以当前 `spark-state.json` 的有界范围为准；整站交付仍需后续真实业务验收。
 
-并行分支只维护自己的范围与验证记录，主执行者统一合并、定向复验受影响公共行为并更新权威断点。子步骤完成后继续包内任务；既定任务包开发完成后进行一次组合验证，形成结论后才准入下一包。外部阻塞记录解锁条件，独立任务继续；不得反复全量测试或等待用户逐项喊继续。
+S18.17 verified application #28 internal and signed access, Flow start/approval, scope and credential denial, field catalog trimming, JDK 21 package and restart readback; receipt: ai/evidence/s18-system-application-verification.json. S18.18 now checks selected system department scope, inactive department denial and restoration in the same isolated system.
 
-当前接手包和准确断点只读取 state 的 `task_packet/current_scope`。独立接收方权限、来源 Flow 身份及实测暴露的租户初始化公共依赖分别验收后准入；不在本文件重复保存容易失效的当前步骤。完整组织、字段、渠道与范围共享仍在既有后续步骤中，不计作局部包完成。
+S18.18 verified actual department selection, UI disable/restore, internal and signed denial, current member transfer, MySQL and restart readback; receipt: ai/evidence/s18-app-department-scope-verification.json. S18.19 now verifies application draft, publication, rollback and portable export/import without copying credentials.
 
-## 2. 已确定的工程方向
+S18.19 verified draft isolation, V3 field revocation, V4 rollback from V2, portable draft export/import as independent application #29, distinct credentials and restart readback; receipt: ai/evidence/s18-app-version-verification.json. S18.20 now checks signed call rate, IP, target failure disable and request log behavior on imported application #29.
 
-**保留当前技术栈和产品根，修改公共核心与接入层，不做全仓推倒重来。** 当前有 Base、权限、元数据、Flow、应用、任务等实现，问题首先是贯通程度、能力完整性及真实验收，不足以证明必须更换框架。
+S18.20 verified signed rate denial, source IP denial, authorized target failure shutdown, credential revocation/recovery, UI/MySQL request logs and restart readback on imported application #29 while original #28 stayed active; receipt: ai/evidence/s18-app-call-policy-verification.json. S18.21 now checks technical guidance, examples and error descriptions under application configuration.
 
-| 层 | 唯一职责 | 不能做的事 |
-|---|---|---|
-| 数据库 / Base | 固定能力物理表、生成 Entity/Mapper/基础 Service | 不在每次物理 save 上发起审批；不手改生成结果 |
-| 公共动作执行器 | 一个业务动作的鉴权、校验、幂等、事务、配置决策、业务状态和可靠事件 | 不复制到每个模块；不允许不同入口绕开 |
-| manage | 调用公共执行器，注册特定动作处理器、业务扩展 | 不把 SQL 和几十种场景堆回一个大 Service |
-| Flow | 定义与版本、实例快照、状态机、审批、作业、失败恢复 | 不自行裸写业务表、不改历史模板完成加节点 |
-| 低代码运行时 | 元数据 + 通用主记录 + 字段值 + 查询索引 + 关联 | 不为用户自定义模块建物理表或 Java 类 |
-| 公共前端 | 四类上下文壳 + 字段渲染器 + 列表/表单/详情/动作组件 | 不为每个业务模块写独立 CRUD 页面 |
-| 应用 / AI / 导入 | 校验各自身份与授权，调用相同能力 | 不以后台身份绕开目标系统权限 |
-| template_base | 提炼经项目验证的确定性生成与验收能力 | 不容纳本产品业务 Flow、租户规则或渠道逻辑 |
+S18.21 verified application technical request example, five signed headers, error guidance, owner-only call log API/UI, ordinary-member admin denial and MySQL requestId/duration readback; receipt: ai/evidence/s18-app-technical-access-verification.json. S18.22 now tests multiple module groups, ordering and top/side navigation in fresh system #166.
 
-不预先引入新工作流引擎、ORM、UI 框架或微服务。若某项确实无法由现有结构实现，先在当前步骤写清失败证据和最小替换范围；常规可逆实现自行决定。涉及产品范围变化、不可逆数据处理或新增付费外部依赖才提出具体问题。
+S18.22 verified a second published module and group in system #166, owner edit/order and empty-group deletion, member top/side navigation in both directions, in-use/stale/member denial, MySQL and backend restart readback; receipt: ai/evidence/s18-multi-module-group-verification.json. S18.23 now verifies module create/edit/delete/copy and protects published data and dependencies.
 
-### 2.1 动作契约：先统一业务入口，再接入各能力
+S18.23 verified owner UI copy and draft edit/delete, published-history and cross-module-reference deletion denial, member visibility, MySQL, JDK 21 package, frontend build and restart readback in system #166; receipt: `ai/evidence/s18-module-lifecycle-verification.json`. S18.24 now checks automatically generated list/form/detail pages and the module detail's field, page, Flow and menu associations in the same system.
 
-优先复用 `foundation/manage/control` 的上下文与 outbox，评估 `runtimedata/manage/RuntimeDataService` 的真实入口和调用链。建议公共编排位于产品 `foundation/manage/action`；如果原有等价抽象可直接承载，扩展原抽象，不并存两套执行器。B00.2 把实际选定路径写入 state，一经采用后续包遵循。
+S18.24 verified new draft module #92 with default list/form/detail pages, added an owner-facing overview of named fields, pages and published Flow bindings, and checked module #86 plus member denial, MySQL, frontend build and restart; receipt: `ai/evidence/s18-module-overview-verification.json`. S18.25 now verifies reference and child-table fields on module #92 through publication and runtime records.
 
-动作输入至少携带：可信身份上下文、平台或系统/租户作用域、模块及配置版本、动作代码、记录/期望修订号、输入字段、调用渠道、幂等键、关联请求与因果链。客户端提交的 systemId/tenantId/memberId 不能直接变成可信权限。
+S18.25 verified module #92 ordinary, reference and child-table fields, three page drafts, publication V1, atomic record #183, denial and restart readback; receipt: `ai/evidence/s18-module-fields-verification.json`. S18.26 now checks standard module function configuration and daily runtime actions in the same isolated system.
 
-统一执行顺序：
+S18.26 verified the published default action journey on module #92: V2 delete confirmation, create/edit/comment/team use, successful reference/subtable CSV import and current export, malformed preview and member denial, MySQL and backend restart readback. The import/export parser and field catalog fix is recorded in `ai/evidence/s18-module-functions-verification.json`; this contribution does not close all R0453 functions. S18.27 now makes comment/team availability configurable and enforced for the published module; print, approval and dashboard entry remain separate bounded work.
 
-1. 解析身份和目标数据真实归属，计算模块+动作、字段、数据范围、共享及渠道限制。
-2. 加载有效已发布配置，解析一个生效绑定；当前租户覆盖优先，无覆盖才取主租户。拒绝同一范围重复启用。
-3. 校验输入、唯一性、关联目标、业务前置状态及版本冲突。只读操作也走权限和字段裁剪，不要求为了查询制造写事务。
-4. 根据模式执行下表。内部 Base 写入不再触发一个完整业务动作。
-5. 在本地事务保存业务结果、动作结果、审计和待投递 outbox；提交后执行消息/外部请求。失败保留可重试记录，禁止只发进程内事件后当成功。
+S18.27 verified the owner-controlled published comment/team switches on module #92: V3 disabled both, direct writes and transfer-member changes were denied while ordinary edit worked; V4 re-enabled both after draft isolation, and comment #4/member #251 persisted through backend restart. Receipt: `ai/evidence/s18-module-collaboration-verification.json`. S18.28 now checks print as a configured module action, with approval and dashboard entry remaining separate bounded work.
 
-| 模式 | 业务可见语义 | 必须验证 |
-|---|---|---|
-| DIRECT | 完成原操作，没有绑定也走这条 | 保存一次，无多余 Flow |
-| AFTER_EXECUTION | 原操作成功生效，再可靠启动 Flow | 外部失败不能吞事件；不能宣称原操作未保存 |
-| AFTER_APPROVAL | 保存待审批意图/草稿，批准后执行原操作 | 审批前不把新值当正式生效；拒绝/撤回不执行原操作 |
-| FLOW_ONLY | 仅发起 Flow | 不偷偷执行原 CRUD |
+S18.28 verified optional module PRINT action with published template #41 and record #185: draft isolation, V5 enabled, V6 disabled with direct/new/historical PDF denial, V7 reenabled, browser/API/MySQL/PDF and backend restart. Receipt: `ai/evidence/s18-module-print-verification.json`. S18.29 now binds record approval initiation to published module actions and the existing Flow lifecycle; dashboard entry remains later bounded work.
 
-AFTER_APPROVAL：保存意图、原版本、配置/Flow 快照；通过时以原动作身份及明确委托规则恢复执行，重查当前硬限制、目标修订号、唯一约束。原数据被改或权限撤销时进入可解释的冲突/失败处理，不以系统超管强行写入。新建可以有草稿记录，但正式查询与统计必须区分待审批和生效数据。原动作最终执行标记为该意图的完成，不重复申请同一审批。
+S18.29 scope corrected after impact inventory: the isolated database has 32 active modules with published print templates and no PRINT action, so the new guard blocks their old runtime printing. Stabilize a non-destructive transition for these modules before the approval-action packet; approval and dashboard entry remain unverified.
 
-幂等键按作用域、调用主体和动作区分，同键不同请求内容报冲突；重复提交返回同一个可读结果。乐观锁解决并发改写；数据库唯一约束解决永久转化唯一性。一个动作涉及多次物理保存只能生成一次业务完成事件。Flow 内发起新业务动作必须保留因果链和深度/重复检测，不能靠全局禁止 Flow 触发规避合法联动。
+S18.29 verified a non-destructive owner transition on legacy module #68: V1/#73, published template #36 and 11 prior job rows stayed unchanged; V2/#104 added PRINT, member/owner new PDFs and restart readback passed, and browser #67/#68 showed the before/after action state. A MySQL-backed integration test proved an intact old-job PDF remains byte-identical after transition. The isolated copy lacks 10 of #68's historical file blobs and its one remaining historical job is denied by current field policy; those old PDF bytes are not claimed as live-copy acceptance. Receipt: `ai/evidence/s18-module-legacy-print-verification.json`. S18.30 now closes upgrade-wide compatibility for the other 31 old modules before approval-action work; fresh modules must still require published PRINT.
 
-### 2.2 字段、条件、页面契约
+S18.30 verified V22 upgrade compatibility on the isolated MySQL copy: 31 existing modules and 35 previously published templates gained a tenant-scoped compatibility allowlist without rewriting module versions, templates, records or old print jobs. An old module printed a new PDF from the actual runtime page, while a new module remained subject to the published PRINT action. Owner transition retired the allowlist and preserved the new PDF bytes; restart readback confirmed an untransitioned module still prints. A Testcontainers upgrade test covered old PDF byte preservation with an intact file fixture. The isolated copy's missing historical file blobs remain a data limitation. Receipt: `ai/evidence/s18-module-print-upgrade-verification.json`; `execution-verify` passed with no product completion credit. S18.31 is the bounded approval action and Flow runtime packet.
 
-- 后端集中注册字段的配置校验、规范化、存储、查询/排序/索引、导入导出、脱敏；前端集中注册编辑、展示、条件运算符与类型配置。由同一版本化类型协议或能力描述对齐，不能各维护一个互不相干的支持列表。
-- §5.5 的每种字段都必须落到账本并逐项验收。尚未贯通的字段暂时明确不可发布，同时继续实现；隐藏不支持类型不是完成该需求。
-- 所有普通配置使用结构化组件：字段/模块/人/部门/字典选择器，嵌套 AND/OR 条件组，动作映射和节点属性。JSON 类型的业务字段可以按类型编辑业务值，不能因此让管理员手写整个页面、审批或应用配置 JSON。
-- 表单配置必须遵循 §5.5、§6.7、§6.8：左侧字段类型拖入中间表单画布，拖拽放置与排序，选中字段后在右侧配置类型专属属性，并支持分组与实时预览。配置弹窗、字段表格或勾选字段列表不能单独作为表单设计器已完成的证据。页面 schema/JSON 是内部存储协议，普通用户不手写。
-- 条件结构支持嵌套组合、类型化操作符、字段值/常量/上下文引用；后端为判定权威，前端用同一协议预览。字段删除、字典停用、类型变更必须进行引用影响检查。
-- 页面设计预览和运行态共享渲染器，真实消费列数、分组、宽度、显隐、只读、默认值等配置；不是只保存配置字符串。
-- 壳层只定义平台主页、平台后台、系统运行态、系统后台的布局差异。统一顶部导航和上下文切换，系统运行态左侧模块组/模块、右侧工作区；详情在右侧工作区或抽屉，列表标题及紧凑动作同一行。准确菜单按 A.15，不增独立接口、报表或运营中心。
+S18.31 verified one owner-configured APPROVAL action from module draft and publication to a tenant-scoped published MANUAL/FLOW_ONLY binding with an actual approval node, record button, Flow instance and pending task. Fresh V22 MySQL tests covered draft isolation, permission and cross-tenant denial, invalid placement/binding, replay, disable and task handling. The isolated existing copy showed the binding page and runtime button in Edge, started an instance by clicking it, checked database links, disabled and rolled back the action while preserving older instance snapshots, and read all instances after backend restart. Receipt: `ai/evidence/s18-module-approval-action-verification.json`; `execution-verify` passed with no product completion credit. S18.32 now owns the optional module dashboard action; Flow's other node and condition combinations and whole-product release remain open.
 
-### 2.3 Flow 契约
+S18.32 verified the optional DASHBOARD module action on an existing and a new module: draft isolation, targeted action-only publication, disabled version and rollback, separate tenant dashboard publication, LIST-only member denial, branch tenant no-fallback, and different-system denial. Actual Edge clicked the runtime button into dashboard #7/version #13; fresh V22 MySQL test and backend restart passed. Print #67 and approval instances #47/#49/#51 retained their prior readbacks. Receipt: `ai/evidence/s18-module-dashboard-action-verification.json`; `execution-verify` passed with no product completion credit. The current guard would block module dashboards published before the DASHBOARD action existed, so S18.33 owns upgrade compatibility before any whole-product acceptance claim.
 
-复用并补齐现有 FlowDesignService、FlowBindingService、FlowRuntimeService、FlowParticipantResolver、FlowJobWorker；先明确状态转换，再补 UI。发布定义不可变；实例固定定义快照与业务配置版本；任务、执行游标、节点、事件、作业分别承担其职责。
+S18.33 verified a bounded V22→V23 transition for already-published module dashboards. Migration fixes a system/tenant/module/dashboard allowlist without rewriting old module or dashboard versions, drafts, records or jobs. On the isolated copy, old dashboard #9 stayed available to its existing LIST-only member, while a newly published #10 required the owner's explicit DASHBOARD action and permission. Published disable denied both viewers, rollback restored their distinct views, Edge navigated from the member's runtime button to #9, and a new JVM read both pages back. Fresh V23 MySQL tests passed old-page compatibility and new-module strict isolation; the earlier print PDF hash and approval instance remained valid. Receipt: `ai/evidence/s18-module-dashboard-upgrade-verification.json`; the bounded result gives no whole-product completion credit. S18.34 now owns an integrated new/old module action journey across the daily runtime and historical snapshots before wider product release acceptance.
 
-- 人员解析统一来自组织与业务上下文；找不到人时按配置阻断、交指定兜底人员或明确自动策略，不能静默通过。
-- 人工处理与超时作业争抢同一任务版本，只有一次转换成功；多候选人、会签和并行分支不能重复推进下游。
-- 超时提醒/通过/拒绝/转交可配置；失败重试持久化，重启后恢复。
-- 同一审批人自动通过必须配置适用范围及条件，默认关闭。B09 明确判断输入、已审批事实和表单变化规则；不跨实例误用历史审批。记录自动通过原因。
-- 转办、代理、委托、加减签、退回、撤回、终止、重提、动态加节点各有权限、合法状态和审计。动态节点只改当前实例执行图及版本，不改模板和已完成历史；插入并行位置须校验图结构。
-- Flow 的字段修改、新建数据、业务操作复用动作执行器。外部调用、等待、定时与通知通过可靠作业，不占用长事务；子流程失败和重试不能永久卡死父流程。
+S18.34 verified the same module #94 with published PRINT, APPROVAL and DASHBOARD actions. Record #187 generated print job #134/PDF, approval instance #53 and current dashboard #8; a draft action did not leak before publication. Published DASHBOARD disable denied only the home page while PRINT and APPROVAL remained active and a new approval instance #54 started. Rollback restored the home; the original PDF hash, print job snapshot and Flow snapshot remained unchanged. A separate JVM read the three actions, page and PDF back; a member without module grants received 403 at configuration, dashboard, templates, record and approval entry. Edge inspected the record drawer's print and approval buttons and clicked through the runtime dashboard entry to #8. Receipt: `ai/evidence/s18-module-action-integration-verification.json`; this is still one business combination, not whole-product acceptance. S18.35 owns import/export and transfer/conversion in the same daily business journey, then the wider multi-system, multi-tenant release journey remains open.
 
-## 3. 工作包与准确的实施顺序
+S18.35 verified import, export and owner transfer on the same published module #94 without changing the S18.34 print, Flow or dashboard snapshots. A two-row CSV produced valid record #188 and one rejected empty-title row; preview wrote no record. Published export configuration then selected #188 and downloaded one CSV row. An invalid transfer target left the record unchanged; a role-scoped new member became its owner and read it in Edge, while EXPORT remained forbidden to that member. Import rollback after transfer returned ROLLBACK_PARTIAL/IMPORT_ROLLBACK_VERSION_CONFLICT and retained the newer owner and record. Edge showed IMPORT/EXPORT, transfer menu and the new owner's record; a separate JVM read the exported bytes, old PDF hash, current homepage and original Flow snapshot back. Receipt: `ai/evidence/s18-module-daily-journey-verification.json`; this is not the final two-system, multi-tenant product journey. S18.36 owns published conversion mapping and source/target record boundaries before wider release acceptance.
 
-路径约定：`B`=产品 `backend/src/main/java/com/unique/unexamine`；`F`=产品 `frontend/src/product`；`DB`=产品 `db`；以下相对路径均在 `projects/unexamine/`。每个包可改指定目录的直接依赖及对应测试；扩大到不相干能力须先在 state 说明必要性，不能顺手翻修。
+S18.36 verified a published CONVERT mapping from module #94/activity to module #93/required subject on the same source record #188. Preview rejected the missing draft mapping, then current published mapping preview passed without leaking the unrelated disabled dashboard draft. Conversion #4 created target #189 and a durable relation; cross-system and repeat conversion were denied. Separate source/target edits remained independent. A second conversion checked that deleting source leaves target #191; deleting the first target left source #188 and conversion history, and repeat conversion remained denied. Edge opened the source conversion tab and navigated to #189; a separate JVM read source/target and the old PDF/Flow/dashboard back. The fresh V23 MySQL RuntimeDataHttpTest passed after its historical hyphenated system-code fixture was aligned to current registration rules. Receipt: `ai/evidence/s18-module-conversion-verification.json`; this still gives no whole-product completion credit. S18.37 owns nontrivial Flow node/condition/version combinations and their historical instances before the release-wide journey.
 
-所有工作包共同验收：读取保存结果而非只看响应码；失败不能产生不应存在的数据；服务端验证权限；页面任务验证实际可见业务值、重新进入后的结果和合理布局。阶段演示只能证明本阶段，不能宣称整套系统完成。
+S18.37 verified a published module #94 APPROVAL action with Flow #29 V1 conditional activity branches: records #192/#193 selected distinct high/low approval tasks. An invalid condition field and approval mode were rejected before publication. Flow V2 added a second approval task; new instances #57/#58 used V2, while pending V1 instances #55/#56 completed under their original snapshots and older #53/#54 remained waiting. Edge clicked the real module action to start #58; a distinct member received and approved its first task only after role publication, and the owner completed the second. Unrelated initiation and task action were denied; prior PDF, dashboard, conversion and a separate-JVM readback stayed valid. Receipt: `ai/evidence/s18-flow-conditions-verification.json`; `execution-verify` passed without whole-product completion credit. S18.38 now owns one parallel split/merge Flow combination on an isolated fixture, with other nodes and final release acceptance still open.
 
-### B00 接手基线与核心落点（先做，禁止重跑全项目审计）
+S18.38 verified new Flow #30 behind module #94's published APPROVAL action. A missing merge pair and a conditional edge on PARALLEL were rejected before publication. The valid split created owner and independent-member approval tasks in instances #59/#60. Member-first and owner-first completion orders both kept the instance waiting after one task and produced exactly one paired join after both tasks; Edge rendered both task cards and branch progress. Unrelated user initiation and handling were denied; Flow #53-#58 snapshots, the prior PDF, dashboard, conversion state and separate-JVM readback stayed valid. Receipt: `ai/evidence/s18-flow-gateway-verification.json`; `execution-verify` passed with no whole-product completion credit. S18.39's inclusive gateway selection remains unverified and is deferred behind the product-level release gate described above.
 
-输入：本计划、源码、现有审计 `ai/evidence/current-product-audit-2026-09-05/review.md`、`test-summary.md`。允许写计划状态和当前能力契约记录；本包不修改产品实现。
+S19.11 当前断点：`0.1.0-s19.11-dev3` 在全新 V23 库重放选定的第 2.3 节管理员和成员旅程，恢复与重启读回通过；共用 Redis 的权限缓存及后台作业数字 ID 冲突已修复。管理员随后从页面发布角色、审批 Flow 和绑定、模块动作及导出配置，完成导入、文件中心、审计和运维选定路径。`0.1.0-s19.11-dev4` 纳入修正导航的手册，并通过页面发布平台/系统公共仪表盘。平台应用内部调用实际暴露平台会话没有 `memberId` 而来源校验要求该值的问题；`0.1.0-s19.11-dev5` 改为按平台和账号确认有效平台成员，HTTP 回归 2/2 通过，同库更新后页面发布的平台应用成功创建平台 Flow 草稿，未授权动作被拒绝。dev5 又生成四件备份并在新隔离库恢复出 V23、191 张表和一致的业务数量；停启后平台/系统首页与运维页再次读回。[进度回执](../evidence/s19-core-release-progress.json)和[第 10 章逐项矩阵](../evidence/s19-core-chapter10-matrix.json)列明当前包、证据及余项。继续在 dev5 逐域完成第 10 章正反路径及新操作员按包内手册操作；S19.11 和 G18 保持进行中，S18.39 继续延期。
 
-1. 记录当前 HEAD、分支、暂存/未暂存路径及哈希、服务状态和工具版本。当前工作区有大量用户既有修改，全部视为要保留的起点；不要自动提交用户已有变更。确认 Java 21、Node、数据库版本；不复制凭据到证据。
-2. 跟踪新建、更新、转移、转化及 Flow/应用写入的实际调用链；检查 FoundationControlService/ExtensionDispatcher 是否已承接该调用。记录复用/小改/替换清单和最终公共执行器位置，限一份简短记录，不生成新架构全套文档。
-3. 处理下述已知需求索引失效，仅增量同步 A.17 及受影响的追溯，不重新生成旧周期。把 B01.1 要修改的具体文件、现有方法、已有行为验证写入 state；查明迁移现状和 Base 生成边界。
+最新增量：同一 dev5 候选的个人文件下载完成匿名与跨系统拒绝，导入安全回滚使客户记录和仪表盘计数同步减少，平台应用外部签名调用完成成功、越权和错误签名三种结果。管理员页面移除并恢复受邀成员唯一消息角色，权限预览随授权版本递增正确变化；[撤权证据](../evidence/s19-core-dev5-admin-role-revocation-browser.json)已归档。该受邀账号的当前口令无法从现有测试材料取得，重新登录验证继续列为未验，不影响已通过的管理员撤权预览结论。下一步按第 10 章矩阵继续完成同版平台后台、系统应用外部访问等必要路径；新 Flow 版本实例对照仍受验证器执行阻断，G18 继续进行中。
 
-完成：下一步能指向真实方法；没有“全部重写”“先换框架”等空结论。不能把审计错误描述原样视为当前源码事实。
+系统应用外部访问路径已在 dev5 补齐：从目标系统页面将原有三项授权发布为内部与外部双通道 V3，签名 LIST/DETAIL 仅返回授权字段，未授权 UPDATE、越目标范围与错误签名均被拒绝；来源系统内部 LIST 保持可用。dev5 再次停启后，后端 9999、前端、V3 外部签名与内部调用复验通过，见[重启读回](../evidence/s19-core-dev5-system-app-restart-readback.json)。平台应用凭证轮换又证明旧凭证立即失效，见[撤权证据](../evidence/s19-core-dev5-platform-credential-revocation-browser.json)。下一项集中在第 10 章矩阵剩余的实际平台后台、应用版本及交付手册路径，不重复已通过的系统签名路径。
 
-已知接手前置问题：本次把已确认澄清追加为需求源 A.17，`workspace-validate` 因旧 `workspace.json` SHA256 与 requirement-intake/下游追溯绑定过期而失败。规划账本已绑定新源；旧工程索引尚未同步。该失败是真实的，不能标通过，也不要为了它修改产品逻辑。
+2026-10-17 增量：新注册账号通过管理员邀请、接受、进入系统后，以三次独立登录核对消息角色在授予、页面撤销、页面恢复时的 API 200/403/200；另一新账号从平台页面申请系统访问，经系统后台审批并授予角色后重新登录进入系统，两条中断的测试申请由管理员填写原因并拒绝。目标系统应用又通过页面回滚到仅内部访问的历史快照，外部签名 LIST 403、内部 LIST 200；页面恢复双通道授权后两者都返回目标记录。详见[第 10 章矩阵](../evidence/s19-core-chapter10-matrix.json)及[进度回执](../evidence/s19-core-release-progress.json)。下一确切范围为同版平台后台组织/字典/审计、平台应用版本与包内手册重放；Flow 版本实例对照仍受验证器执行阻断。S19.11/G18 保持进行中。
 
-B00.3 的同步边界：先比较原 intake 的 source blocks 与当前源，确认旧块文本/标识是否仍一致；使用 `tb.py intake --requirements docs/user_requirement.md --output projects/unexamine/ai/requirements/requirement-intake.json` 正常重建索引；把新增块逐条对应本计划中的核心/页面/审批/渠道/交付要求，增量更新受影响的需求追溯。只有核实仍一致的旧引用才更新其绑定；保留旧完成证据为旧基线，不重签成新验收。最后更新 workspace 中的源哈希并运行 workspace-validate。若下游校验要求同步分析/用例/任务，限于新条款的覆盖与绑定，不调用 schedule-generate 重建周期。不能批量替换所有文件的哈希冒充审阅，也不能关闭校验。状态中记录实际改动与通过结果后再进入依赖 Base 生成的实施。
+同日继续沿平台后台核对：dev5 四个入口“组织架构/角色权限/数据字典/审计日志”均落到通用键值编辑器，确认前三项仍缺业务管理。dev7 将平台审计接入按平台归属隔离的事件列表与详情、独立 VIEW 授权和敏感字段遮罩；V24 在唯一平台的候选库补齐旧事件归属。首次 dev6 SQL 错表名导致 Flyway V24 失败，检查零业务数据变动后删除唯一失败历史行，修正为 `un_plat_platform`，重新制成 dev7 并在原四件备份前提下升级成功。当前 V24、191 表、后端 9999、单前端/后端；平台页面筛选与详情、系统事件 404、无权账号 403、系统审计及内部应用调用通过。[升级回执](../evidence/s19-core-dev7-platform-audit-upgrade.json)与[矩阵](../evidence/s19-core-chapter10-matrix.json)记载边界。下一确切子步先实现平台组织成员及其权限边界，再处理平台角色和字典业务管理；其他章节仍按同一候选实际阻断推进。S19.11/G18 未完成。
 
-### B01 公共动作核心（依赖 B00）
+同日后续增量：dev9 已将平台组织接入真实部门与成员归属页面，页面建立/更名、按账号搜索和成员部门调整、版本冲突、越平台与无权拒绝均通过；数据库读回成员未因此取得角色。dev10 已把平台角色权限接入独立角色、授权和成员关系表，页面创建角色、发布动作授权并分配新成员；成员获得指定平台只读权限，不能变更角色或进入未授权系统，撤权后下一次请求立即 403，通配授权、内置角色修改和旧版本更新被拒绝。[页面回执](../evidence/s19-core-dev10-platform-authorization-browser.json)、[同包部署与数据库](../evidence/s19-core-dev10-platform-authorization-upgrade.json)记录范围。当前唯一确认的通用键值页面缺口是平台字典；先按 5.6/A.15/A.18 定稿平台归属、发布项与引用影响，再做表结构和页面。平台组织的停用/转移等生命周期及第 10 章全域仍未完成，S19.11/G18 保持进行中。
 
-范围：B/foundation/manage/control、拟定的公共动作包、B/runtimedata/manage、B/authorization/manage、必要 DB/测试。
-
-1. 提取上下文、输入/输出和四模式决策协议；先接新建 DIRECT，保留旧 API 兼容，原正常读写不回退。
-2. 补动作结果、幂等、版本锁、本地事务审计与 durable outbox，复用已有表/调度器；缺列才增量迁移，不建等价重复表。
-3. 接更新/删除及 AFTER_EXECUTION/FLOW_ONLY；复用 Flow 启动接口。现有 Flow 实现不满足契约时只补必需接口，完整运行逻辑交 B08—B10。
-4. 接 AFTER_APPROVAL 意图与一次性恢复接口；通过可控 Flow 服务契约测试验证挂起、拒绝、执行、冲突。真实审批端到端在 B09 再验，当前不得标成全 Flow 完成。
-
-验收：无配置一次保存；有配置一次实例；重复请求同结果；同键异载荷失败；保存失败无事件；投递失败可恢复；审批前不生效、批准一次生效；并发冲突不覆盖。
-
-### B02 统一页面骨架（依赖 B01；本包只改布局和公共组件）
-
-范围：F/components/*Shell.vue、ProductPage/Section/ActionBar/State、routes.ts、design-system.css、product.css、RuntimeWorkspaceView/WorkHubView 的接入部分。
-
-1. 固定四类壳与路由归属；修平台任务无壳、错误回退/空数据表现，运行页面不混入后台配置操作。
-2. 提取统一列表、筛选、表单、详情与动作容器，先迁移运行模块和一个固定能力页面。统一页面状态、错误重试、返回上下文和权限可见性。
-3. 冻结桌面参考尺寸 1440×900，记录列表/编辑/详情各一张参考截图；后续页面复用此组件，不另造视觉规范。
-
-验收：从顶部入口到列表、右侧详情、编辑保存、返回保持上下文；一个主按钮；批量操作随选中出现；普通人无配置入口。基础窄屏不崩，完整移动矩阵只在 B19 做一次。
-
-### B03 身份、组织、租户、权限（依赖 B01、B02）
-
-范围：B/authentication、authorization、platform/manage/registration、system、对应 F 的 Auth/SystemAuthorization/IdentityMapping/Settings/Platform 配置页面及公共选择器。
-
-1. 注册/登录/退出/恢复密码等 §5.1 全行为，创建系统并初始化主租户、根部门和管理员；创建者先到可配置系统入口，普通成员到运行入口。
-   - B03.1a：新主租户/新增租户共用根部门初始化，创建人具备默认部门；新成员不先手工建部门即可加入。增量修复旧租户缺根和有效成员空归属，保留手工根及已有归属，多根/停用根/编码冲突不任意补写。只完成此公共前置，不计作 B03.1 或 B03 全部验收。
-2. 系统组织与平台组织分别接真实管理接口，完成成员开通、邀请/映射、部门、负责人、上下级、角色及人员选择器；禁止 ORG/AUTH 用 CoreSetting 键值假装保存成功。
-3. 按模块+动作合并多角色，叠加硬限制、字段权限、脱敏；完成权限预览与真正后端 enforcement。
-4. 租户扩展权限、共享授权与撤销、来源租户规则；单转多和多转单使用可恢复迁移作业，多转单有数据合并前不得直接切开关。
-
-验收角色：平台管理员、系统管理员、普通成员、双角色成员、另一个租户成员、另一个系统成员。验证可见/不可见、直调接口拒绝、切换重新计算、共享不复制/不改归属、撤销立即生效。平台角色不授予系统业务权限。
-
-### B04 模块元数据、字典与发布（依赖 B03）
-
-范围：B/moduleconfig、F/views/ModuleConfigurationView、DictionaryConfigurationView、TenantExtensionsView、相关 metadata 类型。
-
-1. 模块组/模块信息及生命周期；模板配置严格五类，页面/菜单/发布作为内部步骤。创建模块不生成 Java/物理业务表。
-2. 字典的列表/树/级联、版本、停用历史快照、引用影响；模块数据源选择复用权限查询。
-3. 草稿/校验/发布/回滚与主租户+扩展合并，记录依赖版本；运行端只读发布态。
-4. 发布检查使用真实字段和页面能力注册，不接受“枚举存在就可发布”；不可用项明确指出并继续留待 B05。
-
-验收：草稿不影响运行；发布后新导航和配置读回一致；破坏性变更/扩展冲突阻断并定位；回滚不破坏旧数据与旧 Flow。
-
-### B05 全量字段运行链（依赖 B04；按组执行，不一次编辑所有类型）
-
-范围：B/moduleconfig、runtimedata、字段专用 repository/mapper、F 公共字段组件/注册、类型协议、DB 必要索引。
-
-1. 建立字段能力注册和共用校验/渲染协议，先迁移已有文本/数字/日期/布尔类型。修默认值、只读系统字段、必填/唯一/历史显示。
-2. 文本家族：多行、手机、邮箱、URL、身份证、富文本、密码/密钥、JSON；数字家族：数字、金额、百分比、评分、进度；日期时间及各范围。每种类型配置专属属性。
-3. 选择家族：单选、多选、状态、标签、级联；身份家族：人员、部门、组织/租户；支持其多值和候选范围配置。
-4. 关联、引用、查找、反向关联、新增关联记录、子表及行权限/汇总/最小最大行数；独立关联模型，不把复杂值全塞文本。
-5. 附件、图片、文件组、签名、地址、地理位置、条码/二维码；新建必填附件能预上传并在保存时绑定，失败可清理无主文件。
-6. 自动编号、公式、计算、汇总、聚合、系统字段；并发编号唯一、重算依赖/循环检测、权限不得经派生值泄漏。AI 填充复用 B16 人工确认，此处只完成类型接口，不宣称 AI 填充验收通过。
-
-每种字段验收矩阵：配置→发布→默认值/编辑→服务端校验→保存→重开→列表/详情→其适用的筛选/排序→权限裁剪。不能对附件等类型强行要求无业务意义的排序；不适用须写原因且不删字段需求。导入/导出/打印适配在 B13 交叉验证。
-
-### B06 页面设计与通用运行页（依赖 B05）
-
-范围：F 页面设计相关组件、RuntimeWorkspaceView 和通用渲染器；B/moduleconfig 页面配置及 runtimedata 查询接口。
-
-1. 列表/表单/详情共用页面 schema，支持 §5.8 的组件、分组、宽度、联动、显示条件；表单通过左侧字段类型→中间拖拽画布→右侧字段属性完成添加、放置、排序和分组，预览和发布使用同一渲染路径，复用 B05 字段注册与专属配置，不再独立编写一套字段编辑器。
-2. 补列设置、快速检索、高级嵌套筛选、排序分页、保存视图等 §5.8/5.11/A.9 行为；移除按测试名称正则隐藏真实数据的逻辑。
-3. 详情关联、附件、评论、操作历史、来源/转化标签；选关联对象可按权限新建并返回，不强迫无意义重复标题。
-
-验收：真实拖拽字段类型创建表单，配置属性、排序与分组，预览、保存、发布、运行回显一致；改布局后运行态真的改变；换两个结构不同模块无需新页面代码；配置条件显隐不替代后端验证；刷新保持已保存内容；字段隐藏不能从接口/导出泄漏。普通路径全程不手写 JSON。
-
-### B07 模块动作、转移、转化、共享（依赖 B06）
-
-范围：公共动作处理器、B/runtimedata、moduleconfig 动作配置、F 动作配置/预览/执行组件。
-
-1. CRUD、状态变化、手动、批量动作接公共入口；配置按钮位置、条件、权限和四模式；选择模块进入 Flow/应用绑定时保留上下文。
-2. 转移预览和执行：变更负责人/部门，记录前后值和关联影响；复用人/部门选择器。
-3. 转化可视化字段映射、目标校验、原子落库、来源/目标详情互访；数据库保证源+目标模块永久唯一，软删目标或解除关系后仍不能重复成功转化。
-4. 共享范围和动作配置，目标用户权限与共享授予取交集；归属租户配置/Flow 生效，不允许转共享。
-
-验收：双请求同时转化仅一份结果；目标必填/唯一失败无半成品；跨系统不走共享；回退页面后配置上下文不丢；批量部分失败结果明确且重试不重复成功项。
-
-### B08 Flow 定义、条件与发布（依赖 B07）
-
-范围：B/flow/manage 的设计/绑定/模型、F FlowDesignerView/FlowBindingsView/画布/条件与人员组件。
-
-1. 实现结构化条件编辑及所有 §5.12 节点的类型化配置协议；字段选项来自当前模块版本，移除 amount>10、8000 等固定业务样例。
-2. 画布节点/边/属性、缩放/小地图、错误定位、复制/版本/回滚/影响分析；节点未能运行时阻止发布，不以画布图标充数。
-3. 完成唯一生效绑定、租户优先级及发布不可变快照；模拟使用真实配置和有权限的选择/表单数据，给出分支与审批人原因。
-
-验收：嵌套条件数值/空值/日期/多选分别判定正确；断线/死路/非法引用/缺审批人阻断；旧实例不随新发布变化。高级节点的可发布性随 B10 实现开放，不提前勾完成。
-
-### B09 审批运行与业务生效（依赖 B08）
-
-范围：B/flow/manage 运行、人员解析、作业和公共动作恢复；F FlowRuntimeView、待办/审批详情。
-
-1. 人员来源全覆盖、或签/会签/比例/顺序会签、候选领取/取消领取、缺人策略、节点字段权限和表单提交快照。
-2. 同意/拒绝、转办/委托/代理、加减签、退回/重提、撤回/终止、催办/评论及原因附件要求；按状态转换集中实现。
-3. 超时提醒/自动通过/拒绝/转交；同一审批人后续自动通过的显式配置和审计；人工操作和超时并发只处理一次。
-4. 当前实例动态加审批/抄送节点，校验位置和图结构，保存修改人/原因/配置快照，不改模板或历史节点。
-5. 贯通四动作模式、审批状态与业务状态回写、更新冲突和失败恢复，待办消失与业务结果原子或可靠一致。
-
-验收：实际普通成员提交→指定人员待办→审批→正式数据读回；另测拒绝/撤回无生效、找不到人不静默通过、重复审批、超时竞态、加节点不污染其他实例、表单变化下自动审批规则遵守配置。
-
-### B10 Flow 自动化完整节点（依赖 B09）
-
-范围：B/flow、backgroundjobs、应用/通知调用适配接口、F 对应节点属性及运行追踪。
-
-1. 并行/包容/合并网关、子流程、条件审批、表单/任务/自动节点；定义执行游标和 join 完成规则。
-2. 字段更新、数据创建/更新节点走公共动作；通知/抄送/消息节点可靠投递；等待/周期/定时/导入完成/异常触发正确恢复。
-3. Webhook/外部节点走应用授权，超时、重试、失败事件、人工恢复与可解释补偿；AI 节点的实际模型运行由 B16 完成。
-
-验收：并行到达不重复 join；子流程失败可恢复父流程；重启恢复等待与重试；业务动作循环受控且合法下游事件仍可触发；出站超时不锁住业务事务。
-
-### B11 应用受控开放（依赖 B10）
-
-范围：B/application、authorization 渠道策略、F 应用管理及模块应用配置。
-
-1. 平台应用/系统应用资源选择、动作/Flow/字段/数据范围/系统租户授权、发布版本；同一套可视化授权界面呈现不同作用域。
-2. 凭证生成、轮换、停用、密钥安全存储、签名、防重放、幂等、限流、IP 限制、调用审计和接入说明；普通用户不手写调用载荷配置应用。
-3. 应用桥接系统 A→系统 B、外部→系统、外部→平台 Flow；身份映射和最终权限逐层交集，业务调用接公共执行器。
-
-验收：授权调用真正生成/查询业务或发起 Flow；篡改字段/租户/目标、过期签名、重放、撤销授权均拒绝；凭证轮换行为明确；日志不泄密；内部调用也不能绕过应用授权。
-
-### B12 微信、企业微信、飞书、钉钉接入（依赖 B11）
-
-范围：B/application 的 provider 适配、authentication 身份接入、notification 渠道、F 应用内连接向导。不要另造接口开放中心。
-
-1. 先查各平台官方文档，形成精简能力表：产品类型、登录/身份、通知、事件回调、可开放动作、账号资质、权限及回调域名条件。微信必须区分公众号/小程序等适用形态，不能虚构通用“微信自建应用”。有多个实质选项时一次向用户确认微信目标形态，其余渠道继续。
-2. 每个渠道分开执行：凭证与连接诊断→身份映射→有权限的消息深链→事件验签/解密/去重/业务动作→失败和撤销处理；共用 provider 协议及应用权限核心，只保留渠道差异。
-3. 获取用户提供的实际测试租户/应用配置完成闭环；所需权限/回调域名一次列清。没有外部凭据时完成本地真实协议测试并标 `blocked_external`，不能称实接成功，也不能因此放弃后续独立工作包。
-
-验收：四渠道分别记录实际能力、正向收发或调用、身份权限、重复/伪造回调和失败处理证据。模拟器只证明协议逻辑；实际渠道验收另列。用户未授权的发消息、对外发布或付费动作需授权后再做。
-
-当前执行断点：B14.3 已通过待办多来源聚合、今日联系规则、模板化消息、已读归档、上下文隔离、当前权限深链、失败重试、重启和精确清理验证，证据为 `todo-message-verification.json`。B15.1 已接纳，先收口统计数据源公共骨架、结构化配置、权限安全聚合与基础统计；仪表盘布局归 B15.2，KPI 与主页组合归 B15.3，B12.5 产品选择与真实外部租户仍阻塞。
-
-### B13 文件、导入导出、打印（依赖 B07、B10；B12 外部阻塞时可继续）
-
-范围：B/file、dataexchange、print，F BusinessAttachments/Import/Export/Print 配置及运行组件。
-
-1. 文件上传/预览/下载/版本/引用/权限/配额和清理，完成新建必填附件与导入附件绑定。
-2. 导入模板、字段映射、预演、错误定位、批量处理、幂等、回滚；导出选择字段/格式/权限/脱敏/后台下载。写入经公共动作，导入完成触发与单条动作触发区分，不能重复发起。
-3. 打印可视化排版、字段/子表/分页/页眉页脚、版本/套打、预览/输出与权限；入口留在模块动作。
-
-验收：混合正确错误数据预演→导入→逐条读回→回滚不伤他人后续修改；复杂字段往返不丢；撤销文件权限不能用旧链接越权；实际打印输出和预览匹配。
-
-B13.1 已验证贡献：文件与业务附件公共链已完成。B13.2 已验证贡献：模块内 Excel/CSV 模板、字段映射、预演、确认导入、逐行批次、安全回滚和权限导出闭环已完成。B13.3 已验证贡献：可视化打印设计、真实记录预览、不可变版本与恢复、分页 PDF、受控下载和当前权限闭环已完成；打印备份/升级和跨包配置总要求继续保留。
-
-### B14 工作、待办、消息（依赖 B09、B13）
-
-范围：B/work、notification、F WorkHub/OrdinaryTasks/WorkProjects/WorkLogs/Todo/Message 及后台对应配置。
-
-1. §5.20 普通任务、项目、任务组、子任务、负责人协作验收人、指派/转交/延期/完成确认/重开、附件评论/进度、列表看板日历和统计。
-2. 工作日志手动创建、编辑、提交/撤回/补写、权限内关联任务；完成任务不自动生成日志，AI 整理需人工确认。
-3. 待办聚合审批、Flow/工作任务和需联系数据，正确来源去重和完成同步；消息模板/渠道/收件范围、已读未读、通知深链、发送失败。
-
-验收：真实任务发起→协作→延期→完成确认→重开；日志独立存在；平台和系统作用域分离；无权限来源不泄漏；跳转目标已删除/撤权时清楚提示。
-
-B14.1 已验证贡献：普通任务、项目、任务组、参与人、显式生命周期、权限历史和普通/项目任务同源列表、看板、日历已通过真实 API、数据库、页面和重启验收。B14.2 已验证贡献：工作日志的手工结构化创建/补写、人工候选素材、草稿/提交/撤回/恢复、评论反馈、版本历史、可见范围、受控附件和任务双向关联已通过真实验收，任务变化不会改写已提交日志。B14.3 已验证贡献：待办多来源聚合、今日联系规则、去重与来源同步，以及模板化消息、已读归档、免打扰、当前权限深链和失败重试已通过真实验收；AI 结果消息仍归 B16，真实外部渠道凭据仍记录为阻塞。
-
-### B15 仪表盘、统计与 KPI（依赖 B14）
-
-范围：B/analytics、F DashboardConfiguration/Runtime/Kpi/ReportSourceEditor 及共用数据选择器。
-
-1. 按 §5.8、A.5 的数据源/图表/布局，使用可视化拖拽、绑定、预览发布；外部数据源必须遵守既有安全和应用桥接边界。
-2. 统计口径、筛选/时间/租户/权限、穿透业务数据、聚合脱敏及加载失败；KPI 目标、负责人、进度、预警和复盘闭环。
-3. 仪表盘、命令中心、主页提供真正有权限的入口和查询，不增加已被 A.13 移除的独立报表中心。
-
-验收：对已知业务记录手工计算总数/金额与图表一致；不同角色得到相应统计；错误不是 0；配置预览与发布布局一致；KPI 可回到业务来源。
-
-B15.1 已接纳：先稳定可复用统计数据源、命名模块/字段/关系/筛选/时间/排序/指标配置和权限安全聚合；不把仪表盘布局或 KPI 目标提前算入本包。
-
-### B16 AI 与上下文助手（依赖 B15）
-
-范围：B/ai、F AI 配置/对话/助手、字段和 Flow AI 适配。
-
-1. 平台模型与系统授权、供应商/本地模型配置、密钥、额度并发、脱敏/数据出境策略、日志、失败降级。
-2. 系统上下文查询、模块/页面/Flow/打印草稿生成、错误解释、审批摘要；确认后保存草稿，发布仍走原检查。
-3. 对话解析→结构化待确认→权限/校验→公共动作写入；AI 填充、Flow AI 节点、工作日志辅助复用人工确认和授权机制。
-
-验收：取消确认没有写入；低置信度需补充；平台 AI 不直接写系统业务；被隐藏字段不进入模型/响应；模型失败正常业务可用。真实模型调用缺凭据单列 external blocker，模拟测试不冒充实接。
-
-### B17 平台服务、审计与运维治理（依赖 B16；外部依赖未到位可继续本地工作）
-
-范围：B/platform、operations、audit、foundation/configuration，F 平台/系统后台各真实管理页，deploy、DB。
-
-1. 平台信息、系统管理、独立组织权限/字典/Flow/应用/AI/业务参数；系统后台对应能力。配置页面实际驱动服务，日志页读取真实事件，不以键值表充数。
-2. 容量与配额、限流、安全策略、会话、日志脱敏与永久业务审计、可观察作业/错误、系统体检、缓存失效、API/错误码统一。
-3. 归档/恢复、配置迁移/升级、多环境、备份恢复、发布回滚/灰度开关，按 §14 全部相关条目完成可操作路径。不可逆操作按需求预演/确认，不默认清库。
-
-验收：变更配置改变真实行为；正常用户不能管理平台；已发生变更审计可解释；隔离测试环境备份恢复可读回，升级/回滚有明确兼容边界，失败作业可定位恢复。不要扩成无要求的规模压测项目。
-
-### B18 生成器接线与工程验收收敛（依赖 B17，产品核心成立后提炼）
-
-范围：tools/regenerate-base.ps1、生成器模板与 template_base 的通用契约/证据规则；改边界前运行 workspace-validate。
-
-1. 固定表 Base 继续确定性生成；若生成 manage 入口脚手架，采用独立生成目录/仅首次创建，绝不覆盖手写 manage。生成的入口只委托公共动作端口，不内嵌 Flow、平台、租户业务。公共核心只维护一份。
-2. 同输入再生成输出一致、手写业务哈希不变；用隔离样例证明新固定能力能复用动作入口。用户自定义模块依旧元数据驱动，不走该生成器。
-3. 最小修正工程证据规则：预期需求/旅程必须全部覆盖；证据绑定被测源码/配置和环境；缺正向行为、缺读回或只存在路径不能通过；工作包按能力归属，不能为每个用例重新生成全套 CRUD/前后端任务。
-
-验收：用缺失旅程、旧源码证据、空证据三种负例证明检查失败；完整有效例通过。新增工程测试仅覆盖该通用规则，不为整个计划造新的复杂管理系统。禁止以修框架为由重跑几十个旧周期。
-
-### B19 全量收口与最终交付（依赖全部内部工作；外部阻塞保留，不虚报全完）
-
-范围：各包遗漏修复、共用样式/路由、必要验收工具和交付文档。
-
-1. 对账本逐条核对：尚未验证的有效要求必须补实现/验证，不能简单全改状态。正文被附录覆盖的条目记录覆盖条款和保留的真实义务。
-2. 完整旅程一：系统管理员创建系统→组织/角色→创建至少两个不同结构模块及关联/子表→配置字段页面动作→发布→普通成员 CRUD/转移/转化→审核生效→待办消息→导出/打印→审计读回。
-3. 完整旅程二：第二租户扩展与共享→不同角色查看/编辑→撤销共享；另一系统只能经应用桥接。完整旅程三：平台管理员配置平台组织/Flow/应用/系统授权和服务配额，普通平台用户在许可范围使用。
-4. 工作/仪表盘/AI/文件/运维及四渠道分别按账本验收，不用上面三条主链代替全功能。完成桌面 1440×900、窄桌面 1024×768、移动 390×844 的导航/表单/详情/审批/列表抽样，键盘焦点、错误定位、长文本、空/加载/失败状态；修共用布局而非每页补丁。
-5. 运行一次最终后端/前端有效测试及构建、迁移升级验证；记录仍有的失败与限制。输出启动/初始化/使用/配置/备份恢复说明及真实验收结果，不输出虚构完成率。
-
-完成条件：全部有效需求有当前行为证据，必要外部渠道实接成功，阻塞项为零；用户能不写 JSON 完成配置与使用。若外部条件缺失，只能交付“内部已验证，具体外部项目待验证”的清单，不把它写成完整交付。
-
-## 4. 每个子步骤的执行纪律
-
-开始时在 state 记录：子步骤 ID、读过的需求条目、拟改文件/方法、至多几项可观察验收。只读必要调用链；不得先扫描所有历史分支、重跑全量测试。
-
-实现后记录：真实改动、实际执行命令与结果、正向持久化读回、权限/失败证据、相关源文件 SHA256、剩余缺陷、next_step。被测相关源码再次变化时，先前证据标 stale，定向复验受影响行为；无关文件变化不触发全量重跑。
-
-状态只有 `unverified / in_progress / verified / blocked_external / blocked_decision / superseded`。verified 必须有证据。superseded 只能引用唯一需求源的明确后置覆盖，不能以“不复杂”“先做核心”“代码已有”作为不实现理由。一条需求涉及多个包时，贡献包做完不等于整条验证完。
-
-测试只保留有意义的行为：权限边界、字段真实存储、状态机转换、事务回滚、幂等/并发、版本隔离、关键页面旅程。禁止新增 readFile/contains 文本断言来证明业务完成，禁止改断言为错误现状过关，禁止每个 CSS 或文案修改都重跑数据库/全站。
-
-验证分级：子步骤受影响测试+必要编译；一项完整页面能力一次真实旅程；核心里程碑一次组合验证；B19 一次全量。失败先区分业务、测试假设、环境，修根因后复验相应集合。既有硬编码表数 155、Windows 网络/Redis/XNIO 启动失败不能简单删测试或屏蔽。
-
-当前可用命令（先确认环境，不在用户机器盲建/删服务）：
-
-```powershell
-# 仓库根：边界检查；不是产品可用证明
-python template_base/tools/tb.py workspace-validate --workspace workspace.json
-
-# 后端目录：默认 Java 8 不合适，明确 Java 21
-$env:JAVA_HOME = 'D:\dev\jdk21'
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
-mvn -q -DskipTests package
-# 选择本步骤实际存在的测试类：mvn -q "-Dtest=实际类名" test
-
-# 前端目录；定向测试通过后，完整页面包再 build
-npm run test -- 实际测试路径
-npm run build
-```
-
-数据库改变使用增量迁移，并按现有工具维护 init/update/final 一致性；先检查现有 V39 之后是否有新迁移再取编号。生成入口：`tools/regenerate-base.ps1`，先读脚本确认会启动的数据库与变更范围；不得只为试验覆盖当前库。后端全量测试已有 Windows 环境错误，B00 选定稳定测试环境；一次定位根因，优先隔离测试库和稳定运行环境，不能靠连续重试耗时间。
-
-实际服务起止、浏览器演示和测试数据清理仅作用于本项目；不动其他容器。不要清除现有用户数据，不在日志/截图/计划中保存密钥。
-
-## 5. 如何防止再次漂移
-
-- **入口固定**：根 AGENTS 指向本文件；旧计划停止作为执行入口，后续不继续追加 C77、C100。
-- **实现复用**：先建立动作、字段、页面三个公共核心，再迁移调用方；不能把“补齐”理解成复制同样的表单和 Service。
-- **范围可查**：账本逐段索引原始需求，每项有主责包；不得只验三条展示流程就结束。
-- **完成可反证**：错误用户、重复操作、刷新读回、失败重启会暴露假完成；截图、状态或 mock 单独不构成完成。
-- **断点简短**：用户切换模型或上下文后只读状态和当前任务；不每次重讲架构，也不把流水账塞入上下文。
-- **遇到问题局部退回**：修当前公共核心或其依赖的明确缺陷，不借一个失败推倒所有阶段；无法决策的实际产品问题记现有 question.md 并说明影响，独立工作继续。
-
-本方案减少自由发挥空间，但不能保证模型永不出错。可靠性来自明确入口、范围、真实业务证据和未完成项不被抹掉。
+dev11 补上按栏目鉴权的路由：此前角色、组织、审计共用配置页路由，独立权限成员会被统一的“配置管理”守卫挡住。当前包保留 dev10 的后端 JAR 和 V24 库，前端构建与 7 项权限测试通过；角色只读成员可打开角色页，组织导航隐藏且直接 URL 拒绝，[浏览器与部署回执](../evidence/s19-core-dev11-platform-category-route.json)有同版证据。平台字典的独立归属、已发布快照与实际引用影响边界已记在[实现合同](platform-dictionary-contract.md)；需求未写明平台字典跨系统字段绑定，不将其列为本轮必做。下一步据此做 V25、Base、manage、运行态和页面。G18 仍未验收。

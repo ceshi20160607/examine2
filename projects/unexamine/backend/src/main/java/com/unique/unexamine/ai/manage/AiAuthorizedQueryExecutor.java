@@ -1,5 +1,7 @@
 package com.unique.unexamine.ai.manage;
 
+import com.unique.unexamine.analytics.manage.ReportModels;
+import com.unique.unexamine.analytics.manage.ReportService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
@@ -16,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AiAuthorizedQueryExecutor {
     private final RuntimeDataService runtimeDataService;
+    private final ReportService reportService;
 
-    public AiAuthorizedQueryExecutor(RuntimeDataService runtimeDataService) {
+    public AiAuthorizedQueryExecutor(RuntimeDataService runtimeDataService, ReportService reportService) {
         this.runtimeDataService = runtimeDataService;
+        this.reportService = reportService;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -34,5 +38,11 @@ public class AiAuthorizedQueryExecutor {
             int pageNumber, int pageSize, String traceId) {
         return runtimeDataService.list(context, moduleCode, lifecycleState, tenantScope, search, filtersJson,
                 sortField, sortDirection, pageNumber, pageSize, traceId);
+    }
+
+    /** 报表查询单独开启事务，失败时会话仍能保存明确的降级结果与审计。 */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ReportModels.Result report(AuthenticatedContext context, Long dataSourceId, String traceId) {
+        return reportService.executePublished(context, dataSourceId, traceId);
     }
 }

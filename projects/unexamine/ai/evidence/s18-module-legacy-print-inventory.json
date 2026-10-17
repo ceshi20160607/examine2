@@ -1,0 +1,28 @@
+{
+  "step": "S18.29",
+  "status": "in_progress",
+  "legacyPublishedTemplateModulesWithoutPrintAction": 32,
+  "sample": [
+    {
+      "moduleId": 28,
+      "moduleCode": "g7_print_order"
+    },
+    {
+      "moduleId": 29,
+      "moduleCode": "g7_print_order"
+    },
+    {
+      "moduleId": 30,
+      "moduleCode": "g7_print_order"
+    },
+    {
+      "moduleId": 31,
+      "moduleCode": "g7_print_order"
+    },
+    {
+      "moduleId": 35,
+      "moduleCode": "g7_purchase"
+    }
+  ],
+  "basis": "Isolated MySQL copy; published template and active module exist while configured PRINT action is absent."
+}

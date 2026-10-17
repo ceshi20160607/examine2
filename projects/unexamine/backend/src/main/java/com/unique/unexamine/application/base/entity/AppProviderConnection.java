@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("app_provider_connection")
+@TableName("un_app_provider_connection")
 public class AppProviderConnection {
 
     /**

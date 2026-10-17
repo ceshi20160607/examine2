@@ -49,9 +49,9 @@ public class FlowNodeSuspensionService {
         for (FlowTask task : group) {
             if (!Set.of("APPROVAL", "FORM_TASK").contains(task.getTaskType())) throw invalid();
             String status = task.getStatus();
-            if ("QUEUED".equals(status) && task.getDueAt() != null) throw invalid();
-            Long remaining = task.getDueAt() == null ? null : remaining(now, task.getDueAt());
-            task.setStatus("SUSPENDED"); task.setUpdatedAt(now);
+            if ("QUEUED".equals(status) && task.getDueTime() != null) throw invalid();
+            Long remaining = task.getDueTime() == null ? null : remaining(now, task.getDueTime());
+            task.setStatus("SUSPENDED"); task.setUpdateTime(now);
             if (tasks.updateById(task) != 1) throw invalid();
             ids.add(task.getId());
             pausedTasks.add(new TaskPause(task.getId(), status, task.getVersion(), remaining));
@@ -63,8 +63,8 @@ public class FlowNodeSuspensionService {
                 .orderByAsc(FlowJob::getId).last("FOR UPDATE"))) {
             Long taskId = mapper.convertValue(read(job.getPayloadJson()).get("taskId"), Long.class);
             if (!ids.contains(taskId)) continue;
-            long remaining = remaining(now, job.getNextRunAt());
-            job.setStatus("SUSPENDED"); job.setUpdatedAt(now);
+            long remaining = remaining(now, job.getNextRunTime());
+            job.setStatus("SUSPENDED"); job.setUpdateTime(now);
             if (jobs.updateById(job) != 1) throw invalid();
             pausedJobs.add(new JobPause(job.getId(), job.getVersion(), remaining));
         }
@@ -93,9 +93,9 @@ public class FlowNodeSuspensionService {
                     || !Objects.equals(paused.pausedVersion(), task.getVersion())
                     || !Set.of("PENDING", "QUEUED").contains(paused.originalStatus())) throw invalid();
             task.setStatus(paused.originalStatus());
-            if (paused.remainingMillis() != null) task.setDueAt(now.plusNanos(paused.remainingMillis() * 1_000_000));
-            else if (task.getDueAt() != null) throw invalid();
-            task.setUpdatedAt(now);
+            if (paused.remainingMillis() != null) task.setDueTime(now.plusNanos(paused.remainingMillis() * 1_000_000));
+            else if (task.getDueTime() != null) throw invalid();
+            task.setUpdateTime(now);
             if (tasks.updateById(task) != 1) throw invalid();
         }
         for (JobPause paused : frame.jobs()) {
@@ -103,8 +103,8 @@ public class FlowNodeSuspensionService {
                     .eq(FlowJob::getInstanceId, instance.getId()).last("FOR UPDATE")).stream().findFirst().orElseThrow(this::invalid);
             if (!Objects.equals(anchor, job.getNodeKey()) || !"TASK_TIMEOUT".equals(job.getJobType())
                     || !"SUSPENDED".equals(job.getStatus()) || !Objects.equals(paused.pausedVersion(), job.getVersion())) throw invalid();
-            job.setStatus("PENDING"); job.setNextRunAt(now.plusNanos(paused.remainingMillis() * 1_000_000));
-            job.setUpdatedAt(now);
+            job.setStatus("PENDING"); job.setNextRunTime(now.plusNanos(paused.remainingMillis() * 1_000_000));
+            job.setUpdateTime(now);
             if (jobs.updateById(job) != 1) throw invalid();
         }
         FlowExecution execution = executions.selectById(frame.executionId());
@@ -130,7 +130,7 @@ public class FlowNodeSuspensionService {
                 .eq(FlowExecution::getInstanceId, instance.getId()).in(FlowExecution::getStatus, "ACTIVE", "SUSPENDED")
                 .orderByAsc(FlowExecution::getId).last("FOR UPDATE"))) {
             execution.setStatus("CANCELLED"); execution.setResultCode(instance.getStatus());
-            execution.setLeftAt(LocalDateTime.now());
+            execution.setLeaveTime(LocalDateTime.now());
             if (executions.updateById(execution) != 1) throw invalid();
         }
     }

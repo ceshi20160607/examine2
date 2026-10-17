@@ -13,14 +13,14 @@
         <result column="owner_tenant_member_id" property="ownerTenantMemberId" />
         <result column="due_time" property="dueTime" />
         <result column="progress_percent" property="progressPercent" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, project_id, `name`, sort_order, `status`, owner_account_id, owner_tenant_member_id, due_time, progress_percent, created_at, updated_at, version
+        id, project_id, `name`, sort_order, `status`, owner_account_id, owner_tenant_member_id, due_time, progress_percent, create_time, update_time, version
     </sql>
 
 </mapper>

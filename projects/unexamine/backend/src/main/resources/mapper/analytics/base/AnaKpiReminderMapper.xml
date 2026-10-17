@@ -6,20 +6,28 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaKpiReminder">
         <id column="id" property="id" />
         <result column="kpi_result_id" property="kpiResultId" />
-        <result column="todo_id" property="todoId" />
-        <result column="message_id" property="messageId" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="platform_todo_id" property="platformTodoId" />
+        <result column="system_todo_id" property="systemTodoId" />
+        <result column="platform_message_id" property="platformMessageId" />
+        <result column="system_message_id" property="systemMessageId" />
         <result column="recipient_account_id" property="recipientAccountId" />
+        <result column="recipient_platform_account_id" property="recipientPlatformAccountId" />
+        <result column="recipient_system_member_id" property="recipientSystemMemberId" />
         <result column="status" property="status" />
-        <result column="sent_at" property="sentAt" />
-        <result column="acknowledged_at" property="acknowledgedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="send_time" property="sendTime" />
+        <result column="acknowledge_time" property="acknowledgeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, kpi_result_id, todo_id, message_id, recipient_account_id, `status`, sent_at, acknowledged_at, created_at, updated_at, version
+        id, kpi_result_id, context_type, platform_id, system_id, tenant_id, platform_todo_id, system_todo_id, platform_message_id, system_message_id, recipient_account_id, recipient_platform_account_id, recipient_system_member_id, `status`, send_time, acknowledge_time, create_time, update_time, version
     </sql>
 
 </mapper>

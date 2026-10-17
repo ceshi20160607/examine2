@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 配额周期内的已用和预留计数 Mapper 接口
  * </p>
  *
  * @author Template Base

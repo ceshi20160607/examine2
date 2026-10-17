@@ -1,9 +1,14 @@
 package com.unique.unexamine.file.manage;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.file.base.entity.FileStorageBackend;
-import com.unique.unexamine.shared.manage.security.RuntimeSecretCipher;
+import com.unique.unexamine.operations.base.entity.OpsSecretRef;
+import com.unique.unexamine.operations.base.entity.OpsSecretRotation;
+import com.unique.unexamine.operations.base.service.OpsSecretRefBaseService;
+import com.unique.unexamine.operations.base.service.OpsSecretRotationBaseService;
+import com.unique.unexamine.operations.manage.OperationsSecretCipher;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,7 +28,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -31,15 +38,22 @@ import java.util.UUID;
  */
 @Service
 public class ManagedObjectStore {
+    private static final String CREDENTIAL_PROVIDER = "INTERNAL_ENCRYPTED_FILE_STORAGE";
     private final ObjectMapper objectMapper;
-    private final RuntimeSecretCipher secretCipher;
+    private final OpsSecretRefBaseService secretRefs;
+    private final OpsSecretRotationBaseService secretRotations;
+    private final OperationsSecretCipher secretCipher;
     private final Path storageRoot;
 
     public ManagedObjectStore(
             ObjectMapper objectMapper,
-            RuntimeSecretCipher secretCipher,
+            OpsSecretRefBaseService secretRefs,
+            OpsSecretRotationBaseService secretRotations,
+            OperationsSecretCipher secretCipher,
             @Value("${app.file.storage-root:./data/files}") String storageRoot) {
         this.objectMapper = objectMapper;
+        this.secretRefs = secretRefs;
+        this.secretRotations = secretRotations;
         this.secretCipher = secretCipher;
         this.storageRoot = Path.of(storageRoot).toAbsolutePath().normalize();
     }
@@ -112,8 +126,7 @@ public class ManagedObjectStore {
     private S3Client client(FileStorageBackend backend) {
         try {
             JsonNode configuration = objectMapper.readTree(backend.getConfigJson());
-            JsonNode credential = objectMapper.readTree(secretCipher.decrypt(
-                    backend.getCredentialRef(), credentialBinding(backend)));
+            JsonNode credential = objectMapper.readTree(currentCredentials(backend));
             return S3Client.builder()
                     .endpointOverride(URI.create(backend.getEndpoint()))
                     .region(Region.of(configuration.path("region").asText()))
@@ -132,9 +145,86 @@ public class ManagedObjectStore {
         }
     }
 
-    public String credentialBinding(FileStorageBackend backend) {
-        return "file-storage:" + backend.getContextType() + ":" + backend.getPlatformId() + ":"
-                + backend.getSystemId() + ":" + backend.getCode();
+    /** 文件后端只保存受控密钥引用主键，密文按版本留在密钥轮换记录中。 */
+    public Long saveCredentials(FileStorageBackend backend, String credentialsJson, Long accountId) {
+        OpsSecretRef ref = backend.getCredentialRefId() == null ? null : requireCredentialRef(backend);
+        String nextVersion = ref == null ? "v1" : "v" + (Integer.parseInt(ref.getCurrentVersion().substring(1)) + 1);
+        LocalDateTime now = LocalDateTime.now();
+        if (ref == null) {
+            ref = new OpsSecretRef();
+            ref.setContextType(backend.getContextType());
+            ref.setPlatformId(backend.getPlatformId());
+            ref.setSystemId(backend.getSystemId());
+            ref.setScopeOwnerId(backend.getScopeOwnerId());
+            ref.setSecretCode("FILE_STORAGE_" + backend.getCode());
+            ref.setProvider(CREDENTIAL_PROVIDER);
+            ref.setCurrentVersion(nextVersion);
+            ref.setReferencePath(credentialPath(backend, nextVersion));
+            ref.setStatus("ACTIVE");
+            ref.setVersion(0);
+            secretRefs.insert(ref);
+        }
+        OpsSecretRotation rotation = new OpsSecretRotation();
+        rotation.setSecretRefId(ref.getId());
+        rotation.setFromVersion("v1".equals(nextVersion) ? "NONE" : ref.getCurrentVersion());
+        rotation.setToVersion(nextVersion);
+        rotation.setStatus("ACTIVE");
+        rotation.setVerificationJson(writeCredentialEvidence(secretCipher.encrypt(
+                credentialsJson, ref.getId(), nextVersion)));
+        rotation.setRequestedByAccountId(accountId);
+        rotation.setStartTime(now);
+        rotation.setFinishTime(now);
+        rotation.setVersion(0);
+        secretRotations.insert(rotation);
+        if (!"v1".equals(nextVersion)) {
+            ref.setCurrentVersion(nextVersion);
+            ref.setReferencePath(credentialPath(backend, nextVersion));
+            if (secretRefs.updateById(ref) != 1) {
+                throw new DomainException("FILE_CREDENTIAL_VERSION_CONFLICT", "存储凭证已变化，请刷新后重试", HttpStatus.CONFLICT);
+            }
+        }
+        return ref.getId();
+    }
+
+    /** 仅在创建 S3 客户端时解密当前版本，禁止把访问密钥写回文件配置或日志。 */
+    private String currentCredentials(FileStorageBackend backend) throws IOException {
+        OpsSecretRef ref = requireCredentialRef(backend);
+        OpsSecretRotation rotation = secretRotations.selectList(Wrappers.<OpsSecretRotation>lambdaQuery()
+                .eq(OpsSecretRotation::getSecretRefId, ref.getId())
+                .eq(OpsSecretRotation::getToVersion, ref.getCurrentVersion())
+                .eq(OpsSecretRotation::getStatus, "ACTIVE")
+                .orderByDesc(OpsSecretRotation::getId).last("LIMIT 1")).stream().findFirst().orElse(null);
+        if (rotation == null || rotation.getVerificationJson() == null) {
+            throw new DomainException("FILE_CREDENTIAL_MISSING", "对象存储凭证版本不存在", HttpStatus.CONFLICT);
+        }
+        String encrypted = objectMapper.readTree(rotation.getVerificationJson()).path("materialReference").asText();
+        return secretCipher.decrypt(encrypted, ref.getId(), ref.getCurrentVersion());
+    }
+
+    private OpsSecretRef requireCredentialRef(FileStorageBackend backend) {
+        OpsSecretRef ref = backend.getCredentialRefId() == null ? null : secretRefs.selectById(backend.getCredentialRefId());
+        if (ref == null || !CREDENTIAL_PROVIDER.equals(ref.getProvider()) || !"ACTIVE".equals(ref.getStatus())
+                || !Objects.equals(ref.getContextType(), backend.getContextType())
+                || !Objects.equals(ref.getPlatformId(), backend.getPlatformId())
+                || !Objects.equals(ref.getSystemId(), backend.getSystemId())
+                || !Objects.equals(ref.getScopeOwnerId(), backend.getScopeOwnerId())
+                || !Objects.equals(ref.getSecretCode(), "FILE_STORAGE_" + backend.getCode())) {
+            throw new DomainException("FILE_CREDENTIAL_SCOPE_INVALID", "对象存储凭证不属于当前后端", HttpStatus.CONFLICT);
+        }
+        return ref;
+    }
+
+    private String credentialPath(FileStorageBackend backend, String version) {
+        return "ops-secret://file-storage/" + backend.getContextType().toLowerCase() + "/"
+                + backend.getScopeOwnerId() + "/" + backend.getCode() + "/" + version;
+    }
+
+    private String writeCredentialEvidence(String encrypted) {
+        try {
+            return objectMapper.writeValueAsString(Map.of("materialReference", encrypted, "purpose", "FILE_STORAGE"));
+        } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
+            throw new IllegalStateException("Cannot save file credential reference", exception);
+        }
     }
 
     private Path localPath(String objectKey) {

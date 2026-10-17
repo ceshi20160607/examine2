@@ -71,28 +71,33 @@ class OperationsContinuityHttpTest {
     void backupRestoreUpgradeFailuresPermissionsAndIdempotencyArePersisted() {
         Fixture owner = register("c55_continuity_owner", "c55_continuity_system");
         long releaseId = insertSourceRelease(owner.accountId());
+        Map<String, Object> backupSecret = data(exchange(
+                "/api/admin/system/operations/security-performance/secret-refs", HttpMethod.POST, owner.token(),
+                Map.of("secretCode", "c55.backup", "secretType", "BACKUP", "consumerCodes", List.of("backup-drill"),
+                        "approvalReference", "CAB-C55-SECRET", "confirmation", "CREATE SECRET c55.backup")));
+        String keyPath = String.valueOf(map(backupSecret.get("secretRef")).get("referencePath"));
         String base = "/api/admin/system/operations/continuity";
 
         Map<String, Object> overview = data(exchange(base, HttpMethod.GET, owner.token(), null));
-        assertThat(overview).containsEntry("runtimeDatabaseVersion", "34")
+        assertThat(overview).containsEntry("runtimeDatabaseVersion", "21")
                 .containsEntry("runtimeConfigVersion", "integration-v55");
 
-        Map<String, Object> invalidConsistencyInput = new LinkedHashMap<>(backupRequest(releaseId, 1000, 5000));
+        Map<String, Object> invalidConsistencyInput = new LinkedHashMap<>(backupRequest(releaseId, keyPath, 1000, 5000));
         invalidConsistencyInput.put("consistencyPoint", "2099-01-01T00:00:00Z");
         ResponseEntity<Map> invalidConsistency = exchange(base + "/backups", HttpMethod.POST, owner.token(),
                 invalidConsistencyInput);
         assertThat(invalidConsistency.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(invalidConsistency.getBody()).containsEntry("code", "BACKUP_CONSISTENCY_POINT_INVALID");
-        assertThat(count("ops_backup", "1=1")).isZero();
+        assertThat(count("un_ops_backup", "1=1")).isZero();
 
         ResponseEntity<Map> insufficient = exchange(base + "/backups", HttpMethod.POST, owner.token(),
-                backupRequest(releaseId, 1000, 999));
+                backupRequest(releaseId, keyPath, 1000, 999));
         assertThat(insufficient.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(insufficient.getBody()).containsEntry("code", "BACKUP_INSUFFICIENT_SPACE");
-        assertThat(count("ops_backup", "1=1")).isZero();
+        assertThat(count("un_ops_backup", "1=1")).isZero();
 
         Map<String, Object> backup = data(exchange(base + "/backups", HttpMethod.POST, owner.token(),
-                backupRequest(releaseId, 1000, 5000)));
+                backupRequest(releaseId, keyPath, 1000, 5000)));
         long backupId = number(backup.get("id"));
         assertThat(backup).containsEntry("status", "VERIFIED")
                 .containsEntry("secretMaterialStrategy", "REFERENCE_ONLY_ROTATE_ON_RESTORE")
@@ -105,7 +110,7 @@ class OperationsContinuityHttpTest {
                 HttpMethod.GET, owner.token(), null));
         assertThat(String.valueOf(manifest)).doesNotContain("database-password", "application-secret-value");
         assertThat(String.valueOf(manifest.get("downloadNotice"))).contains("不包含");
-        assertThat(count("audit_event", "event_code='OPERATIONS_BACKUP_MANIFEST_READ' and object_id='" + backupId
+        assertThat(count("un_audit_event", "event_code='OPERATIONS_BACKUP_MANIFEST_READ' and object_id='" + backupId
                 + "' and result_code='SUCCESS'" )).isOne();
 
         ResponseEntity<Map> nonIsolated = exchange(base + "/backups/" + backupId + "/restore-drills",
@@ -116,7 +121,7 @@ class OperationsContinuityHttpTest {
         Map<String, Object> drill = data(exchange(base + "/backups/" + backupId + "/restore-drills",
                 HttpMethod.POST, owner.token(), restoreDrillRequest(backupId, "restore-c55")));
         assertThat(drill).containsEntry("status", "PASSED");
-        assertThat(map(drill.get("verification"))).containsEntry("databaseRestore", "READABLE")
+        assertThat(map(drill.get("verification"))).containsEntry("databaseRestore", "RESTORED")
                 .containsEntry("fileObjects", "EXTRACTED")
                 .containsEntry("secretReferences", "REFERENCE_ONLY_ROTATE_ON_RESTORE")
                 .containsEntry("source", "restore-drill.ps1");
@@ -130,15 +135,12 @@ class OperationsContinuityHttpTest {
         ResponseEntity<Map> blocked = exchange(base + "/upgrades", HttpMethod.POST, owner.token(), conflictInput);
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(blocked.getBody()).containsEntry("code", "UPGRADE_PREFLIGHT_FAILED");
-        assertThat(count("ops_upgrade", "1=1")).isZero();
+        assertThat(count("un_ops_upgrade", "1=1")).isZero();
 
-        Map<String, Object> failed = data(exchange(base + "/upgrades", HttpMethod.POST, owner.token(),
-                upgradeRequest(releaseId, backupId, Map.of("module", "FAIL_DURING_APPLY"), "CAB-C55-002")));
-        assertThat(failed).containsEntry("status", "RECOVERABLE_FAILED");
-        assertThat(list(failed.get("steps"))).hasSize(4).anySatisfy(step ->
-                assertThat(map(step)).containsEntry("stepType", "AUTOMATIC_ROLLBACK")
-                        .containsEntry("status", "ROLLED_BACK"));
-        assertThat(map(failed.get("rollbackPoint"))).containsKeys("completedSteps", "rolledBackSteps", "pendingManualSteps");
+        ResponseEntity<Map> syntheticFailure = exchange(base + "/upgrades", HttpMethod.POST, owner.token(),
+                upgradeRequest(releaseId, backupId, Map.of("module", "FAIL_DURING_APPLY"), "CAB-C55-002"));
+        assertThat(syntheticFailure.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(count("un_ops_upgrade", "1=1")).isZero();
 
         Map<String, Object> successInput = upgradeRequest(releaseId, backupId,
                 Map.of("module", "module-v55", "flow", "flow-v55"), "CAB-C55-003");
@@ -147,14 +149,16 @@ class OperationsContinuityHttpTest {
         assertThat(success).containsEntry("status", "SUCCESS");
         assertThat(list(success.get("steps"))).hasSize(5).allSatisfy(step ->
                 assertThat(map(step)).containsEntry("status", "PASSED"));
+        assertThat(list(success.get("steps"))).anySatisfy(step ->
+                assertThat(map(step)).containsEntry("stepType", "CONFIGURATION_VERSION_CHECK"));
         assertThat(map(success.get("rollbackPoint"))).containsEntry("oldSnapshotInterpretable", true);
         Map<String, Object> repeated = data(exchange(base + "/upgrades", HttpMethod.POST, owner.token(), successInput));
         assertThat(number(repeated.get("id"))).isEqualTo(upgradeId);
-        assertThat(count("ops_upgrade_step", "upgrade_id=" + upgradeId)).isEqualTo(5);
+        assertThat(count("un_ops_upgrade_step", "upgrade_id=" + upgradeId)).isEqualTo(5);
 
-        assertThat(jdbc.queryForObject("select concat(impact_report_json) from ops_upgrade where id=?", String.class, upgradeId))
+        assertThat(jdbc.queryForObject("select concat(impact_report_json) from un_ops_upgrade where id=?", String.class, upgradeId))
                 .contains("CAB-C55-003").contains("module-v55");
-        assertThat(count("audit_event", "event_code in ('OPERATIONS_BACKUP_BLOCKED','OPERATIONS_BACKUP_VERIFIED',"
+        assertThat(count("un_audit_event", "event_code in ('OPERATIONS_BACKUP_BLOCKED','OPERATIONS_BACKUP_VERIFIED',"
                 + "'OPERATIONS_BACKUP_MANIFEST_READ','OPERATIONS_RESTORE_DRILL_COMPLETED',"
                 + "'OPERATIONS_UPGRADE_BLOCKED','OPERATIONS_UPGRADE_EXECUTED')"))
                 .isEqualTo(8);
@@ -162,12 +166,12 @@ class OperationsContinuityHttpTest {
         revokePermissions(owner);
         ResponseEntity<Map> denied = exchange(base, HttpMethod.GET, owner.token(), null);
         assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(count("audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:BACKUP:READ'")).isOne();
+        assertThat(count("un_audit_event", "event_code='PERMISSION_CHECK' and object_id='OPERATIONS:BACKUP:READ'")).isOne();
     }
 
-    private Map<String, Object> backupRequest(long releaseId, long required, long available) {
+    private Map<String, Object> backupRequest(long releaseId, String keyPath, long required, long available) {
         return Map.of("sourceReleaseId", releaseId, "backupType", "FULL", "consistencyPoint", "2026-08-31T08:00:00Z",
-                "encryptionKeyReference", "kms://unexamine/backup/c55", "confirmation", "BACKUP " + releaseId, "retentionDays", 30,
+                "encryptionKeyReference", keyPath, "confirmation", "BACKUP " + releaseId, "retentionDays", 30,
                 "requiredBytes", required, "availableBytes", available, "items", List.of(
                         artifact("DATABASE", "backup://c55/database.sql.zst", 500, HASH_A),
                         artifact("FILE_STORAGE", "backup://c55/files.zip", 300, HASH_B),
@@ -185,7 +189,11 @@ class OperationsContinuityHttpTest {
         verification.put("backupId", backupId);
         verification.put("environment", environment);
         verification.put("status", "PASSED");
-        verification.put("databaseRestore", "READABLE");
+        verification.put("databaseRestore", "RESTORED");
+        verification.put("restoredDatabaseVersion", "21");
+        verification.put("restoredTableCount", 188);
+        verification.put("targetDatabaseName", "unexamine_drill_restore_c55");
+        verification.put("targetHost", "127.0.0.1");
         verification.put("fileObjects", "EXTRACTED");
         verification.put("configurationVersion", "integration-v54");
         verification.put("secretReferences", "REFERENCE_ONLY_ROTATE_ON_RESTORE");
@@ -205,19 +213,19 @@ class OperationsContinuityHttpTest {
     }
 
     private Map<String, Object> upgradeRequest(long releaseId, long backupId, Map<String, String> mapping, String approval) {
-        return Map.of("releaseId", releaseId, "backupId", backupId, "sourceDatabaseVersion", "34",
-                "targetDatabaseVersion", "34", "sourceConfigVersion", "integration-v54",
+        return Map.of("releaseId", releaseId, "backupId", backupId, "sourceDatabaseVersion", "21",
+                "targetDatabaseVersion", "21", "sourceConfigVersion", "integration-v54",
                 "targetConfigVersion", "integration-v55", "approvalReference", approval,
                 "confirmation", "UPGRADE " + releaseId + " WITH BACKUP " + backupId,
                 "configurationMapping", mapping);
     }
 
     private long insertSourceRelease(long accountId) {
-        jdbc.update("insert into ops_release(version_name,artifact_hash,database_version,config_version,compatibility_json,"
+        jdbc.update("insert into un_ops_release(version_name,artifact_hash,database_version,config_version,compatibility_json,"
                         + "release_notes,status,created_by_account_id) values (?,?,?,?,cast(? as json),?,?,?)",
-                "0.1.0-C54", HASH_A, "34", "integration-v54", "{\"frontendVersion\":\"0.1.0-C54\"}",
+                "0.1.0-C54", HASH_A, "21", "integration-v54", "{\"frontendVersion\":\"0.1.0-C54\"}",
                 "C55 upgrade source", "REGISTERED", accountId);
-        return jdbc.queryForObject("select id from ops_release where version_name='0.1.0-C54'", Long.class);
+        return jdbc.queryForObject("select id from un_ops_release where version_name='0.1.0-C54'", Long.class);
     }
 
     private Fixture register(String username, String systemCode) {
@@ -225,18 +233,18 @@ class OperationsContinuityHttpTest {
                 "username", username, "password", "correct-password", "displayName", "C55 连续性管理员",
                 "email", username + "@example.com", "systemName", "C55 连续性系统", "systemCode", systemCode));
         Map<String, Object> result = data(registration);
-        long accountId = jdbc.queryForObject("select id from plat_account where username=?", Long.class, username);
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username=?", Long.class, username);
         return new Fixture(accountId, number(result.get("systemId")), number(result.get("tenantId")),
                 String.valueOf(map(result.get("tokens")).get("accessToken")));
     }
 
     private void revokePermissions(Fixture fixture) {
-        jdbc.update("delete rp from sys_role_permission rp join sys_member_role mr on mr.role_id=rp.role_id "
-                        + "and mr.tenant_id=rp.tenant_id join sys_tenant_member tm on tm.id=mr.tenant_member_id "
-                        + "and tm.tenant_id=mr.tenant_id join sys_member sm on sm.id=tm.system_member_id "
+        jdbc.update("delete rp from un_sys_role_permission rp join un_sys_member_role mr on mr.role_id=rp.role_id "
+                        + "and mr.tenant_id=rp.tenant_id join un_sys_tenant_member tm on tm.id=mr.tenant_member_id "
+                        + "and tm.tenant_id=mr.tenant_id join un_sys_member sm on sm.id=tm.system_member_id "
                         + "and sm.system_id=tm.system_id where sm.account_id=? and sm.system_id=? and tm.tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
-        jdbc.update("update auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
+        jdbc.update("update un_auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
     }
 

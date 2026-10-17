@@ -9,41 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 触发时的最终生效绑定解析
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_binding_resolution")
+@TableName("un_flow_binding_resolution")
 public class FlowBindingResolution {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统ID
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 实际运行租户ID
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 关联业务模块ID
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 模块业务触发事件编码
+     */
     @TableField("trigger_event")
     private String triggerEvent;
 
+    /**
+     * 命中的流程绑定ID
+     */
     @TableField("binding_id")
     private Long bindingId;
 
+    /**
+     * 固定的流程发布版本ID
+     */
     @TableField("flow_version_id")
     private Long flowVersionId;
 
+    /**
+     * 默认继承或租户覆盖原因
+     */
     @TableField("resolution_reason")
     private String resolutionReason;
 
-    @TableField("resolved_at")
-    private LocalDateTime resolvedAt;
+    /**
+     * 绑定解析时间
+     */
+    @TableField("resolve_time")
+    private LocalDateTime resolveTime;
 
     public Long getId() {
         return id;
@@ -109,12 +136,12 @@ public class FlowBindingResolution {
         this.resolutionReason = resolutionReason;
     }
 
-    public LocalDateTime getResolvedAt() {
-        return resolvedAt;
+    public LocalDateTime getResolveTime() {
+        return resolveTime;
     }
 
-    public void setResolvedAt(LocalDateTime resolvedAt) {
-        this.resolvedAt = resolvedAt;
+    public void setResolveTime(LocalDateTime resolveTime) {
+        this.resolveTime = resolveTime;
     }
 
     @Override
@@ -128,7 +155,7 @@ public class FlowBindingResolution {
             ", bindingId = " + bindingId +
             ", flowVersionId = " + flowVersionId +
             ", resolutionReason = " + resolutionReason +
-            ", resolvedAt = " + resolvedAt +
+            ", resolveTime = " + resolveTime +
             "}";
     }
 }

@@ -1,0 +1,43 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "admin_role_revoked_and_restored",
+  "before": {
+    "overviewStatus": 200,
+    "previewStatus": 200,
+    "roleId": 7,
+    "memberId": 7,
+    "memberRoleIds": [
+      7
+    ],
+    "permissionVersion": 12,
+    "messageViewAllowed": true,
+    "contributingRoleIds": [
+      7
+    ]
+  },
+  "revoked": {
+    "overviewStatus": 200,
+    "previewStatus": 200,
+    "roleId": 7,
+    "memberId": 7,
+    "memberRoleIds": [],
+    "permissionVersion": 13,
+    "messageViewAllowed": false,
+    "contributingRoleIds": []
+  },
+  "restored": {
+    "overviewStatus": 200,
+    "previewStatus": 200,
+    "roleId": 7,
+    "memberId": 7,
+    "memberRoleIds": [
+      7
+    ],
+    "permissionVersion": 14,
+    "messageViewAllowed": true,
+    "contributingRoleIds": [
+      7
+    ]
+  }
+}

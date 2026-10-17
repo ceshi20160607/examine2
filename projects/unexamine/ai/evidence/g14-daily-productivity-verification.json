@@ -1,0 +1,30 @@
+{
+  "integration_gate": "G14_DAILY_PRODUCTIVITY",
+  "status": "verified",
+  "source": "docs/user_requirement.md#14.14",
+  "business_journey": "成员通过全局搜索、最近访问、收藏菜单和快捷创建进入当前有权模块及记录，再保存列表、筛选和表单草稿，错误字段可定位，移动端可扫码或拍照上传。",
+  "contributions": [
+    "projects/unexamine/ai/evidence/s14-daily-entry-verification.json",
+    "projects/unexamine/ai/evidence/s14-personal-workspace-verification.json",
+    "projects/unexamine/ai/evidence/s14-mobile-capture-verification.json"
+  ],
+  "integrated_checks": [
+    "Owner in system #151 searched record #151 in the command center, favorited and opened it, then saw it in favorites and recent items.",
+    "Published module #78 showed record #151 in the owner's saved default view #8 with QR value and photo column; title filter returned one record after restart.",
+    "Quick create restored an unfinished draft, focused the duplicate external-code field on save failure, and saved corrected record #153; a new form then had no stale draft.",
+    "Record #151 QR value G14-SCAN-QR-151 and clean image file #148 matched the mobile form, detail, API and MySQL after backend restart.",
+    "Owner record and view endpoints returned 200; viewer and unrelated account record endpoints returned 403, viewer file endpoint returned 403, and their command centers exposed no record #151.",
+    "Backend Java 21 build, frontend vue-tsc/Vite build, workspace validation and diff check passed; a later route-state regression was fixed and rechecked in the recycled and default views.",
+    "After clearing an explicit route filter, recycle bin record #154 remained visible after reload; with no list query parameters, default view #8 still restored record #151."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g14-integrated-command-center.png",
+    "projects/unexamine/ai/evidence/g14-integrated-view.png",
+    "projects/unexamine/ai/evidence/g14-integrated-draft-error.png",
+    "projects/unexamine/ai/evidence/g14-integrated-restart.png",
+    "projects/unexamine/ai/evidence/s15-record-restart.png",
+    "projects/unexamine/ai/evidence/s15-g14-view-regression.png"
+  ],
+  "remaining": "G14 was exercised in a narrow browser viewport with scan/photo fixtures; a physical device camera was not exercised. Other product requirements and live third-party integrations remain unfinished.",
+  "next_step": "S15.1"
+}

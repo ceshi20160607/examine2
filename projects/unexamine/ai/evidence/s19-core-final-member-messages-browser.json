@@ -1,0 +1,14 @@
+{
+  "status": "desktop_mobile_member_messages_visible",
+  "desktop": {
+    "url": "http://127.0.0.1:15173/systems/1?workspace=messages",
+    "total": 3,
+    "text": "流程已完成：S19 上海客户 · 审批未读2026/10/16 17:41流程已到达结束节点，业务结果和完整处理历史可以在流程运行页查看。流程 · 发起人 s19_member · 点击查看关联内容标为已读归 档",
+    "denied": false
+  },
+  "mobile": {
+    "viewport": 390,
+    "total": 3,
+    "text": "流程已完成：S19 上海客户 · 审批未读2026/10/16 17:41流程已到达结束节点，业务结果和完整处理历史可以在流程运行页查看。流程 · 发起人 s19_member · 点击查看关联内容标为已读归 档"
+  }
+}

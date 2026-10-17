@@ -1,0 +1,17 @@
+{
+  "step": "S19.6",
+  "candidate": "0.1.0-s19.6-dev2",
+  "mode": "isolated-local-idp",
+  "providerId": 6,
+  "versionId": 6,
+  "providerCode": "s19-saml2",
+  "draftHidden": true,
+  "preflightStatus": "PASSED",
+  "publishedStatus": "PUBLISHED",
+  "loginEntryVisible": true,
+  "systemId": 5,
+  "tenantId": 5,
+  "systemMappingAction": "BIND_EXISTING_MEMBER",
+  "systemMappingStatus": "SUCCEEDED",
+  "idpBoundary": "Local signed SAML2 Response fixture; no enterprise IdP credentials or connection claimed."
+}

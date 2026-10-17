@@ -21,25 +21,37 @@ interface PlatformAdminNavigationItem {
 
 const allNavigation: PlatformAdminNavigationItem[] = [
   { key: 'platform-info', path: '/platform/admin/configurations', category: 'PLATFORM_INFO', capability: 'configuration', label: '平台信息', description: '平台资料与全局规则' },
-  { key: 'identity', path: '/platform/admin/identity-providers', capability: 'identity', label: '统一认证', description: '身份源、测试与发布' },
-  { key: 'organization', path: '/platform/admin/configurations', category: 'ORGANIZATION', capability: 'configuration', label: '组织架构', description: '平台成员与组织关系' },
-  { key: 'authorization', path: '/platform/admin/configurations', category: 'AUTHORIZATION', capability: 'configuration', label: '角色权限', description: '平台角色与访问范围' },
+  { key: 'organization', path: '/platform/admin/configurations', category: 'ORGANIZATION', capability: 'organization', label: '组织架构', description: '平台成员与组织关系' },
+  { key: 'authorization', path: '/platform/admin/configurations', category: 'AUTHORIZATION', capability: 'authorization', label: '角色权限', description: '平台角色与访问范围' },
   { key: 'dictionary', path: '/platform/admin/configurations', category: 'DICTIONARY', capability: 'configuration', label: '数据字典', description: '平台公共基础数据' },
   { key: 'systems', path: '/platform/admin/configurations', category: 'SYSTEM', capability: 'configuration', label: '系统配置', description: '系统创建与全局策略' },
-  { key: 'parameters', path: '/platform/admin/configurations', category: 'BUSINESS_PARAMETER', capability: 'configuration', label: '业务参数', description: '平台参数与首页配置' },
-  { key: 'work', path: '/platform/admin/work', capability: 'work', label: '工作配置', description: '任务、日志字段与统计口径' },
+  { key: 'parameters', path: '/platform/admin/configurations', category: 'BUSINESS_PARAMETER', capability: 'configuration', label: '其他业务参数', description: '平台参数、首页、消息与工作配置' },
   { key: 'flow', path: '/platform/admin/flows', capability: 'flow', label: '流程配置', description: '平台流程设计与发布' },
   { key: 'applications', path: '/platform/admin/applications', capability: 'application', label: '应用配置', description: '平台应用与访问授权' },
-  { key: 'ai', path: '/platform/admin/ai', capability: 'ai', label: '智能助手配置', description: '模型、额度与系统授权' },
-  { key: 'messages', path: '/platform/admin/messages', capability: 'message', label: '消息模板', description: '模板、渠道与投递诊断' },
-  { key: 'audit', path: '/platform/admin/configurations', category: 'AUDIT', capability: 'configuration', label: '审计日志', description: '平台关键操作记录' },
+  { key: 'ai', path: '/platform/admin/ai', capability: 'ai', label: '智能助手配置', description: '平台模型、系统授权与 Agent' },
+  { key: 'audit', path: '/platform/admin/configurations', category: 'AUDIT', capability: 'audit', label: '审计日志', description: '平台关键操作记录' },
   { key: 'operations', path: '/platform/admin/configurations', category: 'OPERATIONS', capability: 'configuration', label: '运维配置', description: '平台运行与健康策略' },
 ]
-const navigation = computed(() => allNavigation.filter(item => hasPlatformAdminCapability(platformContext.value?.permissions, item.capability)))
+const navigation = computed(() => allNavigation.flatMap(item => {
+  const permissions = platformContext.value?.permissions
+  if (item.key === 'platform-info') {
+    if (hasPlatformAdminCapability(permissions, 'configuration')) return [item]
+    return hasPlatformAdminCapability(permissions, 'identity')
+      ? [{ ...item, path: '/platform/admin/identity-providers', category: undefined }] : []
+  }
+  if (item.key === 'parameters') {
+    if (hasPlatformAdminCapability(permissions, 'configuration')) return [item]
+    if (hasPlatformAdminCapability(permissions, 'work')) return [{ ...item, path: '/platform/admin/work', category: undefined }]
+    return hasPlatformAdminCapability(permissions, 'message')
+      ? [{ ...item, path: '/platform/admin/messages', category: undefined }] : []
+  }
+  return hasPlatformAdminCapability(permissions, item.capability) ? [item] : []
+}))
 
 function isActive(item: PlatformAdminNavigationItem) {
+  if (item.key === 'platform-info' && route.path === '/platform/admin/identity-providers') return true
+  if (item.key === 'parameters' && ['/platform/admin/dashboards', '/platform/admin/work', '/platform/admin/messages'].includes(route.path)) return true
   if (item.category) {
-    if (route.path === '/platform/admin/dashboards') return item.category === 'BUSINESS_PARAMETER'
     return route.path === item.path && String(route.query.category || 'PLATFORM_INFO') === item.category
   }
   return route.path === item.path

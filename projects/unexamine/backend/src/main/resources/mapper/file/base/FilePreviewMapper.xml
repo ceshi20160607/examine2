@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.file.base.mapper.FilePreviewMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.file.base.entity.FilePreview">
+        <id column="id" property="id" />
+        <result column="source_file_id" property="sourceFileId" />
+        <result column="preview_file_id" property="previewFileId" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="preview_format" property="previewFormat" />
+        <result column="status" property="status" />
+        <result column="failure_code" property="failureCode" />
+        <result column="created_time" property="createdTime" />
+        <result column="completed_time" property="completedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, source_file_id, preview_file_id, context_type, platform_id, system_id, tenant_id, preview_format, `status`, failure_code, created_time, completed_time
+    </sql>
+
+</mapper>

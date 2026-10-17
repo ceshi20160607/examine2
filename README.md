@@ -12,7 +12,7 @@ Start here:
 
 - `docs/user_requirement.md`: product requirement source
 - `projects/unexamine/ai/requirements/requirement-intake.json`: deterministic requirement block index
-- `projects/unexamine/ai/status/project-status.json`: computed project state and scheduling availability
+- `projects/unexamine/ai/planning/spark-state.json`: current bounded task, dependencies and integrated acceptance status
 - `workspace.json`: enforced active-project and template boundary
 
 Important rule:
@@ -22,5 +22,5 @@ Important rule:
 - base persistence code should be generated after schema planning
 - business behavior is coded explicitly above the generated base layer
 - progress comes from accepted outcome evidence, never file or commit counts
-- stages and four-hour cycles are computed only after atomic tasks and dependencies are complete; they are never guessed from old code
+- each task packet is estimated at no more than 240 minutes and accepted through actual business outcomes
 - no historical implementation is part of this workspace; requirements come only from `docs/user_requirement.md`

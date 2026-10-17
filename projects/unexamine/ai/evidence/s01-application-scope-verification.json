@@ -1,0 +1,43 @@
+{
+  "step": "S01.3",
+  "status": "verified_contribution",
+  "integration_gate": "G3_DASHBOARD_APPLICATION_AGENT",
+  "source_rows": ["R0408", "R0417", "R0852", "R2864", "R2940", "R2941"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiModelGateway.java",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/application/manage/ApplicationScopeHttpTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java"
+  ],
+  "checks_actual_results": [
+    "系统应用按系统成员及部门配置并发布模块 LIST/CREATE 权限；签名调用在所选成员角色撤销后仍读到两名有效负责人的数据，缺少负责人和创建人的新记录写入当前系统所属人，主记录、自定义字段及应用来源审计同时读回。",
+    "平台应用从平台组织目录选择成员和部门，发布平台 Flow 与应用固定版本；撤销所选人员的平台角色后，应用签名调用仍成功创建 Flow 实例并持久化；所选平台部门停用时返回 APPLICATION_SCOPE_DEPARTMENT_INACTIVE。",
+    "系统应用所选账号停用时只排除其负责的数据；所选系统部门停用时整次调用返回 APPLICATION_SCOPE_DEPARTMENT_INACTIVE；所有所选负责人都失效时返回 APPLICATION_SCOPE_EMPTY。部门范围在调用时展开有效负责人，避免部门条件再次放行停用账号的数据。",
+    "清理旧 AppBridgeIdentity 运行依赖及角色求交集审计标记；保留发布授权、签名、幂等、限流、失败保护和目标版本冻结。旧应用验收改用负责人范围，模块测试夹具走真实配置发布，限流断言读取未被 HTTP 客户端重试覆盖的原始 429。",
+    "Testcontainers 应用范围 HTTP 用例 2 个及旧应用安全定向用例 3 个通过，失败 0、错误 0；Java 21 后端 package、前端 vue-tsc/Vite build、workspace-validate、git diff --check 通过。预览容器重启后健康接口 HTTP 200，后台应用配置页面重开可用。"
+  ],
+  "readback": [
+    "projects/unexamine/backend/target/surefire-reports/TEST-com.unique.unexamine.application.manage.ApplicationScopeHttpTest.xml",
+    "projects/unexamine/backend/target/surefire-reports/TEST-com.unique.unexamine.flow.manage.FlowAndWorkManagementHttpTest.xml",
+    "projects/unexamine/ai/evidence/s01-3-application-admin-after-restart.png"
+  ],
+  "permission_or_failure_result": "应用授权只取已发布动作和实时有效的所选负责人范围；撤销人员角色不影响应用，停用账号被排除，停用所选部门及空有效范围返回 403；签名错误、重放、范围扩大、限流与失败保护在定向验收中仍按预期拒绝。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java", "sha256": "42dc1bcb829e3945665419f4665fec3cc3f4e72767b9c8937986fa70ea3b36dd"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java", "sha256": "69414db086f6b1415b9ca7cda86545f2ff562d79f96cb41d8de61561f95467f9"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java", "sha256": "5652f3956e14c412af02479c7aa006873c0b1b740413a1b6f88b0ea14681c451"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/dataexchange/manage/ModuleImportService.java", "sha256": "a4645589080ea5243ab6871702914fbdb10b1572688e99f4fcab62152db7a57d"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/RuntimeDataCommandExtension.java", "sha256": "278ce1c47ef242ce2872fbb4af6cca413efa3dcfcc73651775a4bd5243ea1e5b"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiModelGateway.java", "sha256": "6dd0d0221b1ac8be4e930ea47232f0d428401b0a3858a17640411ad9c008b95d"},
+    {"path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue", "sha256": "bb849ee29be6957949cd412caeb12f4d5d1b4a2e1cfab7338c9d9f045ede3893"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/application/manage/ApplicationScopeHttpTest.java", "sha256": "fe45532ca2a3e70e20c5c5540cbb224fdd44d3aad2f40cb7ca2d9c1ef7d37026"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/flow/manage/FlowAndWorkManagementHttpTest.java", "sha256": "7e6b58224eb1a0a070c1935f796a6d46d76e32a897b3bbf9dd8ac0ac77b86ef0"}
+  ],
+  "remaining": "G3 仍需在同一预览系统完成仪表盘数值及下钻、已发布应用授权变化、Agent 人工确认写入的组合页面和持久化验收。外部依赖及整站验收仍未完成。",
+  "next_step": "S03.1"
+}

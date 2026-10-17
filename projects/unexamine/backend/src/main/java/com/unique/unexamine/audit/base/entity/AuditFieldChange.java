@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变的业务字段变更前后值
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("audit_field_change")
+@TableName("un_audit_field_change")
 public class AuditFieldChange {
 
+    /**
+     * 字段变更审计主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 对应的操作审计事件主键
+     */
     @TableField("audit_event_id")
     private Long auditEventId;
 
+    /**
+     * 发生变更的业务字段编码
+     */
     @TableField("field_code")
     private String fieldCode;
 
+    /**
+     * 字段值的数据类型
+     */
     @TableField("value_type")
     private String valueType;
 
+    /**
+     * 变更前字段值，敏感信息须脱敏
+     */
     @TableField("before_value_json")
     private String beforeValueJson;
 
+    /**
+     * 变更后字段值，敏感信息须脱敏
+     */
     @TableField("after_value_json")
     private String afterValueJson;
 
+    /**
+     * 字段值敏感等级
+     */
     @TableField("sensitivity")
     private String sensitivity;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 字段变更审计记录时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -98,12 +122,12 @@ public class AuditFieldChange {
         this.sensitivity = sensitivity;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -116,7 +140,7 @@ public class AuditFieldChange {
             ", beforeValueJson = " + beforeValueJson +
             ", afterValueJson = " + afterValueJson +
             ", sensitivity = " + sensitivity +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

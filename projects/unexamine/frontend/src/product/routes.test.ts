@@ -7,12 +7,13 @@ vi.mock('./api', async importOriginal => ({ ...await importOriginal<typeof impor
 beforeEach(() => {
   // 本文件在Node环境执行，提供会话存储夹具，校验授权刷新而非依赖浏览器全局。
   vi.stubGlobal('sessionStorage', { setItem: vi.fn(), removeItem: vi.fn(), getItem: vi.fn() })
-  vi.mocked(api).mockReset().mockImplementation(async () => platformContext.value)
+  vi.mocked(api).mockReset().mockImplementation(async () =>
+    systemTokens.value && !platformTokens.value ? systemContext.value : platformContext.value)
 })
 
 const tokens: SessionTokens = {
   accessToken: 'access', refreshToken: 'refresh',
-  accessExpiresAt: '2099-01-01T00:00:00', refreshExpiresAt: '2099-01-02T00:00:00',
+  accessExpireTime: '2099-01-01T00:00:00', refreshExpireTime: '2099-01-02T00:00:00',
 }
 const context = (permissions: CurrentContext['permissions'], systemId: number | null = null): CurrentContext => ({
   accountId: 1, platformId: 1, systemId, tenantId: systemId, memberId: systemId,
@@ -108,6 +109,26 @@ describe('product route guards', () => {
 
     systemContext.value = context([{ resourceType: 'APPLICATION', resourceCode: 'SYSTEM', actionCode: 'VIEW' }], 7)
     expect(await runGuard('system-admin', { systemId: '7' })).toBe(true)
+
+    systemContext.value = context([{ resourceType: 'AI', resourceCode: 'SYSTEM', actionCode: 'VIEW' }], 7)
+    expect(await runGuard('system-admin', { systemId: '7' })).toEqual({ path: '/systems/7', query: { notice: 'access-denied' } })
+    systemContext.value = context([{ resourceType: 'AI', resourceCode: 'SYSTEM', actionCode: 'MANAGE' }], 7)
+    expect(await runGuard('system-admin', { systemId: '7' })).toBe(true)
+
+  })
+
+  it('refreshes system grants before navigation and hides a revoked administration entry', async () => {
+    systemTokens.value = tokens
+    systemContext.value = { ...context([{ resourceType: 'CONFIG', resourceCode: 'SYSTEM', actionCode: 'MANAGE' }], 7),
+      contextRevision: 'before-revocation' }
+    ;(sessionStorage as unknown as Record<string, unknown>)['unexamine.system.cache.private-list'] = 'cached'
+    vi.mocked(api).mockResolvedValueOnce(context([], 7))
+    expect(await runGuard('system-admin', { systemId: '7' })).toEqual({
+      path: '/systems/7', query: { notice: 'access-denied' },
+    })
+    expect(systemContext.value?.permissions).toEqual([])
+    expect(systemContext.value?.contextRevision).not.toBe('before-revocation')
+    expect(sessionStorage.removeItem).toHaveBeenCalledWith('unexamine.system.cache.private-list')
   })
 
   it('opens the platform home from root when authenticated and keeps invalid paths in the right workspace', async () => {

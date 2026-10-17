@@ -1,0 +1,40 @@
+{
+  "backupId": 5,
+  "environment": "s17-drill",
+  "status": "PASSED",
+  "databaseRestore": "RESTORED",
+  "restoredDatabaseVersion": "21",
+  "restoredTableCount": 189,
+  "targetDatabaseName": "unexamine_drill_s17_v21_config",
+  "targetHost": "127.0.0.1",
+  "fileObjects": "EXTRACTED",
+  "configurationVersion": "local-v2",
+  "secretReferences": "REFERENCE_ONLY_ROTATE_ON_RESTORE",
+  "verifiedAt": "2026-10-10T19:36:06.3194335+08:00",
+  "items": [
+    {
+      "itemType": "DATABASE",
+      "sizeBytes": 11452140,
+      "sha256": "78c151842b5fc63d3e6afca96b3f7601059d2a8bb4a973f5308b064aabdbbcc4",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "FILE_STORAGE",
+      "sizeBytes": 169,
+      "sha256": "d49f2ecd1db18ae311b726cf39c7f8c88ab79bd4ca70c01d8e8c09b79f94b06f",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "CONFIGURATION",
+      "sizeBytes": 339,
+      "sha256": "6ae369d13428d2a0428ce7c0d5d67978786c997b1cb19f61ad5fa55f1871eea8",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "SECRET_REFERENCES",
+      "sizeBytes": 252,
+      "sha256": "08d2bf58c28e6883aac9ca20361f3fe9613b2776c81427c2d52ef5f67140fee1",
+      "verificationStatus": "VERIFIED"
+    }
+  ]
+}

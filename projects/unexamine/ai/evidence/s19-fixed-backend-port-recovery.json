@@ -1,0 +1,13 @@
+{
+  "step": "S19.9",
+  "candidate": "0.1.0-s19.9-dev1",
+  "backupId": 200,
+  "drillStatus": "PASSED",
+  "targetDatabase": "unexamine_drill_s19_fixed_port_v4",
+  "flywayVersion": 23,
+  "tableCount": 191,
+  "sourceMarkerSha256": "1b4f7aaa879a5317cd59a50d0a6a4d9af27946caa5a2e605b082d6462c2d0bdd",
+  "restoredMarkerSha256": "1b4f7aaa879a5317cd59a50d0a6a4d9af27946caa5a2e605b082d6462c2d0bdd",
+  "backupItemsVerified": true,
+  "restoredSystemCount": 1
+}

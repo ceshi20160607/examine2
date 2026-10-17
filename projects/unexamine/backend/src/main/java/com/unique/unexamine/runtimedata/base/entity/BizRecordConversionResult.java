@@ -9,32 +9,56 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 一次转化创建的目标记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_record_conversion_result")
+@TableName("un_biz_record_conversion_result")
 public class BizRecordConversionResult {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属转化执行记录主键
+     */
     @TableField("conversion_id")
     private Long conversionId;
 
+    /**
+     * 来源和目标记录共同所属的数据租户
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 目标业务记录所属模块
+     */
     @TableField("target_module_id")
     private Long targetModuleId;
 
+    /**
+     * 目标业务记录主键
+     */
     @TableField("target_record_id")
     private Long targetRecordId;
 
+    /**
+     * 目标记录在转化结果中的类型
+     */
     @TableField("result_type")
     private String resultType;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -50,6 +74,14 @@ public class BizRecordConversionResult {
 
     public void setConversionId(Long conversionId) {
         this.conversionId = conversionId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public Long getTargetModuleId() {
@@ -76,12 +108,12 @@ public class BizRecordConversionResult {
         this.resultType = resultType;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -89,10 +121,11 @@ public class BizRecordConversionResult {
         return "BizRecordConversionResult{" +
             "id = " + id +
             ", conversionId = " + conversionId +
+            ", tenantId = " + tenantId +
             ", targetModuleId = " + targetModuleId +
             ", targetRecordId = " + targetRecordId +
             ", resultType = " + resultType +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

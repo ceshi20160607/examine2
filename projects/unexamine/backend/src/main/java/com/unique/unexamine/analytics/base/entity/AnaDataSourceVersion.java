@@ -9,38 +9,74 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变数据源发布版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ana_data_source_version")
+@TableName("un_ana_data_source_version")
 public class AnaDataSourceVersion {
 
+    /**
+     * 数据源发布版本主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属数据源主键
+     */
     @TableField("data_source_id")
     private Long dataSourceId;
 
+    /**
+     * 发布时固定的归属层级
+     */
+    @TableField("scope_type")
+    private String scopeType;
+
+    /**
+     * 发布时固定的归属主体主键
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 递增发布版本号
+     */
     @TableField("version_number")
     private Integer versionNumber;
 
+    /**
+     * 发布时采用的草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 数据源发布快照的 SHA-256 摘要
+     */
     @TableField("definition_hash")
     private String definitionHash;
 
+    /**
+     * 不可变的数据源定义、输出字段与权限口径快照
+     */
     @TableField("snapshot_json")
     private String snapshotJson;
 
+    /**
+     * 发布者账号主键
+     */
     @TableField("published_by_account_id")
     private Long publishedByAccountId;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 发布时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
     public Long getId() {
         return id;
@@ -56,6 +92,22 @@ public class AnaDataSourceVersion {
 
     public void setDataSourceId(Long dataSourceId) {
         this.dataSourceId = dataSourceId;
+    }
+
+    public String getScopeType() {
+        return scopeType;
+    }
+
+    public void setScopeType(String scopeType) {
+        this.scopeType = scopeType;
+    }
+
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
     }
 
     public Integer getVersionNumber() {
@@ -98,12 +150,12 @@ public class AnaDataSourceVersion {
         this.publishedByAccountId = publishedByAccountId;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     @Override
@@ -111,12 +163,14 @@ public class AnaDataSourceVersion {
         return "AnaDataSourceVersion{" +
             "id = " + id +
             ", dataSourceId = " + dataSourceId +
+            ", scopeType = " + scopeType +
+            ", scopeOwnerId = " + scopeOwnerId +
             ", versionNumber = " + versionNumber +
             ", draftRevision = " + draftRevision +
             ", definitionHash = " + definitionHash +
             ", snapshotJson = " + snapshotJson +
             ", publishedByAccountId = " + publishedByAccountId +
-            ", publishedAt = " + publishedAt +
+            ", publishTime = " + publishTime +
             "}";
     }
 }

@@ -1,0 +1,422 @@
+{
+  "step": "S18.6",
+  "checkedTime": "2026-10-12T17:42:46+08:00",
+  "systemId": 165,
+  "moduleCode": "module_9e79cfdee4",
+  "sourceIds": [
+    8,
+    9
+  ],
+  "dashboardId": 2,
+  "users": {
+    "owner": {
+      "group": {
+        "value": "1509.50000000",
+        "groups": [
+          {
+            "key": "笔记本",
+            "label": "笔记本",
+            "value": "89.50000000",
+            "rowCount": 1
+          },
+          {
+            "key": "打印纸补充",
+            "label": "打印纸补充",
+            "value": "70.00000000",
+            "rowCount": 1
+          },
+          {
+            "key": "打印纸",
+            "label": "打印纸",
+            "value": "150.00000000",
+            "rowCount": 1
+          },
+          {
+            "key": "笔记本电脑",
+            "label": "笔记本电脑",
+            "value": "1200.00000000",
+            "rowCount": 1
+          }
+        ],
+        "recordIds": [
+          174,
+          173,
+          172,
+          171
+        ],
+        "publishedVersion": 1
+      },
+      "trend": {
+        "value": "1509.50000000",
+        "groups": [
+          {
+            "key": "2026-10-09",
+            "label": "2026-10-09",
+            "value": "89.50000000",
+            "rowCount": 1
+          },
+          {
+            "key": "2026-10-10",
+            "label": "2026-10-10",
+            "value": "1420.00000000",
+            "rowCount": 3
+          }
+        ],
+        "recordIds": [
+          174,
+          173,
+          172,
+          171
+        ],
+        "publishedVersion": 2
+      },
+      "dashboard": {
+        "versionId": 5,
+        "versionNumber": 3,
+        "charts": [
+          {
+            "key": "s18_item_chart",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "笔记本",
+                "value": "89.50000000",
+                "filter": {
+                  "value": "笔记本",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "打印纸补充",
+                "value": "70.00000000",
+                "filter": {
+                  "value": "打印纸补充",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "打印纸",
+                "value": "150.00000000",
+                "filter": {
+                  "value": "打印纸",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "笔记本电脑",
+                "value": "1200.00000000",
+                "filter": {
+                  "value": "笔记本电脑",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              }
+            ]
+          },
+          {
+            "key": "s18_daily_trend",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "2026-10-09",
+                "value": "89.50000000",
+                "filter": null,
+                "filters": [
+                  {
+                    "value": "2026-10-09T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "GTE"
+                  },
+                  {
+                    "value": "2026-10-10T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "LT"
+                  }
+                ]
+              },
+              {
+                "title": "2026-10-10",
+                "value": "1420.00000000",
+                "filter": null,
+                "filters": [
+                  {
+                    "value": "2026-10-10T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "GTE"
+                  },
+                  {
+                    "value": "2026-10-11T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "LT"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "s18_item_top",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "笔记本电脑",
+                "value": "1200.00000000",
+                "filter": {
+                  "value": "笔记本电脑",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "打印纸",
+                "value": "150.00000000",
+                "filter": {
+                  "value": "打印纸",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "笔记本",
+                "value": "89.50000000",
+                "filter": {
+                  "value": "笔记本",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              }
+            ]
+          }
+        ]
+      },
+      "dateDrill": {
+        "2026-10-09": {
+          "total": 1,
+          "recordIds": [
+            174
+          ]
+        },
+        "2026-10-10": {
+          "total": 3,
+          "recordIds": [
+            173,
+            172,
+            171
+          ]
+        }
+      },
+      "invalidSource": {
+        "http": 404,
+        "code": "REPORT_SOURCE_NOT_FOUND"
+      },
+      "adminPreview": {
+        "http": 200,
+        "code": "OK"
+      },
+      "ownerOnlyRecord": {
+        "http": 200,
+        "code": "OK"
+      }
+    },
+    "member": {
+      "group": {
+        "value": "239.50000000",
+        "groups": [
+          {
+            "key": "笔记本",
+            "label": "笔记本",
+            "value": "89.50000000",
+            "rowCount": 1
+          },
+          {
+            "key": "打印纸",
+            "label": "打印纸",
+            "value": "150.00000000",
+            "rowCount": 1
+          }
+        ],
+        "recordIds": [
+          174,
+          172
+        ],
+        "publishedVersion": 1
+      },
+      "trend": {
+        "value": "239.50000000",
+        "groups": [
+          {
+            "key": "2026-10-09",
+            "label": "2026-10-09",
+            "value": "89.50000000",
+            "rowCount": 1
+          },
+          {
+            "key": "2026-10-10",
+            "label": "2026-10-10",
+            "value": "150.00000000",
+            "rowCount": 1
+          }
+        ],
+        "recordIds": [
+          174,
+          172
+        ],
+        "publishedVersion": 2
+      },
+      "dashboard": {
+        "versionId": 5,
+        "versionNumber": 3,
+        "charts": [
+          {
+            "key": "s18_item_chart",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "笔记本",
+                "value": "89.50000000",
+                "filter": {
+                  "value": "笔记本",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "打印纸",
+                "value": "150.00000000",
+                "filter": {
+                  "value": "打印纸",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              }
+            ]
+          },
+          {
+            "key": "s18_daily_trend",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "2026-10-09",
+                "value": "89.50000000",
+                "filter": null,
+                "filters": [
+                  {
+                    "value": "2026-10-09T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "GTE"
+                  },
+                  {
+                    "value": "2026-10-10T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "LT"
+                  }
+                ]
+              },
+              {
+                "title": "2026-10-10",
+                "value": "150.00000000",
+                "filter": null,
+                "filters": [
+                  {
+                    "value": "2026-10-10T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "GTE"
+                  },
+                  {
+                    "value": "2026-10-11T00:00",
+                    "fieldCode": "createdAt",
+                    "operator": "LT"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "s18_item_top",
+            "outcome": "READY",
+            "items": [
+              {
+                "title": "打印纸",
+                "value": "150.00000000",
+                "filter": {
+                  "value": "打印纸",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              },
+              {
+                "title": "笔记本",
+                "value": "89.50000000",
+                "filter": {
+                  "value": "笔记本",
+                  "fieldCode": "field_4879606635",
+                  "operator": "EQ"
+                },
+                "filters": null
+              }
+            ]
+          }
+        ]
+      },
+      "dateDrill": {
+        "2026-10-09": {
+          "total": 1,
+          "recordIds": [
+            174
+          ]
+        },
+        "2026-10-10": {
+          "total": 1,
+          "recordIds": [
+            172
+          ]
+        }
+      },
+      "invalidSource": {
+        "http": 404,
+        "code": "REPORT_SOURCE_NOT_FOUND"
+      },
+      "adminPreview": {
+        "http": 403,
+        "code": "REPORT_ADMIN_DENIED"
+      },
+      "ownerOnlyRecord": {
+        "http": 403,
+        "code": "PERMISSION_DENIED"
+      }
+    }
+  },
+  "databaseReadback": [
+    "8\t10\tPUBLISHED",
+    "9\t12\tPUBLISHED",
+    "10\t8\t1",
+    "11\t9\t1",
+    "12\t9\t2",
+    "2\t5",
+    "2\t2\t1\t90cd0a75b9702a108f1ee4bf8c49fb53ca7ca97a5ddc9795247d8b912b3dbae0",
+    "3\t2\t2\t65001e1e65f322403da0469253693028374cdf4cfb292e09339832d39bca877f",
+    "5\t2\t3\t0b03efbb4cd8eaefe1770a764bd9140d6b582dd5fabcbd278547f037c68612de",
+    "171\t2026-10-10 21:07:58.733",
+    "172\t2026-10-10 21:10:41.291",
+    "173\t2026-10-10 21:27:18.738",
+    "174\t2026-10-09 22:44:17.883"
+  ],
+  "browserChecks": [
+    "普通成员首页实际渲染物品分布、日趋势和金额 Top 图；趋势显示 2026-10-09 89.5、2026-10-10 150。",
+    "普通成员点击 10 月 9 日，列表稳定后显示 2 项筛选、1 条采购笔记本 #174；点击 10 月 10 日，显示 2 项筛选、1 条打印纸 #172。",
+    "新版前端加载中显示正在恢复看板筛选条件；稳定后显示已应用 2 个条件，不再短暂误报普通列表。",
+    "重启同一服务并刷新浏览器后，首页图表和日期入口保持不变。"
+  ]
+}

@@ -98,12 +98,14 @@ public class TodoService {
         projectContactTodos(context);
         List<TodoItem> owned = todoService.selectList(Wrappers.<TodoItem>lambdaQuery()
                 .eq(TodoItem::getAssigneeAccountId, context.accountId()));
-        owned.forEach(item -> refresh(item, context));
-        return owned.stream().filter(item -> inContext(item, context))
+        // 同一账号可能属于多个系统；只刷新当前工作空间，不能把其他系统的待办误标为失效。
+        List<TodoItem> current = owned.stream().filter(item -> inContext(item, context)).toList();
+        current.forEach(item -> refresh(item, context));
+        return current.stream()
                 .filter(item -> "ALL".equals(status) || status.equals(item.getStatus()))
                 .filter(item -> "ALL".equals(type) || type.equals(item.getTodoType()))
-                .sorted(Comparator.comparing(TodoItem::getDueAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(TodoItem::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .sorted(Comparator.comparing(TodoItem::getDueTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(TodoItem::getCreateTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(item -> view(item, context)).toList();
     }
 
@@ -208,14 +210,17 @@ public class TodoService {
             TodoItem item = new TodoItem();
             item.setContextType(instance.getContextType()); item.setPlatformId(instance.getPlatformId());
             item.setSystemId(instance.getSystemId()); item.setTenantId(instance.getTenantId());
-            item.setAssigneeAccountId(context.accountId()); item.setTodoType("APPROVAL");
+            // 待办按当前成员投影，账号只用于跨系统身份识别。
+            item.setAssigneeAccountId(context.accountId()); item.setAssigneeMemberId(context.memberId());
+            item.setTodoType("APPROVAL");
             item.setSourceType("FLOW_TASK"); item.setSourceId(String.valueOf(task.getId()));
             item.setTitle(instance.getTitle());
-            item.setSummary(("FORM_TASK".equals(task.getTaskType()) ? "填写表单节点 " : "Flow 审批节点 ") + task.getNodeKey());
+            // 节点键是运行时标识，待办摘要只说明成员需要处理的事项。
+            item.setSummary("FORM_TASK".equals(task.getTaskType()) ? "请填写流程表单" : "请处理流程审批");
             item.setTargetRoute(instance.getSystemId() == null
                     ? "/platform/flows?instanceId=" + instance.getId()
                     : "/systems/" + instance.getSystemId() + "?workspace=flow&instanceId=" + instance.getId());
-            item.setPriority("NORMAL"); item.setDueAt(task.getDueAt()); item.setStatus("PENDING"); item.setVersion(0);
+            item.setPriority("NORMAL"); item.setDueTime(task.getDueTime()); item.setStatus("PENDING"); item.setVersion(0);
             todoService.insert(item);
         }
     }
@@ -239,15 +244,16 @@ public class TodoService {
             TodoItem item = new TodoItem();
             item.setContextType(task.getContextType()); item.setPlatformId(task.getPlatformId());
             item.setSystemId(task.getSystemId()); item.setTenantId(task.getTenantId());
-            item.setAssigneeAccountId(context.accountId()); item.setTodoType("WORK");
+            item.setAssigneeAccountId(context.accountId()); item.setAssigneeMemberId(context.memberId());
+            item.setTodoType("WORK");
             item.setSourceType("WORK_TASK"); item.setSourceId(String.valueOf(task.getId()));
             item.setTitle(task.getTitle());
-            item.setSummary("工作任务 · " + workStatusName(task.getStatus())
-                    + (task.getBusinessTitle() == null ? "" : " · " + task.getBusinessTitle()));
+            // 待办可由任务负责人读取，但关联业务标题仍须受业务记录权限保护。
+            item.setSummary("工作任务 · " + workStatusName(task.getStatus()));
             item.setTargetRoute(task.getSystemId() == null
                     ? "/platform/tasks?taskId=" + task.getId()
                     : "/systems/" + task.getSystemId() + "?workspace=tasks&taskId=" + task.getId());
-            item.setPriority(task.getPriority()); item.setDueAt(task.getDueAt());
+            item.setPriority(task.getPriority()); item.setDueTime(task.getDueTime());
             item.setStatus("PENDING"); item.setVersion(0);
             todoService.insert(item);
         }
@@ -303,6 +309,7 @@ public class TodoService {
             item.setSystemId(context.systemId());
             item.setTenantId(context.tenantId());
             item.setAssigneeAccountId(context.accountId());
+            item.setAssigneeMemberId(context.memberId());
             item.setTodoType("CONTACT");
             item.setSourceType("RUNTIME_RECORD");
             item.setSourceId(sourceId);
@@ -310,7 +317,7 @@ public class TodoService {
             item.setSummary(summary);
             item.setTargetRoute(route);
             item.setPriority(rule.getPriority());
-            item.setDueAt(dueTime);
+            item.setDueTime(dueTime);
             item.setStatus("PENDING");
             item.setVersion(0);
             todoService.insert(item);
@@ -318,12 +325,12 @@ public class TodoService {
         }
         boolean changed = !"PENDING".equals(item.getStatus()) || !Objects.equals(item.getTitle(), record.title())
                 || !Objects.equals(item.getSummary(), summary) || !Objects.equals(item.getPriority(), rule.getPriority())
-                || !Objects.equals(item.getDueAt(), dueTime) || !Objects.equals(item.getTargetRoute(), route);
+                || !Objects.equals(item.getDueTime(), dueTime) || !Objects.equals(item.getTargetRoute(), route);
         if (!changed) return;
         item.setTitle(record.title());
         item.setSummary(summary);
         item.setPriority(rule.getPriority());
-        item.setDueAt(dueTime);
+        item.setDueTime(dueTime);
         item.setTargetRoute(route);
         mark(item, "PENDING", summary, route);
     }
@@ -384,7 +391,8 @@ public class TodoService {
                 mark(todo, "REASSIGNED", "审批任务已转交、委托已失效或当前身份已无处理权", null);
                 return;
             }
-            if (!"PENDING".equals(todo.getStatus())) mark(todo, "PENDING", "Flow 审批节点 " + task.getNodeKey(),
+            if (!"PENDING".equals(todo.getStatus())) mark(todo, "PENDING",
+                    "FORM_TASK".equals(task.getTaskType()) ? "请填写流程表单" : "请处理流程审批",
                     instance.getSystemId() == null ? "/platform/flows" : "/systems/" + instance.getSystemId());
             return;
         }
@@ -436,11 +444,11 @@ public class TodoService {
         String route = "/systems/" + context.systemId() + "?workspace=runtime&module="
                 + rule.getModuleCode() + "&recordId=" + record.id();
         boolean changed = !"PENDING".equals(todo.getStatus()) || !Objects.equals(todo.getTitle(), record.title())
-                || !Objects.equals(todo.getSummary(), summary) || !Objects.equals(todo.getDueAt(), dueTime)
+                || !Objects.equals(todo.getSummary(), summary) || !Objects.equals(todo.getDueTime(), dueTime)
                 || !Objects.equals(todo.getPriority(), rule.getPriority());
         if (changed) {
             todo.setTitle(record.title());
-            todo.setDueAt(dueTime);
+            todo.setDueTime(dueTime);
             todo.setPriority(rule.getPriority());
             mark(todo, "PENDING", summary, route);
         }
@@ -488,13 +496,13 @@ public class TodoService {
     private void mark(TodoItem item, String status, String reason, String route) {
         item.setStatus(status); item.setSummary(reason);
         if (route != null) item.setTargetRoute(route);
-        item.setCompletedAt(Set.of("PENDING", "SUSPENDED").contains(status) ? null : LocalDateTime.now());
-        item.setUpdatedAt(LocalDateTime.now());
+        item.setCompleteTime(Set.of("PENDING", "SUSPENDED").contains(status) ? null : LocalDateTime.now());
+        item.setUpdateTime(LocalDateTime.now());
         todoService.updateById(item);
         // 取消领取重新激活原待办时必须清除结束时间，Base 的非空策略不会写入 null。
         if (Set.of("PENDING", "SUSPENDED").contains(status)) {
             todoMapper.update(null, Wrappers.<TodoItem>lambdaUpdate().eq(TodoItem::getId, item.getId())
-                    .eq(TodoItem::getVersion, item.getVersion()).set(TodoItem::getCompletedAt, null));
+                    .eq(TodoItem::getVersion, item.getVersion()).set(TodoItem::getCompleteTime, null));
         }
     }
 
@@ -516,14 +524,20 @@ public class TodoService {
         Long tenantMemberId = participantResolver.tenantMemberIdForAccount(
                 item.getSystemId(), item.getTenantId(), item.getAssigneeAccountId());
         SourcePresentation source = sourcePresentation(item);
+        String summary = item.getSummary();
+        if ("WORK_TASK".equals(item.getSourceType()) && summary != null) {
+            // 历史待办可能保存了旧的关联业务标题，返回时也只保留任务状态。
+            String[] parts = summary.split(" · ", 3);
+            if (parts.length > 2) summary = parts[0] + " · " + parts[1];
+        }
         return new TodoModels.TodoView(item.getId(), item.getContextType(), item.getPlatformId(), item.getSystemId(),
                 item.getTenantId(), tenantMemberId,
                 Objects.equals(item.getAssigneeAccountId(), context.accountId()) ? context.displayName() : "系统成员",
                 item.getTodoType(), item.getSourceType(),
                 item.getSourceId(), source.sourceLabel(), source.objectName(), source.initiatorName(),
-                item.getTitle(), item.getSummary(), item.getTargetRoute(), item.getPriority(),
-                item.getDueAt(), item.getStatus(), item.getCompletedAt(), item.getCreatedAt(), item.getUpdatedAt(),
-                item.getVersion(), actions, item.getSummary());
+                item.getTitle(), summary, item.getTargetRoute(), item.getPriority(),
+                item.getDueTime(), item.getStatus(), item.getCompleteTime(), item.getCreateTime(), item.getUpdateTime(),
+                item.getVersion(), actions, summary);
     }
 
     private SourcePresentation sourcePresentation(TodoItem item) {
@@ -540,9 +554,7 @@ public class TodoService {
             try {
                 WorkTask task = workTaskService.selectById(Long.valueOf(item.getSourceId()));
                 if (task != null) {
-                    String objectName = task.getBusinessTitle() == null || task.getBusinessTitle().isBlank()
-                            ? task.getTitle() : task.getBusinessTitle();
-                    return new SourcePresentation("工作任务", objectName, accountName(task.getCreatedByAccountId()));
+                    return new SourcePresentation("工作任务", task.getTitle(), accountName(task.getCreatedByAccountId()));
                 }
             } catch (RuntimeException ignored) { /* Fall through to stable todo snapshot. */ }
         }

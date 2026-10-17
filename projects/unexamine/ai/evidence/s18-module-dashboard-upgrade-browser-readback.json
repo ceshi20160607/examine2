@@ -1,0 +1,13 @@
+{
+  "moduleCode": "g7_layout",
+  "dashboardId": 9,
+  "dashboardVersionId": 15,
+  "runtimeButton": {
+    "width": 88,
+    "height": 36,
+    "text": "模块首页"
+  },
+  "route": "/systems/143?workspace=module-home&module=g7_layout",
+  "runtimeScreenshot": "projects/unexamine/ai/evidence/s18-module-dashboard-upgrade-runtime-browser.png",
+  "dashboardScreenshot": "projects/unexamine/ai/evidence/s18-module-dashboard-upgrade-page-browser.png"
+}

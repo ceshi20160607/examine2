@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 用户手动创建的每日工作日志 Mapper 接口
  * </p>
  *
  * @author Template Base

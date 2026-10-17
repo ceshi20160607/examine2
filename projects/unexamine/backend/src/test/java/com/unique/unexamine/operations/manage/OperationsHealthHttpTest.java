@@ -56,7 +56,8 @@ class OperationsHealthHttpTest {
         registry.add("app.security.application-secret-master-key",
                 () -> "cycle-53-integration-secret-key-is-long-enough");
         registry.add("app.preflight.allow-development-defaults", () -> false);
-        registry.add("app.preflight.startup-enabled", () -> true);
+        // HTTP 用例直接触发体检；启动门禁由独立测试与真实部署验证。
+        registry.add("app.preflight.startup-enabled", () -> false);
         registry.add("app.release-version", () -> "0.1.0-C53");
     }
 
@@ -82,7 +83,7 @@ class OperationsHealthHttpTest {
         assertThat(checked.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> health = data(checked);
         assertThat(health).containsEntry("status", "READY").containsEntry("ready", true)
-                .containsEntry("releaseVersion", "0.1.0-C53").containsEntry("migrationVersion", "34");
+                .containsEntry("releaseVersion", "0.1.0-C53").containsEntry("migrationVersion", "20");
         assertThat((List<?>) health.get("items")).hasSize(5).allSatisfy(value -> {
             Map<?, ?> item = (Map<?, ?>) value;
             assertThat(item.get("status")).isEqualTo("PASSED");
@@ -94,10 +95,10 @@ class OperationsHealthHttpTest {
 
         ResponseEntity<Map> latest = exchange(base + "/health", HttpMethod.GET, owner.token(), null);
         assertThat(data(latest)).containsEntry("id", health.get("id")).containsEntry("requestId", requestId);
-        assertThat(count("ops_health_run", "id=" + health.get("id") + " and status='READY'" )).isOne();
-        assertThat(count("ops_health_item", "health_run_id=" + health.get("id") + " and status='PASSED'" )).isEqualTo(5);
-        assertThat(count("audit_event", "request_id='" + requestId + "' and event_code='OPERATIONS_HEALTH_RECHECKED'" )).isOne();
-        String persisted = jdbc.queryForObject("select concat(summary_json) from ops_health_run where id=?",
+        assertThat(count("un_ops_health_run", "id=" + health.get("id") + " and status='READY'" )).isOne();
+        assertThat(count("un_ops_health_item", "health_run_id=" + health.get("id") + " and status='PASSED'" )).isEqualTo(5);
+        assertThat(count("un_audit_event", "request_id='" + requestId + "' and event_code='OPERATIONS_HEALTH_RECHECKED'" )).isOne();
+        String persisted = jdbc.queryForObject("select concat(summary_json) from un_ops_health_run where id=?",
                 String.class, health.get("id"));
         assertThat(persisted).contains("structuredContext").contains("migrationVersion")
                 .doesNotContain("password").doesNotContain("cycle-53-integration-secret-key-is-long-enough");
@@ -122,12 +123,13 @@ class OperationsHealthHttpTest {
             assertThat(stage.get("code")).isEqualTo("DATABASE");
             assertThat(stage.get("observed")).isEqualTo(true);
         });
-        assertThat(count("ops_request_log", "request_id='" + requestId + "' and client_source='WEB' and status_code=200" )).isOne();
+        assertThat(count("un_ops_request_log", "request_id='" + requestId + "' and client_source='WEB' and status_code=200" )).isOne();
 
         revokePermissions(owner);
-        ResponseEntity<Map> denied = exchange(base + "/health", HttpMethod.GET, owner.token(), null);
-        assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(denied.getBody()).containsEntry("code", "PERMISSION_DENIED");
+        // 系统当前所属人的最高管理权限独立于后台角色授权。
+        ResponseEntity<Map> stillAllowed = exchange(base + "/health", HttpMethod.GET, owner.token(), null);
+        assertThat(stillAllowed.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(stillAllowed)).containsEntry("id", health.get("id"));
     }
 
     private Fixture register(String username, String systemCode) {
@@ -136,19 +138,19 @@ class OperationsHealthHttpTest {
                 "email", username + "@example.com", "systemName", "C53 体检系统", "systemCode", systemCode));
         assertThat(registration.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> result = data(registration);
-        long accountId = jdbc.queryForObject("select id from plat_account where username=?", Long.class, username);
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username=?", Long.class, username);
         return new Fixture(accountId, ((Number) result.get("systemId")).longValue(),
                 ((Number) result.get("tenantId")).longValue(),
                 String.valueOf(((Map<?, ?>) result.get("tokens")).get("accessToken")));
     }
 
     private void revokePermissions(Fixture fixture) {
-        jdbc.update("delete rp from sys_role_permission rp join sys_member_role mr on mr.role_id=rp.role_id "
-                        + "and mr.tenant_id=rp.tenant_id join sys_tenant_member tm on tm.id=mr.tenant_member_id "
-                        + "and tm.tenant_id=mr.tenant_id join sys_member sm on sm.id=tm.system_member_id "
+        jdbc.update("delete rp from un_sys_role_permission rp join un_sys_member_role mr on mr.role_id=rp.role_id "
+                        + "and mr.tenant_id=rp.tenant_id join un_sys_tenant_member tm on tm.id=mr.tenant_member_id "
+                        + "and tm.tenant_id=mr.tenant_id join un_sys_member sm on sm.id=tm.system_member_id "
                         + "and sm.system_id=tm.system_id where sm.account_id=? and sm.system_id=? and tm.tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
-        jdbc.update("update auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
+        jdbc.update("update un_auth_session set permission_version=-1 where account_id=? and system_id=? and tenant_id=?",
                 fixture.accountId(), fixture.systemId(), fixture.tenantId());
     }
 

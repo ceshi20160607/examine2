@@ -10,45 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统租户成员消息渠道和免打扰偏好
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("msg_user_preference")
+@TableName("un_msg_user_preference")
 public class MsgUserPreference {
 
+    /**
+     * 系统消息偏好主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 偏好所属平台账号主键
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 偏好所属系统成员主键
+     */
+    @TableField("system_member_id")
+    private Long systemMemberId;
+
+    /**
+     * 固定为系统上下文
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 系统所属平台主键
+     */
+    @TableField("platform_id")
+    private Long platformId;
+
+    /**
+     * 偏好所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 偏好所属租户主键
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 通知事件编码
+     */
     @TableField("event_code")
     private String eventCode;
 
+    /**
+     * 偏好对应的投递渠道
+     */
     @TableField("`channel`")
     private String channel;
 
+    /**
+     * 是否启用此类通知
+     */
     @TableField("enabled")
     private Boolean enabled;
 
+    /**
+     * 免打扰时段定义
+     */
     @TableField("quiet_hours_json")
     private String quietHoursJson;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 偏好创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 偏好更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -69,6 +120,14 @@ public class MsgUserPreference {
         this.accountId = accountId;
     }
 
+    public Long getSystemMemberId() {
+        return systemMemberId;
+    }
+
+    public void setSystemMemberId(Long systemMemberId) {
+        this.systemMemberId = systemMemberId;
+    }
+
     public String getContextType() {
         return contextType;
     }
@@ -77,12 +136,28 @@ public class MsgUserPreference {
         this.contextType = contextType;
     }
 
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
+    }
+
     public Long getSystemId() {
         return systemId;
     }
 
     public void setSystemId(Long systemId) {
         this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getEventCode() {
@@ -117,20 +192,20 @@ public class MsgUserPreference {
         this.quietHoursJson = quietHoursJson;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -146,14 +221,17 @@ public class MsgUserPreference {
         return "MsgUserPreference{" +
             "id = " + id +
             ", accountId = " + accountId +
+            ", systemMemberId = " + systemMemberId +
             ", contextType = " + contextType +
+            ", platformId = " + platformId +
             ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", eventCode = " + eventCode +
             ", channel = " + channel +
             ", enabled = " + enabled +
             ", quietHoursJson = " + quietHoursJson +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

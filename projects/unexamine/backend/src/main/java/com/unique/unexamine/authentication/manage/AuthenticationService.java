@@ -74,10 +74,7 @@ public class AuthenticationService {
         this.platformPermissionResolver = platformPermissionResolver;
         this.systemPermissionResolver = systemPermissionResolver;
         this.permissionVersionService = permissionVersionService;
-        // Session timestamps are persisted as timezone-less DATETIME values and
-        // compared by MySQL with NOW().  Use the application/database zone so a
-        // freshly issued token is not considered expired when the deployment is
-        // configured for a non-UTC timezone.
+        // 会话时间使用无时区 DATETIME，按应用与数据库共同配置的时区比较过期时间。
         this.clock = Clock.systemDefaultZone();
         this.accessMinutes = accessMinutes;
         this.refreshDays = refreshDays;
@@ -91,9 +88,9 @@ public class AuthenticationService {
         LocalDateTime now = LocalDateTime.now(clock);
         String candidateHash = credential == null ? dummyPasswordHash : credential.getPasswordHash();
         boolean passwordMatches = passwordHasher.matches(password, candidateHash);
-        if (credential != null && credential.getLockedUntil() != null && credential.getLockedUntil().isAfter(now)) {
+        if (credential != null && credential.getLockExpireTime() != null && credential.getLockExpireTime().isAfter(now)) {
             auditRecorder.recordFailure(traceId, account.getId(), "AUTH_LOGIN", "ACCOUNT_TEMPORARILY_LOCKED",
-                    Map.of("lockedUntil", credential.getLockedUntil().toString()));
+                    Map.of("lockExpireTime", credential.getLockExpireTime().toString()));
             throw new DomainException("ACCOUNT_TEMPORARILY_LOCKED", "登录失败次数过多，请稍后再试", HttpStatus.LOCKED);
         }
         if (account == null || credential == null || !passwordMatches) {
@@ -101,7 +98,7 @@ public class AuthenticationService {
                 int attempts = credential.getFailedAttempts() == null ? 1 : credential.getFailedAttempts() + 1;
                 credential.setFailedAttempts(attempts);
                 if (attempts >= 5) {
-                    credential.setLockedUntil(now.plusMinutes(15));
+                    credential.setLockExpireTime(now.plusMinutes(15));
                 }
                 credentialService.updateById(credential);
             }
@@ -120,9 +117,9 @@ public class AuthenticationService {
         }
 
         credential.setFailedAttempts(0);
-        credential.setLockedUntil(null);
+        credential.setLockExpireTime(null);
         credentialService.updateById(credential);
-        account.setLastLoginAt(now);
+        account.setLastLoginTime(now);
         accountService.updateById(account);
 
         SessionTokens tokens = createPlatformSession(account.getId(), "NONE");
@@ -133,6 +130,12 @@ public class AuthenticationService {
 
     @Transactional
     public SessionTokens createPlatformSession(Long accountId, String mfaLevel) {
+        return issuePlatformSession(accountId, mfaLevel).tokens();
+    }
+
+    /** 企业登录审计需绑定服务端会话主键，避免把可轮换的令牌写入审计。 */
+    @Transactional
+    public IssuedSession issuePlatformSession(Long accountId, String mfaLevel) {
         Long platformId = platformDefinitionManager.requireDefaultPlatform().getId();
         ResolvedPermissions permissions = platformPermissionResolver.resolve(platformId, accountId);
         return createSession(accountId, null, null, null, null,
@@ -149,7 +152,7 @@ public class AuthenticationService {
             ResolvedPermissions permissions,
             String mfaLevel) {
         return createSession(accountId, systemId, tenantId, memberId, tenantMemberId,
-                toJson(permissions.roleIds()), toJson(permissions.permissions()), toJson(permissions.dataScopes()), mfaLevel);
+                toJson(permissions.roleIds()), toJson(permissions.permissions()), toJson(permissions.dataScopes()), mfaLevel).tokens();
     }
 
     @Transactional(noRollbackFor = DomainException.class)
@@ -158,7 +161,7 @@ public class AuthenticationService {
         List<AuthenticationSession> sessions = sessionService.selectList(Wrappers.<AuthenticationSession>lambdaQuery()
                 .eq(AuthenticationSession::getAccessTokenHash, tokenFactory.hash(rawToken))
                 .eq(AuthenticationSession::getRevoked, false)
-                .gt(AuthenticationSession::getAccessExpiresAt, now));
+                .gt(AuthenticationSession::getAccessExpireTime, now));
         if (sessions.isEmpty()) {
             auditRecorder.recordFailure(traceId, null, "AUTH_ACCESS", "AUTHENTICATION_REQUIRED",
                     Map.of("reason", "TOKEN_INVALID_OR_EXPIRED"));
@@ -188,7 +191,7 @@ public class AuthenticationService {
         List<AuthenticationSession> sessions = sessionService.selectList(Wrappers.<AuthenticationSession>lambdaQuery()
                 .eq(AuthenticationSession::getRefreshTokenHash, tokenFactory.hash(rawRefreshToken))
                 .eq(AuthenticationSession::getRevoked, false)
-                .gt(AuthenticationSession::getRefreshExpiresAt, now));
+                .gt(AuthenticationSession::getRefreshExpireTime, now));
         if (sessions.isEmpty()) {
             throw new DomainException("REFRESH_TOKEN_INVALID", "刷新登录状态失败", HttpStatus.UNAUTHORIZED);
         }
@@ -203,16 +206,16 @@ public class AuthenticationService {
         }
         String accessToken = tokenFactory.create();
         String refreshToken = tokenFactory.create();
-        LocalDateTime accessExpiresAt = now.plusMinutes(accessMinutes);
-        LocalDateTime refreshExpiresAt = now.plusDays(refreshDays);
+        LocalDateTime accessExpireTime = now.plusMinutes(accessMinutes);
+        LocalDateTime refreshExpireTime = now.plusDays(refreshDays);
         session.setAccessTokenHash(tokenFactory.hash(accessToken));
         session.setRefreshTokenHash(tokenFactory.hash(refreshToken));
-        session.setAccessExpiresAt(accessExpiresAt);
-        session.setRefreshExpiresAt(refreshExpiresAt);
+        session.setAccessExpireTime(accessExpireTime);
+        session.setRefreshExpireTime(refreshExpireTime);
         sessionService.updateById(session);
         auditRecorder.record(traceId, account.getId(), session.getSystemId(), session.getTenantId(), session.getMemberId(),
                 "AUTH_REFRESH", "AUTH_SESSION", session.getId().toString(), "SUCCESS", Map.of("rotated", true));
-        return sessionTokens(accessToken, refreshToken, accessExpiresAt, refreshExpiresAt);
+        return sessionTokens(accessToken, refreshToken, accessExpireTime, refreshExpireTime);
     }
 
     @Transactional
@@ -229,7 +232,7 @@ public class AuthenticationService {
                 "AUTH_LOGOUT", "AUTH_SESSION", session.getId().toString(), "SUCCESS", Map.of());
     }
 
-    private SessionTokens createSession(
+    private IssuedSession createSession(
             Long accountId,
             Long systemId,
             Long tenantId,
@@ -256,23 +259,27 @@ public class AuthenticationService {
         session.setDataScopesJson(dataScopes);
         session.setPermissionVersion(systemId == null ? 0L : latestPermissionVersion(systemId, tenantId));
         session.setMfaLevel(mfaLevel);
-        session.setAccessExpiresAt(now.plusMinutes(accessMinutes));
-        session.setRefreshExpiresAt(now.plusDays(refreshDays));
+        session.setAccessExpireTime(now.plusMinutes(accessMinutes));
+        session.setRefreshExpireTime(now.plusDays(refreshDays));
         session.setRevoked(false);
         sessionService.insert(session);
-        return sessionTokens(accessToken, refreshToken, session.getAccessExpiresAt(), session.getRefreshExpiresAt());
+        return new IssuedSession(sessionTokens(accessToken, refreshToken,
+                session.getAccessExpireTime(), session.getRefreshExpireTime()), session.getId());
     }
+
+    /** 会话主键只留在后端审计链，不返回给浏览器。 */
+    public record IssuedSession(SessionTokens tokens, Long sessionId) {}
 
     private SessionTokens sessionTokens(
             String accessToken,
             String refreshToken,
-            LocalDateTime accessExpiresAt,
-            LocalDateTime refreshExpiresAt) {
+            LocalDateTime accessExpireTime,
+            LocalDateTime refreshExpireTime) {
         return new SessionTokens(
                 accessToken,
                 refreshToken,
-                accessExpiresAt.atZone(clock.getZone()).toOffsetDateTime(),
-                refreshExpiresAt.atZone(clock.getZone()).toOffsetDateTime());
+                accessExpireTime.atZone(clock.getZone()).toOffsetDateTime(),
+                refreshExpireTime.atZone(clock.getZone()).toOffsetDateTime());
     }
 
     /** 平台暂无完整权限版本发布链，逐次解析当前有效授权，避免旧token保留已撤销的审批权限。 */

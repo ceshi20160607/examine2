@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * KPI 结果关联同上下文待办与消息的提醒投影 Mapper 接口
  * </p>
  *
  * @author Template Base

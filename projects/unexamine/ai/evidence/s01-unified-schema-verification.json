@@ -1,0 +1,297 @@
+{
+  "step": "S01.11",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R2967",
+    "R2968",
+    "R2709",
+    "R2969",
+    "R2961"
+  ],
+  "changed_files": [
+    "projects/unexamine/db/README.md",
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/db/init.sql",
+    "projects/unexamine/db/init/V10__application.sql",
+    "projects/unexamine/db/init/V11__work.sql",
+    "projects/unexamine/db/init/V12__notification.sql",
+    "projects/unexamine/db/init/V13__ai.sql",
+    "projects/unexamine/db/init/V14__file.sql",
+    "projects/unexamine/db/init/V15__dataexchange.sql",
+    "projects/unexamine/db/init/V16__analytics.sql",
+    "projects/unexamine/db/init/V17__print.sql",
+    "projects/unexamine/db/init/V18__operations.sql",
+    "projects/unexamine/db/init/V1__platform.sql",
+    "projects/unexamine/db/init/V2__system.sql",
+    "projects/unexamine/db/init/V3__authentication.sql",
+    "projects/unexamine/db/init/V4__audit.sql",
+    "projects/unexamine/db/init/V5__moduleconfig.sql",
+    "projects/unexamine/db/init/V6__runtimedata.sql",
+    "projects/unexamine/db/init/V7__foundation.sql",
+    "projects/unexamine/db/init/V8__backgroundjobs.sql",
+    "projects/unexamine/db/init/V9__flow.sql",
+    "projects/unexamine/db/migration/V10__application.sql",
+    "projects/unexamine/db/migration/V11__work.sql",
+    "projects/unexamine/db/migration/V12__notification.sql",
+    "projects/unexamine/db/migration/V13__ai.sql",
+    "projects/unexamine/db/migration/V14__file.sql",
+    "projects/unexamine/db/migration/V15__dataexchange.sql",
+    "projects/unexamine/db/migration/V16__analytics.sql",
+    "projects/unexamine/db/migration/V17__print.sql",
+    "projects/unexamine/db/migration/V18__operations.sql",
+    "projects/unexamine/db/migration/V1__platform.sql",
+    "projects/unexamine/db/migration/V2__system.sql",
+    "projects/unexamine/db/migration/V3__authentication.sql",
+    "projects/unexamine/db/migration/V4__audit.sql",
+    "projects/unexamine/db/migration/V5__moduleconfig.sql",
+    "projects/unexamine/db/migration/V6__runtimedata.sql",
+    "projects/unexamine/db/migration/V7__foundation.sql",
+    "projects/unexamine/db/migration/V8__backgroundjobs.sql",
+    "projects/unexamine/db/migration/V9__flow.sql",
+    "projects/unexamine/db/update.sql",
+    "projects/unexamine/tools/base-codegen.json"
+  ],
+  "removed_files": [
+    "projects/unexamine/db/init/V10__application_bridge.sql",
+    "projects/unexamine/db/init/V11__work_management.sql",
+    "projects/unexamine/db/init/V14__file_storage.sql",
+    "projects/unexamine/db/init/V15__data_exchange.sql",
+    "projects/unexamine/db/init/V18__operations_security.sql",
+    "projects/unexamine/db/init/V1__identity_core.sql",
+    "projects/unexamine/db/init/V2__system_tenancy.sql",
+    "projects/unexamine/db/init/V3__authorization_context.sql",
+    "projects/unexamine/db/init/V5__platform_runtime_foundation.sql",
+    "projects/unexamine/db/init/V6__background_jobs.sql",
+    "projects/unexamine/db/init/V7__lowcode_definition.sql",
+    "projects/unexamine/db/init/V8__record_runtime.sql",
+    "projects/unexamine/db/migration/V10__application_bridge.sql",
+    "projects/unexamine/db/migration/V11__work_management.sql",
+    "projects/unexamine/db/migration/V14__file_storage.sql",
+    "projects/unexamine/db/migration/V15__data_exchange.sql",
+    "projects/unexamine/db/migration/V18__operations_security.sql",
+    "projects/unexamine/db/migration/V19__tenant_main_constraint.sql",
+    "projects/unexamine/db/migration/V1__identity_core.sql",
+    "projects/unexamine/db/migration/V20__access_request_context.sql",
+    "projects/unexamine/db/migration/V21__sso_provider_version_lifecycle.sql",
+    "projects/unexamine/db/migration/V22__dictionary_version_lifecycle.sql",
+    "projects/unexamine/db/migration/V23__runtime_unique_index_key.sql",
+    "projects/unexamine/db/migration/V24__module_rule_test_result.sql",
+    "projects/unexamine/db/migration/V25__tenant_extension_publication_pointer.sql",
+    "projects/unexamine/db/migration/V26__module_rollback_version.sql",
+    "projects/unexamine/db/migration/V27__application_call_contract.sql",
+    "projects/unexamine/db/migration/V28__application_signing_secret_and_nonce.sql",
+    "projects/unexamine/db/migration/V29__application_call_rejection_log.sql",
+    "projects/unexamine/db/migration/V2__system_tenancy.sql",
+    "projects/unexamine/db/migration/V30__application_grant_history_link.sql",
+    "projects/unexamine/db/migration/V31__message_event_deduplication.sql",
+    "projects/unexamine/db/migration/V32__module_import_action.sql",
+    "projects/unexamine/db/migration/V33__module_export_action.sql",
+    "projects/unexamine/db/migration/V34__operations_observability.sql",
+    "projects/unexamine/db/migration/V35__organization_reporting_directory.sql",
+    "projects/unexamine/db/migration/V36__backfill_system_root_department.sql",
+    "projects/unexamine/db/migration/V37__flow_work_business_context.sql",
+    "projects/unexamine/db/migration/V38__work_log_structured_links.sql",
+    "projects/unexamine/db/migration/V39__application_call_immutable_version.sql",
+    "projects/unexamine/db/migration/V3__authorization_context.sql",
+    "projects/unexamine/db/migration/V40__direct_action_without_flow.sql",
+    "projects/unexamine/db/migration/V41__conversion_completion_clock_repair.sql",
+    "projects/unexamine/db/migration/V42__tenant_default_organization_repair.sql",
+    "projects/unexamine/db/migration/V43__tenant_module_range_share.sql",
+    "projects/unexamine/db/migration/V44__application_icon_preset.sql",
+    "projects/unexamine/db/migration/V45__application_credential_expiry_backfill.sql",
+    "projects/unexamine/db/migration/V46__application_bridge_identity.sql",
+    "projects/unexamine/db/migration/V47__application_provider_connection.sql",
+    "projects/unexamine/db/migration/V48__application_provider_identity_delivery.sql",
+    "projects/unexamine/db/migration/V49__file_storage_credential_capacity.sql",
+    "projects/unexamine/db/migration/V50__work_task_lifecycle.sql",
+    "projects/unexamine/db/migration/V51__work_task_soft_delete.sql",
+    "projects/unexamine/db/migration/V52__work_log_business_flow.sql",
+    "projects/unexamine/db/migration/V53__todo_contact_rule.sql",
+    "projects/unexamine/db/migration/V5__platform_runtime_foundation.sql",
+    "projects/unexamine/db/migration/V6__background_jobs.sql",
+    "projects/unexamine/db/migration/V7__lowcode_definition.sql",
+    "projects/unexamine/db/migration/V8__record_runtime.sql"
+  ],
+  "checks_actual_results": [
+    "db-prepare 合成 18 个按代码模块划分的首装 SQL、0 个增量 SQL、18 个 Flyway 输入；final.sql SHA-256 759f6e62f6ede3cac05193a65ee3ae71f3b41f5cbc07eb521cbcca91ab9d6e07。",
+    "原代码生成库 190 表与 18 模块配置逐表对应；移除只服务旧仪表盘外部 API/数据库直连数据源的 2 张表，保留 188 表统一 un_ 前缀。",
+    "独立空 MySQL schema unexamine_final_a19_20261009 实际执行 final.sql 188 条 CREATE TABLE 并读回 188 表；无外键、触发器、*_at 字段、空表/字段备注、非中文表/字段备注。",
+    "188 张保留表与旧最终结构逐表比较字段；除 un_ana_data_source 按需求移除 3 个外部凭据字段外，没有字段丢失；历史 47 处 ALTER 已体现在最终 CREATE 中，旧数据修复 UPDATE 未进入首装。",
+    "隔离库对 un_ana_data_source 插入 EXTERNAL_API 类型返回 MySQL 3819 CHECK 拒绝，读回 0 行。",
+    "修正旧表名的预览产物中文备注后重新执行 final.sql；独立库仍建出 188 表，un_file_object.preview_status 备注读回为 un_file_preview，旧 EXTERNAL_API 类型再次被 3819 拒绝。"
+  ],
+  "readback": [
+    "projects/unexamine/db/final.sql",
+    "projects/unexamine/tools/base-codegen.json",
+    "projects/unexamine/db/README.md"
+  ],
+  "permission_or_failure_result": "隔离库拒绝旧仪表盘外部 API 数据源类型（MySQL 3819），目标记录读回为 0；本结构回执不声称应用、Flow 或用户数据权限已通过。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/db/README.md",
+      "sha256": "5349ac7e0506e7a8dc6fdad6f3e7895cfd1a477e65ceeef0082e002af54be9c4"
+    },
+    {
+      "path": "projects/unexamine/db/final.sql",
+      "sha256": "759f6e62f6ede3cac05193a65ee3ae71f3b41f5cbc07eb521cbcca91ab9d6e07"
+    },
+    {
+      "path": "projects/unexamine/db/init.sql",
+      "sha256": "49e41fc2ba97081f4d33a5f2b2970ed278eaf29c493630605822ddeb5f61301f"
+    },
+    {
+      "path": "projects/unexamine/db/init/V10__application.sql",
+      "sha256": "06644a81fe4419bf77ac5012020c68f5659e21f6fb5d6a06d8262c0515823b6c"
+    },
+    {
+      "path": "projects/unexamine/db/init/V11__work.sql",
+      "sha256": "a8560b593a049331a971ba316dced4de11d597d512a6a6aea0c256f567026e02"
+    },
+    {
+      "path": "projects/unexamine/db/init/V12__notification.sql",
+      "sha256": "026fcab96b859a909c3af1104d2e62079671923367b9b4816a1e7ad8b82badac"
+    },
+    {
+      "path": "projects/unexamine/db/init/V13__ai.sql",
+      "sha256": "d38e683fc07ff13b9d3828e9645f83d05e602ff537c27546d68a38617278da97"
+    },
+    {
+      "path": "projects/unexamine/db/init/V14__file.sql",
+      "sha256": "8a9c8b526311516ef9a00ddd6bde4e50349c0c227d87fe2ddfcb7926e2957467"
+    },
+    {
+      "path": "projects/unexamine/db/init/V15__dataexchange.sql",
+      "sha256": "deaf1e8734898e5d8ddd85b39a4b7887b4fb195b028d46c7a533a5a32330d023"
+    },
+    {
+      "path": "projects/unexamine/db/init/V16__analytics.sql",
+      "sha256": "a6c70c5f0d874f895b2ca30698a6acf3e980a8e7d844077a01e429510f4fec5e"
+    },
+    {
+      "path": "projects/unexamine/db/init/V17__print.sql",
+      "sha256": "55389d5b69fbdecd6c3934eaf36bc3f9f55ff61dd3e9005b5ad590fb8c41ea6c"
+    },
+    {
+      "path": "projects/unexamine/db/init/V18__operations.sql",
+      "sha256": "39e5968e9b9960a704700aa0ec97ee129412938203404cd0cae67aa040812faa"
+    },
+    {
+      "path": "projects/unexamine/db/init/V1__platform.sql",
+      "sha256": "6c3fd85386ff488741ff2fc4b2638a20eb84d8a342ca172b63654b7dc397fcbe"
+    },
+    {
+      "path": "projects/unexamine/db/init/V2__system.sql",
+      "sha256": "4f3f9e43f265eeed36fd7e1c79d8313d1f2983635b5ab2aa5f2c0646df6e6940"
+    },
+    {
+      "path": "projects/unexamine/db/init/V3__authentication.sql",
+      "sha256": "608e6a2212beb9a9ca7c23e47f6e2e41d93e0fc20629630a7c3b9f3d92bc6645"
+    },
+    {
+      "path": "projects/unexamine/db/init/V4__audit.sql",
+      "sha256": "7279c272eb160f004cfd7ed7eecad2225bc4c3f4456965f9bc10619cf662d3fa"
+    },
+    {
+      "path": "projects/unexamine/db/init/V5__moduleconfig.sql",
+      "sha256": "a7a1639ef9e5a77f7b61268ced9b64c204d0142264ce088cbf862a3ccdf4f566"
+    },
+    {
+      "path": "projects/unexamine/db/init/V6__runtimedata.sql",
+      "sha256": "4e8fbcf826b68d808fe6e3240d1b14a6c1350b57ba589f75d191a81200a631be"
+    },
+    {
+      "path": "projects/unexamine/db/init/V7__foundation.sql",
+      "sha256": "a93f3133f9f4974f8995861842edaccb59540ded488ce6f54897c7e59598f71c"
+    },
+    {
+      "path": "projects/unexamine/db/init/V8__backgroundjobs.sql",
+      "sha256": "fd5a91f679afe46627719868657968482bd79f7cf5865442c657c1656221fd7a"
+    },
+    {
+      "path": "projects/unexamine/db/init/V9__flow.sql",
+      "sha256": "3642482fd4ded3c5efe6c36b3e694c0b5666ec3998788d1d1d24751232054763"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V10__application.sql",
+      "sha256": "06644a81fe4419bf77ac5012020c68f5659e21f6fb5d6a06d8262c0515823b6c"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V11__work.sql",
+      "sha256": "a8560b593a049331a971ba316dced4de11d597d512a6a6aea0c256f567026e02"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V12__notification.sql",
+      "sha256": "026fcab96b859a909c3af1104d2e62079671923367b9b4816a1e7ad8b82badac"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V13__ai.sql",
+      "sha256": "d38e683fc07ff13b9d3828e9645f83d05e602ff537c27546d68a38617278da97"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V14__file.sql",
+      "sha256": "8a9c8b526311516ef9a00ddd6bde4e50349c0c227d87fe2ddfcb7926e2957467"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V15__dataexchange.sql",
+      "sha256": "deaf1e8734898e5d8ddd85b39a4b7887b4fb195b028d46c7a533a5a32330d023"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V16__analytics.sql",
+      "sha256": "a6c70c5f0d874f895b2ca30698a6acf3e980a8e7d844077a01e429510f4fec5e"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V17__print.sql",
+      "sha256": "55389d5b69fbdecd6c3934eaf36bc3f9f55ff61dd3e9005b5ad590fb8c41ea6c"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V18__operations.sql",
+      "sha256": "39e5968e9b9960a704700aa0ec97ee129412938203404cd0cae67aa040812faa"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V1__platform.sql",
+      "sha256": "6c3fd85386ff488741ff2fc4b2638a20eb84d8a342ca172b63654b7dc397fcbe"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V2__system.sql",
+      "sha256": "4f3f9e43f265eeed36fd7e1c79d8313d1f2983635b5ab2aa5f2c0646df6e6940"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V3__authentication.sql",
+      "sha256": "608e6a2212beb9a9ca7c23e47f6e2e41d93e0fc20629630a7c3b9f3d92bc6645"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V4__audit.sql",
+      "sha256": "7279c272eb160f004cfd7ed7eecad2225bc4c3f4456965f9bc10619cf662d3fa"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V5__moduleconfig.sql",
+      "sha256": "a7a1639ef9e5a77f7b61268ced9b64c204d0142264ce088cbf862a3ccdf4f566"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V6__runtimedata.sql",
+      "sha256": "4e8fbcf826b68d808fe6e3240d1b14a6c1350b57ba589f75d191a81200a631be"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V7__foundation.sql",
+      "sha256": "a93f3133f9f4974f8995861842edaccb59540ded488ce6f54897c7e59598f71c"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V8__backgroundjobs.sql",
+      "sha256": "fd5a91f679afe46627719868657968482bd79f7cf5865442c657c1656221fd7a"
+    },
+    {
+      "path": "projects/unexamine/db/migration/V9__flow.sql",
+      "sha256": "3642482fd4ded3c5efe6c36b3e694c0b5666ec3998788d1d1d24751232054763"
+    },
+    {
+      "path": "projects/unexamine/db/update.sql",
+      "sha256": "fc94e90fcecb07f6704e20f2c2a25052ea17f452537c30cb5b9af33a2229153f"
+    },
+    {
+      "path": "projects/unexamine/tools/base-codegen.json",
+      "sha256": "84722e3d0850212a60db1c860c6d3df4484b93753480bd2e41153db2e5c67c67"
+    }
+  ],
+  "remaining": "S01.12 在隔离代码生成库重装 188 表并生成 Base，然后统一适配 manage、测试和页面的表名与已取消的外部连接代码；后续真实业务旅程另行验收。",
+  "next_step": "S01.12"
+}

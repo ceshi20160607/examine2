@@ -39,7 +39,27 @@ const command = reactive({
   reason: '系统运维配置重载',
 })
 const flagForm = reactive({ flagKey: `feature.flag.${Date.now()}`, enabled: true, targetType: 'SYSTEM', targetCodes: '' })
-const quotaForm = reactive({ quotaCode: `SYSTEM_QUOTA_${Date.now()}`, periodType: 'TOTAL', hardLimit: 3, warningThreshold: 2 })
+const businessQuotaLabels: Record<string, string> = {
+  MODULE_COUNT: '模块数量', FIELD_COUNT: '字段数量', MEMBER_COUNT: '租户成员数量',
+  STORAGE_BYTES: '存储空间（字节）', IMPORT_COUNT: '导入批次数',
+  EXPORT_COUNT: '导出批次数', APPLICATION_CALL_COUNT: '应用调用次数',
+}
+const totalQuotaCodes = new Set(['MODULE_COUNT', 'FIELD_COUNT', 'MEMBER_COUNT', 'STORAGE_BYTES'])
+const quotaPeriodLabels: Record<string, string> = { TOTAL: '累计', DAY: '每日', MONTH: '每月' }
+const quotaForm = reactive({ quotaCode: 'MODULE_COUNT', periodType: 'TOTAL', hardLimit: undefined as number | undefined, warningThreshold: 0 })
+
+function chooseBusinessQuota(code: string) {
+  quotaForm.quotaCode = code
+  quotaForm.periodType = totalQuotaCodes.has(code) ? 'TOTAL' : 'DAY'
+  quotaForm.hardLimit = undefined
+  quotaForm.warningThreshold = 0
+  const current = quotas.value.find(item => item.quotaCode === code)
+  if (current) {
+    quotaForm.periodType = current.periodType
+    quotaForm.hardLimit = current.hardLimit
+    quotaForm.warningThreshold = current.warningThreshold ?? 0
+  }
+}
 const sequenceForm = reactive({ sequenceCode: `system_sequence_${Date.now()}`, pattern: 'SYS-{yyyyMMdd}-{seq:4}', resetPeriod: 'DAY', stepValue: 1 })
 
 function explain(cause: unknown, fallback: string) {
@@ -219,11 +239,22 @@ async function saveQuota() {
   busy.value = 'quota'
   error.value = ''
   try {
+    const quotaCode = quotaForm.quotaCode.trim().toUpperCase()
+    if (!quotaCode || typeof quotaForm.hardLimit !== 'number' || quotaForm.hardLimit < 1) {
+      error.value = '请选择配额并填写大于 0 的上限。'
+      return
+    }
+    const periodType = totalQuotaCodes.has(quotaCode) ? 'TOTAL' : quotaForm.periodType
+    const existing = quotas.value.find(item => item.quotaCode === quotaCode)
     const saved = await api<FoundationQuota>(`${basePath}/quotas`, {
-      method: 'POST', body: JSON.stringify({ id: null, ...quotaForm, expectedVersion: null }),
+      method: 'POST', body: JSON.stringify({ ...quotaForm, quotaCode,
+        periodType,
+        id: existing?.id ?? null, expectedVersion: existing?.version ?? null }),
     }, token.value)
     quotas.value = await api<FoundationQuota[]>(`${basePath}/quotas`, {}, token.value)
-    success.value = `配额 ${saved.quotaCode} 已建立，当前剩余 ${saved.remaining}。`
+    success.value = businessQuotaLabels[quotaCode]
+      ? `${businessQuotaLabels[quotaCode]}上限已保存，业务操作会按当前租户实际用量校验。`
+      : `配额 ${saved.quotaCode} 已保存，当前剩余 ${saved.remaining}。`
   } catch (cause) { error.value = explain(cause, '配额保存失败') } finally { busy.value = '' }
 }
 
@@ -324,9 +355,10 @@ onMounted(load)
       </article>
 
       <article class="panel-card foundation-section">
-        <div class="panel-title"><div><strong>系统业务配额</strong><small>硬边界原子占用，降低上限不会删除历史数据</small></div></div>
-        <div class="foundation-mini-form"><a-input v-model:value="quotaForm.quotaCode" /><a-select v-model:value="quotaForm.periodType" :options="['TOTAL','DAY','MONTH'].map(value => ({ value, label: value }))" /><a-input-number v-model:value="quotaForm.hardLimit" :min="1" /><a-input-number v-model:value="quotaForm.warningThreshold" :min="0" /><a-button type="primary" :loading="busy === 'quota'" @click="saveQuota">建立配额</a-button></div>
-        <div class="foundation-policy-list"><div v-for="item in quotas.slice(0, 5)" :key="item.id"><strong>{{ item.quotaCode }}</strong><span>{{ item.usedValue }}/{{ item.hardLimit }} · 剩余 {{ item.remaining }}</span><a-button size="small" :loading="busy === `quota-${item.id}`" @click="consumeQuota(item)">占用 1</a-button></div></div>
+        <div class="panel-title"><div><strong>系统业务配额</strong><small>按当前租户实际用量校验；降低上限不会删除历史数据</small></div></div>
+        <a-space wrap><a-button v-for="(label, code) in businessQuotaLabels" :key="code" size="small" :type="quotaForm.quotaCode === code ? 'primary' : 'default'" @click="chooseBusinessQuota(code)">{{ label }}</a-button></a-space>
+        <div class="foundation-mini-form"><a-input v-model:value="quotaForm.quotaCode" aria-label="配额编码" placeholder="配额编码" /><a-select v-model:value="quotaForm.periodType" aria-label="统计周期" :disabled="totalQuotaCodes.has(quotaForm.quotaCode.trim().toUpperCase())" :options="Object.entries(quotaPeriodLabels).map(([value, label]) => ({ value, label }))" /><a-input-number v-model:value="quotaForm.hardLimit" aria-label="配额上限" addon-before="上限" :min="1" /><a-input-number v-model:value="quotaForm.warningThreshold" aria-label="预警阈值" addon-before="预警" :min="0" /><a-button type="primary" :loading="busy === 'quota'" @click="saveQuota">保存上限</a-button></div>
+        <div class="foundation-policy-list"><div v-for="item in quotas" :key="item.id"><strong>{{ businessQuotaLabels[item.quotaCode] || item.quotaCode }}</strong><span v-if="businessQuotaLabels[item.quotaCode]">{{ quotaPeriodLabels[item.periodType] || item.periodType }} · 上限 {{ item.hardLimit }} · 按实际用量校验</span><span v-else>{{ item.usedValue }}/{{ item.hardLimit }} · 剩余 {{ item.remaining }}</span><a-button v-if="!businessQuotaLabels[item.quotaCode]" size="small" :loading="busy === `quota-${item.id}`" @click="consumeQuota(item)">占用 1</a-button></div></div>
       </article>
 
       <article class="panel-card foundation-section foundation-section--wide">

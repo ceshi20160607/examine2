@@ -1,0 +1,33 @@
+{
+  "step": "S19.11",
+  "status": "dev5_application_source_fix_deployed",
+  "candidate": "0.1.0-s19.11-dev5",
+  "zipSha256": "f29bedfcb79a2b82db78794517d5acc00bc58b486926c8ea1797ee9f609c8b34",
+  "zipHashMatches": true,
+  "jarSha256": "26be4712c6a6b3786c6bd77aa66b65b421135cc75d4ffbdce463d842d234313b",
+  "jarChangedFromDev4": true,
+  "frontendFilesSameAsDev4": true,
+  "databaseVersion": "23",
+  "currentRelease": "0.1.0-s19.11-dev5",
+  "backendPid": 21728,
+  "backendAlive": true,
+  "frontendPid": 17260,
+  "frontendAlive": true,
+  "backendReadinessHttp": 200,
+  "frontendHttp": 200,
+  "guides": [
+    {
+      "name": "administrator.md",
+      "matchesSource": true
+    },
+    {
+      "name": "printing-and-settings.md",
+      "matchesSource": true
+    }
+  ],
+  "test": "ApplicationScopeHttpTest: 2 tests, 0 failures, 0 errors",
+  "dockerContainers": [
+    "redis",
+    "mysql"
+  ]
+}

@@ -17,48 +17,90 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("work_task")
+@TableName("un_work_task")
 public class WorkTask {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务上下文类型：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台范围为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台范围为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 所属项目标识
+     */
     @TableField("project_id")
     private Long projectId;
 
+    /**
+     * 所属项目任务组标识
+     */
     @TableField("task_group_id")
     private Long taskGroupId;
 
+    /**
+     * 父任务标识
+     */
     @TableField("parent_task_id")
     private Long parentTaskId;
 
+    /**
+     * 标题
+     */
     @TableField("title")
     private String title;
 
+    /**
+     * 业务说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 任务类型：普通或项目任务
+     */
     @TableField("task_type")
     private String taskType;
 
+    /**
+     * 任务优先级
+     */
     @TableField("priority")
     private String priority;
 
+    /**
+     * 业务状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 完成百分比
+     */
     @TableField("progress_percent")
     private BigDecimal progressPercent;
 
@@ -86,20 +128,35 @@ public class WorkTask {
     @TableField("checklist_json")
     private String checklistJson;
 
+    /**
+     * 负责人平台账号标识
+     */
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
+    /**
+     * 任务负责人租户成员ID
+     */
     @TableField("owner_tenant_member_id")
     private Long ownerTenantMemberId;
 
-    @TableField("start_at")
-    private LocalDateTime startAt;
+    /**
+     * 任务开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("due_at")
-    private LocalDateTime dueAt;
+    /**
+     * 任务截止时间
+     */
+    @TableField("due_time")
+    private LocalDateTime dueTime;
 
-    @TableField("completed_at")
-    private LocalDateTime completedAt;
+    /**
+     * 任务完成时间
+     */
+    @TableField("complete_time")
+    private LocalDateTime completeTime;
 
     /**
      * 完成说明
@@ -131,27 +188,51 @@ public class WorkTask {
     @TableField("delete_time")
     private LocalDateTime deleteTime;
 
+    /**
+     * 可配置字段值
+     */
     @TableField("custom_values_json")
     private String customValuesJson;
 
+    /**
+     * 关联业务对象类型
+     */
     @TableField("business_type")
     private String businessType;
 
+    /**
+     * 关联业务对象标识
+     */
     @TableField("business_id")
     private String businessId;
 
+    /**
+     * 关联业务对象标题快照
+     */
     @TableField("business_title")
     private String businessTitle;
 
+    /**
+     * 创建人平台账号标识
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -316,28 +397,28 @@ public class WorkTask {
         this.ownerTenantMemberId = ownerTenantMemberId;
     }
 
-    public LocalDateTime getStartAt() {
-        return startAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartAt(LocalDateTime startAt) {
-        this.startAt = startAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getDueAt() {
-        return dueAt;
+    public LocalDateTime getDueTime() {
+        return dueTime;
     }
 
-    public void setDueAt(LocalDateTime dueAt) {
-        this.dueAt = dueAt;
+    public void setDueTime(LocalDateTime dueTime) {
+        this.dueTime = dueTime;
     }
 
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
+    public LocalDateTime getCompleteTime() {
+        return completeTime;
     }
 
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
+    public void setCompleteTime(LocalDateTime completeTime) {
+        this.completeTime = completeTime;
     }
 
     public String getCompletionNote() {
@@ -420,20 +501,20 @@ public class WorkTask {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -467,9 +548,9 @@ public class WorkTask {
             ", checklistJson = " + checklistJson +
             ", ownerAccountId = " + ownerAccountId +
             ", ownerTenantMemberId = " + ownerTenantMemberId +
-            ", startAt = " + startAt +
-            ", dueAt = " + dueAt +
-            ", completedAt = " + completedAt +
+            ", startTime = " + startTime +
+            ", dueTime = " + dueTime +
+            ", completeTime = " + completeTime +
             ", completionNote = " + completionNote +
             ", completionSubmittedTime = " + completionSubmittedTime +
             ", completionAcceptedTime = " + completionAcceptedTime +
@@ -480,8 +561,8 @@ public class WorkTask {
             ", businessId = " + businessId +
             ", businessTitle = " + businessTitle +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

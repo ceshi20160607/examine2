@@ -12,12 +12,14 @@ import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 import com.baomidou.mybatisplus.generator.keywords.MySqlKeyWordsHandler;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flywaydb.core.Flyway;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.LinkOption;
 import java.security.MessageDigest;
 import java.sql.DriverManager;
 import java.util.Comparator;
@@ -54,7 +56,7 @@ public final class BaseCodeGenerator {
         validateConfig(config, sourceRoot, mapperXmlRoot, migrationRoot);
         migrate(url, username, password, migrationRoot);
         validateDatabaseTables(url, username, password, config.modules());
-        cleanGeneratedBase(config, sourceRoot, mapperXmlRoot);
+        cleanGeneratedBase(config, projectRoot, sourceRoot, mapperXmlRoot, manifestPath);
 
         List<String> generatedModules = new ArrayList<>();
         for (ModuleConfig module : config.modules()) {
@@ -320,14 +322,137 @@ public final class BaseCodeGenerator {
         return java.util.HexFormat.of().formatHex(digest);
     }
 
-    private static void cleanGeneratedBase(GeneratorConfig config, Path sourceRoot, Path mapperXmlRoot) throws IOException {
+    /** 清理前先完整核对旧生成清单，防止覆盖手改 Base 或误删混入的业务文件。 */
+    static void cleanGeneratedBase(
+            GeneratorConfig config,
+            Path projectRoot,
+            Path sourceRoot,
+            Path mapperXmlRoot,
+            Path manifestPath
+    ) throws Exception {
         Path packageRoot = sourceRoot.resolve(config.basePackage().replace('.', '/')).normalize();
+        List<Path> generatedRoots = new ArrayList<>();
         for (ModuleConfig module : config.modules()) {
             Path javaBase = packageRoot.resolve(module.javaPackage().replace('.', '/')).resolve("base").normalize();
             Path xmlBase = mapperXmlRoot.resolve(module.name()).resolve("base").normalize();
-            deleteGeneratedDirectory(sourceRoot, javaBase);
-            deleteGeneratedDirectory(mapperXmlRoot, xmlBase);
+            assertSafeGeneratedRoot(projectRoot, sourceRoot, javaBase);
+            assertSafeGeneratedRoot(projectRoot, mapperXmlRoot, xmlBase);
+            generatedRoots.add(javaBase);
+            generatedRoots.add(xmlBase);
         }
+
+        Map<Path, String> expectedHashes = readPreviousManifest(projectRoot, manifestPath, generatedRoots);
+        Set<Path> inspected = new HashSet<>();
+        // 所有目录先验证完再删除，后面模块出现脏文件也不能导致前面模块已丢失。
+        for (Path generatedRoot : generatedRoots) {
+            if (!Files.exists(generatedRoot, LinkOption.NOFOLLOW_LINKS)) {
+                continue;
+            }
+            Path generatedReal = generatedRoot.toRealPath();
+            try (var paths = Files.walk(generatedRoot)) {
+                for (Path file : paths.toList()) {
+                    if (Files.isSymbolicLink(file)) {
+                        throw new IllegalStateException("refusing to clean linked generated path: " + file);
+                    }
+                    if (!file.toRealPath().startsWith(generatedReal)) {
+                        throw new IllegalStateException("refusing to clean path outside generated root: " + file);
+                    }
+                    if (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS)) {
+                        continue;
+                    }
+                    if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)) {
+                        throw new IllegalStateException("refusing to clean unsafe generated file: " + file);
+                    }
+                    String expected = expectedHashes.get(file);
+                    if (expected == null) {
+                        throw new IllegalStateException("refusing to remove untracked Base file: " + file);
+                    }
+                    if (!expected.equals(sha256(Files.readAllBytes(file)))) {
+                        throw new IllegalStateException("generated Base file was modified: " + file);
+                    }
+                    inspected.add(file);
+                }
+            }
+        }
+        for (Path expected : expectedHashes.keySet()) {
+            if (!inspected.contains(expected)) {
+                throw new IllegalStateException("generated Base file from manifest is missing: " + expected);
+            }
+        }
+        for (Path generatedRoot : generatedRoots) {
+            if (generatedRoot.startsWith(sourceRoot)) {
+                deleteGeneratedDirectory(sourceRoot, generatedRoot);
+            } else {
+                deleteGeneratedDirectory(mapperXmlRoot, generatedRoot);
+            }
+        }
+    }
+
+    /** 清理范围必须保持在项目的生成目录内，且不经过符号链接或目录联接转向其他位置。 */
+    private static void assertSafeGeneratedRoot(Path projectRoot, Path allowedRoot, Path target) throws IOException {
+        if (!target.startsWith(allowedRoot) || target.equals(allowedRoot)
+                || !target.getFileName().toString().equals("base")) {
+            throw new IllegalArgumentException("refusing to clean unsafe generated path: " + target);
+        }
+        Path projectReal = projectRoot.toRealPath();
+        Path allowedReal = allowedRoot.toRealPath();
+        if (!allowedReal.startsWith(projectReal)) {
+            throw new IllegalArgumentException("generated root escapes project: " + allowedRoot);
+        }
+        for (Path ancestor = target; !ancestor.equals(allowedRoot); ancestor = ancestor.getParent()) {
+            if (Files.isSymbolicLink(ancestor)) {
+                throw new IllegalStateException("refusing to clean linked generated path: " + ancestor);
+            }
+        }
+        if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)
+                && (!Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)
+                || !target.toRealPath().startsWith(allowedReal))) {
+            throw new IllegalStateException("generated root escapes allowed directory: " + target);
+        }
+        for (Path ancestor = target.getParent(); ancestor != null && !ancestor.equals(allowedRoot);
+                ancestor = ancestor.getParent()) {
+            if (Files.exists(ancestor, LinkOption.NOFOLLOW_LINKS)
+                    && !ancestor.toRealPath().startsWith(allowedReal)) {
+                throw new IllegalStateException("generated path escapes allowed directory: " + ancestor);
+            }
+        }
+    }
+
+    /** 旧清单只允许引用本次将重建的 Base 文件；新表尚无旧文件，因此不会妨碍扩表。 */
+    private static Map<Path, String> readPreviousManifest(
+            Path projectRoot,
+            Path manifestPath,
+            List<Path> generatedRoots
+    ) throws Exception {
+        Map<Path, String> expected = new HashMap<>();
+        if (!Files.exists(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
+            return expected;
+        }
+        if (Files.isSymbolicLink(manifestPath) || !manifestPath.toRealPath().startsWith(projectRoot.toRealPath())) {
+            throw new IllegalStateException("generated manifest escapes project: " + manifestPath);
+        }
+        JsonNode manifest = JSON.readTree(manifestPath.toFile());
+        if (manifest == null || manifest.path("schemaVersion").asInt(-1) != 1
+                || !manifest.path("generatedFiles").isArray()) {
+            throw new IllegalStateException("generated manifest is invalid: " + manifestPath);
+        }
+        for (JsonNode entry : manifest.path("generatedFiles")) {
+            String name = entry.path("path").asText("");
+            String hash = entry.path("sha256").asText("");
+            if (name.isBlank() || name.contains("\\") || !hash.matches("[0-9a-f]{64}")) {
+                throw new IllegalStateException("generated manifest contains invalid file entry: " + name);
+            }
+            Path relative = Path.of(name);
+            if (relative.isAbsolute() || relative.startsWith("..")) {
+                throw new IllegalStateException("generated manifest contains unsafe path: " + name);
+            }
+            Path file = projectRoot.resolve(relative).normalize();
+            if (!file.startsWith(projectRoot) || generatedRoots.stream().noneMatch(file::startsWith)
+                    || expected.putIfAbsent(file, hash) != null) {
+                throw new IllegalStateException("generated manifest contains unexpected path: " + name);
+            }
+        }
+        return expected;
     }
 
     private static void deleteGeneratedDirectory(Path allowedRoot, Path target) throws IOException {

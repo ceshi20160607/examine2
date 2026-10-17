@@ -1,0 +1,53 @@
+{
+  "step": "S18.36",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R2834",
+    "R2835",
+    "R2836",
+    "R2837",
+    "R2838",
+    "R2839",
+    "R2845",
+    "R2899"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/tools/verify-module-conversion.py",
+    "projects/unexamine/tools/verify-module-conversion-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "Isolated V23 owner published module #94 CONVERT mapping activity to current module #93 required subject. Pre-publication preview was non-executable; after intentionally re-enabling the dashboard draft and publishing, preview passed while PRINT, APPROVAL and DASHBOARD stayed active.",
+    "Source record #188 created target #189 via conversion #4 and a persisted relation. A cross-system target module returned 404, duplicate conversion returned 409, and the source conversion tab displayed the relation.",
+    "Later source activity and target subject updates remained independent. Edge clicked the source relation and rendered target #189 detail at the correct module/record route.",
+    "Deleting target #189 left source #188 and conversion #4; the source relation reported DELETED and repeat conversion stayed denied. A second source conversion created durable target #191; deleting that source left #191 and conversion history intact.",
+    "A separate JVM read the current conversion relation, independent source/target values, deletion boundaries, original PDF hash, waiting Flow instance and dashboard #8 back.",
+    "Fresh V23 MySQL RuntimeDataHttpTest passed 1 test with 0 failures after its historic hyphenated system-code fixture was aligned to current registration rules. Python/Node syntax, workspace validation and scoped diff check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-conversion-live.json",
+    "projects/unexamine/ai/evidence/s18-module-conversion-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-conversion-source-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-conversion-target-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-action-integration-live.json",
+    "projects/unexamine/ai/evidence/s18-module-daily-journey-live.json"
+  ],
+  "permission_or_failure_result": "Missing published mapping made preview non-executable; cross-system target was 404; duplicate source-to-target-module conversion was 409 before and after target deletion. Soft deletion never removed the other record or historical conversion row.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "82217b81c48609a4e3f0dc620c4e3749a92790a62aaf8c95c629cbc1eced1bee"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-conversion.py",
+      "sha256": "7b0c2127ea53cf8b9df2d4c95e716ab4ee4d1ff4e9e6bfb032f6c1308b99f979"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-conversion-browser.mjs",
+      "sha256": "e78fd603769e4f0a31d087ca28f21ce90b13a62d2d4589f5239e3e3eaccde6a1"
+    }
+  ],
+  "remaining": "Other Flow nodes, conditions, binding modes and version transitions still need integrated acceptance. Full fresh-install multi-system/multi-tenant journey, missing historical print file bytes in isolated copy, non-OIDC SSO, manuals and final release package remain open. Product completion is not verified.",
+  "next_step": "S18.37"
+}

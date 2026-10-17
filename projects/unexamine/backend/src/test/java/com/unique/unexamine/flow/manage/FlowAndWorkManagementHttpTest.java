@@ -11,6 +11,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -72,6 +74,9 @@ class FlowAndWorkManagementHttpTest {
     void flowDraftIsValidatedSimulatedAndPublishedAsImmutableScopedVersions() {
         Session owner = register("c32_flow_owner", "c32-flow-system", "c32-flow@example.com");
         Session outsider = register("c32_flow_outsider", "c32-flow-other", "c32-flow-other@example.com");
+        long ownerTenantMemberId = jdbc.queryForObject("select tm.id from un_sys_tenant_member tm "
+                        + "join un_sys_member sm on sm.id=tm.system_member_id "
+                        + "where tm.tenant_id=? and sm.account_id=?", Long.class, owner.tenantId(), owner.accountId());
 
         ResponseEntity<Map> created = exchange("/api/flows", HttpMethod.POST, owner.token(),
                 Map.of("code", "contract_approval", "name", "合同审批", "description", "C32 Flow"));
@@ -105,14 +110,14 @@ class FlowAndWorkManagementHttpTest {
                 owner.token(), Map.of("expectedDraftRevision", 2, "changeSummary", "不应发布"));
         assertThat(blockedPublish.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(blockedPublish.getBody().get("code")).isEqualTo("FLOW_PUBLICATION_INVALID");
-        assertThat(count("flow_version", "flow_id=" + flowId)).isZero();
+        assertThat(count("un_flow_version", "flow_id=" + flowId)).isZero();
 
         List<Map<String, Object>> validNodes = List.of(
                 node("start", "START", "开始", Map.of()),
                 Map.of("nodeKey", "approve", "nodeType", "APPROVAL", "name", "部门负责人审批",
                         "positionX", 200, "positionY", 0,
-                        "assigneePolicy", Map.of("type", "ACCOUNT", "accountIds", List.of(owner.accountId())),
-                        "formPolicy", Map.of("editable", List.of("amount")), "config", Map.of()),
+                        "assigneePolicy", Map.of("type", "PERSON", "tenantMemberIds", List.of(ownerTenantMemberId)),
+                        "config", Map.of()),
                 node("end", "END", "结束", Map.of()));
         ResponseEntity<Map> validDraft = exchange("/api/flows/" + flowId + "/draft", HttpMethod.PUT,
                 owner.token(), Map.of("expectedVersion", 1, "nodes", validNodes, "edges", invalidEdges));
@@ -136,7 +141,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(firstPublish.getStatusCode()).isEqualTo(HttpStatus.OK);
         long firstVersionId = number(data(firstPublish).get("versionId"));
         String firstHash = String.valueOf(data(firstPublish).get("definitionHash"));
-        String firstSnapshot = jdbc.queryForObject("select snapshot_json from flow_version where id=?",
+        String firstSnapshot = jdbc.queryForObject("select snapshot_json from un_flow_version where id=?",
                 String.class, firstVersionId);
         assertThat(firstHash).hasSize(64);
 
@@ -144,15 +149,15 @@ class FlowAndWorkManagementHttpTest {
                 node("start", "START", "开始", Map.of()),
                 Map.of("nodeKey", "approve", "nodeType", "APPROVAL", "name", "财务负责人审批",
                         "positionX", 200, "positionY", 0,
-                        "assigneePolicy", Map.of("type", "ACCOUNT", "accountIds", List.of(owner.accountId())),
-                        "formPolicy", Map.of("editable", List.of("amount")), "config", Map.of()),
+                        "assigneePolicy", Map.of("type", "PERSON", "tenantMemberIds", List.of(ownerTenantMemberId)),
+                        "config", Map.of()),
                 node("end", "END", "结束", Map.of()));
         ResponseEntity<Map> changedDraft = exchange("/api/flows/" + flowId + "/draft", HttpMethod.PUT,
                 owner.token(), Map.of("expectedVersion", 3, "nodes", changedNodes, "edges", invalidEdges));
         assertThat(changedDraft.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(jdbc.queryForObject("select snapshot_json from flow_version where id=?", String.class, firstVersionId))
+        assertThat(jdbc.queryForObject("select snapshot_json from un_flow_version where id=?", String.class, firstVersionId))
                 .isEqualTo(firstSnapshot);
-        assertThat(jdbc.queryForObject("select definition_hash from flow_version where id=?", String.class, firstVersionId))
+        assertThat(jdbc.queryForObject("select definition_hash from un_flow_version where id=?", String.class, firstVersionId))
                 .isEqualTo(firstHash);
 
         ResponseEntity<Map> secondPublish = exchange("/api/flows/" + flowId + "/publish", HttpMethod.POST,
@@ -160,8 +165,8 @@ class FlowAndWorkManagementHttpTest {
         assertThat(secondPublish.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(secondPublish)).containsEntry("versionNumber", 2)
                 .containsEntry("previousVersionId", (int) firstVersionId);
-        assertThat(count("flow_version", "flow_id=" + flowId)).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='FLOW_VERSION_PUBLISHED' and object_id='"
+        assertThat(count("un_flow_version", "flow_id=" + flowId)).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='FLOW_VERSION_PUBLISHED' and object_id='"
                 + number(data(secondPublish).get("versionId")) + "'")).isOne();
 
         ResponseEntity<Map> crossSystem = exchange("/api/flows/" + flowId, HttpMethod.GET, outsider.token(), null);
@@ -214,7 +219,8 @@ class FlowAndWorkManagementHttpTest {
         assertThat(data(created)).containsEntry("status", "PLANNED").containsEntry("version", 0);
         assertThat((List<?>) data(created).get("members")).singleElement().satisfies(member ->
                 assertThat(map(member)).containsEntry("projectRole", "OWNER")
-                        .containsEntry("accountId", (int) owner.accountId()));
+                        .satisfies(value -> assertThat(map(value.get("person")))
+                                .containsEntry("displayName", owner.username())));
 
         ResponseEntity<Map> group = exchange("/api/work/projects/" + projectId + "/groups", HttpMethod.POST,
                 owner.token(), Map.of("name", "第一阶段", "sortOrder", 10));
@@ -233,8 +239,9 @@ class FlowAndWorkManagementHttpTest {
                         "description", "按真实业务状态推进", "priority", "HIGH",
                         "ownerAccountId", owner.accountId(), "startAt", "2026-08-22T09:00:00",
                         "dueAt", "2026-08-22T18:00:00", "collaboratorAccountIds", List.of(),
-                        "customValues", Map.of("acceptance", "flow-and-work")));
-        assertThat(taskCreated.getStatusCode()).isEqualTo(HttpStatus.OK);
+                        "customValues", Map.of()));
+        assertThat(taskCreated.getStatusCode()).withFailMessage("创建任务失败：%s", taskCreated.getBody())
+                .isEqualTo(HttpStatus.OK);
         long taskId = number(data(taskCreated).get("id"));
         assertThat(data(taskCreated)).containsEntry("status", "TODO").containsEntry("version", 0);
         assertThat((List<?>) data(taskCreated).get("history")).singleElement().satisfies(item ->
@@ -256,13 +263,18 @@ class FlowAndWorkManagementHttpTest {
         assertThat(stale.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(stale.getBody().get("code")).isEqualTo("WORK_TASK_VERSION_CONFLICT");
 
-        ResponseEntity<Map> completed = exchange("/api/work/tasks/" + taskId, HttpMethod.PUT, owner.token(),
-                taskUpdate(owner, 1, "COMPLETED", 100, "验收完成"));
+        ResponseEntity<Map> submitted = exchange("/api/work/tasks/" + taskId + "/submit-completion",
+                HttpMethod.POST, owner.token(), Map.of("expectedVersion", 1,
+                        "completionNote", "验收完成", "actualHours", new BigDecimal("2")));
+        assertThat(submitted.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(submitted)).containsEntry("status", "WAITING_CONFIRMATION").containsEntry("version", 2);
+        ResponseEntity<Map> completed = exchange("/api/work/tasks/" + taskId + "/accept-completion",
+                HttpMethod.POST, owner.token(), Map.of("expectedVersion", 2, "comment", "确认验收"));
         assertThat(completed.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(data(completed)).containsEntry("status", "COMPLETED").containsEntry("version", 2);
+        assertThat(data(completed)).containsEntry("status", "COMPLETED").containsEntry("version", 3);
         assertThat(data(completed).get("completedAt")).isNotNull();
-        assertThat((List<?>) data(completed).get("history")).hasSize(3);
-        assertThat(count("work_task_history", "task_id=" + taskId)).isEqualTo(3);
+        assertThat((List<?>) data(completed).get("history")).hasSize(4);
+        assertThat(count("un_work_task_history", "task_id=" + taskId)).isEqualTo(4);
 
         ResponseEntity<Map> project = exchange("/api/work/projects/" + projectId, HttpMethod.GET,
                 owner.token(), null);
@@ -270,9 +282,10 @@ class FlowAndWorkManagementHttpTest {
         assertThat((List<?>) data(project).get("taskGroups")).hasSize(1);
         assertThat((List<?>) data(project).get("tasks")).singleElement().satisfies(item ->
                 assertThat(map(item)).containsEntry("id", (int) taskId).containsEntry("status", "COMPLETED"));
-        assertThat(count("audit_event", "event_code in ('WORK_PROJECT_CREATED','WORK_TASK_GROUP_CREATED',"
-                + "'WORK_PROJECT_TASK_CREATED','WORK_TASK_UPDATED') and system_id=" + owner.systemId()))
-                .isEqualTo(5);
+        assertThat(count("un_audit_event", "event_code in ('WORK_PROJECT_CREATED','WORK_TASK_GROUP_CREATED',"
+                + "'WORK_PROJECT_TASK_CREATED','WORK_TASK_UPDATED','WORK_TASK_COMPLETION_SUBMITTED',"
+                + "'WORK_TASK_COMPLETION_ACCEPTED') and system_id=" + owner.systemId()))
+                .isEqualTo(6);
 
         ResponseEntity<Map> crossSystem = exchange("/api/work/projects/" + projectId, HttpMethod.GET,
                 outsider.token(), null);
@@ -310,7 +323,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(data(ordinaryStarted)).containsEntry("status", "IN_PROGRESS").containsEntry("version", 1);
         assertThat((List<?>) exchange("/api/work/tasks", HttpMethod.GET, outsider.token(), null)
                 .getBody().get("data")).isEmpty();
-        assertThat(count("audit_event", "event_code='WORK_ORDINARY_TASK_CREATED' and object_id='"
+        assertThat(count("un_audit_event", "event_code='WORK_ORDINARY_TASK_CREATED' and object_id='"
                 + ordinaryTaskId + "'")).isOne();
     }
 
@@ -367,9 +380,9 @@ class FlowAndWorkManagementHttpTest {
                 bindingRequest(moduleId, secondDefault.flowId(), 0, true, false));
         assertThat(replaced.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(number(data(replaced).get("id"))).isNotEqualTo(firstBindingId);
-        assertThat(count("flow_trigger_binding", "owner_tenant_id=" + owner.tenantId() + " and status='ACTIVE'"))
+        assertThat(count("un_flow_trigger_binding", "owner_tenant_id=" + owner.tenantId() + " and status='ACTIVE'"))
                 .isOne();
-        assertThat(count("flow_trigger_binding", "id=" + firstBindingId + " and flow_id="
+        assertThat(count("un_flow_trigger_binding", "id=" + firstBindingId + " and flow_id="
                 + firstDefault.flowId() + " and status='DISABLED'")).isOne();
 
         long overrideTenantId = addTenantWithWildcard(owner, "override");
@@ -398,8 +411,8 @@ class FlowAndWorkManagementHttpTest {
                 .containsEntry("sourceTenantId", (int) owner.tenantId())
                 .containsEntry("requestedTenantId", (int) fallbackTenantId)
                 .containsEntry("flowVersionId", (int) secondDefault.versionId());
-        assertThat(count("flow_binding_resolution", "module_id=" + moduleId)).isEqualTo(3);
-        assertThat(jdbc.queryForObject("select flow_version_id from flow_binding_resolution where id=?",
+        assertThat(count("un_flow_binding_resolution", "module_id=" + moduleId)).isEqualTo(3);
+        assertThat(jdbc.queryForObject("select flow_version_id from un_flow_binding_resolution where id=?",
                 Long.class, number(data(firstResolution).get("resolutionId")))).isEqualTo(firstDefault.versionId());
     }
 
@@ -465,11 +478,11 @@ class FlowAndWorkManagementHttpTest {
                         "旧页面保存", viewerRoleId));
         assertThat(stale.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        int logCountBeforeTaskChange = count("work_log", "author_account_id=" + owner.accountId());
+        int logCountBeforeTaskChange = count("un_work_log", "author_account_id=" + owner.accountId());
         assertThat(exchange("/api/work/tasks/" + taskId, HttpMethod.PUT, owner.token(),
                 taskUpdate(owner, 0, "IN_PROGRESS", 25, "推进任务但不得自动写日志")).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
-        assertThat(count("work_log", "author_account_id=" + owner.accountId())).isEqualTo(logCountBeforeTaskChange);
+        assertThat(count("un_work_log", "author_account_id=" + owner.accountId())).isEqualTo(logCountBeforeTaskChange);
 
         Session viewer = enterTenant(outsider, owner.systemId(), owner.tenantId(), platformLogin(outsider.username()));
         ResponseEntity<Map> denied = exchange("/api/work/logs?authorAccountId=" + owner.accountId(),
@@ -486,8 +499,8 @@ class FlowAndWorkManagementHttpTest {
                 HttpMethod.GET, viewer.token(), null);
         assertThat(visible.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat((List<?>) visible.getBody().get("data")).hasSize(1);
-        assertThat(count("work_log_revision", "work_log_id=" + logId)).isEqualTo(3);
-        assertThat(count("audit_event", "object_type='WORK_LOG' and object_id='" + logId + "'")).isEqualTo(3);
+        assertThat(count("un_work_log_revision", "work_log_id=" + logId)).isEqualTo(3);
+        assertThat(count("un_audit_event", "object_type='WORK_LOG' and object_id='" + logId + "'")).isEqualTo(3);
     }
 
     @Test
@@ -567,9 +580,9 @@ class FlowAndWorkManagementHttpTest {
                         "idempotencyKey", "c36-approve-twice", "variables", Map.of()));
         assertThat(secondAction.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(secondAction.getBody().get("code")).isEqualTo("FLOW_TASK_ALREADY_HANDLED");
-        assertThat(count("flow_action", "instance_id=" + instanceId + " and action_code='APPROVE'")).isOne();
-        assertThat(count("flow_task", "instance_id=" + instanceId + " and status='APPROVE'")).isOne();
-        assertThat(count("flow_instance_variable", "instance_id=" + instanceId)).isEqualTo(2);
+        assertThat(count("un_flow_action", "instance_id=" + instanceId + " and action_code='APPROVE'")).isOne();
+        assertThat(count("un_flow_task", "instance_id=" + instanceId + " and status='APPROVE'")).isOne();
+        assertThat(count("un_flow_instance_variable", "instance_id=" + instanceId)).isEqualTo(2);
 
         ResponseEntity<Map> businessStarted = exchange("/api/flow-runtime/instances", HttpMethod.POST,
                 owner.token(), Map.of("flowId", flowId, "title", "受限业务对象审批",
@@ -604,7 +617,7 @@ class FlowAndWorkManagementHttpTest {
                 .containsEntry("errorCode", "FLOW_RUNTIME_SERVICE_FAILED");
         assertThat((List<?>) failedInstance.get("exceptions")).singleElement().satisfies(exception ->
                 assertThat(map(exception)).containsEntry("policyAction", "MANUAL").containsEntry("status", "OPEN"));
-        assertThat(count("flow_exception", "instance_id=" + number(failedInstance.get("id")))).isOne();
+        assertThat(count("un_flow_exception", "instance_id=" + number(failedInstance.get("id")))).isOne();
     }
 
     @Test
@@ -673,7 +686,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(exchange("/api/work/configuration/fields/STATISTICS/team_delivery/publish",
                 HttpMethod.POST, owner.token(), Map.of("expectedVersion", 0,
                         "changeSummary", "团队统计首版")).getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("work_field_config", "system_id=" + owner.systemId())).isEqualTo(2);
+        assertThat(count("un_work_field_config", "system_id=" + owner.systemId())).isEqualTo(2);
 
         Session viewerHome = register("c36_calendar_viewer", "c36-calendar-viewer", "c36-calendar-viewer@example.com");
         addMemberWithPermissions(owner, viewerHome.accountId(), "WORK", List.of("VIEW_CALENDAR"), "CALENDAR_VIEWER");
@@ -728,8 +741,8 @@ class FlowAndWorkManagementHttpTest {
                 HttpMethod.GET, platformToken, null);
         assertThat(map(data(platformCalendar).get("summary"))).containsEntry("tasksDue", 0)
                 .containsEntry("logCount", 0).containsEntry("projectMilestones", 0);
-        assertThat(count("work_task", "system_id=" + owner.systemId())).isOne();
-        assertThat(count("work_log", "system_id=" + owner.systemId())).isOne();
+        assertThat(count("un_work_task", "system_id=" + owner.systemId())).isOne();
+        assertThat(count("un_work_log", "system_id=" + owner.systemId())).isOne();
     }
 
     private Map<String, Object> node(String key, String type, String name, Map<String, Object> config) {
@@ -756,7 +769,7 @@ class FlowAndWorkManagementHttpTest {
         return Map.of("expectedVersion", version, "status", status, "ownerAccountId", owner.accountId(),
                 "priority", "HIGH", "progressPercent", new BigDecimal(progress),
                 "startAt", "2026-08-22T09:00:00", "dueAt", "2026-08-22T18:00:00",
-                "collaboratorAccountIds", List.of(), "customValues", Map.of("acceptance", "flow-and-work"),
+                "collaboratorAccountIds", List.of(), "customValues", Map.of(),
                 "comment", comment);
     }
 
@@ -800,7 +813,7 @@ class FlowAndWorkManagementHttpTest {
         Map<String, Object> instance = map(data(started).get("instance"));
         long instanceId = number(instance.get("id"));
         long originalTaskId = number(map(((List<?>) instance.get("tasks")).getFirst()).get("id"));
-        int taskCountBeforeInvalid = count("flow_task", "instance_id=" + instanceId);
+        int taskCountBeforeInvalid = count("un_flow_task", "instance_id=" + instanceId);
         Map<String, Object> incompatibleMapping = Map.of("assigneeAccountId", owner.accountId(),
                 "position", "BEFORE_CURRENT", "reason", "映射不兼容验收",
                 "statusMappings", Map.of("APPROVE", Map.of("businessAction", "APPROVE", "targetStatus", "APPROVED")),
@@ -809,7 +822,7 @@ class FlowAndWorkManagementHttpTest {
                 + "/manual-node-preview", HttpMethod.POST, owner.token(), incompatibleMapping);
         assertThat(mappingDenied.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(mappingDenied.getBody().get("code")).isEqualTo("FLOW_STATUS_MAPPING_BUSINESS_REQUIRED");
-        assertThat(count("flow_task", "instance_id=" + instanceId)).isEqualTo(taskCountBeforeInvalid);
+        assertThat(count("un_flow_task", "instance_id=" + instanceId)).isEqualTo(taskCountBeforeInvalid);
 
         Map<String, Object> addRequest = Map.of("assigneeAccountId", owner.accountId(),
                 "position", "BEFORE_CURRENT", "reason", "合同金额需增加复核人", "statusMappings", Map.of(),
@@ -823,10 +836,10 @@ class FlowAndWorkManagementHttpTest {
                 + "/manual-nodes", HttpMethod.POST, owner.token(), addRequest);
         assertThat(added.getStatusCode()).isEqualTo(HttpStatus.OK);
         long manualTaskId = number(data(added).get("taskId"));
-        assertThat(count("flow_task", "id=" + originalTaskId + " and status='SUSPENDED'")).isOne();
-        assertThat(count("flow_task", "id=" + manualTaskId + " and task_type='MANUAL_APPROVAL' and status='PENDING'")).isOne();
-        assertThat(count("flow_action", "instance_id=" + instanceId + " and action_code='MANUAL_NODE_ADDED'")).isOne();
-        assertThat(count("audit_event", "object_type='FLOW_TASK' and object_id='" + manualTaskId
+        assertThat(count("un_flow_task", "id=" + originalTaskId + " and status='SUSPENDED'")).isOne();
+        assertThat(count("un_flow_task", "id=" + manualTaskId + " and task_type='MANUAL_APPROVAL' and status='PENDING'")).isOne();
+        assertThat(count("un_flow_action", "instance_id=" + instanceId + " and action_code='MANUAL_NODE_ADDED'")).isOne();
+        assertThat(count("un_audit_event", "object_type='FLOW_TASK' and object_id='" + manualTaskId
                 + "' and event_code='FLOW_MANUAL_NODE_ADDED'")).isOne();
 
         ResponseEntity<Map> manualApproved = exchange("/api/flow-runtime/tasks/" + manualTaskId + "/actions",
@@ -835,7 +848,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(manualApproved.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(map(data(manualApproved).get("instance"))).containsEntry("status", "WAITING")
                 .containsEntry("currentNodeKey", "approve");
-        assertThat(count("flow_task", "id=" + originalTaskId + " and status='PENDING'")).isOne();
+        assertThat(count("un_flow_task", "id=" + originalTaskId + " and status='PENDING'")).isOne();
         ResponseEntity<Map> resumedTodos = exchange("/api/todos?status=PENDING&type=APPROVAL",
                 HttpMethod.GET, owner.token(), null);
         assertThat((List<?>) resumedTodos.getBody().get("data")).singleElement().satisfies(row ->
@@ -845,7 +858,7 @@ class FlowAndWorkManagementHttpTest {
                 owner.token(), Map.of("actionCode", "APPROVE", "comment", "主审批通过",
                         "idempotencyKey", "c38-original-approve", "variables", Map.of())).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
-        assertThat(count("flow_instance", "id=" + instanceId + " and status='COMPLETED'")).isOne();
+        assertThat(count("un_flow_instance", "id=" + instanceId + " and status='COMPLETED'")).isOne();
 
         Session limitedHome = register("c38_todo_limited", "c38-todo-limited", "c38-todo-limited@example.com");
         addMemberWithPermissions(owner, limitedHome.accountId(), "TODO", List.of("VIEW", "HANDLE"), "TODO_ONLY");
@@ -867,8 +880,8 @@ class FlowAndWorkManagementHttpTest {
                         "idempotencyKey", "c38-target-denied"));
         assertThat(targetDenied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(targetDenied.getBody().get("code")).isEqualTo("PERMISSION_DENIED");
-        assertThat(count("todo_item", "id=" + limitedTodoId + " and status='PENDING'")).isOne();
-        assertThat(count("flow_task", "id=" + permissionTaskId + " and status='PENDING'")).isOne();
+        assertThat(count("un_todo_item", "id=" + limitedTodoId + " and status='PENDING'")).isOne();
+        assertThat(count("un_flow_task", "id=" + permissionTaskId + " and status='PENDING'")).isOne();
 
         ResponseEntity<Map> todoStarted = exchange("/api/flow-runtime/instances", HttpMethod.POST, owner.token(), Map.of(
                 "flowId", flowId, "title", "C38 待办处理实例", "variables", Map.of(),
@@ -891,13 +904,17 @@ class FlowAndWorkManagementHttpTest {
         assertThat(map(data(handledTodo).get("todo"))).containsEntry("status", "COMPLETED");
         assertThat((List<?>) exchange("/api/todos?status=PENDING&type=APPROVAL", HttpMethod.GET,
                 owner.token(), null).getBody().get("data")).isEmpty();
-        assertThat(count("todo_item", "id=" + todoId + " and status='COMPLETED' and target_route like '%actionId=%'")).isOne();
-        assertThat(count("flow_instance", "id=" + todoInstanceId + " and status='COMPLETED'")).isOne();
+        assertThat(count("un_todo_item", "id=" + todoId + " and status='COMPLETED' and target_route like '%actionId=%'")).isOne();
+        assertThat(count("un_flow_instance", "id=" + todoInstanceId + " and status='COMPLETED'")).isOne();
     }
 
     @Test
     void applicationDraftPublishesImmutableGrantSnapshotRotatesCredentialAndDisablesWithoutDeletingHistory() {
         Session owner = register("c40_application_owner", "c40-application-system", "c40-application@example.com");
+        long ownerMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
+                Long.class, owner.systemId(), owner.accountId());
+        Map<String, Object> ownerScope = Map.of("type", "RESPONSIBLE",
+                "memberIds", List.of(ownerMemberId), "departmentIds", List.of());
         seedPublishedModule(owner, "customer");
         ResponseEntity<Map> created = exchange("/api/applications", HttpMethod.POST, owner.token(), Map.of(
                 "code", "customer_bridge", "name", "客户资料受控桥梁",
@@ -919,7 +936,7 @@ class FlowAndWorkManagementHttpTest {
         Map<String, Object> wrongScope = Map.of(
                 "targetType", "SYSTEM", "targetSystemId", owner.systemId() + 999,
                 "targetTenantId", owner.tenantId(), "resourceType", "MODULE", "resourceId", "customer",
-                "actionCode", "DETAIL", "dataScope", Map.of("type", "SELF"),
+                "actionCode", "DETAIL", "dataScope", ownerScope,
                 "rateLimit", Map.of("maxRequests", 100, "windowSeconds", 60), "fields", List.of());
         ResponseEntity<Map> rejectedScope = exchange("/api/applications/" + applicationId + "/draft",
                 HttpMethod.PUT, owner.token(), Map.of(
@@ -927,12 +944,12 @@ class FlowAndWorkManagementHttpTest {
                         "applicationType", "SERVICE", "callbacks", List.of(), "grants", List.of(wrongScope)));
         assertThat(rejectedScope.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(rejectedScope.getBody().get("code")).isEqualTo("APPLICATION_SYSTEM_SCOPE_FIXED");
-        assertThat(count("app_grant", "application_id=" + applicationId)).isZero();
+        assertThat(count("un_app_grant", "application_id=" + applicationId)).isZero();
 
         Map<String, Object> invalidSystemResource = Map.of(
                 "targetType", "SYSTEM", "targetSystemId", owner.systemId(),
                 "targetTenantId", owner.tenantId(), "resourceType", "AI", "resourceId", "customer_agent",
-                "actionCode", "RUN", "dataScope", Map.of("type", "SELF"),
+                "actionCode", "RUN", "dataScope", ownerScope,
                 "rateLimit", Map.of("maxRequests", 100, "windowSeconds", 60), "fields", List.of());
         ResponseEntity<Map> rejectedResource = exchange("/api/applications/" + applicationId + "/draft",
                 HttpMethod.PUT, owner.token(), Map.of(
@@ -940,12 +957,12 @@ class FlowAndWorkManagementHttpTest {
                         "applicationType", "SERVICE", "callbacks", List.of(), "grants", List.of(invalidSystemResource)));
         assertThat(rejectedResource.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(rejectedResource.getBody().get("code")).isEqualTo("APPLICATION_SYSTEM_RESOURCE_INVALID");
-        assertThat(count("app_grant", "application_id=" + applicationId)).isZero();
+        assertThat(count("un_app_grant", "application_id=" + applicationId)).isZero();
 
         Map<String, Object> grant = Map.of(
                 "targetType", "SYSTEM", "targetSystemId", owner.systemId(), "targetTenantId", owner.tenantId(),
                 "resourceType", "MODULE", "resourceId", "customer", "actionCode", "DETAIL",
-                "dataScope", Map.of("type", "SELF"),
+                "dataScope", ownerScope,
                 "rateLimit", Map.of("maxRequests", 100, "windowSeconds", 60,
                         "allowedIps", List.of("127.0.0.1")),
                 "fields", List.of(Map.of("fieldCode", "customer_name", "readable", true,
@@ -976,7 +993,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(data(published)).containsEntry("versionNumber", 1);
         assertThat(String.valueOf(data(published).get("snapshotHash"))).hasSize(64);
         assertThat(map(data(published).get("application"))).containsEntry("status", "ACTIVE");
-        String frozenSnapshot = jdbc.queryForObject("select snapshot_json from app_version where application_id=?",
+        String frozenSnapshot = jdbc.queryForObject("select snapshot_json from un_app_version where application_id=?",
                 String.class, applicationId);
         assertThat(frozenSnapshot).contains("customer_name", "allowedIps", "credentialVersion");
 
@@ -986,31 +1003,34 @@ class FlowAndWorkManagementHttpTest {
         Map<String, Object> rotatedCredential = map(data(rotated).get("issuedCredential"));
         assertThat(rotatedCredential).containsEntry("credentialVersion", 2).containsEntry("shownOnce", true);
         assertThat(String.valueOf(rotatedCredential.get("clientSecret"))).isNotEqualTo(firstSecret);
-        assertThat(count("app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isOne();
-        assertThat(count("app_credential", "application_id=" + applicationId + " and status='REVOKED'")).isOne();
-        assertThat(jdbc.queryForObject("select snapshot_json from app_version where application_id=?",
+        assertThat(count("un_app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isOne();
+        assertThat(count("un_app_credential", "application_id=" + applicationId + " and status='REVOKED'")).isOne();
+        assertThat(jdbc.queryForObject("select snapshot_json from un_app_version where application_id=?",
                 String.class, applicationId)).isEqualTo(frozenSnapshot);
 
         ResponseEntity<Map> disabled = exchange("/api/applications/" + applicationId + "/disable",
                 HttpMethod.POST, owner.token(), Map.of("reason", "完成 C40 停用验收"));
         assertThat(disabled.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(disabled)).containsEntry("status", "DISABLED");
-        assertThat(count("app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isZero();
-        assertThat(count("app_version", "application_id=" + applicationId)).isOne();
-        assertThat(count("app_grant", "application_id=" + applicationId)).isOne();
-        assertThat(count("audit_event", "object_type='APPLICATION' and object_id='" + applicationId
+        assertThat(count("un_app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isZero();
+        assertThat(count("un_app_version", "application_id=" + applicationId)).isOne();
+        assertThat(count("un_app_grant", "application_id=" + applicationId)).isOne();
+        assertThat(count("un_audit_event", "object_type='APPLICATION' and object_id='" + applicationId
                 + "' and event_code in ('APPLICATION_DRAFT_CREATED','APPLICATION_DRAFT_SAVED',"
                 + "'APPLICATION_VERSION_PUBLISHED','APPLICATION_CREDENTIAL_ROTATED','APPLICATION_DISABLED')")).isEqualTo(5);
 
         grantPlatformPermissions(owner.accountId(), "APPLICATION", List.of("VIEW", "MANAGE", "PUBLISH"));
         String platformToken = platformLogin(owner.username());
+        long platformMemberId = jdbc.queryForObject("select id from un_plat_member where account_id=?",
+                Long.class, owner.accountId());
         ResponseEntity<Map> platformCreated = exchange("/api/applications", HttpMethod.POST, platformToken, Map.of(
                 "code", "platform_flow_bridge", "name", "平台 Flow 桥梁", "applicationType", "SERVICE"));
         assertThat(platformCreated.getStatusCode()).isEqualTo(HttpStatus.OK);
         long platformApplicationId = number(map(data(platformCreated).get("application")).get("id"));
         Map<String, Object> platformGrant = Map.of(
                 "targetType", "PLATFORM", "resourceType", "FLOW", "resourceId", "platform-contract",
-                "actionCode", "START", "dataScope", Map.of("type", "PLATFORM"),
+                "actionCode", "START", "dataScope", Map.of("type", "RESPONSIBLE",
+                        "memberIds", List.of(platformMemberId), "departmentIds", List.of()),
                 "rateLimit", Map.of("maxRequests", 20, "windowSeconds", 60,
                         "allowedIps", List.of("127.0.0.1")), "fields", List.of());
         ResponseEntity<Map> platformSaved = exchange("/api/applications/" + platformApplicationId + "/draft",
@@ -1055,15 +1075,19 @@ class FlowAndWorkManagementHttpTest {
                 .containsEntry("draftRevision", 2).containsEntry("contextType", "SYSTEM")
                 .containsEntry("ownerSystemId", (int) owner.systemId());
         assertThat(map(data(imported).get("issuedCredential"))).containsEntry("shownOnce", true);
-        assertThat(count("app_credential", "application_id=" + importedApplicationId + " and status='ACTIVE'")).isOne();
-        assertThat(count("audit_event", "object_type='APPLICATION' and object_id='" + importedApplicationId
+        assertThat(count("un_app_credential", "application_id=" + importedApplicationId + " and status='ACTIVE'")).isOne();
+        assertThat(count("un_audit_event", "object_type='APPLICATION' and object_id='" + importedApplicationId
                 + "' and event_code='APPLICATION_CONFIGURATION_IMPORTED'")).isOne();
     }
 
     @Test
-    void signedApplicationCallIntersectsTargetMemberPermissionsAndPersistsIdempotentResultWithoutReplayWrites()
+    void signedApplicationCallUsesPublishedGrantAndPersistsIdempotentResultWithoutReplayWrites()
             throws Exception {
         Session owner = register("c41_bridge_owner", "c41-bridge-system", "c41-bridge@example.com");
+        long ownerMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
+                Long.class, owner.systemId(), owner.accountId());
+        Map<String, Object> ownerScope = Map.of("type", "RESPONSIBLE",
+                "memberIds", List.of(ownerMemberId), "departmentIds", List.of());
         ResponseEntity<Map> flowCreated = exchange("/api/flows", HttpMethod.POST, owner.token(), Map.of(
                 "code", "bridge_review", "name", "应用桥接复核", "description", "C41 target Flow"));
         long flowId = number(data(flowCreated).get("id"));
@@ -1087,13 +1111,13 @@ class FlowAndWorkManagementHttpTest {
         String clientSecret = String.valueOf(issued.get("clientSecret"));
         assertThat(issued).containsEntry("shownOnce", true);
         assertThat(String.valueOf(issued.get("secretReference"))).isEqualTo("app-secret/" + applicationId + "/v1");
-        assertThat(jdbc.queryForObject("select signing_secret_ref from app_credential where application_id=?",
+        assertThat(jdbc.queryForObject("select signing_secret_ref from un_app_credential where application_id=?",
                 String.class, applicationId)).startsWith("local-aesgcm:v1:").doesNotContain(clientSecret);
 
         Map<String, Object> grant = Map.of(
                 "targetType", "SYSTEM", "targetSystemId", owner.systemId(), "targetTenantId", owner.tenantId(),
                 "resourceType", "FLOW", "resourceId", "bridge_review", "actionCode", "START",
-                "dataScope", Map.of("type", "SELF"),
+                "dataScope", ownerScope,
                 "rateLimit", Map.of("maxRequests", 1, "windowSeconds", 600,
                         "allowedIps", List.of("127.0.0.1")),
                 "fields", List.of(
@@ -1117,7 +1141,7 @@ class FlowAndWorkManagementHttpTest {
         callBody.put("actionCode", "START");
         callBody.put("targetSystemId", owner.systemId());
         callBody.put("targetTenantId", owner.tenantId());
-        callBody.put("requestedDataScope", Map.of("type", "SELF"));
+        callBody.put("requestedDataScope", ownerScope);
         callBody.put("payload", Map.of("title", "C41 真实签名调用", "variables", Map.of("amount", 8800)));
 
         ResponseEntity<Map> success = signedApplicationCall(callBody, clientId, clientSecret,
@@ -1128,9 +1152,12 @@ class FlowAndWorkManagementHttpTest {
         String requestId = String.valueOf(data(success).get("requestId"));
         long instanceId = number(map(map(data(success).get("result")).get("instance")).get("id"));
         assertThat(String.valueOf(data(success).get("targetReference"))).isEqualTo("FLOW_INSTANCE:" + instanceId);
-        assertThat(count("flow_instance", "id=" + instanceId + " and business_type='APPLICATION_CALL' and business_id='"
-                + requestId + "' and started_by_account_id=" + owner.accountId())).isOne();
-        assertThat(count("app_call", "application_id=" + applicationId
+        assertThat(count("un_flow_instance", "id=" + instanceId + " and business_type is null and business_id is null"
+                + " and started_by_account_id=" + owner.accountId()
+                + " and json_unquote(json_extract(business_snapshot_json, '$.sourceType'))='APPLICATION_CALL'"
+                + " and json_unquote(json_extract(business_snapshot_json, '$.requestId'))='" + requestId + "'"))
+                .isOne();
+        assertThat(count("un_app_call", "application_id=" + applicationId
                 + " and status='SUCCESS' and target_reference='FLOW_INSTANCE:" + instanceId + "'"
                 + " and application_version_id=" + publishedApplicationVersionId
                 + " and permission_snapshot_json is not null and response_json is not null")).isOne();
@@ -1139,8 +1166,8 @@ class FlowAndWorkManagementHttpTest {
                 "c41-nonce-idempotent-replay", "c41-idempotent-flow", null);
         assertThat(idempotentReplay.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(idempotentReplay)).containsEntry("replayed", true).containsEntry("requestId", requestId);
-        assertThat(count("flow_instance", "flow_id=" + flowId)).isOne();
-        assertThat(count("app_call", "application_id=" + applicationId + " and replay_count=1")).isOne();
+        assertThat(count("un_flow_instance", "flow_id=" + flowId)).isOne();
+        assertThat(count("un_app_call", "application_id=" + applicationId + " and replay_count=1")).isOne();
 
         ResponseEntity<Map> nonceReplay = signedApplicationCall(callBody, clientId, clientSecret,
                 "c41-nonce-idempotent-replay", "c41-idempotent-flow", null);
@@ -1161,32 +1188,42 @@ class FlowAndWorkManagementHttpTest {
                 "c41-nonce-expanded-data", "c41-expanded-data", null);
         assertThat(expandedDataScope.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(expandedDataScope.getBody().get("code")).isEqualTo("APPLICATION_DATA_SCOPE_EXPANSION");
-        assertThat(count("flow_instance", "flow_id=" + flowId)).isOne();
+        assertThat(count("un_flow_instance", "flow_id=" + flowId)).isOne();
 
         ResponseEntity<Map> invalidSignature = signedApplicationCall(callBody, clientId, clientSecret,
                 "c41-nonce-bad-signature", "c41-bad-signature", "0".repeat(64));
         assertThat(invalidSignature.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(invalidSignature.getBody().get("code")).isEqualTo("APPLICATION_SIGNATURE_INVALID");
 
-        ResponseEntity<Map> rateLimited = signedApplicationCall(callBody, clientId, clientSecret,
-                "c41-nonce-rate", "c41-new-business-call", null);
-        assertThat(rateLimited.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        // 默认测试 HTTP 客户端会自动重试 429，重用 nonce 后反而得到重放错误；此处读取原始限流响应。
+        ClientHttpRequestFactory originalRequestFactory = http.getRestTemplate().getRequestFactory();
+        ResponseEntity<Map> rateLimited;
+        try {
+            http.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());
+            rateLimited = signedApplicationCall(callBody, clientId, clientSecret,
+                    "c41-nonce-rate", "c41-new-business-call", null);
+        } finally {
+            http.getRestTemplate().setRequestFactory(originalRequestFactory);
+        }
+        assertThat(rateLimited.getStatusCode()).as("调用限流返回：%s", rateLimited.getBody())
+                .isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
         assertThat(rateLimited.getBody().get("code")).isEqualTo("APPLICATION_RATE_LIMITED");
 
         Session outsider = register("c41_bridge_outsider", "c41-outsider-system", "c41-outsider@example.com");
-        jdbc.update("update app_definition set created_by_account_id=? where id=?", outsider.accountId(), applicationId);
+        jdbc.update("update un_sys_system set creator_account_id=? where id=?", outsider.accountId(), owner.systemId());
         ResponseEntity<Map> missingTargetMember = signedApplicationCall(callBody, clientId, clientSecret,
                 "c41-nonce-no-member", "c41-no-target-member", null);
         assertThat(missingTargetMember.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(missingTargetMember.getBody().get("code")).isEqualTo("APPLICATION_TARGET_MEMBER_MISSING");
-        assertThat(count("flow_instance", "flow_id=" + flowId)).isOne();
+        assertThat(missingTargetMember.getBody().get("code")).isEqualTo("APPLICATION_SYSTEM_OWNER_MEMBER_MISSING");
+        jdbc.update("update un_sys_system set creator_account_id=? where id=?", owner.accountId(), owner.systemId());
+        assertThat(count("un_flow_instance", "flow_id=" + flowId)).isOne();
 
         ResponseEntity<Map> callLogs = exchange("/api/applications/" + applicationId + "/calls",
                 HttpMethod.GET, owner.token(), null);
         assertThat(callLogs.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat((List<?>) callLogs.getBody().get("data")).hasSize(6);
-        assertThat(count("app_call_nonce", "application_id=" + applicationId)).isEqualTo(7);
-        assertThat(count("audit_event", "event_code in ('APPLICATION_CALL_SUCCEEDED','APPLICATION_CALL_REJECTED')"
+        assertThat(count("un_app_call_nonce", "application_id=" + applicationId)).isEqualTo(7);
+        assertThat(count("un_audit_event", "event_code in ('APPLICATION_CALL_SUCCEEDED','APPLICATION_CALL_REJECTED')"
                 + " and object_id in ('" + applicationId + "','" + instanceId + "')")).isGreaterThanOrEqualTo(5);
 
         long expectedVersion = number(data(exchange("/api/applications/" + applicationId,
@@ -1200,9 +1237,9 @@ class FlowAndWorkManagementHttpTest {
                         "callbacks", List.of(),
                         "grants", List.of(grant)));
         assertThat(savedAfterCalls.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("app_call", "application_id=" + applicationId)).isEqualTo(6);
-        assertThat(count("app_call", "application_id=" + applicationId + " and grant_id is not null")).isZero();
-        assertThat(count("app_call", "application_id=" + applicationId
+        assertThat(count("un_app_call", "application_id=" + applicationId)).isEqualTo(6);
+        assertThat(count("un_app_call", "application_id=" + applicationId + " and grant_id is not null")).isZero();
+        assertThat(count("un_app_call", "application_id=" + applicationId
                 + " and application_version_id=" + publishedApplicationVersionId)).isEqualTo(6);
         assertThat(String.valueOf(exchange("/api/applications/" + applicationId + "/calls",
                 HttpMethod.GET, owner.token(), null).getBody().get("data")))
@@ -1212,6 +1249,10 @@ class FlowAndWorkManagementHttpTest {
     @Test
     void applicationFailurePolicyDisablesOnlyAfterAuthorizedTargetExecutionFailures() throws Exception {
         Session owner = register("c64_failure_owner", "c64-failure-system", "c64-failure@example.com");
+        long ownerMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
+                Long.class, owner.systemId(), owner.accountId());
+        Map<String, Object> ownerScope = Map.of("type", "RESPONSIBLE",
+                "memberIds", List.of(ownerMemberId), "departmentIds", List.of());
         seedPublishedModule(owner, "customer");
         ResponseEntity<Map> created = exchange("/api/applications", HttpMethod.POST, owner.token(), Map.of(
                 "code", "failure_guarded_bridge", "name", "带失败保护的客户桥梁", "applicationType", "SERVICE"));
@@ -1222,7 +1263,7 @@ class FlowAndWorkManagementHttpTest {
         Map<String, Object> grant = Map.of(
                 "targetType", "SYSTEM", "targetSystemId", owner.systemId(), "targetTenantId", owner.tenantId(),
                 "resourceType", "MODULE", "resourceId", "customer", "actionCode", "DETAIL",
-                "dataScope", Map.of("type", "SELF"),
+                "dataScope", ownerScope,
                 "rateLimit", Map.of("maxRequests", 100, "windowSeconds", 600,
                         "allowedIps", List.of("127.0.0.1"),
                         "failureDisableThreshold", 2, "failureWindowSeconds", 300),
@@ -1242,7 +1283,7 @@ class FlowAndWorkManagementHttpTest {
         callBody.put("actionCode", "DETAIL");
         callBody.put("targetSystemId", owner.systemId());
         callBody.put("targetTenantId", owner.tenantId());
-        callBody.put("requestedDataScope", Map.of("type", "SELF"));
+        callBody.put("requestedDataScope", ownerScope);
         callBody.put("payload", Map.of("recordId", 900001));
         ResponseEntity<Map> firstFailure = signedApplicationCall(callBody, clientId, clientSecret,
                 "c64-failure-nonce-1", "c64-failure-call-1", null);
@@ -1256,8 +1297,8 @@ class FlowAndWorkManagementHttpTest {
         assertThat(secondFailure.getStatusCode().isError()).isTrue();
         assertThat(data(exchange("/api/applications/" + applicationId, HttpMethod.GET,
                 owner.token(), null))).containsEntry("status", "DISABLED");
-        assertThat(count("app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isZero();
-        assertThat(count("audit_event", "object_type='APPLICATION' and object_id='" + applicationId
+        assertThat(count("un_app_credential", "application_id=" + applicationId + " and status='ACTIVE'")).isZero();
+        assertThat(count("un_audit_event", "object_type='APPLICATION' and object_id='" + applicationId
                 + "' and event_code='APPLICATION_FAILURE_POLICY_DISABLED'")).isOne();
 
         ResponseEntity<Map> disabled = signedApplicationCall(callBody, clientId, clientSecret,
@@ -1274,8 +1315,8 @@ class FlowAndWorkManagementHttpTest {
                 owner, recipientHome.accountId(), "MESSAGE", List.of("VIEW"), "MESSAGE_VIEWER");
         Session recipient = enterTenant(recipientHome, owner.systemId(), owner.tenantId(),
                 platformLogin(recipientHome.username()));
-        long recipientTenantMemberId = jdbc.queryForObject("select stm.id from sys_tenant_member stm "
-                        + "join sys_member sm on sm.id=stm.system_member_id "
+        long recipientTenantMemberId = jdbc.queryForObject("select stm.id from un_sys_tenant_member stm "
+                        + "join un_sys_member sm on sm.id=stm.system_member_id "
                         + "where stm.system_id=? and stm.tenant_id=? and sm.account_id=?",
                 Long.class, owner.systemId(), owner.tenantId(), recipientHome.accountId());
 
@@ -1305,7 +1346,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat(publishedTemplate.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(publishedTemplate)).containsEntry("status", "PUBLISHED").containsEntry("publishedVersion", 1);
 
-        int messagesBeforeInvalid = count("msg_message", "system_id=" + owner.systemId());
+        int messagesBeforeInvalid = count("un_msg_message", "system_id=" + owner.systemId());
         ResponseEntity<Map> missingVariable = exchange("/api/messages/events", HttpMethod.POST, owner.token(), Map.of(
                 "templateCode", "FLOW_RESULT_NOTICE", "sourceType", "FLOW_EVENT", "dedupKey", "c42-missing-variable",
                 "recipients", List.of(Map.of("type", "TENANT_MEMBER", "id", recipientTenantMemberId)),
@@ -1313,7 +1354,7 @@ class FlowAndWorkManagementHttpTest {
                 "targetType", "FLOW_INSTANCE", "targetId", String.valueOf(instanceId), "sensitivity", "IMPORTANT"));
         assertThat(missingVariable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(missingVariable.getBody().get("code")).isEqualTo("MESSAGE_TEMPLATE_VARIABLE_MISSING");
-        assertThat(count("msg_message", "system_id=" + owner.systemId())).isEqualTo(messagesBeforeInvalid);
+        assertThat(count("un_msg_message", "system_id=" + owner.systemId())).isEqualTo(messagesBeforeInvalid);
 
         Map<String, Object> event = Map.of(
                 "templateCode", "FLOW_RESULT_NOTICE", "sourceType", "FLOW_EVENT", "dedupKey", "c42-flow-result-1",
@@ -1339,8 +1380,8 @@ class FlowAndWorkManagementHttpTest {
         ResponseEntity<Map> idempotent = exchange("/api/messages/events", HttpMethod.POST, owner.token(), event);
         assertThat(idempotent.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(number(data(idempotent).get("id"))).isEqualTo(messageId);
-        assertThat(count("msg_message", "system_id=" + owner.systemId() + " and source_id='c42-flow-result-1'")).isOne();
-        assertThat(count("msg_recipient", "message_id=" + messageId)).isOne();
+        assertThat(count("un_msg_message", "system_id=" + owner.systemId() + " and source_id='c42-flow-result-1'")).isOne();
+        assertThat(count("un_msg_recipient", "message_id=" + messageId)).isOne();
 
         ResponseEntity<Map> firstRetry = exchange("/api/messages/deliveries/" + externalDeliveryId + "/retry",
                 HttpMethod.POST, owner.token(), Map.of());
@@ -1348,13 +1389,13 @@ class FlowAndWorkManagementHttpTest {
         ResponseEntity<Map> finalRetry = exchange("/api/messages/deliveries/" + externalDeliveryId + "/retry",
                 HttpMethod.POST, owner.token(), Map.of());
         assertThat(finalRetry.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(count("msg_delivery", "id=" + externalDeliveryId
+        assertThat(count("un_msg_delivery", "id=" + externalDeliveryId
                 + " and status='FAILED' and attempt_count=3")).isOne();
         ResponseEntity<Map> exhaustedRetry = exchange("/api/messages/deliveries/" + externalDeliveryId + "/retry",
                 HttpMethod.POST, owner.token(), Map.of());
         assertThat(exhaustedRetry.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(exhaustedRetry.getBody().get("code")).isEqualTo("MESSAGE_DELIVERY_NOT_RETRYABLE");
-        assertThat(count("msg_delivery", "message_id=" + messageId + " and channel='IN_APP' and status='DELIVERED'")).isOne();
+        assertThat(count("un_msg_delivery", "message_id=" + messageId + " and channel='IN_APP' and status='DELIVERED'")).isOne();
 
         ResponseEntity<Map> inbox = exchange("/api/messages?status=ACTIVE&sourceType=ALL",
                 HttpMethod.GET, recipient.token(), null);
@@ -1367,7 +1408,7 @@ class FlowAndWorkManagementHttpTest {
                 HttpMethod.POST, recipient.token(), Map.of());
         assertThat(deniedOpen.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(deniedOpen.getBody().get("code")).isEqualTo("MESSAGE_TARGET_PERMISSION_DENIED");
-        assertThat(count("msg_recipient", "message_id=" + messageId + " and status='UNREAD'")).isOne();
+        assertThat(count("un_msg_recipient", "message_id=" + messageId + " and status='UNREAD'")).isOne();
 
         grantSystemRoleAction(owner.systemId(), owner.tenantId(), recipientRoleId, "FLOW", "SYSTEM", "VIEW");
         recipient = enterTenant(recipientHome, owner.systemId(), owner.tenantId(),
@@ -1388,15 +1429,15 @@ class FlowAndWorkManagementHttpTest {
                 recipient.token(), null)).get("messages")).singleElement();
         assertThat((List<?>) data(exchange("/api/messages?status=ALL&sourceType=ALL", HttpMethod.GET,
                 recipientHome.token(), null)).get("messages")).isEmpty();
-        assertThat(count("msg_template_version", "template_id=" + templateId)).isOne();
-        assertThat(count("audit_event", "system_id=" + owner.systemId()
+        assertThat(count("un_msg_template_version", "template_id=" + templateId)).isOne();
+        assertThat(count("un_audit_event", "system_id=" + owner.systemId()
                 + " and event_code in ('MESSAGE_TEMPLATE_SAVED','MESSAGE_TEMPLATE_PUBLISHED','MESSAGE_CREATED',"
                 + "'MESSAGE_TARGET_OPENED','MESSAGE_ARCHIVED')")).isGreaterThanOrEqualTo(5);
 
         grantPlatformPermissions(owner.accountId(), "MESSAGE", List.of("VIEW", "MANAGE"));
         String platformToken = platformLogin(owner.username());
         long ownerPlatformMemberId = jdbc.queryForObject(
-                "select id from plat_member where account_id=?", Long.class, owner.accountId());
+                "select id from un_plat_member where account_id=?", Long.class, owner.accountId());
         long platformTemplateId = number(data(exchange("/api/message-templates", HttpMethod.POST, platformToken,
                 Map.of("code", "PLATFORM_ROUTE_NOTICE", "name", "平台路由通知", "channel", "IN_APP",
                         "subjectTemplate", "平台入口已更新", "contentTemplate", "打开平台 Flow 工作区",
@@ -1441,8 +1482,8 @@ class FlowAndWorkManagementHttpTest {
                 .containsEntry("previewStatus", "AVAILABLE").containsEntry("sha256", contentSha);
         assertThat((List<?>) data(uploaded).get("scans")).singleElement().satisfies(item ->
                 assertThat(map(item)).containsEntry("scanner", "BUILTIN_SIGNATURE").containsEntry("status", "CLEAN"));
-        assertThat(count("file_upload_session", "id=" + sessionId + " and status='COMPLETED'")).isOne();
-        assertThat(count("file_security_scan", "file_id=" + fileId + " and status='CLEAN'")).isOne();
+        assertThat(count("un_file_upload_session", "id=" + sessionId + " and status='COMPLETED'")).isOne();
+        assertThat(count("un_file_security_scan", "file_id=" + fileId + " and status='CLEAN'")).isOne();
 
         ResponseEntity<Map> referenced = exchange("/api/files/" + fileId + "/references", HttpMethod.POST,
                 owner.token(), Map.of("ownerType", "ACCOUNT", "ownerId", String.valueOf(owner.accountId()),
@@ -1482,9 +1523,9 @@ class FlowAndWorkManagementHttpTest {
                 String.valueOf(data(mismatchSession).get("uploadToken")), "short".getBytes(StandardCharsets.UTF_8));
         assertThat(mismatch.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(mismatch.getBody().get("code")).isEqualTo("FILE_SIZE_MISMATCH");
-        assertThat(count("file_upload_session", "id=" + mismatchSessionId + " and status='FAILED'")).isOne();
-        assertThat(count("file_object", "upload_session_id=" + mismatchSessionId)).isZero();
-        assertThat(count("audit_event", "event_code='FILE_UPLOAD_FAILED' and object_id='"
+        assertThat(count("un_file_upload_session", "id=" + mismatchSessionId + " and status='FAILED'")).isOne();
+        assertThat(count("un_file_object", "upload_session_id=" + mismatchSessionId)).isZero();
+        assertThat(count("un_audit_event", "event_code='FILE_UPLOAD_FAILED' and object_id='"
                 + mismatchSessionId + "' and result_code='FILE_SIZE_MISMATCH'")).isOne();
 
         byte[] unsafe = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE"
@@ -1512,7 +1553,7 @@ class FlowAndWorkManagementHttpTest {
         assertThat((List<?>) isolatedList.getBody().get("data")).isEmpty();
         assertThat(binary("/api/files/" + unsafeFileId + "/download", outsider.token()).getStatusCode())
                 .isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(count("audit_event", "system_id=" + owner.systemId()
+        assertThat(count("un_audit_event", "system_id=" + owner.systemId()
                 + " and event_code in ('FILE_UPLOAD_COMPLETED','FILE_UPLOAD_QUARANTINED',"
                 + "'FILE_REFERENCE_ADDED','FILE_REFERENCE_REMOVED','FILE_DELETED')")).isGreaterThanOrEqualTo(5);
     }
@@ -1526,48 +1567,45 @@ class FlowAndWorkManagementHttpTest {
     }
 
     private long seedPublishedModule(Session owner, String code) {
-        long memberId = jdbc.queryForObject("select id from sys_member where system_id=? and account_id=?",
-                Long.class, owner.systemId(), owner.accountId());
-        jdbc.update("insert into cfg_module_group(system_id,owner_tenant_id,code,name,sort_order,status,"
-                        + "created_by_member_id,version) values(?,?,?,?,?,?,?,0)",
-                owner.systemId(), owner.tenantId(), code + "_group", code + " group", 10, "ACTIVE", memberId);
-        long groupId = jdbc.queryForObject("select id from cfg_module_group where owner_tenant_id=? and code=?",
-                Long.class, owner.tenantId(), code + "_group");
-        jdbc.update("insert into cfg_module(system_id,owner_tenant_id,group_id,code,name,status,draft_revision,"
-                        + "created_by_member_id,version) values(?,?,?,?,?,'DRAFT',2,?,0)",
-                owner.systemId(), owner.tenantId(), groupId, code, code, memberId);
-        long moduleId = jdbc.queryForObject("select id from cfg_module where owner_tenant_id=? and code=?",
-                Long.class, owner.tenantId(), code);
-        jdbc.update("insert into cfg_module_version(system_id,owner_tenant_id,module_id,version_number,draft_revision,"
-                        + "schema_hash,snapshot_json,change_summary,published_by_member_id) values(?,?,?,1,1,"
-                        + "?,'{}','C34 published base',?)",
-                owner.systemId(), owner.tenantId(), moduleId, "0".repeat(64), memberId);
-        long versionId = jdbc.queryForObject("select id from cfg_module_version where module_id=? and version_number=1",
-                Long.class, moduleId);
-        jdbc.update("insert into cfg_module_publication(system_id,owner_tenant_id,module_id,current_version_id,"
-                        + "updated_by_member_id,version) values(?,?,?,?,?,0)",
-                owner.systemId(), owner.tenantId(), moduleId, versionId, memberId);
+        // 测试模块走真实配置和发布入口，保证版本快照满足当前表约束与业务规则。
+        ResponseEntity<Map> group = exchange("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", code + "_group", "name", code + " group", "sortOrder", 10));
+        assertThat(group.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long groupId = number(data(group).get("id"));
+        ResponseEntity<Map> module = exchange("/api/admin/module-config/modules", HttpMethod.POST, owner.token(),
+                Map.of("groupId", groupId, "code", code, "name", code));
+        assertThat(module.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long moduleId = number(map(data(module).get("module")).get("id"));
+        ResponseEntity<Map> field = exchange("/api/admin/module-config/modules/" + moduleId + "/fields",
+                HttpMethod.POST, owner.token(), Map.of("code", "customer_name", "name", "客户名称",
+                        "fieldType", "TEXT", "required", true, "sortOrder", 10, "config", Map.of()));
+        assertThat(field.getStatusCode()).isEqualTo(HttpStatus.OK);
+        int revision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?",
+                Integer.class, moduleId);
+        ResponseEntity<Map> published = exchange("/api/admin/module-config/modules/" + moduleId + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", revision));
+        assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
         return moduleId;
     }
 
     private long addTenantWithWildcard(Session owner, String code) {
-        jdbc.update("update sys_system set tenant_mode='MULTI' where id=?", owner.systemId());
-        jdbc.update("insert into sys_tenant(system_id,code,name,is_main,main_marker,creator_account_id,status,version) "
+        jdbc.update("update un_sys_system set tenant_mode='MULTI' where id=?", owner.systemId());
+        jdbc.update("insert into un_sys_tenant(system_id,code,name,is_main,main_marker,creator_account_id,status,version) "
                         + "values(?,?,?,0,null,?,'ACTIVE',0)",
                 owner.systemId(), code, "C34 " + code, owner.accountId());
-        long tenantId = jdbc.queryForObject("select id from sys_tenant where system_id=? and code=?",
+        long tenantId = jdbc.queryForObject("select id from un_sys_tenant where system_id=? and code=?",
                 Long.class, owner.systemId(), code);
-        long systemMemberId = jdbc.queryForObject("select id from sys_member where system_id=? and account_id=?",
+        long systemMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
                 Long.class, owner.systemId(), owner.accountId());
-        jdbc.update("insert into sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status,version) "
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status,version) "
                 + "values(?,?,?,1,'ACTIVE',0)", owner.systemId(), tenantId, systemMemberId);
-        long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+        long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
                 Long.class, tenantId, systemMemberId);
-        jdbc.update("insert into sys_role(system_id,tenant_id,code,name,built_in,status,version) "
+        jdbc.update("insert into un_sys_role(system_id,tenant_id,code,name,built_in,status,version) "
                 + "values(?,?,?,'C34 tenant admin',0,'ACTIVE',0)", owner.systemId(), tenantId, "C34_" + code);
-        long roleId = jdbc.queryForObject("select id from sys_role where tenant_id=? and code=?",
+        long roleId = jdbc.queryForObject("select id from un_sys_role where tenant_id=? and code=?",
                 Long.class, tenantId, "C34_" + code);
-        jdbc.update("insert into sys_member_role(tenant_id,tenant_member_id,role_id) values(?,?,?)",
+        jdbc.update("insert into un_sys_member_role(tenant_id,tenant_member_id,role_id) values(?,?,?)",
                 tenantId, tenantMemberId, roleId);
         grantSystemRoleAction(owner.systemId(), tenantId, roleId, "*", "*", "*");
         return tenantId;
@@ -1575,21 +1613,21 @@ class FlowAndWorkManagementHttpTest {
 
     private long addMemberWithPermissions(
             Session owner, long accountId, String resourceType, List<String> actions, String rolePrefix) {
-        jdbc.update("update sys_system set tenant_mode='MULTI' where id=?", owner.systemId());
-        jdbc.update("insert into sys_member(system_id,account_id,display_name,status,version) "
+        jdbc.update("update un_sys_system set tenant_mode='MULTI' where id=?", owner.systemId());
+        jdbc.update("insert into un_sys_member(system_id,account_id,display_name,status,version) "
                 + "values(?,?,?,'ACTIVE',0)", owner.systemId(), accountId, "C34 viewer");
-        long systemMemberId = jdbc.queryForObject("select id from sys_member where system_id=? and account_id=?",
+        long systemMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
                 Long.class, owner.systemId(), accountId);
-        jdbc.update("insert into sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status,version) "
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status,version) "
                 + "values(?,?,?,0,'ACTIVE',0)", owner.systemId(), owner.tenantId(), systemMemberId);
-        long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id=? and system_member_id=?",
+        long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
                 Long.class, owner.tenantId(), systemMemberId);
         String code = "C34_" + rolePrefix + "_" + accountId;
-        jdbc.update("insert into sys_role(system_id,tenant_id,code,name,built_in,status,version) "
+        jdbc.update("insert into un_sys_role(system_id,tenant_id,code,name,built_in,status,version) "
                 + "values(?,?,?,'C34 log viewer',0,'ACTIVE',0)", owner.systemId(), owner.tenantId(), code);
-        long roleId = jdbc.queryForObject("select id from sys_role where tenant_id=? and code=?",
+        long roleId = jdbc.queryForObject("select id from un_sys_role where tenant_id=? and code=?",
                 Long.class, owner.tenantId(), code);
-        jdbc.update("insert into sys_member_role(tenant_id,tenant_member_id,role_id) values(?,?,?)",
+        jdbc.update("insert into un_sys_member_role(tenant_id,tenant_member_id,role_id) values(?,?,?)",
                 owner.tenantId(), tenantMemberId, roleId);
         for (String action : actions) {
             grantSystemRoleAction(owner.systemId(), owner.tenantId(), roleId, resourceType, "SYSTEM", action);
@@ -1599,10 +1637,10 @@ class FlowAndWorkManagementHttpTest {
 
     private void grantSystemRoleAction(
             long systemId, long tenantId, long roleId, String resourceType, String resourceCode, String action) {
-        jdbc.update("insert ignore into sys_role_permission(system_id,tenant_id,role_id,resource_type,resource_code,"
+        jdbc.update("insert ignore into un_sys_role_permission(system_id,tenant_id,role_id,resource_type,resource_code,"
                         + "action_code,data_scope_type,effect,version) values(?,?,?,?,? ,?,'TENANT','ALLOW',0)",
                 systemId, tenantId, roleId, resourceType, resourceCode, action);
-        jdbc.update("insert into core_cache_epoch(context_key,cache_namespace,epoch_value,reason,version) "
+        jdbc.update("insert into un_core_cache_epoch(context_key,cache_namespace,epoch_value,reason,version) "
                         + "values(?,'AUTHORIZATION',1,'C34 test permission change',0) "
                         + "on duplicate key update epoch_value=epoch_value+1,reason=values(reason),version=version+1",
                 "system:" + systemId + ":tenant:" + tenantId);
@@ -1651,25 +1689,25 @@ class FlowAndWorkManagementHttpTest {
     }
 
     private void grantPlatformPermissions(long accountId, String resourceType, List<String> actions) {
-        long platformId = jdbc.queryForObject("select platform_id from plat_member where account_id=?", Long.class,
+        long platformId = jdbc.queryForObject("select platform_id from un_plat_member where account_id=?", Long.class,
                 accountId);
-        long memberId = jdbc.queryForObject("select id from plat_member where account_id=?", Long.class, accountId);
+        long memberId = jdbc.queryForObject("select id from un_plat_member where account_id=?", Long.class, accountId);
         String roleCode = "C32_" + resourceType + "_" + accountId;
-        List<Long> roleIds = jdbc.queryForList("select id from plat_role where platform_id=? and code=?",
+        List<Long> roleIds = jdbc.queryForList("select id from un_plat_role where platform_id=? and code=?",
                 Long.class, platformId, roleCode);
         long roleId;
         if (roleIds.isEmpty()) {
-            jdbc.update("insert into plat_role(platform_id,code,name,built_in,status,version) values(?,?,?,?,?,?)",
+            jdbc.update("insert into un_plat_role(platform_id,code,name,built_in,status,version) values(?,?,?,?,?,?)",
                     platformId, roleCode, "C32 " + resourceType, false, "ACTIVE", 0);
-            roleId = jdbc.queryForObject("select id from plat_role where platform_id=? and code=?", Long.class,
+            roleId = jdbc.queryForObject("select id from un_plat_role where platform_id=? and code=?", Long.class,
                     platformId, roleCode);
-            jdbc.update("insert into plat_member_role(platform_id,member_id,role_id) values(?,?,?)",
+            jdbc.update("insert into un_plat_member_role(platform_id,member_id,role_id) values(?,?,?)",
                     platformId, memberId, roleId);
         } else {
             roleId = roleIds.getFirst();
         }
         for (String action : actions) {
-            jdbc.update("insert ignore into plat_role_permission(platform_id,role_id,resource_type,resource_code,"
+            jdbc.update("insert ignore into un_plat_role_permission(platform_id,role_id,resource_type,resource_code,"
                             + "action_code,data_scope_type,effect,version) values(?,?,?,?,?,?,?,?)",
                     platformId, roleId, resourceType, "PLATFORM", action, "PLATFORM", "ALLOW", 0);
         }

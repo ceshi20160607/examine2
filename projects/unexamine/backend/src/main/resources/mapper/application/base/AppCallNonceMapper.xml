@@ -9,14 +9,14 @@
         <result column="credential_version" property="credentialVersion" />
         <result column="nonce" property="nonce" />
         <result column="request_id" property="requestId" />
-        <result column="request_timestamp" property="requestTimestamp" />
-        <result column="expires_at" property="expiresAt" />
-        <result column="created_at" property="createdAt" />
+        <result column="request_time" property="requestTime" />
+        <result column="expire_time" property="expireTime" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, application_id, credential_version, nonce, request_id, request_timestamp, expires_at, created_at
+        id, application_id, credential_version, nonce, request_id, request_time, expire_time, create_time
     </sql>
 
 </mapper>

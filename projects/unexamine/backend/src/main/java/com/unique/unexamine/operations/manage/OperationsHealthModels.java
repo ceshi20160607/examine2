@@ -17,6 +17,7 @@ public final class OperationsHealthModels {
             String checkedAt) { }
 
     public record JobOverview(
+            boolean available,
             long queued,
             long running,
             long retryWait,

@@ -20,7 +20,7 @@ describe('runtime task recovery contract', () => {
     expect(runtime).toContain('const writableCodes = new Set(formFields.value.map((field) => field.code))')
     expect(runtime).toContain('writableCodes.has(code)')
     expect(runtime).toContain("['FIELD_VALIDATION_FAILED', 'UNIQUE_RULE_VIOLATION'].includes(reason.code)")
-    expect(runtime).toContain("fields.value.find((field) => field.code === code)?.name || '字段'")
+    expect(runtime).toContain("formFields.value.find((field) => field.code === code)?.name || '字段'")
     expect(runtime).toContain('请检查填写内容：')
     expect(runtime).toContain("!field.fieldType.startsWith('SYSTEM_')")
     expect(runtime).toContain('!Boolean(fieldConfig(field).readOnly)')
@@ -28,9 +28,10 @@ describe('runtime task recovery contract', () => {
 
   it('closes inaccessible details and refreshes the list after permission loss', () => {
     expect(runtime).toContain("'PERMISSION_DENIED', 'RECORD_NOT_FOUND'")
+    expect(runtime).toContain('closeDetail()')
     expect(runtime).toContain('detailOpen.value = false')
     expect(runtime).toContain('detail.value = undefined')
-    expect(runtime).toContain('记录已不可访问，详情已关闭并刷新列表')
+    expect(runtime).toContain('记录已不可访问，已关闭表单和详情并刷新列表')
   })
 
   it('keeps the mobile detail action bar inside the viewport', () => {

@@ -1,0 +1,57 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "import_ui_safe_rollback_and_dashboard_recalculation",
+  "before": {
+    "batches": [
+      {
+        "id": 1,
+        "status": "COMPLETED_WITH_ERRORS",
+        "successRows": 1,
+        "failedRows": 1,
+        "rows": [
+          {
+            "rowNumber": 2,
+            "status": "SUCCEEDED",
+            "targetRecordId": 6,
+            "rollbackStatus": null
+          },
+          {
+            "rowNumber": 3,
+            "status": "ERROR",
+            "targetRecordId": null,
+            "rollbackStatus": null
+          }
+        ]
+      }
+    ],
+    "records": 3,
+    "dashboardValue": 3
+  },
+  "after": {
+    "batches": [
+      {
+        "id": 1,
+        "status": "ROLLED_BACK",
+        "successRows": 1,
+        "failedRows": 1,
+        "rows": [
+          {
+            "rowNumber": 2,
+            "status": "ROLLED_BACK",
+            "targetRecordId": 6,
+            "rollbackStatus": "ROLLED_BACK"
+          },
+          {
+            "rowNumber": 3,
+            "status": "ERROR",
+            "targetRecordId": null,
+            "rollbackStatus": null
+          }
+        ]
+      }
+    ],
+    "records": 2,
+    "dashboardValue": 2
+  }
+}

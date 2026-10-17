@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("work_log_comment")
+@TableName("un_work_log_comment")
 public class WorkLogComment {
 
     /**

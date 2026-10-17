@@ -5,7 +5,6 @@ import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SystemDefinition;
 import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemMember;
-import com.unique.unexamine.system.base.entity.SystemMemberRole;
 import com.unique.unexamine.system.base.entity.SystemRole;
 import com.unique.unexamine.system.base.entity.SystemRolePermission;
 import com.unique.unexamine.system.base.entity.SystemTenant;
@@ -13,7 +12,6 @@ import com.unique.unexamine.system.base.entity.SystemTenantMember;
 import com.unique.unexamine.system.base.service.SystemDefinitionBaseService;
 import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
-import com.unique.unexamine.system.base.service.SystemMemberRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRoleBaseService;
 import com.unique.unexamine.system.base.service.SystemRolePermissionBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantBaseService;
@@ -26,9 +24,10 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** 新系统统一初始化主租户、根部门和初始成员；多租户由系统后台后续启用。 */
 @Service
 public class SystemBootstrapService {
-    private static final Pattern SYSTEM_CODE = Pattern.compile("[a-z][a-z0-9_-]{1,99}");
+    private static final Pattern SYSTEM_CODE = Pattern.compile("[a-z][a-z0-9_]{1,99}");
 
     private final SystemDefinitionBaseService systemService;
     private final SystemTenantBaseService tenantService;
@@ -36,7 +35,6 @@ public class SystemBootstrapService {
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
     private final SystemRoleBaseService roleService;
-    private final SystemMemberRoleBaseService memberRoleService;
     private final SystemRolePermissionBaseService rolePermissionService;
 
     public SystemBootstrapService(
@@ -46,7 +44,6 @@ public class SystemBootstrapService {
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
             SystemRoleBaseService roleService,
-            SystemMemberRoleBaseService memberRoleService,
             SystemRolePermissionBaseService rolePermissionService) {
         this.systemService = systemService;
         this.tenantService = tenantService;
@@ -54,7 +51,6 @@ public class SystemBootstrapService {
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
         this.roleService = roleService;
-        this.memberRoleService = memberRoleService;
         this.rolePermissionService = rolePermissionService;
     }
 
@@ -64,10 +60,10 @@ public class SystemBootstrapService {
             Long accountId,
             String displayName,
             String systemName,
-            String requestedCode,
-            String requestedTenantMode) {
+            String requestedCode) {
         String normalizedName = requireName(systemName);
-        String tenantMode = normalizeTenantMode(requestedTenantMode);
+        // 新系统从单租户开始；多租户仅由系统后台开关启用。
+        String tenantMode = "SINGLE";
         String systemCode = resolveSystemCode(platformId, requestedCode);
 
         SystemDefinition system = new SystemDefinition();
@@ -104,7 +100,7 @@ public class SystemBootstrapService {
         tenantMember.setTenantId(tenant.getId());
         tenantMember.setSystemMemberId(member.getId());
         tenantMember.setDepartmentId(rootDepartment.getId());
-        tenantMember.setTenantAdmin(true);
+        tenantMember.setTenantAdmin(false);
         tenantMember.setStatus("ACTIVE");
         tenantMemberService.insert(tenantMember);
 
@@ -128,11 +124,7 @@ public class SystemBootstrapService {
         permission.setDataScopeType("ALL");
         rolePermissionService.insert(permission);
 
-        SystemMemberRole assignment = new SystemMemberRole();
-        assignment.setTenantId(tenant.getId());
-        assignment.setTenantMemberId(tenantMember.getId());
-        assignment.setRoleId(administratorRole.getId());
-        memberRoleService.insert(assignment);
+        // 当前所属人的全权限来自系统归属，不绑定显式超管角色，转让后即可立即失去隐式权限。
 
         return new SystemBootstrapResult(system, tenant, rootDepartment, member, tenantMember, administratorRole);
     }
@@ -142,14 +134,6 @@ public class SystemBootstrapService {
             throw new DomainException("SYSTEM_NAME_REQUIRED", "请填写系统名称", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return value.strip();
-    }
-
-    private String normalizeTenantMode(String value) {
-        String normalized = value == null || value.isBlank() ? "SINGLE" : value.strip().toUpperCase(Locale.ROOT);
-        if (!"SINGLE".equals(normalized) && !"MULTI".equals(normalized)) {
-            throw new DomainException("SYSTEM_TENANT_MODE_INVALID", "系统组织模式无效", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        return normalized;
     }
 
     /** 新系统主租户和新增租户共用默认部门；由调用方的创建事务保证失败整体回滚。 */

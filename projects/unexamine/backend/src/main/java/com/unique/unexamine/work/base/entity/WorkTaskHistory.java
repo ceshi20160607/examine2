@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 任务状态与业务操作历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("work_task_history")
+@TableName("un_work_task_history")
 public class WorkTaskHistory {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 关联任务标识
+     */
     @TableField("task_id")
     private Long taskId;
 
+    /**
+     * 任务操作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 操作前任务快照
+     */
     @TableField("before_json")
     private String beforeJson;
 
+    /**
+     * 操作后任务快照
+     */
     @TableField("after_json")
     private String afterJson;
 
+    /**
+     * 操作补充说明
+     */
     @TableField("comment_text")
     private String commentText;
 
+    /**
+     * 操作人平台账号标识
+     */
     @TableField("changed_by_account_id")
     private Long changedByAccountId;
 
-    @TableField("changed_at")
-    private LocalDateTime changedAt;
+    /**
+     * 任务操作时间
+     */
+    @TableField("change_time")
+    private LocalDateTime changeTime;
 
     public Long getId() {
         return id;
@@ -98,12 +122,12 @@ public class WorkTaskHistory {
         this.changedByAccountId = changedByAccountId;
     }
 
-    public LocalDateTime getChangedAt() {
-        return changedAt;
+    public LocalDateTime getChangeTime() {
+        return changeTime;
     }
 
-    public void setChangedAt(LocalDateTime changedAt) {
-        this.changedAt = changedAt;
+    public void setChangeTime(LocalDateTime changeTime) {
+        this.changeTime = changeTime;
     }
 
     @Override
@@ -116,7 +140,7 @@ public class WorkTaskHistory {
             ", afterJson = " + afterJson +
             ", commentText = " + commentText +
             ", changedByAccountId = " + changedByAccountId +
-            ", changedAt = " + changedAt +
+            ", changeTime = " + changeTime +
             "}";
     }
 }

@@ -155,6 +155,10 @@ public class FlowBindingService {
         if (!EXECUTION_MODES.contains(executionMode)) {
             throw invalid("FLOW_BINDING_EXECUTION_MODE_INVALID", "Flow 绑定执行模式无效");
         }
+        if (action != null && "APPROVAL".equals(action.getCode())
+                && (!"MANUAL".equals(event) || !"FLOW_ONLY".equals(executionMode))) {
+            throw invalid("MODULE_APPROVAL_BINDING_INVALID", "审批动作只能绑定手动触发且仅运行 Flow 的流程");
+        }
         if (EVENT_FLOW_ONLY.contains(event) && !"FLOW_ONLY".equals(executionMode)) {
             throw invalid("FLOW_BINDING_EXECUTION_MODE_INVALID", "周期、导入完成和数据异常事件只能配置为启动流程");
         }
@@ -166,6 +170,10 @@ public class FlowBindingService {
         if (!"SCHEDULED".equals(event) && input.schedule() != null) {
             throw invalid("FLOW_SCHEDULE_CONFIG_INVALID", "只有周期触发可以配置执行周期");
         }
+        Map<String, String> statusMapping = approvalStatusMapping(input.approvalStatusMapping(), executionMode);
+        if (!statusMapping.isEmpty() && (!Set.of("CREATE", "UPDATE").contains(event) || action != null)) {
+            throw invalid("FLOW_APPROVAL_STATUS_MAPPING_ACTION_INVALID", "业务状态联动只适用于模块新建或编辑的审批绑定");
+        }
         validateCondition(input.conditionExpression());
         JsonNode structuredCondition = input.condition();
         if (input.condition() != null) {
@@ -175,6 +183,14 @@ public class FlowBindingService {
         FlowDefinition flow = "DIRECT".equals(executionMode) ? null : requirePublishedFlow(context, input.flowId());
         Long flowId = flow == null ? null : flow.getId();
         FlowVersion version = flow == null ? null : requireVersion(publication(flowId).getCurrentVersionId(), flowId);
+        if (action != null && "APPROVAL".equals(action.getCode()) && version != null) {
+            // 审批动作必须进入真正的审批节点，避免选到只含开始/结束节点的普通自动流程。
+            Object nodes = readMap(version.getSnapshotJson()).get("nodes");
+            if (!(nodes instanceof List<?> list) || list.stream().noneMatch(node ->
+                    node instanceof Map<?, ?> item && "APPROVAL".equals(item.get("nodeType")))) {
+                throw invalid("MODULE_APPROVAL_FLOW_NODE_REQUIRED", "审批动作绑定的 Flow 必须包含审批节点");
+            }
+        }
         if (version != null) {
             validateFlowBusinessModule(module.getId(), version);
             flowConditions.validateCurrent(context, module.getId(), readMap(version.getSnapshotJson()));
@@ -192,6 +208,7 @@ public class FlowBindingService {
                 && policy(active.getFirst()).mutuallyExclusive() == !Boolean.FALSE.equals(input.mutuallyExclusive())
                 && Objects.equals(policy(active.getFirst()).condition(), structuredCondition)
                 && Objects.equals(policy(active.getFirst()).schedule(), schedule)
+                && Objects.equals(policy(active.getFirst()).approvalStatusMapping(), statusMapping)
                 && Objects.equals(policy(active.getFirst()).conditionExpression(), blankToNull(input.conditionExpression()));
         if (sameActive) {
             return view(active.getFirst(), mainTenant(context.systemId()).getId());
@@ -228,7 +245,7 @@ public class FlowBindingService {
         binding.setFlowId(flowId);
         binding.setPriorityOrder(priority);
         binding.setConditionExpression(toPolicyJson(executionMode, input.conditionExpression(), structuredCondition,
-                input.mutuallyExclusive(), versionId, schedule, schedule == null ? null : context));
+                input.mutuallyExclusive(), versionId, schedule, schedule == null ? null : context, statusMapping));
         binding.setStatus("ACTIVE");
         bindingService.insert(binding);
         LinkedHashMap<String, Object> detail = new LinkedHashMap<>();
@@ -337,7 +354,8 @@ public class FlowBindingService {
         if ("DIRECT".equals(policy.executionMode())) return new FlowBindingModels.ResolutionView(
                 null, binding.getId(), Objects.equals(binding.getOwnerTenantId(), mainTenantId) ? "DEFAULT" : "TENANT_OVERRIDE",
                 binding.getOwnerTenantId(), context.tenantId(), null, null, null, null, Map.of(),
-                "DIRECT", policy.mutuallyExclusive(), "DIRECT_CONFIGURATION", LocalDateTime.now());
+                "DIRECT", policy.mutuallyExclusive(), policy.approvalStatusMapping(),
+                "DIRECT_CONFIGURATION", LocalDateTime.now());
         FlowDefinition flow = definitionService.selectById(binding.getFlowId());
         if (flow == null || !Objects.equals(flow.getSystemId(), context.systemId())
                 || !Objects.equals(flow.getOwnerTenantId(), binding.getOwnerTenantId())) {
@@ -371,7 +389,8 @@ public class FlowBindingService {
                 resolution.getId(), binding.getId(), override ? "TENANT_OVERRIDE" : "DEFAULT",
                 binding.getOwnerTenantId(), context.tenantId(), flow.getId(), version.getId(),
                 version.getVersionNumber(), version.getDefinitionHash(), readMap(version.getSnapshotJson()),
-                policy.executionMode(), policy.mutuallyExclusive(), reason, resolution.getResolvedAt());
+                policy.executionMode(), policy.mutuallyExclusive(), policy.approvalStatusMapping(),
+                reason, resolution.getResolveTime());
     }
 
     @Transactional(readOnly = true)
@@ -502,14 +521,15 @@ public class FlowBindingService {
         }
         ConfiguredModuleAction action = actionService.selectById(actionId);
         if (action == null || !Objects.equals(action.getSystemId(), context.systemId())
-                || !Objects.equals(action.getModuleId(), module.getId()) || !"ACTIVE".equals(action.getStatus())
+                || !Objects.equals(action.getModuleId(), module.getId())
                 || !(Objects.equals(action.getOwnerTenantId(), context.tenantId())
                 || Objects.equals(action.getOwnerTenantId(), module.getOwnerTenantId()))) {
             throw invalid("FLOW_BINDING_ACTION_INVALID", "模块动作不存在、未启用或与模块不匹配");
         }
         boolean published = false;
         for (JsonNode configured : moduleConfigurations.published(context, module.getCode()).configuration().path("actions")) {
-            if (actionId.equals(configured.path("id").asLong())) published = true;
+            if (actionId.equals(configured.path("id").asLong())
+                    && "ACTIVE".equals(configured.path("status").asText())) published = true;
         }
         if (!published) throw invalid("FLOW_BINDING_ACTION_INVALID", "动作不在当前租户已发布配置中");
         return action;
@@ -586,7 +606,8 @@ public class FlowBindingService {
                 version == null ? null : version.getId(), version == null ? null : version.getVersionNumber(),
                 policy.executionMode(), binding.getPriorityOrder(), policy.conditionExpression(),
                 policy.condition(),
-                policy.mutuallyExclusive(), policy.schedule(), binding.getStatus(), binding.getVersion(), binding.getUpdatedAt());
+                policy.mutuallyExclusive(), policy.schedule(), policy.approvalStatusMapping(),
+                binding.getStatus(), binding.getVersion(), binding.getUpdateTime());
     }
 
     private SystemTenant mainTenant(Long systemId) {
@@ -607,7 +628,7 @@ public class FlowBindingService {
 
     private String toPolicyJson(String mode, String expression, JsonNode condition, Boolean mutuallyExclusive,
                                 Long flowVersionId, FlowBindingModels.ScheduleConfig schedule,
-                                AuthenticatedContext scheduleActor) {
+                                AuthenticatedContext scheduleActor, Map<String, String> approvalStatusMapping) {
         LinkedHashMap<String, Object> value = new LinkedHashMap<>();
         value.put("executionMode", mode);
         value.put("conditionExpression", blankToNull(expression));
@@ -616,6 +637,7 @@ public class FlowBindingService {
         value.put("mutuallyExclusive", !Boolean.FALSE.equals(mutuallyExclusive));
         value.put("schedule", schedule);
         value.put("scheduleActor", scheduleActor == null ? null : scheduleActor(scheduleActor));
+        value.put("approvalStatusMapping", approvalStatusMapping);
         try {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException exception) {
@@ -625,7 +647,7 @@ public class FlowBindingService {
 
     private BindingPolicy policy(FlowTriggerBinding binding) {
         if (binding.getConditionExpression() == null || binding.getConditionExpression().isBlank()) {
-            return new BindingPolicy("AFTER_EXECUTION", null, null, true, null, null, Map.of());
+            return new BindingPolicy("AFTER_EXECUTION", null, null, true, null, null, Map.of(), Map.of());
         }
         try {
             Map<String, Object> value = objectMapper.readValue(binding.getConditionExpression(), new TypeReference<>() { });
@@ -639,10 +661,29 @@ public class FlowBindingService {
                     value.get("schedule") == null ? null
                             : objectMapper.convertValue(value.get("schedule"), FlowBindingModels.ScheduleConfig.class),
                     value.get("scheduleActor") instanceof Map<?, ?> actor
-                            ? objectMapper.convertValue(actor, new TypeReference<Map<String, Object>>() { }) : Map.of());
+                            ? objectMapper.convertValue(actor, new TypeReference<Map<String, Object>>() { }) : Map.of(),
+                    value.get("approvalStatusMapping") instanceof Map<?, ?> mapping
+                            ? objectMapper.convertValue(mapping, new TypeReference<Map<String, String>>() { }) : Map.of());
         } catch (JsonProcessingException | IllegalArgumentException ignored) {
-            return new BindingPolicy("AFTER_EXECUTION", binding.getConditionExpression(), null, true, null, null, Map.of());
+            return new BindingPolicy("AFTER_EXECUTION", binding.getConditionExpression(), null, true, null, null, Map.of(), Map.of());
         }
+    }
+
+    /** 审批结果只使用明确发布的状态编码；草稿和旧绑定缺省时不改变原有业务状态。 */
+    private Map<String, String> approvalStatusMapping(Map<String, String> input, String executionMode) {
+        if (input == null || input.isEmpty()) return Map.of();
+        if (!"AFTER_APPROVAL".equals(executionMode)) {
+            throw invalid("FLOW_APPROVAL_STATUS_MAPPING_MODE_INVALID", "只有审批通过后保存的绑定可以配置业务状态联动");
+        }
+        LinkedHashMap<String, String> mapping = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : input.entrySet()) {
+            if (!Set.of("COMPLETED", "REJECTED", "WITHDRAWN").contains(entry.getKey())
+                    || entry.getValue() == null || !entry.getValue().strip().matches("[A-Z][A-Z0-9_]{0,63}")) {
+                throw invalid("FLOW_APPROVAL_STATUS_MAPPING_INVALID", "审批结果与目标业务状态编码无效");
+            }
+            mapping.put(entry.getKey(), entry.getValue().strip());
+        }
+        return Map.copyOf(mapping);
     }
 
     /** 内部调度器只读取启用的周期绑定和发布人身份引用，不暴露给普通页面。 */
@@ -657,7 +698,7 @@ public class FlowBindingService {
                     ConfiguredModule module = moduleService.selectById(binding.getModuleId());
                     if (policy.schedule() == null || module == null || policy.scheduleActor().isEmpty()) return null;
                     return new ScheduledBinding(binding.getId(), binding.getSystemId(), binding.getOwnerTenantId(),
-                            binding.getModuleId(), module.getCode(), binding.getUpdatedAt(), policy.schedule(),
+                            binding.getModuleId(), module.getCode(), binding.getUpdateTime(), policy.schedule(),
                             scheduleActor(policy.scheduleActor()));
                 }).filter(Objects::nonNull).toList();
     }
@@ -785,6 +826,7 @@ public class FlowBindingService {
 
     private record BindingPolicy(String executionMode, String conditionExpression, JsonNode condition,
                                  boolean mutuallyExclusive, Long flowVersionId,
-                                 FlowBindingModels.ScheduleConfig schedule, Map<String, Object> scheduleActor) {
+                                 FlowBindingModels.ScheduleConfig schedule, Map<String, Object> scheduleActor,
+                                 Map<String, String> approvalStatusMapping) {
     }
 }

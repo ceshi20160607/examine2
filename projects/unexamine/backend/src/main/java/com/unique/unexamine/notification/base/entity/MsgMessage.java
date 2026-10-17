@@ -9,65 +9,116 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统租户通知消息及跳转目标快照
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("msg_message")
+@TableName("un_msg_message")
 public class MsgMessage {
 
+    /**
+     * 系统消息主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 固定为系统上下文
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 系统所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 消息所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 消息所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 模板消息的发布版本主键；内部事件消息为空
+     */
     @TableField("template_version_id")
     private Long templateVersionId;
 
+    /**
+     * 通知来源业务类别
+     */
     @TableField("source_type")
     private String sourceType;
 
+    /**
+     * 来源事件去重键，为空时不参与事件去重
+     */
     @TableField("source_id")
     private String sourceId;
 
+    /**
+     * 发送时渲染的主题快照
+     */
     @TableField("`subject`")
     private String subject;
 
+    /**
+     * 发送时渲染的正文快照
+     */
     @TableField("content_text")
     private String contentText;
 
+    /**
+     * 系统业务目标类别
+     */
     @TableField("target_type")
     private String targetType;
 
+    /**
+     * 系统业务目标标识
+     */
     @TableField("target_id")
     private String targetId;
 
+    /**
+     * 当前系统路由，打开前须复核成员及对象权限
+     */
     @TableField("target_route")
     private String targetRoute;
 
+    /**
+     * 消息敏感级别
+     */
     @TableField("sensitivity")
     private String sensitivity;
 
+    /**
+     * 发起通知的系统成员账号，自动通知可为空
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 发起通知的系统成员主键，自动通知可为空
+     */
+    @TableField("created_by_member_id")
+    private Long createdByMemberId;
 
-    @TableField("dedup_context_key")
-    private String dedupContextKey;
+    /**
+     * 消息创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -189,20 +240,20 @@ public class MsgMessage {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Long getCreatedByMemberId() {
+        return createdByMemberId;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedByMemberId(Long createdByMemberId) {
+        this.createdByMemberId = createdByMemberId;
     }
 
-    public String getDedupContextKey() {
-        return dedupContextKey;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setDedupContextKey(String dedupContextKey) {
-        this.dedupContextKey = dedupContextKey;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -223,8 +274,8 @@ public class MsgMessage {
             ", targetRoute = " + targetRoute +
             ", sensitivity = " + sensitivity +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", dedupContextKey = " + dedupContextKey +
+            ", createdByMemberId = " + createdByMemberId +
+            ", createTime = " + createTime +
             "}";
     }
 }

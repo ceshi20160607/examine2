@@ -1,6 +1,8 @@
 package com.unique.unexamine.ai.manage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -20,6 +22,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 class AiConfirmedWriteHttpTest {
+    private static AiModelTestServer modelServer;
+
+    @BeforeAll
+    static void startModel() throws IOException {
+        modelServer = AiModelTestServer.start();
+    }
+
+    @AfterAll
+    static void stopModel() {
+        if (modelServer != null) modelServer.close();
+    }
+
     @Container
     static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("unexamine")
@@ -85,10 +100,10 @@ class AiConfirmedWriteHttpTest {
         });
         long pendingId = number(candidate.get("pendingWriteId"));
         long executionId = number(candidate.get("executionId"));
-        assertThat(count("biz_record", "system_id=" + owner.systemId())).isZero();
-        assertThat(count("ai_pending_write", "id=" + pendingId + " and status='PENDING_CONFIRMATION'"
+        assertThat(count("un_biz_record", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_ai_pending_write", "id=" + pendingId + " and status='PENDING_CONFIRMATION'"
                 + " and confirmed_by_account_id is null")).isOne();
-        assertThat(count("ai_execution", "id=" + executionId + " and status='WAITING_CONFIRMATION'"
+        assertThat(count("un_ai_execution", "id=" + executionId + " and status='WAITING_CONFIRMATION'"
                 + " and fallback_used=0")).isOne();
 
         Map<String, Object> cancelledCandidate = data(exchange("/api/ai/writes/recognize", HttpMethod.POST,
@@ -101,7 +116,7 @@ class AiConfirmedWriteHttpTest {
         assertThat(data(exchange("/api/ai/writes/" + cancelledCandidate.get("pendingWriteId"), HttpMethod.GET,
                 owner.systemToken(), null))).containsEntry("outcome", "CANCELLED")
                 .containsEntry("errorCode", "AI_WRITE_CANCELLED").containsEntry("businessWritten", false);
-        assertThat(count("biz_record", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_biz_record", "system_id=" + owner.systemId())).isZero();
 
         Map<String, Object> invalidCandidate = data(exchange("/api/ai/writes/recognize", HttpMethod.POST,
                 owner.systemToken(), recognize(agentId, owner.tenantId(), "标题：缺少必填字段")));
@@ -109,7 +124,7 @@ class AiConfirmedWriteHttpTest {
                 + "/confirm", HttpMethod.POST, owner.systemToken(), confirm(invalidCandidate, Map.of())));
         assertThat(validation).containsEntry("status", "VALIDATION_FAILED")
                 .containsEntry("businessWritten", false).containsKey("errorCode");
-        assertThat(count("biz_record", "system_id=" + owner.systemId())).isZero();
+        assertThat(count("un_biz_record", "system_id=" + owner.systemId())).isZero();
         Map<String, Object> rereadInvalid = data(exchange("/api/ai/writes/" + invalidCandidate.get("pendingWriteId"),
                 HttpMethod.GET, owner.systemToken(), null));
         assertThat(rereadInvalid).containsEntry("outcome", "FAILED").containsKey("errorCode")
@@ -128,7 +143,7 @@ class AiConfirmedWriteHttpTest {
                 HttpMethod.GET, owner.systemToken(), null));
         assertThat(((Map<?, ?>) firstDetail.get("fields")).get("customer_name")).isEqualTo("人工补充客户");
 
-        jdbc.update("update ai_model set endpoint_url='http://127.0.0.1:1/v1' where id=?", modelId);
+        jdbc.update("update un_ai_model set endpoint_url='http://127.0.0.1:1/v1' where id=?", modelId);
         Map<String, Object> degraded = data(exchange("/api/ai/writes/recognize", HttpMethod.POST,
                 owner.systemToken(), recognize(agentId, owner.tenantId(), "原始文件文本仍需保留")));
         assertThat(degraded).containsEntry("outcome", "DEGRADED").containsEntry("status", "NEEDS_MANUAL_INPUT")
@@ -137,34 +152,34 @@ class AiConfirmedWriteHttpTest {
         Map<String, Object> manual = data(exchange("/api/ai/writes/" + degraded.get("pendingWriteId") + "/confirm",
                 HttpMethod.POST, owner.systemToken(), confirm(degraded, Map.of("customer_name", "模型降级人工客户"))));
         assertThat(manual).containsEntry("businessWritten", true).containsEntry("status", "CONFIRMED");
-        assertThat(count("biz_record", "system_id=" + owner.systemId() + " and tenant_id=" + owner.tenantId()))
+        assertThat(count("un_biz_record", "system_id=" + owner.systemId() + " and tenant_id=" + owner.tenantId()))
                 .isEqualTo(2);
 
         Map<String, Object> crossTenant = data(exchange("/api/ai/writes/recognize", HttpMethod.POST,
                 owner.systemToken(), recognize(agentId, owner.tenantId() + 999, "客户名称：越权客户")));
         assertThat(crossTenant).containsEntry("outcome", "REFUSED").containsEntry("status", "REFUSED")
                 .containsEntry("errorCode", "AI_WRITE_SCOPE_DENIED").containsEntry("businessWritten", false);
-        assertThat(count("biz_record", "system_id=" + owner.systemId())).isEqualTo(2);
+        assertThat(count("un_biz_record", "system_id=" + owner.systemId())).isEqualTo(2);
 
         String pendingPayload = jdbc.queryForObject(
-                "select concat(proposed_payload_json, preview_json) from ai_pending_write where id=?",
+                "select concat(proposed_payload_json, preview_json) from un_ai_pending_write where id=?",
                 String.class, pendingId);
         assertThat(pendingPayload).contains("C47 待确认客户", "星河科技", "customer_name", "inputText")
                 .doesNotContain("c47-model-secret-never-persisted");
         String authorization = jdbc.queryForObject(
-                "select authorization_snapshot_json from ai_execution where id=?", String.class, executionId);
+                "select authorization_snapshot_json from un_ai_execution where id=?", String.class, executionId);
         assertThat(authorization).contains("systemId", "tenantId", "CREATE", "customer_name", "requiresConfirmation")
                 .doesNotContain("c47-model-secret-never-persisted");
-        assertThat(count("ai_execution_step", "step_type='STRUCTURED_RECOGNITION' and status='SUCCEEDED'"))
+        assertThat(count("un_ai_execution_step", "step_type='STRUCTURED_RECOGNITION' and status='SUCCEEDED'"))
                 .isGreaterThanOrEqualTo(4);
-        assertThat(count("ai_execution_step", "step_type='CONFIRMED_WRITE' and status='SUCCEEDED'"))
+        assertThat(count("un_ai_execution_step", "step_type='CONFIRMED_WRITE' and status='SUCCEEDED'"))
                 .isEqualTo(2);
-        assertThat(count("audit_event", "event_code='AI_WRITE_CANDIDATE_READY'")).isGreaterThanOrEqualTo(3);
-        assertThat(count("audit_event", "event_code='AI_WRITE_CANDIDATE_DEGRADED'")).isOne();
-        assertThat(count("audit_event", "event_code='AI_WRITE_CONFIRMED'")).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='AI_WRITE_CANCELLED'")).isOne();
-        assertThat(count("audit_event", "event_code='AI_WRITE_VALIDATION_FAILED'")).isOne();
-        assertThat(count("audit_event", "event_code='AI_WRITE_CANDIDATE_REFUSED'")).isOne();
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_CANDIDATE_READY'")).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_CANDIDATE_DEGRADED'")).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_CONFIRMED'")).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_CANCELLED'")).isOne();
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_VALIDATION_FAILED'")).isOne();
+        assertThat(count("un_audit_event", "event_code='AI_WRITE_CANDIDATE_REFUSED'")).isOne();
     }
 
     private Map<String, Object> recognize(long agentId, long tenantId, String text) {
@@ -226,7 +241,7 @@ class AiConfirmedWriteHttpTest {
         model.put("name", "C47 本地安全识别模型");
         model.put("provider", "LOCAL");
         model.put("modelName", "confirmed-write-v1");
-        model.put("endpointUrl", null);
+        model.put("endpointUrl", modelServer.endpoint());
         model.put("credentialRef", "property:test.ai.secret");
         model.put("capabilities", List.of("CHAT", "TOOL_CALLING"));
         model.put("dailyTokenLimit", 100000);

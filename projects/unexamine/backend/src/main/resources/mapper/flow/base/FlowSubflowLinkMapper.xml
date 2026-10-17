@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.flow.base.mapper.FlowSubflowLinkMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowSubflowLink">
+        <id column="id" property="id" />
+        <result column="parent_instance_id" property="parentInstanceId" />
+        <result column="parent_execution_id" property="parentExecutionId" />
+        <result column="child_instance_id" property="childInstanceId" />
+        <result column="parent_node_key" property="parentNodeKey" />
+        <result column="status" property="status" />
+        <result column="created_time" property="createdTime" />
+        <result column="completed_time" property="completedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, parent_instance_id, parent_execution_id, child_instance_id, parent_node_key, `status`, created_time, completed_time
+    </sql>
+
+</mapper>

@@ -11,12 +11,12 @@
         <result column="before_value_json" property="beforeValueJson" />
         <result column="after_value_json" property="afterValueJson" />
         <result column="sensitivity" property="sensitivity" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, audit_event_id, field_code, value_type, before_value_json, after_value_json, sensitivity, created_at
+        id, audit_event_id, field_code, value_type, before_value_json, after_value_json, sensitivity, create_time
     </sql>
 
 </mapper>

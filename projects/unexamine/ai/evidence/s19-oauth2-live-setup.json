@@ -1,0 +1,17 @@
+{
+  "step": "S19.3",
+  "candidate": "0.1.0-s19.3-dev1",
+  "mode": "isolated-local-idp",
+  "providerId": 1,
+  "versionId": 1,
+  "providerCode": "s19-oauth2",
+  "draftHidden": true,
+  "preflightStatus": "PASSED",
+  "publishedStatus": "PUBLISHED",
+  "loginEntryVisible": true,
+  "systemId": 1,
+  "tenantId": 1,
+  "systemMappingAction": "BIND_EXISTING_MEMBER",
+  "systemMappingStatus": "SUCCEEDED",
+  "idpBoundary": "Local protocol-faithful OAuth2 fixture; no enterprise IdP credentials or connection claimed."
+}

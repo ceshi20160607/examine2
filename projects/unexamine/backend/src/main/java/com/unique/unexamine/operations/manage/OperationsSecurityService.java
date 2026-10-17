@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 @Service
 public class OperationsSecurityService {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
-    private static final Set<String> SECRET_TYPES = Set.of("APPLICATION", "SSO", "WEBHOOK", "MODEL");
+    private static final Set<String> SECRET_TYPES = Set.of("APPLICATION", "SSO", "WEBHOOK", "MODEL", "BACKUP");
 
     private final OpsSecretRefBaseService refs;
     private final OpsSecretRotationBaseService rotations;
@@ -119,14 +119,15 @@ public class OperationsSecurityService {
         ref.setContextType("SYSTEM");
         ref.setPlatformId(context.platformId());
         ref.setSystemId(context.systemId());
+        ref.setScopeOwnerId(context.systemId());
         ref.setSecretCode(code);
         ref.setProvider("INTERNAL_ENCRYPTED_" + type);
         ref.setReferencePath("ops-secret://system/" + context.systemId() + "/" + code + "/v1");
         ref.setCurrentVersion("v1");
         ref.setStatus("ACTIVE");
-        ref.setLastVerifiedAt(now);
-        ref.setCreatedAt(now);
-        ref.setUpdatedAt(now);
+        ref.setLastVerifiedTime(now);
+        ref.setCreateTime(now);
+        ref.setUpdateTime(now);
         ref.setVersion(0);
         refs.insert(ref);
 
@@ -140,9 +141,9 @@ public class OperationsSecurityService {
                 Map.of("approvalReference", input.approvalReference().strip(), "initialVersion", true,
                         "oldVersionStatus", "NONE", "switched", true))));
         rotation.setRequestedByAccountId(context.accountId());
-        rotation.setStartedAt(now);
-        rotation.setFinishedAt(now);
-        rotation.setCreatedAt(now);
+        rotation.setStartTime(now);
+        rotation.setFinishTime(now);
+        rotation.setCreateTime(now);
         rotation.setVersion(0);
         rotations.insert(rotation);
         audit(context, requestId, "OPERATIONS_SECRET_CREATED", "OPS_SECRET_REF", ref.getId(), "SUCCESS",
@@ -177,12 +178,12 @@ public class OperationsSecurityService {
                 Map.of("approvalReference", input.approvalReference().strip(), "oldVersionStatus", "ACTIVE",
                         "switched", false, "oneTimeSecretDisplayed", true))));
         rotation.setRequestedByAccountId(context.accountId());
-        rotation.setStartedAt(now);
-        rotation.setCreatedAt(now);
+        rotation.setStartTime(now);
+        rotation.setCreateTime(now);
         rotation.setVersion(0);
         rotations.insert(rotation);
         ref.setStatus("ROTATION_PENDING");
-        ref.setUpdatedAt(now);
+        ref.setUpdateTime(now);
         refs.updateById(ref);
         audit(context, requestId, "OPERATIONS_SECRET_ROTATION_PREPARED", "OPS_SECRET_ROTATION", rotation.getId(),
                 "AWAITING_CANARY", Map.of("secretRefId", refId, "fromVersion", ref.getCurrentVersion(),
@@ -250,14 +251,14 @@ public class OperationsSecurityService {
         evidence.put("activatedAt", format(now));
         rotation.setStatus("ACTIVE");
         rotation.setVerificationJson(json(evidence));
-        rotation.setFinishedAt(now);
+        rotation.setFinishTime(now);
         rotations.updateById(rotation);
         ref.setCurrentVersion(rotation.getToVersion());
         ref.setReferencePath("ops-secret://system/" + context.systemId() + "/" + ref.getSecretCode() + "/"
                 + rotation.getToVersion());
         ref.setStatus("ACTIVE");
-        ref.setLastVerifiedAt(now);
-        ref.setUpdatedAt(now);
+        ref.setLastVerifiedTime(now);
+        ref.setUpdateTime(now);
         refs.updateById(ref);
         audit(context, requestId, "OPERATIONS_SECRET_ROTATION_ACTIVATED", "OPS_SECRET_ROTATION", rotationId,
                 "SUCCESS", Map.of("secretRefId", ref.getId(), "fromVersion", rotation.getFromVersion(),
@@ -293,7 +294,7 @@ public class OperationsSecurityService {
         run.setStatus(passed ? "PASSED" : "FAILED");
         run.setResultJson(json(Map.of("passed", passed, "checkCount", checks.size(), "checks", checks,
                 "rotationSwitchAllowed", passed)));
-        run.setFinishedAt(LocalDateTime.now());
+        run.setFinishTime(LocalDateTime.now());
         verificationRuns.updateById(run);
         audit(context, requestId, "OPERATIONS_SECURITY_BASELINE_EXECUTED", "OPS_VERIFICATION_RUN", run.getId(),
                 run.getStatus(), Map.of("checkCount", checks.size(), "findingCount", findingRows(run.getId()).size(),
@@ -326,7 +327,7 @@ public class OperationsSecurityService {
         run.setStatus(findingCount == 0 ? "PASSED" : "THRESHOLD_EXCEEDED");
         run.setResultJson(json(Map.of("passed", findingCount == 0, "paths", results,
                 "optimizationTaskCount", findingCount, "boundedSample", true)));
-        run.setFinishedAt(LocalDateTime.now());
+        run.setFinishTime(LocalDateTime.now());
         verificationRuns.updateById(run);
         audit(context, requestId, "OPERATIONS_PERFORMANCE_BASELINE_EXECUTED", "OPS_VERIFICATION_RUN", run.getId(),
                 run.getStatus(), Map.of("pathCount", results.size(), "optimizationTaskCount", findingCount,
@@ -370,10 +371,10 @@ public class OperationsSecurityService {
         evidence.put("oldVersionStatus", "ACTIVE");
         rotation.setStatus(status);
         rotation.setVerificationJson(json(evidence));
-        rotation.setFinishedAt(LocalDateTime.now());
+        rotation.setFinishTime(LocalDateTime.now());
         rotations.updateById(rotation);
         ref.setStatus("ACTIVE");
-        ref.setUpdatedAt(LocalDateTime.now());
+        ref.setUpdateTime(LocalDateTime.now());
         refs.updateById(ref);
         audit(context, requestId, "OPERATIONS_SECRET_ROTATION_BLOCKED", "OPS_SECRET_ROTATION", rotation.getId(),
                 failureCode, Map.of("secretRefId", ref.getId(), "activeVersion", ref.getCurrentVersion(),
@@ -387,13 +388,15 @@ public class OperationsSecurityService {
         OpsVerificationRun run = new OpsVerificationRun();
         run.setVerificationType(type);
         run.setContextType("SYSTEM");
+        run.setPlatformId(context.platformId());
         run.setSystemId(context.systemId());
+        run.setScopeOwnerId(context.systemId());
         run.setScenarioCode(scenario);
         run.setStatus("RUNNING");
         run.setInputJson(json(input));
         run.setThresholdJson(json(threshold));
         run.setStartedByAccountId(context.accountId());
-        run.setStartedAt(LocalDateTime.now());
+        run.setStartTime(LocalDateTime.now());
         verificationRuns.insert(run);
         return run;
     }
@@ -417,7 +420,7 @@ public class OperationsSecurityService {
         finding.setDetailText(detail);
         finding.setEvidenceJson(json(evidence));
         finding.setStatus("OPEN");
-        finding.setCreatedAt(LocalDateTime.now());
+        finding.setCreateTime(LocalDateTime.now());
         finding.setVersion(0);
         findings.insert(finding);
     }
@@ -457,7 +460,7 @@ public class OperationsSecurityService {
         String type = ref.getProvider().replace("INTERNAL_ENCRYPTED_", "");
         return new OperationsSecurityModels.SecretRefView(ref.getId(), ref.getSecretCode(), type,
                 "INTERNAL_ENCRYPTED", ref.getReferencePath(), ref.getCurrentVersion(), ref.getStatus(),
-                format(ref.getLastVerifiedAt()), format(ref.getUpdatedAt()));
+                format(ref.getLastVerifiedTime()), format(ref.getUpdateTime()));
     }
 
     private OperationsSecurityModels.RotationView rotationView(OpsSecretRotation rotation, OpsSecretRef ref) {
@@ -468,20 +471,20 @@ public class OperationsSecurityService {
                 text(evidence.getOrDefault("activeVersion", ref == null ? rotation.getFromVersion() : ref.getCurrentVersion())),
                 strings(evidence.get("consumerCodes")), maps(evidence.get("consumerChecks")),
                 number(evidence.get("securityRunId")), text(evidence.getOrDefault("oldVersionStatus", "ACTIVE")),
-                text(evidence.get("failureCode")), format(rotation.getCreatedAt()), format(rotation.getFinishedAt()));
+                text(evidence.get("failureCode")), format(rotation.getCreateTime()), format(rotation.getFinishTime()));
     }
 
     private OperationsSecurityModels.VerificationRunView runView(OpsVerificationRun run) {
         return new OperationsSecurityModels.VerificationRunView(run.getId(), run.getVerificationType(),
                 run.getScenarioCode(), run.getStatus(), parse(run.getInputJson()), parse(run.getResultJson()),
-                parse(run.getThresholdJson()), format(run.getStartedAt()), format(run.getFinishedAt()),
+                parse(run.getThresholdJson()), format(run.getStartTime()), format(run.getFinishTime()),
                 findingRows(run.getId()).stream().map(this::findingView).toList());
     }
 
     private OperationsSecurityModels.VerificationFindingView findingView(OpsVerificationFinding finding) {
         return new OperationsSecurityModels.VerificationFindingView(finding.getId(), finding.getSeverity(),
                 finding.getFindingCode(), finding.getTitle(), finding.getDetailText(), parse(finding.getEvidenceJson()),
-                finding.getStatus(), format(finding.getCreatedAt()));
+                finding.getStatus(), format(finding.getCreateTime()));
     }
 
     private List<OpsVerificationFinding> findingRows(long runId) {

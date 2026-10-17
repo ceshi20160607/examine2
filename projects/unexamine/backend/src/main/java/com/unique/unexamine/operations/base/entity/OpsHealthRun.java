@@ -9,47 +9,86 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统健康检查运行及结果汇总
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_health_run")
+@TableName("un_ops_health_run")
 public class OpsHealthRun {
 
+    /**
+     * 健康检查运行主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 检查层级，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统级检查所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 平台或系统的稳定归属主键
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 健康检查类型
+     */
     @TableField("run_type")
     private String runType;
 
+    /**
+     * 检查时运行的产品版本
+     */
     @TableField("release_version")
     private String releaseVersion;
 
+    /**
+     * 健康检查结果状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 检查汇总和处置建议
+     */
     @TableField("summary_json")
     private String summaryJson;
 
+    /**
+     * 发起检查的平台账号主键
+     */
     @TableField("started_by_account_id")
     private Long startedByAccountId;
 
-    @TableField("started_at")
-    private LocalDateTime startedAt;
+    /**
+     * 健康检查开始时间
+     */
+    @TableField("start_time")
+    private LocalDateTime startTime;
 
-    @TableField("finished_at")
-    private LocalDateTime finishedAt;
+    /**
+     * 健康检查结束时间
+     */
+    @TableField("finish_time")
+    private LocalDateTime finishTime;
 
     public Long getId() {
         return id;
@@ -81,6 +120,14 @@ public class OpsHealthRun {
 
     public void setSystemId(Long systemId) {
         this.systemId = systemId;
+    }
+
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
     }
 
     public String getRunType() {
@@ -123,20 +170,20 @@ public class OpsHealthRun {
         this.startedByAccountId = startedByAccountId;
     }
 
-    public LocalDateTime getStartedAt() {
-        return startedAt;
+    public LocalDateTime getStartTime() {
+        return startTime;
     }
 
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
+    public LocalDateTime getFinishTime() {
+        return finishTime;
     }
 
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
+    public void setFinishTime(LocalDateTime finishTime) {
+        this.finishTime = finishTime;
     }
 
     @Override
@@ -146,13 +193,14 @@ public class OpsHealthRun {
             ", contextType = " + contextType +
             ", platformId = " + platformId +
             ", systemId = " + systemId +
+            ", scopeOwnerId = " + scopeOwnerId +
             ", runType = " + runType +
             ", releaseVersion = " + releaseVersion +
             ", status = " + status +
             ", summaryJson = " + summaryJson +
             ", startedByAccountId = " + startedByAccountId +
-            ", startedAt = " + startedAt +
-            ", finishedAt = " + finishedAt +
+            ", startTime = " + startTime +
+            ", finishTime = " + finishTime +
             "}";
     }
 }

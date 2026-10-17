@@ -10,60 +10,108 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 工作域的可配置字段
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("work_field_config")
+@TableName("un_work_field_config")
 public class WorkFieldConfig {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务上下文类型：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台范围为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台范围为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 可配置字段所属对象类型
+     */
     @TableField("target_type")
     private String targetType;
 
+    /**
+     * 同一对象范围内的字段编码
+     */
     @TableField("field_code")
     private String fieldCode;
 
+    /**
+     * 字段显示名称
+     */
     @TableField("field_name")
     private String fieldName;
 
+    /**
+     * 字段数据类型
+     */
     @TableField("field_type")
     private String fieldType;
 
+    /**
+     * 是否必填
+     */
     @TableField("required")
     private Boolean required;
 
+    /**
+     * 组内排序
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 字段展示与校验配置
+     */
     @TableField("config_json")
     private String configJson;
 
+    /**
+     * 业务状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -172,20 +220,20 @@ public class WorkFieldConfig {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -212,8 +260,8 @@ public class WorkFieldConfig {
             ", sortOrder = " + sortOrder +
             ", configJson = " + configJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

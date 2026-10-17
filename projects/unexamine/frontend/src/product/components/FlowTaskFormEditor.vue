@@ -364,7 +364,7 @@ defineExpose({ submission, formRevision, markConflict, clear })
                   @update:model-value="change(configuredField, $event)" />
                 <PersonSelect v-else-if="configuredField.fieldType === 'MEMBER'" :model-value="organizationValue(configuredField)"
                   :people="organizations[configuredField.code]?.people || []" value-key="systemMemberId"
-                  :disabled="disabled" @update:model-value="change(configuredField, $event)" />
+                  :disabled="disabled" show-department-filter @update:model-value="change(configuredField, $event)" />
                 <DepartmentSelect v-else-if="configuredField.fieldType === 'DEPARTMENT'" :model-value="organizationValue(configuredField) as number | undefined"
                   :departments="organizations[configuredField.code]?.departments || []" :disabled="disabled" @update:model-value="change(configuredField, $event)" />
                 <a-cascader v-else-if="configuredField.fieldType === 'CASCADE'" :value="cascadeValue(configuredField)" :options="cascades[configuredField.code] || []"

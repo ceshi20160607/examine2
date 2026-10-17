@@ -1,0 +1,33 @@
+{
+  "draftIsolation": {
+    "status": 403,
+    "code": "PRINT_ACTION_NOT_PUBLISHED"
+  },
+  "modulePublication": {
+    "versionId": 101,
+    "versionNumber": 5
+  },
+  "template": {
+    "id": 41,
+    "versionId": 50,
+    "moduleVersionNumber": 5,
+    "previewPages": 1
+  },
+  "print": {
+    "jobId": 124,
+    "status": "SUCCEEDED",
+    "pageCount": 1,
+    "pdfBytes": 1394,
+    "pdfPath": "projects/unexamine/ai/evidence/s18-module-print-preview.pdf"
+  },
+  "memberDenied": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "mysql": {
+    "action": "ACTIVE",
+    "moduleVersionId": 101,
+    "templateVersionId": 50,
+    "jobStatus": "SUCCEEDED"
+  }
+}

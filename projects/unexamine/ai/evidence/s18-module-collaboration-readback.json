@@ -1,0 +1,126 @@
+{
+  "step": "S18.27",
+  "environment": {
+    "systemId": 166,
+    "moduleId": 92,
+    "database": "unexamine_drill_s17_files_1054",
+    "backendReadiness": "UP"
+  },
+  "publication": [
+    {
+      "version": 3,
+      "id": 99,
+      "detailConfig": {
+        "teamEnabled": false,
+        "confirmation": false,
+        "commentEnabled": false,
+        "confirmationText": ""
+      }
+    },
+    {
+      "version": 4,
+      "id": 100,
+      "detailConfig": {
+        "teamEnabled": true,
+        "confirmation": false,
+        "commentEnabled": true,
+        "confirmationText": ""
+      }
+    }
+  ],
+  "ownerRecord": {
+    "id": 185,
+    "title": "S18 模块功能导入记录",
+    "version": 2,
+    "updatedConfigVersionId": 100,
+    "participantMembers": [
+      {
+        "memberId": 251,
+        "role": "COLLABORATOR"
+      }
+    ],
+    "referenceId": 182,
+    "childRows": [
+      {
+        "rowKey": "53ab8b98-32a7-491a-a0e5-f311fb7db532",
+        "fields": {
+          "field_68acd4104b": "导入明细"
+        },
+        "displayFields": {
+          "field_68acd4104b": "导入明细"
+        }
+      }
+    ]
+  },
+  "ownerComments": [
+    {
+      "id": 4,
+      "recordId": 185,
+      "parentCommentId": null,
+      "body": "S18 协作功能恢复后评论",
+      "createdByMemberId": 250,
+      "createdByName": "S18 页面复验",
+      "createdTime": "2026-10-14T11:58:27.869+08:00"
+    }
+  ],
+  "member": {
+    "catalogModuleIds": [
+      87,
+      86
+    ],
+    "record185Denial": {
+      "http": 403,
+      "code": "PERMISSION_DENIED"
+    }
+  },
+  "mysql": {
+    "record": [
+      {
+        "id": 185,
+        "title": "S18 模块功能导入记录",
+        "deleted": 0,
+        "version": 2,
+        "updated_config_version_id": 100
+      }
+    ],
+    "team": [
+      {
+        "record_id": 185,
+        "system_member_id": 251,
+        "participant_type": "COLLABORATOR"
+      }
+    ],
+    "comments": [
+      {
+        "id": 4,
+        "record_id": 185,
+        "body": "S18 协作功能恢复后评论",
+        "deleted": 0
+      }
+    ],
+    "childRows": [
+      {
+        "id": 165,
+        "record_id": 185,
+        "child_field_id": 201
+      }
+    ],
+    "relations": [
+      {
+        "source_record_id": 185,
+        "target_record_id": 182
+      }
+    ]
+  },
+  "screenshots": [
+    "s18-module-collaboration-config-disabled.png",
+    "s18-module-collaboration-publication-disabled.png",
+    "s18-module-collaboration-runtime-disabled.png",
+    "s18-module-collaboration-form-disabled.png",
+    "s18-module-collaboration-config-enabled-draft.png",
+    "s18-module-collaboration-publication-enabled.png",
+    "s18-module-collaboration-runtime-enabled.png",
+    "s18-module-collaboration-runtime-restart.png",
+    "s18-module-collaboration-member-denied.png"
+  ]
+}

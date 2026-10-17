@@ -178,7 +178,7 @@ onMounted(loadProfile)
         </section>
 
         <section class="panel-card profile-card profile-card--wide">
-          <div class="panel-title"><strong>登录安全</strong><span>最近登录 {{ formatDate(profile.lastLoginAt) }}</span></div>
+          <div class="panel-title"><strong>登录安全</strong><span>最近登录 {{ formatDate(profile.lastLoginTime) }}</span></div>
           <div class="security-summary">
             <SafetyCertificateOutlined />
             <div><strong>多因素认证</strong><span v-if="profile.mfaMethods.length">已配置 {{ profile.mfaMethods.length }} 种方式</span><span v-else>暂未配置认证方式</span></div>
@@ -187,7 +187,7 @@ onMounted(loadProfile)
             <div v-for="session in activeSessions" :key="session.id" class="session-row">
               <div>
                 <strong>{{ session.contextType === 'PLATFORM' ? '平台会话' : '系统工作区会话' }}</strong>
-                <small>创建于 {{ formatDate(session.createdAt) }} · 有效至 {{ formatDate(session.refreshExpiresAt) }}</small>
+                <small>创建于 {{ formatDate(session.createTime) }} · 有效至 {{ formatDate(session.refreshExpireTime) }}</small>
               </div>
               <div class="session-row__actions">
                 <a-tag v-if="session.current" color="processing">当前会话</a-tag>

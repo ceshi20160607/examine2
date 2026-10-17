@@ -12,6 +12,7 @@ import com.unique.unexamine.platform.manage.foundation.PlatformDefinitionManager
 import com.unique.unexamine.authentication.manage.AuthenticationService;
 import com.unique.unexamine.authentication.manage.Pbkdf2PasswordHasher;
 import com.unique.unexamine.authentication.manage.SessionTokens;
+import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.authorization.manage.DataScopeExpression;
 import com.unique.unexamine.authorization.manage.DataScopeTerm;
 import com.unique.unexamine.authorization.manage.PermissionGrant;
@@ -20,6 +21,7 @@ import com.unique.unexamine.system.manage.SystemBootstrapResult;
 import com.unique.unexamine.system.manage.SystemBootstrapService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
 
 import java.util.Locale;
 import java.util.List;
@@ -57,6 +59,7 @@ public class RegistrationTransactionService {
         this.platformDefinitionManager = platformDefinitionManager;
     }
 
+    /** 创建统一平台账号；仅在用户明确填写系统名称时初始化业务系统。 */
     @Transactional
     public RegistrationResult create(RegistrationRequest request, String traceId) {
         String username = request.username().strip().toLowerCase(Locale.ROOT);
@@ -82,22 +85,34 @@ public class RegistrationTransactionService {
         platformMember.setStatus("ACTIVE");
         platformMemberService.insert(platformMember);
 
+        if (request.systemName() == null || request.systemName().isBlank()) {
+            if (request.systemCode() != null && !request.systemCode().isBlank()) {
+                throw new DomainException("SYSTEM_NAME_REQUIRED", "填写系统标识时也需要系统名称",
+                        HttpStatus.BAD_REQUEST);
+            }
+            SessionTokens platformTokens = authenticationService.createPlatformSession(account.getId(), "NONE");
+            auditRecorder.record(traceId, account.getId(), null, null, null,
+                    "ACCOUNT_REGISTERED", "PLATFORM_ACCOUNT", account.getId().toString(), "SUCCESS",
+                    Map.of("registrationMode", "PLATFORM_ONLY"));
+            return new RegistrationResult(account.getId(), null, null, null, null, null, null,
+                    null, platformTokens);
+        }
+
         SystemBootstrapResult initialized = systemBootstrapService.bootstrap(
-                platform.getId(), account.getId(), displayName, request.systemName(), request.systemCode(), "SINGLE");
+                platform.getId(), account.getId(), displayName, request.systemName(), request.systemCode());
         var system = initialized.system();
         var tenant = initialized.tenant();
         var member = initialized.member();
         var tenantMember = initialized.tenantMember();
-        var role = initialized.administratorRole();
 
         SessionTokens platformTokens = authenticationService.createPlatformSession(account.getId(), "NONE");
         SessionTokens systemTokens = authenticationService.createSystemSession(
                 account.getId(), system.getId(), tenant.getId(), member.getId(), tenantMember.getId(),
                 new ResolvedPermissions(
-                        List.of(role.getId()),
-                        List.of(new PermissionGrant("*", "*", "*", List.of(role.getId()))),
+                        List.of(),
+                        List.of(new PermissionGrant("*", "*", "*", List.of())),
                         Map.of("*:*:*", new DataScopeExpression("ALL",
-                                List.of(new DataScopeTerm("ALL", NullNode.getInstance(), List.of(role.getId())))))),
+                                List.of(new DataScopeTerm("ALL", NullNode.getInstance(), List.of()))))),
                 "NONE");
 
         auditRecorder.record(traceId, account.getId(), system.getId(), tenant.getId(), member.getId(),

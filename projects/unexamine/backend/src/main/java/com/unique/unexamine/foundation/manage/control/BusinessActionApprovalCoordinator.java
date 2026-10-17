@@ -65,6 +65,11 @@ public class BusinessActionApprovalCoordinator {
         for (Long actionId : mapper.completedApprovalActions()) reconcile(actionId);
     }
 
+    /** 审批申请以已持久化的原动作标识为准，终态尚未结算时仍阻止普通编辑。 */
+    public boolean pendingForRecord(long systemId, long tenantId, String moduleCode, long recordId) {
+        return mapper.pendingApprovalForRecord(systemId, tenantId, moduleCode, recordId) > 0;
+    }
+
     public void reconcile(long actionId) { settle(actionId, false); }
 
     /** 本人申请目录只读取当前成员上下文；调用方还须复用原动作进度的业务权限校验。 */
@@ -102,13 +107,28 @@ public class BusinessActionApprovalCoordinator {
                 FlowInstance flow = requireFlow(intent);
                 if (!TERMINAL.contains(flow.getStatus())) return null;
                 if (!"COMPLETED".equals(flow.getStatus())) {
+                    String targetStatus = mappedStatus(intent, flow.getStatus());
+                    if (targetStatus != null && Set.of("REJECTED", "WITHDRAWN").contains(flow.getStatus())) {
+                        runtime.getObject().applyApprovalTerminalStatus(intent.input(), targetStatus,
+                                flow.getStatus(), flow.getId());
+                    }
                     finish(intent, flow.getStatus(), null, null, null);
                     return null;
                 }
                 AuthenticatedContext actor = currentActor(intent.input().actor());
                 // 动作结果既可能是记录，也可能包含转化目标；保留原类型结构供原请求回放。
+                BusinessAction.Input approvedInput = formSubmissions.mergeForExecution(intent.input(), flow);
+                String approvedStatus = mappedStatus(intent, "COMPLETED");
+                if (approvedStatus != null) {
+                    ObjectNode payload = (ObjectNode) json.valueToTree(approvedInput.payload());
+                    payload.put("status", approvedStatus);
+                    approvedInput = new BusinessAction.Input(approvedInput.actor(), approvedInput.dataTenantId(),
+                            approvedInput.moduleId(), approvedInput.moduleCode(), approvedInput.configVersionId(),
+                            approvedInput.actionCode(), approvedInput.recordId(), approvedInput.expectedVersion(),
+                            payload, approvedInput.options(), approvedInput.traceId());
+                }
                 Object value = runtime.getObject().resumeApprovedAction(
-                        new BusinessAction.ApprovedExecution(formSubmissions.mergeForExecution(intent.input(), flow),
+                        new BusinessAction.ApprovedExecution(approvedInput,
                                 intent.payload().path("configurationSnapshot")), actor);
                 finish(intent, "EXECUTED", value, null, null);
                 CoreEventOutbox event = new CoreEventOutbox();
@@ -120,7 +140,7 @@ public class BusinessActionApprovalCoordinator {
                 event.setEventType("BUSINESS_ACTION_COMPLETED");
                 event.setPayloadJson(write(intent.payload()));
                 event.setStatus("PENDING");
-                event.setAvailableAt(LocalDateTime.now());
+                event.setAvailableTime(LocalDateTime.now());
                 event.setRetryCount(0);
                 events.insert(event);
                 return event.getId();
@@ -149,6 +169,12 @@ public class BusinessActionApprovalCoordinator {
     private boolean eligible(Intent intent, boolean retry) {
         return intent != null && ("PENDING_APPROVAL".equals(intent.status())
                 || retry && Set.of("CONFLICT", "EXECUTION_FAILED").contains(intent.status()));
+    }
+
+    /** 只读取本次申请固定的已发布绑定快照；之后修改绑定不改变进行中的审批结果。 */
+    private String mappedStatus(Intent intent, String outcome) {
+        String value = intent.payload().path("binding").path("approvalStatusMapping").path(outcome).asText("").strip();
+        return value.isBlank() ? null : value;
     }
 
     private Intent lockIntent(long actionId) {

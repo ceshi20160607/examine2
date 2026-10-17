@@ -3,6 +3,7 @@ package com.unique.unexamine.analytics.manage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.analytics.base.entity.AnaDashboard;
 import com.unique.unexamine.analytics.base.entity.AnaDashboardComponent;
@@ -23,12 +24,18 @@ import com.unique.unexamine.notification.manage.MessageModels;
 import com.unique.unexamine.notification.manage.MessageService;
 import com.unique.unexamine.notification.manage.TodoModels;
 import com.unique.unexamine.notification.manage.TodoService;
+import com.unique.unexamine.moduleconfig.base.entity.ConfiguredModule;
+import com.unique.unexamine.moduleconfig.base.service.ConfiguredModuleBaseService;
+import com.unique.unexamine.moduleconfig.manage.ModulePublicationService;
+import com.unique.unexamine.moduleconfig.manage.RuntimeModuleConfiguration;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.manage.AccessibleSystem;
 import com.unique.unexamine.system.manage.SystemEntryService;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.work.manage.WorkManagementModels;
 import com.unique.unexamine.work.manage.WorkManagementService;
 import org.springframework.http.HttpStatus;
@@ -36,9 +43,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
@@ -53,10 +63,8 @@ import java.util.regex.Pattern;
 public class DashboardService {
     private static final Pattern MODULE_CODE = Pattern.compile("[a-z][a-z0-9_-]{1,99}");
     private static final Set<String> OPEN_SOURCE_TYPES = Set.of(
-            "PLATFORM_SYSTEMS", "MODULE_RECORDS", "MODULE_REPORT", "EXTERNAL_API", "DATABASE_CONNECTION",
+            "PLATFORM_SYSTEMS", "MODULE_RECORDS", "MODULE_REPORT",
             "TODO_ITEMS", "MESSAGE_ITEMS", "WORK_PROJECTS");
-    private static final Pattern CONNECTION_REFERENCE = Pattern.compile("[a-z][a-z0-9_-]{1,99}");
-    private static final Pattern APPROVED_OPERATION = Pattern.compile("[A-Z][A-Z0-9_]{1,99}");
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() { };
     private static final TypeReference<List<Map<String, Object>>> MAP_LIST_TYPE = new TypeReference<>() { };
 
@@ -76,6 +84,10 @@ public class DashboardService {
     private final ObjectMapper objectMapper;
     private final ReportService reportService;
     private final KpiService kpiService;
+    private final SystemTenantBaseService tenantService;
+    private final ConfiguredModuleBaseService moduleService;
+    private final ModulePublicationService modulePublicationService;
+    private final LegacyModuleDashboardCompatibility legacyModuleDashboardCompatibility;
 
     public DashboardService(
             AnaDataSourceBaseService sourceService,
@@ -93,7 +105,11 @@ public class DashboardService {
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
             ReportService reportService,
-            KpiService kpiService) {
+            KpiService kpiService,
+            SystemTenantBaseService tenantService,
+            ConfiguredModuleBaseService moduleService,
+            ModulePublicationService modulePublicationService,
+            LegacyModuleDashboardCompatibility legacyModuleDashboardCompatibility) {
         this.sourceService = sourceService;
         this.sourceVersionService = sourceVersionService;
         this.dashboardService = dashboardService;
@@ -110,6 +126,10 @@ public class DashboardService {
         this.objectMapper = objectMapper;
         this.reportService = reportService;
         this.kpiService = kpiService;
+        this.tenantService = tenantService;
+        this.moduleService = moduleService;
+        this.modulePublicationService = modulePublicationService;
+        this.legacyModuleDashboardCompatibility = legacyModuleDashboardCompatibility;
     }
 
     public ReportModels.Metadata reportMetadata(AuthenticatedContext context, String traceId) {
@@ -129,15 +149,106 @@ public class DashboardService {
     @Transactional(readOnly = true)
     public DashboardModels.AdminOverview overview(AuthenticatedContext context) {
         requireAdmin(context);
-        List<DashboardModels.DataSourceView> sources = ownedSources(context).stream()
-                .sorted(Comparator.comparing(AnaDataSource::getUpdatedAt,
+        List<DashboardModels.DataSourceView> sources = availableSources(context).stream()
+                .sorted(Comparator.comparing(AnaDataSource::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(this::sourceView).toList();
+                .map(source -> sourceView(context, source)).toList();
         List<DashboardModels.DashboardView> dashboards = ownedDashboards(context).stream()
-                .sorted(Comparator.comparing(AnaDashboard::getUpdatedAt,
+                .filter(dashboard -> !"PERSONAL".equals(dashboard.getDashboardKind()))
+                .sorted(Comparator.comparing(AnaDashboard::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(this::dashboardView).toList();
         return new DashboardModels.AdminOverview(contextType(context), sources, dashboards);
+    }
+
+    /** 个人首页目录只返回本人草稿和当前可用的已发布数据源，不暴露其他账号的页面。 */
+    @Transactional(readOnly = true)
+    public DashboardModels.PersonalOverview personalOverview(AuthenticatedContext context) {
+        AnaDashboard dashboard = personalDashboard(context);
+        List<DashboardModels.PublishedSourceOption> sources = availableSources(context).stream()
+                .filter(source -> source.getCurrentVersionId() != null && personalSourceAllowed(context, source))
+                .map(source -> new DashboardModels.PublishedSourceOption(
+                        source.getId(), source.getName(), source.getSourceType())).toList();
+        return new DashboardModels.PersonalOverview(dashboard == null ? null : dashboardView(dashboard), sources);
+    }
+
+    /** 个人页面由当前账号创建或更新；客户端不提供归属账号、作用域或内部编码。 */
+    @Transactional
+    public DashboardModels.DashboardView savePersonal(
+            AuthenticatedContext context, DashboardModels.PersonalDashboardRequest input, String traceId) {
+        validateComponents(input.components());
+        for (DashboardModels.ComponentInput component : input.components()) {
+            if (component.dataSourceId() == null) continue;
+            AnaDataSource source = requireUsableSource(context, component.dataSourceId());
+            if (source.getCurrentVersionId() == null || !personalSourceAllowed(context, source)) {
+                throw new DomainException("DASHBOARD_PERSONAL_SOURCE_FORBIDDEN",
+                        "只能使用当前账号有权访问的已发布数据源", HttpStatus.FORBIDDEN);
+            }
+        }
+        AnaDashboard dashboard = personalDashboard(context);
+        LocalDateTime now = LocalDateTime.now();
+        if (dashboard == null) {
+            if (input.expectedVersion() != null) {
+                throw conflict("DASHBOARD_VERSION_CONFLICT", "个人首页尚未创建，请刷新后重试");
+            }
+            dashboard = new AnaDashboard();
+            bindContext(dashboard, context);
+            dashboard.setDashboardKind("PERSONAL");
+            dashboard.setOwnerAccountId(context.accountId());
+            // 同一租户内多账号共享物理唯一键，编码必须包含真实账号主键。
+            dashboard.setCode("personal_home_" + context.accountId());
+            dashboard.setDraftRevision(1);
+            dashboard.setCreatedByAccountId(context.accountId());
+            dashboard.setCreateTime(now);
+            dashboard.setVersion(0);
+            dashboard.setName(input.name().strip());
+            dashboard.setDescription(blankToNull(input.description()));
+            dashboard.setStatus("DRAFT");
+            dashboard.setUpdateTime(now);
+            dashboardService.insert(dashboard);
+        } else {
+            requireVersion(dashboard.getVersion(), input.expectedVersion(), "DASHBOARD_VERSION_CONFLICT");
+            dashboard.setName(input.name().strip());
+            dashboard.setDescription(blankToNull(input.description()));
+            dashboard.setDraftRevision(dashboard.getDraftRevision() + 1);
+            dashboard.setStatus("DRAFT");
+            dashboard.setUpdateTime(now);
+            if (dashboardService.updateById(dashboard) != 1) {
+                throw conflict("DASHBOARD_VERSION_CONFLICT", "个人首页已被修改，请刷新后重试");
+            }
+        }
+        replaceComponents(context, dashboard, input.components());
+        audit(context, traceId, "DASHBOARD_PERSONAL_SAVED", "ANA_DASHBOARD", dashboard.getId(),
+                Map.of("componentCount", input.components().size(), "draftRevision", dashboard.getDraftRevision()));
+        return dashboardView(dashboardService.selectById(dashboard.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardModels.Preview personalPreview(AuthenticatedContext context, String traceId) {
+        AnaDashboard dashboard = personalDashboard(context);
+        if (dashboard == null) {
+            throw new DomainException("DASHBOARD_NOT_FOUND", "个人首页尚未保存", HttpStatus.NOT_FOUND);
+        }
+        List<Map<String, Object>> snapshots = components(dashboard.getId()).stream()
+                .map(component -> componentSnapshot(context, component)).toList();
+        return previewSnapshot(context, dashboard.getId(), dashboard.getDraftRevision(), snapshots, traceId);
+    }
+
+    @Transactional(readOnly = true)
+    public DashboardModels.RuntimeDashboard personalRuntime(AuthenticatedContext context, String traceId) {
+        AnaDashboard dashboard = personalDashboard(context);
+        if (dashboard == null) {
+            return new DashboardModels.RuntimeDashboard(false, contextType(context), null, null, null,
+                    null, null, null, List.of(), "个人首页尚未保存。");
+        }
+        List<Map<String, Object>> snapshots = components(dashboard.getId()).stream()
+                .map(component -> componentSnapshot(context, component)).toList();
+        List<DashboardModels.RuntimeComponent> visible = snapshots.stream()
+                .filter(component -> visible(context, readMapValue(component.get("displayConfig"))))
+                .map(component -> runtimeComponent(context, component, traceId)).toList();
+        return new DashboardModels.RuntimeDashboard(true, contextType(context), dashboard.getId(), null, null,
+                dashboard.getName(), dashboard.getDescription(), dashboard.getUpdateTime(), visible,
+                "个人首页由本人保存，数据按当前账号权限重新执行。");
     }
 
     @Transactional
@@ -159,8 +270,8 @@ public class DashboardService {
         source.setPermissionPolicyJson(writeJson(input.permissionPolicy()));
         source.setStatus("DRAFT");
         source.setCreatedByAccountId(context.accountId());
-        source.setCreatedAt(now);
-        source.setUpdatedAt(now);
+        source.setCreateTime(now);
+        source.setUpdateTime(now);
         source.setVersion(0);
         sourceService.insert(source);
         audit(context, traceId, "DASHBOARD_DATA_SOURCE_CREATED", "ANA_DATA_SOURCE", source.getId(),
@@ -186,7 +297,7 @@ public class DashboardService {
         source.setPermissionPolicyJson(writeJson(input.permissionPolicy()));
         source.setDraftRevision(source.getDraftRevision() + 1);
         source.setStatus("DRAFT");
-        source.setUpdatedAt(LocalDateTime.now());
+        source.setUpdateTime(LocalDateTime.now());
         if (sourceService.updateById(source) != 1) {
             throw conflict("DASHBOARD_DATA_SOURCE_VERSION_CONFLICT", "数据源已被其他用户修改，请刷新后重试");
         }
@@ -211,20 +322,25 @@ public class DashboardService {
         AnaDataSourceVersion latest = latestSourceVersion(sourceId);
         int versionNumber = latest == null ? 1 : latest.getVersionNumber() + 1;
         LinkedHashMap<String, Object> snapshot = sourceSnapshot(source, null);
+        snapshot.put("status", "PUBLISHED");
         snapshot.put("versionNumber", versionNumber);
         snapshot.put("publishedAt", LocalDateTime.now());
         String json = writeJson(snapshot);
         AnaDataSourceVersion version = new AnaDataSourceVersion();
         version.setDataSourceId(sourceId);
+        version.setScopeType(source.getScopeType());
+        version.setScopeOwnerId(source.getScopeOwnerId());
         version.setVersionNumber(versionNumber);
         version.setDraftRevision(source.getDraftRevision());
         version.setDefinitionHash(sha256(json));
         version.setSnapshotJson(json);
         version.setPublishedByAccountId(context.accountId());
-        version.setPublishedAt(LocalDateTime.now());
+        version.setPublishTime(LocalDateTime.now());
         sourceVersionService.insert(version);
+        // 已发布数据只读取当前版本；继续编辑草稿时保留这个发布指针。
+        source.setCurrentVersionId(version.getId());
         source.setStatus("PUBLISHED");
-        source.setUpdatedAt(LocalDateTime.now());
+        source.setUpdateTime(LocalDateTime.now());
         sourceService.updateById(source);
         audit(context, traceId, "DASHBOARD_DATA_SOURCE_PUBLISHED", "ANA_DATA_SOURCE_VERSION", version.getId(),
                 Map.of("dataSourceId", sourceId, "versionNumber", versionNumber,
@@ -243,14 +359,17 @@ public class DashboardService {
         LocalDateTime now = LocalDateTime.now();
         AnaDashboard dashboard = new AnaDashboard();
         bindContext(dashboard, context);
+        String kind = publicDashboardKind(context, input.dashboardKind());
+        dashboard.setDashboardKind(kind);
+        dashboard.setModuleId("MODULE_HOME".equals(kind) ? requirePublishedModule(context, input.moduleId()).getId() : null);
         dashboard.setCode(input.code());
         dashboard.setName(input.name().strip());
         dashboard.setDescription(blankToNull(input.description()));
         dashboard.setDraftRevision(1);
         dashboard.setStatus("DRAFT");
         dashboard.setCreatedByAccountId(context.accountId());
-        dashboard.setCreatedAt(now);
-        dashboard.setUpdatedAt(now);
+        dashboard.setCreateTime(now);
+        dashboard.setUpdateTime(now);
         dashboard.setVersion(0);
         dashboardService.insert(dashboard);
         replaceComponents(context, dashboard, input.components());
@@ -267,6 +386,13 @@ public class DashboardService {
         requireAdmin(context);
         validateComponents(input.components());
         AnaDashboard dashboard = requireDashboard(context, dashboardId);
+        String kind = publicDashboardKind(context, input.dashboardKind() == null
+                ? dashboard.getDashboardKind() : input.dashboardKind());
+        if (!kind.equals(dashboard.getDashboardKind())
+                || ("MODULE_HOME".equals(kind) && !Objects.equals(dashboard.getModuleId(), input.moduleId()))) {
+            throw invalid("DASHBOARD_HOME_BINDING_IMMUTABLE", "首页类型和所属模块不能通过编辑草稿变更");
+        }
+        if ("MODULE_HOME".equals(kind)) requirePublishedModule(context, dashboard.getModuleId());
         requireVersion(dashboard.getVersion(), input.expectedVersion(), "DASHBOARD_VERSION_CONFLICT");
         AnaDashboard duplicate = findDashboard(context, input.code());
         if (duplicate != null && !duplicate.getId().equals(dashboardId)) {
@@ -277,7 +403,7 @@ public class DashboardService {
         dashboard.setDescription(blankToNull(input.description()));
         dashboard.setDraftRevision(dashboard.getDraftRevision() + 1);
         dashboard.setStatus("DRAFT");
-        dashboard.setUpdatedAt(LocalDateTime.now());
+        dashboard.setUpdateTime(LocalDateTime.now());
         if (dashboardService.updateById(dashboard) != 1) {
             throw conflict("DASHBOARD_VERSION_CONFLICT", "仪表盘已被其他用户修改，请刷新后重试");
         }
@@ -321,6 +447,8 @@ public class DashboardService {
         snapshot.put("platformId", dashboard.getPlatformId());
         snapshot.put("systemId", dashboard.getSystemId());
         snapshot.put("ownerTenantId", dashboard.getOwnerTenantId());
+        snapshot.put("dashboardKind", dashboard.getDashboardKind());
+        snapshot.put("moduleId", dashboard.getModuleId());
         snapshot.put("code", dashboard.getCode());
         snapshot.put("name", dashboard.getName());
         snapshot.put("description", dashboard.getDescription());
@@ -330,12 +458,14 @@ public class DashboardService {
         String snapshotJson = writeJson(snapshot);
         AnaDashboardVersion version = new AnaDashboardVersion();
         version.setDashboardId(dashboardId);
+        version.setScopeType(dashboard.getScopeType());
+        version.setScopeOwnerId(dashboard.getScopeOwnerId());
         version.setVersionNumber(versionNumber);
         version.setDraftRevision(dashboard.getDraftRevision());
         version.setSnapshotHash(sha256(snapshotJson));
         version.setSnapshotJson(snapshotJson);
         version.setPublishedByAccountId(context.accountId());
-        version.setPublishedAt(LocalDateTime.now());
+        version.setPublishTime(LocalDateTime.now());
         dashboardVersionService.insert(version);
 
         AnaDashboardPublication publication = publication(dashboardId);
@@ -344,18 +474,22 @@ public class DashboardService {
             publication.setDashboardId(dashboardId);
             publication.setCurrentVersionId(version.getId());
             publication.setUpdatedByAccountId(context.accountId());
-            publication.setUpdatedAt(LocalDateTime.now());
+            publication.setUpdateTime(LocalDateTime.now());
             publication.setVersion(0);
             publicationService.insert(publication);
         } else {
             publication.setCurrentVersionId(version.getId());
             publication.setUpdatedByAccountId(context.accountId());
-            publication.setUpdatedAt(LocalDateTime.now());
-            publicationService.updateById(publication);
+            publication.setUpdateTime(LocalDateTime.now());
+            if (publicationService.updateById(publication) != 1) {
+                throw conflict("DASHBOARD_PUBLICATION_CONFLICT", "仪表盘发布状态已变化，请刷新后重试");
+            }
         }
         dashboard.setStatus("PUBLISHED");
-        dashboard.setUpdatedAt(LocalDateTime.now());
-        dashboardService.updateById(dashboard);
+        dashboard.setUpdateTime(LocalDateTime.now());
+        if (dashboardService.updateById(dashboard) != 1) {
+            throw conflict("DASHBOARD_VERSION_CONFLICT", "仪表盘已被其他用户修改，请刷新后重试");
+        }
         audit(context, traceId, "DASHBOARD_PUBLISHED", "ANA_DASHBOARD_VERSION", version.getId(),
                 Map.of("dashboardId", dashboardId, "versionNumber", versionNumber,
                         "draftRevision", dashboard.getDraftRevision(), "snapshotHash", version.getSnapshotHash(),
@@ -365,32 +499,78 @@ public class DashboardService {
     }
 
     public DashboardModels.RuntimeDashboard runtime(AuthenticatedContext context, String traceId) {
-        AnaDashboard dashboard = ownedDashboards(context).stream()
-                .sorted(Comparator.comparing(AnaDashboard::getUpdatedAt,
-                        Comparator.nullsLast(Comparator.reverseOrder())))
-                .filter(item -> publication(item.getId()) != null)
-                .findFirst().orElse(null);
+        return runtime(context, null, traceId);
+    }
+
+    /** 模块首页绑定当前有效模块；系统首页只读取当前租户自己的发布版本。 */
+    public DashboardModels.RuntimeDashboard runtime(
+            AuthenticatedContext context, String moduleCode, String traceId) {
+        AnaDashboard dashboard = null;
+        AnaDashboardPublication publication = null;
+        String homeKind = context.systemId() == null ? "PLATFORM_HOME" : "SYSTEM_HOME";
+        Long moduleId = null;
+        boolean legacyOnly = false;
+        if (moduleCode != null && !moduleCode.isBlank()) {
+            if (context.systemId() == null || !MODULE_CODE.matcher(moduleCode).matches()) {
+                throw invalid("DASHBOARD_MODULE_INVALID", "请在系统内选择有效模块");
+            }
+            if (!permissionChecker.allows(context, "MODULE", moduleCode, "LIST")) {
+                throw new DomainException("DASHBOARD_MODULE_FORBIDDEN", "当前账号没有模块列表权限", HttpStatus.FORBIDDEN);
+            }
+            RuntimeModuleConfiguration module = modulePublicationService.published(context, moduleCode);
+            // 正式动作需 DASHBOARD 权限；V23 清单中的旧首页延续原 LIST 可见范围。
+            boolean dashboardPermission = permissionChecker.allows(context, "MODULE", moduleCode, "DASHBOARD");
+            JsonNode activeAction = null;
+            for (JsonNode action : module.configuration().path("actions")) {
+                if ("DASHBOARD".equals(action.path("code").asText())
+                        && "ACTIVE".equals(action.path("status").asText())
+                        && "MODULE_ENTRY".equals(action.path("location").asText())) {
+                    activeAction = action;
+                    break;
+                }
+            }
+            if (activeAction == null) {
+                throw new DomainException("DASHBOARD_MODULE_ACTION_NOT_PUBLISHED", "模块仪表盘入口未发布或已停用",
+                        HttpStatus.CONFLICT);
+            }
+            if (!dashboardPermission && !activeAction.path("legacyDashboardCompatibility").asBoolean(false)) {
+                throw new DomainException("DASHBOARD_MODULE_FORBIDDEN", "当前账号没有模块仪表盘权限", HttpStatus.FORBIDDEN);
+            }
+            moduleId = module.moduleId();
+            legacyOnly = !dashboardPermission || activeAction.path("legacyDashboardSynthetic").asBoolean(false);
+            homeKind = "MODULE_HOME";
+        }
+        for (AnaDashboard candidate : ownedDashboards(context)) {
+            if (!homeKind.equals(candidate.getDashboardKind())) continue;
+            if ("MODULE_HOME".equals(homeKind) && !Objects.equals(moduleId, candidate.getModuleId())) continue;
+            if (legacyOnly && !legacyModuleDashboardCompatibility.permitsDashboard(
+                    context.systemId(), context.tenantId(), moduleId, candidate.getId())) continue;
+            AnaDashboardPublication current = publication(candidate.getId());
+            if (current != null && (publication == null
+                    || current.getUpdateTime().isAfter(publication.getUpdateTime()))) {
+                dashboard = candidate;
+                publication = current;
+            }
+        }
         if (dashboard == null) {
             return new DashboardModels.RuntimeDashboard(false, contextType(context), null, null, null,
-                    null, null, null, List.of(), "当前上下文尚未发布仪表盘，不展示写死统计或伪造零值。");
+                    null, null, null, List.of(),
+                    "当前租户尚未发布此仪表盘，不显示其他租户的页面。");
         }
-        AnaDashboardPublication publication = publication(dashboard.getId());
-        AnaDashboardVersion version = publication == null ? null
-                : dashboardVersionService.selectById(publication.getCurrentVersionId());
+        AnaDashboardVersion version = dashboardVersionService.selectById(publication.getCurrentVersionId());
         if (version == null || !dashboard.getId().equals(version.getDashboardId())) {
             return new DashboardModels.RuntimeDashboard(false, contextType(context), dashboard.getId(), null, null,
                     dashboard.getName(), dashboard.getDescription(), null, List.of(),
                     "仪表盘发布指针无效，请联系管理员重新发布；页面未伪造任何统计值。");
         }
         Map<String, Object> snapshot = readMap(version.getSnapshotJson());
-        List<Map<String, Object>> componentSnapshots = objectMapper.convertValue(
-                snapshot.getOrDefault("components", List.of()), MAP_LIST_TYPE);
-        List<DashboardModels.RuntimeComponent> visible = componentSnapshots.stream()
+        List<DashboardModels.RuntimeComponent> visible = publishedComponents(version).stream()
                 .filter(component -> visible(context, readMapValue(component.get("displayConfig"))))
                 .map(component -> runtimeComponent(context, component, traceId)).toList();
         return new DashboardModels.RuntimeDashboard(true, contextType(context), dashboard.getId(), version.getId(),
                 version.getVersionNumber(), string(snapshot.get("name")), stringOrNull(snapshot.get("description")),
-                version.getPublishedAt(), visible, "仪表盘内容来自不可变发布版本，并按当前上下文重新执行权限。" );
+                version.getPublishTime(), visible,
+                "仪表盘内容来自当前租户的不可变发布版本，并按当前上下文重新执行权限。");
     }
 
     private DashboardModels.Preview previewSnapshot(
@@ -428,8 +608,8 @@ public class DashboardService {
         }
         Long sourceId = longValue(sourceSnapshot.get("dataSourceId"));
         AnaDataSource current = sourceId == null ? null : sourceService.selectById(sourceId);
-        if (current == null || !owned(context, current)) {
-            LocalDateTime changedAt = current == null ? now : current.getUpdatedAt();
+        if (current == null || !canUseSource(context, current)) {
+            LocalDateTime changedAt = current == null ? now : current.getUpdateTime();
             return failed(key, type, title, layout, display, drill,
                     "DASHBOARD_DATA_SOURCE_INACTIVE",
                     "数据源已失效或不属于当前上下文；组件不使用零值代替失败。", changedAt);
@@ -447,8 +627,24 @@ public class DashboardService {
             SourceResult source = executeSource(context, sourceSnapshot,
                     readMapValue(component.get("queryParameters")), traceId);
             DrillResult target = drill(context, drill);
+            List<Map<String, Object>> items = new ArrayList<>(source.items());
+            if ("RANKING".equals(type)) {
+                // 排名按聚合值降序截取 Top，不能沿用明细读取顺序。
+                items.sort(Comparator.comparing((Map<String, Object> item) -> numericValue(item.get("value")),
+                        Comparator.nullsLast(Comparator.reverseOrder())));
+                int topLimit = Math.max(1, Math.min(20,
+                        intValue(readMapValue(component.get("queryParameters")).get("topLimit"), 10)));
+                items = items.subList(0, Math.min(topLimit, items.size()));
+            } else if ("CHART".equals(type)) {
+                Map<String, Object> dimension = readMapValue(readMapValue(sourceSnapshot.get("definition"))
+                        .get("dimension"));
+                if ("TIME".equals(string(dimension.get("type")))) {
+                    // 时间趋势按桶的自然时间顺序展示，避免受记录更新时间影响。
+                    items.sort(Comparator.comparing(item -> string(item.get("id"))));
+                }
+            }
             return new DashboardModels.RuntimeComponent(key, type, title, "READY", source.value(),
-                    source.items(), source.metricDefinition(), layout, display, target.target(), target.available(),
+                    items, source.metricDefinition(), layout, display, target.target(), target.available(),
                     null, "数据源执行成功。", now);
         } catch (DomainException exception) {
             return failed(key, type, title, layout, display, drill, exception.code(),
@@ -500,9 +696,13 @@ public class DashboardService {
             AuthenticatedContext context, Map<String, Object> sourceSnapshot,
             Map<String, Object> queryParameters, String traceId) {
         String sourceType = string(sourceSnapshot.get("sourceType"));
-        LinkedHashMap<String, Object> definition = new LinkedHashMap<>(
-                readMapValue(sourceSnapshot.get("definition")));
+        Map<String, Object> publishedDefinition = readMapValue(sourceSnapshot.get("definition"));
+        LinkedHashMap<String, Object> definition = new LinkedHashMap<>(publishedDefinition);
         definition.putAll(queryParameters);
+        // 组件可调整展示查询参数，但不能改写已发布数据源绑定的业务模块。
+        if ("MODULE_RECORDS".equals(sourceType)) {
+            definition.put("moduleCode", publishedDefinition.get("moduleCode"));
+        }
         int limit = Math.max(1, Math.min(20, intValue(definition.get("limit"), 5)));
         if ("PLATFORM_SYSTEMS".equals(sourceType)) {
             if (context.systemId() != null) {
@@ -540,6 +740,9 @@ public class DashboardService {
             Map<String, Object> dimension = readMapValue(definition.get("dimension"));
             String dimensionAlias = stringOrNull(dimension.get("alias"));
             String dimensionFieldCode = stringOrNull(dimension.get("fieldCode"));
+            String dimensionType = stringOrNull(dimension.get("type"));
+            String dimensionFieldType = stringOrNull(readMapValue(
+                    readMapValue(definition.get("queryExplanation")).get("dimension")).get("fieldType"));
             Object modulesValue = definition.get("modules");
             String primaryAlias = modulesValue instanceof List<?> modules && !modules.isEmpty()
                     ? stringOrNull(readMapValue(modules.getFirst()).get("alias")) : null;
@@ -550,28 +753,22 @@ public class DashboardService {
                         item.put("title", group.label());
                         item.put("value", group.value());
                         item.put("status", group.rowCount() + " 行授权记录");
-                        // A primary-module grouping can be carried into the ordinary record list as a
-                        // permission-checked filter. Related-module groupings remain chart-only because
-                        // flattening them into another module's list would change the report semantics.
+                        // 主模块分组下钻仍走普通记录列表的当前权限；关联模块分组不伪造主模块条件。
                         if (dimensionFieldCode != null
                                 && (dimensionAlias == null || Objects.equals(primaryAlias, dimensionAlias))) {
-                            // 未设置的分组没有等值键；下钻使用空值条件，避免 Map.of(null) 导致整张图失败。
-                            item.put("filter", group.key() == null
-                                    ? Map.of("fieldCode", dimensionFieldCode, "operator", "EMPTY")
-                                    : Map.of("fieldCode", dimensionFieldCode, "operator", "EQ",
-                                            "value", group.key()));
+                            if (group.key() == null) {
+                                item.put("filter", Map.of("fieldCode", dimensionFieldCode, "operator", "EMPTY"));
+                            } else if ("TIME".equals(dimensionType)) {
+                                item.put("filters", timeGroupFilters(dimensionFieldCode, dimensionFieldType,
+                                        string(group.key()), stringOrDefault(dimension.get("interval"), "DAY")));
+                            } else {
+                                item.put("filter", Map.of("fieldCode", dimensionFieldCode, "operator", "EQ",
+                                        "value", group.key()));
+                            }
                         }
                         return (Map<String, Object>) item;
                     }).toList();
             return new SourceResult(report.value(), items, report.metricDefinition());
-        }
-        if ("EXTERNAL_API".equals(sourceType)) {
-            throw invalid("DASHBOARD_EXTERNAL_CONNECTION_UNAVAILABLE",
-                    "外部 API 数据源只保存连接引用和已批准请求编码；当前部署尚未绑定该连接，未执行任意网络请求");
-        }
-        if ("DATABASE_CONNECTION".equals(sourceType)) {
-            throw invalid("DASHBOARD_DATABASE_CONNECTION_UNAVAILABLE",
-                    "数据库数据源只保存连接引用和已批准查询编码；当前部署尚未绑定只读连接，未执行任意 SQL");
         }
         if ("TODO_ITEMS".equals(sourceType)) {
             List<TodoModels.TodoView> todos = todoService.list(context, "PENDING", "ALL");
@@ -649,8 +846,9 @@ public class DashboardService {
         String resourceType = stringOrNull(policy.get("resourceType"));
         String resourceCode = stringOrNull(policy.get("resourceCode"));
         String actionCode = stringOrNull(policy.get("actionCode"));
-        return resourceType == null || resourceCode == null || actionCode == null
-                || permissionChecker.allows(context, resourceType, resourceCode, actionCode);
+        // 配置了权限规则却缺少任一要素时按不可见处理，避免错误配置放开组件。
+        return resourceType != null && resourceCode != null && actionCode != null
+                && permissionChecker.allows(context, resourceType, resourceCode, actionCode);
     }
 
     private DrillResult drill(AuthenticatedContext context, Map<String, Object> target) {
@@ -661,6 +859,9 @@ public class DashboardService {
         result.remove("permission");
         String moduleCode = stringOrNull(result.get("moduleCode"));
         if (moduleCode != null && context.systemId() != null) {
+            if (!permissionChecker.allows(context, "MODULE", moduleCode, "LIST")) {
+                return new DrillResult(Map.of(), false);
+            }
             result.put("route", "/systems/" + context.systemId()
                     + "?workspace=runtime&module=" + moduleCode);
         }
@@ -680,9 +881,12 @@ public class DashboardService {
         snapshot.put("drillTarget", readMap(component.getDrillTargetJson()));
         snapshot.put("sortOrder", component.getSortOrder());
         if (component.getDataSourceId() != null) {
-            AnaDataSource source = requireSource(context, component.getDataSourceId());
-            AnaDataSourceVersion version = latestSourceVersion(source.getId());
-            if (version == null) {
+            AnaDataSource source = requireUsableSource(context, component.getDataSourceId());
+            AnaDataSourceVersion version = component.getDataSourceVersionId() == null ? null
+                    : sourceVersionService.selectById(component.getDataSourceVersionId());
+            if (version == null || !source.getId().equals(version.getDataSourceId())
+                    || !Objects.equals(component.getSourceScopeType(), version.getScopeType())
+                    || !Objects.equals(component.getSourceScopeOwnerId(), version.getScopeOwnerId())) {
                 snapshot.put("dataSource", Map.of("dataSourceId", source.getId(), "status", source.getStatus()));
             } else {
                 LinkedHashMap<String, Object> published = new LinkedHashMap<>(readMap(version.getSnapshotJson()));
@@ -725,23 +929,35 @@ public class DashboardService {
         }
         for (DashboardModels.ComponentInput input : inputs.stream()
                 .sorted(Comparator.comparing(DashboardModels.ComponentInput::sortOrder)).toList()) {
-            if (input.dataSourceId() != null) requireSource(context, input.dataSourceId());
+            AnaDataSource source = input.dataSourceId() == null
+                    ? null : requireUsableSource(context, input.dataSourceId());
             if (!"QUICK_ENTRY".equals(input.componentType()) && input.dataSourceId() == null) {
                 throw invalid("DASHBOARD_COMPONENT_SOURCE_REQUIRED", "除快捷入口外的组件必须绑定数据源");
             }
             AnaDashboardComponent component = new AnaDashboardComponent();
             component.setDashboardId(dashboard.getId());
+            component.setScopeType(dashboard.getScopeType());
+            component.setScopeOwnerId(dashboard.getScopeOwnerId());
             component.setComponentKey(input.componentKey());
             component.setComponentType(input.componentType());
             component.setTitle(input.title().strip());
             component.setDataSourceId(input.dataSourceId());
+            if (source != null) {
+                if (source.getCurrentVersionId() == null) {
+                    throw invalid("DASHBOARD_COMPONENT_SOURCE_UNPUBLISHED", "请先发布组件使用的数据源");
+                }
+                // 组件草稿固定所选数据源的当前发布版本，避免草稿改动影响已发布看板。
+                component.setDataSourceVersionId(source.getCurrentVersionId());
+                component.setSourceScopeType(source.getScopeType());
+                component.setSourceScopeOwnerId(source.getScopeOwnerId());
+            }
             component.setLayoutJson(writeJson(input.layout()));
             component.setQueryParameterJson(writeJson(input.queryParameters()));
             component.setDisplayConfigJson(writeJson(input.displayConfig()));
             component.setDrillTargetJson(input.drillTarget() == null ? null : writeJson(input.drillTarget()));
             component.setSortOrder(input.sortOrder());
-            component.setCreatedAt(LocalDateTime.now());
-            component.setUpdatedAt(LocalDateTime.now());
+            component.setCreateTime(LocalDateTime.now());
+            component.setUpdateTime(LocalDateTime.now());
             component.setVersion(0);
             componentService.insert(component);
         }
@@ -781,49 +997,6 @@ public class DashboardService {
             }
             return reportService.prepareDefinition(context, definition, traceId);
         }
-        if ("EXTERNAL_API".equals(sourceType)) {
-            requireSystemSourceContext(context, "外部 API");
-            rejectSensitiveConnectionMaterial(definition);
-            requireOnlyKeys(definition, Set.of("connectionReference", "requestCode", "method",
-                    "queryParameters", "responseSelector", "limit", "timeoutMillis"));
-            String connectionReference = string(definition.get("connectionReference"));
-            String requestCode = string(definition.get("requestCode"));
-            String method = stringOrDefault(definition.get("method"), "GET").toUpperCase(java.util.Locale.ROOT);
-            if (!CONNECTION_REFERENCE.matcher(connectionReference).matches()
-                    || !APPROVED_OPERATION.matcher(requestCode).matches()
-                    || !Set.of("GET", "POST").contains(method)) {
-                throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID",
-                        "外部 API 数据源必须选择连接引用、已批准请求编码和 GET/POST 方法");
-            }
-            LinkedHashMap<String, Object> normalized = new LinkedHashMap<>(definition);
-            normalized.put("method", method);
-            normalized.put("queryParameters", readMapValue(definition.get("queryParameters")));
-            normalized.put("responseSelector", stringOrDefault(definition.get("responseSelector"), "$"));
-            normalized.put("limit", validatedConnectionLimit(definition));
-            normalized.put("timeoutMillis", validatedTimeout(definition));
-            return normalized;
-        }
-        if ("DATABASE_CONNECTION".equals(sourceType)) {
-            requireSystemSourceContext(context, "数据库连接");
-            rejectSensitiveConnectionMaterial(definition);
-            requireOnlyKeys(definition, Set.of("connectionReference", "queryCode", "parameters",
-                    "outputFields", "limit", "timeoutMillis"));
-            String connectionReference = string(definition.get("connectionReference"));
-            String queryCode = string(definition.get("queryCode"));
-            if (!CONNECTION_REFERENCE.matcher(connectionReference).matches()
-                    || !APPROVED_OPERATION.matcher(queryCode).matches()) {
-                throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID",
-                        "数据库数据源必须选择连接引用和已批准查询编码");
-            }
-            LinkedHashMap<String, Object> normalized = new LinkedHashMap<>(definition);
-            normalized.put("parameters", readMapValue(definition.get("parameters")));
-            Object outputFields = definition.get("outputFields");
-            normalized.put("outputFields", outputFields instanceof List<?> values
-                    ? values.stream().map(this::string).distinct().toList() : List.of());
-            normalized.put("limit", validatedConnectionLimit(definition));
-            normalized.put("timeoutMillis", validatedTimeout(definition));
-            return normalized;
-        }
         int limit = intValue(definition.get("limit"), 5);
         if (limit < 1 || limit > 20) {
             throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "组件列表数量必须在 1 到 20 之间");
@@ -831,45 +1004,6 @@ public class DashboardService {
         return definition;
     }
 
-    private void requireSystemSourceContext(AuthenticatedContext context, String label) {
-        if (context.systemId() == null || context.tenantId() == null) {
-            throw invalid("DASHBOARD_SOURCE_CONTEXT_MISMATCH", label + "数据源只能配置在系统上下文");
-        }
-    }
-
-    private void rejectSensitiveConnectionMaterial(Map<String, Object> definition) {
-        Set<String> forbidden = Set.of("url", "baseurl", "endpointurl", "jdbcurl", "host", "password",
-                "secret", "token", "apikey", "authorization", "sql", "query");
-        List<String> exposed = definition.keySet().stream()
-                .filter(key -> forbidden.contains(key.replace("_", "").toLowerCase(java.util.Locale.ROOT))).toList();
-        if (!exposed.isEmpty()) {
-            throw invalid("DASHBOARD_CONNECTION_SECRET_FORBIDDEN",
-                    "数据源不能保存地址、凭据或任意查询，只能引用受管连接和已批准操作");
-        }
-    }
-
-    private void requireOnlyKeys(Map<String, Object> definition, Set<String> allowed) {
-        List<String> unknown = definition.keySet().stream().filter(key -> !allowed.contains(key)).toList();
-        if (!unknown.isEmpty()) {
-            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "数据源包含不受支持的配置项：" + String.join("、", unknown));
-        }
-    }
-
-    private int validatedConnectionLimit(Map<String, Object> definition) {
-        int limit = intValue(definition.get("limit"), 100);
-        if (limit < 1 || limit > 1000) {
-            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "外部连接单次返回数量必须在 1 到 1000 之间");
-        }
-        return limit;
-    }
-
-    private int validatedTimeout(Map<String, Object> definition) {
-        int timeout = intValue(definition.get("timeoutMillis"), 5000);
-        if (timeout < 500 || timeout > 30000) {
-            throw invalid("DASHBOARD_SOURCE_DEFINITION_INVALID", "外部连接超时时间必须在 500 到 30000 毫秒之间");
-        }
-        return timeout;
-    }
 
     private List<AnaDataSource> ownedSources(AuthenticatedContext context) {
         var query = Wrappers.<AnaDataSource>lambdaQuery()
@@ -879,6 +1013,36 @@ public class DashboardService {
         else query.eq(AnaDataSource::getSystemId, context.systemId())
                 .eq(AnaDataSource::getOwnerTenantId, context.tenantId());
         return sourceService.selectList(query);
+    }
+
+    /** 非主租户可选主租户已发布的数据源，实际查询仍使用当前租户和当前查看人的权限。 */
+    private List<AnaDataSource> availableSources(AuthenticatedContext context) {
+        List<AnaDataSource> sources = new ArrayList<>(ownedSources(context));
+        Long mainTenantId = mainTenantId(context);
+        if (mainTenantId != null && !mainTenantId.equals(context.tenantId())) {
+            sources.addAll(sourceService.selectList(Wrappers.<AnaDataSource>lambdaQuery()
+                            .eq(AnaDataSource::getContextType, "SYSTEM")
+                            .eq(AnaDataSource::getPlatformId, context.platformId())
+                            .eq(AnaDataSource::getSystemId, context.systemId())
+                            .eq(AnaDataSource::getOwnerTenantId, mainTenantId)
+                            .isNotNull(AnaDataSource::getCurrentVersionId)).stream()
+                    .filter(source -> personalSourceAllowed(context, source)).toList());
+        }
+        return sources;
+    }
+
+    private Long mainTenantId(AuthenticatedContext context) {
+        if (context.systemId() == null || context.tenantId() == null) return null;
+        return tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                        .eq(SystemTenant::getSystemId, context.systemId())
+                        .eq(SystemTenant::getMain, true)
+                        .eq(SystemTenant::getStatus, "ACTIVE"))
+                .stream().map(SystemTenant::getId).findFirst().orElse(null);
+    }
+
+    private List<Map<String, Object>> publishedComponents(AnaDashboardVersion version) {
+        Map<String, Object> snapshot = readMap(version.getSnapshotJson());
+        return objectMapper.convertValue(snapshot.getOrDefault("components", List.of()), MAP_LIST_TYPE);
     }
 
     private List<AnaDashboard> ownedDashboards(AuthenticatedContext context) {
@@ -899,6 +1063,65 @@ public class DashboardService {
         return ownedDashboards(context).stream().filter(item -> code.equals(item.getCode())).findFirst().orElse(null);
     }
 
+    private AnaDashboard personalDashboard(AuthenticatedContext context) {
+        return ownedDashboards(context).stream()
+                .filter(item -> "PERSONAL".equals(item.getDashboardKind()))
+                .filter(item -> Objects.equals(context.accountId(), item.getOwnerAccountId()))
+                .findFirst().orElse(null);
+    }
+
+    /** 个人首页只使用当前已发布版本，并在保存及目录中复核当前账号的来源权限。 */
+    private boolean personalSourceAllowed(AuthenticatedContext context, AnaDataSource source) {
+        if (source.getCurrentVersionId() == null) return false;
+        AnaDataSourceVersion version = sourceVersionService.selectById(source.getCurrentVersionId());
+        if (version == null || !Objects.equals(source.getId(), version.getDataSourceId())
+                || !Objects.equals(source.getScopeType(), version.getScopeType())
+                || !Objects.equals(source.getScopeOwnerId(), version.getScopeOwnerId())) return false;
+        Map<String, Object> published = readMap(version.getSnapshotJson());
+        if (!allowsPolicy(context, readMapValue(published.get("permissionPolicy")))) return false;
+        String sourceType = string(published.get("sourceType"));
+        if (!OPEN_SOURCE_TYPES.contains(sourceType)) return false;
+        Map<String, Object> definition = readMapValue(published.get("definition"));
+        if ("MODULE_RECORDS".equals(sourceType)) {
+            String moduleCode = stringOrNull(definition.get("moduleCode"));
+            return context.systemId() != null && moduleCode != null
+                    && permissionChecker.allows(context, "MODULE", moduleCode, "LIST");
+        }
+        if ("MODULE_REPORT".equals(sourceType)) {
+            Object modules = definition.get("modules");
+            if (context.systemId() == null || !(modules instanceof List<?> list) || list.isEmpty()) return false;
+            for (Object item : list) {
+                String moduleCode = stringOrNull(readMapValue(item).get("moduleCode"));
+                if (moduleCode == null || !permissionChecker.allows(context, "MODULE", moduleCode, "LIST")) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private String publicDashboardKind(AuthenticatedContext context, String requested) {
+        String kind = requested == null || requested.isBlank()
+                ? context.systemId() == null ? "PLATFORM_HOME" : "SYSTEM_HOME" : requested;
+        if (context.systemId() == null && "PLATFORM_HOME".equals(kind)) return kind;
+        if (context.systemId() != null && ("SYSTEM_HOME".equals(kind) || "MODULE_HOME".equals(kind))) return kind;
+        throw invalid("DASHBOARD_HOME_KIND_INVALID", "当前上下文不支持该公共首页类型");
+    }
+
+    /** 模块首页只绑定当前系统已发布的真实模块，禁止借用跨模块 ID。 */
+    private ConfiguredModule requirePublishedModule(AuthenticatedContext context, Long moduleId) {
+        ConfiguredModule module = moduleId == null ? null : moduleService.selectById(moduleId);
+        if (module == null || context.systemId() == null || !context.systemId().equals(module.getSystemId())
+                || !"ACTIVE".equals(module.getStatus())) {
+            throw invalid("DASHBOARD_MODULE_INVALID", "模块首页必须选择当前系统的有效模块");
+        }
+        RuntimeModuleConfiguration published = modulePublicationService.published(context, module.getCode());
+        if (!module.getId().equals(published.moduleId())) {
+            throw invalid("DASHBOARD_MODULE_INVALID", "模块首页必须绑定当前租户实际使用的已发布模块");
+        }
+        return module;
+    }
+
     private AnaDataSource requireSource(AuthenticatedContext context, Long sourceId) {
         AnaDataSource source = sourceService.selectById(sourceId);
         if (source == null || !owned(context, source)) {
@@ -908,9 +1131,30 @@ public class DashboardService {
         return source;
     }
 
+    private AnaDataSource requireUsableSource(AuthenticatedContext context, Long sourceId) {
+        AnaDataSource source = sourceService.selectById(sourceId);
+        if (source == null || !canUseSource(context, source)) {
+            throw new DomainException("DASHBOARD_DATA_SOURCE_NOT_FOUND", "数据源不存在或当前租户无权使用",
+                    HttpStatus.NOT_FOUND);
+        }
+        return source;
+    }
+
+    private boolean canUseSource(AuthenticatedContext context, AnaDataSource source) {
+        if (owned(context, source)) return true;
+        Long mainTenantId = mainTenantId(context);
+        return mainTenantId != null && !mainTenantId.equals(context.tenantId())
+                && "SYSTEM".equals(source.getContextType())
+                && Objects.equals(context.platformId(), source.getPlatformId())
+                && Objects.equals(context.systemId(), source.getSystemId())
+                && Objects.equals(mainTenantId, source.getOwnerTenantId())
+                && personalSourceAllowed(context, source);
+    }
+
     private AnaDashboard requireDashboard(AuthenticatedContext context, Long dashboardId) {
         AnaDashboard dashboard = dashboardService.selectById(dashboardId);
-        if (dashboard == null || !owned(context, dashboard)) {
+        if (dashboard == null || !owned(context, dashboard)
+                || "PERSONAL".equals(dashboard.getDashboardKind())) {
             throw new DomainException("DASHBOARD_NOT_FOUND", "仪表盘不存在或不属于当前上下文",
                     HttpStatus.NOT_FOUND);
         }
@@ -936,6 +1180,11 @@ public class DashboardService {
         source.setPlatformId(context.platformId());
         source.setSystemId(context.systemId());
         source.setOwnerTenantId(context.systemId() == null ? null : context.tenantId());
+        // 归属层级与运行上下文分开保存，编码唯一性和数据范围按归属层级判断。
+        source.setScopeType(context.systemId() == null ? "PLATFORM"
+                : context.tenantId() == null ? "SYSTEM" : "TENANT");
+        source.setScopeOwnerId(context.systemId() == null ? context.platformId()
+                : context.tenantId() == null ? context.systemId() : context.tenantId());
     }
 
     private void bindContext(AnaDashboard dashboard, AuthenticatedContext context) {
@@ -943,6 +1192,10 @@ public class DashboardService {
         dashboard.setPlatformId(context.platformId());
         dashboard.setSystemId(context.systemId());
         dashboard.setOwnerTenantId(context.systemId() == null ? null : context.tenantId());
+        dashboard.setScopeType(context.systemId() == null ? "PLATFORM"
+                : context.tenantId() == null ? "SYSTEM" : "TENANT");
+        dashboard.setScopeOwnerId(context.systemId() == null ? context.platformId()
+                : context.tenantId() == null ? context.systemId() : context.tenantId());
     }
 
     private List<AnaDashboardComponent> components(Long dashboardId) {
@@ -969,33 +1222,39 @@ public class DashboardService {
                         .orderByDesc(AnaDashboardVersion::getVersionNumber)).stream().findFirst().orElse(null);
     }
 
+    private DashboardModels.DataSourceView sourceView(AuthenticatedContext context, AnaDataSource source) {
+        if (owned(context, source)) return sourceView(source);
+        AnaDataSourceVersion version = sourceVersionService.selectById(source.getCurrentVersionId());
+        Map<String, Object> published = readMap(version.getSnapshotJson());
+        String sourceType = string(published.get("sourceType"));
+        // 继承目录只暴露不可变发布版，不能把主租户正在修改的草稿当作可运行配置。
+        return new DashboardModels.DataSourceView(source.getId(), source.getContextType(), source.getCode(),
+                string(published.get("name")), sourceType, version.getDraftRevision(),
+                readMapValue(published.get("definition")), readMapValue(published.get("permissionPolicy")),
+                "PUBLISHED", source.getVersion(), version.getPublishTime(), true, sourceBoundary(sourceType),
+                List.of(new DashboardModels.DataSourceVersionView(version.getId(), version.getVersionNumber(),
+                        version.getDraftRevision(), version.getDefinitionHash(), version.getPublishTime())));
+    }
+
     private DashboardModels.DataSourceView sourceView(AnaDataSource source) {
         List<DashboardModels.DataSourceVersionView> versions = sourceVersionService.selectList(
                         Wrappers.<AnaDataSourceVersion>lambdaQuery()
                                 .eq(AnaDataSourceVersion::getDataSourceId, source.getId())
                                 .orderByDesc(AnaDataSourceVersion::getVersionNumber)).stream()
                 .map(version -> new DashboardModels.DataSourceVersionView(version.getId(), version.getVersionNumber(),
-                        version.getDraftRevision(), version.getDefinitionHash(), version.getPublishedAt())).toList();
+                        version.getDraftRevision(), version.getDefinitionHash(), version.getPublishTime())).toList();
         return new DashboardModels.DataSourceView(source.getId(), source.getContextType(), source.getCode(),
                 source.getName(), source.getSourceType(), source.getDraftRevision(),
                 readMap(source.getDefinitionJson()), readMap(source.getPermissionPolicyJson()), source.getStatus(),
-                source.getVersion(), source.getUpdatedAt(), sourceBoundary(source), versions);
+                source.getVersion(), source.getUpdateTime(), false, sourceBoundary(source.getSourceType()), versions);
     }
 
-    private DashboardModels.DataSourceBoundary sourceBoundary(AnaDataSource source) {
-        return switch (source.getSourceType()) {
+    private DashboardModels.DataSourceBoundary sourceBoundary(String sourceType) {
+        return switch (sourceType) {
             case "MODULE_RECORDS", "MODULE_REPORT" -> new DashboardModels.DataSourceBoundary(
                     "SYSTEM_MODULE", "CURRENT_SYSTEM", "PUBLISHED_BUSINESS_SCHEMA",
                     "CURRENT_USER_DATA_SCOPE", true,
                     "查询使用已发布模块字段，并在每次执行时重新应用当前用户权限和数据范围。");
-            case "EXTERNAL_API" -> new DashboardModels.DataSourceBoundary(
-                    "EXTERNAL_API", "MANAGED_REFERENCE", "APPROVED_REQUEST_CODE",
-                    "SOURCE_POLICY_AND_CONNECTION_POLICY", false,
-                    "草稿和发布版本不保存地址或凭据；部署绑定受管连接后才允许执行。");
-            case "DATABASE_CONNECTION" -> new DashboardModels.DataSourceBoundary(
-                    "DATABASE", "MANAGED_READ_ONLY_REFERENCE", "APPROVED_QUERY_CODE",
-                    "SOURCE_POLICY_AND_ROW_SCOPE", false,
-                    "禁止任意 SQL 和直存凭据；部署绑定只读连接与批准查询后才允许执行。");
             default -> new DashboardModels.DataSourceBoundary(
                     "SYSTEM_CAPABILITY", "CURRENT_CONTEXT", "BUILT_IN_QUERY",
                     "CURRENT_USER_PERMISSION", true,
@@ -1010,7 +1269,7 @@ public class DashboardService {
                                 .eq(AnaDashboardVersion::getDashboardId, dashboard.getId())
                                 .orderByDesc(AnaDashboardVersion::getVersionNumber)).stream()
                 .map(version -> new DashboardModels.DashboardVersionView(version.getId(), version.getVersionNumber(),
-                        version.getDraftRevision(), version.getSnapshotHash(), version.getPublishedAt(),
+                        version.getDraftRevision(), version.getSnapshotHash(), version.getPublishTime(),
                         publication != null && version.getId().equals(publication.getCurrentVersionId()))).toList();
         List<DashboardModels.ComponentView> components = components(dashboard.getId()).stream()
                 .map(component -> new DashboardModels.ComponentView(component.getId(), component.getComponentKey(),
@@ -1020,7 +1279,8 @@ public class DashboardService {
                         component.getSortOrder(), component.getVersion())).toList();
         return new DashboardModels.DashboardView(dashboard.getId(), dashboard.getContextType(), dashboard.getCode(),
                 dashboard.getName(), dashboard.getDescription(), dashboard.getDraftRevision(), dashboard.getStatus(),
-                dashboard.getVersion(), dashboard.getUpdatedAt(), components, versions);
+                dashboard.getVersion(), dashboard.getUpdateTime(), components, versions,
+                dashboard.getDashboardKind(), dashboard.getModuleId());
     }
 
     private void requireAdmin(AuthenticatedContext context) {
@@ -1095,6 +1355,37 @@ public class DashboardService {
     private String stringOrDefault(Object value, String defaultValue) {
         String result = stringOrNull(value);
         return result == null ? defaultValue : result;
+    }
+
+    private BigDecimal numericValue(Object value) {
+        if (value == null) return null;
+        try {
+            return new BigDecimal(string(value));
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    /** 时间分组下钻以半开区间过滤业务记录，日期和日期时间沿用各自的列表字段类型。 */
+    private List<Map<String, Object>> timeGroupFilters(
+            String fieldCode, String fieldType, String key, String interval) {
+        LocalDate start = switch (interval) {
+            case "YEAR" -> LocalDate.of(Integer.parseInt(key), 1, 1);
+            case "QUARTER" -> LocalDate.of(Integer.parseInt(key.substring(0, 4)),
+                    (Integer.parseInt(key.substring(key.length() - 1)) - 1) * 3 + 1, 1);
+            case "MONTH" -> YearMonth.parse(key).atDay(1);
+            default -> LocalDate.parse(key);
+        };
+        LocalDate end = switch (interval) {
+            case "YEAR" -> start.plusYears(1);
+            case "QUARTER" -> start.plusMonths(3);
+            case "MONTH" -> start.plusMonths(1);
+            default -> start.plusDays(1);
+        };
+        String from = "DATE".equals(fieldType) ? start.toString() : start.atStartOfDay().toString();
+        String to = "DATE".equals(fieldType) ? end.toString() : end.atStartOfDay().toString();
+        return List.of(Map.of("fieldCode", fieldCode, "operator", "GTE", "value", from),
+                Map.of("fieldCode", fieldCode, "operator", "LT", "value", to));
     }
 
     private String blankToNull(String value) {

@@ -14,10 +14,11 @@ public record RuntimeListQueryField(
     public static List<String> operatorsFor(String type) {
         return switch (type) {
             case "SECRET" -> List.of();
-            case "JSON" -> List.of("EMPTY", "NOT_EMPTY");
+            case "JSON", "ADDRESS", "LOCATION" -> List.of("EMPTY", "NOT_EMPTY");
+            case "DATE_RANGE", "TIME_RANGE" -> List.of("EQ", "NE", "EMPTY", "NOT_EMPTY");
             case "BOOLEAN", "SINGLE_SELECT", "STATUS", "MEMBER", "DEPARTMENT", "REFERENCE", "CASCADE" ->
                     List.of("EQ", "NE", "EMPTY", "NOT_EMPTY");
-            case "NUMBER", "MONEY", "DATE", "DATETIME" ->
+            case "NUMBER", "MONEY", "PERCENT", "RATING", "PROGRESS", "DATE", "DATETIME", "TIME" ->
                     List.of("EQ", "NE", "GT", "GTE", "LT", "LTE", "EMPTY", "NOT_EMPTY");
             default -> List.of("EQ", "NE", "CONTAINS", "EMPTY", "NOT_EMPTY");
         };

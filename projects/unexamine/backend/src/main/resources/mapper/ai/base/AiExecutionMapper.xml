@@ -6,13 +6,26 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiExecution">
         <id column="id" property="id" />
         <result column="conversation_id" property="conversationId" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="agent_id" property="agentId" />
         <result column="request_message_id" property="requestMessageId" />
         <result column="agent_version_id" property="agentVersionId" />
+        <result column="model_id" property="modelId" />
+        <result column="model_config_version" property="modelConfigVersion" />
+        <result column="model_grant_id" property="modelGrantId" />
+        <result column="model_grant_version_id" property="modelGrantVersionId" />
+        <result column="credential_ref" property="credentialRef" />
+        <result column="credential_version" property="credentialVersion" />
+        <result column="policy_version" property="policyVersion" />
         <result column="authorization_snapshot_json" property="authorizationSnapshotJson" />
+        <result column="policy_snapshot_json" property="policySnapshotJson" />
         <result column="status" property="status" />
         <result column="fallback_used" property="fallbackUsed" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="start_time" property="startTime" />
+        <result column="finish_time" property="finishTime" />
         <result column="error_code" property="errorCode" />
         <result column="error_message" property="errorMessage" />
         <result column="version" property="version" />
@@ -20,7 +33,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, conversation_id, request_message_id, agent_version_id, authorization_snapshot_json, `status`, fallback_used, started_at, finished_at, error_code, error_message, version
+        id, conversation_id, context_type, platform_id, system_id, tenant_id, agent_id, request_message_id, agent_version_id, model_id, model_config_version, model_grant_id, model_grant_version_id, credential_ref, credential_version, policy_version, authorization_snapshot_json, policy_snapshot_json, `status`, fallback_used, start_time, finish_time, error_code, error_message, version
     </sql>
 
 </mapper>

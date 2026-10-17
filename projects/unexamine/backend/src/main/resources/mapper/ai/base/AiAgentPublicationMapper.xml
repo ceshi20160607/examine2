@@ -6,15 +6,21 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.ai.base.entity.AiAgentPublication">
         <id column="id" property="id" />
         <result column="agent_id" property="agentId" />
+        <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="owner_tenant_id" property="ownerTenantId" />
         <result column="current_version_id" property="currentVersionId" />
+        <result column="updated_by_account_id" property="updatedByAccountId" />
+        <result column="updated_by_platform_member_account_id" property="updatedByPlatformMemberAccountId" />
         <result column="updated_by_member_id" property="updatedByMemberId" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, agent_id, current_version_id, updated_by_member_id, updated_at, version
+        id, agent_id, context_type, platform_id, system_id, owner_tenant_id, current_version_id, updated_by_account_id, updated_by_platform_member_account_id, updated_by_member_id, update_time, version
     </sql>
 
 </mapper>

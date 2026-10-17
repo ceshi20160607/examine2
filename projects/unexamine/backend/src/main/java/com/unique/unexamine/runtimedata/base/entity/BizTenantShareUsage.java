@@ -9,32 +9,50 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 目标租户通过共享授权访问业务数据的历史
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_tenant_share_usage")
+@TableName("un_biz_tenant_share_usage")
 public class BizTenantShareUsage {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 共享授权主键
+     */
     @TableField("share_id")
     private Long shareId;
 
+    /**
+     * 执行共享访问的目标租户成员
+     */
     @TableField("target_tenant_member_id")
     private Long targetTenantMemberId;
 
+    /**
+     * 通过共享授权执行的业务动作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 共享访问结果编码
+     */
     @TableField("result_code")
     private String resultCode;
 
-    @TableField("occurred_at")
-    private LocalDateTime occurredAt;
+    /**
+     * 共享访问发生时间
+     */
+    @TableField("occur_time")
+    private LocalDateTime occurTime;
 
     public Long getId() {
         return id;
@@ -76,12 +94,12 @@ public class BizTenantShareUsage {
         this.resultCode = resultCode;
     }
 
-    public LocalDateTime getOccurredAt() {
-        return occurredAt;
+    public LocalDateTime getOccurTime() {
+        return occurTime;
     }
 
-    public void setOccurredAt(LocalDateTime occurredAt) {
-        this.occurredAt = occurredAt;
+    public void setOccurTime(LocalDateTime occurTime) {
+        this.occurTime = occurTime;
     }
 
     @Override
@@ -92,7 +110,7 @@ public class BizTenantShareUsage {
             ", targetTenantMemberId = " + targetTenantMemberId +
             ", actionCode = " + actionCode +
             ", resultCode = " + resultCode +
-            ", occurredAt = " + occurredAt +
+            ", occurTime = " + occurTime +
             "}";
     }
 }

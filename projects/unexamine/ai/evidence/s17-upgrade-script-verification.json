@@ -1,0 +1,63 @@
+{
+  "step": "S17.1",
+  "status": "verified_contribution",
+  "integration_gate": "G17_CONFIG_UPGRADE",
+  "source_rows": [
+    "R2245",
+    "R2247",
+    "R2248",
+    "R2249",
+    "R2250",
+    "R2251",
+    "R2252",
+    "R2254",
+    "R2256",
+    "R2257",
+    "R2258",
+    "R2259"
+  ],
+  "changed_files": [
+    "projects/unexamine/deploy/scripts/deploy.ps1",
+    "projects/unexamine/deploy/scripts/backup.ps1",
+    "projects/unexamine/deploy/README.md",
+    "projects/unexamine/deploy/package-manifest.example.json",
+    "projects/unexamine/db/update/README.md"
+  ],
+  "checks_actual_results": [
+    "Updated stale database upgrade README to list V19/V20 and manifest example databaseVersion from 34 to the actual Flyway V20.",
+    "Deployment preflight now reads actual MySQL Flyway history, rejects failed history and version regression, verifies contiguous migration entries in the JAR against manifest databaseVersion, and requires a source-version-matched four-artifact backup before an existing database or configuration version advances. PreflightOnly returns readiness before any release directory or pointer is created.",
+    "Physical backup script now records databaseVersion=20 and configVersion=local-v1 with a real MySQL dump (11,336,098 bytes), file archive, configuration snapshot and reference-only secret plan; deployment checked file sizes, SHA-256, source version, database identity, environment and consistency point.",
+    "Against the real preview database, current V20→V20 read-only preflight returned READY twice. An isolated Flyway V19 history with a V21 fixture package rejected missing backup, accepted a complete backup, rejected a tampered configuration artifact, and rejected an injected failed Flyway migration. A configuration-only local-v1→local-v2 fixture also required the source-version backup.",
+    "On failed deployment after the database advances or configuration changes, the script now keeps the service stopped and writes FAILED_REQUIRES_RECOVERY with version, backup and forward-fix/restore directions instead of attempting to start an incompatible prior release. No production migration or release switch was executed in this substep.",
+    "After backend restart, MySQL flyway_schema_history reported V20 and zero failed rows; operations continuity API returned runtimeDatabaseVersion=20, runtimeConfigVersion=local-v1, and unprivileged member received 403. The admin page reopened with Flyway V20. PowerShell parser, workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s17-upgrade-page.png",
+    "projects/unexamine/ai/evidence/s17-upgrade-restart-page.png"
+  ],
+  "permission_or_failure_result": "Missing/changed/wrong-version backup, failed Flyway history and version regression are blocked before release switch; ordinary member cannot read continuity administration.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/deploy/scripts/deploy.ps1",
+      "sha256": "80ec8e3999b8235be9d9b58b1499d522464af58c631373176f069df78214f3f9"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/backup.ps1",
+      "sha256": "75b7ee06eb64cca6d59d623e137203f55d2002c449bfe09553b7b399ed1d878b"
+    },
+    {
+      "path": "projects/unexamine/deploy/README.md",
+      "sha256": "f07ef84c32bf5507ebfffacf068f80afb7cb9e688992ac08bd2b13d6eb7d7a12"
+    },
+    {
+      "path": "projects/unexamine/deploy/package-manifest.example.json",
+      "sha256": "8bead0265b7229a78f97de29414352ae6dec142ec7b1051abacbff4f302593bd"
+    },
+    {
+      "path": "projects/unexamine/db/update/README.md",
+      "sha256": "cd3b67f24252f56cd1bfbcfdfcb53c0640a5602ae60dda990f65f05d331d0582"
+    }
+  ],
+  "remaining": "S17.2 must replace the existing nonempty-file restore drill with a real isolated database restore and verify configuration versions. S17.3 must combine backup, restore, upgrade and failure handling at G17. The actual V21 fixture was used only for read-only preflight; no product migration was applied.",
+  "next_step": "S17.2"
+}

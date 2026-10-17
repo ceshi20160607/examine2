@@ -10,42 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统成员
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_member")
+@TableName("un_sys_member")
 public class SystemMember {
 
+    /**
+     * 系统成员主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属业务系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 对应平台账号标识
+     */
     @TableField("account_id")
     private Long accountId;
 
+    /**
+     * 系统内成员工号
+     */
     @TableField("employee_number")
     private String employeeNumber;
 
+    /**
+     * 系统内成员显示名称
+     */
     @TableField("display_name")
     private String displayName;
 
+    /**
+     * 系统成员状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("joined_at")
-    private LocalDateTime joinedAt;
+    /**
+     * 加入系统时间
+     */
+    @TableField("join_time")
+    private LocalDateTime joinTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 系统成员创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 系统成员更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 系统成员乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -98,28 +128,28 @@ public class SystemMember {
         this.status = status;
     }
 
-    public LocalDateTime getJoinedAt() {
-        return joinedAt;
+    public LocalDateTime getJoinTime() {
+        return joinTime;
     }
 
-    public void setJoinedAt(LocalDateTime joinedAt) {
-        this.joinedAt = joinedAt;
+    public void setJoinTime(LocalDateTime joinTime) {
+        this.joinTime = joinTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -139,9 +169,9 @@ public class SystemMember {
             ", employeeNumber = " + employeeNumber +
             ", displayName = " + displayName +
             ", status = " + status +
-            ", joinedAt = " + joinedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", joinTime = " + joinTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

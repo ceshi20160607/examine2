@@ -21,6 +21,8 @@ import com.unique.unexamine.runtimedata.manage.RuntimeListQueryField;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordList;
 import com.unique.unexamine.runtimedata.manage.RuntimeRecordView;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -63,6 +66,7 @@ public class ReportService {
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final SystemTenantBaseService tenantService;
 
     public ReportService(
             AnaDataSourceBaseService sourceService,
@@ -72,7 +76,8 @@ public class ReportService {
             RuntimeDataService runtimeDataService,
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            SystemTenantBaseService tenantService) {
         this.sourceService = sourceService;
         this.sourceVersionService = sourceVersionService;
         this.catalogService = catalogService;
@@ -81,6 +86,7 @@ public class ReportService {
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.tenantService = tenantService;
     }
 
     public ReportModels.Metadata metadata(AuthenticatedContext context, String traceId) {
@@ -111,6 +117,9 @@ public class ReportService {
             AuthenticatedContext context, Long sourceId, String traceId) {
         requireSystemAdmin(context);
         AnaDataSource source = requireSource(context, sourceId);
+        if (!Objects.equals(context.tenantId(), source.getOwnerTenantId())) {
+            throw forbidden("REPORT_SOURCE_DRAFT_FORBIDDEN", "只能预览当前租户自己的数据源草稿");
+        }
         if (!"MODULE_REPORT".equals(source.getSourceType())) {
             throw invalid("REPORT_SOURCE_TYPE_REQUIRED", "只有结构化模块报表数据源可以预览");
         }
@@ -132,14 +141,16 @@ public class ReportService {
     public ReportModels.Result executePublished(
             AuthenticatedContext context, Long sourceId, String traceId) {
         AnaDataSource source = requireSource(context, sourceId);
-        if (!"MODULE_REPORT".equals(source.getSourceType())) {
-            throw invalid("REPORT_SOURCE_TYPE_REQUIRED", "只有结构化模块报表数据源可以执行");
-        }
-        AnaDataSourceVersion version = latestVersion(sourceId);
-        if (version == null) {
+        // 草稿可继续修改来源类型；运行态只读取当前发布指针对应的不可变快照。
+        AnaDataSourceVersion version = source.getCurrentVersionId() == null ? null
+                : sourceVersionService.selectById(source.getCurrentVersionId());
+        if (version == null || !sourceId.equals(version.getDataSourceId())) {
             throw invalid("REPORT_SOURCE_NOT_PUBLISHED", "数据源尚未发布，运行态不会读取草稿");
         }
         Map<String, Object> snapshot = readMap(version.getSnapshotJson());
+        if (!"MODULE_REPORT".equals(snapshot.get("sourceType"))) {
+            throw invalid("REPORT_SOURCE_TYPE_REQUIRED", "只有结构化模块报表数据源可以执行");
+        }
         requireSnapshotContext(context, snapshot);
         if (!allowsPolicy(context, readMapValue(snapshot.get("permissionPolicy")))) {
             throw forbidden("REPORT_SOURCE_FORBIDDEN", "当前上下文无权执行该已发布数据源");
@@ -159,17 +170,64 @@ public class ReportService {
             throw new DomainException("REPORT_SOURCE_VERSION_NOT_FOUND", "数据源发布版本不存在",
                     HttpStatus.NOT_FOUND);
         }
-        AnaDataSource source = requireSource(context, version.getDataSourceId());
-        if (!"MODULE_REPORT".equals(source.getSourceType())) {
+        requireSource(context, version.getDataSourceId());
+        Map<String, Object> snapshot = readMap(version.getSnapshotJson());
+        if (!"MODULE_REPORT".equals(snapshot.get("sourceType"))) {
             throw invalid("REPORT_SOURCE_TYPE_REQUIRED", "KPI 只能绑定结构化模块报表发布版本");
         }
-        Map<String, Object> snapshot = readMap(version.getSnapshotJson());
         requireSnapshotContext(context, snapshot);
         if (!allowsPolicy(context, readMapValue(snapshot.get("permissionPolicy")))) {
             throw forbidden("REPORT_SOURCE_FORBIDDEN", "当前上下文无权执行该数据源发布版本");
         }
         return executeDefinition(context, readMapValue(snapshot.get("definition")), version.getId(),
                 version.getVersionNumber(), version.getDefinitionHash(), traceId);
+    }
+
+    /** KPI 在固定发布口径上追加目标周期，不改写发布版本已有的时间边界。 */
+    public ReportModels.Result executeVersionForPeriod(
+            AuthenticatedContext context, Long versionId, String from, String to, String traceId) {
+        AnaDataSourceVersion version = sourceVersionService.selectById(versionId);
+        if (version == null) {
+            throw new DomainException("REPORT_SOURCE_VERSION_NOT_FOUND", "数据源发布版本不存在",
+                    HttpStatus.NOT_FOUND);
+        }
+        requireSource(context, version.getDataSourceId());
+        Map<String, Object> snapshot = readMap(version.getSnapshotJson());
+        if (!"MODULE_REPORT".equals(snapshot.get("sourceType"))) {
+            throw invalid("REPORT_SOURCE_TYPE_REQUIRED", "KPI 只能绑定结构化模块报表发布版本");
+        }
+        requireSnapshotContext(context, snapshot);
+        if (!allowsPolicy(context, readMapValue(snapshot.get("permissionPolicy")))) {
+            throw forbidden("REPORT_SOURCE_FORBIDDEN", "当前上下文无权执行该数据源发布版本");
+        }
+        LinkedHashMap<String, Object> definition = new LinkedHashMap<>(readMapValue(snapshot.get("definition")));
+        Map<String, Object> publishedTime = readMapValue(definition.get("timeField"));
+        if (string(publishedTime.get("alias")).isBlank()
+                || string(publishedTime.get("fieldCode")).isBlank()) {
+            throw invalid("KPI_PERIOD_TIME_FIELD_REQUIRED", "KPI 数据源发布版本必须配置可检索的时间字段");
+        }
+        try {
+            LocalDate start = LocalDate.parse(from);
+            LocalDate end = LocalDate.parse(to);
+            if (start.isAfter(end)) {
+                throw invalid("KPI_PERIOD_INVALID", "目标周期的开始日期不能晚于结束日期");
+            }
+            String fixedFrom = stringOrNull(publishedTime.get("from"));
+            String fixedTo = stringOrNull(publishedTime.get("to"));
+            if (fixedFrom != null) start = start.isAfter(LocalDate.parse(fixedFrom))
+                    ? start : LocalDate.parse(fixedFrom);
+            if (fixedTo != null) end = end.isBefore(LocalDate.parse(fixedTo))
+                    ? end : LocalDate.parse(fixedTo);
+            // 原来源固定筛选与目标周期取交集，不能扩大已发布数据源的统计范围。
+            LinkedHashMap<String, Object> periodTime = new LinkedHashMap<>(publishedTime);
+            periodTime.put("from", start.toString());
+            periodTime.put("to", end.toString());
+            definition.put("timeField", periodTime);
+        } catch (DateTimeParseException exception) {
+            throw invalid("KPI_PERIOD_INVALID", "目标周期或来源固定时间范围不是有效日期");
+        }
+        return executeDefinition(context, definition, version.getId(), version.getVersionNumber(),
+                version.getDefinitionHash(), traceId);
     }
 
     public ReportModels.Result executeSnapshot(
@@ -199,13 +257,18 @@ public class ReportService {
             Map<String, Object> time = compiled.timeField();
             if (module.alias().equals(string(time.get("alias")))) {
                 String fieldCode = string(time.get("fieldCode"));
+                boolean dateTimeField = "DATETIME".equalsIgnoreCase(module.fields().get(fieldCode).fieldType());
                 if (stringOrNull(time.get("from")) != null) {
+                    String from = string(time.get("from"));
                     filters = append(filters, Map.of("fieldCode", fieldCode, "operator", "GTE",
-                            "value", string(time.get("from"))));
+                            "value", dateTimeField ? dateTimeBoundary(from, false) : from));
                 }
                 if (stringOrNull(time.get("to")) != null) {
-                    filters = append(filters, Map.of("fieldCode", fieldCode, "operator", "LTE",
-                            "value", string(time.get("to"))));
+                    String to = string(time.get("to"));
+                    // 日期选择器的结束日覆盖整天；DATETIME 使用次日零点的排他上界。
+                    filters = append(filters, Map.of("fieldCode", fieldCode,
+                            "operator", dateTimeField && to.matches("\\d{4}-\\d{2}-\\d{2}") ? "LT" : "LTE",
+                            "value", dateTimeField ? dateTimeBoundary(to, true) : to));
                 }
             }
             String sortField = module.alias().equals(string(compiled.sort().get("alias")))
@@ -272,6 +335,8 @@ public class ReportService {
                                            List<RuntimeListQueryField> queryFields) {
         Set<String> permitted = new HashSet<>();
         if (queryFields != null) queryFields.forEach(field -> permitted.add(field.code()));
+        // 记录 ID 是 LIST 已返回的记录标识，关系连接可使用它；业务字段仍按当前字段权限校验。
+        permitted.add("id");
         Set<String> required = new LinkedHashSet<>();
         compiled.outputFields().stream().filter(field -> module.alias().equals(string(field.get("alias"))))
                 .forEach(field -> required.add(string(field.get("fieldCode"))));
@@ -365,6 +430,15 @@ public class ReportService {
                 throw invalid("REPORT_DIMENSION_FIELD_TYPE_INVALID", "子表字段不能作为分组值，请选择明细模块字段");
             }
             validateDimensionType(type, field);
+            // 发布快照保存时间字段类型，图表下钻据此构造与普通列表一致的日期范围。
+            normalizedDimension.put("fieldType", field.fieldType());
+            if ("TIME".equals(type)) {
+                String interval = stringOrDefault(dimension.get("interval"), "DAY").toUpperCase(Locale.ROOT);
+                if (!Set.of("DAY", "MONTH", "QUARTER", "YEAR").contains(interval)) {
+                    throw invalid("REPORT_TIME_INTERVAL_INVALID", "时间分组只支持日、月、季度和年");
+                }
+                normalizedDimension.put("interval", interval);
+            }
         }
 
         List<Map<String, Object>> filters = mapList(definition.get("filters"));
@@ -549,7 +623,8 @@ public class ReportService {
         String field = string(metric.get("fieldCode"));
         List<BigDecimal> values = rows.stream().map(row -> number(value(row.records().get(alias), field)))
                 .filter(Objects::nonNull).toList();
-        if (values.isEmpty()) return null;
+        // 周期内确实没有业务记录时，金额求和为 0；有记录却没有有效数值仍保留空值供 KPI 报错。
+        if (values.isEmpty()) return "SUM".equals(operation) && rows.isEmpty() ? BigDecimal.ZERO : null;
         if ("SUM".equals(operation)) return values.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if ("AVG".equals(operation)) return values.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(values.size()), 6, RoundingMode.HALF_UP).stripTrailingZeros();
@@ -650,6 +725,16 @@ public class ReportService {
         return objectMapper.convertValue(value, Object.class);
     }
 
+    private String dateTimeBoundary(String value, boolean endOfDay) {
+        if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) return value;
+        try {
+            LocalDate day = LocalDate.parse(value);
+            return (endOfDay ? day.plusDays(1) : day).atStartOfDay().toString();
+        } catch (java.time.DateTimeException exception) {
+            throw invalid("REPORT_TIME_RANGE_INVALID", "时间范围日期无效，请重新选择");
+        }
+    }
+
     private Object timeBucket(Object value, String interval) {
         if (value == null) return null;
         String text = String.valueOf(value);
@@ -659,6 +744,7 @@ public class ReportService {
             return switch (interval) {
                 case "YEAR" -> String.valueOf(date.getYear());
                 case "MONTH" -> "%04d-%02d".formatted(date.getYear(), date.getMonthValue());
+                case "QUARTER" -> "%04d-Q%d".formatted(date.getYear(), (date.getMonthValue() - 1) / 3 + 1);
                 default -> date.toString();
             };
         } catch (RuntimeException exception) {
@@ -772,9 +858,21 @@ public class ReportService {
         if (!"SYSTEM".equals(string(snapshot.get("contextType")))
                 || !Objects.equals(context.platformId(), longValue(snapshot.get("platformId")))
                 || !Objects.equals(context.systemId(), longValue(snapshot.get("systemId")))
-                || !Objects.equals(context.tenantId(), longValue(snapshot.get("ownerTenantId")))) {
+                || !sourceTenantAllowed(context, longValue(snapshot.get("ownerTenantId")))) {
             throw forbidden("REPORT_SOURCE_CONTEXT_MISMATCH", "数据源版本不属于当前系统租户上下文");
         }
+    }
+
+    /** 主租户发布口径可跨本系统租户使用，但记录范围始终按实际查看者重新计算。 */
+    private boolean sourceTenantAllowed(AuthenticatedContext context, Long sourceTenantId) {
+        if (Objects.equals(context.tenantId(), sourceTenantId)) return true;
+        if (context.systemId() == null || context.tenantId() == null || sourceTenantId == null) return false;
+        return !context.tenantId().equals(sourceTenantId)
+                && tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                        .eq(SystemTenant::getSystemId, context.systemId())
+                        .eq(SystemTenant::getId, sourceTenantId)
+                        .eq(SystemTenant::getMain, true)
+                        .eq(SystemTenant::getStatus, "ACTIVE")).size() == 1;
     }
 
     private boolean allowsPolicy(AuthenticatedContext context, Map<String, Object> policy) {
@@ -782,8 +880,8 @@ public class ReportService {
         String resourceType = stringOrNull(policy.get("resourceType"));
         String resourceCode = stringOrNull(policy.get("resourceCode"));
         String actionCode = stringOrNull(policy.get("actionCode"));
-        return resourceType == null || resourceCode == null || actionCode == null
-                || permissionChecker.allows(context, resourceType, resourceCode, actionCode);
+        return resourceType != null && resourceCode != null && actionCode != null
+                && permissionChecker.allows(context, resourceType, resourceCode, actionCode);
     }
 
     private void requireSystemAdmin(AuthenticatedContext context) {
@@ -798,18 +896,11 @@ public class ReportService {
         if (source == null || !"SYSTEM".equals(source.getContextType())
                 || !Objects.equals(context.platformId(), source.getPlatformId())
                 || !Objects.equals(context.systemId(), source.getSystemId())
-                || !Objects.equals(context.tenantId(), source.getOwnerTenantId())) {
+                || !sourceTenantAllowed(context, source.getOwnerTenantId())) {
             throw new DomainException("REPORT_SOURCE_NOT_FOUND", "数据源不存在或不属于当前系统租户",
                     HttpStatus.NOT_FOUND);
         }
         return source;
-    }
-
-    private AnaDataSourceVersion latestVersion(Long sourceId) {
-        return sourceVersionService.selectList(Wrappers.<AnaDataSourceVersion>lambdaQuery()
-                        .eq(AnaDataSourceVersion::getDataSourceId, sourceId)
-                        .orderByDesc(AnaDataSourceVersion::getVersionNumber))
-                .stream().findFirst().orElse(null);
     }
 
     private void audit(AuthenticatedContext context, String traceId, String event, Long sourceId,
@@ -820,6 +911,9 @@ public class ReportService {
 
     private boolean equalValue(Object left, Object right) {
         if (left == null || right == null) return false;
+        // 多选关联字段保存目标记录 ID 数组；只要其中一个 ID 匹配就建立该条业务关联。
+        if (left instanceof List<?> values) return values.stream().anyMatch(value -> equalValue(value, right));
+        if (right instanceof List<?> values) return values.stream().anyMatch(value -> equalValue(left, value));
         BigDecimal leftNumber = number(left);
         BigDecimal rightNumber = number(right);
         if (leftNumber != null && rightNumber != null) return leftNumber.compareTo(rightNumber) == 0;

@@ -152,7 +152,7 @@ onMounted(load)
 
     <div class="deployment-workbench">
       <section class="panel-card deployment-form">
-        <div class="panel-title"><div><strong>1. 登记当前不可变发布</strong><small>运行值必须与清单逐项相等；同一版本不能替换摘要。</small></div></div>
+        <div class="panel-title"><div><strong>1. 登记当前不可变发布</strong><small>运行值必须与清单逐项相等；同一版本不能替换制品、数据库、配置或前端清单。</small></div></div>
         <a-radio-group v-model:value="releaseForm.databaseRollbackStrategy" button-style="solid"><a-radio-button value="FORWARD_FIX">数据库前向修复</a-radio-button><a-radio-button value="REVERSIBLE">可逆迁移</a-radio-button></a-radio-group>
         <a-textarea v-model:value="releaseForm.notes" :rows="2" :maxlength="2000" />
         <a-button type="primary" :disabled="Boolean(matchingRelease) || !runtimeRegistrationReady(runtime)" :loading="busy === 'register'" @click="registerRelease">

@@ -10,72 +10,132 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 模块规则草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module_rule")
+@TableName("un_cfg_module_rule")
 public class CfgModuleRule {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块标识
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 范围内稳定编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 规则业务类型
+     */
     @TableField("rule_type")
     private String ruleType;
 
+    /**
+     * 规则触发事件
+     */
     @TableField("trigger_event")
     private String triggerEvent;
 
+    /**
+     * 规则表达式文本
+     */
     @TableField("expression_text")
     private String expressionText;
 
+    /**
+     * 规则失败提示模板
+     */
     @TableField("message_template")
     private String messageTemplate;
 
+    /**
+     * 草稿规则最近一次测试状态
+     */
     @TableField("test_status")
     private String testStatus;
 
+    /**
+     * 最近一次规则测试输入快照
+     */
     @TableField("last_test_input_json")
     private String lastTestInputJson;
 
+    /**
+     * 最近一次规则测试结果快照
+     */
     @TableField("last_test_result_json")
     private String lastTestResultJson;
 
+    /**
+     * 最近一次执行测试的系统成员标识
+     */
     @TableField("last_tested_by_member_id")
     private Long lastTestedByMemberId;
 
-    @TableField("last_tested_at")
-    private LocalDateTime lastTestedAt;
+    /**
+     * 最近一次规则测试时间
+     */
+    @TableField("last_tested_time")
+    private LocalDateTime lastTestedTime;
 
+    /**
+     * 显示排序值
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -192,12 +252,12 @@ public class CfgModuleRule {
         this.lastTestedByMemberId = lastTestedByMemberId;
     }
 
-    public LocalDateTime getLastTestedAt() {
-        return lastTestedAt;
+    public LocalDateTime getLastTestedTime() {
+        return lastTestedTime;
     }
 
-    public void setLastTestedAt(LocalDateTime lastTestedAt) {
-        this.lastTestedAt = lastTestedAt;
+    public void setLastTestedTime(LocalDateTime lastTestedTime) {
+        this.lastTestedTime = lastTestedTime;
     }
 
     public Integer getSortOrder() {
@@ -216,20 +276,20 @@ public class CfgModuleRule {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -257,11 +317,11 @@ public class CfgModuleRule {
             ", lastTestInputJson = " + lastTestInputJson +
             ", lastTestResultJson = " + lastTestResultJson +
             ", lastTestedByMemberId = " + lastTestedByMemberId +
-            ", lastTestedAt = " + lastTestedAt +
+            ", lastTestedTime = " + lastTestedTime +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

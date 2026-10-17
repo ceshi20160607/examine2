@@ -10,6 +10,8 @@ import com.unique.unexamine.platform.base.entity.PlatSsoProviderVersion;
 import com.unique.unexamine.platform.base.service.PlatSsoProviderBaseService;
 import com.unique.unexamine.platform.base.service.PlatSsoProviderVersionBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SysSsoBinding;
+import com.unique.unexamine.system.base.service.SysSsoBindingBaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,30 +42,43 @@ public class SsoProviderAdministrationService {
 
     private final PlatSsoProviderBaseService providerService;
     private final PlatSsoProviderVersionBaseService versionService;
+    private final SysSsoBindingBaseService bindingService;
     private final SecretReferenceResolver secretResolver;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
+    private final OidcIdTokenVerifier idTokenVerifier;
+    private final SamlResponseVerifier samlResponseVerifier;
+    private final LdapDirectoryAuthenticator directoryAuthenticator;
     private final RestClient restClient;
     private final Clock clock = Clock.systemDefaultZone();
 
     public SsoProviderAdministrationService(
             PlatSsoProviderBaseService providerService,
             PlatSsoProviderVersionBaseService versionService,
+            SysSsoBindingBaseService bindingService,
             SecretReferenceResolver secretResolver,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
+            OidcIdTokenVerifier idTokenVerifier,
+            SamlResponseVerifier samlResponseVerifier,
+            LdapDirectoryAuthenticator directoryAuthenticator,
             RestClient.Builder restClientBuilder) {
         this.providerService = providerService;
         this.versionService = versionService;
+        this.bindingService = bindingService;
         this.secretResolver = secretResolver;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
+        this.idTokenVerifier = idTokenVerifier;
+        this.samlResponseVerifier = samlResponseVerifier;
+        this.directoryAuthenticator = directoryAuthenticator;
         this.restClient = restClientBuilder.build();
     }
 
     @Transactional(readOnly = true)
-    public List<SsoProviderAdminView> list() {
+    public List<SsoProviderAdminView> list(AuthenticatedContext context) {
         return providerService.selectList(Wrappers.<PlatSsoProvider>lambdaQuery()
+                        .eq(PlatSsoProvider::getPlatformId, context.platformId())
                         .orderByAsc(PlatSsoProvider::getName))
                 .stream().map(this::view).toList();
     }
@@ -78,11 +93,13 @@ public class SsoProviderAdministrationService {
             throw new DomainException("SSO_PROVIDER_CODE_INVALID", "身份源编码格式无效", HttpStatus.BAD_REQUEST);
         }
         if (!providerService.selectList(Wrappers.<PlatSsoProvider>lambdaQuery()
+                .eq(PlatSsoProvider::getPlatformId, context.platformId())
                 .eq(PlatSsoProvider::getCode, code)).isEmpty()) {
             throw new DomainException("SSO_PROVIDER_CODE_EXISTS", "身份源编码已经存在", HttpStatus.CONFLICT);
         }
         String protocol = normalizeProtocol(input.protocol());
         PlatSsoProvider provider = new PlatSsoProvider();
+        provider.setPlatformId(context.platformId());
         provider.setCode(code);
         provider.setName(input.name().strip());
         provider.setProtocol(protocol);
@@ -109,7 +126,7 @@ public class SsoProviderAdministrationService {
             Long providerId,
             SsoProviderVersionDraftRequest input,
             String traceId) {
-        PlatSsoProvider provider = requireProvider(providerId);
+        PlatSsoProvider provider = requireProvider(context, providerId);
         String protocol = normalizeProtocol(input.protocol());
         int nextVersion = versions(providerId).stream()
                 .map(PlatSsoProviderVersion::getVersionNumber)
@@ -130,7 +147,7 @@ public class SsoProviderAdministrationService {
             Long providerId,
             Long versionId,
             String traceId) {
-        PlatSsoProvider provider = requireProvider(providerId);
+        PlatSsoProvider provider = requireProvider(context, providerId);
         PlatSsoProviderVersion version = requireVersion(providerId, versionId);
         if (!"DRAFT".equals(version.getStatus())) {
             throw new DomainException("SSO_PROVIDER_VERSION_IMMUTABLE", "已发布身份源版本不可重新检测或修改", HttpStatus.CONFLICT);
@@ -145,7 +162,7 @@ public class SsoProviderAdministrationService {
                 passed ? "PASSED" : "FAILED", traceId, failureCode, now, List.copyOf(checks));
         version.setTestStatus(report.status());
         version.setTestReportJson(toJson(report));
-        version.setTestedAt(now);
+        version.setTestedTime(now);
         version.setTestedByAccountId(context.accountId());
         versionService.updateById(version);
 
@@ -170,7 +187,7 @@ public class SsoProviderAdministrationService {
             Long providerId,
             Long versionId,
             String traceId) {
-        PlatSsoProvider provider = requireProvider(providerId);
+        PlatSsoProvider provider = requireProvider(context, providerId);
         PlatSsoProviderVersion version = requireVersion(providerId, versionId);
         if (!"DRAFT".equals(version.getStatus())) {
             throw new DomainException("SSO_PROVIDER_VERSION_IMMUTABLE", "该身份源版本已经发布", HttpStatus.CONFLICT);
@@ -181,7 +198,7 @@ public class SsoProviderAdministrationService {
 
         LocalDateTime now = LocalDateTime.now(clock);
         version.setStatus("PUBLISHED");
-        version.setPublishedAt(now);
+        version.setPublishedTime(now);
         version.setPublishedByAccountId(context.accountId());
         versionService.updateById(version);
 
@@ -202,6 +219,36 @@ public class SsoProviderAdministrationService {
         return view(provider);
     }
 
+    /** 停用已发布身份源后不再提供登录入口；草稿与历史版本仍可供管理员审阅。 */
+    @Transactional
+    public SsoProviderAdminView disable(AuthenticatedContext context, Long providerId, String traceId) {
+        PlatSsoProvider provider = requireProvider(context, providerId);
+        if (!"PUBLISHED".equals(provider.getStatus())) {
+            throw new DomainException("SSO_PROVIDER_NOT_PUBLISHED", "只有已发布身份源可以停用", HttpStatus.CONFLICT);
+        }
+        // 平台身份源停用时同步解除所有系统生效绑定，历史版本仍供审计读取。
+        int disabledBindings = 0;
+        for (SysSsoBinding binding : bindingService.selectList(Wrappers.<SysSsoBinding>lambdaQuery()
+                .eq(SysSsoBinding::getPlatformId, context.platformId())
+                .eq(SysSsoBinding::getProviderId, providerId)
+                .eq(SysSsoBinding::getStatus, "ACTIVE"))) {
+            binding.setStatus("DISABLED");
+            if (bindingService.updateById(binding) != 1) {
+                throw new DomainException("SSO_BINDING_CONFLICT", "系统身份源绑定已变化，请刷新后重试", HttpStatus.CONFLICT);
+            }
+            disabledBindings++;
+        }
+        provider.setStatus("DISABLED");
+        if (providerService.updateById(provider) != 1) {
+            throw new DomainException("SSO_PROVIDER_CONFLICT", "身份源状态已变化，请刷新后重试", HttpStatus.CONFLICT);
+        }
+        auditRecorder.record(traceId, context.accountId(), null, null, null,
+                "SSO_PROVIDER_DISABLED", "SSO_PROVIDER", providerId.toString(), "SUCCESS",
+                Map.of("providerCode", provider.getCode(), "publishedVersion", provider.getPublishedVersionNumber(),
+                        "disabledBindings", disabledBindings));
+        return view(provider);
+    }
+
     private List<SsoProviderTestCheck> runChecks(PlatSsoProviderVersion version) {
         List<SsoProviderTestCheck> checks = new ArrayList<>();
         Map<String, Object> config = readMap(version.getProtocolConfigJson());
@@ -209,13 +256,43 @@ public class SsoProviderAdministrationService {
         Map<String, Object> attributeMapping = readMap(version.getAttributeMappingJson());
         String protocol = version.getProtocol();
 
-        checks.add(passed("PROTOCOL_SUPPORTED", "协议 " + protocol + " 已支持"));
+        // 只有完成真实登录适配的协议才能通过发布前预检，避免仅保存配置就误报可用。
+        checks.add(("OIDC".equals(protocol) || "OAUTH2".equals(protocol) || "SAML2".equals(protocol) || "LDAP".equals(protocol))
+                ? passed("PROTOCOL_SUPPORTED", protocol + " 登录适配已接入")
+                : failed("PROTOCOL_RUNTIME_NOT_READY", protocol + " 登录适配尚未完成"));
         checkEndpoints(protocol, config, checks);
         checkCallbacks(protocol, config, callbacks, checks);
+        if ("SAML2".equals(protocol)) {
+            PlatSsoProvider provider = providerService.selectById(version.getProviderId());
+            String acs = stringValue(config.get("acsUri"));
+            String expectedPath = provider == null ? "" : "/api/auth/sso/" + provider.getCode() + "/saml/acs";
+            boolean acsMatched = false;
+            try {
+                acsMatched = acs != null && expectedPath.equals(URI.create(acs).getPath());
+            } catch (IllegalArgumentException ignored) {
+                // 无效地址已在端点检查中记录，此处保持 ACS 路由检查失败。
+            }
+            checks.add(acsMatched ? passed("SAML_ACS_ROUTE", "ACS 地址对应当前身份源的后端验签入口")
+                    : failed("SAML_ACS_ROUTE_INVALID", "ACS 地址必须指向当前身份源的后端验签入口"));
+        }
         checkSecretReferences(protocol, version.getClientSecretRef(), config, checks);
-        checkAttributeMapping(attributeMapping, checks);
+        checkAttributeMapping(protocol, attributeMapping, readList(version.getAllowedDomainsJson()), checks);
+        checkJitPolicy(readMap(version.getJitPolicyJson()), checks);
+        if ("LDAP".equals(protocol) && Boolean.TRUE.equals(readMap(version.getMfaPolicyJson()).get("required"))) {
+            checks.add(failed("DIRECTORY_MFA_NOT_READY", "目录账号尚未接入多因素验证，不能发布要求 MFA 的版本"));
+        }
         checkSignature(protocol, config, checks);
-        checkConnection(protocol, config, checks);
+        if ("LDAP".equals(protocol)) {
+            try {
+                directoryAuthenticator.preflight(config, stringValue(attributeMapping.get("externalUserId")),
+                        stringValue(attributeMapping.get("email")));
+                checks.add(passed("DIRECTORY_BIND_SEARCH", "LDAPS 证书、服务账号和搜索基准已实际验证"));
+            } catch (DomainException exception) {
+                checks.add(failed(exception.code(), "目录连接或检索预检失败"));
+            }
+        } else {
+            checkConnection(protocol, config, checks);
+        }
         return checks;
     }
 
@@ -280,11 +357,38 @@ public class SsoProviderAdministrationService {
         }
     }
 
-    private void checkAttributeMapping(Map<String, Object> mapping, List<SsoProviderTestCheck> checks) {
+    /** 域名白名单需要身份源提供已验证邮箱声明，不能仅凭可改写的邮箱文本准入。 */
+    private void checkAttributeMapping(String protocol, Map<String, Object> mapping,
+            List<String> allowedDomains, List<SsoProviderTestCheck> checks) {
         String externalUserId = stringValue(mapping.get("externalUserId"));
         checks.add(externalUserId == null
                 ? failed("ATTRIBUTE_MAPPING_INVALID", "属性映射缺少 externalUserId")
                 : passed("ATTRIBUTE_MAPPING", "外部用户标识属性映射有效"));
+        if (("OIDC".equals(protocol) || "OAUTH2".equals(protocol) || "SAML2".equals(protocol))
+                && !allowedDomains.isEmpty()) {
+            String email = stringValue(mapping.get("email"));
+            String verified = "OIDC".equals(protocol) ? "email_verified"
+                    : stringValue(mapping.get("emailVerified"));
+            checks.add(email != null && verified != null
+                    ? passed("VERIFIED_EMAIL_MAPPING", "域名白名单使用已验证邮箱声明")
+                    : failed("VERIFIED_EMAIL_MAPPING_INVALID", "域名白名单需要 email 和 emailVerified 属性映射"));
+        }
+        if ("LDAP".equals(protocol) && !allowedDomains.isEmpty()) {
+            checks.add(stringValue(mapping.get("email")) != null
+                    ? passed("DIRECTORY_EMAIL_MAPPING", "域名准入读取受信任目录的邮箱属性")
+                    : failed("DIRECTORY_EMAIL_MAPPING_INVALID", "目录域名准入需要邮箱属性映射"));
+        }
+    }
+
+    /** JIT 尚未经过业务验收，发布前明确拒绝启用，避免未验证路径进入运行态。 */
+    private void checkJitPolicy(Map<String, Object> policy, List<SsoProviderTestCheck> checks) {
+        if (Boolean.TRUE.equals(policy.get("enabled"))) {
+            checks.add(failed("JIT_NOT_READY", "即时开通尚未验收，当前版本不能发布启用"));
+        } else {
+            checks.add(policy.containsKey("enabled") && !Boolean.FALSE.equals(policy.get("enabled"))
+                    ? failed("JIT_POLICY_INVALID", "即时开通开关必须为布尔值")
+                    : passed("JIT_DISABLED", "未启用即时开通，未绑定身份会明确拒绝"));
+        }
     }
 
     private void checkSignature(String protocol, Map<String, Object> config, List<SsoProviderTestCheck> checks) {
@@ -296,10 +400,9 @@ public class SsoProviderAdministrationService {
             }
             try {
                 Map<?, ?> response = restClient.get().uri(jwksUri).retrieve().body(Map.class);
-                Object keys = response == null ? null : response.get("keys");
-                boolean valid = keys instanceof Collection<?> collection && !collection.isEmpty();
-                checks.add(valid ? passed("JWKS_VALID", "JWKS 可访问且包含签名密钥")
-                        : failed("JWKS_INVALID", "JWKS 未包含可用签名密钥"));
+                boolean valid = idTokenVerifier.hasUsableSigningKey(response);
+                checks.add(valid ? passed("JWKS_VALID", "JWKS 包含可用于 RS256 验签的公钥")
+                        : failed("JWKS_INVALID", "JWKS 未包含可用于 RS256 验签的公钥"));
             } catch (RestClientException exception) {
                 checks.add(failed("JWKS_UNAVAILABLE", "JWKS 当前不可访问"));
             }
@@ -309,13 +412,16 @@ public class SsoProviderAdministrationService {
             String reference = stringValue(config.get("certificateRef"));
             try {
                 String certificate = secretResolver.resolve(reference);
-                boolean valid = certificate != null && certificate.contains("BEGIN CERTIFICATE")
-                        && certificate.contains("END CERTIFICATE");
+                boolean valid = samlResponseVerifier.validCertificate(certificate, clock);
                 checks.add(valid ? passed("CERTIFICATE_VALID", "SAML 签名证书格式有效")
                         : failed("CERTIFICATE_INVALID", "SAML 签名证书格式无效"));
             } catch (DomainException exception) {
                 checks.add(failed(exception.code(), "SAML 签名证书不可用"));
             }
+            return;
+        }
+        if ("OAUTH2".equals(protocol)) {
+            checks.add(passed("OAUTH2_BEARER_USERINFO", "授权码和 PKCE 交换后使用 Bearer 用户信息确认外部身份"));
             return;
         }
         checks.add(passed("SIGNATURE_POLICY", "协议签名或传输安全策略已完成配置预检"));
@@ -389,6 +495,10 @@ public class SsoProviderAdministrationService {
         if (email != null) {
             metadata.put("emailClaim", email);
         }
+        String emailVerified = stringValue(attributes.get("emailVerified"));
+        if (emailVerified != null) {
+            metadata.put("emailVerifiedClaim", emailVerified);
+        }
         Map<String, Object> mfa = readMap(version.getMfaPolicyJson());
         if (mfa.containsKey("required")) {
             metadata.put("mfaRequired", mfa.get("required"));
@@ -399,12 +509,25 @@ public class SsoProviderAdministrationService {
         metadata.put("attributeMapping", attributes);
         metadata.put("jitPolicy", readMap(version.getJitPolicyJson()));
         metadata.put("callbackUris", readList(version.getCallbackUrisJson()));
+        if ("OIDC".equals(version.getProtocol())) {
+            // 旧发布版本没有经过 ID Token 验签预检，运行态要求重新建版本、测试并发布。
+            metadata.put("idTokenValidation", "RS256_NONCE_V1");
+        } else if ("OAUTH2".equals(version.getProtocol())) {
+            // 仅允许经过授权码、PKCE、Bearer 用户信息和已验证邮箱预检的新发布版本登录。
+            metadata.put("oauth2IdentityValidation", "AUTH_CODE_PKCE_USERINFO_V1");
+        } else if ("SAML2".equals(version.getProtocol())) {
+            // 只有经 X.509 证书预检的新发布版本才可接收签名 POST 响应。
+            metadata.put("samlIdentityValidation", "SIGNED_RESPONSE_POST_V1");
+        } else if ("LDAP".equals(version.getProtocol())) {
+            // 旧目录配置未完成实际 TLS、Bind 与搜索基准预检，不可自动进入运行态。
+            metadata.put("ldapIdentityValidation", "LDAPS_BIND_SEARCH_V1");
+        }
         return toJson(metadata);
     }
 
-    private PlatSsoProvider requireProvider(Long providerId) {
+    private PlatSsoProvider requireProvider(AuthenticatedContext context, Long providerId) {
         PlatSsoProvider provider = providerService.selectById(providerId);
-        if (provider == null) {
+        if (provider == null || !context.platformId().equals(provider.getPlatformId())) {
             throw new DomainException("SSO_PROVIDER_NOT_FOUND", "身份源不存在", HttpStatus.NOT_FOUND);
         }
         return provider;
@@ -425,8 +548,18 @@ public class SsoProviderAdministrationService {
     }
 
     private SsoProviderAdminView view(PlatSsoProvider provider) {
+        Map<String, Object> metadata = readMap(provider.getMetadataJson());
+        boolean requiresRevalidation = "PUBLISHED".equals(provider.getStatus())
+                && (("OIDC".equals(provider.getProtocol())
+                        && !"RS256_NONCE_V1".equals(metadata.get("idTokenValidation")))
+                    || ("OAUTH2".equals(provider.getProtocol())
+                        && !"AUTH_CODE_PKCE_USERINFO_V1".equals(metadata.get("oauth2IdentityValidation")))
+                    || ("SAML2".equals(provider.getProtocol())
+                        && !"SIGNED_RESPONSE_POST_V1".equals(metadata.get("samlIdentityValidation")))
+                    || ("LDAP".equals(provider.getProtocol())
+                        && !"LDAPS_BIND_SEARCH_V1".equals(metadata.get("ldapIdentityValidation"))));
         return new SsoProviderAdminView(provider.getId(), provider.getCode(), provider.getName(), provider.getStatus(),
-                provider.getPublishedVersionId(), provider.getPublishedVersionNumber(),
+                provider.getPublishedVersionId(), provider.getPublishedVersionNumber(), requiresRevalidation,
                 versions(provider.getId()).stream().map(this::versionView).toList());
     }
 
@@ -437,7 +570,7 @@ public class SsoProviderAdministrationService {
                 readMap(version.getAttributeMappingJson()), readMap(version.getJitPolicyJson()),
                 readMap(version.getMfaPolicyJson()), readList(version.getCallbackUrisJson()),
                 version.getTestStatus(), readReport(version.getTestReportJson()), version.getStatus(),
-                version.getCreatedAt(), version.getPublishedAt());
+                version.getCreatedTime(), version.getPublishedTime());
     }
 
     private String normalizeProtocol(String protocol) {
@@ -495,7 +628,10 @@ public class SsoProviderAdministrationService {
         }
         try {
             URI uri = URI.create(value);
-            return "ldaps".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null;
+            return "ldaps".equalsIgnoreCase(uri.getScheme()) && uri.getHost() != null
+                    && uri.getPort() != 0 && uri.getRawUserInfo() == null
+                    && uri.getRawQuery() == null && uri.getRawFragment() == null
+                    && "".equals(uri.getRawPath());
         } catch (IllegalArgumentException exception) {
             return false;
         }

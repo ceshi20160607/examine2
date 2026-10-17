@@ -1,0 +1,37 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "system_application_signed_scope_and_field_access",
+  "applicationId": 1,
+  "publishedVersionId": 3,
+  "preservedInternalAndEnabledExternal": true,
+  "signed": {
+    "list": {
+      "status": 200,
+      "code": "OK",
+      "recordIds": [
+        4
+      ]
+    },
+    "detail": {
+      "status": 200,
+      "code": "OK",
+      "fields": {
+        "public_note": "授权给来源系统"
+      }
+    },
+    "deniedUpdate": {
+      "status": 403,
+      "code": "APPLICATION_GRANT_DENIED"
+    },
+    "deniedScope": {
+      "status": 403,
+      "code": "APPLICATION_TARGET_SCOPE_EXPANSION"
+    },
+    "badSignature": {
+      "status": 401,
+      "code": "APPLICATION_SIGNATURE_INVALID"
+    }
+  },
+  "credentialNote": "One-time credential stayed in browser memory and was excluded from evidence."
+}

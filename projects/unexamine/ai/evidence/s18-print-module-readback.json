@@ -1,0 +1,78 @@
+{
+  "step": "S18.4",
+  "checkedTime": "2026-10-10T22:26:07.755819+08:00",
+  "systemId": 165,
+  "moduleId": 85,
+  "templateId": 40,
+  "publishedCurrentVersionId": 49,
+  "runtimeTemplate": {
+    "versionNumber": 2,
+    "footer": "采购明细 · 仅供内部流转",
+    "snapshotHash": "42c762ead65dfd0dd79a59926a672b67f088575075fadfd42d0a00572f40c469"
+  },
+  "memberJobs": {
+    "1": {
+      "jobId": 121,
+      "versionId": 48,
+      "fields": {
+        "明细金额": "CNY 150.00",
+        "物品名称": "打印纸",
+        "所属申请": "办公用品采购"
+      },
+      "footer": "仅供当前获权成员查看",
+      "pdfBytes": 1739,
+      "pdfSha256": "6c4facd6f078984cf60e397bb7858bbcec4adfe3878d2226a4be91be4c9ff9b3"
+    },
+    "2": {
+      "jobId": 122,
+      "versionId": 49,
+      "fields": {
+        "明细金额": "CNY 150.00",
+        "物品名称": "打印纸",
+        "所属申请": "办公用品采购"
+      },
+      "footer": "采购明细 · 仅供内部流转",
+      "pdfBytes": 1751,
+      "pdfSha256": "5dc48ace84083b0a31cc6e3c2c751ab1ee1c041569044c46d3d4df0e61a7252b"
+    }
+  },
+  "memberOwnerRecordPrint": {
+    "http": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "memberAdminPrint": {
+    "http": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "restartReadiness": {
+    "http": 200,
+    "status": "UP"
+  },
+  "databaseRows": [
+    "print_template:40:module85",
+    "print_version:48:40:1",
+    "print_version:49:40:2",
+    "publication:40:49",
+    "print_job:121:record172:v1:3-fields",
+    "print_job:122:record172:v2:3-fields",
+    "print_job:123:record172:v1:3-fields"
+  ],
+  "browser": [
+    "管理员后台草稿预览记录 #172 显示金额、名称和关联申请，V1 与 V2 已发布",
+    "成员业务详情有打印入口，按发布版本生成 PDF 并显示同三字段；无 FILE 字段权限时曾正确输出 0 字段，授权后输出 3 字段",
+    "后端和页面重启后，成员打印弹窗列出 V2、V1；在页面选择 V1 生成 #123，预览金额、名称、关联申请与 V1 原页脚；切回 V2 后旧 PDF 和下载按钮被清空"
+  ],
+  "selectableVersions": [
+    {
+      "versionId": 49,
+      "versionNumber": 2,
+      "fieldCount": 3
+    },
+    {
+      "versionId": 48,
+      "versionNumber": 1,
+      "fieldCount": 3
+    }
+  ],
+  "browserPrintedHistoricalJobId": 123
+}

@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "step": "B10.2a",
-  "nextStep": "B10.2b",
-  "artifactIntegrity": "passed",
-  "completionCredit": false,
-  "verified_time": "2026-09-19T12:40:48+08:00",
-  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/flow-automatic-business-verification.json"
-}

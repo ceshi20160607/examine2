@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/flows")
@@ -24,6 +25,12 @@ public class FlowDesignController {
 
     public FlowDesignController(FlowDesignService service) {
         this.service = service;
+    }
+
+    /** 仅供当前系统 Flow 设计者选择已授权模型。 */
+    @GetMapping("/ai-models")
+    public ApiResult<List<Map<String, Object>>> aiModels() {
+        return ApiResult.ok(service.aiModels(AuthenticationContextHolder.require()));
     }
 
     /** 仅返回当前有权模块的已发布条件字段，不携带真实记录或配置默认值。 */
@@ -61,6 +68,14 @@ public class FlowDesignController {
         return ApiResult.ok(service.detail(AuthenticationContextHolder.require(), flowId));
     }
 
+    /** 管理员只修改流程显示名，编码和已有发布引用保持原值。 */
+    @PutMapping("/{flowId}/name")
+    public ApiResult<FlowDesignModels.FlowView> rename(@PathVariable Long flowId,
+            @Valid @RequestBody FlowDesignModels.RenameFlowRequest body, HttpServletRequest request) {
+        return ApiResult.ok(service.rename(AuthenticationContextHolder.require(), flowId, body,
+                TraceIdFilter.current(request)));
+    }
+
     @PutMapping("/{flowId}/draft")
     public ApiResult<FlowDesignModels.FlowView> saveDraft(
             @PathVariable Long flowId, @Valid @RequestBody FlowDesignModels.SaveDraftRequest body,
@@ -87,6 +102,15 @@ public class FlowDesignController {
             @PathVariable Long flowId, @Valid @RequestBody FlowDesignModels.PublishRequest body,
             HttpServletRequest request) {
         return ApiResult.ok(service.publish(AuthenticationContextHolder.require(), flowId, body,
+                TraceIdFilter.current(request)));
+    }
+
+    /** 管理员暂停或恢复流程的新发起；在途实例继续使用原发布快照。 */
+    @PutMapping("/{flowId}/status")
+    public ApiResult<FlowDesignModels.FlowView> changeStatus(
+            @PathVariable Long flowId, @Valid @RequestBody FlowDesignModels.ChangeStatusRequest body,
+            HttpServletRequest request) {
+        return ApiResult.ok(service.changeStatus(AuthenticationContextHolder.require(), flowId, body,
                 TraceIdFilter.current(request)));
     }
 }

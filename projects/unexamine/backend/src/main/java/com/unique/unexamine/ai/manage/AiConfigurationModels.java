@@ -52,6 +52,7 @@ public final class AiConfigurationModels {
             LocalDateTime grantedAt) {
     }
 
+    /** 平台模型与系统自建模型共用的只读展示，密钥仅返回引用类型。 */
     public record ModelView(
             Long id,
             Long activeGrantId,
@@ -64,20 +65,39 @@ public final class AiConfigurationModels {
             boolean credentialAvailable,
             List<String> capabilities,
             Map<String, Object> limitPolicy,
+            String scopeType,
             String status,
             Integer version,
             List<GrantView> grants) {
     }
 
-    public record PlatformOverview(List<ModelView> models, List<SystemOption> systems) {
+    public record PlatformOverview(List<ModelView> models, List<SystemOption> systems,
+            List<PlatformAgentView> agents) {
+    }
+
+    /** 平台 Agent 只配置平台资源能力，系统业务模块不出现在此请求中。 */
+    public record PlatformAgentRequest(
+            @NotBlank @Pattern(regexp = "[a-z][a-z0-9_]{1,99}") String code,
+            @NotBlank @Size(max = 200) String name,
+            @Size(max = 1000) String description,
+            @NotNull Long modelId,
+            @NotBlank @Size(min = 20, max = 8000) String systemPrompt,
+            @NotNull @Size(min = 1, max = 7) List<@NotBlank String> capabilities,
+            Integer expectedVersion) {
+    }
+
+    public record PlatformAgentView(
+            Long id, String code, String name, String description, Long modelId,
+            String systemPrompt, List<String> capabilities, Integer draftRevision,
+            String status, Integer version, List<VersionView> versions) {
     }
 
     public record ToolInput(
-            @NotBlank @Pattern(regexp = "QUERY|WRITE|FLOW_DRAFT|REPORT|ERROR_EXPLAIN") String toolType,
+            @NotBlank @Pattern(regexp = "QUERY|WRITE|FLOW_DRAFT|REPORT|ERROR_EXPLAIN|CONFIG_DRAFT") String toolType,
             @NotBlank @Pattern(regexp = "MODULE") String resourceType,
             @NotBlank @Size(max = 100) String resourceId,
             @NotBlank @Size(max = 64) String actionCode,
-            @NotNull @Size(min = 1, max = 50) List<@NotBlank @Size(max = 100) String> fieldCodes,
+            @NotNull @Size(max = 50) List<@NotBlank @Size(max = 100) String> fieldCodes,
             @NotBlank @Pattern(regexp = "CURRENT|ALL") String requestedDataScope,
             @NotNull Boolean requiresConfirmation) {
     }

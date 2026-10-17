@@ -21,6 +21,8 @@ export function localFlowIssues(nodes: FlowNodeInput[], edges: FlowEdgeInput[]):
       const missingSelection = type === 'PERSON' && !(Array.isArray(personIds) && personIds.length)
         || ['DEPARTMENT', 'DEPARTMENT_MANAGER'].includes(type) && !((policy.departmentIds as number[] | undefined)?.length)
         || type === 'PERSON_FIELD' && !String(policy.fieldCode || '').trim()
+        || type === 'EXTERNAL_PERSON' && (!Number.isSafeInteger(Number(policy.applicationId))
+          || Number(policy.applicationId) < 1 || !String(policy.externalApproverId || '').trim())
       if (!type || missingSelection) {
         issues.push({ code: 'APPROVER_MISSING', location: `node:${node.nodeKey}`, message: '审批节点尚未完整配置审批人来源' })
       }
@@ -74,11 +76,25 @@ export function localFlowIssues(nodes: FlowNodeInput[], edges: FlowEdgeInput[]):
     }
     const required: Partial<Record<FlowNodeInput['nodeType'], string[]>> = {
       SUBFLOW: ['flowId'], WEBHOOK: ['applicationId', 'callbackId'], EXTERNAL: ['applicationId', 'callbackId'],
-      AI: ['model', 'prompt'],
+      AI: ['modelGrantId', 'prompt'],
       CC: ['subject', 'content'], NOTIFICATION: ['subject', 'content'], MESSAGE: ['subject', 'content'],
     }
     for (const key of required[node.nodeType] || []) {
       if (!node.config[key]) issues.push({ code: 'SPECIAL_PROPERTY_MISSING', location: `node:${node.nodeKey}.${key}`, message: `${node.name}缺少 ${key}` })
+    }
+    if (node.nodeType === 'AI') {
+      const grantId = Number(node.config.modelGrantId)
+      if (!Number.isSafeInteger(grantId) || grantId < 1) {
+        issues.push({ code: 'FLOW_AI_MODEL_INVALID', location: `node:${node.nodeKey}.modelGrantId`, message: '请选择当前系统获授权的模型' })
+      }
+      const prompt = String(node.config.prompt || '')
+      if (prompt && [...prompt.matchAll(/{{\s*([^{}]+?)\s*}}/g)].some(match => !['instanceTitle', 'flowName'].includes(match[1]!))) {
+        issues.push({ code: 'FLOW_AI_PROMPT_INVALID', location: `node:${node.nodeKey}.prompt`, message: '提示模板只支持实例标题和流程名称变量' })
+      }
+      const outputVariable = String(node.config.outputVariable || '').trim()
+      if (outputVariable && !/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(outputVariable)) {
+        issues.push({ code: 'FLOW_AI_OUTPUT_INVALID', location: `node:${node.nodeKey}.outputVariable`, message: '结果变量须以英文字母开头，只能包含字母、数字和下划线' })
+      }
     }
     if (['UPDATE_FIELD', 'DATA_ACTION'].includes(node.nodeType)) {
       const assignments = Array.isArray(node.config.assignments) ? node.config.assignments

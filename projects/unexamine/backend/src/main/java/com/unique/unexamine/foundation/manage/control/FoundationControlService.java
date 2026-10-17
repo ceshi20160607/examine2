@@ -139,14 +139,14 @@ public class FoundationControlService {
                         Map.of("operationCode", operation, "resultReference", replayed.resultReference()));
                 return replayed;
             }
-            if (record.getLockedUntil() != null && record.getLockedUntil().isAfter(LocalDateTime.now())) {
+            if (record.getLockExpireTime() != null && record.getLockExpireTime().isAfter(LocalDateTime.now())) {
                 throw new DomainException("IDEMPOTENCY_REQUEST_IN_PROGRESS",
                         "相同命令正在处理，请稍后读取首次结果", HttpStatus.CONFLICT,
                         Map.of("retryAfterSeconds", 2, "recordId", record.getId()));
             }
             rateLimiter.check(context, application, operation, RATE_LIMIT, RATE_WINDOW, traceId);
             record.setStatus("PROCESSING");
-            record.setLockedUntil(LocalDateTime.now().plusMinutes(2));
+            record.setLockExpireTime(LocalDateTime.now().plusMinutes(2));
             if (idempotencyService.updateById(record) != 1) {
                 throw new DomainException("IDEMPOTENCY_REQUEST_IN_PROGRESS",
                         "相同命令已被其他请求接管，请稍后读取首次结果", HttpStatus.CONFLICT,
@@ -156,8 +156,8 @@ public class FoundationControlService {
             rateLimiter.check(context, application, operation, RATE_LIMIT, RATE_WINDOW, traceId);
             String claimToken = "CLAIM:" + traceId;
             LocalDateTime now = LocalDateTime.now();
-            jdbc.update("insert into core_idempotency_record(context_key,operation_code,idempotency_key,request_hash,"
-                            + "status,response_code,locked_until,expires_at) values (?,?,?,?,?,?,?,?) "
+            jdbc.update("insert into un_core_idempotency_record(context_key,operation_code,idempotency_key,request_hash,"
+                            + "status,response_code,lock_expire_time,expire_time) values (?,?,?,?,?,?,?,?) "
                             + "on duplicate key update id=last_insert_id(id)",
                     contextKey, operation, idempotencyKey, requestHash, "PROCESSING", claimToken,
                     now.plusMinutes(2), now.plusHours(24));
@@ -175,14 +175,14 @@ public class FoundationControlService {
                             Map.of("operationCode", operation, "resultReference", replayed.resultReference()));
                     return replayed;
                 }
-                if (record.getLockedUntil() != null && record.getLockedUntil().isAfter(LocalDateTime.now())) {
+                if (record.getLockExpireTime() != null && record.getLockExpireTime().isAfter(LocalDateTime.now())) {
                     throw new DomainException("IDEMPOTENCY_REQUEST_IN_PROGRESS",
                             "相同命令正在处理，请稍后读取首次结果", HttpStatus.CONFLICT,
                             Map.of("retryAfterSeconds", 2, "recordId", record.getId()));
                 }
-                int reclaimed = jdbc.update("update core_idempotency_record set status='PROCESSING',response_code=?,"
-                                + "locked_until=?,version=version+1 where id=? and status<>'COMPLETED' "
-                                + "and (locked_until is null or locked_until<=now(3))",
+                int reclaimed = jdbc.update("update un_core_idempotency_record set status='PROCESSING',response_code=?,"
+                                + "lock_expire_time=?,version=version+1 where id=? and status<>'COMPLETED' "
+                                + "and (lock_expire_time is null or lock_expire_time<=now(3))",
                         claimToken, now.plusMinutes(2), record.getId());
                 if (reclaimed != 1) {
                     CoreIdempotencyRecord latest = currentRecord(record.getId());
@@ -218,7 +218,7 @@ public class FoundationControlService {
         eventPayload.put("payload", input.payload());
         event.setPayloadJson(json(eventPayload));
         event.setStatus("PENDING");
-        event.setAvailableAt(LocalDateTime.now());
+        event.setAvailableTime(LocalDateTime.now());
         event.setRetryCount(0);
         outboxService.insert(event);
 
@@ -229,7 +229,7 @@ public class FoundationControlService {
         claimed.setStatus("COMPLETED");
         claimed.setResponseCode("SUCCESS");
         claimed.setResponseJson(json(result));
-        claimed.setLockedUntil(null);
+        claimed.setLockExpireTime(null);
         if (idempotencyService.updateById(claimed) != 1) {
             throw new DomainException("IDEMPOTENCY_COMPLETION_CONFLICT",
                     "运行控制结果保存冲突，业务事务已回滚", HttpStatus.CONFLICT);
@@ -312,16 +312,19 @@ public class FoundationControlService {
         payload.put("mode", mode);
         payload.put("result", value);
         payload.put("flowInstanceId", flowInstanceId);
+        // 只要流程会读取本次提交，就冻结字段配置；运行页再与当前字段及权限求交集。
+        if (mode != BusinessAction.Mode.DIRECT) {
+            payload.put("configurationSnapshot", effectiveConfiguration.deepCopy());
+        }
         if (mode == BusinessAction.Mode.AFTER_APPROVAL) {
             payload.put("approvalStatus", "PENDING_APPROVAL");
-            payload.put("configurationSnapshot", effectiveConfiguration.deepCopy());
         }
         var protectedPayload = valueProtection.protect(
                 (com.fasterxml.jackson.databind.node.ObjectNode) actionJsonMapper.valueToTree(payload),
                 valueProtection.secretFields(effectiveConfiguration));
         event.setPayloadJson(actionJson(protectedPayload));
         event.setStatus("PENDING");
-        event.setAvailableAt(LocalDateTime.now());
+        event.setAvailableTime(LocalDateTime.now());
         event.setRetryCount(0);
         outboxService.insert(event);
         if (mode == BusinessAction.Mode.FLOW_ONLY || mode == BusinessAction.Mode.AFTER_APPROVAL) {
@@ -341,7 +344,7 @@ public class FoundationControlService {
         record.setStatus("COMPLETED");
         record.setResponseCode("SUCCESS");
         record.setResponseJson(actionJson(result));
-        record.setLockedUntil(null);
+        record.setLockExpireTime(null);
         if (idempotencyService.updateById(record) != 1) {
             throw new DomainException("IDEMPOTENCY_COMPLETION_CONFLICT", "动作结果保存冲突，业务已回滚", HttpStatus.CONFLICT);
         }
@@ -493,7 +496,7 @@ public class FoundationControlService {
                         .orderByDesc(CoreIdempotencyRecord::getId).last("limit 20"))
                 .stream().map(row -> new FoundationControlModels.CommandRecordView(row.getId(), row.getContextKey(),
                         row.getOperationCode(), row.getIdempotencyKey(), row.getStatus(), row.getResponseCode(),
-                        row.getExpiresAt(), row.getVersion())).toList();
+                        row.getExpireTime(), row.getVersion())).toList();
     }
 
     private CoreIdempotencyRecord existing(String contextKey, String operation, String idempotencyKey) {
@@ -513,8 +516,8 @@ public class FoundationControlService {
 
     private CoreIdempotencyRecord currentRecord(long id) {
         return jdbc.queryForObject("select id,context_key,operation_code,idempotency_key,request_hash,status,"
-                        + "response_code,response_json,locked_until,expires_at,created_at,updated_at,version "
-                        + "from core_idempotency_record where id=? for update", (result, row) -> {
+                        + "response_code,response_json,lock_expire_time,expire_time,create_time,update_time,version "
+                        + "from un_core_idempotency_record where id=? for update", (result, row) -> {
                     CoreIdempotencyRecord value = new CoreIdempotencyRecord();
                     value.setId(result.getLong("id"));
                     value.setContextKey(result.getString("context_key"));
@@ -524,11 +527,11 @@ public class FoundationControlService {
                     value.setStatus(result.getString("status"));
                     value.setResponseCode(result.getString("response_code"));
                     value.setResponseJson(result.getString("response_json"));
-                    value.setLockedUntil(result.getTimestamp("locked_until") == null ? null
-                            : result.getTimestamp("locked_until").toLocalDateTime());
-                    value.setExpiresAt(result.getTimestamp("expires_at").toLocalDateTime());
-                    value.setCreatedAt(result.getTimestamp("created_at").toLocalDateTime());
-                    value.setUpdatedAt(result.getTimestamp("updated_at").toLocalDateTime());
+                    value.setLockExpireTime(result.getTimestamp("lock_expire_time") == null ? null
+                            : result.getTimestamp("lock_expire_time").toLocalDateTime());
+                    value.setExpireTime(result.getTimestamp("expire_time").toLocalDateTime());
+                    value.setCreateTime(result.getTimestamp("create_time").toLocalDateTime());
+                    value.setUpdateTime(result.getTimestamp("update_time").toLocalDateTime());
                     value.setVersion(result.getInt("version"));
                     return value;
                 }, id);

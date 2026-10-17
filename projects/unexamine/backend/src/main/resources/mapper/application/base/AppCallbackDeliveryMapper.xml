@@ -10,17 +10,17 @@
         <result column="payload_hash" property="payloadHash" />
         <result column="status" property="status" />
         <result column="attempt_count" property="attemptCount" />
-        <result column="next_attempt_at" property="nextAttemptAt" />
+        <result column="next_attempt_time" property="nextAttemptTime" />
         <result column="response_status" property="responseStatus" />
         <result column="response_body_excerpt" property="responseBodyExcerpt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, callback_id, event_id, payload_hash, `status`, attempt_count, next_attempt_at, response_status, response_body_excerpt, created_at, updated_at, version
+        id, callback_id, event_id, payload_hash, `status`, attempt_count, next_attempt_time, response_status, response_body_excerpt, create_time, update_time, version
     </sql>
 
 </mapper>

@@ -18,16 +18,16 @@
         <result column="object_key" property="objectKey" />
         <result column="status" property="status" />
         <result column="upload_token_hash" property="uploadTokenHash" />
-        <result column="expires_at" property="expiresAt" />
-        <result column="completed_at" property="completedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="expire_time" property="expireTime" />
+        <result column="complete_time" property="completeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_type, platform_id, system_id, tenant_id, storage_backend_id, uploader_account_id, original_name, content_type, expected_size, expected_sha256, object_key, `status`, upload_token_hash, expires_at, completed_at, created_at, updated_at, version
+        id, context_type, platform_id, system_id, tenant_id, storage_backend_id, uploader_account_id, original_name, content_type, expected_size, expected_sha256, object_key, `status`, upload_token_hash, expire_time, complete_time, create_time, update_time, version
     </sql>
 
 </mapper>

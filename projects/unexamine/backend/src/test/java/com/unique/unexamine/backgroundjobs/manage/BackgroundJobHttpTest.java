@@ -26,6 +26,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,6 +68,9 @@ class BackgroundJobHttpTest {
     @Autowired
     private BackgroundJobWorker worker;
 
+    @Autowired
+    private BackgroundJobService service;
+
     @Test
     void redisRunnerPersistsProgressReclaimsHeartbeatAndStopsAtRetryLimit() {
         Fixture owner = register("cycle20_jobs_owner", "cycle20_jobs_system");
@@ -78,7 +82,7 @@ class BackgroundJobHttpTest {
         assertThat((List<?>) handlerResponse.getBody().get("data")).hasSizeGreaterThanOrEqualTo(5);
 
         long statisticsId = submit(owner, "SYSTEM_STATISTICS_REFRESH", 3);
-        assertThat(redis.opsForZSet().score(BackgroundJobService.READY_QUEUE, String.valueOf(statisticsId)))
+        assertThat(redis.opsForZSet().score(service.readyQueue(), String.valueOf(statisticsId)))
                 .isNotNull().isLessThanOrEqualTo((double) System.currentTimeMillis());
         Map<String, Object> statistics = runUntil(owner, statisticsId, "SUCCEEDED");
         assertThat(job(statistics)).containsEntry("status", "SUCCEEDED")
@@ -87,11 +91,11 @@ class BackgroundJobHttpTest {
         assertThat((List<?>) statistics.get("items")).hasSize(3);
         assertThat(map(job(statistics).get("redisState")))
                 .containsEntry("status", "SUCCEEDED").containsEntry("source", "REDIS");
-        assertThat(redis.opsForHash().get(BackgroundJobService.STATUS_PREFIX + statisticsId, "status"))
+        assertThat(redis.opsForHash().get(service.statusKey(statisticsId), "status"))
                 .isEqualTo("SUCCEEDED");
-        assertThat(count("job_background", "id=" + statisticsId + " and status='SUCCEEDED'" )).isOne();
-        assertThat(count("job_attempt", "job_id=" + statisticsId + " and status='SUCCEEDED'" )).isOne();
-        assertThat(count("job_item_result", "job_id=" + statisticsId + " and status='SUCCEEDED'" )).isEqualTo(3);
+        assertThat(count("un_job_background", "id=" + statisticsId + " and final_status='SUCCEEDED'" )).isOne();
+        assertThat(attemptStatuses(statistics)).containsExactly("SUCCEEDED");
+        assertThat(count("un_job_item_result", "job_id=" + statisticsId + " and status='SUCCEEDED'" )).isEqualTo(3);
 
         ResponseEntity<Map> isolatedRead = exchange(base + "/" + statisticsId, HttpMethod.GET, isolated.token(), null);
         assertThat(isolatedRead.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -108,20 +112,20 @@ class BackgroundJobHttpTest {
         Map<String, Object> retrySucceeded = runUntil(owner, retryId, "SUCCEEDED");
         assertThat(job(retrySucceeded)).containsEntry("status", "SUCCEEDED").containsEntry("attemptCount", 2);
         assertThat((List<?>) retrySucceeded.get("attempts")).hasSize(2);
-        assertThat(count("job_attempt", "job_id=" + retryId + " and status='FAILED'" )).isOne();
-        assertThat(count("job_attempt", "job_id=" + retryId + " and status='SUCCEEDED'" )).isOne();
+        assertThat(attemptStatuses(retrySucceeded)).containsExactly("FAILED", "SUCCEEDED");
 
         long staleId = submit(owner, "CYCLE20_STALE", 3);
-        redis.opsForZSet().remove(BackgroundJobService.READY_QUEUE, String.valueOf(staleId));
-        jdbc.update("update job_background set status='RUNNING', attempt_count=1, "
-                + "started_at=timestampadd(minute,-2,now(3)), heartbeat_at=timestampadd(minute,-2,now(3)), "
-                + "next_run_at=null where id=?", staleId);
-        jdbc.update("insert into job_attempt(job_id,attempt_number,worker_id,status,started_at) "
-                + "values(?,1,'dead-worker','RUNNING',timestampadd(minute,-2,now(3)))", staleId);
+        redis.opsForZSet().remove(service.readyQueue(), String.valueOf(staleId));
+        // 运行态和尝试记录属于 Redis；模拟失联工作器时不写已废弃的数据库列。
+        LocalDateTime staleTime = LocalDateTime.now().minusMinutes(2);
+        service.beginAttempt(staleId, 1, "dead-worker", staleTime);
+        redis.opsForHash().putAll(service.statusKey(staleId),
+                Map.of("status", "RUNNING", "attemptCount", "1", "maxAttempts", "3",
+                        "heartbeatAt", staleTime.toString(), "nextRunAt", ""));
         worker.recoverStale();
         assertThat(job(detail(owner, staleId))).containsEntry("status", "RETRY_WAIT")
                 .containsEntry("errorCode", "WORKER_HEARTBEAT_EXPIRED");
-        assertThat(count("job_attempt", "job_id=" + staleId + " and status='TIMED_OUT'" )).isOne();
+        assertThat(attemptStatuses(detail(owner, staleId))).containsExactly("TIMED_OUT");
         ResponseEntity<Map> staleRetry = exchange(base + "/" + staleId + "/retry", HttpMethod.POST, owner.token(),
                 Map.of("reason", "心跳过期后重新领取"));
         assertThat(staleRetry.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -138,10 +142,10 @@ class BackgroundJobHttpTest {
                 owner.token(), Map.of("reason", "不允许无限循环"));
         assertThat(forbiddenRetry.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(forbiddenRetry.getBody()).containsEntry("code", "JOB_ATTEMPTS_EXHAUSTED");
-        assertThat(count("job_attempt", "job_id=" + exhaustedId)).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='BACKGROUND_JOB_SUBMITTED'")).isEqualTo(4);
-        assertThat(count("audit_event", "event_code='BACKGROUND_JOB_SUCCEEDED'")).isEqualTo(3);
-        assertThat(count("audit_event", "event_code='BACKGROUND_JOB_FAILED'")).isEqualTo(3);
+        assertThat(attemptStatuses(detail(owner, exhaustedId))).containsExactly("FAILED", "FAILED");
+        assertThat(count("un_audit_event", "event_code='BACKGROUND_JOB_SUBMITTED'")).isEqualTo(4);
+        assertThat(count("un_audit_event", "event_code='BACKGROUND_JOB_SUCCEEDED'")).isEqualTo(3);
+        assertThat(count("un_audit_event", "event_code='BACKGROUND_JOB_FAILED'")).isEqualTo(3);
     }
 
     private long submit(Fixture fixture, String jobType, int maxAttempts) {
@@ -186,6 +190,12 @@ class BackgroundJobHttpTest {
 
     private int count(String table, String condition) {
         return jdbc.queryForObject("select count(*) from " + table + " where " + condition, Integer.class);
+    }
+
+    /** 尝试事实从 Redis 运行态读回，不从最终审计表推断重试次数。 */
+    private List<String> attemptStatuses(Map<String, Object> detail) {
+        return ((List<?>) detail.get("attempts")).stream()
+                .map(item -> String.valueOf(((Map<?, ?>) item).get("status"))).toList();
     }
 
     @SuppressWarnings("unchecked")

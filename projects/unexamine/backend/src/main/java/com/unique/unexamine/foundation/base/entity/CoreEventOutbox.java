@@ -10,60 +10,108 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 待投递的本地业务事件及投递结果
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_event_outbox")
+@TableName("un_core_event_outbox")
 public class CoreEventOutbox {
 
+    /**
+     * 待投递业务事件主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 事件所属的平台或系统范围类型
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 系统事件所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 租户事件所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 产生事件的业务聚合类型
+     */
     @TableField("aggregate_type")
     private String aggregateType;
 
+    /**
+     * 产生事件的业务聚合标识
+     */
     @TableField("aggregate_id")
     private String aggregateId;
 
+    /**
+     * 需要投递的业务事件类型
+     */
     @TableField("event_type")
     private String eventType;
 
+    /**
+     * 待投递事件的业务载荷
+     */
     @TableField("payload_json")
     private String payloadJson;
 
+    /**
+     * 事件投递状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("available_at")
-    private LocalDateTime availableAt;
+    /**
+     * 事件允许开始投递的时间
+     */
+    @TableField("available_time")
+    private LocalDateTime availableTime;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 事件成功投递完成时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
+    /**
+     * 事件投递失败后的重试次数
+     */
     @TableField("retry_count")
     private Integer retryCount;
 
+    /**
+     * 最近一次投递失败原因
+     */
     @TableField("last_error")
     private String lastError;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 事件进入待投递箱的时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 待投递事件最后更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 待投递事件乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -140,20 +188,20 @@ public class CoreEventOutbox {
         this.status = status;
     }
 
-    public LocalDateTime getAvailableAt() {
-        return availableAt;
+    public LocalDateTime getAvailableTime() {
+        return availableTime;
     }
 
-    public void setAvailableAt(LocalDateTime availableAt) {
-        this.availableAt = availableAt;
+    public void setAvailableTime(LocalDateTime availableTime) {
+        this.availableTime = availableTime;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     public Integer getRetryCount() {
@@ -172,20 +220,20 @@ public class CoreEventOutbox {
         this.lastError = lastError;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -208,12 +256,12 @@ public class CoreEventOutbox {
             ", eventType = " + eventType +
             ", payloadJson = " + payloadJson +
             ", status = " + status +
-            ", availableAt = " + availableAt +
-            ", publishedAt = " + publishedAt +
+            ", availableTime = " + availableTime +
+            ", publishTime = " + publishTime +
             ", retryCount = " + retryCount +
             ", lastError = " + lastError +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

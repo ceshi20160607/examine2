@@ -78,17 +78,17 @@ public class OperationsBackgroundJobHandler implements BackgroundJobHandler {
         long tenantId = number(parameters.get("tenantId"), "tenantId");
         Map<String, Object> summary = new LinkedHashMap<>();
 
-        Long members = jdbc.queryForObject("select count(*) from sys_tenant_member where system_id=? and tenant_id=?",
+        Long members = jdbc.queryForObject("select count(*) from un_sys_tenant_member where system_id=? and tenant_id=?",
                 Long.class, systemId, tenantId);
         summary.put("members", members == null ? 0 : members);
         execution.itemSucceeded("members", 1L, Map.of("count", summary.get("members")), 1, 3);
 
-        Long records = jdbc.queryForObject("select count(*) from biz_record where system_id=? and tenant_id=?",
+        Long records = jdbc.queryForObject("select count(*) from un_biz_record where system_id=? and tenant_id=?",
                 Long.class, systemId, tenantId);
         summary.put("businessRecords", records == null ? 0 : records);
         execution.itemSucceeded("business-records", 2L, Map.of("count", summary.get("businessRecords")), 2, 3);
 
-        Long audits = jdbc.queryForObject("select count(*) from audit_event where system_id=? and tenant_id=?",
+        Long audits = jdbc.queryForObject("select count(*) from un_audit_event where system_id=? and tenant_id=?",
                 Long.class, systemId, tenantId);
         summary.put("auditEvents", audits == null ? 0 : audits);
         execution.itemSucceeded("audit-events", 3L, Map.of("count", summary.get("auditEvents")), 3, 3);

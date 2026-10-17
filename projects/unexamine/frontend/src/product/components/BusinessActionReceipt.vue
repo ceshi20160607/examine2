@@ -95,12 +95,18 @@ async function refresh(retry = false) {
     if (result.businessStatus === 'EXECUTED' && previous !== 'EXECUTED') emit('executed')
   } catch (reason) {
     if (requestCurrent(context)) {
+      busy.value = false
       if (reason instanceof ApiError && [401, 403, 404].includes(reason.httpStatus || 0)) {
+        // 模块切换或身份变化后，旧回执已不可访问；清掉本模块缓存，避免显示虚假的待审批状态。
+        try { sessionStorage.removeItem(storageKey.value) } catch { /* 浏览器禁用会话存储时仍清理页面状态。 */ }
+        actionId.value = undefined
         delivery.value = undefined
         currentResult.value = undefined
         progressOpen.value = false
+        error.value = ''
+      } else {
+        error.value = reason instanceof Error ? reason.message : '暂时无法读取处理结果，请稍后刷新'
       }
-      error.value = reason instanceof Error ? reason.message : '暂时无法读取处理结果，请稍后刷新'
     }
   } finally { if (requestCurrent(context)) busy.value = false }
 }

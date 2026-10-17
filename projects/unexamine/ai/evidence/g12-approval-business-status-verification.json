@@ -1,0 +1,83 @@
+{
+  "step": "S12.1",
+  "status": "verified_contribution",
+  "integration_gate": "G12_APPROVAL_BUSINESS_STATUS",
+  "source_rows": [
+    "R2162",
+    "R2166",
+    "R2167",
+    "R2168",
+    "R2169",
+    "R2171"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+    "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/flow-binding.ts",
+    "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+    "projects/unexamine/tools/verify-approval-business-status.py"
+  ],
+  "checks_actual_results": [
+    "系统 #151 已发布合同模块 #73 的 UPDATE/AFTER_APPROVAL 绑定 #4，后台页面读回通过→APPROVED、拒绝→REJECTED、撤回→DRAFT。无效执行方式和状态编码的发布均返回 422，原绑定 #4 保持生效。",
+    "普通成员 #227 的记录 #138 审批通过后标题与金额一次保存、状态 APPROVED；记录 #139 拒绝后保留原字段、状态 REJECTED；记录 #140 撤回后保留原字段、状态 DRAFT。审批动作进度 #178/#179/#180 分别为 EXECUTED/REJECTED/WITHDRAWN。",
+    "审批中记录 #142 第二次编辑及归档均返回 409 RECORD_APPROVAL_PENDING，记录仍为 DRAFT 且未归档；撤回后可再次发起审批。普通成员真实页面编辑记录 #143 时，保存显示同一错误，正式记录标题、金额和版本不变。",
+    "审批申请 #141 发起后管理员曾将绑定重发布为通过→SIGNED，但该申请完成后仍按原申请冻结的映射写入 APPROVED；状态历史 DRAFT→APPROVED 来源 FLOW。管理员恢复通过→APPROVED 的绑定 #4。",
+    "数据库读回记录 #138/#139/#140/#141 分别 APPROVED/REJECTED/DRAFT/APPROVED，流程实例 #21-#24 分别 COMPLETED/REJECTED/WITHDRAWN/COMPLETED，#139/#141 的状态历史来源 FLOW；后端重启后 API 和页面配置仍一致。Java 21 Maven package、前端 vue-tsc/Vite build、Python 编译、workspace-validate 和 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g12-binding-config.png",
+    "projects/unexamine/ai/evidence/g12-outcomes-runtime.png",
+    "projects/unexamine/ai/evidence/g12-pending-edit-denied.png",
+    "projects/unexamine/tools/verify-approval-business-status.py"
+  ],
+  "permission_or_failure_result": "无角色成员读取 #138 返回 403；待审批二次编辑、归档及页面保存均返回 409；无效绑定发布返回 422，生效绑定未变化。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingModels.java",
+      "sha256": "6f972684f9482112bb6033f26cdf4a7458b14dae2af1427f930ba6fa2d217c34"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "sha256": "8822185f3caadf4240a0d6935202321954a3e994c79837ec6227935a08dc784f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionMapper.java",
+      "sha256": "999e98ed62b8059f561e15c0da3366955c813f684bb2943ae21330006d148969"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/mapper/foundation/manage/BusinessActionMapper.xml",
+      "sha256": "177db5376c651c274c235ae90efc1ef0d8df4603846544892d31e9a6e870d871"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/control/BusinessActionApprovalCoordinator.java",
+      "sha256": "659a76e0ae756119f53fd0d9eb9de1dfd3d12f5f91c6011d4b2e60583b255baa"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "6b6e6975b51811e8238d1279efbf2501dc8c22bcc953414b440d81b9f5e422b2"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "1a975aa496aade8fe9acc5f075817154412d0fdb983a845d259b6926eca5ddf0"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/flow-binding.ts",
+      "sha256": "00d9c4617f009e6c776bd47eabfa7cefae0440918390298c46ac2ee948eeefdc"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "sha256": "7dfc3ef211c3407c6de994164ddfe0d6c0f3c0bd342556cc4b3066433621da96"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-approval-business-status.py",
+      "sha256": "70200a75cf5b0e8d13c46e0abf7d550c589686c491382f26fed20947723788df"
+    }
+  ],
+  "remaining": "G12 组合业务链已在隔离系统验证。下一项是 14.13 危险操作的影响提示与取消路径；真实第三方依赖及整站验收尚未完成。",
+  "next_step": "S13.1"
+}

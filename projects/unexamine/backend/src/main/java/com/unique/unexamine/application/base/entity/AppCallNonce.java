@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 已接受应用签名nonce的防重放记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_call_nonce")
+@TableName("un_app_call_nonce")
 public class AppCallNonce {
 
+    /**
+     * 已接受签名nonce主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 目标应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 验签所用应用凭证版本号
+     */
     @TableField("credential_version")
     private Integer credentialVersion;
 
+    /**
+     * 请求防重放随机值
+     */
     @TableField("nonce")
     private String nonce;
 
+    /**
+     * 首次接受该nonce的请求标识
+     */
     @TableField("request_id")
     private String requestId;
 
-    @TableField("request_timestamp")
-    private LocalDateTime requestTimestamp;
+    /**
+     * 调用方签名请求时间
+     */
+    @TableField("request_time")
+    private LocalDateTime requestTime;
 
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    /**
+     * nonce失效时间
+     */
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -82,28 +106,28 @@ public class AppCallNonce {
         this.requestId = requestId;
     }
 
-    public LocalDateTime getRequestTimestamp() {
-        return requestTimestamp;
+    public LocalDateTime getRequestTime() {
+        return requestTime;
     }
 
-    public void setRequestTimestamp(LocalDateTime requestTimestamp) {
-        this.requestTimestamp = requestTimestamp;
+    public void setRequestTime(LocalDateTime requestTime) {
+        this.requestTime = requestTime;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
+    public LocalDateTime getExpireTime() {
+        return expireTime;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -114,9 +138,9 @@ public class AppCallNonce {
             ", credentialVersion = " + credentialVersion +
             ", nonce = " + nonce +
             ", requestId = " + requestId +
-            ", requestTimestamp = " + requestTimestamp +
-            ", expiresAt = " + expiresAt +
-            ", createdAt = " + createdAt +
+            ", requestTime = " + requestTime +
+            ", expireTime = " + expireTime +
+            ", createTime = " + createTime +
             "}";
     }
 }

@@ -1,0 +1,43 @@
+{
+  "step": "S09.1",
+  "status": "verified_contribution",
+  "integration_gate": "G9_SYSTEM_HEALTH",
+  "source_rows": ["R2112", "R2114", "R2115", "R2116", "R2117", "R2118", "R2119", "R2120", "R2121"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthService.java",
+    "projects/unexamine/backend/src/main/resources/application.yml",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsHealthHttpTest.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/OperationsHealthView.vue",
+    "projects/unexamine/tools/project-starter.json",
+    "projects/unexamine/tools/verify-operations-health.py"
+  ],
+  "checks_actual_results": [
+    "系统 #151 的管理员在后台启动并读取体检；页面与 API 同时显示数据库、Redis、文件存储、应用签名密钥、Flyway 迁移五项真实探针，并展示 Redis 后台作业可用性、最近错误、迁移 V20 和服务版本 0.1.0-SNAPSHOT。密钥只显示已配置状态，不回显值。",
+    "隔离验收脚本暂停 Redis 后，体检在约 3 秒探测超时后持久化 NOT_READY；页面显示 Redis FAILED、RedisCommandTimeoutException 和作业状态不可用，未把失联误写成零作业。恢复 Redis 后同一系统新批次为 READY。最终批次 #14 READY、#15 NOT_READY、#16 READY，数据库各有五条逐项结果；体检审计在此系统记录 READY 与 NOT_READY。",
+    "普通成员对体检读取和重检均得到 HTTP 403；管理员能看到近期 403 错误及 requestId 的结构化请求、审计与健康阶段。服务重启后再次通过 API 与后台页面读取批次 #16，五项探针、版本、时间和错误摘要一致。",
+    "后端 Maven 跳过测试打包、前端 vue-tsc 与 Vite 构建、StartupPreflightChecksTest 两项单测、Python 编译、workspace-validate、starter-check 的 35 个确定性生成文件和 git diff --check 均通过。starter 清单摘要在核对当前唯一需求变更后更新；Redis 探针超时由模板生成器统一生成。",
+    "Windows 本机的 OperationsHealthHttpTest 集成测试未通过：Testcontainers Redis 容器自身 PONG 且映射 TCP 可连接，但本机 JDK 21 Netty 创建 selector 时抛出 Unable to establish loopback connection / SocketException；真实 Linux 服务容器中的相同 Redis 故障、恢复和重启链路已通过。测试中旧迁移版本 34 与所属人角色撤销语义已改为当前 V20 及所属人隐式权限。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g9-health-redis-failure.png",
+    "projects/unexamine/ai/evidence/g9-health-recovered.png",
+    "projects/unexamine/ai/evidence/g9-health-restart-final.png",
+    "projects/unexamine/tools/verify-operations-health.py",
+    "projects/unexamine/backend/target/surefire-reports/com.unique.unexamine.operations.manage.StartupPreflightChecksTest.txt"
+  ],
+  "permission_or_failure_result": "Redis 故障返回 NOT_READY 与具体失败原因，仍能读取持久化 HTTP 错误；恢复后 READY。普通成员读取和触发体检均 403，未泄露密钥或运维详情。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthModels.java", "sha256": "447c44db40f2bff41fb0b3c1db78cbcf1eba9ae7d4249d8377eb5c0bdd83806f"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/operations/manage/OperationsHealthService.java", "sha256": "440f925bdcde9ee5c533c9b9a71ac539d88779129394110e16e83feb54cc3722"},
+    {"path": "projects/unexamine/backend/src/main/resources/application.yml", "sha256": "17334f8c39a094a5ce85be150fefa726aafdfe11c4089e3eeab24ad6418d9467"},
+    {"path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/operations/manage/OperationsHealthHttpTest.java", "sha256": "d4b871233b2e99850ccb6af78e3c52b9e1d4fd5a77ffba796343a790b648ac16"},
+    {"path": "projects/unexamine/frontend/src/product/types.ts", "sha256": "411f55b6065a85abd08f697fb78bc5c6b075cc9b1a3ea6e013c65bab9c73b0ea"},
+    {"path": "projects/unexamine/frontend/src/product/views/OperationsHealthView.vue", "sha256": "5e7573426e69790e330ec584bfcd61257bcb230c2c72266c4ca062ddeb450d9d"},
+    {"path": "projects/unexamine/tools/project-starter.json", "sha256": "ee6e62106b70e7ac35dc7aeb5670cb9c908ae2ab77c8a839ac06acc9de7c77a9"},
+    {"path": "projects/unexamine/tools/verify-operations-health.py", "sha256": "9dfeb8215995c8444f217bc6dfc2e7dad8e9721588a955d79715e6a206c003f6"}
+  ],
+  "remaining": "G9 当前需求的系统体检业务链已通过真实服务和页面验收。本机 JDK 的 Netty selector 故障使一个 Testcontainers HTTP 用例暂不能作为通过证据；后续仍需权限预览等固定能力与整站验收。",
+  "next_step": "S10.1"
+}

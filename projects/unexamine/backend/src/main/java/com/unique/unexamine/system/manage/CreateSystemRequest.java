@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record CreateSystemRequest(
-        @Size(max = 100) @Pattern(regexp = "[a-zA-Z][a-zA-Z0-9_-]{1,99}") String code,
-        @NotBlank @Size(max = 200) String name,
-        @Pattern(regexp = "SINGLE|MULTI") String tenantMode) {
+        @Size(max = 100) @Pattern(regexp = "[a-zA-Z][a-zA-Z0-9_]{1,99}") String code,
+        @NotBlank @Size(max = 200) String name) {
 }

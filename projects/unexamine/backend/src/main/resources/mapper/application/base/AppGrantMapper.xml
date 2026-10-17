@@ -15,14 +15,14 @@
         <result column="data_scope_json" property="dataScopeJson" />
         <result column="rate_limit_json" property="rateLimitJson" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, application_id, target_type, target_system_id, target_tenant_id, resource_type, resource_id, action_code, data_scope_json, rate_limit_json, `status`, created_at, updated_at, version
+        id, application_id, target_type, target_system_id, target_tenant_id, resource_type, resource_id, action_code, data_scope_json, rate_limit_json, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

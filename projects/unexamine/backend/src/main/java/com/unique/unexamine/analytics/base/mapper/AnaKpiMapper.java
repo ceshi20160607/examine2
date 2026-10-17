@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 按发布数据源版本计算的 KPI 目标及提醒口径 Mapper 接口
  * </p>
  *
  * @author Template Base

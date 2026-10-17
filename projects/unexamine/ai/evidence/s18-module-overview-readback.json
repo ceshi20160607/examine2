@@ -1,0 +1,85 @@
+{
+  "step": "S18.24",
+  "observed_at": "2026-10-14T11:01:21.816506+08:00",
+  "environment": "isolated Docker MySQL volume unexamine_s18_acceptance_copy; system #166; backend 18081; frontend 15179",
+  "api": {
+    "draft_module_id": 92,
+    "draft_pages": [
+      "LIST",
+      "FORM",
+      "DETAIL"
+    ],
+    "draft_published": false,
+    "active_flow": {
+      "flow_id": 26,
+      "name": "巡检结论审批",
+      "version": 2,
+      "trigger_event": "CREATE"
+    },
+    "member_runtime_module_ids": [
+      87,
+      86
+    ],
+    "member_admin_denial": "PERMISSION_DENIED",
+    "readiness_after_restart": "UP"
+  },
+  "mysql": {
+    "modules": [
+      {
+        "id": 86,
+        "code": "module_e02d14b450",
+        "name": "巡检记录",
+        "status": "ACTIVE",
+        "group_id": 68,
+        "version": 10
+      },
+      {
+        "id": 92,
+        "code": "module_14773f185e",
+        "name": "S18 默认页面核对",
+        "status": "DRAFT",
+        "group_id": 69,
+        "version": 0
+      }
+    ],
+    "default_pages": [
+      {
+        "module_id": 92,
+        "page_type": "LIST",
+        "name": "默认列表"
+      },
+      {
+        "module_id": 92,
+        "page_type": "FORM",
+        "name": "默认表单"
+      },
+      {
+        "module_id": 92,
+        "page_type": "DETAIL",
+        "name": "默认详情"
+      }
+    ],
+    "flow_bindings": [
+      {
+        "id": 6,
+        "module_id": 86,
+        "flow_id": 26,
+        "trigger_event": "CREATE",
+        "status": "ACTIVE"
+      }
+    ],
+    "module_version_counts": [
+      {
+        "module_id": 86,
+        "version_count": 2
+      }
+    ]
+  },
+  "browser_images": [
+    "s18-module-overview-existing.png",
+    "s18-module-overview-new-draft.png",
+    "s18-module-overview-restart.png",
+    "s18-module-overview-member-denied.png"
+  ],
+  "browser_result": "Owner saw four named fields, three named pages, Flow 26 V2 and menu on published module #86; draft #92 showed default pages and no Flow until publication. Member saw authorized module #86, not draft #92, and admin route redirected to access-denied."
+}

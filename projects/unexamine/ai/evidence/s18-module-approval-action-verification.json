@@ -1,0 +1,100 @@
+{
+  "step": "S18.31",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R0288",
+    "R0453"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+    "projects/unexamine/frontend/src/product/action-placement.ts",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+    "projects/unexamine/tools/verify-module-approval-action.py",
+    "projects/unexamine/tools/verify-module-approval-browser.mjs"
+  ],
+  "checks_actual_results": [
+    "Fresh V22 MySQL/Redis integration test: module approval action remains absent before publication, is published with a separate immutable version, and starts only after a published MANUAL/FLOW_ONLY binding to a system Flow with an APPROVAL node.",
+    "The same test verified one Flow instance and pending task for the authorized record, idempotent replay, cross-tenant record denial, reserved-key rejection, and unchanged draft visibility until publish. Published disable rejects new starts; invalid BATCH location and nonapproval Flow are rejected.",
+    "Isolated existing MySQL copy: new module #93 and record #186 published action #1123, bound Flow #27, API instance #47 and browser-started instance #51; database system/tenant/module/record/task links checked. Platform-scoped caller was denied 403.",
+    "Headless Edge showed owner Flow binding UI, record detail approval button, click-through to a new Flow instance with task actions; screenshots captured.",
+    "Isolated copy disabled the published action, rejected starts, rolled back to active version #107, started instance #49 and preserved older instance snapshots byte-for-byte. Current JAR restart readback retained instances #47, #49 and #51 with pending tasks.",
+    "JDK 21 Maven targeted RuntimeDataHttpTest: 1 test, 0 errors, 0 failures; Maven package passed. Frontend vue-tsc and Vite build passed; Python and Node syntax and scoped git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-module-approval-action-live.json",
+    "projects/unexamine/ai/evidence/s18-module-approval-browser-readback.json",
+    "projects/unexamine/ai/evidence/s18-module-approval-binding-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-approval-runtime-browser.png",
+    "projects/unexamine/ai/evidence/s18-module-approval-flow-browser.png"
+  ],
+  "permission_or_failure_result": "Prepublication and unbound starts 409; invalid binding mode and Flow without approval node 422; platform context 403; cross-tenant record 404; idempotency key reuse for another record 409; disabled published action 409; invalid BATCH placement 422.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "8a614d7c8e37608457d8ab79527571851d2fd75fdaea6029ea684dccebb88536"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "16aa0183ae3b82bea8591b54cb78d491aa3d3514ee2a0a77479f10660953a4e5"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeDataService.java",
+      "sha256": "7008c784e032096e5e93d01df112c8cd353bf1d5edc14f05321f19c286f86c66"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeModels.java",
+      "sha256": "2cd8a4322203b90c5460eb7338081c42ac4bbcfc2cec677caaf7a8b494da9a40"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeController.java",
+      "sha256": "ae7136b2503138a60c590697214b9f8fe3668918dda22bdd4c46ed4a9e82ca31"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "d977f3d52e3c070088f2ad92c90b5ea6a38c1261b0233daeb0fb01069254372f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowBindingService.java",
+      "sha256": "4b0ce317f2f98999b339d64c6498c928299977926c7a59b792273a6440b6988b"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/runtimedata/manage/RuntimeDataHttpTest.java",
+      "sha256": "68a12e3a32feac2bcd43fb713070da3b2161945f45b440dfb7958a9bdd6f3328"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/action-placement.ts",
+      "sha256": "4756cf0dd96dcd78baf8a6d9d2194224cd494af8fc3d6603a9d743b268802702"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "8043d37d1757fbbfb42f91d2afb5404e85097dcc74cb96181ab2ef65679f04e5"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "17b797488171784ac8abce97644a0ae17f0c3bd00952d47dc0d39319c7c3be00"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowBindingsView.vue",
+      "sha256": "4113d495da4aedf9a780669f3b60fd76695a97be21a22ef720c30cf7948e78a2"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-approval-action.py",
+      "sha256": "ac90a007a8f9f5b3bcdbaccbfa2821213609ba4e364e10255f651b2d3dd19330"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-module-approval-browser.mjs",
+      "sha256": "25a9b77122a4c6a7990d54a688e4c2f8dd5ad0998af1502e8642bf9f75e2ea38"
+    }
+  ],
+  "remaining": "This verifies one approval action journey, not all Flow conditions or node types. Dashboard entry remains outside module action publication; full multi-system/multi-tenant product journey, non-OIDC SSO protocols, historical print blobs and final manuals/release package remain unverified or missing.",
+  "next_step": "S18.32"
+}

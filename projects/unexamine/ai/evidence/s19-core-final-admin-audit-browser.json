@@ -1,0 +1,15 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev3",
+  "status": "import_audit_ui_query_and_detail_verified",
+  "filtered": {
+    "rows": [
+      "\tMODULE_IMPORT_COMPLETED\tCOMPLETED_WITH_ERRORS\tIMPORT_BATCH · 1\t账号 1\n成员 1\timport-job-2\nimport-job-2\t详情"
+    ],
+    "count": 1
+  },
+  "detail": {
+    "summary": "MODULE_IMPORT_COMPLETED\nCOMPLETED_WITH_ERRORS\n对象\tIMPORT_BATCH · 1\t操作者\t账号 1 / 成员 1\nrequestId\timport-job-2\ttraceId\timport-job-2\n权限快照\n—\n业务详情\n{\n  \"jobId\": 2,\n  \"failedRows\": 1,\n  \"moduleCode\": \"module_ae3286711c\",\n  \"successRows\": 1\n}",
+    "fields": "字段前后值\n可看敏感值\n\n该事件没有字段变化"
+  }
+}

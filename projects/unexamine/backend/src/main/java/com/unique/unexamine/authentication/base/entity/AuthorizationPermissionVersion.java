@@ -9,41 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统租户权限的版本流水
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("auth_permission_version")
+@TableName("un_auth_permission_version")
 public class AuthorizationPermissionVersion {
 
+    /**
+     * 权限版本主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 权限范围类型，PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统标识，平台版本为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识，平台版本为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 该范围内递增的权限版本号
+     */
     @TableField("version_number")
     private Long versionNumber;
 
+    /**
+     * 权限版本变更原因
+     */
     @TableField("reason")
     private String reason;
 
+    /**
+     * 发起变更的平台账号标识
+     */
     @TableField("changed_by_account_id")
     private Long changedByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 版本生成时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -109,12 +136,12 @@ public class AuthorizationPermissionVersion {
         this.changedByAccountId = changedByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -128,7 +155,7 @@ public class AuthorizationPermissionVersion {
             ", versionNumber = " + versionNumber +
             ", reason = " + reason +
             ", changedByAccountId = " + changedByAccountId +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

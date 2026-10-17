@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BellOutlined, CheckSquareOutlined, DatabaseOutlined, ReloadOutlined, RightOutlined } from '@ant-design/icons-vue'
+import { ReloadOutlined, RightOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
@@ -8,7 +8,7 @@ import ProductPage from '../components/ProductPage.vue'
 import ProductState from '../components/ProductState.vue'
 import ProductStatusTag from '../components/ProductStatusTag.vue'
 import { allowsPermission } from '../permissions'
-import { isVerificationArtifactName, productDateTime, userFacingDateTime, userFacingWorkspaceName } from '../presentation'
+import { productDateTime, userFacingDateTime, userFacingWorkspaceName } from '../presentation'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { establishSystemSession } from '../system-entry'
 import { todoTypeLabel } from '../todo'
@@ -69,12 +69,11 @@ async function load() {
         messageRequest,
         api<Array<{ systemId: number; systemName: string; defaultTenantName: string }>>('/api/systems', {}, token.value),
       ])
-      const visibleTodos = todoRows.filter(item => !isVerificationArtifactName(item.title))
-      pendingTodoCount.value = visibleTodos.length
-      todos.value = visibleTodos.slice(0, 5)
+      pendingTodoCount.value = todoRows.length
+      todos.value = todoRows.slice(0, 5)
       unreadMessages.value = inbox.unreadCount
-      recentMessages.value = inbox.messages.filter(item => !isVerificationArtifactName(item.subject)).slice(0, 4)
-      systems.value = accessibleSystems.filter(item => !isVerificationArtifactName(item.systemName))
+      recentMessages.value = inbox.messages.slice(0, 4)
+      systems.value = accessibleSystems
       modules.value = []
       recentRecords.value = []
     } else {
@@ -83,11 +82,10 @@ async function load() {
         messageRequest,
         api<RuntimeModuleCatalogItem[]>('/api/runtime/modules', {}, token.value),
       ])
-      const visibleTodos = todoRows.filter(item => !isVerificationArtifactName(item.title))
-      pendingTodoCount.value = visibleTodos.length
-      todos.value = visibleTodos.slice(0, 5)
+      pendingTodoCount.value = todoRows.length
+      todos.value = todoRows.slice(0, 5)
       unreadMessages.value = inbox.unreadCount
-      recentMessages.value = inbox.messages.filter(item => !isVerificationArtifactName(item.subject)).slice(0, 4)
+      recentMessages.value = inbox.messages.slice(0, 4)
       modules.value = moduleRows
       systems.value = []
       const recordGroups = await Promise.all(moduleRows.slice(0, 3).map(async module => {
@@ -119,7 +117,9 @@ function openWorkspace(workspace: string) {
 }
 
 function openModule(moduleCode: string, recordId?: number) {
-  void router.replace({ path: route.path, query: { ...route.query, workspace: 'runtime', module: moduleCode, ...(recordId ? { recordId: String(recordId) } : {}) } })
+  void router.replace({ path: route.path, query: recordId
+    ? { ...route.query, workspace: 'runtime', module: moduleCode, recordId: String(recordId) }
+    : { ...route.query, workspace: 'module-home', module: moduleCode } })
 }
 
 async function openSystem(systemId: number) {
@@ -163,18 +163,11 @@ onMounted(load)
     <ProductState v-if="loading && !loaded" state="loading" />
     <template v-else>
 
-    <section class="home-metrics" aria-label="工作摘要">
-      <button type="button" @click="openWorkspace('todos')"><CheckSquareOutlined /><span><strong>{{ pendingTodoCount }}</strong><small>待处理事项</small></span><RightOutlined /></button>
-      <button type="button" @click="openWorkspace('messages')"><BellOutlined /><span><strong>{{ unreadMessages }}</strong><small>未读消息</small></span><RightOutlined /></button>
-      <button v-if="context === 'platform'" type="button" @click="openWorkspace('systems')"><DatabaseOutlined /><span><strong>{{ systems.length }}</strong><small>可进入系统</small></span><RightOutlined /></button>
-      <button v-else type="button" @click="openWorkspace('runtime')"><DatabaseOutlined /><span><strong>{{ modules.length }}</strong><small>可用业务模块</small></span><RightOutlined /></button>
-    </section>
-
-    <DashboardRuntimeView :context="context" embedded exclude-core-summary />
+    <DashboardRuntimeView :context="context" embedded />
 
     <div class="home-content-grid">
       <section class="panel-card home-panel">
-        <header class="home-panel__heading"><div><strong>现在需要处理</strong><small>按当前权限汇总的待办</small></div><a-button type="link" @click="openWorkspace('todos')">查看全部</a-button></header>
+        <header class="home-panel__heading"><div><strong>现在需要处理</strong><small>当前有 {{ pendingTodoCount }} 项待办</small></div><a-button type="link" @click="openWorkspace('todos')">查看全部</a-button></header>
         <div v-if="todos.length" class="home-item-list">
           <button v-for="todo in todos" :key="todo.id" type="button" @click="openWorkspace('todos')"><span><strong>{{ todo.title }}</strong><small>{{ todoTypeLabel(todo.todoType) }}<template v-if="todo.dueAt"> · 截止 {{ productDateTime(todo.dueAt) }}</template></small></span><ProductStatusTag :status="todo.status" /></button>
         </div>
@@ -201,7 +194,7 @@ onMounted(load)
       </section>
 
       <section class="panel-card home-panel home-panel--wide">
-        <header class="home-panel__heading"><div><strong>最新消息</strong><small>只显示当前工作范围内的消息</small></div><a-button type="link" @click="openWorkspace('messages')">查看全部</a-button></header>
+        <header class="home-panel__heading"><div><strong>最新消息</strong><small>当前有 {{ unreadMessages }} 条未读消息</small></div><a-button type="link" @click="openWorkspace('messages')">查看全部</a-button></header>
         <div v-if="recentMessages.length" class="home-item-list"><button v-for="item in recentMessages" :key="item.id" type="button" @click="openWorkspace('messages')"><span><strong>{{ item.subject }}</strong><small>{{ userFacingDateTime(item.createdAt) }}</small></span><span class="home-unread-dot" aria-label="未读" /></button></div>
         <a-empty v-else :image="false" description="目前没有未读消息" />
       </section>

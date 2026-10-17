@@ -5,8 +5,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { api, ApiError } from '../api'
 import { aiWriteCanConfirm, normalizedAiWriteFields } from '../ai-write'
 import { systemContext, systemTokens } from '../session'
-import type { AiWriteCandidate, AiWriteOverview, AiWriteResult } from '../types'
+import type { AiWriteCandidate, AiWriteFieldCandidate, AiWriteOverview, AiWriteResult, RuntimeField, RuntimeModuleCatalogItem, RuntimeModuleConfiguration, RuntimeRecordList, SystemPeopleDirectory } from '../types'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
+import PersonSelect from '../components/PersonSelect.vue'
+import RuntimeFieldInput from '../components/RuntimeFieldInput.vue'
 
 const props = defineProps<{ initialModuleCode?: string }>()
 const route = useRoute()
@@ -16,9 +18,15 @@ const recognizing = ref(false)
 const confirming = ref(false)
 const error = ref('')
 const overview = ref<AiWriteOverview>({ agents: [] })
+const modules = ref<RuntimeModuleCatalogItem[]>([])
 const candidate = ref<AiWriteCandidate>()
+const moduleConfiguration = ref<RuntimeModuleConfiguration>()
+const referenceOptions = reactive<Record<string, Array<{ value: number; label: string }>>>({})
+const referenceError = ref('')
+const peopleDirectory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const result = ref<AiWriteResult>()
 const explicitlyConfirmed = ref(false)
+const reviewedFieldCodes = ref<string[]>([])
 const source = reactive({
   agentId: undefined as number | undefined,
   moduleCode: props.initialModuleCode || '',
@@ -32,7 +40,10 @@ const form = reactive({
 })
 
 const selectedAgent = computed(() => overview.value.agents.find((item) => item.agentId === source.agentId))
-const canConfirm = computed(() => aiWriteCanConfirm(candidate.value, explicitlyConfirmed.value, form.title))
+const canConfirm = computed(() => aiWriteCanConfirm(candidate.value, explicitlyConfirmed.value, form.title)
+  && candidate.value?.fields.every((field) => !field.recognized || field.confidence >= 0.8
+    || reviewedFieldCodes.value.includes(field.code)
+    || JSON.stringify(field.value) !== JSON.stringify(form.fields[field.code])))
 const candidateAlertType = computed(() => candidate.value?.outcome === 'READY' || candidate.value?.outcome === 'SUCCEEDED'
   ? 'success' : candidate.value?.outcome === 'DEGRADED' || candidate.value?.outcome === 'CANCELLED' ? 'warning' : 'error')
 
@@ -42,6 +53,11 @@ async function loadOverview() {
   error.value = ''
   try {
     overview.value = await api<AiWriteOverview>('/api/ai/writes', {}, systemTokens.value.accessToken)
+    try {
+      modules.value = await api<RuntimeModuleCatalogItem[]>('/api/runtime/modules', {}, systemTokens.value.accessToken)
+    } catch {
+      // 模块目录不可用时仍可按 Agent 的已发布工具继续识别，服务端负责最终授权。
+    }
     if (!overview.value.agents.some((item) => item.agentId === source.agentId)) {
       source.agentId = overview.value.agents[0]?.agentId
     }
@@ -55,6 +71,10 @@ function chooseModule() {
   if (!modules.includes(source.moduleCode)) source.moduleCode = modules[0] || ''
 }
 
+function moduleName(code: string) {
+  return modules.value.find((item) => item.moduleCode === code)?.moduleName || code
+}
+
 watch(() => source.agentId, chooseModule)
 
 async function recognize() {
@@ -63,6 +83,7 @@ async function recognize() {
   error.value = ''
   result.value = undefined
   explicitlyConfirmed.value = false
+  reviewedFieldCodes.value = []
   try {
     candidate.value = await api<AiWriteCandidate>('/api/ai/writes/recognize', {
       method: 'POST', body: JSON.stringify({
@@ -71,14 +92,68 @@ async function recognize() {
         requestedTenantId: systemContext.value?.tenantId, entryType: 'MODULE_PAGE',
       }),
     }, systemTokens.value.accessToken)
+    await loadModuleConfiguration()
     applyCandidate()
     await router.replace({ query: { ...route.query, pendingWriteId: String(candidate.value.pendingWriteId) } })
   } catch (reason) { error.value = readable(reason) }
   finally { recognizing.value = false }
 }
 
+async function loadModuleConfiguration() {
+  if (!systemTokens.value?.accessToken || !candidate.value) return
+  moduleConfiguration.value = await api<RuntimeModuleConfiguration>(
+    `/api/runtime/modules/${candidate.value.moduleCode}/configuration`, {}, systemTokens.value.accessToken)
+  referenceError.value = ''
+  await Promise.all(moduleConfiguration.value.configuration.fields
+    .filter((field) => field.fieldType === 'REFERENCE' && field.referenceModuleId)
+    .map((field) => loadReferenceOptions(field)))
+}
+
+/** 关联选项通过普通业务列表取数，仍受当前成员的模块和负责人权限约束。 */
+async function loadReferenceOptions(field: RuntimeField, search = '') {
+  const module = modules.value.find((item) => item.moduleId === field.referenceModuleId)
+  if (!module || !systemTokens.value?.accessToken) return
+  try {
+    const params = new URLSearchParams({ lifecycleState: 'ACTIVE', tenantScope: 'ALL', search,
+      filters: '[]', sortField: 'updatedAt', sortDirection: 'DESC', page: '1', pageSize: '50' })
+    const records = await api<RuntimeRecordList>(
+      `/api/runtime/modules/${module.moduleCode}/records?${params}`, {}, systemTokens.value.accessToken)
+    referenceOptions[field.code] = records.records.map((record) => ({ value: record.id, label: record.title }))
+  } catch {
+    referenceOptions[field.code] = []
+    referenceError.value = '关联记录暂时无法读取，请返回业务模块核对权限后重试。'
+  }
+}
+
+/** 负责人必须从当前工作空间的有效成员中选择，最终范围仍由业务创建接口校验。 */
+async function loadPeopleDirectory() {
+  if (!systemTokens.value?.accessToken) return
+  try {
+    peopleDirectory.value = await api<SystemPeopleDirectory>(
+      '/api/system-directory', {}, systemTokens.value.accessToken)
+  } catch (reason) { error.value = readable(reason) }
+}
+
+function publishedField(candidateField: AiWriteFieldCandidate): RuntimeField | undefined {
+  return moduleConfiguration.value?.configuration.fields.find((field) => field.code === candidateField.code)
+}
+
+function childFields(candidateField: AiWriteFieldCandidate): RuntimeField[] {
+  const parent = publishedField(candidateField)
+  return moduleConfiguration.value?.configuration.fields.filter((field) => field.parentFieldId === parent?.id
+    && candidateField.childFieldCodes.includes(field.code) && field.access?.writable !== false) || []
+}
+
+function usesConfiguredInput(field: AiWriteFieldCandidate): boolean {
+  return field.writable && Boolean(publishedField(field)) && [
+    'SUBTABLE', 'MULTILINE_TEXT', 'NUMBER', 'MONEY', 'BOOLEAN', 'DATE', 'DATETIME',
+    'JSON', 'RICH_TEXT', 'REFERENCE', 'ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP',
+  ].includes(field.fieldType)
+}
+
 function applyCandidate() {
   if (!candidate.value) return
+  reviewedFieldCodes.value = []
   form.title = candidate.value.proposedTitle
   form.recordNumber = candidate.value.proposedRecordNumber || ''
   form.status = candidate.value.proposedStatus || 'ACTIVE'
@@ -109,10 +184,10 @@ async function confirmWrite() {
         recordNumber: form.recordNumber.trim() || null, status: form.status,
         ownerMemberId: form.ownerMemberId || null, departmentId: form.departmentId || null,
         participantMemberIds: participantIds(), fields: normalizedFields(),
+        reviewedFieldCodes: reviewedFieldCodes.value,
       }),
     }, systemTokens.value.accessToken)
-    if (!result.value.businessWritten) await reread()
-    else await reread()
+    await reread()
   } catch (reason) { error.value = readable(reason) }
   finally { confirming.value = false }
 }
@@ -138,6 +213,7 @@ async function restoreCandidate() {
   if (!Number.isInteger(pendingWriteId) || pendingWriteId <= 0) return
   try {
     candidate.value = await api<AiWriteCandidate>(`/api/ai/writes/${pendingWriteId}`, {}, systemTokens.value.accessToken)
+    await loadModuleConfiguration()
     applyCandidate()
     restoreResult()
   } catch (reason) { error.value = readable(reason) }
@@ -171,7 +247,7 @@ function confidence(value: number) { return `${Math.round(value * 100)}%` }
 function readable(reason: unknown) { return reason instanceof ApiError ? `${reason.message}${reason.traceId ? `（${reason.traceId}）` : ''}` : 'AI 写入请求失败' }
 
 onMounted(async () => {
-  await loadOverview()
+  await Promise.all([loadOverview(), loadPeopleDirectory()])
   await restoreCandidate()
 })
 </script>
@@ -187,7 +263,7 @@ onMounted(async () => {
         <div class="ai-query-boundary"><SafetyCertificateOutlined /><span><strong>写入前由你确认</strong><small>助手只会使用当前账号已有权限，不能绕过字段和业务规则</small></span></div>
         <div class="form-grid">
           <a-form-item label="写入助手" required><a-select v-model:value="source.agentId" :options="overview.agents.map((item) => ({ value: item.agentId, label: item.agentName }))" /></a-form-item>
-          <a-form-item label="目标模块" required><a-select v-model:value="source.moduleCode" :options="(selectedAgent?.moduleCodes || []).map((code) => ({ value: code, label: code }))" /></a-form-item>
+          <a-form-item label="目标模块" required><a-select v-model:value="source.moduleCode" :options="(selectedAgent?.moduleCodes || []).map((code) => ({ value: code, label: moduleName(code) }))" /></a-form-item>
         </div>
         <div class="form-grid">
           <a-form-item label="输入类型"><a-select v-model:value="source.sourceType" :options="[{ value: 'TEXT', label: '文本' }, { value: 'FILE', label: '受控文件提取文本' }]" /></a-form-item>
@@ -200,17 +276,31 @@ onMounted(async () => {
       <section v-if="candidate" class="panel-card ai-write-confirm">
         <div class="panel-title"><strong>核对业务内容</strong><span>{{ candidate.businessWritten ? '已经写入' : '尚未写入' }}</span></div>
         <a-alert :type="candidateAlertType" show-icon :message="candidate.message" :description="candidate.businessWritten ? '业务记录已经保存，可以打开查看。' : '请检查下面的识别结果，确认前不会写入业务数据。'" />
-        <div class="ai-write-meta"><span>目标模块：{{ candidate.moduleCode }}</span><span>识别结果可编辑</span><span>每次写入均需人工确认</span></div>
+        <div class="ai-write-meta"><span>目标模块：{{ moduleName(candidate.moduleCode) }}</span><span>识别结果可编辑</span><span>每次写入均需人工确认</span></div>
+        <a-alert v-if="referenceError" type="warning" show-icon :message="referenceError" />
         <div class="form-grid">
           <a-form-item label="标题" required><a-input v-model:value="form.title" /></a-form-item>
           <a-form-item label="记录编号"><a-input v-model:value="form.recordNumber" /></a-form-item>
         </div>
         <a-form-item label="状态"><a-select v-model:value="form.status" :options="[{value:'ACTIVE',label:'启用'},{value:'DRAFT',label:'草稿'}]" /></a-form-item>
+        <a-form-item label="负责人" extra="留空时使用系统创建人；如果新建范围仅限本人，请选择自己。">
+          <PersonSelect v-model="form.ownerMemberId" :people="peopleDirectory.people" value-key="systemMemberId" show-department-filter placeholder="选择当前工作空间成员" />
+        </a-form-item>
         <div class="ai-write-fields">
           <div v-for="field in candidate.fields" :key="field.code" class="ai-write-field">
             <div><strong>{{ field.label }}</strong><a-tag :color="field.recognized ? 'green' : 'default'">识别可信度 {{ confidence(field.confidence) }}</a-tag></div>
-            <a-input v-model:value="form.fields[field.code]" :disabled="!field.writable" :placeholder="field.note" />
+            <RuntimeFieldInput v-if="usesConfiguredInput(field)"
+              v-model="form.fields[field.code]" :field="publishedField(field)!" :child-fields="childFields(field)"
+              :options="referenceOptions[field.code]" :token="systemTokens?.accessToken"
+              @reference-search="loadReferenceOptions" />
+            <a-input v-else v-model:value="form.fields[field.code]" :disabled="!field.writable" :placeholder="field.note" />
             <small>{{ field.required ? '必填 · ' : '' }}{{ field.note }}</small>
+            <a-checkbox v-if="field.recognized && field.confidence < 0.8"
+              :checked="reviewedFieldCodes.includes(field.code)"
+              @update:checked="(checked: boolean) => reviewedFieldCodes = checked
+                ? [...reviewedFieldCodes, field.code] : reviewedFieldCodes.filter((code) => code !== field.code)">
+              我已逐项核对该字段
+            </a-checkbox>
           </div>
         </div>
         <a-alert v-if="candidate.unknownSegments.length" type="warning" show-icon message="未识别内容" :description="candidate.unknownSegments.join('；')" />

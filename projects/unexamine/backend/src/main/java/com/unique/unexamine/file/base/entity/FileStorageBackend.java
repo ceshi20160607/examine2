@@ -10,60 +10,108 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统的文件存储后端配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("file_storage_backend")
+@TableName("un_file_storage_backend")
 public class FileStorageBackend {
 
+    /**
+     * 存储后端主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 后端作用域：PLATFORM 或 SYSTEM
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 后端所属平台
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统后端所属系统，平台后端为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 后端作用域主体，平台取平台标识，系统取系统标识
+     */
+    @TableField("scope_owner_id")
+    private Long scopeOwnerId;
+
+    /**
+     * 同一作用域内的后端编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 存储后端显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 存储类型：LOCAL 或 S3
+     */
     @TableField("backend_type")
     private String backendType;
 
+    /**
+     * S3 兼容服务地址
+     */
     @TableField("endpoint")
     private String endpoint;
 
+    /**
+     * 本地目录或对象存储桶名称
+     */
     @TableField("bucket_name")
     private String bucketName;
 
     /**
-     * 对象存储访问凭证密文，仅服务端解密，接口不得回传
+     * S3 凭证的受控密钥引用主键，不保存凭证明文或密文
      */
-    @TableField("credential_ref")
-    private String credentialRef;
+    @TableField("credential_ref_id")
+    private Long credentialRefId;
 
+    /**
+     * 非敏感存储参数，禁止写入访问密钥
+     */
     @TableField("config_json")
     private String configJson;
 
+    /**
+     * 后端启用状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -98,6 +146,14 @@ public class FileStorageBackend {
 
     public void setSystemId(Long systemId) {
         this.systemId = systemId;
+    }
+
+    public Long getScopeOwnerId() {
+        return scopeOwnerId;
+    }
+
+    public void setScopeOwnerId(Long scopeOwnerId) {
+        this.scopeOwnerId = scopeOwnerId;
     }
 
     public String getCode() {
@@ -140,12 +196,12 @@ public class FileStorageBackend {
         this.bucketName = bucketName;
     }
 
-    public String getCredentialRef() {
-        return credentialRef;
+    public Long getCredentialRefId() {
+        return credentialRefId;
     }
 
-    public void setCredentialRef(String credentialRef) {
-        this.credentialRef = credentialRef;
+    public void setCredentialRefId(Long credentialRefId) {
+        this.credentialRefId = credentialRefId;
     }
 
     public String getConfigJson() {
@@ -164,20 +220,20 @@ public class FileStorageBackend {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -195,16 +251,17 @@ public class FileStorageBackend {
             ", contextType = " + contextType +
             ", platformId = " + platformId +
             ", systemId = " + systemId +
+            ", scopeOwnerId = " + scopeOwnerId +
             ", code = " + code +
             ", name = " + name +
             ", backendType = " + backendType +
             ", endpoint = " + endpoint +
             ", bucketName = " + bucketName +
-            ", credentialRef = " + credentialRef +
+            ", credentialRefId = " + credentialRefId +
             ", configJson = " + configJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

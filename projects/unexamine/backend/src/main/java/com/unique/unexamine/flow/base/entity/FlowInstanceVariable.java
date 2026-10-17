@@ -10,33 +10,54 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程实例变量
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_instance_variable")
+@TableName("un_flow_instance_variable")
 public class FlowInstanceVariable {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 实例变量编码
+     */
     @TableField("variable_key")
     private String variableKey;
 
+    /**
+     * 实例变量值类型
+     */
     @TableField("value_type")
     private String valueType;
 
+    /**
+     * 实例变量JSON值
+     */
     @TableField("value_json")
     private String valueJson;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -81,12 +102,12 @@ public class FlowInstanceVariable {
         this.valueJson = valueJson;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -105,7 +126,7 @@ public class FlowInstanceVariable {
             ", variableKey = " + variableKey +
             ", valueType = " + valueType +
             ", valueJson = " + valueJson +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

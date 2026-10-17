@@ -9,5 +9,6 @@ import jakarta.validation.constraints.Pattern;
 public record UpdateActionConfigurationRequest(
         @NotBlank @Pattern(regexp = "MODULE_ENTRY|LIST_TOOLBAR|BATCH|ROW|DETAIL_HEADER|DETAIL_MORE") String location,
         @NotNull JsonNode config,
+        @Pattern(regexp = "ACTIVE|DISABLED") String status,
         @NotNull @Min(0) Integer version) {
 }

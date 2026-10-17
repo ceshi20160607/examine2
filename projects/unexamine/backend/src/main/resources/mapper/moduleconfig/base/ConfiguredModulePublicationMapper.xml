@@ -10,13 +10,13 @@
         <result column="module_id" property="moduleId" />
         <result column="current_version_id" property="currentVersionId" />
         <result column="updated_by_member_id" property="updatedByMemberId" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, current_version_id, updated_by_member_id, updated_at, version
+        id, system_id, owner_tenant_id, module_id, current_version_id, updated_by_member_id, update_time, version
     </sql>
 
 </mapper>

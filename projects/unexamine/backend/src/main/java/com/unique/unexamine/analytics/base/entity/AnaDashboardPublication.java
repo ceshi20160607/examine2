@@ -10,30 +10,48 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 运行态仪表盘发布和回滚指针
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ana_dashboard_publication")
+@TableName("un_ana_dashboard_publication")
 public class AnaDashboardPublication {
 
+    /**
+     * 仪表盘当前发布指针主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属仪表盘主键
+     */
     @TableField("dashboard_id")
     private Long dashboardId;
 
+    /**
+     * 当前对运行态生效的仪表盘版本主键
+     */
     @TableField("current_version_id")
     private Long currentVersionId;
 
+    /**
+     * 最后发布或回滚操作者账号主键
+     */
     @TableField("updated_by_account_id")
     private Long updatedByAccountId;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 发布指针更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -70,12 +88,12 @@ public class AnaDashboardPublication {
         this.updatedByAccountId = updatedByAccountId;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -93,7 +111,7 @@ public class AnaDashboardPublication {
             ", dashboardId = " + dashboardId +
             ", currentVersionId = " + currentVersionId +
             ", updatedByAccountId = " + updatedByAccountId +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

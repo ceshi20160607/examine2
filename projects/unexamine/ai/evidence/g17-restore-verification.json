@@ -1,0 +1,40 @@
+{
+  "backupId": 3,
+  "environment": "restore-s17-upgrade",
+  "status": "PASSED",
+  "databaseRestore": "RESTORED",
+  "restoredDatabaseVersion": "20",
+  "restoredTableCount": 189,
+  "targetDatabaseName": "unexamine_drill_s17_upgrade_recover",
+  "targetHost": "127.0.0.1",
+  "fileObjects": "EXTRACTED",
+  "configurationVersion": "local-v1",
+  "secretReferences": "REFERENCE_ONLY_ROTATE_ON_RESTORE",
+  "verifiedAt": "2026-10-10T19:07:44.0291497+08:00",
+  "items": [
+    {
+      "itemType": "DATABASE",
+      "sizeBytes": 11381628,
+      "sha256": "9b2c6d3f3fcaa8ee1240a17d04110efa02a34a44b6238c6072a01e3f255aebc1",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "FILE_STORAGE",
+      "sizeBytes": 169,
+      "sha256": "d49f2ecd1db18ae311b726cf39c7f8c88ab79bd4ca70c01d8e8c09b79f94b06f",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "CONFIGURATION",
+      "sizeBytes": 347,
+      "sha256": "cdafd3fdc8fc77c2a9cf33db4ac31a49389444aaf7021698abf074c6346e1302",
+      "verificationStatus": "VERIFIED"
+    },
+    {
+      "itemType": "SECRET_REFERENCES",
+      "sizeBytes": 252,
+      "sha256": "08d2bf58c28e6883aac9ca20361f3fe9613b2776c81427c2d52ef5f67140fee1",
+      "verificationStatus": "VERIFIED"
+    }
+  ]
+}

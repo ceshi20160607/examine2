@@ -1,0 +1,26 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev3",
+  "status": "import_ui_preview_and_execute_verified",
+  "beforeCount": 2,
+  "previewCount": 2,
+  "afterCount": 3,
+  "mapping": {
+    "text": "客户记录 · 数据导入\n1\n下载模板并上传\n文件先走受控上传、安全扫描和账号引用\n2\n映射后预演\n逐行显示新增、更新、跳过和错误，预演零写入\n3\n后台执行或回滚\n每行重新校验权限与版本，避免覆盖后续修改\n下载 Excel 模板\n选择 Excel / CSV\ns19-ui-customer-import.csv · 扫描通过\n字段映射\ntitle\n→\n标题（必填）\nfield_bc62d57501\n→\n客户名称\n业务编号（仅匹配）\n重复时报错\n跳过已有记录\n新增并更新\n仅更新匹配\n开始预演\n权限、字段可写范围和数据归属会在每一行执行时重新校验。\n关 闭",
+    "previewEnabled": true
+  },
+  "preview": {
+    "summary": "2总行数\n1可执行\n0成功\n1错误\n预演完成",
+    "rows": [
+      "2\t新建\t可执行\tS19 页面导入客户 · 页面导入已验\t新记录\t校验通过",
+      "3\t待处理\t预演错误\t无标题应拒绝\t新记录\t标题不能为空"
+    ]
+  },
+  "completed": {
+    "summary": "2总行数\n1可执行\n1成功\n1错误\n部分完成",
+    "rows": [
+      "2\t新建\t已成功\tS19 页面导入客户 · 页面导入已验\t已匹配\t校验通过",
+      "3\t待处理\t预演错误\t无标题应拒绝\t新记录\t标题不能为空"
+    ]
+  }
+}

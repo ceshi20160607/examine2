@@ -1,4 +1,0 @@
-{
-  "ok": false,
-  "error": "receipt must describe current verified contribution; missing fields: ['permission_or_failure_result']"
-}

@@ -4,6 +4,7 @@ export interface ConfiguredModuleGroup {
   name: string
   sortOrder: number
   status: string
+  version: number
 }
 
 export interface ConfiguredModule {
@@ -26,6 +27,7 @@ export interface ConfiguredField {
   searchable?: boolean
   dictionaryId?: number
   referenceModuleId?: number
+  parentFieldId?: number
   sortOrder: number
   status: string
   configJson: string
@@ -63,6 +65,20 @@ export interface ConfiguredAction {
   status: string
   configJson: string
   version: number
+  /** 升级前已发布首页的限定入口；仅沿用原有模块列表权限。 */
+  legacyDashboardCompatibility?: boolean
+  legacyDashboardSynthetic?: boolean
+}
+
+/** 自定义动作的业务效果由管理员通过表单选择，运行时使用已发布配置。 */
+export type CustomActionOperation = 'UPDATE_FIELDS' | 'SET_STATUS'
+
+export interface CustomActionConfiguration {
+  operation?: CustomActionOperation
+  parameterFieldCodes?: string[]
+  statusValue?: string
+  confirmation?: boolean
+  confirmationText?: string
 }
 
 export interface ModuleOverview {
@@ -99,6 +115,7 @@ export interface AiModel {
     logMasking?: boolean
     dataResidency?: string
   }
+  scopeType: 'PLATFORM' | 'SYSTEM'
   status: string
   version: number
   grants: AiModelGrant[]
@@ -109,11 +126,26 @@ export interface AiSystemOption { id: number; code: string; name: string }
 export interface AiPlatformOverview {
   models: AiModel[]
   systems: AiSystemOption[]
+  agents: AiPlatformAgent[]
+}
+
+export interface AiPlatformAgent {
+  id: number
+  code: string
+  name: string
+  description?: string
+  modelId: number
+  systemPrompt: string
+  capabilities: string[]
+  draftRevision: number
+  status: string
+  version: number
+  versions: AiAgentVersion[]
 }
 
 export interface AiTool {
   id: number
-  toolType: 'QUERY' | 'WRITE' | 'FLOW_DRAFT' | 'REPORT' | 'ERROR_EXPLAIN'
+  toolType: 'QUERY' | 'WRITE' | 'FLOW_DRAFT' | 'REPORT' | 'ERROR_EXPLAIN' | 'CONFIG_DRAFT'
   resourceType: 'MODULE'
   resourceId: string
   actionCode: string
@@ -128,7 +160,7 @@ export interface AiAgentVersion {
   versionNumber: number
   draftRevision: number
   snapshotHash: string
-  publishedByMemberId: number
+  publishedByMemberId: number | null
   publishedAt: string
   current: boolean
 }
@@ -240,6 +272,17 @@ export interface AiQuerySource {
   title: string
   path: string
   fields: Record<string, unknown>
+  fieldPresentation: Record<string, { name: string; displayValue?: string | null }>
+}
+
+/** 已发布统计来源的可信计算结果；数值和分组由业务报表服务返回。 */
+export interface AiQueryReport {
+  dataSourceId: number
+  value: unknown
+  groups: Array<{ key: unknown; label: string; value: unknown; rowCount: number }>
+  metricDefinition: string
+  dataSourceVersionId: number | null
+  dataSourceVersionNumber: number | null
 }
 
 export interface AiQueryResult {
@@ -251,6 +294,7 @@ export interface AiQueryResult {
   retryable: boolean
   scope: AiQueryScope
   metricDefinition?: string
+  report?: AiQueryReport | null
   sources: AiQuerySource[]
   persistedAt: string
 }
@@ -287,6 +331,7 @@ export interface AiWriteFieldCandidate {
   code: string
   label: string
   fieldType: string
+  childFieldCodes: string[]
   required: boolean
   writable: boolean
   value?: unknown
@@ -673,6 +718,8 @@ export interface RuntimeRecord {
   ownerMemberId?: number
   departmentId?: number
   participantMemberIds: number[]
+  /** 业务团队角色；旧记录仅有 participantMemberIds 时由页面按协作人展示。 */
+  participantMembers?: Array<{ memberId: number; role: 'COLLABORATOR' | 'READ_ONLY' | 'FOLLOWER' }>
   archived: boolean
   archivedAt?: string
   deleted: boolean
@@ -726,6 +773,8 @@ export interface RuntimeRecordActionContext {
   name: string
   record: RuntimeRecord
   parameters: RuntimeField[]
+  operation?: CustomActionOperation
+  statusValue?: string
   confirmation?: boolean
   confirmationText?: string
 }
@@ -926,7 +975,7 @@ export interface AuditEvent {
   resultCode: string
   permissionSnapshot?: string
   detailJson?: string
-  occurredAt: string
+  occurTime: string
 }
 
 export interface AuditFieldChange {
@@ -980,6 +1029,7 @@ export interface SystemSettings {
   code: string
   name: string
   tenantMode: 'SINGLE' | 'MULTI'
+  ownerAccountId: number
   status: string
   version: number
 }
@@ -988,50 +1038,26 @@ export interface SystemTenant {
   id: number
   code: string
   name: string
+  loginTitle?: string | null
+  loginSubtitle?: string | null
   main: boolean
-  status: 'ACTIVE' | 'DISABLED'
+  status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED'
   current: boolean
   version: number
 }
 
 export interface SystemDomain {
   id: number
+  tenantId?: number | null
+  tenantName?: string | null
   domainType: 'SUBDOMAIN' | 'CUSTOM'
   host: string
   basePath: string
   tlsRequired: boolean
   status: 'PENDING_VERIFICATION' | 'VERIFICATION_FAILED' | 'VERIFIED' | 'PUBLISHED'
-  verifiedAt?: string
+  verifyTime?: string
   verificationToken: string
   verificationUrl: string
-  version: number
-}
-
-export interface TenantModeMigrationPreflight {
-  fromMode: 'SINGLE' | 'MULTI'
-  toMode: 'SINGLE' | 'MULTI'
-  allowed: boolean
-  blockers: string[]
-  impact: {
-    tenantCount: number
-    secondaryTenantCount: number
-    nonMainRecordCount: number
-    activeShareCount: number
-  }
-  migrationSteps: string[]
-}
-
-export interface TenantModeMigration {
-  id: number
-  fromMode: 'SINGLE' | 'MULTI'
-  toMode: 'SINGLE' | 'MULTI'
-  status: 'PENDING_APPROVAL' | 'RUNNING' | 'COMPLETED' | 'REJECTED' | 'BLOCKED' | 'FAILED'
-  jobId?: number
-  requestedByMemberId: number
-  impactSnapshotJson: string
-  rollbackSnapshotJson?: string
-  startedAt?: string
-  finishedAt?: string
   version: number
 }
 
@@ -1091,6 +1117,7 @@ export interface AuthorizationRole {
   permissions: AuthorizationPermissionConfig[]
   fieldPolicies: AuthorizationFieldPolicy[]
   version: number
+  draftPending: boolean
 }
 
 export interface AuthorizationResource {
@@ -1162,7 +1189,10 @@ export interface SystemAuthorizationOverview {
 
 export interface PermissionPreview {
   permissionVersion: number
+  systemOwner: boolean
   targetMember: AuthorizationMember
+  /** 与目标成员实际运行态模块目录相同。 */
+  visibleMenus: RuntimeModuleCatalogItem[]
   roles: Array<{
     roleId: number
     roleCode: string
@@ -1181,6 +1211,7 @@ export interface PermissionPreview {
   }>
   fields: Array<{
     resourceCode: string
+    actionCode: string
     fieldCode: string
     channel: string
     readable: boolean
@@ -1197,7 +1228,7 @@ export interface AccountMfaMethod {
   methodType: string
   displayLabel: string
   status: string
-  verifiedAt?: string
+  verifyTime?: string
 }
 
 export interface AccountSession {
@@ -1206,9 +1237,9 @@ export interface AccountSession {
   systemId?: number
   tenantId?: number
   mfaLevel: string
-  accessExpiresAt: string
-  refreshExpiresAt: string
-  createdAt: string
+  accessExpireTime: string
+  refreshExpireTime: string
+  createTime: string
   current: boolean
   revoked: boolean
 }
@@ -1222,7 +1253,7 @@ export interface AccountProfile {
   locale: string
   timezone: string
   status: string
-  lastLoginAt?: string
+  lastLoginTime?: string
   credentialVersion: number
   version: number
   mfaMethods: AccountMfaMethod[]
@@ -1260,8 +1291,8 @@ export interface SystemAccessRequest {
   approvedDataScope: Record<string, unknown>
   requestTraceId: string
   decisionTraceId?: string
-  createdAt: string
-  decidedAt?: string
+  createTime: string
+  decideTime?: string
   version: number
 }
 
@@ -1281,7 +1312,7 @@ export interface SsoProviderTestReport {
   status: 'PASSED' | 'FAILED'
   requestId: string
   failureCode?: string
-  testedAt: string
+  testedTime: string
   checks: SsoProviderTestCheck[]
 }
 
@@ -1301,17 +1332,18 @@ export interface SsoProviderVersion {
   testStatus: 'NOT_TESTED' | 'PASSED' | 'FAILED'
   testReport?: SsoProviderTestReport
   status: 'DRAFT' | 'PUBLISHED'
-  createdAt: string
-  publishedAt?: string
+  createdTime: string
+  publishedTime?: string
 }
 
 export interface SsoProviderAdmin {
   id: number
   code: string
   name: string
-  status: 'DRAFT' | 'PUBLISHED'
+  status: 'DRAFT' | 'PUBLISHED' | 'DISABLED'
   publishedVersionId?: number
   publishedVersionNumber?: number
+  requiresRevalidation: boolean
   versions: SsoProviderVersion[]
 }
 
@@ -1379,7 +1411,7 @@ export interface IdentityMappingPreflightReport {
   providerVersionId: number
   providerCode: string
   tenantDomain: string
-  createdAt: string
+  createTime: string
   summary: Record<string, number>
   items: IdentityMappingPreflightItem[]
 }
@@ -1399,8 +1431,8 @@ export interface SystemIdentityMappingConfiguration {
   jitPolicy: 'ACCESS_REQUEST' | 'CREATE_MEMBER' | 'CREATE_ACCOUNT_AND_MEMBER'
   latestPreflight?: IdentityMappingPreflightReport
   confirmedJobId?: number
-  confirmedAt?: string
-  updatedAt: string
+  confirmTime?: string
+  updateTime: string
 }
 
 export interface IdentityMappingJobItem {
@@ -1423,19 +1455,25 @@ export interface IdentityMappingJob {
   progressTotal: number
   summary: Record<string, unknown>
   items: IdentityMappingJobItem[]
-  createdAt: string
-  finishedAt?: string
+  createTime: string
+  finishTime?: string
 }
 
 export interface IdentityMappingLog {
   id: number
-  occurredAt: string
+  occurTime: string
+  eventCode: string
   identityProvider: string
   externalUserId: string
+  accountBinding?: string
+  systemMemberMapping?: string
+  authenticationMethod?: string
   mfaLevel: string
+  ip?: string
   device: string
   requestId: string
   traceId: string
+  loginTraceId?: string
   resultCode: string
   failureReason?: string
   systemMemberId?: number
@@ -1629,6 +1667,7 @@ export interface OperationsHealthItem {
 }
 
 export interface OperationsJobOverview {
+  available: boolean
   queued: number
   running: number
   retryWait: number
@@ -1991,6 +2030,7 @@ export interface FlowBindingView {
   condition?: import('./conditions').ConditionNode
   mutuallyExclusive: boolean
   schedule?: FlowScheduleConfig
+  approvalStatusMapping: Record<string, string>
   status: string
   version: number
   updatedAt: string
@@ -2012,6 +2052,7 @@ export interface FlowBindingResolution {
   definitionSnapshot: Record<string, unknown>
   executionMode: string
   mutuallyExclusive: boolean
+  approvalStatusMapping: Record<string, string>
   resolutionReason: string
   resolvedAt: string
 }
@@ -2659,37 +2700,9 @@ export interface ApplicationGrantView {
   fields: ApplicationGrantFieldView[]
 }
 
-export interface ApplicationIdentityMemberOption {
-  systemId: number
-  systemName: string
-  tenantId: number
-  tenantName: string
-  tenantMemberId: number
-  memberName: string
-  employeeNumber?: string
-}
-
-export interface ApplicationIdentityCatalog {
-  sourceMembers: ApplicationIdentityMemberOption[]
-  targetMembers: ApplicationIdentityMemberOption[]
-}
-
-export interface ApplicationIdentityMappingView {
-  id: number
-  sourceSystemId: number
-  sourceSystemName: string
-  sourceTenantId: number
-  sourceTenantName: string
-  sourceTenantMemberId: number
-  sourceMemberName: string
-  targetSystemId: number
-  targetSystemName: string
-  targetTenantId: number
-  targetTenantName: string
-  targetTenantMemberId: number
-  targetMemberName: string
-  status: 'ACTIVE' | 'DISABLED' | 'MISSING'
-  version: number
+export interface ApplicationScopeCatalog {
+  members: { id: number; name: string; status: string }[]
+  departments: { id: number; name: string; status: string }[]
 }
 
 export interface ApplicationProviderSecretReference {
@@ -2812,11 +2825,11 @@ export interface ApplicationCredentialView {
   clientId: string
   secretReference: string
   secretHint: string
-  validFrom: string
-  expiresAt?: string
+  validStartTime: string
+  expireTime?: string
   status: string
-  revokedAt?: string
-  createdAt: string
+  revokeTime?: string
+  createTime: string
 }
 
 export interface ApplicationVersionView {
@@ -2825,7 +2838,7 @@ export interface ApplicationVersionView {
   draftRevision: number
   snapshotHash: string
   publishedByAccountId: number
-  publishedAt: string
+  publishTime: string
   current: boolean
 }
 
@@ -2834,7 +2847,7 @@ export interface ApplicationStatusEvent {
   eventCode: string
   resultCode: string
   actorAccountId: number
-  occurredAt: string
+  occurTime: string
   detail: Record<string, unknown>
 }
 
@@ -2857,13 +2870,11 @@ export interface ApplicationView {
   callbacks: ApplicationCallbackView[]
   grants: ApplicationGrantView[]
   publishedGrants: ApplicationGrantView[]
-  identityMappings: ApplicationIdentityMappingView[]
-  publishedIdentityMappings: ApplicationIdentityMappingView[]
   credentials: ApplicationCredentialView[]
   versions: ApplicationVersionView[]
   statusHistory: ApplicationStatusEvent[]
-  createdAt: string
-  updatedAt: string
+  createTime: string
+  updateTime: string
 }
 
 export interface ApplicationCredentialSecret {
@@ -2873,8 +2884,8 @@ export interface ApplicationCredentialSecret {
   clientSecret: string
   secretReference: string
   secretHint: string
-  validFrom: string
-  expiresAt: string
+  validStartTime: string
+  expireTime: string
   shownOnce: boolean
 }
 
@@ -2909,7 +2920,7 @@ export interface ApplicationConfigurationExport {
     rateLimit: Record<string, unknown>
     fields: Array<{ fieldCode: string; readable: boolean; writable: boolean; maskStrategy?: string }>
   }>
-  exportedAt: string
+  exportTime: string
 }
 
 export interface ApplicationRotateResult {
@@ -2967,8 +2978,8 @@ export interface ApplicationCallLogView {
   replayCount: number
   permissionSnapshot: Record<string, unknown>
   response?: unknown
-  calledAt: string
-  finishedAt?: string
+  callTime: string
+  finishTime?: string
 }
 
 export interface MessageTemplateView {
@@ -3235,7 +3246,7 @@ export interface ImportBatchView {
   successRows: number
   failedRows: number
   columnMapping: Record<string, string>
-  conflictPolicy: 'ERROR' | 'SKIP' | 'UPDATE'
+  conflictPolicy: 'ERROR' | 'SKIP' | 'UPDATE' | 'UPDATE_ONLY'
   matchFieldCode: string
   summary: Record<string, unknown>
   rows: ImportRowView[]
@@ -3284,8 +3295,8 @@ export interface ExportBatchView {
   version: number
 }
 
-export type DashboardSourceType = 'PLATFORM_SYSTEMS' | 'MODULE_RECORDS' | 'MODULE_REPORT' | 'EXTERNAL_API'
-  | 'DATABASE_CONNECTION' | 'TODO_ITEMS' | 'MESSAGE_ITEMS' | 'WORK_PROJECTS'
+export type DashboardSourceType = 'PLATFORM_SYSTEMS' | 'MODULE_RECORDS' | 'MODULE_REPORT'
+  | 'TODO_ITEMS' | 'MESSAGE_ITEMS' | 'WORK_PROJECTS'
 export type DashboardComponentType = 'METRIC' | 'CHART' | 'LIST' | 'TODO' | 'QUICK_ENTRY'
   | 'KPI' | 'PROGRESS' | 'RANKING'
 
@@ -3308,8 +3319,9 @@ export interface DashboardDataSource {
   status: 'DRAFT' | 'PUBLISHED'
   version: number
   updatedAt: string
+  inherited: boolean
   boundary: {
-    family: 'SYSTEM_MODULE' | 'EXTERNAL_API' | 'DATABASE' | 'SYSTEM_CAPABILITY'
+    family: 'SYSTEM_MODULE' | 'SYSTEM_CAPABILITY'
     connectionMode: string
     queryMode: string
     permissionMode: string
@@ -3344,6 +3356,8 @@ export interface DashboardVersion {
 export interface DashboardDefinition {
   id: number
   contextType: 'PLATFORM' | 'SYSTEM'
+  dashboardKind?: 'PLATFORM_HOME' | 'SYSTEM_HOME' | 'MODULE_HOME' | 'PERSONAL'
+  moduleId?: number | null
   code: string
   name: string
   description?: string
@@ -3358,6 +3372,11 @@ export interface DashboardAdminOverview {
   contextType: 'PLATFORM' | 'SYSTEM'
   dataSources: DashboardDataSource[]
   dashboards: DashboardDefinition[]
+}
+/** 个人首页只提供当前成员能够使用的已发布数据源。 */
+export interface PersonalDashboardOverview {
+  dashboard: DashboardDefinition | null
+  dataSources: { id: number; name: string; sourceType: DashboardSourceType }[]
 }
 export interface DashboardRuntimeComponent {
   componentKey: string
@@ -3409,9 +3428,9 @@ export interface KpiResult {
   id: number
   periodKey: string
   dimensionKey: string
-  actualValue: number
+  actualValue: number | null
   targetValue: number
-  achievementRate: number
+  achievementRate: number | null
   status: 'ACHIEVED' | 'UNDER_TARGET' | 'STALE'
   stale: boolean
   explanation: Record<string, unknown>
@@ -3552,9 +3571,13 @@ export interface PrintTemplateDefinition {
 }
 export interface PrintAdminOverview { modules: PrintModuleOption[]; templates: PrintTemplateDefinition[] }
 export interface PrintPreviewPageField { code: string; name: string; value: string; detail: boolean }
+export interface PrintDetailTable {
+  code: string; name: string; columns: Array<{ code: string; name: string }>
+  rows: Array<{ rowNumber: number; values: string[] }>
+}
 export interface PrintPreviewPage {
   pageNumber: number; pageCount: number; header?: string; recordNumber?: string; recordTitle: string
-  fields: PrintPreviewPageField[]; signatureLabel?: string; footer?: string
+  fields: PrintPreviewPageField[]; detailTables?: PrintDetailTable[]; signatureLabel?: string; footer?: string
 }
 export interface PrintPreview {
   templateId: number; draftRevision: number; previewHash: string; moduleVersionId: number
@@ -3575,7 +3598,7 @@ export interface PrintJob {
 export interface OperationsSecretRef {
   id: number
   secretCode: string
-  secretType: 'APPLICATION' | 'SSO' | 'WEBHOOK' | 'MODEL'
+  secretType: 'APPLICATION' | 'SSO' | 'WEBHOOK' | 'MODEL' | 'BACKUP'
   provider: string
   referencePath: string
   currentVersion: string

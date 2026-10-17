@@ -15,6 +15,7 @@ export interface ReportDefinitionInput {
   metricOperation: 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX'
   metricField?: string
   dimensionType?: 'FIELD' | 'TIME' | 'PERSON' | 'DEPARTMENT' | 'STATUS'
+  dimensionInterval?: 'DAY' | 'MONTH' | 'QUARTER' | 'YEAR'
   dimensionField?: string
   filterField?: string
   filterOperator?: string
@@ -66,7 +67,8 @@ export function buildReportDefinition(input: ReportDefinitionInput): Record<stri
     relations,
     outputFields: input.outputFields.map(splitQualifiedField).filter(Boolean),
     metric: { operation: input.metricOperation, ...(metricField || {}) },
-    dimension: dimensionField ? { type: input.dimensionType || 'FIELD', ...dimensionField } : {},
+    dimension: dimensionField ? { type: input.dimensionType || 'FIELD', ...dimensionField,
+      ...(input.dimensionType === 'TIME' ? { interval: input.dimensionInterval || 'DAY' } : {}) } : {},
     filters: filters.map(filter => ({
       ...(splitQualifiedField(filter.field) || { alias: '', fieldCode: '' }),
       operator: filter.operator || 'EQ', value: filter.value || '',

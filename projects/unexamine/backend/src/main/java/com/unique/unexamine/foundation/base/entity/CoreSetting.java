@@ -10,54 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台、系统和租户范围内的普通业务配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_setting")
+@TableName("un_core_setting")
 public class CoreSetting {
 
+    /**
+     * 配置主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 配置归属：平台、系统或租户
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 所属系统主键，平台配置为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户主键，平台和系统配置为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 业务配置类别
+     */
     @TableField("category")
     private String category;
 
+    /**
+     * 归属范围内的配置键
+     */
     @TableField("setting_key")
     private String settingKey;
 
+    /**
+     * 配置值类型
+     */
     @TableField("value_type")
     private String valueType;
 
+    /**
+     * 业务配置值，不承载固定实体关系
+     */
     @TableField("value_json")
     private String valueJson;
 
+    /**
+     * 是否属于敏感配置
+     */
     @TableField("`sensitive`")
     private Boolean sensitive;
 
+    /**
+     * 配置启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间，后续统一更名为 create_time
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间，后续统一更名为 update_time
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -150,20 +192,20 @@ public class CoreSetting {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -188,8 +230,8 @@ public class CoreSetting {
             ", valueJson = " + valueJson +
             ", sensitive = " + sensitive +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

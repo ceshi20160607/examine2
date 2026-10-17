@@ -7,12 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.base.entity.AuditEvent;
 import com.unique.unexamine.audit.base.service.AuditEventBaseService;
 import com.unique.unexamine.authentication.manage.AuthenticatedContext;
+import com.unique.unexamine.authorization.manage.TenantMemberQuotaService;
 import com.unique.unexamine.backgroundjobs.base.entity.JobBackground;
 import com.unique.unexamine.backgroundjobs.base.entity.JobItemResult;
 import com.unique.unexamine.backgroundjobs.base.service.JobBackgroundBaseService;
 import com.unique.unexamine.backgroundjobs.base.service.JobItemResultBaseService;
-import com.unique.unexamine.foundation.base.entity.CoreSetting;
-import com.unique.unexamine.foundation.base.service.CoreSettingBaseService;
 import com.unique.unexamine.platform.base.entity.PlatSsoIdentity;
 import com.unique.unexamine.platform.base.entity.PlatSsoProvider;
 import com.unique.unexamine.platform.base.entity.PlatSsoProviderVersion;
@@ -23,10 +22,12 @@ import com.unique.unexamine.platform.base.service.PlatSsoProviderVersionBaseServ
 import com.unique.unexamine.platform.base.service.PlatformAccountBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SysAccessRequest;
+import com.unique.unexamine.system.base.entity.SysSsoBinding;
 import com.unique.unexamine.system.base.entity.SystemDepartment;
 import com.unique.unexamine.system.base.entity.SystemMember;
 import com.unique.unexamine.system.base.entity.SystemTenantMember;
 import com.unique.unexamine.system.base.service.SysAccessRequestBaseService;
+import com.unique.unexamine.system.base.service.SysSsoBindingBaseService;
 import com.unique.unexamine.system.base.service.SystemDepartmentBaseService;
 import com.unique.unexamine.system.base.service.SystemMemberBaseService;
 import com.unique.unexamine.system.base.service.SystemTenantMemberBaseService;
@@ -47,11 +48,9 @@ import java.util.UUID;
 
 @Service
 public class SystemIdentityMappingService {
-    private static final String SETTING_CATEGORY = "ORGANIZATION";
-    private static final String SETTING_KEY = "identity.inheritance";
     private static final Set<String> MATCH_KEYS = Set.of("EXTERNAL_USER_ID", "EMAIL", "MOBILE", "EMPLOYEE_NO");
 
-    private final CoreSettingBaseService settingService;
+    private final SysSsoBindingBaseService bindingService;
     private final PlatSsoProviderBaseService providerService;
     private final PlatSsoProviderVersionBaseService providerVersionService;
     private final PlatSsoIdentityBaseService identityService;
@@ -59,6 +58,7 @@ public class SystemIdentityMappingService {
     private final SystemDepartmentBaseService departmentService;
     private final SystemMemberBaseService memberService;
     private final SystemTenantMemberBaseService tenantMemberService;
+    private final TenantMemberQuotaService tenantMemberQuotaService;
     private final SysAccessRequestBaseService accessRequestService;
     private final JobBackgroundBaseService jobService;
     private final JobItemResultBaseService jobItemService;
@@ -66,7 +66,7 @@ public class SystemIdentityMappingService {
     private final ObjectMapper objectMapper;
 
     public SystemIdentityMappingService(
-            CoreSettingBaseService settingService,
+            SysSsoBindingBaseService bindingService,
             PlatSsoProviderBaseService providerService,
             PlatSsoProviderVersionBaseService providerVersionService,
             PlatSsoIdentityBaseService identityService,
@@ -74,12 +74,13 @@ public class SystemIdentityMappingService {
             SystemDepartmentBaseService departmentService,
             SystemMemberBaseService memberService,
             SystemTenantMemberBaseService tenantMemberService,
+            TenantMemberQuotaService tenantMemberQuotaService,
             SysAccessRequestBaseService accessRequestService,
             JobBackgroundBaseService jobService,
             JobItemResultBaseService jobItemService,
             AuditEventBaseService auditService,
             ObjectMapper objectMapper) {
-        this.settingService = settingService;
+        this.bindingService = bindingService;
         this.providerService = providerService;
         this.providerVersionService = providerVersionService;
         this.identityService = identityService;
@@ -87,6 +88,7 @@ public class SystemIdentityMappingService {
         this.departmentService = departmentService;
         this.memberService = memberService;
         this.tenantMemberService = tenantMemberService;
+        this.tenantMemberQuotaService = tenantMemberQuotaService;
         this.accessRequestService = accessRequestService;
         this.jobService = jobService;
         this.jobItemService = jobItemService;
@@ -98,6 +100,7 @@ public class SystemIdentityMappingService {
     public List<SystemIdentityProviderOption> providers(AuthenticatedContext context) {
         requireSystemContext(context);
         return providerService.selectList(Wrappers.<PlatSsoProvider>lambdaQuery()
+                        .eq(PlatSsoProvider::getPlatformId, context.platformId())
                         .eq(PlatSsoProvider::getStatus, "PUBLISHED")
                         .isNotNull(PlatSsoProvider::getPublishedVersionId)
                         .orderByAsc(PlatSsoProvider::getName, PlatSsoProvider::getId))
@@ -119,8 +122,8 @@ public class SystemIdentityMappingService {
     @Transactional(readOnly = true)
     public SystemIdentityMappingView configuration(AuthenticatedContext context) {
         requireSystemContext(context);
-        CoreSetting setting = findSetting(context);
-        return setting == null ? null : view(context, setting);
+        SysSsoBinding binding = findBinding(context);
+        return binding == null ? null : view(context, binding);
     }
 
     @Transactional
@@ -129,40 +132,53 @@ public class SystemIdentityMappingService {
             SaveSystemIdentityMappingRequest input,
             String traceId) {
         requireSystemContext(context);
-        ProviderSelection provider = requirePublishedProvider(input.providerId(), input.providerVersionId());
+        ProviderSelection provider = requirePublishedProvider(context, input.providerId(), input.providerVersionId());
         String tenantDomain = normalizeDomain(input.tenantDomain());
         validateDomain(provider.version(), tenantDomain);
         Map<String, Long> departmentMappings = normalizeDepartmentMappings(context, input.departmentMappings());
         List<String> matchOrder = normalizeMatchOrder(input.matchOrder());
         String jitPolicy = input.jitPolicy().strip().toUpperCase(Locale.ROOT);
 
-        CoreSetting setting = findSetting(context);
-        MappingState state = new MappingState(provider.provider().getId(), provider.version().getId(), tenantDomain,
-                departmentMappings, matchOrder, jitPolicy, null, null, null);
-        if (setting == null) {
+        SysSsoBinding previous = findBinding(context);
+        if (previous == null) {
             if (input.expectedVersion() != null) {
                 throw conflict("新建身份映射不能指定历史版本");
             }
-            setting = new CoreSetting();
-            setting.setContextType("SYSTEM");
-            setting.setPlatformId(context.platformId());
-            setting.setSystemId(context.systemId());
-            setting.setTenantId(context.tenantId());
-            setting.setCategory(SETTING_CATEGORY);
-            setting.setSettingKey(SETTING_KEY);
-            setting.setValueType("JSON");
-            setting.setValueJson(toJson(state));
-            setting.setSensitive(false);
-            setting.setStatus("ACTIVE");
-            settingService.insert(setting);
         } else {
-            requireVersion(setting, input.expectedVersion());
-            setting.setValueJson(toJson(state));
-            if (settingService.updateById(setting) != 1) {
+            requireVersion(previous, input.expectedVersion());
+        }
+        // 已确认配置保留历史版本；后续修改先形成新的草稿，不直接改写生效绑定。
+        boolean reuseDraft = previous != null && "DRAFT".equals(previous.getStatus());
+        SysSsoBinding binding = reuseDraft ? previous : new SysSsoBinding();
+        if (!reuseDraft) {
+            binding.setPlatformId(context.platformId());
+            binding.setSystemId(context.systemId());
+            binding.setTenantId(context.tenantId());
+            binding.setCreatedByMemberId(context.memberId());
+        }
+        if (!reuseDraft || !provider.provider().getId().equals(binding.getProviderId())) {
+            binding.setBindingVersion(nextBindingVersion(context, provider.provider().getId()));
+        }
+        binding.setProviderId(provider.provider().getId());
+        binding.setProviderVersionId(provider.version().getId());
+        binding.setTenantDomainsJson(toJson(List.of(tenantDomain)));
+        binding.setDepartmentMappingJson(toJson(departmentMappings));
+        binding.setMemberMatchJson(toJson(matchOrder));
+        binding.setJitPolicyJson(toJson(jitPolicy));
+        binding.setPreflightReportJson(null);
+        binding.setPreflightTime(null);
+        binding.setStatus("DRAFT");
+        binding.setSyncJobId(null);
+        binding.setConfirmedByMemberId(null);
+        binding.setConfirmedTime(null);
+        if (reuseDraft) {
+            if (bindingService.updateById(binding) != 1) {
                 throw conflict("身份映射已被其他管理员修改，请刷新后重试");
             }
+        } else {
+            bindingService.insert(binding);
         }
-        CoreSetting current = settingService.selectById(setting.getId());
+        SysSsoBinding current = bindingService.selectById(binding.getId());
         recordAudit(context, traceId, traceId, "SYSTEM_IDENTITY_MAPPING_DRAFT_SAVED", "SUCCESS",
                 provider.provider().getCode(), null, null, null, null, null, null, current.getId());
         return view(context, current);
@@ -174,9 +190,9 @@ public class SystemIdentityMappingService {
             RunIdentityMappingPreflightRequest input,
             String traceId) {
         requireSystemContext(context);
-        CoreSetting setting = requireSetting(context);
-        MappingState state = readState(setting);
-        ProviderSelection provider = requirePublishedProvider(state.providerId(), state.providerVersionId());
+        SysSsoBinding binding = requireDraftBinding(context);
+        MappingState state = readState(binding);
+        ProviderSelection provider = requirePublishedProvider(context, state.providerId(), state.providerVersionId());
         validateDomain(provider.version(), state.tenantDomain());
 
         List<IdentityMappingPreflightItem> items = new ArrayList<>();
@@ -190,14 +206,13 @@ public class SystemIdentityMappingService {
                 UUID.randomUUID().toString(), provider.provider().getId(), provider.version().getId(),
                 provider.provider().getCode(), state.tenantDomain(), LocalDateTime.now().toString(), summary,
                 List.copyOf(items));
-        MappingState updated = new MappingState(state.providerId(), state.providerVersionId(), state.tenantDomain(),
-                state.departmentMappings(), state.matchOrder(), state.jitPolicy(), report, null, null);
-        setting.setValueJson(toJson(updated));
-        if (settingService.updateById(setting) != 1) {
+        binding.setPreflightReportJson(toJson(report));
+        binding.setPreflightTime(LocalDateTime.now());
+        if (bindingService.updateById(binding) != 1) {
             throw conflict("身份映射在预检期间被修改，请重新预检");
         }
         recordAudit(context, traceId, traceId, "SYSTEM_IDENTITY_MAPPING_PREFLIGHT", "SUCCESS",
-                provider.provider().getCode(), null, null, null, null, null, null, setting.getId());
+                provider.provider().getCode(), null, null, null, null, null, null, binding.getId());
         return report;
     }
 
@@ -207,13 +222,13 @@ public class SystemIdentityMappingService {
             ConfirmIdentityMappingRequest input,
             String traceId) {
         requireSystemContext(context);
-        CoreSetting setting = requireSetting(context);
-        MappingState state = readState(setting);
+        SysSsoBinding binding = requireDraftBinding(context);
+        MappingState state = readState(binding);
         IdentityMappingPreflightReport report = state.latestPreflight();
         if (report == null || !report.preflightId().equals(input.preflightId())) {
             throw new DomainException("IDENTITY_PREFLIGHT_STALE", "预检报告已失效，请重新运行预检", HttpStatus.CONFLICT);
         }
-        ProviderSelection provider = requirePublishedProvider(state.providerId(), state.providerVersionId());
+        ProviderSelection provider = requirePublishedProvider(context, state.providerId(), state.providerVersionId());
 
         JobBackground job = new JobBackground();
         job.setContextType("SYSTEM");
@@ -221,18 +236,12 @@ public class SystemIdentityMappingService {
         job.setSystemId(context.systemId());
         job.setTenantId(context.tenantId());
         job.setJobType("SYSTEM_IDENTITY_MAPPING_SYNC");
-        job.setSourceType("CORE_SETTING");
-        job.setSourceId(setting.getId().toString());
+        job.setSourceType("SYS_SSO_BINDING");
+        job.setSourceId(binding.getId().toString());
         job.setParameterJson(toJson(Map.of("preflightId", report.preflightId(), "providerId", state.providerId(),
                 "providerVersionId", state.providerVersionId())));
         job.setAuthorizationSnapshotJson(toJson(Map.of("accountId", context.accountId(), "memberId", context.memberId(),
                 "roleIds", context.roleIds())));
-        job.setStatus("RUNNING");
-        job.setProgressCurrent(0L);
-        job.setProgressTotal((long) report.items().size());
-        job.setMaxAttempts(1);
-        job.setAttemptCount(1);
-        job.setStartedAt(LocalDateTime.now());
         job.setCreatedByAccountId(context.accountId());
         jobService.insert(job);
 
@@ -262,25 +271,38 @@ public class SystemIdentityMappingService {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("completed", completed);
         summary.put("skipped", skipped);
+        summary.put("total", (long) report.items().size());
         summary.put("accessRequests", accessRequests);
         summary.put("confirmedByMemberId", context.memberId());
-        job.setProgressCurrent((long) report.items().size());
-        job.setStatus(skipped == 0 ? "SUCCEEDED" : "SUCCEEDED_WITH_WARNINGS");
+        // 身份同步在当前事务内完成；MySQL 只记录最终结论和逐项结果。
+        job.setFinalStatus(skipped == 0 ? "SUCCEEDED" : "SUCCEEDED_WITH_WARNINGS");
         job.setResultSummaryJson(toJson(summary));
-        job.setFinishedAt(LocalDateTime.now());
+        job.setFinishTime(LocalDateTime.now());
         if (jobService.updateById(job) != 1) {
             throw conflict("身份同步任务状态更新冲突");
         }
 
-        MappingState confirmed = new MappingState(state.providerId(), state.providerVersionId(), state.tenantDomain(),
-                state.departmentMappings(), state.matchOrder(), state.jitPolicy(), state.latestPreflight(), job.getId(),
-                LocalDateTime.now().toString());
-        setting.setValueJson(toJson(confirmed));
-        if (settingService.updateById(setting) != 1) {
+        // 同一身份源仅保留一条生效绑定，历史版本保留为停用状态。
+        for (SysSsoBinding active : bindingService.selectList(Wrappers.<SysSsoBinding>lambdaQuery()
+                .eq(SysSsoBinding::getSystemId, context.systemId())
+                .eq(SysSsoBinding::getTenantId, context.tenantId())
+                .eq(SysSsoBinding::getProviderId, binding.getProviderId())
+                .eq(SysSsoBinding::getStatus, "ACTIVE")
+                .ne(SysSsoBinding::getId, binding.getId()))) {
+            active.setStatus("DISABLED");
+            if (bindingService.updateById(active) != 1) {
+                throw conflict("旧身份源绑定状态更新冲突");
+            }
+        }
+        binding.setSyncJobId(job.getId());
+        binding.setConfirmedByMemberId(context.memberId());
+        binding.setConfirmedTime(job.getFinishTime());
+        binding.setStatus("ACTIVE");
+        if (bindingService.updateById(binding) != 1) {
             throw conflict("身份映射确认状态更新冲突");
         }
-        recordAudit(context, traceId, traceId, "SYSTEM_IDENTITY_MAPPING_SYNC_CONFIRMED", job.getStatus(),
-                provider.provider().getCode(), null, null, null, null, null, job.getId(), setting.getId());
+        recordAudit(context, traceId, traceId, "SYSTEM_IDENTITY_MAPPING_SYNC_CONFIRMED", job.getFinalStatus(),
+                provider.provider().getCode(), null, null, null, null, null, job.getId(), binding.getId());
         return jobView(context, jobService.selectById(job.getId()));
     }
 
@@ -291,7 +313,7 @@ public class SystemIdentityMappingService {
                         .eq(JobBackground::getSystemId, context.systemId())
                         .eq(JobBackground::getTenantId, context.tenantId())
                         .eq(JobBackground::getJobType, "SYSTEM_IDENTITY_MAPPING_SYNC")
-                        .orderByDesc(JobBackground::getCreatedAt, JobBackground::getId))
+                        .orderByDesc(JobBackground::getCreateTime, JobBackground::getId))
                 .stream().map(job -> jobView(context, job)).toList();
     }
 
@@ -308,11 +330,13 @@ public class SystemIdentityMappingService {
         requireSystemContext(context);
         return auditService.selectList(Wrappers.<AuditEvent>lambdaQuery()
                         .eq(AuditEvent::getSystemId, context.systemId())
-                        .eq(AuditEvent::getTenantId, context.tenantId())
-                        .eq(AuditEvent::getEventCode, "SYSTEM_IDENTITY_LOGIN_MAPPING")
+                        // 系统准入拒绝尚无租户上下文；系统管理员仍需看到本系统的拒绝原因。
+                        .and(query -> query.eq(AuditEvent::getTenantId, context.tenantId())
+                                .or().isNull(AuditEvent::getTenantId))
+                        .in(AuditEvent::getEventCode, "SYSTEM_IDENTITY_LOGIN_MAPPING", "SSO_LOGIN_SYSTEM_ENTER")
                         .eq(hasText(traceId), AuditEvent::getTraceId, strip(traceId))
                         .eq(hasText(requestId), AuditEvent::getRequestId, strip(requestId))
-                        .orderByDesc(AuditEvent::getOccurredAt, AuditEvent::getId)
+                        .orderByDesc(AuditEvent::getOccurTime, AuditEvent::getId)
                         .last("LIMIT 500"))
                 .stream().map(this::logView)
                 .filter(log -> matches(log.identityProvider(), identityProvider))
@@ -479,6 +503,10 @@ public class SystemIdentityMappingService {
             case "UPDATE_TENANT_MEMBERSHIP", "BIND_EXISTING_MEMBER" -> {
                 ensureIdentity(provider.provider().getId(), item.externalUserId(), accountId, item);
                 SystemTenantMember membership = tenantMemberService.selectById(tenantMemberId);
+                if (!"ACTIVE".equals(membership.getStatus())) {
+                    // 外部身份同步恢复成员时也会增加当前租户的有效成员数。
+                    tenantMemberQuotaService.checkBeforeActivate(context.systemId(), context.tenantId());
+                }
                 membership.setDepartmentId(item.departmentId());
                 membership.setStatus("ACTIVE");
                 if (tenantMemberService.updateById(membership) != 1) {
@@ -556,12 +584,13 @@ public class SystemIdentityMappingService {
         member.setEmployeeNumber(strip(item.employeeNo()));
         member.setDisplayName(item.displayName());
         member.setStatus("ACTIVE");
-        member.setJoinedAt(LocalDateTime.now());
+        member.setJoinTime(LocalDateTime.now());
         memberService.insert(member);
         return member;
     }
 
     private SystemTenantMember createTenantMember(AuthenticatedContext context, Long memberId, Long departmentId) {
+        tenantMemberQuotaService.checkBeforeActivate(context.systemId(), context.tenantId());
         SystemTenantMember membership = new SystemTenantMember();
         membership.setSystemId(context.systemId());
         membership.setTenantId(context.tenantId());
@@ -610,10 +639,11 @@ public class SystemIdentityMappingService {
                 provider.getProtocol(), version.getId(), version.getVersionNumber(), allowedDomains(version));
     }
 
-    private ProviderSelection requirePublishedProvider(Long providerId, Long versionId) {
+    private ProviderSelection requirePublishedProvider(AuthenticatedContext context, Long providerId, Long versionId) {
         PlatSsoProvider provider = providerService.selectById(providerId);
         PlatSsoProviderVersion version = providerVersionService.selectById(versionId);
-        if (provider == null || !"PUBLISHED".equals(provider.getStatus())
+        if (provider == null || !context.platformId().equals(provider.getPlatformId())
+                || !"PUBLISHED".equals(provider.getStatus())
                 || !versionId.equals(provider.getPublishedVersionId()) || version == null
                 || !providerId.equals(version.getProviderId()) || !"PUBLISHED".equals(version.getStatus())) {
             throw new DomainException("SSO_PROVIDER_NOT_ALLOWED", "系统只能继承平台允许的已发布身份源版本", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -660,14 +690,14 @@ public class SystemIdentityMappingService {
         return List.copyOf(result);
     }
 
-    private SystemIdentityMappingView view(AuthenticatedContext context, CoreSetting setting) {
-        MappingState state = readState(setting);
+    private SystemIdentityMappingView view(AuthenticatedContext context, SysSsoBinding binding) {
+        MappingState state = readState(binding);
         PlatSsoProvider provider = providerService.selectById(state.providerId());
-        return new SystemIdentityMappingView(setting.getId(), setting.getVersion(), context.systemId(), context.tenantId(),
+        return new SystemIdentityMappingView(binding.getId(), binding.getVersion(), context.systemId(), context.tenantId(),
                 state.providerId(), state.providerVersionId(), provider == null ? null : provider.getCode(),
                 provider == null ? null : provider.getName(), state.tenantDomain(), state.departmentMappings(),
                 state.matchOrder(), state.jitPolicy(), state.latestPreflight(), state.confirmedJobId(),
-                state.confirmedAt(), setting.getUpdatedAt());
+                state.confirmTime(), binding.getUpdatedTime());
     }
 
     private IdentityMappingJobView jobView(AuthenticatedContext context, JobBackground job) {
@@ -681,16 +711,21 @@ public class SystemIdentityMappingService {
         Map<String, Object> summary = job.getResultSummaryJson() == null
                 ? Map.of() : read(job.getResultSummaryJson(), new TypeReference<>() {
                 });
-        return new IdentityMappingJobView(job.getId(), job.getStatus(), defaultLong(job.getProgressCurrent()),
-                defaultLong(job.getProgressTotal()), summary, items, job.getCreatedAt(), job.getFinishedAt());
+        return new IdentityMappingJobView(job.getId(), job.getFinalStatus(), items.size(),
+                defaultLong(longValue(summary.get("total"))), summary, items, job.getCreateTime(), job.getFinishTime());
     }
 
     private IdentityMappingLogView logView(AuditEvent event) {
         Map<String, Object> detail = read(event.getDetailJson(), new TypeReference<>() {
         });
-        return new IdentityMappingLogView(event.getId(), event.getOccurredAt(), string(detail.get("identityProvider")),
-                string(detail.get("externalUserId")), string(detail.get("mfaLevel")), string(detail.get("device")),
-                event.getRequestId(), event.getTraceId(), event.getResultCode(), string(detail.get("failureReason")),
+        String mfaLevel = string(detail.get("mfaLevel"));
+        if (mfaLevel == null) mfaLevel = string(detail.get("mfa"));
+        return new IdentityMappingLogView(event.getId(), event.getOccurTime(), event.getEventCode(),
+                string(detail.get("identityProvider")), string(detail.get("externalUserId")),
+                string(detail.get("accountBinding")), string(detail.get("systemMemberMapping")),
+                string(detail.get("authenticationMethod")), mfaLevel, string(detail.get("ip")),
+                string(detail.get("device")), event.getRequestId(), event.getTraceId(),
+                string(detail.get("loginTraceId")), event.getResultCode(), string(detail.get("failureReason")),
                 longValue(detail.get("systemMemberId")), longValue(detail.get("jobId")));
     }
 
@@ -707,7 +742,7 @@ public class SystemIdentityMappingService {
             String failureReason,
             Long systemMemberId,
             Long jobId,
-            Long settingId) {
+            Long bindingId) {
         Map<String, Object> detail = new LinkedHashMap<>();
         detail.put("identityProvider", identityProvider);
         detail.put("externalUserId", externalUserId);
@@ -717,7 +752,7 @@ public class SystemIdentityMappingService {
         detail.put("failureReason", failureReason);
         detail.put("systemMemberId", systemMemberId);
         detail.put("jobId", jobId);
-        detail.put("settingId", settingId);
+        detail.put("bindingId", bindingId);
         AuditEvent event = new AuditEvent();
         event.setTraceId(traceId);
         event.setRequestId(requestId);
@@ -730,40 +765,63 @@ public class SystemIdentityMappingService {
         event.setEventCategory(eventCode.contains("LOGIN") ? "SECURITY" : "CONFIGURATION");
         event.setEventCode(eventCode);
         event.setObjectType(jobId == null ? "SYSTEM_IDENTITY_MAPPING" : "IDENTITY_MAPPING_JOB");
-        event.setObjectId(jobId == null ? (settingId == null ? null : settingId.toString()) : jobId.toString());
+        event.setObjectId(jobId == null ? (bindingId == null ? null : bindingId.toString()) : jobId.toString());
         event.setResultCode(resultCode);
         event.setDetailJson(toJson(detail));
         auditService.insert(event);
     }
 
-    private CoreSetting findSetting(AuthenticatedContext context) {
-        return first(settingService.selectList(Wrappers.<CoreSetting>lambdaQuery()
-                .eq(CoreSetting::getContextType, "SYSTEM")
-                .eq(CoreSetting::getPlatformId, context.platformId())
-                .eq(CoreSetting::getSystemId, context.systemId())
-                .eq(CoreSetting::getTenantId, context.tenantId())
-                .eq(CoreSetting::getCategory, SETTING_CATEGORY)
-                .eq(CoreSetting::getSettingKey, SETTING_KEY)
-                .eq(CoreSetting::getStatus, "ACTIVE")
-                .orderByDesc(CoreSetting::getId)));
+    private SysSsoBinding findBinding(AuthenticatedContext context) {
+        return first(bindingService.selectList(Wrappers.<SysSsoBinding>lambdaQuery()
+                .eq(SysSsoBinding::getPlatformId, context.platformId())
+                .eq(SysSsoBinding::getSystemId, context.systemId())
+                .eq(SysSsoBinding::getTenantId, context.tenantId())
+                .in(SysSsoBinding::getStatus, List.of("DRAFT", "ACTIVE"))
+                .orderByDesc(SysSsoBinding::getId)));
     }
 
-    private CoreSetting requireSetting(AuthenticatedContext context) {
-        CoreSetting setting = findSetting(context);
-        if (setting == null) {
+    private SysSsoBinding requireDraftBinding(AuthenticatedContext context) {
+        SysSsoBinding binding = findBinding(context);
+        if (binding == null) {
             throw new DomainException("IDENTITY_MAPPING_NOT_CONFIGURED", "请先保存身份继承映射草稿", HttpStatus.NOT_FOUND);
         }
-        return setting;
+        if (!"DRAFT".equals(binding.getStatus())) {
+            throw new DomainException("IDENTITY_MAPPING_DRAFT_REQUIRED", "已确认的身份映射须先保存新草稿", HttpStatus.CONFLICT);
+        }
+        return binding;
     }
 
-    private MappingState readState(CoreSetting setting) {
-        return read(setting.getValueJson(), MappingState.class);
+    /** 绑定表保存业务配置的独立列，避免系统身份源与通用设置共享一段 JSON 主记录。 */
+    private MappingState readState(SysSsoBinding binding) {
+        List<String> domains = read(binding.getTenantDomainsJson(), new TypeReference<>() {
+        });
+        if (domains.isEmpty()) {
+            throw new DomainException("IDENTITY_MAPPING_VALUE_INVALID", "身份映射缺少租户域名", HttpStatus.CONFLICT);
+        }
+        Map<String, Long> departmentMappings = read(binding.getDepartmentMappingJson(), new TypeReference<>() {
+        });
+        List<String> matchOrder = read(binding.getMemberMatchJson(), new TypeReference<>() {
+        });
+        String jitPolicy = read(binding.getJitPolicyJson(), String.class);
+        IdentityMappingPreflightReport preflight = binding.getPreflightReportJson() == null ? null
+                : read(binding.getPreflightReportJson(), IdentityMappingPreflightReport.class);
+        return new MappingState(binding.getProviderId(), binding.getProviderVersionId(), domains.getFirst(),
+                departmentMappings, matchOrder, jitPolicy, preflight, binding.getSyncJobId(),
+                binding.getConfirmedTime() == null ? null : binding.getConfirmedTime().toString());
     }
 
-    private void requireVersion(CoreSetting setting, Integer expectedVersion) {
-        if (expectedVersion == null || !expectedVersion.equals(setting.getVersion())) {
+    private void requireVersion(SysSsoBinding binding, Integer expectedVersion) {
+        if (expectedVersion == null || !expectedVersion.equals(binding.getVersion())) {
             throw conflict("身份映射已被其他管理员修改，请刷新后重试");
         }
+    }
+
+    private int nextBindingVersion(AuthenticatedContext context, Long providerId) {
+        return bindingService.selectList(Wrappers.<SysSsoBinding>lambdaQuery()
+                        .eq(SysSsoBinding::getSystemId, context.systemId())
+                        .eq(SysSsoBinding::getTenantId, context.tenantId())
+                        .eq(SysSsoBinding::getProviderId, providerId))
+                .stream().map(SysSsoBinding::getBindingVersion).max(Integer::compareTo).orElse(0) + 1;
     }
 
     private void requireSystemContext(AuthenticatedContext context) {
@@ -871,6 +929,6 @@ public class SystemIdentityMappingService {
             String jitPolicy,
             IdentityMappingPreflightReport latestPreflight,
             Long confirmedJobId,
-            String confirmedAt) {
+            String confirmTime) {
     }
 }

@@ -7,7 +7,9 @@
         <id column="id" property="id" />
         <result column="verification_type" property="verificationType" />
         <result column="context_type" property="contextType" />
+        <result column="platform_id" property="platformId" />
         <result column="system_id" property="systemId" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
         <result column="release_id" property="releaseId" />
         <result column="scenario_code" property="scenarioCode" />
         <result column="status" property="status" />
@@ -15,13 +17,13 @@
         <result column="result_json" property="resultJson" />
         <result column="threshold_json" property="thresholdJson" />
         <result column="started_by_account_id" property="startedByAccountId" />
-        <result column="started_at" property="startedAt" />
-        <result column="finished_at" property="finishedAt" />
+        <result column="start_time" property="startTime" />
+        <result column="finish_time" property="finishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, verification_type, context_type, system_id, release_id, scenario_code, `status`, input_json, result_json, threshold_json, started_by_account_id, started_at, finished_at
+        id, verification_type, context_type, platform_id, system_id, scope_owner_id, release_id, scenario_code, `status`, input_json, result_json, threshold_json, started_by_account_id, start_time, finish_time
     </sql>
 
 </mapper>

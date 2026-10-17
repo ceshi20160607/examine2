@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/** 打印模板草稿、发布快照、业务预览和明细分页的接口模型。 */
 public final class PrintModels {
     private PrintModels() {
     }
@@ -24,8 +25,8 @@ public final class PrintModels {
             @NotEmpty @Size(max = 40) List<@Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{0,99}") String> fieldCodes,
             @Size(max = 20) List<@Pattern(regexp = "[A-Za-z][A-Za-z0-9_]{0,99}") String> detailFieldCodes,
             @NotNull @Min(4) @Max(24) Integer rowsPerPage,
-            @Min(-30) @Max(30) Integer offsetXmm,
-            @Min(-30) @Max(30) Integer offsetYmm) {
+            @Min(-14) @Max(14) Integer offsetXmm,
+            @Min(-12) @Max(12) Integer offsetYmm) {
     }
 
     public record SaveTemplateRequest(
@@ -74,8 +75,19 @@ public final class PrintModels {
     public record PageField(String code, String name, String value, boolean detail) {
     }
 
+    /** 一张子表在当前打印页上的列及明细行；跨页时列标题重复。 */
+    public record DetailTable(String code, String name, List<DetailColumn> columns, List<DetailRow> rows) {
+    }
+
+    public record DetailColumn(String code, String name) {
+    }
+
+    public record DetailRow(Integer rowNumber, List<String> values) {
+    }
+
     public record PreviewPage(Integer pageNumber, Integer pageCount, String header,
                               String recordNumber, String recordTitle, List<PageField> fields,
+                              List<DetailTable> detailTables,
                               String signatureLabel, String footer) {
     }
 

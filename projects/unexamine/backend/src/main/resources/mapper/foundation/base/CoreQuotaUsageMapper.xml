@@ -9,13 +9,13 @@
         <result column="period_key" property="periodKey" />
         <result column="used_value" property="usedValue" />
         <result column="reserved_value" property="reservedValue" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, quota_policy_id, period_key, used_value, reserved_value, updated_at, version
+        id, quota_policy_id, period_key, used_value, reserved_value, update_time, version
     </sql>
 
 </mapper>

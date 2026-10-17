@@ -18,17 +18,17 @@
         <result column="data_scopes_json" property="dataScopesJson" />
         <result column="permission_version" property="permissionVersion" />
         <result column="mfa_level" property="mfaLevel" />
-        <result column="access_expires_at" property="accessExpiresAt" />
-        <result column="refresh_expires_at" property="refreshExpiresAt" />
+        <result column="access_expire_time" property="accessExpireTime" />
+        <result column="refresh_expire_time" property="refreshExpireTime" />
         <result column="revoked" property="revoked" />
         <result column="revoked_reason" property="revokedReason" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, access_token_hash, refresh_token_hash, account_id, platform_id, system_id, tenant_id, member_id, tenant_member_id, role_ids_json, action_permissions_json, data_scopes_json, permission_version, mfa_level, access_expires_at, refresh_expires_at, revoked, revoked_reason, created_at, updated_at
+        id, access_token_hash, refresh_token_hash, account_id, platform_id, system_id, tenant_id, member_id, tenant_member_id, role_ids_json, action_permissions_json, data_scopes_json, permission_version, mfa_level, access_expire_time, refresh_expire_time, revoked, revoked_reason, create_time, update_time
     </sql>
 
 </mapper>

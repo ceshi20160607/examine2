@@ -1,0 +1,25 @@
+{
+  "step": "S19.5",
+  "candidate": "0.1.0-s19.5-dev1",
+  "frontend": "http://127.0.0.1:15173",
+  "localLoginVisible": true,
+  "directoryEntryVisible": true,
+  "passwordAbsentFromBrowserStorage": true,
+  "platformPage": {
+    "url": "http://127.0.0.1:15173/platform/dashboard",
+    "accountVisible": true,
+    "systemVisible": true
+  },
+  "systemPage": {
+    "url": "http://127.0.0.1:15173/systems/1",
+    "systemVisible": true,
+    "memberVisible": true
+  },
+  "adminPage": {
+    "url": "http://127.0.0.1:15173/platform/admin/identity-providers",
+    "providerVisible": true,
+    "publishedVisible": true
+  },
+  "screenshot": "projects/unexamine/ai/evidence/s19-ldap-browser.png",
+  "adminScreenshot": "projects/unexamine/ai/evidence/s19-ldap-admin-browser.png"
+}

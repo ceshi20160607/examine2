@@ -10,48 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用事件回调投递及重试结果
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_callback_delivery")
+@TableName("un_app_callback_delivery")
 public class AppCallbackDelivery {
 
+    /**
+     * 回调投递主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属回调配置主键
+     */
     @TableField("callback_id")
     private Long callbackId;
 
+    /**
+     * 业务事件唯一标识
+     */
     @TableField("event_id")
     private String eventId;
 
+    /**
+     * 投递内容摘要
+     */
     @TableField("payload_hash")
     private String payloadHash;
 
+    /**
+     * 投递状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 已尝试投递次数
+     */
     @TableField("attempt_count")
     private Integer attemptCount;
 
-    @TableField("next_attempt_at")
-    private LocalDateTime nextAttemptAt;
+    /**
+     * 下次允许重试时间
+     */
+    @TableField("next_attempt_time")
+    private LocalDateTime nextAttemptTime;
 
+    /**
+     * 接收端HTTP状态码
+     */
     @TableField("response_status")
     private Integer responseStatus;
 
+    /**
+     * 接收端响应的脱敏摘要
+     */
     @TableField("response_body_excerpt")
     private String responseBodyExcerpt;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -104,12 +140,12 @@ public class AppCallbackDelivery {
         this.attemptCount = attemptCount;
     }
 
-    public LocalDateTime getNextAttemptAt() {
-        return nextAttemptAt;
+    public LocalDateTime getNextAttemptTime() {
+        return nextAttemptTime;
     }
 
-    public void setNextAttemptAt(LocalDateTime nextAttemptAt) {
-        this.nextAttemptAt = nextAttemptAt;
+    public void setNextAttemptTime(LocalDateTime nextAttemptTime) {
+        this.nextAttemptTime = nextAttemptTime;
     }
 
     public Integer getResponseStatus() {
@@ -128,20 +164,20 @@ public class AppCallbackDelivery {
         this.responseBodyExcerpt = responseBodyExcerpt;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -161,11 +197,11 @@ public class AppCallbackDelivery {
             ", payloadHash = " + payloadHash +
             ", status = " + status +
             ", attemptCount = " + attemptCount +
-            ", nextAttemptAt = " + nextAttemptAt +
+            ", nextAttemptTime = " + nextAttemptTime +
             ", responseStatus = " + responseStatus +
             ", responseBodyExcerpt = " + responseBodyExcerpt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

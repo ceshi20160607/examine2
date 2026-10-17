@@ -32,8 +32,7 @@ public final class ApplicationModels {
             @NotBlank @Pattern(regexp = "SERVICE|WEBHOOK") String applicationType,
             @Pattern(regexp = "api|link|workflow|database|robot|message") String iconCode,
             @Valid List<CallbackInput> callbacks,
-            @NotNull @Size(min = 1) @Valid List<GrantInput> grants,
-            @Valid List<IdentityMappingInput> identityMappings) {
+            @NotNull @Size(min = 1) @Valid List<GrantInput> grants) {
     }
 
     public record CallbackInput(
@@ -64,14 +63,6 @@ public final class ApplicationModels {
             @Size(max = 64) String maskStrategy) {
     }
 
-    /** 跨系统调用身份只提交结构化成员选项，系统、租户和显示名称均由服务端反查。 */
-    public record IdentityMappingInput(
-            Long id,
-            @NotNull Long sourceTenantMemberId,
-            @NotNull Long targetTenantMemberId,
-            @NotNull Boolean enabled) {
-    }
-
     public record PublishRequest(@NotNull Integer expectedDraftRevision, @NotBlank @Size(max = 500) String changeSummary) {
     }
 
@@ -97,6 +88,7 @@ public final class ApplicationModels {
     public record DeleteRequest(@NotBlank @Size(max = 500) String reason) {
     }
 
+    /** 导出时间随配置包返回，用于区分多次导出的同一草稿。 */
     public record ConfigurationExport(
             int schemaVersion,
             String sourceCode,
@@ -106,7 +98,7 @@ public final class ApplicationModels {
             String iconCode,
             List<CallbackInput> callbacks,
             List<GrantInput> grants,
-            LocalDateTime exportedAt) {
+            LocalDateTime exportTime) {
     }
 
     public record ImportRequest(
@@ -126,6 +118,7 @@ public final class ApplicationModels {
     public record PublicationCheck(Long applicationId, Integer draftRevision, boolean valid, List<Issue> issues) {
     }
 
+    /** 密钥明文只在签发响应中出现；有效起止时间对应凭证的持久化字段。 */
     public record CredentialSecret(
             Long credentialId,
             Integer credentialVersion,
@@ -133,8 +126,8 @@ public final class ApplicationModels {
             String clientSecret,
             String secretReference,
             String secretHint,
-            LocalDateTime validFrom,
-            LocalDateTime expiresAt,
+            LocalDateTime validStartTime,
+            LocalDateTime expireTime,
             boolean shownOnce) {
     }
 
@@ -198,38 +191,15 @@ public final class ApplicationModels {
             List<ResourceField> fields) {
     }
 
-    /** 应用页面使用的成员选项；页面展示业务名称，主键仅作为选择值传回。 */
-    public record IdentityMemberOption(
-            Long systemId,
-            String systemName,
-            Long tenantId,
-            String tenantName,
-            Long tenantMemberId,
-            String memberName,
-            String employeeNumber) {
+    /** 应用负责人范围候选项；系统应用使用系统成员，平台应用使用平台成员。 */
+    public record ScopeMemberOption(Long id, String name, String status) {
     }
 
-    public record IdentityCatalog(
-            List<IdentityMemberOption> sourceMembers,
-            List<IdentityMemberOption> targetMembers) {
+    /** 应用部门范围候选项；保存时传真实部门主键。 */
+    public record ScopeDepartmentOption(Long id, String name, String status) {
     }
 
-    public record IdentityMappingView(
-            Long id,
-            Long sourceSystemId,
-            String sourceSystemName,
-            Long sourceTenantId,
-            String sourceTenantName,
-            Long sourceTenantMemberId,
-            String sourceMemberName,
-            Long targetSystemId,
-            String targetSystemName,
-            Long targetTenantId,
-            String targetTenantName,
-            Long targetTenantMemberId,
-            String targetMemberName,
-            String status,
-            Integer version) {
+    public record ScopeCatalog(List<ScopeMemberOption> members, List<ScopeDepartmentOption> departments) {
     }
 
     public record GrantView(
@@ -249,38 +219,42 @@ public final class ApplicationModels {
             List<FieldView> fields) {
     }
 
+    /** 凭证列表仅展示引用和状态，不返回密钥明文。 */
     public record CredentialView(
             Long id,
             Integer credentialVersion,
             String clientId,
             String secretReference,
             String secretHint,
-            LocalDateTime validFrom,
-            LocalDateTime expiresAt,
+            LocalDateTime validStartTime,
+            LocalDateTime expireTime,
             String status,
-            LocalDateTime revokedAt,
-            LocalDateTime createdAt) {
+            LocalDateTime revokeTime,
+            LocalDateTime createTime) {
     }
 
+    /** 已发布版本的时间用于回滚选择和追溯。 */
     public record VersionView(
             Long id,
             Integer versionNumber,
             Integer draftRevision,
             String snapshotHash,
             Long publishedByAccountId,
-            LocalDateTime publishedAt,
+            LocalDateTime publishTime,
             boolean current) {
     }
 
+    /** 应用状态历史读取真实审计发生时间。 */
     public record StatusEvent(
             Long id,
             String eventCode,
             String resultCode,
             Long actorAccountId,
-            LocalDateTime occurredAt,
+            LocalDateTime occurTime,
             Map<String, Object> detail) {
     }
 
+    /** 应用详情同时呈现当前草稿、已发布授权和凭证摘要。 */
     public record ApplicationView(
             Long id,
             String contextType,
@@ -300,12 +274,10 @@ public final class ApplicationModels {
             List<CallbackView> callbacks,
             List<GrantView> grants,
             List<GrantView> publishedGrants,
-            List<IdentityMappingView> identityMappings,
-            List<IdentityMappingView> publishedIdentityMappings,
             List<CredentialView> credentials,
             List<VersionView> versions,
             List<StatusEvent> statusHistory,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            LocalDateTime createTime,
+            LocalDateTime updateTime) {
     }
 }

@@ -15,16 +15,16 @@
         <result column="permission_json" property="permissionJson" />
         <result column="status" property="status" />
         <result column="start_time" property="startTime" />
-        <result column="expires_at" property="expiresAt" />
+        <result column="expire_time" property="expireTime" />
         <result column="granted_by_member_id" property="grantedByMemberId" />
-        <result column="granted_at" property="grantedAt" />
-        <result column="revoked_at" property="revokedAt" />
+        <result column="grant_time" property="grantTime" />
+        <result column="revoke_time" property="revokeTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, source_tenant_id, target_tenant_id, module_id, record_id, scope_type, scope_json, permission_json, `status`, start_time, expires_at, granted_by_member_id, granted_at, revoked_at, version
+        id, system_id, source_tenant_id, target_tenant_id, module_id, record_id, scope_type, scope_json, permission_json, `status`, start_time, expire_time, granted_by_member_id, grant_time, revoke_time, version
     </sql>
 
 </mapper>

@@ -38,7 +38,7 @@ const identity = computed(() => {
     context?.permissions, context?.dataScopes, context?.tenantSwitchContext])
 })
 const actionOptions = computed(() => props.actions.filter(action => action.status === 'ACTIVE'
-  && !['CREATE', 'SHARE', 'RESTORE'].includes(action.code)).map(action => ({ value: action.code, label: action.name })))
+  && !['CREATE', 'SHARE', 'RESTORE', 'CONVERT'].includes(action.code)).map(action => ({ value: action.code, label: action.name })))
 const baseActionCodes = ['LIST', 'DETAIL']
 const extraActionOptions = computed(() => actionOptions.value.filter(action => !baseActionCodes.includes(action.value)))
 const extraAllowedActions = computed({ get: () => form.allowedActions.filter(code => !baseActionCodes.includes(code)),

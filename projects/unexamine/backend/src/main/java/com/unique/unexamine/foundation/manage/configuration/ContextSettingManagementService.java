@@ -196,7 +196,7 @@ public class ContextSettingManagementService {
         return new ContextSettingView(setting.getId(), setting.getContextType(), setting.getPlatformId(),
                 setting.getSystemId(), setting.getCategory(), setting.getSettingKey(), setting.getValueType(),
                 readValue(setting.getValueJson()), Boolean.TRUE.equals(setting.getSensitive()), setting.getStatus(),
-                setting.getVersion(), setting.getUpdatedAt());
+                setting.getVersion(), setting.getUpdateTime());
     }
 
     private Comparator<CoreSetting> settingOrder() {

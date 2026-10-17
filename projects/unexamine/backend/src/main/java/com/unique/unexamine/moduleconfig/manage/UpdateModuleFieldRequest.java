@@ -17,5 +17,6 @@ public record UpdateModuleFieldRequest(
         @Min(0) Integer sortOrder,
         @NotBlank @Pattern(regexp = "ACTIVE|DISABLED") String status,
         @NotNull JsonNode config,
-        @NotNull @Min(0) Integer version) {
+        @NotNull @Min(0) Integer version,
+        @Min(1) Long parentFieldId) {
 }

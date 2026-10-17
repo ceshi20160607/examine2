@@ -17,21 +17,36 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("work_task_group")
+@TableName("un_work_task_group")
 public class WorkTaskGroup {
 
+    /**
+     * 主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属项目标识
+     */
     @TableField("project_id")
     private Long projectId;
 
+    /**
+     * 名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 组内排序
+     */
     @TableField("sort_order")
     private Integer sortOrder;
 
+    /**
+     * 业务状态
+     */
     @TableField("`status`")
     private String status;
 
@@ -59,12 +74,21 @@ public class WorkTaskGroup {
     @TableField("progress_percent")
     private BigDecimal progressPercent;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -141,20 +165,20 @@ public class WorkTaskGroup {
         this.progressPercent = progressPercent;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -177,8 +201,8 @@ public class WorkTaskGroup {
             ", ownerTenantMemberId = " + ownerTenantMemberId +
             ", dueTime = " + dueTime +
             ", progressPercent = " + progressPercent +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

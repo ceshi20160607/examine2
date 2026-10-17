@@ -23,17 +23,20 @@ public class RegistrationService {
             return transactionService.create(request, traceId);
         } catch (DomainException exception) {
             if (exception.status() == HttpStatus.CONFLICT) {
-                recordConflict(traceId, exception.code());
+                recordConflict(traceId, request, exception.code());
             }
             throw exception;
         } catch (DataIntegrityViolationException exception) {
-            recordConflict(traceId, "UNIQUE_VALUE_CONFLICT");
+            recordConflict(traceId, request, "UNIQUE_VALUE_CONFLICT");
             throw exception;
         }
     }
 
-    private void recordConflict(String traceId, String reason) {
-        auditRecorder.recordFailure(traceId, null, "ACCOUNT_REGISTER_SYSTEM_CREATED", "RESOURCE_CONFLICT",
+    /** 失败审计使用用户选择的注册方式，避免把平台账号失败记成系统创建失败。 */
+    private void recordConflict(String traceId, RegistrationRequest request, String reason) {
+        String event = request.systemName() == null || request.systemName().isBlank()
+                ? "ACCOUNT_REGISTERED" : "ACCOUNT_REGISTER_SYSTEM_CREATED";
+        auditRecorder.recordFailure(traceId, null, event, "RESOURCE_CONFLICT",
                 Map.of("reason", reason));
     }
 }

@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.ai.base.entity.AiModel;
+import com.unique.unexamine.ai.base.entity.AiSystemModelGrant;
+import com.unique.unexamine.ai.base.entity.AiSystemModelGrantVersion;
+import com.unique.unexamine.ai.base.service.AiModelBaseService;
+import com.unique.unexamine.ai.base.service.AiSystemModelGrantBaseService;
+import com.unique.unexamine.ai.base.service.AiSystemModelGrantVersionBaseService;
 import com.unique.unexamine.audit.manage.AuditRecorder;
 import com.unique.unexamine.application.manage.ApplicationFlowCallbackService;
 import com.unique.unexamine.application.manage.ApplicationModels;
@@ -65,6 +71,9 @@ public class FlowDesignService {
     private final ObjectMapper objectMapper;
     private final FlowConditionService flowConditions;
     private final FlowNodeFormService nodeForms;
+    private final AiSystemModelGrantBaseService aiGrants;
+    private final AiSystemModelGrantVersionBaseService aiGrantVersions;
+    private final AiModelBaseService aiModels;
     /** 外部节点只选择应用模块的当前发布回调，Flow 不复制应用草稿能力。 */
     private final ApplicationFlowCallbackService applicationCallbacks;
 
@@ -79,7 +88,10 @@ public class FlowDesignService {
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper, FlowConditionService flowConditions, FlowNodeFormService nodeForms,
-            ApplicationFlowCallbackService applicationCallbacks) {
+            ApplicationFlowCallbackService applicationCallbacks,
+            AiSystemModelGrantBaseService aiGrants,
+            AiSystemModelGrantVersionBaseService aiGrantVersions,
+            AiModelBaseService aiModels) {
         this.definitionService = definitionService;
         this.nodeService = nodeService;
         this.edgeService = edgeService;
@@ -93,6 +105,29 @@ public class FlowDesignService {
         this.flowConditions = flowConditions;
         this.nodeForms = nodeForms;
         this.applicationCallbacks = applicationCallbacks;
+        this.aiGrants = aiGrants;
+        this.aiGrantVersions = aiGrantVersions;
+        this.aiModels = aiModels;
+    }
+
+    /** Flow 设计者只读取当前系统可用模型名称，不暴露密钥和系统 AI 配置权限。 */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> aiModels(AuthenticatedContext context) {
+        requireAction(context, "DESIGN");
+        if (context.systemId() == null) return List.of();
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (AiSystemModelGrant grant : aiGrants.selectList(Wrappers.<AiSystemModelGrant>lambdaQuery()
+                .eq(AiSystemModelGrant::getSystemId, context.systemId())
+                .eq(AiSystemModelGrant::getStatus, "ACTIVE").orderByAsc(AiSystemModelGrant::getId))) {
+            AiModel model = aiModels.selectById(grant.getModelId());
+            if (model == null || !"ACTIVE".equals(model.getStatus())
+                    || !Objects.equals(model.getPlatformId(), context.platformId())
+                    || "SYSTEM".equals(model.getScopeType())
+                    && !Objects.equals(model.getSystemId(), context.systemId())) continue;
+            result.add(Map.of("grantId", grant.getId(), "name", model.getName(),
+                    "provider", model.getProvider()));
+        }
+        return List.copyOf(result);
     }
 
     /** 条件目录可供查看或设计流程的人读取，模块和字段权限仍由公共目录独立检查。 */
@@ -128,7 +163,7 @@ public class FlowDesignService {
     public List<FlowDesignModels.FlowView> list(AuthenticatedContext context) {
         requireAction(context, "VIEW");
         return scopedDefinitions(context).stream()
-                .sorted(Comparator.comparing(FlowDefinition::getUpdatedAt,
+                .sorted(Comparator.comparing(FlowDefinition::getUpdateTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(flow -> view(flow, false)).toList();
     }
@@ -136,6 +171,23 @@ public class FlowDesignService {
     @Transactional
     public FlowDesignModels.FlowView create(
             AuthenticatedContext context, FlowDesignModels.CreateFlowRequest input, String traceId) {
+        return create(context, input, null, traceId);
+    }
+
+    /** 外部应用建立流程时固化所属应用，后续所有草稿操作据此限制在同一应用。 */
+    @Transactional
+    public FlowDesignModels.FlowView createApplication(
+            AuthenticatedContext context, FlowDesignModels.CreateFlowRequest input,
+            Long applicationId, String traceId) {
+        if (applicationId == null) {
+            throw invalid("FLOW_APPLICATION_REQUIRED", "缺少配置流程的应用");
+        }
+        return create(context, input, applicationId, traceId);
+    }
+
+    private FlowDesignModels.FlowView create(
+            AuthenticatedContext context, FlowDesignModels.CreateFlowRequest input,
+            Long applicationId, String traceId) {
         requireAction(context, "DESIGN");
         String code = input.code() == null || input.code().isBlank()
                 ? "flow_" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 12)
@@ -145,6 +197,7 @@ public class FlowDesignService {
         }
         FlowDefinition flow = new FlowDefinition();
         bindContext(flow, context);
+        flow.setOwnerApplicationId(applicationId);
         flow.setCode(code);
         flow.setName(input.name().strip());
         flow.setDescription(blankToNull(input.description()));
@@ -161,6 +214,25 @@ public class FlowDesignService {
     @Transactional(readOnly = true)
     public FlowDesignModels.FlowView detail(AuthenticatedContext context, Long flowId) {
         requireAction(context, "VIEW");
+        return view(requireOwned(context, flowId), true);
+    }
+
+    /** 修改流程显示名，不改变外部应用及运行实例使用的稳定编码。 */
+    @Transactional
+    public FlowDesignModels.FlowView rename(AuthenticatedContext context, Long flowId,
+                                            FlowDesignModels.RenameFlowRequest input, String traceId) {
+        requireAction(context, "DESIGN");
+        FlowDefinition flow = requireOwned(context, flowId);
+        if (!Objects.equals(flow.getVersion(), input.expectedVersion())) {
+            throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "Flow 草稿已被其他人修改，请刷新后重试");
+        }
+        flow.setName(input.name().strip());
+        flow.setDraftRevision(flow.getDraftRevision() + 1);
+        if (definitionService.updateById(flow) != 1) {
+            throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "Flow 草稿已被其他人修改，请刷新后重试");
+        }
+        audit(context, traceId, "FLOW_NAME_CHANGED", "FLOW", flowId,
+                Map.of("code", flow.getCode(), "name", flow.getName()));
         return view(requireOwned(context, flowId), true);
     }
 
@@ -181,7 +253,9 @@ public class FlowDesignService {
         validateDraftShape(nodes, edges);
 
         flow.setDraftRevision(flow.getDraftRevision() + 1);
-        flow.setStatus("DRAFT");
+        // 修改草稿不撤销现行发布版本；校验失败时原版本仍可继续发起。
+        flow.setStatus("DISABLED".equals(flow.getStatus()) ? "DISABLED"
+                : publication(flowId) == null ? "DRAFT" : "PUBLISHED");
         if (definitionService.updateById(flow) != 1) {
             throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "Flow 草稿已被其他人修改，请刷新后重试");
         }
@@ -271,7 +345,8 @@ public class FlowDesignService {
                 throw conflict("FLOW_PUBLICATION_VERSION_CONFLICT", "Flow 发布指针已变化，请重试");
             }
         }
-        flow.setStatus("PUBLISHED");
+        // 停用期间允许准备新版本，但发布本身不能暗中恢复新发起资格。
+        if (!"DISABLED".equals(flow.getStatus())) flow.setStatus("PUBLISHED");
         if (definitionService.updateById(flow) != 1) {
             throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "Flow 草稿已被其他人修改，请重试");
         }
@@ -279,6 +354,29 @@ public class FlowDesignService {
                 Map.of("flowId", flowId, "versionNumber", versionNumber, "definitionHash", hash));
         return new FlowDesignModels.PublicationResult(
                 flowId, version.getId(), versionNumber, flow.getDraftRevision(), hash, previousVersionId, simulation);
+    }
+
+    /** 停用只阻断新实例和绑定命中，在途实例继续按发起时的不可变快照办理。 */
+    @Transactional
+    public FlowDesignModels.FlowView changeStatus(AuthenticatedContext context, Long flowId,
+            FlowDesignModels.ChangeStatusRequest input, String traceId) {
+        requireAction(context, "PUBLISH");
+        FlowDefinition flow = requireOwned(context, flowId);
+        if (!Objects.equals(flow.getVersion(), input.expectedVersion())) {
+            throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "流程配置已被其他人修改，请刷新后重试");
+        }
+        String target = input.status().strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("PUBLISHED", "DISABLED").contains(target) || publication(flowId) == null) {
+            throw invalid("FLOW_STATUS_INVALID", "只能停用或重新启用已有发布版本的流程");
+        }
+        if (target.equals(flow.getStatus())) return view(flow, true);
+        flow.setStatus(target);
+        if (definitionService.updateById(flow) != 1) {
+            throw conflict("FLOW_DRAFT_VERSION_CONFLICT", "流程配置已被其他人修改，请刷新后重试");
+        }
+        audit(context, traceId, "DISABLED".equals(target) ? "FLOW_DISABLED" : "FLOW_ENABLED",
+                "FLOW", flowId, Map.of("status", target));
+        return view(requireOwned(context, flowId), true);
     }
 
     private FlowDesignModels.SimulationResult simulateGraph(
@@ -699,6 +797,19 @@ public class FlowDesignService {
                 issues.add(issue("APPROVAL_MODE_INVALID", node.getNodeKey(),
                         "审批方式必须是或签、会签或顺序会签"));
             }
+            if ("EXTERNAL_PERSON".equals(assignee.get("type"))) {
+                // 外部身份只由应用签名和标识比较；复杂会签与内部任务转交不能借用平台人员身份。
+                if (!"APPROVAL".equals(type) || !"OR_SIGN".equals(approvalMode)) {
+                    issues.add(issue("FLOW_EXTERNAL_APPROVER_MODE_INVALID", node.getNodeKey(),
+                            "外部应用审批人当前只支持单人或签审批节点"));
+                }
+                FlowManualOperationPolicy externalOperations = FlowManualOperationPolicy.fromConfig(config);
+                if (externalOperations.requireClaim()
+                        || !Set.of("APPROVE", "REJECT").containsAll(externalOperations.allowedActions())) {
+                    issues.add(issue("FLOW_EXTERNAL_APPROVER_ACTION_INVALID", node.getNodeKey(),
+                            "外部应用审批人只允许同意或拒绝，不能领取、转交或加减签"));
+                }
+            }
             try {
                 FlowApprovalCompletionPolicy.fromConfig(config, approvalMode);
             } catch (DomainException failure) {
@@ -741,8 +852,13 @@ public class FlowDesignService {
                 issues.add(issue("FLOW_CALLBACK_SELECTION_INVALID", node.getNodeKey(), failure.getMessage()));
             }
         }
-        requireConfig(type, node, config, issues, "AI", "model", "AI 节点必须配置受控模型");
-        requireConfig(type, node, config, issues, "AI", "prompt", "AI 节点必须配置提示模板");
+        if ("AI".equals(type)) {
+            try {
+                requireAiBinding(context, config);
+            } catch (DomainException | IllegalArgumentException failure) {
+                issues.add(issue("FLOW_AI_MODEL_INVALID", node.getNodeKey(), failure.getMessage()));
+            }
+        }
         if (FlowWaitTimerPolicy.supports(type)) {
             try {
                 FlowWaitTimerPolicy.parse(type, config);
@@ -1151,7 +1267,7 @@ public class FlowDesignService {
     private FlowDesignModels.VersionView view(FlowVersion version) {
         return new FlowDesignModels.VersionView(version.getId(), version.getVersionNumber(), version.getDraftRevision(),
                 version.getDefinitionHash(), version.getChangeSummary(), version.getPublishedByAccountId(),
-                version.getPublishedAt(), publicVersionSnapshot(fromJson(version.getSnapshotJson())),
+                version.getPublishTime(), publicVersionSnapshot(fromJson(version.getSnapshotJson())),
                 read(version.getSimulationResultJson(), FlowDesignModels.SimulationResult.class));
     }
 
@@ -1204,6 +1320,14 @@ public class FlowDesignService {
     /** 子流程目标的发布版本在父流程发布时冻结，之后切换子流程当前版本不会影响旧实例。 */
     private FlowDesignModels.NodeView frozenNodeView(AuthenticatedContext context, FlowNode node, Long startModuleId) {
         FlowDesignModels.NodeView base = view(node);
+        if ("AI".equals(node.getNodeType())) {
+            AiBinding binding = requireAiBinding(context, base.config());
+            Map<String, Object> frozen = FlowAiNodePolicy.frozen(binding.config(), binding.model().getId(),
+                    binding.model().getVersion(), binding.grantVersion().getId());
+            return new FlowDesignModels.NodeView(base.id(), base.nodeKey(), base.nodeType(), base.name(),
+                    base.positionX(), base.positionY(), base.assigneePolicy(), base.formPolicy(),
+                    base.timeoutPolicy(), base.exceptionPolicy(), frozen, base.version());
+        }
         if (Set.of(FlowAutomaticActionPolicy.UPDATE_FIELD, FlowAutomaticActionPolicy.DATA_ACTION)
                 .contains(node.getNodeType())) {
             FlowAutomaticActionPolicy.Config policy = FlowAutomaticActionPolicy.parse(node.getNodeType(), base.config());
@@ -1262,6 +1386,36 @@ public class FlowDesignService {
         }
         return base;
     }
+
+    /** 发布前按当前系统授权验证模型，平台 Flow 不使用系统额度。 */
+    private AiBinding requireAiBinding(AuthenticatedContext context, Map<String, Object> config) {
+        if (context.systemId() == null) {
+            throw invalid("FLOW_AI_PLATFORM_UNSUPPORTED", "平台 Flow AI 节点暂不支持发布");
+        }
+        FlowAiNodePolicy.Config policy = FlowAiNodePolicy.parse(config);
+        AiSystemModelGrant grant = aiGrants.selectById(policy.modelGrantId());
+        AiModel model = grant == null ? null : aiModels.selectById(grant.getModelId());
+        if (grant == null || model == null || !"ACTIVE".equals(grant.getStatus())
+                || !"ACTIVE".equals(model.getStatus())
+                || !Objects.equals(grant.getSystemId(), context.systemId())
+                || !Objects.equals(grant.getPlatformId(), context.platformId())
+                || !Objects.equals(model.getPlatformId(), context.platformId())
+                || "SYSTEM".equals(model.getScopeType())
+                && !Objects.equals(model.getSystemId(), context.systemId())
+                || !Objects.equals(model.getScopeType(), model.getCredentialScopeType())) {
+            throw invalid("FLOW_AI_MODEL_NOT_GRANTED", "AI 节点模型授权已失效或不属于当前系统");
+        }
+        AiSystemModelGrantVersion version = aiGrantVersions.selectList(
+                Wrappers.<AiSystemModelGrantVersion>lambdaQuery()
+                        .eq(AiSystemModelGrantVersion::getGrantId, grant.getId())
+                        .orderByDesc(AiSystemModelGrantVersion::getVersionNumber).last("limit 1"))
+                .stream().findFirst().orElse(null);
+        if (version == null) throw invalid("FLOW_AI_GRANT_VERSION_MISSING", "模型授权缺少当前发布版本");
+        return new AiBinding(policy, model, version);
+    }
+
+    private record AiBinding(FlowAiNodePolicy.Config config, AiModel model,
+                             AiSystemModelGrantVersion grantVersion) { }
 
     private List<FlowDefinition> scopedDefinitions(AuthenticatedContext context) {
         var query = Wrappers.<FlowDefinition>lambdaQuery()
@@ -1342,8 +1496,8 @@ public class FlowDesignService {
 
     private String normalizeCode(String code) {
         String normalized = code.strip().toLowerCase(Locale.ROOT);
-        if (!normalized.matches("[a-z][a-z0-9_-]{1,99}")) {
-            throw invalid("FLOW_CODE_INVALID", "Flow 编码需以字母开头，只能包含小写字母、数字、下划线和横线");
+        if (!normalized.matches("[a-z][a-z0-9_]{1,99}")) {
+            throw invalid("FLOW_CODE_INVALID", "Flow 编码需以字母开头，只能包含小写字母、数字和下划线");
         }
         return normalized;
     }

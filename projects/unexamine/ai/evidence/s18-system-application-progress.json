@@ -1,0 +1,31 @@
+{
+  "step": "S18.17",
+  "status": "verified_contribution",
+  "observed_at": "2026-10-13",
+  "source_rows": ["R0078", "R0398", "R0405", "R0407", "R0408", "R0415", "R0416", "R0417"],
+  "environment": "沿用独立验收副本中的系统 #166、巡检记录模块 #86、Flow #26、所属人 #167 与成员 #168。",
+  "actual_results": [
+    "所属人通过系统后台页面创建并发布系统应用 #28 V1。MODULE LIST 授权 #138 和 FLOW START 授权 #139 均只指向系统 #166、租户 #169、负责人 #251，同时开放系统内与签名外部访问。",
+    "所属人和普通成员通过应用调试入口调用 MODULE LIST 均成功；外部签名调用返回负责人范围内的记录 #179。业务字段及字段展示信息仅含设备编号和巡检合格。",
+    "外部签名调用 Flow START 生成实例 #46 和成员待办 #40；普通成员在页面同意后实例状态为 COMPLETED，来源保留应用和外部调用人标识。",
+    "重复 nonce 返回 409 APPLICATION_REPLAY_DETECTED；错误签名返回 401 APPLICATION_SIGNATURE_INVALID；未授权资源、跨系统目标和扩大负责人成员范围分别返回 403 APPLICATION_GRANT_DENIED、APPLICATION_TARGET_SCOPE_EXPANSION、APPLICATION_DATA_SCOPE_EXPANSION。",
+    "临时撤去选中成员的角色，应用仍按自身发布授权返回 1 条记录；恢复角色后，临时停用该成员的租户成员映射返回 403 APPLICATION_SCOPE_EMPTY，并已恢复 ACTIVE。",
+    "停用应用后新签名调用返回 403 APPLICATION_DISABLED；重新启用签发 V2 凭证，V1 调用返回 401 APPLICATION_CREDENTIAL_INACTIVE，V2 调用返回 200。",
+    "发现列表 queryFields 暴露未授权字段名后，修正 ApplicationBridgeService：字段目录按发布授权裁剪，未授权字段筛选或排序返回 403 APPLICATION_FIELD_QUERY_DENIED；已授权字段筛选和排序仍返回 1 条记录。",
+    "JDK 21 执行 mvn.cmd -DskipTests package 成功，后端以新制品重启且健康检查 UP；V2 签名调用仍返回 1 条记录及授权的两个业务字段。普通成员运行态仍显示设备巡检模块组，未出现应用入口。"
+  ],
+  "database_readback": {
+    "application": "#28 ACTIVE SYSTEM owner_system_id=166 owner_tenant_id=169",
+    "grants": ["#138 MODULE LIST ACTIVE RESPONSIBLE [251]", "#139 FLOW START ACTIVE RESPONSIBLE [251]"],
+    "publication": "version #42 V1",
+    "credentials": ["V1 REVOKED", "V2 ACTIVE"],
+    "flow_instance": "#46 COMPLETED",
+    "selected_tenant_member": "#255 ACTIVE"
+  },
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-system-application-published.png",
+    "projects/unexamine/ai/evidence/s18-app-member-navigation.png"
+  ],
+  "remaining": "本步骤已完成。所选部门停用后的授权收敛与恢复留给 S18.18；真实第三方平台租户与凭证仍须在具备外部环境时验收，不能计入本地签名调用结果。",
+  "next_exact": "S18.18 在当前应用授权中加入真实系统部门，验证部门停用/恢复和当前负责人范围的有效性。"
+}

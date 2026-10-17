@@ -9,7 +9,9 @@ import com.unique.unexamine.foundation.base.entity.CoreSetting;
 import com.unique.unexamine.foundation.base.service.CoreSettingBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import com.unique.unexamine.system.base.entity.SysSystemDomain;
+import com.unique.unexamine.system.base.entity.SystemTenant;
 import com.unique.unexamine.system.base.service.SysSystemDomainBaseService;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class SystemDomainService {
     private static final String VERIFICATION_PATH = "/.well-known/unexamine-domain-verification.txt";
 
     private final SysSystemDomainBaseService domainService;
+    private final SystemTenantBaseService tenantService;
+    private final SystemEntryService entryService;
     private final CoreSettingBaseService settingService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
@@ -40,11 +44,15 @@ public class SystemDomainService {
 
     public SystemDomainService(
             SysSystemDomainBaseService domainService,
+            SystemTenantBaseService tenantService,
+            SystemEntryService entryService,
             CoreSettingBaseService settingService,
             AuditRecorder auditRecorder,
             ObjectMapper objectMapper,
             @Value("${app.domain-verification.allow-private-addresses:false}") boolean allowPrivateAddresses) {
         this.domainService = domainService;
+        this.tenantService = tenantService;
+        this.entryService = entryService;
         this.settingService = settingService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
@@ -65,6 +73,12 @@ public class SystemDomainService {
         requireSystem(context);
         String host = normalizeHost(input.host());
         String basePath = normalizeBasePath(input.basePath());
+        SystemTenant tenant = requireActiveTenant(context.systemId(), input.tenantId());
+        if (domainService.selectList(Wrappers.<SysSystemDomain>lambdaQuery()
+                .eq(SysSystemDomain::getHost, host).eq(SysSystemDomain::getBasePath, basePath)).stream()
+                .anyMatch(existing -> !existing.getId().equals(input.id()))) {
+            throw new DomainException("DOMAIN_ADDRESS_OCCUPIED", "该主机和路径已被其他访问地址使用", HttpStatus.CONFLICT);
+        }
         SysSystemDomain domain;
         if (input.id() == null) {
             if (input.expectedVersion() != null) {
@@ -79,21 +93,34 @@ public class SystemDomainService {
             }
         }
         domain.setDomainType(input.domainType());
+        domain.setTenantId(tenant.getId());
         domain.setHost(host);
         domain.setBasePath(basePath);
         domain.setTlsRequired(input.tlsRequired());
-        domain.setVerifiedAt(null);
+        domain.setVerifyTime(null);
         domain.setStatus("PENDING_VERIFICATION");
         if (domain.getId() == null) {
             domainService.insert(domain);
-        } else if (domainService.updateById(domain) != 1) {
-            throw conflict();
+        } else {
+            // 更新地址时必须清除旧验证时间；非空字段策略不会替 SET NULL。
+            if (domainService.update(Wrappers.<SysSystemDomain>lambdaUpdate()
+                    .eq(SysSystemDomain::getId, domain.getId())
+                    .eq(SysSystemDomain::getVersion, input.expectedVersion())
+                    .set(SysSystemDomain::getTenantId, domain.getTenantId())
+                    .set(SysSystemDomain::getDomainType, domain.getDomainType())
+                    .set(SysSystemDomain::getHost, domain.getHost())
+                    .set(SysSystemDomain::getBasePath, domain.getBasePath())
+                    .set(SysSystemDomain::getTlsRequired, domain.getTlsRequired())
+                    .set(SysSystemDomain::getVerifyTime, null)
+                    .set(SysSystemDomain::getStatus, "PENDING_VERIFICATION")
+                    .set(SysSystemDomain::getVersion, input.expectedVersion() + 1)) != 1) throw conflict();
         }
         saveChallenge(context.platformId(), domain.getSystemId(), domain.getId(), UUID.randomUUID().toString());
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "SYSTEM_DOMAIN_SAVED", "SYSTEM_DOMAIN", domain.getId().toString(), "PENDING_VERIFICATION",
                 Map.of("domainType", domain.getDomainType(), "host", domain.getHost(),
-                        "basePath", domain.getBasePath(), "tlsRequired", domain.getTlsRequired()));
+                        "basePath", domain.getBasePath(), "tenantId", tenant.getId(),
+                        "tlsRequired", domain.getTlsRequired()));
         return view(domainService.selectById(domain.getId()));
     }
 
@@ -116,7 +143,7 @@ public class SystemDomainService {
         } catch (Exception exception) {
             failVerification(context, domain, traceId, "PROOF_UNREACHABLE");
         }
-        domain.setVerifiedAt(LocalDateTime.now());
+        domain.setVerifyTime(LocalDateTime.now());
         domain.setStatus("VERIFIED");
         if (domainService.updateById(domain) != 1) {
             throw conflict();
@@ -136,7 +163,8 @@ public class SystemDomainService {
     public SystemDomainView publish(AuthenticatedContext context, Long domainId, String traceId) {
         requireSystem(context);
         SysSystemDomain domain = requireDomain(context.systemId(), domainId);
-        if (!"VERIFIED".equals(domain.getStatus()) || domain.getVerifiedAt() == null) {
+        requireActiveTenant(context.systemId(), domain.getTenantId());
+        if (!"VERIFIED".equals(domain.getStatus()) || domain.getVerifyTime() == null) {
             auditRecorder.recordFailure(traceId, context.accountId(), context.systemId(), context.tenantId(),
                     context.memberId(), "SYSTEM_DOMAIN_PUBLISH", "SYSTEM_DOMAIN", domainId.toString(),
                     "DOMAIN_NOT_VERIFIED", Map.of("status", domain.getStatus()));
@@ -152,8 +180,37 @@ public class SystemDomainService {
         return view(domainService.selectById(domainId));
     }
 
+    /** 公共域名入口只解析已发布且仍有效的租户；实际进入继续使用成员鉴权。 */
+    @Transactional(readOnly = true)
+    public SystemAccessEntryView resolvePublished(String requestedHost, String requestedPath, String scheme) {
+        if (requestedHost == null || requestedPath == null || requestedPath.length() > 2048) throw accessNotFound();
+        String host;
+        try { host = normalizeHost(requestedHost); } catch (DomainException exception) { throw accessNotFound(); }
+        if (!requestedPath.startsWith("/")) throw accessNotFound();
+        SysSystemDomain domain = domainService.selectList(Wrappers.<SysSystemDomain>lambdaQuery()
+                        .eq(SysSystemDomain::getHost, host).eq(SysSystemDomain::getStatus, "PUBLISHED"))
+                .stream().filter(item -> item.getTenantId() != null)
+                .filter(item -> !Boolean.TRUE.equals(item.getTlsRequired()) || "https".equalsIgnoreCase(scheme))
+                .filter(item -> "/".equals(item.getBasePath()) || requestedPath.equals(item.getBasePath())
+                        || requestedPath.startsWith(item.getBasePath() + "/"))
+                .max(Comparator.comparingInt(item -> item.getBasePath().length())).orElseThrow(this::accessNotFound);
+        return entryService.accessEntry(domain.getSystemId(), domain.getTenantId());
+    }
+
+    private SystemTenant requireActiveTenant(Long systemId, Long tenantId) {
+        SystemTenant tenant = tenantId == null ? null : tenantService.selectById(tenantId);
+        if (tenant == null || !systemId.equals(tenant.getSystemId()) || !"ACTIVE".equals(tenant.getStatus())) {
+            throw accessNotFound();
+        }
+        return tenant;
+    }
+
+    private DomainException accessNotFound() {
+        return new DomainException("ACCESS_ENTRY_NOT_FOUND", "访问地址不存在或已停用", HttpStatus.NOT_FOUND);
+    }
+
     private void failVerification(AuthenticatedContext context, SysSystemDomain domain, String traceId, String reason) {
-        domain.setVerifiedAt(null);
+        domain.setVerifyTime(null);
         domain.setStatus("VERIFICATION_FAILED");
         domainService.updateById(domain);
         auditRecorder.recordFailure(traceId, context.accountId(), context.systemId(), context.tenantId(),
@@ -274,8 +331,10 @@ public class SystemDomainService {
 
     private SystemDomainView view(SysSystemDomain domain) {
         String token = challenge(domain.getSystemId(), domain.getId());
-        return new SystemDomainView(domain.getId(), domain.getDomainType(), domain.getHost(), domain.getBasePath(),
-                Boolean.TRUE.equals(domain.getTlsRequired()), domain.getStatus(), domain.getVerifiedAt(), token,
+        SystemTenant tenant = domain.getTenantId() == null ? null : tenantService.selectById(domain.getTenantId());
+        return new SystemDomainView(domain.getId(), domain.getTenantId(), tenant == null ? null : tenant.getName(),
+                domain.getDomainType(), domain.getHost(), domain.getBasePath(),
+                Boolean.TRUE.equals(domain.getTlsRequired()), domain.getStatus(), domain.getVerifyTime(), token,
                 verificationUri(domain).toString(), domain.getVersion());
     }
 

@@ -18,7 +18,6 @@ import com.unique.unexamine.foundation.base.service.CoreSequenceBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +36,11 @@ import java.util.regex.Pattern;
 public class FoundationPolicyService {
     private static final Set<String> FLAG_TARGETS = Set.of("SYSTEM", "APPLICATION", "MODULE", "ROLE");
     private static final Set<String> QUOTA_PERIODS = Set.of("TOTAL", "DAY", "MONTH");
+    /** 实际容量与配置数量以当前存量校验，不能配置成按天或按月清零。 */
+    private static final Set<String> TOTAL_BUSINESS_QUOTAS = Set.of(
+            "MEMBER_COUNT", "MODULE_COUNT", "FIELD_COUNT", "STORAGE_BYTES");
     private static final Set<String> SEQUENCE_PERIODS = Set.of("NONE", "DAY", "MONTH", "YEAR");
     private static final Pattern SEQUENCE_TOKEN = Pattern.compile("\\{seq:(\\d{1,2})}");
-    private static final int MAX_RETRIES = 20;
 
     private final CoreFeatureFlagBaseService featureFlagService;
     private final CoreQuotaPolicyBaseService quotaPolicyService;
@@ -48,7 +49,6 @@ public class FoundationPolicyService {
     private final CoreCacheEpochBaseService cacheEpochService;
     private final AuditRecorder auditRecorder;
     private final ObjectMapper objectMapper;
-    private final JdbcTemplate jdbc;
 
     public FoundationPolicyService(CoreFeatureFlagBaseService featureFlagService,
                                    CoreQuotaPolicyBaseService quotaPolicyService,
@@ -56,8 +56,7 @@ public class FoundationPolicyService {
                                    CoreSequenceBaseService sequenceService,
                                    CoreCacheEpochBaseService cacheEpochService,
                                    AuditRecorder auditRecorder,
-                                   ObjectMapper objectMapper,
-                                   JdbcTemplate jdbc) {
+                                   ObjectMapper objectMapper) {
         this.featureFlagService = featureFlagService;
         this.quotaPolicyService = quotaPolicyService;
         this.quotaUsageService = quotaUsageService;
@@ -65,7 +64,6 @@ public class FoundationPolicyService {
         this.cacheEpochService = cacheEpochService;
         this.auditRecorder = auditRecorder;
         this.objectMapper = objectMapper;
-        this.jdbc = jdbc;
     }
 
     @Transactional(readOnly = true)
@@ -173,7 +171,11 @@ public class FoundationPolicyService {
             AuthenticatedContext context, FoundationControlModels.SaveQuotaRequest input, String traceId) {
         requireContext(context);
         String period = input.periodType().strip().toUpperCase(Locale.ROOT);
+        String quotaCode = input.quotaCode().strip().toUpperCase(Locale.ROOT);
         if (!QUOTA_PERIODS.contains(period)) throw invalid("QUOTA_PERIOD_INVALID", "配额周期不受支持");
+        if (TOTAL_BUSINESS_QUOTAS.contains(quotaCode) && !"TOTAL".equals(period)) {
+            throw invalid("QUOTA_PERIOD_INVALID", "成员、模块、字段和存储配额必须按总量设置");
+        }
         if (input.warningThreshold() != null && input.warningThreshold() > input.hardLimit()) {
             throw invalid("QUOTA_WARNING_INVALID", "预警值不能超过硬限制");
         }
@@ -183,7 +185,7 @@ public class FoundationPolicyService {
             policy.setContextType("SYSTEM");
             policy.setSystemId(context.systemId());
             policy.setTenantId(context.tenantId());
-            policy.setQuotaCode(input.quotaCode().strip().toUpperCase(Locale.ROOT));
+            policy.setQuotaCode(quotaCode);
             policy.setPeriodType(period);
             policy.setHardLimit(input.hardLimit());
             policy.setWarningThreshold(input.warningThreshold());
@@ -195,6 +197,9 @@ public class FoundationPolicyService {
             }
         } else {
             policy = requireQuota(context, input.id());
+            if (!quotaCode.equals(policy.getQuotaCode())) {
+                throw invalid("QUOTA_CODE_MISMATCH", "修改配额时编码必须与原策略一致");
+            }
             requireVersion(input.expectedVersion(), policy.getVersion(), "QUOTA_VERSION_CONFLICT");
             policy.setPeriodType(period);
             policy.setHardLimit(input.hardLimit());
@@ -216,20 +221,49 @@ public class FoundationPolicyService {
                                                            FoundationControlModels.ConsumeQuotaRequest input,
                                                            String traceId) {
         requireContext(context);
-        CoreQuotaPolicy policy = requireQuota(context, policyId);
+        requireQuota(context, policyId);
+        // 先锁定配额策略行，串行化新周期首次创建用量行，避免唯一键竞争引发数据库死锁。
+        CoreQuotaPolicy policy = quotaPolicyService.selectOne(Wrappers.<CoreQuotaPolicy>lambdaQuery()
+                .eq(CoreQuotaPolicy::getId, policyId)
+                .eq(CoreQuotaPolicy::getSystemId, context.systemId())
+                .eq(CoreQuotaPolicy::getTenantId, context.tenantId())
+                .last("FOR UPDATE"));
+        if (policy == null) {
+            throw new DomainException("QUOTA_POLICY_NOT_FOUND", "配额策略不存在", HttpStatus.NOT_FOUND);
+        }
         if (!"ACTIVE".equals(policy.getStatus())) throw invalid("QUOTA_POLICY_INACTIVE", "配额策略未启用");
         String periodKey = quotaPeriodKey(policy.getPeriodType());
-        jdbc.update("insert into core_quota_usage(quota_policy_id,period_key,used_value,reserved_value) "
-                        + "values (?,?,0,0) on duplicate key update quota_policy_id=values(quota_policy_id)",
-                policy.getId(), periodKey);
-        int updated = jdbc.update("update core_quota_usage set used_value=used_value+?, version=version+1 "
-                        + "where quota_policy_id=? and period_key=? and used_value+reserved_value+?<=?",
-                input.amount(), policy.getId(), periodKey, input.amount(), policy.getHardLimit());
-        Map<String, Object> usage = jdbc.queryForMap(
-                "select used_value,reserved_value from core_quota_usage where quota_policy_id=? and period_key=? for update",
-                policy.getId(), periodKey);
-        long used = ((Number) usage.get("used_value")).longValue();
-        long reserved = ((Number) usage.get("reserved_value")).longValue();
+        CoreQuotaUsage currentUsage = quotaUsageService.selectOne(Wrappers.<CoreQuotaUsage>lambdaQuery()
+                .eq(CoreQuotaUsage::getQuotaPolicyId, policy.getId())
+                .eq(CoreQuotaUsage::getPeriodKey, periodKey)
+                .last("FOR UPDATE"));
+        if (currentUsage == null) {
+            CoreQuotaUsage initial = new CoreQuotaUsage();
+            initial.setQuotaPolicyId(policy.getId());
+            initial.setPeriodKey(periodKey);
+            initial.setUsedValue(0L);
+            initial.setReservedValue(0L);
+            try {
+                quotaUsageService.insert(initial);
+            } catch (DataIntegrityViolationException duplicate) {
+                // 同期并发首次消费可由另一事务先建行，后续条件更新按唯一业务键重新定位。
+            }
+        }
+        // 条件与增量在数据库同一条更新中判断，避免并发请求都从旧用量通过校验。
+        int updated = quotaUsageService.update(Wrappers.<CoreQuotaUsage>lambdaUpdate()
+                .setSql("used_value = used_value + {0}, version = version + 1", input.amount())
+                .eq(CoreQuotaUsage::getQuotaPolicyId, policy.getId())
+                .eq(CoreQuotaUsage::getPeriodKey, periodKey)
+                .apply("used_value + reserved_value + {0} <= {1}", input.amount(), policy.getHardLimit()));
+        CoreQuotaUsage usage = quotaUsageService.selectOne(Wrappers.<CoreQuotaUsage>lambdaQuery()
+                .eq(CoreQuotaUsage::getQuotaPolicyId, policy.getId())
+                .eq(CoreQuotaUsage::getPeriodKey, periodKey)
+                .last("FOR UPDATE"));
+        if (usage == null) {
+            throw new DomainException("QUOTA_USAGE_UNCERTAIN", "无法确认配额用量，已安全拒绝", HttpStatus.CONFLICT);
+        }
+        long used = usage.getUsedValue();
+        long reserved = usage.getReservedValue();
         if (updated != 1) {
             throw new DomainException("QUOTA_EXCEEDED", "本次用量会超过配额硬限制", HttpStatus.TOO_MANY_REQUESTS,
                     Map.of("quotaCode", policy.getQuotaCode(), "hardLimit", policy.getHardLimit(),
@@ -303,29 +337,58 @@ public class FoundationPolicyService {
         CoreSequence sequence = requireSequence(context, sequenceId);
         if (!"ACTIVE".equals(sequence.getStatus())) throw invalid("SEQUENCE_INACTIVE", "序列未启用");
         String periodKey = sequencePeriodKey(sequence.getResetPeriod());
-        int updated = jdbc.update("update core_sequence set current_value=if(current_period_key=?,current_value+step_value,step_value), "
-                        + "current_period_key=?, version=version+1 where id=? and system_id=? and tenant_id=? and status='ACTIVE'",
-                periodKey, periodKey, sequenceId, context.systemId(), context.tenantId());
+        // 在独立序号行上原子推进；跨周期时从步长重新开始，不能先读取再覆盖计数。
+        int updated = sequenceService.update(Wrappers.<CoreSequence>lambdaUpdate()
+                .setSql("current_value = IF(current_period_key = {0}, current_value + step_value, step_value), "
+                        + "current_period_key = {0}, version = version + 1", periodKey)
+                .eq(CoreSequence::getId, sequenceId)
+                .eq(CoreSequence::getSystemId, context.systemId())
+                .eq(CoreSequence::getTenantId, context.tenantId())
+                .eq(CoreSequence::getStatus, "ACTIVE"));
         if (updated != 1) {
             throw versionConflict("SEQUENCE_ALLOCATION_CONFLICT", "序列并发分配失败，请刷新后重试");
         }
-        Map<String, Object> allocated = jdbc.queryForMap(
-                "select sequence_code,pattern,current_value,version from core_sequence where id=? for update", sequenceId);
-        long next = ((Number) allocated.get("current_value")).longValue();
-        int version = ((Number) allocated.get("version")).intValue();
-        String sequenceCode = (String) allocated.get("sequence_code");
-        String value = renderSequence((String) allocated.get("pattern"), next);
+        CoreSequence allocated = sequenceService.selectOne(Wrappers.<CoreSequence>lambdaQuery()
+                .eq(CoreSequence::getId, sequenceId)
+                .eq(CoreSequence::getSystemId, context.systemId())
+                .eq(CoreSequence::getTenantId, context.tenantId())
+                .last("FOR UPDATE"));
+        if (allocated == null) {
+            throw versionConflict("SEQUENCE_ALLOCATION_CONFLICT", "序列并发分配失败，请刷新后重试");
+        }
+        long next = allocated.getCurrentValue();
+        int version = allocated.getVersion();
+        String sequenceCode = allocated.getSequenceCode();
+        String value = renderSequence(allocated.getPattern(), next);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "FOUNDATION_SEQUENCE_ALLOCATED", "SEQUENCE", String.valueOf(sequenceId), "SUCCESS",
                 Map.of("sequenceCode", sequenceCode, "value", value, "numericValue", next));
         return new FoundationControlModels.SequenceValue(sequenceCode, value, periodKey, next, version);
     }
 
+    /** 业务字段按已发布的序列编码领取编号，租户边界与人工领取序列一致。 */
+    @Transactional
+    public FoundationControlModels.SequenceValue nextSequenceByCode(
+            AuthenticatedContext context, String sequenceCode, String traceId) {
+        requireContext(context);
+        if (sequenceCode == null || sequenceCode.isBlank()) {
+            throw invalid("SEQUENCE_CODE_REQUIRED", "自动编号字段未配置编号规则");
+        }
+        CoreSequence sequence = sequenceService.selectOne(Wrappers.<CoreSequence>lambdaQuery()
+                .eq(CoreSequence::getSystemId, context.systemId())
+                .eq(CoreSequence::getTenantId, context.tenantId())
+                .eq(CoreSequence::getSequenceCode, sequenceCode.strip().toLowerCase(Locale.ROOT)));
+        if (sequence == null) {
+            throw invalid("SEQUENCE_NOT_FOUND", "自动编号规则不存在或不属于当前租户");
+        }
+        return nextSequence(context, sequence.getId(), traceId);
+    }
+
     private FoundationControlModels.FeatureFlagView flagView(CoreFeatureFlag flag) {
         Rollout rollout = rollout(flag);
         return new FoundationControlModels.FeatureFlagView(flag.getId(), flag.getFlagKey(), flag.getEnabled(),
                 rollout.targetType(), rollout.targetCodes(), rollout.effectiveFrom(), rollout.effectiveUntil(),
-                rollout.fallbackEnabled(), rollout.stableVariant(), flag.getStatus(), flag.getVersion(), flag.getUpdatedAt());
+                rollout.fallbackEnabled(), rollout.stableVariant(), flag.getStatus(), flag.getVersion(), flag.getUpdateTime());
     }
 
     private FoundationControlModels.QuotaView quotaView(CoreQuotaPolicy policy) {
@@ -369,28 +432,6 @@ public class FoundationPolicyService {
             throw new DomainException("SEQUENCE_NOT_FOUND", "序列不存在", HttpStatus.NOT_FOUND);
         }
         return sequence;
-    }
-
-    private CoreQuotaUsage usage(long policyId, String periodKey) {
-        CoreQuotaUsage existing = findUsage(policyId, periodKey);
-        if (existing != null) return existing;
-        CoreQuotaUsage usage = new CoreQuotaUsage();
-        usage.setQuotaPolicyId(policyId);
-        usage.setPeriodKey(periodKey);
-        usage.setUsedValue(0L);
-        usage.setReservedValue(0L);
-        try {
-            quotaUsageService.insert(usage);
-            return usage;
-        } catch (DataIntegrityViolationException duplicate) {
-            return requireUsage(policyId, periodKey);
-        }
-    }
-
-    private CoreQuotaUsage requireUsage(long policyId, String periodKey) {
-        CoreQuotaUsage usage = findUsage(policyId, periodKey);
-        if (usage == null) throw new DomainException("QUOTA_USAGE_UNCERTAIN", "无法确认配额用量，已安全拒绝", HttpStatus.CONFLICT);
-        return usage;
     }
 
     private CoreQuotaUsage findUsage(long policyId, String periodKey) {

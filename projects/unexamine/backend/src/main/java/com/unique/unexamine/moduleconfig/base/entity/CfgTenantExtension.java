@@ -10,51 +10,90 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 租户对基础模块的扩展草稿
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_tenant_extension")
+@TableName("un_cfg_tenant_extension")
 public class CfgTenantExtension {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 扩展所属租户标识
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 扩展的基础模块标识
+     */
     @TableField("base_module_id")
     private Long baseModuleId;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 租户扩展草稿配置
+     */
     @TableField("extension_json")
     private String extensionJson;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 当前生效的租户扩展发布版本标识
+     */
     @TableField("current_version_id")
     private Long currentVersionId;
 
+    /**
+     * 最近切换发布版本的系统成员标识
+     */
     @TableField("updated_by_member_id")
     private Long updatedByMemberId;
 
+    /**
+     * 创建系统成员标识
+     */
     @TableField("created_by_member_id")
     private Long createdByMemberId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -139,20 +178,20 @@ public class CfgTenantExtension {
         this.createdByMemberId = createdByMemberId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -176,8 +215,8 @@ public class CfgTenantExtension {
             ", currentVersionId = " + currentVersionId +
             ", updatedByMemberId = " + updatedByMemberId +
             ", createdByMemberId = " + createdByMemberId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

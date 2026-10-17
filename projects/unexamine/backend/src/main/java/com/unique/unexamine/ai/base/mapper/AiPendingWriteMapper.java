@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 人工确认前不得写入正式业务表的 AI 提议 Mapper 接口
  * </p>
  *
  * @author Template Base

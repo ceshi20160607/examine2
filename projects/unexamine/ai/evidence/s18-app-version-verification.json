@@ -1,0 +1,22 @@
+{
+  "step": "S18.19",
+  "status": "verified_contribution",
+  "source_rows": ["R0411", "R0417"],
+  "changed_files": [],
+  "checks_actual_results": [
+    "原应用 #28 草稿撤权未改变已发布签名响应；发布 V3 后只返回设备编号；从 V2 回滚生成 V4 后两字段恢复，历史版本保留。",
+    "页面导出当前草稿为 schemaVersion=1 的 JSON，含两项授权且不含凭证或密钥字段；页面导入为独立应用 #29 与新凭证，未发布时调用 403，发布后只返回导入草稿授权字段。",
+    "MySQL 读回两套独立应用、凭证及发布版本；后端重启健康检查 UP，签名 API 分别返回原应用 2 字段和导入应用 1 字段。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-app-version-progress.json",
+    "projects/unexamine/ai/evidence/s18-app-portable-export.json",
+    "projects/unexamine/ai/evidence/s18-app-import-published.png"
+  ],
+  "permission_or_failure_result": "草稿、发布快照、历史回滚与导入应用各自维持独立权限；导入时产生的新凭证在发布前不能调用。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java", "sha256": "66dbe6983e8a3de55befd29c32e41b8045b7b1ec07b29be901c86677ca017ab8"}
+  ],
+  "remaining": "S18.20 继续应用限流、IP 和失败停用策略及日志读回。",
+  "next_step": "S18.20"
+}

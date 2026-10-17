@@ -6,23 +6,26 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.flow.base.entity.FlowTask">
         <id column="id" property="id" />
         <result column="instance_id" property="instanceId" />
+        <result column="execution_id" property="executionId" />
         <result column="node_key" property="nodeKey" />
         <result column="task_type" property="taskType" />
         <result column="status" property="status" />
         <result column="assignee_account_id" property="assigneeAccountId" />
         <result column="assignee_tenant_member_id" property="assigneeTenantMemberId" />
+        <result column="assignee_application_id" property="assigneeApplicationId" />
+        <result column="assignee_external_principal_id" property="assigneeExternalPrincipalId" />
         <result column="assignee_snapshot_json" property="assigneeSnapshotJson" />
-        <result column="due_at" property="dueAt" />
-        <result column="claimed_at" property="claimedAt" />
-        <result column="completed_at" property="completedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="due_time" property="dueTime" />
+        <result column="claim_time" property="claimTime" />
+        <result column="complete_time" property="completeTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, node_key, task_type, `status`, assignee_account_id, assignee_tenant_member_id, assignee_snapshot_json, due_at, claimed_at, completed_at, created_at, updated_at, version
+        id, instance_id, execution_id, node_key, task_type, `status`, assignee_account_id, assignee_tenant_member_id, assignee_application_id, assignee_external_principal_id, assignee_snapshot_json, due_time, claim_time, complete_time, create_time, update_time, version
     </sql>
 
 </mapper>

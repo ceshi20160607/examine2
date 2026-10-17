@@ -9,53 +9,92 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用访问凭证与密钥版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_credential")
+@TableName("un_app_credential")
 public class AppCredential {
 
+    /**
+     * 凭证主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 应用内递增的凭证版本号
+     */
     @TableField("credential_version")
     private Integer credentialVersion;
 
+    /**
+     * 公开的应用访问标识
+     */
     @TableField("client_id")
     private String clientId;
 
+    /**
+     * 凭证密钥的不可逆摘要
+     */
     @TableField("secret_hash")
     private String secretHash;
 
+    /**
+     * 签名材料的受控密钥引用，不存明文
+     */
     @TableField("signing_secret_ref")
     private String signingSecretRef;
 
+    /**
+     * 仅供识别的脱敏尾号
+     */
     @TableField("secret_hint")
     private String secretHint;
 
-    @TableField("valid_from")
-    private LocalDateTime validFrom;
+    /**
+     * 凭证生效时间
+     */
+    @TableField("valid_start_time")
+    private LocalDateTime validStartTime;
 
-    @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    /**
+     * 凭证到期时间
+     */
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
 
+    /**
+     * 凭证状态：ACTIVE启用或REVOKED撤销
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("revoked_at")
-    private LocalDateTime revokedAt;
+    /**
+     * 凭证撤销时间
+     */
+    @TableField("revoke_time")
+    private LocalDateTime revokeTime;
 
+    /**
+     * 创建凭证的平台账号主键
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -113,20 +152,20 @@ public class AppCredential {
         this.secretHint = secretHint;
     }
 
-    public LocalDateTime getValidFrom() {
-        return validFrom;
+    public LocalDateTime getValidStartTime() {
+        return validStartTime;
     }
 
-    public void setValidFrom(LocalDateTime validFrom) {
-        this.validFrom = validFrom;
+    public void setValidStartTime(LocalDateTime validStartTime) {
+        this.validStartTime = validStartTime;
     }
 
-    public LocalDateTime getExpiresAt() {
-        return expiresAt;
+    public LocalDateTime getExpireTime() {
+        return expireTime;
     }
 
-    public void setExpiresAt(LocalDateTime expiresAt) {
-        this.expiresAt = expiresAt;
+    public void setExpireTime(LocalDateTime expireTime) {
+        this.expireTime = expireTime;
     }
 
     public String getStatus() {
@@ -137,12 +176,12 @@ public class AppCredential {
         this.status = status;
     }
 
-    public LocalDateTime getRevokedAt() {
-        return revokedAt;
+    public LocalDateTime getRevokeTime() {
+        return revokeTime;
     }
 
-    public void setRevokedAt(LocalDateTime revokedAt) {
-        this.revokedAt = revokedAt;
+    public void setRevokeTime(LocalDateTime revokeTime) {
+        this.revokeTime = revokeTime;
     }
 
     public Long getCreatedByAccountId() {
@@ -153,12 +192,12 @@ public class AppCredential {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -171,12 +210,12 @@ public class AppCredential {
             ", secretHash = " + secretHash +
             ", signingSecretRef = " + signingSecretRef +
             ", secretHint = " + secretHint +
-            ", validFrom = " + validFrom +
-            ", expiresAt = " + expiresAt +
+            ", validStartTime = " + validStartTime +
+            ", expireTime = " + expireTime +
             ", status = " + status +
-            ", revokedAt = " + revokedAt +
+            ", revokeTime = " + revokeTime +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

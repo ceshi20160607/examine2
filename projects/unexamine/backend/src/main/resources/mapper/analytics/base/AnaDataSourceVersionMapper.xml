@@ -6,17 +6,19 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaDataSourceVersion">
         <id column="id" property="id" />
         <result column="data_source_id" property="dataSourceId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
         <result column="version_number" property="versionNumber" />
         <result column="draft_revision" property="draftRevision" />
         <result column="definition_hash" property="definitionHash" />
         <result column="snapshot_json" property="snapshotJson" />
         <result column="published_by_account_id" property="publishedByAccountId" />
-        <result column="published_at" property="publishedAt" />
+        <result column="publish_time" property="publishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, data_source_id, version_number, draft_revision, definition_hash, snapshot_json, published_by_account_id, published_at
+        id, data_source_id, scope_type, scope_owner_id, version_number, draft_revision, definition_hash, snapshot_json, published_by_account_id, publish_time
     </sql>
 
 </mapper>

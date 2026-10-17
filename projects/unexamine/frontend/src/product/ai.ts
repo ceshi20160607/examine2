@@ -1,7 +1,7 @@
 import type { AiAgentPreview, AiTool } from './types'
 
 export function aiToolTypeLabel(type: string) {
-  return ({ QUERY: '查询', WRITE: '写入', FLOW_DRAFT: 'Flow 草稿', REPORT: '报表', ERROR_EXPLAIN: '异常解释' } as Record<string, string>)[type] || type
+  return ({ QUERY: '查询', WRITE: '写入', FLOW_DRAFT: 'Flow 草稿', REPORT: '报表', ERROR_EXPLAIN: '异常解释', CONFIG_DRAFT: '模块配置建议' } as Record<string, string>)[type] || type
 }
 
 export function aiScopeLabel(scope: string) {
@@ -15,5 +15,6 @@ export function aiPreviewSummary(preview?: AiAgentPreview) {
 }
 
 export function isWriteTool(tool: Pick<AiTool, 'toolType' | 'actionCode'>) {
-  return tool.toolType === 'WRITE' || ['CREATE', 'UPDATE', 'DELETE', 'CONVERT', 'IMPORT', 'EXECUTE'].includes(tool.actionCode)
+  return tool.toolType === 'WRITE' || tool.toolType === 'CONFIG_DRAFT' || tool.toolType === 'FLOW_DRAFT'
+    || ['CREATE', 'UPDATE', 'DELETE', 'CONVERT', 'IMPORT', 'EXECUTE'].includes(tool.actionCode)
 }

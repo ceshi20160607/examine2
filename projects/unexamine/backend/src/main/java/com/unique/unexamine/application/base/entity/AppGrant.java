@@ -10,54 +10,96 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 应用按目标资源和动作配置的访问授权草稿
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("app_grant")
+@TableName("un_app_grant")
 public class AppGrant {
 
+    /**
+     * 授权主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属应用主键
+     */
     @TableField("application_id")
     private Long applicationId;
 
+    /**
+     * 授权目标：PLATFORM平台、SYSTEM系统
+     */
     @TableField("target_type")
     private String targetType;
 
+    /**
+     * 目标系统主键，平台授权为空
+     */
     @TableField("target_system_id")
     private Long targetSystemId;
 
+    /**
+     * 目标租户主键，平台授权为空
+     */
     @TableField("target_tenant_id")
     private Long targetTenantId;
 
+    /**
+     * 授权资源类型：FLOW流程、MODULE模块
+     */
     @TableField("resource_type")
     private String resourceType;
 
+    /**
+     * 目标资源业务编码
+     */
     @TableField("resource_id")
     private String resourceId;
 
+    /**
+     * 允许调用的动作编码
+     */
     @TableField("action_code")
     private String actionCode;
 
+    /**
+     * 授权数据范围规则
+     */
     @TableField("data_scope_json")
     private String dataScopeJson;
 
+    /**
+     * 限流和访问通道控制规则
+     */
     @TableField("rate_limit_json")
     private String rateLimitJson;
 
+    /**
+     * 授权启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -150,20 +192,20 @@ public class AppGrant {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -188,8 +230,8 @@ public class AppGrant {
             ", dataScopeJson = " + dataScopeJson +
             ", rateLimitJson = " + rateLimitJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

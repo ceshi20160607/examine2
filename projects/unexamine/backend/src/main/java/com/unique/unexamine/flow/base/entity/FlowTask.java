@@ -10,54 +10,114 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 节点执行轮次的待办任务
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_task")
+@TableName("un_flow_task")
 public class FlowTask {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 任务所属的节点执行轮次
+     */
+    @TableField("execution_id")
+    private Long executionId;
+
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 待办任务类型
+     */
     @TableField("task_type")
     private String taskType;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 当前处理人平台账号ID
+     */
     @TableField("assignee_account_id")
     private Long assigneeAccountId;
 
+    /**
+     * 当前处理人在实际运行租户的成员ID
+     */
     @TableField("assignee_tenant_member_id")
     private Long assigneeTenantMemberId;
 
+    /**
+     * 外部审批人所属应用ID；内部任务为空
+     */
+    @TableField("assignee_application_id")
+    private Long assigneeApplicationId;
+
+    /**
+     * 应用命名空间内的外部审批人标识；候选池任务为空
+     */
+    @TableField("assignee_external_principal_id")
+    private String assigneeExternalPrincipalId;
+
+    /**
+     * 任务创建时处理人解析快照
+     */
     @TableField("assignee_snapshot_json")
     private String assigneeSnapshotJson;
 
-    @TableField("due_at")
-    private LocalDateTime dueAt;
+    /**
+     * 任务应完成时间
+     */
+    @TableField("due_time")
+    private LocalDateTime dueTime;
 
-    @TableField("claimed_at")
-    private LocalDateTime claimedAt;
+    /**
+     * 任务领取时间
+     */
+    @TableField("claim_time")
+    private LocalDateTime claimTime;
 
-    @TableField("completed_at")
-    private LocalDateTime completedAt;
+    /**
+     * 任务完成时间
+     */
+    @TableField("complete_time")
+    private LocalDateTime completeTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -76,6 +136,14 @@ public class FlowTask {
 
     public void setInstanceId(Long instanceId) {
         this.instanceId = instanceId;
+    }
+
+    public Long getExecutionId() {
+        return executionId;
+    }
+
+    public void setExecutionId(Long executionId) {
+        this.executionId = executionId;
     }
 
     public String getNodeKey() {
@@ -118,6 +186,22 @@ public class FlowTask {
         this.assigneeTenantMemberId = assigneeTenantMemberId;
     }
 
+    public Long getAssigneeApplicationId() {
+        return assigneeApplicationId;
+    }
+
+    public void setAssigneeApplicationId(Long assigneeApplicationId) {
+        this.assigneeApplicationId = assigneeApplicationId;
+    }
+
+    public String getAssigneeExternalPrincipalId() {
+        return assigneeExternalPrincipalId;
+    }
+
+    public void setAssigneeExternalPrincipalId(String assigneeExternalPrincipalId) {
+        this.assigneeExternalPrincipalId = assigneeExternalPrincipalId;
+    }
+
     public String getAssigneeSnapshotJson() {
         return assigneeSnapshotJson;
     }
@@ -126,44 +210,44 @@ public class FlowTask {
         this.assigneeSnapshotJson = assigneeSnapshotJson;
     }
 
-    public LocalDateTime getDueAt() {
-        return dueAt;
+    public LocalDateTime getDueTime() {
+        return dueTime;
     }
 
-    public void setDueAt(LocalDateTime dueAt) {
-        this.dueAt = dueAt;
+    public void setDueTime(LocalDateTime dueTime) {
+        this.dueTime = dueTime;
     }
 
-    public LocalDateTime getClaimedAt() {
-        return claimedAt;
+    public LocalDateTime getClaimTime() {
+        return claimTime;
     }
 
-    public void setClaimedAt(LocalDateTime claimedAt) {
-        this.claimedAt = claimedAt;
+    public void setClaimTime(LocalDateTime claimTime) {
+        this.claimTime = claimTime;
     }
 
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
+    public LocalDateTime getCompleteTime() {
+        return completeTime;
     }
 
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
+    public void setCompleteTime(LocalDateTime completeTime) {
+        this.completeTime = completeTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -179,17 +263,20 @@ public class FlowTask {
         return "FlowTask{" +
             "id = " + id +
             ", instanceId = " + instanceId +
+            ", executionId = " + executionId +
             ", nodeKey = " + nodeKey +
             ", taskType = " + taskType +
             ", status = " + status +
             ", assigneeAccountId = " + assigneeAccountId +
             ", assigneeTenantMemberId = " + assigneeTenantMemberId +
+            ", assigneeApplicationId = " + assigneeApplicationId +
+            ", assigneeExternalPrincipalId = " + assigneeExternalPrincipalId +
             ", assigneeSnapshotJson = " + assigneeSnapshotJson +
-            ", dueAt = " + dueAt +
-            ", claimedAt = " + claimedAt +
-            ", completedAt = " + completedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", dueTime = " + dueTime +
+            ", claimTime = " + claimTime +
+            ", completeTime = " + completeTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

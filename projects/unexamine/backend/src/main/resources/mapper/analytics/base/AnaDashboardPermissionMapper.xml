@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unique.unexamine.analytics.base.mapper.AnaDashboardPermissionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.unique.unexamine.analytics.base.entity.AnaDashboardPermission">
+        <id column="id" property="id" />
+        <result column="dashboard_id" property="dashboardId" />
+        <result column="scope_type" property="scopeType" />
+        <result column="scope_owner_id" property="scopeOwnerId" />
+        <result column="platform_id" property="platformId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
+        <result column="permission_code" property="permissionCode" />
+        <result column="grantee_type" property="granteeType" />
+        <result column="platform_role_id" property="platformRoleId" />
+        <result column="platform_member_id" property="platformMemberId" />
+        <result column="system_role_id" property="systemRoleId" />
+        <result column="tenant_member_id" property="tenantMemberId" />
+        <result column="created_by_account_id" property="createdByAccountId" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, dashboard_id, scope_type, scope_owner_id, platform_id, system_id, tenant_id, permission_code, grantee_type, platform_role_id, platform_member_id, system_role_id, tenant_member_id, created_by_account_id, create_time
+    </sql>
+
+</mapper>

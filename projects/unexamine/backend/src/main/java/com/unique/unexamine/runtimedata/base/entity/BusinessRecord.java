@@ -10,72 +10,132 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 自定义模块的通用业务主记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("biz_record")
+@TableName("un_biz_record")
 public class BusinessRecord {
 
+    /**
+     * 本表主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 业务数据所属系统
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 业务数据归属租户
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 业务记录所属模块主键
+     */
     @TableField("module_id")
     private Long moduleId;
 
+    /**
+     * 创建业务记录时固定的已发布模块版本
+     */
     @TableField("created_config_version_id")
     private Long createdConfigVersionId;
 
+    /**
+     * 最近修改业务记录时固定的已发布模块版本
+     */
     @TableField("updated_config_version_id")
     private Long updatedConfigVersionId;
 
+    /**
+     * 模块内可展示的业务编号
+     */
     @TableField("record_number")
     private String recordNumber;
 
+    /**
+     * 业务记录标题
+     */
     @TableField("title")
     private String title;
 
+    /**
+     * 当前业务状态或处理状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 当前业务记录负责人主键，缺失时由系统当前所属人补齐
+     */
     @TableField("owner_member_id")
     private Long ownerMemberId;
 
+    /**
+     * 业务记录所属部门主键
+     */
     @TableField("department_id")
     private Long departmentId;
 
+    /**
+     * 创建业务数据的系统成员主键
+     */
     @TableField("created_by_member_id")
     private Long createdByMemberId;
 
+    /**
+     * 最近修改业务记录的系统成员主键
+     */
     @TableField("updated_by_member_id")
     private Long updatedByMemberId;
 
+    /**
+     * 业务记录归档标记
+     */
     @TableField("archived")
     private Boolean archived;
 
-    @TableField("archived_at")
-    private LocalDateTime archivedAt;
+    /**
+     * 业务记录归档时间
+     */
+    @TableField("archive_time")
+    private LocalDateTime archiveTime;
 
+    /**
+     * 逻辑删除标记
+     */
     @TableField("deleted")
     private Boolean deleted;
 
-    @TableField("deleted_at")
-    private LocalDateTime deletedAt;
+    /**
+     * 逻辑删除时间
+     */
+    @TableField("delete_time")
+    private LocalDateTime deleteTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最近修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -192,12 +252,12 @@ public class BusinessRecord {
         this.archived = archived;
     }
 
-    public LocalDateTime getArchivedAt() {
-        return archivedAt;
+    public LocalDateTime getArchiveTime() {
+        return archiveTime;
     }
 
-    public void setArchivedAt(LocalDateTime archivedAt) {
-        this.archivedAt = archivedAt;
+    public void setArchiveTime(LocalDateTime archiveTime) {
+        this.archiveTime = archiveTime;
     }
 
     public Boolean getDeleted() {
@@ -208,28 +268,28 @@ public class BusinessRecord {
         this.deleted = deleted;
     }
 
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
+    public LocalDateTime getDeleteTime() {
+        return deleteTime;
     }
 
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
+    public void setDeleteTime(LocalDateTime deleteTime) {
+        this.deleteTime = deleteTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -257,11 +317,11 @@ public class BusinessRecord {
             ", createdByMemberId = " + createdByMemberId +
             ", updatedByMemberId = " + updatedByMemberId +
             ", archived = " + archived +
-            ", archivedAt = " + archivedAt +
+            ", archiveTime = " + archiveTime +
             ", deleted = " + deleted +
-            ", deletedAt = " + deletedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", deleteTime = " + deleteTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

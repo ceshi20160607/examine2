@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 租户业务编号规则及当前序号 Mapper 接口
  * </p>
  *
  * @author Template Base

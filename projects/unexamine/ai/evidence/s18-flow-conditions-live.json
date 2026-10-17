@@ -1,0 +1,94 @@
+{
+  "status": "separate_approver_verified",
+  "flowId": 29,
+  "v1VersionId": 28,
+  "v1Hash": "03ce3fdf9a1d89f27fea7c9ad24a7eb39d567c46877cf9629d70663cc8fff5f1",
+  "v1Snapshot": "{\"code\": \"condition_accept_72458ac2\", \"name\": \"模块条件审批验收\", \"edges\": [{\"id\": 79, \"config\": {}, \"edgeKey\": \"enter\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"decision\", \"conditionExpression\": null}, {\"id\": 80, \"config\": {\"condition\": {\"mode\": \"ALL\", \"conditions\": [{\"field\": \"activity\", \"value\": \"FLOW_HIGH\", \"operator\": \"EQ\"}]}}, \"edgeKey\": \"high\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"high_review\", \"conditionExpression\": null}, {\"id\": 81, \"config\": {}, \"edgeKey\": \"high_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"high_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 83, \"config\": {}, \"edgeKey\": \"low_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"low_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 82, \"config\": {}, \"edgeKey\": \"low\", \"version\": 0, \"priorityOrder\": 1, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"low_review\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 119, \"name\": \"start\", \"config\": {\"moduleId\": 94}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 120, \"name\": \"decision\", \"config\": {\"gatewayMode\": \"EXCLUSIVE\"}, \"nodeKey\": \"decision\", \"version\": 0, \"nodeType\": \"GATEWAY\", \"positionX\": \"160.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 121, \"name\": \"high_review\", \"config\": {}, \"nodeKey\": \"high_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"-100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 122, \"name\": \"low_review\", \"config\": {}, \"nodeKey\": \"low_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 123, \"name\": \"end\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"680.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 29, \"systemId\": 143, \"tenantId\": 144, \"platformId\": 3, \"contextType\": \"SYSTEM\", \"formContext\": {}, \"draftRevision\": 3, \"schemaVersion\": 1, \"conditionContext\": {\"fields\": [{\"code\": \"activity\", \"name\": \"活动名称\", \"config\": {}, \"fieldType\": \"TEXT\"}], \"moduleId\": 94, \"moduleCode\": \"dashboard_accept_1a4547cf\", \"fieldBindings\": [{\"id\": 205, \"code\": \"activity\", \"fieldType\": \"TEXT\", \"dictionaryId\": null}], \"moduleVersionId\": 120}}",
+  "bindingV1": 9,
+  "highRecordId": 192,
+  "lowRecordId": 193,
+  "highV1InstanceId": 55,
+  "lowV1InstanceId": 56,
+  "highV1TaskId": 49,
+  "lowV1TaskId": 50,
+  "oldInstances": [
+    [
+      55,
+      28,
+      "{\"code\": \"condition_accept_72458ac2\", \"name\": \"模块条件审批验收\", \"edges\": [{\"id\": 79, \"config\": {}, \"edgeKey\": \"enter\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"decision\", \"conditionExpression\": null}, {\"id\": 80, \"config\": {\"condition\": {\"mode\": \"ALL\", \"conditions\": [{\"field\": \"activity\", \"value\": \"FLOW_HIGH\", \"operator\": \"EQ\"}]}}, \"edgeKey\": \"high\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"high_review\", \"conditionExpression\": null}, {\"id\": 81, \"config\": {}, \"edgeKey\": \"high_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"high_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 83, \"config\": {}, \"edgeKey\": \"low_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"low_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 82, \"config\": {}, \"edgeKey\": \"low\", \"version\": 0, \"priorityOrder\": 1, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"low_review\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 119, \"name\": \"start\", \"config\": {\"moduleId\": 94}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 120, \"name\": \"decision\", \"config\": {\"gatewayMode\": \"EXCLUSIVE\"}, \"nodeKey\": \"decision\", \"version\": 0, \"nodeType\": \"GATEWAY\", \"positionX\": \"160.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 121, \"name\": \"high_review\", \"config\": {}, \"nodeKey\": \"high_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"-100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 122, \"name\": \"low_review\", \"config\": {}, \"nodeKey\": \"low_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 123, \"name\": \"end\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"680.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 29, \"systemId\": 143, \"tenantId\": 144, \"platformId\": 3, \"contextType\": \"SYSTEM\", \"formContext\": {}, \"draftRevision\": 3, \"schemaVersion\": 1, \"conditionContext\": {\"fields\": [{\"code\": \"activity\", \"name\": \"活动名称\", \"config\": {}, \"fieldType\": \"TEXT\"}], \"moduleId\": 94, \"moduleCode\": \"dashboard_accept_1a4547cf\", \"fieldBindings\": [{\"id\": 205, \"code\": \"activity\", \"fieldType\": \"TEXT\", \"dictionaryId\": null}], \"moduleVersionId\": 120}}",
+      "WAITING"
+    ],
+    [
+      56,
+      28,
+      "{\"code\": \"condition_accept_72458ac2\", \"name\": \"模块条件审批验收\", \"edges\": [{\"id\": 79, \"config\": {}, \"edgeKey\": \"enter\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"decision\", \"conditionExpression\": null}, {\"id\": 80, \"config\": {\"condition\": {\"mode\": \"ALL\", \"conditions\": [{\"field\": \"activity\", \"value\": \"FLOW_HIGH\", \"operator\": \"EQ\"}]}}, \"edgeKey\": \"high\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"high_review\", \"conditionExpression\": null}, {\"id\": 81, \"config\": {}, \"edgeKey\": \"high_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"high_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 83, \"config\": {}, \"edgeKey\": \"low_finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"low_review\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 82, \"config\": {}, \"edgeKey\": \"low\", \"version\": 0, \"priorityOrder\": 1, \"sourceNodeKey\": \"decision\", \"targetNodeKey\": \"low_review\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 119, \"name\": \"start\", \"config\": {\"moduleId\": 94}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 120, \"name\": \"decision\", \"config\": {\"gatewayMode\": \"EXCLUSIVE\"}, \"nodeKey\": \"decision\", \"version\": 0, \"nodeType\": \"GATEWAY\", \"positionX\": \"160.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 121, \"name\": \"high_review\", \"config\": {}, \"nodeKey\": \"high_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"-100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 122, \"name\": \"low_review\", \"config\": {}, \"nodeKey\": \"low_review\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"320.000\", \"positionY\": \"100.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 123, \"name\": \"end\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"680.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 29, \"systemId\": 143, \"tenantId\": 144, \"platformId\": 3, \"contextType\": \"SYSTEM\", \"formContext\": {}, \"draftRevision\": 3, \"schemaVersion\": 1, \"conditionContext\": {\"fields\": [{\"code\": \"activity\", \"name\": \"活动名称\", \"config\": {}, \"fieldType\": \"TEXT\"}], \"moduleId\": 94, \"moduleCode\": \"dashboard_accept_1a4547cf\", \"fieldBindings\": [{\"id\": 205, \"code\": \"activity\", \"fieldType\": \"TEXT\", \"dictionaryId\": null}], \"moduleVersionId\": 120}}",
+      "WAITING"
+    ]
+  ],
+  "historicalRows": [
+    [
+      53,
+      27,
+      "{\"actionId\": 1140, \"moduleId\": 94, \"recordId\": 187, \"tenantId\": 144, \"actionCode\": \"APPROVAL\"}",
+      "{\"code\": \"action_combo_5969ae21\", \"name\": \"组合动作审批\", \"edges\": [{\"id\": 72, \"config\": {}, \"edgeKey\": \"finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"approve\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 73, \"config\": {}, \"edgeKey\": \"review\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"approve\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 111, \"name\": \"开始\", \"config\": {}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 112, \"name\": \"负责人审批\", \"config\": {}, \"nodeKey\": \"approve\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"200.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 113, \"name\": \"结束\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"400.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 28, \"systemId\": 143, \"tenantId\": 144, \"platformId\": 3, \"contextType\": \"SYSTEM\", \"formContext\": {}, \"draftRevision\": 2, \"schemaVersion\": 1, \"conditionContext\": {}}",
+      "WAITING"
+    ],
+    [
+      54,
+      27,
+      "{\"actionId\": 1140, \"moduleId\": 94, \"recordId\": 187, \"tenantId\": 144, \"actionCode\": \"APPROVAL\"}",
+      "{\"code\": \"action_combo_5969ae21\", \"name\": \"组合动作审批\", \"edges\": [{\"id\": 72, \"config\": {}, \"edgeKey\": \"finish\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"approve\", \"targetNodeKey\": \"end\", \"conditionExpression\": null}, {\"id\": 73, \"config\": {}, \"edgeKey\": \"review\", \"version\": 0, \"priorityOrder\": 0, \"sourceNodeKey\": \"start\", \"targetNodeKey\": \"approve\", \"conditionExpression\": null}], \"nodes\": [{\"id\": 111, \"name\": \"开始\", \"config\": {}, \"nodeKey\": \"start\", \"version\": 0, \"nodeType\": \"START\", \"positionX\": \"0.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}, {\"id\": 112, \"name\": \"负责人审批\", \"config\": {}, \"nodeKey\": \"approve\", \"version\": 0, \"nodeType\": \"APPROVAL\", \"positionX\": \"200.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {\"type\": \"RECORD_OWNER\"}, \"exceptionPolicy\": {}}, {\"id\": 113, \"name\": \"结束\", \"config\": {}, \"nodeKey\": \"end\", \"version\": 0, \"nodeType\": \"END\", \"positionX\": \"400.000\", \"positionY\": \"0.000\", \"formPolicy\": {}, \"timeoutPolicy\": {}, \"assigneePolicy\": {}, \"exceptionPolicy\": {}}], \"flowId\": 28, \"systemId\": 143, \"tenantId\": 144, \"platformId\": 3, \"contextType\": \"SYSTEM\", \"formContext\": {}, \"draftRevision\": 2, \"schemaVersion\": 1, \"conditionContext\": {}}",
+      "WAITING"
+    ]
+  ],
+  "invalidIssues": [
+    "APPROVAL_MODE_INVALID",
+    "FLOW_CONDITION_INVALID"
+  ],
+  "invalidPublication": {
+    "status": 422,
+    "code": "FLOW_PUBLICATION_INVALID"
+  },
+  "simulationRoutes": {
+    "true": [
+      "start",
+      "decision",
+      "high_review",
+      "end"
+    ],
+    "false": [
+      "start",
+      "decision",
+      "low_review",
+      "end"
+    ]
+  },
+  "v2VersionId": 29,
+  "bindingV2": 10,
+  "v2RecordId": 194,
+  "v2InstanceId": 57,
+  "v2TaskIds": [
+    51,
+    52
+  ],
+  "forbiddenStart": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "forbiddenTask": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "browserInstanceId": 58,
+  "receiverTenantMemberId": 258,
+  "receiverTaskId": 53,
+  "ownerFinalTaskId": 54,
+  "receiverDraftDenied": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "receiverStartDenied": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  }
+}

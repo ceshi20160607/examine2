@@ -1,0 +1,154 @@
+{
+  "step": "S19.9",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R2976"
+  ],
+  "changed_files": [
+    "projects/unexamine/tools/project-starter.json",
+    "projects/unexamine/backend/src/main/resources/application.yml",
+    "projects/unexamine/frontend/vite.config.ts",
+    "projects/unexamine/deploy/scripts/frontend-server.mjs",
+    "projects/unexamine/deploy/scripts/start.ps1",
+    "projects/unexamine/deploy/scripts/deploy.ps1",
+    "projects/unexamine/deploy/scripts/rollback.ps1",
+    "projects/unexamine/deploy/scripts/build-package.ps1",
+    "projects/unexamine/deploy/local.env.example",
+    "projects/unexamine/deploy/env/development.env.example",
+    "projects/unexamine/deploy/env/test.env.example",
+    "projects/unexamine/deploy/env/production.nonsecret.env.example",
+    "projects/unexamine/deploy/package-manifest.example.json",
+    "projects/unexamine/deploy/README.md",
+    "projects/unexamine/tools/verify-external-flow.py",
+    "projects/unexamine/tools/verify-product-release-fixed-port.ps1",
+    "projects/unexamine/ai/requirements/requirement-intake.json",
+    "projects/unexamine/ai/planning/spark-requirement-ledger.json",
+    "projects/unexamine/ai/planning/product-closure-audit.md",
+    "projects/unexamine/ai/planning/spark-execution-plan.md",
+    "projects/unexamine/release/0.1.0-s19.9-dev1/manifest.json",
+    "projects/unexamine/release/0.1.0-s19.9-dev1.zip",
+    "projects/unexamine/release/0.1.0-s19.9-dev1.zip.sha256.json"
+  ],
+  "checks_actual_results": [
+    "需求源 A.20 增加后端端口固定 9999，需求 intake、台账、工作区和工程 starter 重新绑定；starter-validate、starter-check、workspace-validate 与 execution-context 通过。",
+    "JDK 21 Maven -DskipTests package 和 Node 24 前端生产构建通过；PowerShell、Node 与 Python 改动脚本语法通过。新候选包 0.1.0-s19.9-dev1 使用后端 9999 的 JAR 与前端代理，ZIP 和制品摘要有效，未包含 Compose/Nginx。",
+    "现有 mysql、redis 容器和隔离源库不变，同版数据库 V23 发布后，后端 PID 27172 监听 9999、前端 PID 26288 监听 15173；旧 18087 关闭。后端与前端代理健康状态 UP，受保护 API 经前端代理返回后端的 401 认证提示；已有系统记录保留。",
+    "旧 18087 环境文件和旧端口发布包在发布预检被拒绝；旧端口回切目标在回切预检被拒绝，运行版本未变。当前候选包四件备份恢复到新的隔离库，V23、191 张总表、一个系统记录与文件标记字节核对一致。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s19-fixed-backend-port-readback.json",
+    "projects/unexamine/ai/evidence/s19-fixed-backend-port-denial.json",
+    "projects/unexamine/ai/evidence/s19-fixed-backend-port-recovery.json",
+    "projects/unexamine/release/0.1.0-s19.9-dev1/manifest.json",
+    "projects/unexamine/release/0.1.0-s19.9-dev1.zip",
+    "projects/unexamine/release/0.1.0-s19.9-dev1.zip.sha256.json"
+  ],
+  "permission_or_failure_result": "旧环境、旧清单和旧回切目标均在停机前拒绝；当前前端代理返回后端认证拒绝而非错误网关；原数据库和两个已有容器保持运行。",
+  "candidate": {
+    "buildVersion": "0.1.0-s19.9-dev1",
+    "backendPort": 9999,
+    "frontendPort": 15173,
+    "databaseVersion": "23",
+    "backendSha256": "d969e1676b2ea919b853da8f0a0b5e5ec71e4d7e5ead1383214281892fa0c0f1",
+    "frontendServerSha256": "8575955294c7c3bb03f4f8effb4fedd5fb05d15200e415506f3674e672bce655",
+    "zipSha256": "dbc66882dc24c32a86ce2ad5716b7f9944aed1274b1964c055536b920ed95775"
+  },
+  "source_requirement_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
+  "control_limit": "当前端口、更新与恢复只在本地隔离环境验收；JIT、AD 特定行为、真实企业身份源、历史打印文件字节、全量需求追溯与生产配置仍未签收。G18 和 S18.39 未验证。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/tools/project-starter.json",
+      "sha256": "933e1c19a560a2ebc8f3e57f2413198e299b698d544b712fc2b40580c94d0dd1"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/resources/application.yml",
+      "sha256": "ba47249a305c941a0ac723a03d2819e0863f01fddf4fd05a558937673b9e8093"
+    },
+    {
+      "path": "projects/unexamine/frontend/vite.config.ts",
+      "sha256": "b758ea2dce6141ea9c194b31b694ec5ef7d0361e8c0f5aabb993b49ee0a45fb3"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/frontend-server.mjs",
+      "sha256": "8575955294c7c3bb03f4f8effb4fedd5fb05d15200e415506f3674e672bce655"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/start.ps1",
+      "sha256": "10c61c2d2813553b863f7313b94b85ef7b9bb7b4474a0b2d784f1489a9dc6fec"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/deploy.ps1",
+      "sha256": "0729cfa881d263e957c0b0ee474303cac8085fb0a3a291101299e9a51c345655"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/rollback.ps1",
+      "sha256": "7a88f7db1d86a614d3a36526c1430e9b8ad442c17f42e01aead59a39c2e37517"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/build-package.ps1",
+      "sha256": "98d3a5fdab97b59a328c8f185dd5ee51e92fcc21273d2ce2074a8e4670524bdf"
+    },
+    {
+      "path": "projects/unexamine/deploy/local.env.example",
+      "sha256": "813e0742d2909cb3872651d1ef242f8e5ed87e012b0a7ba39350c4cc3e9739c7"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/development.env.example",
+      "sha256": "9cdb7d64dafd3e23d9c2e4b432c2008d5d2a5e00489d68aaca64711854bda9d3"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/test.env.example",
+      "sha256": "caf9a91809aec10861c46c8a3e6861d526a5027fca585c15f2457a03b012181d"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/production.nonsecret.env.example",
+      "sha256": "e58a064ca998989326d364d2a200c91fada7cd2ba71f473978062c7b2c445768"
+    },
+    {
+      "path": "projects/unexamine/deploy/package-manifest.example.json",
+      "sha256": "b8319b49b849c6269372a5dc73d7883ab7a772622bfa97e4a25a5b83e1bb56ae"
+    },
+    {
+      "path": "projects/unexamine/deploy/README.md",
+      "sha256": "11ff6ba3dcef5e9825a66ae89d4c221a62afd44523b76a30c7327b265ea240ad"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-external-flow.py",
+      "sha256": "2f2c6af2e9962dd4331317b42f0b8559367a0e5e5f66455d4958afee241b9935"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-fixed-port.ps1",
+      "sha256": "190e8580ea9e047cf6f75830ed775b95cfc332e1436d67c3495abe69a82647c0"
+    },
+    {
+      "path": "projects/unexamine/ai/requirements/requirement-intake.json",
+      "sha256": "ee24c2d2b25e865939963217f59cdcda58c4d473fe210f6bf160d8784e721639"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/spark-requirement-ledger.json",
+      "sha256": "c103cd5a810b21a2deee75845b758bcc5d88e479077751c6663b0a67d737ef94"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/product-closure-audit.md",
+      "sha256": "46bee2954cfe59c1d3c4100ac0728b2f1e2d07d1e068520d8258103dd00e8226"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/spark-execution-plan.md",
+      "sha256": "88dfcf65abe6fb9f8ae211359676e3f64aba0d3e012c791fbf627688151f0312"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.9-dev1/manifest.json",
+      "sha256": "da0533c36b6866d1b901abf8896d25c640a0b52898865345679cf45aff7c39b4"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.9-dev1.zip",
+      "sha256": "dbc66882dc24c32a86ce2ad5716b7f9944aed1274b1964c055536b920ed95775"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.9-dev1.zip.sha256.json",
+      "sha256": "b4c3011a55e87834772219618c6f654a83f7b6243cd5a3d2b70cea93fbd4ba3e"
+    }
+  ],
+  "remaining": "G18_PRODUCT_RELEASE 继续进行。S19.10 回到平台 JIT 自动建号与系统成员显式准入；AD、企业渠道、真实 IdP、历史打印字节及全量追溯继续阻断最终交付。S18.39 延后。",
+  "next_step": "S19.10"
+}

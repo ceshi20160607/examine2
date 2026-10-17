@@ -63,7 +63,7 @@ public class FieldUniqueIndexSynchronizer {
                 throw new DomainException("DRAFT_VERSION_CONFLICT", "唯一值规则已被其他操作修改", HttpStatus.CONFLICT);
             }
         }
-        ensureSingleField(index.getId(), field.getId());
+        ensureSingleField(field.getModuleId(), index.getId(), field.getId());
     }
 
     static boolean managed(CfgQueryIndex index) {
@@ -78,7 +78,8 @@ public class FieldUniqueIndexSynchronizer {
         }
     }
 
-    private void ensureSingleField(Long indexId, Long fieldId) {
+    /** 索引字段行也保存所属模块，供后续按模块发布和清理。 */
+    private void ensureSingleField(Long moduleId, Long indexId, Long fieldId) {
         List<CfgQueryIndexField> definitions = indexFieldService.selectList(
                 Wrappers.<CfgQueryIndexField>lambdaQuery().eq(CfgQueryIndexField::getQueryIndexId, indexId));
         if (definitions.size() == 1 && Objects.equals(definitions.get(0).getFieldId(), fieldId)
@@ -86,6 +87,7 @@ public class FieldUniqueIndexSynchronizer {
                 && "ASC".equals(definitions.get(0).getSortDirection())) return;
         definitions.forEach(definition -> indexFieldService.deleteById(definition.getId()));
         CfgQueryIndexField definition = new CfgQueryIndexField();
+        definition.setModuleId(moduleId);
         definition.setQueryIndexId(indexId);
         definition.setFieldId(fieldId);
         definition.setSortOrder(0);

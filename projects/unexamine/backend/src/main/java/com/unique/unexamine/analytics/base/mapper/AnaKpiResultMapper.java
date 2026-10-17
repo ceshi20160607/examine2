@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- *  Mapper 接口
+ * 不可覆盖的 KPI 计算批次与重算历史 Mapper 接口
  * </p>
  *
  * @author Template Base

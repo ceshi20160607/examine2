@@ -4,6 +4,7 @@
     "@vue-flow/controls": "^1.1.3",
     "@vue-flow/core": "^1.48.2",
     "@vue-flow/minimap": "^1.5.4",
+    "@zxing/browser": "^0.2.1",
     "ant-design-vue": "4.2.6",
     "echarts": "^6.1.0",
     "pinia": "4.0.2",

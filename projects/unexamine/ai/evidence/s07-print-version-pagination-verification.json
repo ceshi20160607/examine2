@@ -1,0 +1,41 @@
+{
+  "step": "S07.2",
+  "status": "verified_contribution",
+  "integration_gate": "G7_PRINT_TEMPLATE",
+  "source_rows": ["R1157", "R1158", "R2076", "R2077", "R2078", "R2079", "R2080", "R2081", "R2082"],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintPdfRenderer.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+    "projects/unexamine/frontend/src/product/product.css",
+    "projects/unexamine/tools/verify-print-version-pagination.py"
+  ],
+  "checks_actual_results": [
+    "真实六行采购明细基线复现了旧实现将整张子表输出成单页 JSON。修正后隔离系统 #100 的采购单 #92 引用供应商记录，模板草稿预览与 PDF 均显示供应商名称而非内部 ID；一条普通字段加六条明细按每页四行分成两页，两页均显示商品与数量列标题。",
+    "模板 #12 的 v1 版本 #13 与 v2 版本 #14 使用不同页眉和页脚；编辑未发布草稿时运行态继续使用 v1，发布后默认 v2，明确指定 v1 仍取原快照；恢复发布指针后默认回到 v1。已发布修订号再次提交返回 PRINT_TEMPLATE_ALREADY_PUBLISHED，后台发布按钮也不再误导操作。",
+    "PDF 二进制有 %PDF 头与 /Count 2，含供应商和首末两条明细的中文编码；7 毫米水平与 9 毫米垂直偏移出现在实际绘制坐标。普通成员的子表数量列 FILE 权限撤销后，旧作业下载返回 PRINT_JOB_FIELD_ACCESS_REVOKED，新作业只呈现获权的商品列；当前掩码规则也在重开时比较。",
+    "系统后台页实际显示两张明细页和重复表头；业务详情打印弹窗也显示两页的采购单。数据库读回不可变版本 #13/#14 的不同摘要与修订号、当前指针 #13，以及记录 #92 多个成功作业的模块配置、权限版本和文件 ID。Docker 重启后默认指针仍为 #13，两页 PDF 可重新生成和下载。S07.1 的普通成员、文件渠道字段裁剪、撤权与重启旅程在新实现上再次通过。Java 21 Maven package、前端 vue-tsc/Vite build、Python 语法、工作区边界及 diff 检查通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s07-print-detail-admin.png",
+    "projects/unexamine/ai/evidence/s07-print-detail-runtime.png",
+    "projects/unexamine/tools/verify-print-version-pagination.py",
+    "projects/unexamine/tools/verify-print-template.py"
+  ],
+  "permission_or_failure_result": "历史版本仍走当前记录与字段权限；子表列撤权后旧 PDF 拒绝，新文件不再包含该列。已发布草稿重复发布明确拒绝。",
+  "tested_file_hashes": [
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintService.java", "sha256": "6063b46b2d51d934298e171d67cda74a346b4bacc306a29d604b80e2f0bfbdcd"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintModels.java", "sha256": "59fd9ce142fd1094eb4c9557584ced26af7fe17057dc1953789122c871248588"},
+    {"path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/print/manage/PrintPdfRenderer.java", "sha256": "74e60c0b17494b0188eed0b7819faedd2e68f427e09f4db29d2557c57aa472ed"},
+    {"path": "projects/unexamine/frontend/src/product/types.ts", "sha256": "a58ff15be1ad91d59f1c11d21287c632cbb0410e3a3485ac627b2ad7029ce1a0"},
+    {"path": "projects/unexamine/frontend/src/product/views/PrintTemplateConfigurationView.vue", "sha256": "c6a944db7c2871f4f41326c0793190302485e2764e1029aaaa382314a967c912"},
+    {"path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue", "sha256": "ac2ffdbb0d6593b2387cfc3d5a313239500aacd91c3a402f4577a2cec57b9eb4"},
+    {"path": "projects/unexamine/frontend/src/product/product.css", "sha256": "72355cb347c440b73c0992db3da035fad120c4273fc9420fcb266f735d2d16bc"},
+    {"path": "projects/unexamine/tools/verify-print-version-pagination.py", "sha256": "9b3d8c0dec7fe758402cb5dfd8c47d6a7b9a570d65fedf04998f8f5ca4931f9c"}
+  ],
+  "remaining": "G7 尚需检验长字段和多列明细在 A5 横向等较小纸张上的分页与不截断，以及掩码规则改变时历史 PDF 的拒绝。完成后再形成 G7 组合回执；整站验收和真实第三方依赖另行推进。",
+  "next_step": "S07.3"
+}

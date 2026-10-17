@@ -1,0 +1,15 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev3",
+  "status": "personal_file_center_ui_and_byte_readback",
+  "page": "/systems/1?workspace=files",
+  "fileName": "s19-file-center-20261016.txt",
+  "fileReadback": {
+    "listStatus": 200,
+    "attachmentId": 6,
+    "scanStatus": "CLEAN",
+    "sizeBytes": 43,
+    "downloadStatus": 200,
+    "content": "S19 current-candidate personal file center\n"
+  }
+}

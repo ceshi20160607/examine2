@@ -11,57 +11,102 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程草稿节点
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_node")
+@TableName("un_flow_node")
 public class FlowNode {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 流程定义ID
+     */
     @TableField("flow_id")
     private Long flowId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 节点类型
+     */
     @TableField("node_type")
     private String nodeType;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 设计画布横坐标
+     */
     @TableField("position_x")
     private BigDecimal positionX;
 
+    /**
+     * 设计画布纵坐标
+     */
     @TableField("position_y")
     private BigDecimal positionY;
 
+    /**
+     * 审批人解析策略
+     */
     @TableField("assignee_policy_json")
     private String assigneePolicyJson;
 
+    /**
+     * 节点表单与字段权限策略
+     */
     @TableField("form_policy_json")
     private String formPolicyJson;
 
+    /**
+     * 节点超时处理策略
+     */
     @TableField("timeout_policy_json")
     private String timeoutPolicyJson;
 
+    /**
+     * 节点异常兜底策略
+     */
     @TableField("exception_policy_json")
     private String exceptionPolicyJson;
 
+    /**
+     * 节点或连线业务配置
+     */
     @TableField("config_json")
     private String configJson;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -162,20 +207,20 @@ public class FlowNode {
         this.configJson = configJson;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -201,8 +246,8 @@ public class FlowNode {
             ", timeoutPolicyJson = " + timeoutPolicyJson +
             ", exceptionPolicyJson = " + exceptionPolicyJson +
             ", configJson = " + configJson +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -10,42 +10,72 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 租户成员
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("sys_tenant_member")
+@TableName("un_sys_tenant_member")
 public class SystemTenantMember {
 
+    /**
+     * 租户成员主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属业务系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 所属租户标识
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 对应系统成员标识
+     */
     @TableField("system_member_id")
     private Long systemMemberId;
 
+    /**
+     * 所属租户部门标识
+     */
     @TableField("department_id")
     private Long departmentId;
 
+    /**
+     * 是否为租户管理员
+     */
     @TableField("tenant_admin")
     private Boolean tenantAdmin;
 
+    /**
+     * 租户成员状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 租户成员创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 租户成员更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 租户成员乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -106,20 +136,20 @@ public class SystemTenantMember {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -140,8 +170,8 @@ public class SystemTenantMember {
             ", departmentId = " + departmentId +
             ", tenantAdmin = " + tenantAdmin +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

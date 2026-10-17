@@ -34,6 +34,7 @@ describe('admin task workflow contract', () => {
 
     const platformRequired = ['平台信息', '组织架构', '角色权限', '数据字典', '系统配置', '其他业务参数', '流程配置', '应用配置', '智能助手配置', '审计日志', '运维配置']
     platformRequired.forEach(label => expect(platformAdmin).toContain(`label: '${label}'`))
-    expect((platformAdmin.match(/\{ key: '[^']+', path: '[^']+'(?:, category: '[^']+')?, label: '/g) ?? [])).toHaveLength(11)
+    const platformItems = platformAdmin.split('const allNavigation: PlatformAdminNavigationItem[] = [')[1]?.split('\n]')[0] || ''
+    expect((platformItems.match(/\{ key: '[^']+'/g) ?? [])).toHaveLength(11)
   })
 })

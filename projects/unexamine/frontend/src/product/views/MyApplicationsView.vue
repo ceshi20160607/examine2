@@ -100,6 +100,7 @@ function openApplication(item: BusinessActionApplication) {
 
 function statusName(status: string) {
   const business = ({ EXECUTED: '业务已生效', CONFLICT: '业务变更冲突', EXECUTION_FAILED: '业务执行失败',
+    REJECTED: '业务未生效', WITHDRAWN: '业务未生效', TERMINATED: '业务未生效', RETURNED: '业务未生效',
     FLOW_STARTED: '流程已发起', ACTIVE: '处理中' } as Record<string, string>)[status]
   if (business) return business
   const runtime = runtimeStatusLabel(status)
@@ -139,7 +140,7 @@ onBeforeUnmount(() => { active = false; clear() })
         <article v-for="item in items" :key="`${item.moduleCode}.${item.actionId}`" class="my-application-card">
           <div class="my-application-card__copy">
             <strong>{{ item.flowName || '业务审批' }}</strong>
-            <p>{{ statusName(item.status) }} · {{ statusName(item.businessStatus) }}</p>
+            <p>{{ runtimeStatusLabel(item.status) }} · {{ statusName(item.businessStatus) }}</p>
             <small>当前节点：{{ item.currentNodeName || '暂无当前节点' }} · 发起 {{ productDateTime(item.startTime) }}</small>
             <small v-if="item.finishTime">结束 {{ productDateTime(item.finishTime) }}</small>
           </div>

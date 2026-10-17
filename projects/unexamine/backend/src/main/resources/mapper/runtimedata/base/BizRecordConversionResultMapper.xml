@@ -6,15 +6,16 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.runtimedata.base.entity.BizRecordConversionResult">
         <id column="id" property="id" />
         <result column="conversion_id" property="conversionId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="target_module_id" property="targetModuleId" />
         <result column="target_record_id" property="targetRecordId" />
         <result column="result_type" property="resultType" />
-        <result column="created_at" property="createdAt" />
+        <result column="create_time" property="createTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, conversion_id, target_module_id, target_record_id, result_type, created_at
+        id, conversion_id, tenant_id, target_module_id, target_record_id, result_type, create_time
     </sql>
 
 </mapper>

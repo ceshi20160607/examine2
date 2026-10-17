@@ -7,6 +7,7 @@ import com.unique.unexamine.notification.manage.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -42,7 +43,19 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiResult<Map<String, Object>>> conflict(DataIntegrityViolationException exception, HttpServletRequest request) {
+        // 对外保留统一提示；日志只记录数据库原因，便于定位表结构与业务保存不一致。
+        LOGGER.warn("Database integrity conflict requestId={} path={} cause={}",
+                TraceIdFilter.current(request), request.getRequestURI(), exception.getMostSpecificCause().getMessage());
         return response(HttpStatus.CONFLICT, "RESOURCE_CONFLICT", "唯一编码已被使用，或关联数据不属于当前范围", request, null);
+    }
+
+    /** 并发业务写入发生数据库死锁时，事务已回滚，调用方可以刷新后重试。 */
+    @ExceptionHandler(DeadlockLoserDataAccessException.class)
+    ResponseEntity<ApiResult<Map<String, Object>>> concurrentWrite(
+            DeadlockLoserDataAccessException exception, HttpServletRequest request) {
+        LOGGER.info("Concurrent write conflict requestId={} path={}",
+                TraceIdFilter.current(request), request.getRequestURI());
+        return response(HttpStatus.CONFLICT, "RECORD_WRITE_CONFLICT", "记录正在被其他操作处理，请刷新后重试", request, null);
     }
 
     /** 请求体和字段解析属于用户输入错误，不触发服务故障通知，也不回显内部类型或原始输入。 */

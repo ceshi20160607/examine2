@@ -9,29 +9,44 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台成员角色关系
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_member_role")
+@TableName("un_plat_member_role")
 public class PlatformMemberRole {
 
+    /**
+     * 平台成员角色关系主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 获授权的平台成员标识
+     */
     @TableField("member_id")
     private Long memberId;
 
+    /**
+     * 授予的平台角色标识
+     */
     @TableField("role_id")
     private Long roleId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 平台成员角色关系创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -65,12 +80,12 @@ public class PlatformMemberRole {
         this.roleId = roleId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -80,7 +95,7 @@ public class PlatformMemberRole {
             ", platformId = " + platformId +
             ", memberId = " + memberId +
             ", roleId = " + roleId +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

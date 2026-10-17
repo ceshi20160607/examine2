@@ -9,53 +9,92 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务数据清理后的不可变留痕
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("audit_retention_marker")
+@TableName("un_audit_retention_marker")
 public class AuditRetentionMarker {
 
+    /**
+     * 清理留痕记录主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 被清理对象所属的平台或系统范围类型
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 被清理对象所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 被清理对象所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 被清理业务对象类型
+     */
     @TableField("object_type")
     private String objectType;
 
+    /**
+     * 被清理业务对象标识
+     */
     @TableField("object_id")
     private String objectId;
 
+    /**
+     * 便于后续追溯的业务编号
+     */
     @TableField("business_key")
     private String businessKey;
 
+    /**
+     * 清理前业务快照的摘要
+     */
     @TableField("snapshot_hash")
     private String snapshotHash;
 
+    /**
+     * 按留存策略保留的清理前业务快照
+     */
     @TableField("snapshot_json")
     private String snapshotJson;
 
+    /**
+     * 清理原因及业务依据
+     */
     @TableField("purge_reason")
     private String purgeReason;
 
+    /**
+     * 执行清理的平台账号主键
+     */
     @TableField("purged_by_account_id")
     private Long purgedByAccountId;
 
-    @TableField("purged_at")
-    private LocalDateTime purgedAt;
+    /**
+     * 实际清理业务数据的时间
+     */
+    @TableField("purge_time")
+    private LocalDateTime purgeTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 清理留痕记录创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -145,20 +184,20 @@ public class AuditRetentionMarker {
         this.purgedByAccountId = purgedByAccountId;
     }
 
-    public LocalDateTime getPurgedAt() {
-        return purgedAt;
+    public LocalDateTime getPurgeTime() {
+        return purgeTime;
     }
 
-    public void setPurgedAt(LocalDateTime purgedAt) {
-        this.purgedAt = purgedAt;
+    public void setPurgeTime(LocalDateTime purgeTime) {
+        this.purgeTime = purgeTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -175,8 +214,8 @@ public class AuditRetentionMarker {
             ", snapshotJson = " + snapshotJson +
             ", purgeReason = " + purgeReason +
             ", purgedByAccountId = " + purgedByAccountId +
-            ", purgedAt = " + purgedAt +
-            ", createdAt = " + createdAt +
+            ", purgeTime = " + purgeTime +
+            ", createTime = " + createTime +
             "}";
     }
 }

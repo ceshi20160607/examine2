@@ -3,8 +3,8 @@ import { computed, ref } from 'vue'
 export interface SessionTokens {
   accessToken: string
   refreshToken: string
-  accessExpiresAt: string
-  refreshExpiresAt: string
+  accessExpireTime: string
+  refreshExpireTime: string
 }
 
 export interface CurrentContext {
@@ -70,7 +70,9 @@ export function setPlatformSession(tokens: SessionTokens, context?: CurrentConte
 }
 
 export function setSystemSession(tokens: SessionTokens, context: CurrentContext) {
+  // 切换系统或成员授权变更后，旧权限下保存的业务缓存不能继续复用。
   const changed = systemContext.value?.systemId !== context.systemId || systemContext.value?.tenantId !== context.tenantId
+    || systemContext.value?.contextRevision !== context.contextRevision
   if (changed) {
     Object.keys(sessionStorage).filter((key) => key.startsWith('unexamine.system.cache.'))
       .forEach((key) => sessionStorage.removeItem(key))

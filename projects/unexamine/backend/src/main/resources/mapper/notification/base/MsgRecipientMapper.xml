@@ -6,18 +6,21 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.notification.base.entity.MsgRecipient">
         <id column="id" property="id" />
         <result column="message_id" property="messageId" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="account_id" property="accountId" />
+        <result column="system_member_id" property="systemMemberId" />
         <result column="status" property="status" />
-        <result column="read_at" property="readAt" />
-        <result column="archived_at" property="archivedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="read_time" property="readTime" />
+        <result column="archive_time" property="archiveTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, message_id, account_id, `status`, read_at, archived_at, created_at, updated_at, version
+        id, message_id, system_id, tenant_id, account_id, system_member_id, `status`, read_time, archive_time, create_time, update_time, version
     </sql>
 
 </mapper>

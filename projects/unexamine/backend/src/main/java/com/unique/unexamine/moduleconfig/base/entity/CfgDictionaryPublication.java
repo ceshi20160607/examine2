@@ -10,36 +10,60 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 数据字典当前生效发布版本指针
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_dictionary_publication")
+@TableName("un_cfg_dictionary_publication")
 public class CfgDictionaryPublication {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属字典标识
+     */
     @TableField("dictionary_id")
     private Long dictionaryId;
 
+    /**
+     * 当前生效版本标识
+     */
     @TableField("current_version_id")
     private Long currentVersionId;
 
+    /**
+     * 发布系统成员标识
+     */
     @TableField("published_by_member_id")
     private Long publishedByMemberId;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 发布时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -92,12 +116,12 @@ public class CfgDictionaryPublication {
         this.publishedByMemberId = publishedByMemberId;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     public Integer getVersion() {
@@ -117,7 +141,7 @@ public class CfgDictionaryPublication {
             ", dictionaryId = " + dictionaryId +
             ", currentVersionId = " + currentVersionId +
             ", publishedByMemberId = " + publishedByMemberId +
-            ", publishedAt = " + publishedAt +
+            ", publishTime = " + publishTime +
             ", version = " + version +
             "}";
     }

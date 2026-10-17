@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -22,9 +21,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
+import java.time.YearMonth;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -53,7 +52,344 @@ class DashboardHttpTest {
     private JdbcTemplate jdbc;
 
     @Test
+    void legacyModuleDashboardKeepsListViewerOnFrozenPageUntilActionIsExplicitlyGranted() {
+        Session owner = register("dashboard_legacy_owner", "dashboard_legacy_system", "dashboard-legacy@example.com");
+        long moduleId = publishCustomerModule(owner);
+        Map<String, Object> oldInput = dashboard("old_customer_home", "旧客户首页", "升级前页面",
+                List.of(component("old_entry", "QUICK_ENTRY", "旧页面入口", null,
+                        0, Map.of(), Map.of("width", 1), Map.of("moduleCode", "customer"))), null);
+        oldInput.put("dashboardKind", "MODULE_HOME");
+        oldInput.put("moduleId", moduleId);
+        Map<String, Object> oldDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                owner.token(), oldInput);
+        long oldDashboardId = number(oldDashboard.get("id"));
+        ok("/api/analytics/admin/dashboards/" + oldDashboardId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", oldDashboard.get("draftRevision")));
+        // 模拟 V23 从 V22 发布指针固定的旧首页；新装库不会自动写入清单。
+        assertThat(count("un_ana_legacy_module_dashboard", "module_id=" + moduleId)).isZero();
+        jdbc.update("""
+                insert into un_ana_legacy_module_dashboard
+                  (dashboard_id,module_id,system_id,tenant_id,source_module_version_id,source_dashboard_version_id)
+                select d.id,d.module_id,d.system_id,d.owner_tenant_id,mp.current_version_id,dp.current_version_id
+                from un_ana_dashboard d join un_ana_dashboard_publication dp on dp.dashboard_id=d.id
+                join un_cfg_module_publication mp on mp.module_id=d.module_id where d.id=?
+                """, oldDashboardId);
+        String runtime = "/api/analytics/runtime?moduleCode=customer";
+        assertThat(ok(runtime, HttpMethod.GET, owner.token(), null)).containsEntry("dashboardId", (int) oldDashboardId);
+        assertThat(list(map(ok("/api/runtime/modules/customer/configuration", HttpMethod.GET,
+                owner.token(), null).get("configuration")).get("actions")))
+                .anyMatch(item -> "DASHBOARD".equals(item.get("code"))
+                        && Boolean.TRUE.equals(item.get("legacyDashboardSynthetic")));
+
+        register("dashboard_legacy_viewer", "dashboard_legacy_viewer_system",
+                "dashboard-legacy-viewer@example.com");
+        long accountId = jdbc.queryForObject("select id from un_plat_account where username='dashboard_legacy_viewer'",
+                Long.class);
+        jdbc.update("insert into un_sys_member(system_id,account_id,display_name,status) "
+                + "values (?,?,'旧首页成员','ACTIVE')", owner.systemId(), accountId);
+        long memberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id=?",
+                Long.class, owner.systemId(), accountId);
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) "
+                + "values (?,?,?,0,'ACTIVE')", owner.systemId(), owner.tenantId(), memberId);
+        long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? "
+                + "and system_member_id=?", Long.class, owner.tenantId(), memberId);
+        Map<String, Object> role = ok("/api/admin/system/authorization/roles", HttpMethod.POST,
+                owner.token(), Map.of("code", "legacy_customer_list", "name", "旧客户列表",
+                        "permissions", List.of(Map.of("resourceType", "MODULE", "resourceCode", "customer",
+                                "actionCode", "LIST", "dataScopeType", "ALL")), "fieldPolicies", List.of()));
+        long roleId = number(role.get("id"));
+        ok("/api/admin/system/authorization/roles/" + roleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("reason", "验证旧首页原授权", "expectedVersion", role.get("version")));
+        int memberVersion = jdbc.queryForObject("select version from un_sys_tenant_member where id=?",
+                Integer.class, tenantMemberId);
+        ok("/api/admin/system/authorization/members/" + tenantMemberId + "/assignment", HttpMethod.POST,
+                owner.token(), Map.of("roleIds", List.of(roleId), "expectedVersion", memberVersion));
+        Map<String, Object> entered = ok("/api/systems/" + owner.systemId() + "/enter", HttpMethod.POST,
+                login("dashboard_legacy_viewer", "correct-password"), Map.of());
+        String viewerToken = String.valueOf(map(entered.get("tokens")).get("accessToken"));
+        assertThat(ok(runtime, HttpMethod.GET, viewerToken, null)).containsEntry("dashboardId", (int) oldDashboardId);
+
+        Map<String, Object> newInput = dashboard("new_customer_home", "新客户首页", "升级后页面",
+                List.of(component("new_entry", "QUICK_ENTRY", "新页面入口", null,
+                        0, Map.of(), Map.of("width", 1), Map.of("moduleCode", "customer"))), null);
+        newInput.put("dashboardKind", "MODULE_HOME");
+        newInput.put("moduleId", moduleId);
+        Map<String, Object> newDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                owner.token(), newInput);
+        long newDashboardId = number(newDashboard.get("id"));
+        ok("/api/analytics/admin/dashboards/" + newDashboardId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", newDashboard.get("draftRevision")));
+        assertThat(ok(runtime, HttpMethod.GET, owner.token(), null)).containsEntry("dashboardId", (int) oldDashboardId);
+        assertThat(ok(runtime, HttpMethod.GET, viewerToken, null)).containsEntry("dashboardId", (int) oldDashboardId);
+        Map<String, Object> action = ok("/api/admin/module-config/modules/" + moduleId + "/actions/dashboard",
+                HttpMethod.POST, owner.token(), null);
+        int publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, moduleId);
+        Map<String, Object> enabled = ok("/api/admin/module-config/modules/" + moduleId
+                + "/dashboard-action-publish?expectedPublicationVersion=" + publicationVersion
+                + "&expectedActionVersion=" + action.get("version"), HttpMethod.POST, owner.token(), null);
+        assertThat(ok(runtime, HttpMethod.GET, owner.token(), null)).containsEntry("dashboardId", (int) newDashboardId);
+        assertThat(ok(runtime, HttpMethod.GET, viewerToken, null)).containsEntry("dashboardId", (int) oldDashboardId);
+        Map<String, Object> disabled = ok("/api/admin/module-config/modules/" + moduleId + "/actions/DASHBOARD",
+                HttpMethod.PUT, owner.token(), Map.of("location", "MODULE_ENTRY", "config", Map.of(),
+                        "status", "DISABLED", "version", action.get("version")));
+        publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, moduleId);
+        ok("/api/admin/module-config/modules/" + moduleId + "/dashboard-action-publish?expectedPublicationVersion="
+                + publicationVersion + "&expectedActionVersion=" + disabled.get("version"),
+                HttpMethod.POST, owner.token(), null);
+        assertThat(exchange(runtime, HttpMethod.GET, viewerToken, null).status()).isEqualTo(HttpStatus.CONFLICT);
+        publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, moduleId);
+        ok("/api/admin/module-config/modules/" + moduleId + "/rollback", HttpMethod.POST, owner.token(),
+                Map.of("targetVersionId", enabled.get("versionId"), "expectedPublicationVersion", publicationVersion));
+        assertThat(ok(runtime, HttpMethod.GET, viewerToken, null)).containsEntry("dashboardId", (int) oldDashboardId);
+    }
+
+    @Test
+    void publishedModuleDashboardActionGatesCurrentTenantPageAndKeepsOtherDraftsPrivate() {
+        Session owner = register("dashboard_action_owner", "dashboard_action_system", "dashboard-action@example.com");
+        long existingId = publishCustomerModule(owner);
+        String existingRuntime = "/api/analytics/runtime?moduleCode=customer";
+        Map<String, Object> existingDashboardInput = dashboard("customer_home", "客户首页", "客户业务概览",
+                List.of(component("customer_entry", "QUICK_ENTRY", "客户记录", null,
+                        0, Map.of(), Map.of("width", 1), Map.of("moduleCode", "customer"))), null);
+        existingDashboardInput.put("dashboardKind", "MODULE_HOME");
+        existingDashboardInput.put("moduleId", existingId);
+        Map<String, Object> existingDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                owner.token(), existingDashboardInput);
+        ok("/api/analytics/admin/dashboards/" + existingDashboard.get("id") + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", existingDashboard.get("draftRevision")));
+        assertThat(exchange(existingRuntime, HttpMethod.GET, owner.token(), null).status()).isEqualTo(HttpStatus.CONFLICT);
+
+        Map<String, Object> action = ok("/api/admin/module-config/modules/" + existingId + "/actions/dashboard",
+                HttpMethod.POST, owner.token(), null);
+        // 已有模块的无关字段草稿不能随着首页入口发布。
+        ok("/api/admin/module-config/modules/" + existingId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("code", "future_note", "name", "待发布备注", "fieldType", "TEXT", "required", false,
+                        "searchable", false, "sortOrder", 80, "config", Map.of()));
+        assertThat(exchange(existingRuntime, HttpMethod.GET, owner.token(), null).status()).isEqualTo(HttpStatus.CONFLICT);
+        String actionPublish = "/api/admin/module-config/modules/" + existingId + "/dashboard-action-publish";
+        // 当前发布指针用乐观版本检查，避免覆盖其他管理员刚发布的版本。
+        int publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, existingId);
+        Map<String, Object> enabled = ok(actionPublish + "?expectedPublicationVersion=" + publicationVersion
+                + "&expectedActionVersion=" + action.get("version"), HttpMethod.POST, owner.token(), null);
+        assertThat(ok(existingRuntime, HttpMethod.GET, owner.token(), null))
+                .containsEntry("configured", true).containsEntry("name", "客户首页");
+        Map<String, Object> publishedModule = ok("/api/admin/module-config/modules/" + existingId + "/published",
+                HttpMethod.GET, owner.token(), null);
+        assertThat(list(map(publishedModule.get("configuration")).get("fields")))
+                .noneMatch(field -> "future_note".equals(field.get("code")));
+        assertThat(list(map(publishedModule.get("configuration")).get("actions")))
+                .anyMatch(item -> "DASHBOARD".equals(item.get("code")) && "ACTIVE".equals(item.get("status")));
+
+        Map<String, Object> disabled = ok("/api/admin/module-config/modules/" + existingId + "/actions/DASHBOARD",
+                HttpMethod.PUT, owner.token(), Map.of("location", "MODULE_ENTRY", "config", Map.of(),
+                        "status", "DISABLED", "version", action.get("version")));
+        assertThat(ok(existingRuntime, HttpMethod.GET, owner.token(), null)).containsEntry("configured", true);
+        publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, existingId);
+        ok(actionPublish + "?expectedPublicationVersion=" + publicationVersion
+                + "&expectedActionVersion=" + disabled.get("version"), HttpMethod.POST, owner.token(), null);
+        assertThat(exchange(existingRuntime, HttpMethod.GET, owner.token(), null).status()).isEqualTo(HttpStatus.CONFLICT);
+        publicationVersion = jdbc.queryForObject("select version from un_cfg_module_publication where module_id=?",
+                Integer.class, existingId);
+        ok("/api/admin/module-config/modules/" + existingId + "/rollback", HttpMethod.POST, owner.token(),
+                Map.of("targetVersionId", enabled.get("versionId"), "expectedPublicationVersion", publicationVersion));
+        assertThat(ok(existingRuntime, HttpMethod.GET, owner.token(), null)).containsEntry("configured", true);
+
+        long groupId = number(ok("/api/admin/module-config/groups", HttpMethod.POST, owner.token(),
+                Map.of("code", "operations", "name", "运营", "sortOrder", 20)).get("id"));
+        long newId = number(map(ok("/api/admin/module-config/modules", HttpMethod.POST, owner.token(),
+                Map.of("groupId", groupId, "code", "campaign", "name", "活动")).get("module")).get("id"));
+        ok("/api/admin/module-config/modules/" + newId + "/fields", HttpMethod.POST, owner.token(),
+                Map.of("code", "campaign_name", "name", "活动名称", "fieldType", "TEXT", "required", true,
+                        "searchable", true, "sortOrder", 10, "config", Map.of()));
+        ok("/api/admin/module-config/modules/" + newId + "/actions/dashboard", HttpMethod.POST, owner.token(), null);
+        Map<String, Object> check = ok("/api/admin/module-config/modules/" + newId + "/publication-check",
+                HttpMethod.GET, owner.token(), null);
+        ok("/api/admin/module-config/modules/" + newId + "/publish", HttpMethod.POST, owner.token(),
+                Map.of("expectedDraftRevision", check.get("draftRevision")));
+        assertThat(ok("/api/analytics/runtime?moduleCode=campaign", HttpMethod.GET, owner.token(), null))
+                .containsEntry("configured", false);
+        Map<String, Object> newDashboardInput = dashboard("campaign_home", "活动首页", "活动概览",
+                List.of(component("campaign_entry", "QUICK_ENTRY", "活动记录", null,
+                        0, Map.of(), Map.of("width", 1), Map.of("moduleCode", "campaign"))), null);
+        newDashboardInput.put("dashboardKind", "MODULE_HOME");
+        newDashboardInput.put("moduleId", newId);
+        Map<String, Object> newDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                owner.token(), newDashboardInput);
+        ok("/api/analytics/admin/dashboards/" + newDashboard.get("id") + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", newDashboard.get("draftRevision")));
+        assertThat(ok("/api/analytics/runtime?moduleCode=campaign", HttpMethod.GET, owner.token(), null))
+                .containsEntry("configured", true).containsEntry("name", "活动首页");
+        register("dashboard_action_viewer", "dashboard_action_viewer_system",
+                "dashboard-action-viewer@example.com");
+        long viewerAccountId = jdbc.queryForObject(
+                "select id from un_plat_account where username='dashboard_action_viewer'", Long.class);
+        jdbc.update("insert into un_sys_member(system_id,account_id,display_name,status) "
+                + "values (?,?,'首页受限成员','ACTIVE')", owner.systemId(), viewerAccountId);
+        long viewerMemberId = jdbc.queryForObject(
+                "select id from un_sys_member where system_id=? and account_id=?", Long.class,
+                owner.systemId(), viewerAccountId);
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) "
+                + "values (?,?,?,0,'ACTIVE')", owner.systemId(), owner.tenantId(), viewerMemberId);
+        long viewerTenantMemberId = jdbc.queryForObject(
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?", Long.class,
+                owner.tenantId(), viewerMemberId);
+        Map<String, Object> role = ok("/api/admin/system/authorization/roles", HttpMethod.POST,
+                owner.token(), Map.of("code", "dashboard_list_only", "name", "仅看模块记录",
+                        "permissions", List.of(Map.of("resourceType", "MODULE", "resourceCode", "customer",
+                                "actionCode", "LIST", "dataScopeType", "ALL")), "fieldPolicies", List.of()));
+        long roleId = number(role.get("id"));
+        ok("/api/admin/system/authorization/roles/" + roleId + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("reason", "验证仪表盘动作需单独授权", "expectedVersion", role.get("version")));
+        int memberVersion = jdbc.queryForObject("select version from un_sys_tenant_member where id=?",
+                Integer.class, viewerTenantMemberId);
+        ok("/api/admin/system/authorization/members/" + viewerTenantMemberId + "/assignment",
+                HttpMethod.POST, owner.token(), Map.of("roleIds", List.of(roleId), "expectedVersion", memberVersion));
+        Map<String, Object> entered = ok("/api/systems/" + owner.systemId() + "/enter", HttpMethod.POST,
+                login("dashboard_action_viewer", "correct-password"), Map.of());
+        String viewerToken = String.valueOf(map(entered.get("tokens")).get("accessToken"));
+        assertThat(exchange(existingRuntime, HttpMethod.GET, viewerToken, null).status())
+                .isEqualTo(HttpStatus.FORBIDDEN);
+        ok("/api/admin/system/settings", HttpMethod.PUT, owner.token(),
+                Map.of("name", "仪表盘隔离系统", "tenantMode", "MULTI"));
+        long branchId = number(ok("/api/admin/system/tenants", HttpMethod.POST, owner.token(),
+                Map.of("code", "dashboard_branch", "name", "仪表盘分租户")).get("id"));
+        Map<String, Object> branchEntered = ok("/api/systems/" + owner.systemId() + "/tenants/" + branchId
+                + "/enter", HttpMethod.POST, owner.token(),
+                Map.of("previousSystemId", owner.systemId(), "previousTenantId", owner.tenantId()));
+        String branchToken = String.valueOf(map(branchEntered.get("tokens")).get("accessToken"));
+        assertThat(ok(existingRuntime, HttpMethod.GET, branchToken, null)).containsEntry("configured", false);
+        Session outsider = register("dashboard_action_other", "dashboard_action_other_system",
+                "dashboard-action-other@example.com");
+        assertThat(exchange(existingRuntime, HttpMethod.GET, outsider.token(), null).status())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void mainTenantPublishedSourceCanBeReusedWithoutBorrowingItsDataScope() {
+        Session owner = register("dashboard_shared_owner", "dashboard_shared_system", "dashboard-shared-owner@example.com");
+        publishCustomerModule(owner);
+        Map<String, Object> mainSource = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
+                owner.token(), source("main_customers", "主租户客户", "MODULE_RECORDS",
+                        Map.of("moduleCode", "customer", "limit", 5),
+                        Map.of("resourceType", "MODULE", "resourceCode", "customer", "actionCode", "LIST"), null));
+        mainSource = ok("/api/analytics/admin/data-sources/" + mainSource.get("id") + "/publish",
+                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", mainSource.get("draftRevision")));
+        long sourceId = number(mainSource.get("id"));
+        Map<String, Object> mainDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                owner.token(), dashboard("system_home", "主租户首页", "主租户独立页面",
+                        List.of(component("main_total", "METRIC", "主租户客户数", sourceId,
+                                0, Map.of(), Map.of("width", 1), Map.of())), null));
+        ok("/api/analytics/admin/dashboards/" + mainDashboard.get("id") + "/publish", HttpMethod.POST,
+                owner.token(), Map.of("expectedDraftRevision", mainDashboard.get("draftRevision")));
+
+        ok("/api/admin/system/settings", HttpMethod.PUT, owner.token(),
+                Map.of("name", "共享数据源系统", "tenantMode", "MULTI"));
+        long branchId = number(ok("/api/admin/system/tenants", HttpMethod.POST, owner.token(),
+                Map.of("code", "branch", "name", "分支租户")).get("id"));
+        Map<String, Object> ownerEntered = ok("/api/systems/" + owner.systemId() + "/tenants/" + branchId
+                        + "/enter", HttpMethod.POST, owner.token(),
+                Map.of("previousSystemId", owner.systemId(), "previousTenantId", owner.tenantId()));
+        String branchOwnerToken = String.valueOf(map(ownerEntered.get("tokens")).get("accessToken"));
+        // 分租户尚未发布自己的首页时应显示未配置，不能回退到主租户页面。
+        assertThat(ok("/api/analytics/runtime", HttpMethod.GET, branchOwnerToken, null))
+                .containsEntry("configured", false);
+        Map<String, Object> branchSource = list(ok("/api/analytics/admin", HttpMethod.GET,
+                branchOwnerToken, null).get("dataSources")).stream()
+                .filter(item -> number(item.get("id")) == sourceId).findFirst().orElseThrow();
+        assertThat(branchSource).containsEntry("inherited", true).containsEntry("status", "PUBLISHED");
+        assertThat(exchange("/api/analytics/admin/data-sources/" + sourceId, HttpMethod.PUT,
+                branchOwnerToken, source("main_customers", "越权改主租户源", "MODULE_RECORDS",
+                        Map.of("moduleCode", "customer", "limit", 5), Map.of(),
+                        ((Number) mainSource.get("version")).intValue())).status()).isEqualTo(HttpStatus.NOT_FOUND);
+
+        register("dashboard_shared_viewer", "dashboard_viewer_home",
+                "dashboard-shared-viewer@example.com");
+        long viewerAccountId = jdbc.queryForObject(
+                "select id from un_plat_account where username='dashboard_shared_viewer'", Long.class);
+        jdbc.update("insert into un_sys_member(system_id,account_id,display_name,status) "
+                + "values (?,?,'仪表盘查看人','ACTIVE')", owner.systemId(), viewerAccountId);
+        long viewerMemberId = jdbc.queryForObject(
+                "select id from un_sys_member where system_id=? and account_id=?", Long.class,
+                owner.systemId(), viewerAccountId);
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) "
+                + "values (?,?,?,0,'ACTIVE')", owner.systemId(), branchId, viewerMemberId);
+        long viewerTenantMemberId = jdbc.queryForObject(
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?",
+                Long.class, branchId, viewerMemberId);
+
+        // 分支租户两条记录分别归属查看人与系统所属人，来源定义不能带来主租户权限。
+        ok("/api/runtime/modules/customer/records", HttpMethod.POST, branchOwnerToken, Map.of(
+                "recordNumber", "DS-BR-001", "title", "查看人负责客户", "status", "ACTIVE",
+                "ownerMemberId", viewerMemberId, "participantMemberIds", List.of(),
+                "fields", Map.of("customer_name", "查看人负责客户")));
+        ok("/api/runtime/modules/customer/records", HttpMethod.POST, branchOwnerToken, Map.of(
+                "recordNumber", "DS-BR-002", "title", "所属人负责客户", "status", "ACTIVE",
+                "participantMemberIds", List.of(), "fields", Map.of("customer_name", "所属人负责客户")));
+        Map<String, Object> branchDashboard = ok("/api/analytics/admin/dashboards", HttpMethod.POST,
+                branchOwnerToken, dashboard("system_home", "分租户首页", "仅分租户发布",
+                        List.of(component("branch_total", "METRIC", "分租户客户数", sourceId,
+                                0, Map.of(), Map.of("width", 1), Map.of())), null));
+        ok("/api/analytics/admin/dashboards/" + branchDashboard.get("id") + "/publish", HttpMethod.POST,
+                branchOwnerToken, Map.of("expectedDraftRevision", branchDashboard.get("draftRevision")));
+        Map<String, Object> branchRuntime = ok("/api/analytics/runtime", HttpMethod.GET, branchOwnerToken, null);
+        assertThat(branchRuntime).containsEntry("configured", true).containsEntry("name", "分租户首页");
+        assertThat(list(branchRuntime.get("components"))).singleElement()
+                .satisfies(item -> assertThat(item).containsEntry("componentKey", "branch_total")
+                        .containsEntry("value", 2));
+        assertThat(ok("/api/analytics/runtime", HttpMethod.GET, owner.token(), null))
+                .containsEntry("name", "主租户首页");
+
+        String viewerPlatformToken = login("dashboard_shared_viewer", "correct-password");
+        Map<String, Object> viewerEntered = ok("/api/systems/" + owner.systemId() + "/tenants/" + branchId
+                + "/enter", HttpMethod.POST, viewerPlatformToken, null);
+        String viewerToken = String.valueOf(map(viewerEntered.get("tokens")).get("accessToken"));
+        assertThat(list(ok("/api/analytics/personal", HttpMethod.GET, viewerToken, null).get("dataSources")))
+                .noneMatch(item -> number(item.get("id")) == sourceId);
+        Map<String, Object> personalInput = mapWithNullable("name", "我的客户", "description", "只看负责的数据",
+                "components", List.of(component("mine", "METRIC", "我的客户数", sourceId,
+                        0, Map.of(), Map.of("width", 1), Map.of())), "expectedVersion", null);
+        assertThat(exchange("/api/analytics/personal", HttpMethod.PUT, viewerToken, personalInput).status())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+
+        // 通过角色发布和成员分配刷新权限版本，避免直写表留下旧权限缓存。
+        Map<String, Object> roleDraft = ok("/api/admin/system/authorization/roles", HttpMethod.POST,
+                branchOwnerToken, Map.of("code", "dashboard_viewer", "name", "客户查看人",
+                        "permissions", List.of(Map.of("resourceType", "MODULE", "resourceCode", "customer",
+                                "actionCode", "LIST", "dataScopeType", "SELF")),
+                        "fieldPolicies", List.of()));
+        long roleId = number(roleDraft.get("id"));
+        ok("/api/admin/system/authorization/roles/" + roleId + "/publish", HttpMethod.POST,
+                branchOwnerToken, Map.of("reason", "验证分支租户仪表盘数据范围",
+                        "expectedVersion", roleDraft.get("version")));
+        int viewerMemberVersion = jdbc.queryForObject(
+                "select version from un_sys_tenant_member where id=?", Integer.class, viewerTenantMemberId);
+        ok("/api/admin/system/authorization/members/" + viewerTenantMemberId + "/assignment",
+                HttpMethod.POST, branchOwnerToken,
+                Map.of("roleIds", List.of(roleId), "expectedVersion", viewerMemberVersion));
+        viewerPlatformToken = login("dashboard_shared_viewer", "correct-password");
+        viewerEntered = ok("/api/systems/" + owner.systemId() + "/tenants/" + branchId
+                + "/enter", HttpMethod.POST, viewerPlatformToken, null);
+        viewerToken = String.valueOf(map(viewerEntered.get("tokens")).get("accessToken"));
+        assertThat(list(ok("/api/analytics/personal", HttpMethod.GET, viewerToken, null).get("dataSources")))
+                .anyMatch(item -> number(item.get("id")) == sourceId);
+        ok("/api/analytics/personal", HttpMethod.PUT, viewerToken, personalInput);
+        Map<String, Object> runtime = ok("/api/analytics/personal/runtime", HttpMethod.GET, viewerToken, null);
+        assertThat(list(runtime.get("components"))).singleElement().satisfies(item -> {
+            assertThat(item).containsEntry("outcome", "READY");
+            assertThat(number(item.get("value"))).isEqualTo(1L);
+            assertThat(list(item.get("items"))).singleElement().satisfies(record ->
+                    assertThat(record).containsEntry("title", "查看人负责客户"));
+        });
+    }
+
+    @Test
     void publishesContextBoundDashboardExecutesRealDataAndKeepsPublishedSnapshotsImmutable() {
+        String currentMonth = YearMonth.now().toString();
         Session owner = register("dashboard_owner", "dashboard_system", "dashboard-owner@example.com");
         long customerModuleId = publishCustomerModule(owner);
         Map<String, Object> customerOne = createCustomer(owner, "C48-001", "北辰客户");
@@ -102,11 +438,11 @@ class DashboardHttpTest {
         assertThat(number(publishedReport.get("value"))).isEqualTo(2);
         assertThat(publishedReport).containsEntry("dataSourceVersionNumber", 1).containsKey("definitionHash");
         long reportVersionId = jdbc.queryForObject(
-                "select id from ana_data_source_version where data_source_id=?", Long.class, reportSourceId);
+                "select id from un_ana_data_source_version where data_source_id=?", Long.class, reportSourceId);
         long ownerAccountId = jdbc.queryForObject(
-                "select id from plat_account where username='dashboard_owner'", Long.class);
+                "select id from un_plat_account where username='dashboard_owner'", Long.class);
         long ownerTenantMemberId = jdbc.queryForObject(
-                "select stm.id from sys_tenant_member stm join sys_member sm on sm.id=stm.system_member_id "
+                "select stm.id from un_sys_tenant_member stm join un_sys_member sm on sm.id=stm.system_member_id "
                         + "where stm.system_id=? and stm.tenant_id=? and sm.account_id=?",
                 Long.class, owner.systemId(), owner.tenantId(), ownerAccountId);
 
@@ -118,7 +454,7 @@ class DashboardHttpTest {
         assertThat(number(kpi.get("dataSourceVersionId"))).isEqualTo(reportVersionId);
         assertThat(kpi).containsEntry("periodType", "MONTH").containsEntry("version", 0);
         Map<String, Object> kpiPreview = ok("/api/analytics/admin/kpis/" + kpiId
-                + "/preview?periodKey=2026-08", HttpMethod.GET, owner.token(), null);
+                + "/preview?periodKey=" + currentMonth, HttpMethod.GET, owner.token(), null);
         assertThat(kpiPreview).containsEntry("status", "UNDER_TARGET").containsEntry("kpiVersion", 0);
         assertThat(number(kpiPreview.get("actualValue"))).isEqualTo(2);
         assertThat(number(kpiPreview.get("targetValue"))).isEqualTo(3);
@@ -129,34 +465,38 @@ class DashboardHttpTest {
         assertThat(invalidPeriod.body()).containsEntry("code", "KPI_PERIOD_INVALID");
 
         Map<String, Object> kpiResult = ok("/api/analytics/admin/kpis/" + kpiId + "/calculate",
-                HttpMethod.POST, owner.token(), Map.of("periodKey", "2026-08"));
+                HttpMethod.POST, owner.token(), Map.of("periodKey", currentMonth));
         assertThat(kpiResult).containsEntry("status", "UNDER_TARGET").containsEntry("stale", false);
-        assertThat(map(kpiResult.get("explanation"))).containsEntry("kpiVersion", 0)
-                .containsEntry("definitionHash", publishedReport.get("definitionHash"));
+        // 运行结果按当前访问者重新聚合，不向页面返回管理员计算快照的定义哈希。
+        assertThat(map(kpiResult.get("explanation"))).containsKeys("metricDefinition", "sourceRecordIds")
+                .doesNotContainKey("definitionHash");
         assertThat(number(map(kpiResult.get("explanation")).get("dataSourceVersionId")))
                 .isEqualTo(reportVersionId);
         assertThat(list(kpiResult.get("reminders"))).singleElement().satisfies(reminder -> {
             assertThat(number(reminder.get("recipientTenantMemberId"))).isEqualTo(ownerTenantMemberId);
             assertThat(reminder).containsEntry("status", "SENT").containsKey("messageId");
         });
-        long reminderCount = count("ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"));
-        long messageCount = count("msg_message", "source_type='KPI_ALERT'");
-        assertThat(jdbc.queryForObject("select target_route from msg_message where source_type='KPI_ALERT'",
+        long reminderCount = count("un_ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"));
+        long messageCount = count("un_msg_message", "source_type='KPI_ALERT'");
+        assertThat(jdbc.queryForObject("select target_route from un_msg_message where source_type='KPI_ALERT'",
                 String.class)).isEqualTo("/systems/" + owner.systemId() + "?workspace=kpi&kpiId=" + kpiId);
 
-        jdbc.update("update ana_data_source set source_type='MODULE_RECORDS' where id=?", reportSourceId);
-        Map<String, Object> staleResult = ok("/api/analytics/admin/kpis/" + kpiId + "/calculate",
-                HttpMethod.POST, owner.token(), Map.of("periodKey", "2026-08"));
-        assertThat(staleResult).containsEntry("status", "STALE").containsEntry("stale", true);
-        assertThat(number(staleResult.get("actualValue"))).isEqualTo(2);
-        assertThat(number(staleResult.get("targetValue"))).isEqualTo(3);
-        assertThat(count("ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"))).isEqualTo(reminderCount);
-        assertThat(count("msg_message", "source_type='KPI_ALERT'")).isEqualTo(messageCount);
-        jdbc.update("update ana_data_source set source_type='MODULE_REPORT' where id=?", reportSourceId);
+        jdbc.update("update un_ana_data_source set source_type='MODULE_RECORDS' where id=?", reportSourceId);
+        // 修改数据源草稿不能改变 KPI 绑定的已发布报表版本。
+        Map<String, Object> stillPublishedResult = ok("/api/analytics/admin/kpis/" + kpiId + "/calculate",
+                HttpMethod.POST, owner.token(), Map.of("periodKey", currentMonth));
+        assertThat(stillPublishedResult).containsEntry("status", "UNDER_TARGET").containsEntry("stale", false);
+        assertThat(number(stillPublishedResult.get("actualValue"))).isEqualTo(2);
+        assertThat(number(stillPublishedResult.get("targetValue"))).isEqualTo(3);
+        assertThat(count("un_ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"))).isEqualTo(reminderCount);
+        assertThat(count("un_msg_message", "source_type='KPI_ALERT'")).isEqualTo(messageCount);
+        jdbc.update("update un_ana_data_source set source_type='MODULE_REPORT' where id=?", reportSourceId);
         kpiResult = ok("/api/analytics/admin/kpis/" + kpiId + "/calculate",
-                HttpMethod.POST, owner.token(), Map.of("periodKey", "2026-08"));
+                HttpMethod.POST, owner.token(), Map.of("periodKey", currentMonth));
         assertThat(kpiResult).containsEntry("status", "UNDER_TARGET").containsEntry("stale", false);
-        assertThat(count("ana_kpi_reminder", "kpi_result_id=" + kpiResult.get("id"))).isEqualTo(reminderCount);
+        assertThat(jdbc.queryForObject("select count(*) from un_ana_kpi_reminder r "
+                + "join un_ana_kpi_result x on x.id=r.kpi_result_id where x.kpi_id=?",
+                Long.class, kpiId)).isEqualTo(reminderCount);
 
         Map<String, Object> source = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
                 owner.token(), source("customer_records", "客户记录", "MODULE_RECORDS",
@@ -209,7 +549,7 @@ class DashboardHttpTest {
                 owner.token(), null).get("dashboards")).stream()
                 .filter(item -> number(item.get("id")) == dashboardId).findFirst().orElseThrow();
         long sourceVersionId = jdbc.queryForObject(
-                "select id from ana_data_source_version where data_source_id=?", Long.class, sourceId);
+                "select id from un_ana_data_source_version where data_source_id=?", Long.class, sourceId);
 
         Map<String, Object> runtime = ok("/api/analytics/runtime", HttpMethod.GET, owner.token(), null);
         assertThat(runtime).containsEntry("configured", true).containsEntry("contextType", "SYSTEM")
@@ -245,51 +585,12 @@ class DashboardHttpTest {
 
         Response arbitrarySql = exchange("/api/analytics/admin/data-sources", HttpMethod.POST, owner.token(),
                 source("forbidden_sql", "禁止任意 SQL", "MODULE_REPORT",
-                        new java.util.LinkedHashMap<>(Map.of("sql", "select * from biz_record",
+                        new java.util.LinkedHashMap<>(Map.of("sql", "select * from un_biz_record",
                                 "modules", List.of(Map.of("alias", "customer", "moduleCode", "customer")),
                                 "outputFields", List.of(Map.of("alias", "customer", "fieldCode", "title")),
                                 "metric", Map.of("operation", "COUNT"))), Map.of(), null));
         assertThat(arbitrarySql.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(arbitrarySql.body()).containsEntry("code", "REPORT_ARBITRARY_SQL_FORBIDDEN");
-
-        Map<String, Object> externalSource = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
-                owner.token(), source("erp_order_api", "ERP 订单接口", "EXTERNAL_API",
-                        Map.of("connectionReference", "erp_readonly", "requestCode", "LIST_ORDERS",
-                                "method", "GET", "queryParameters", Map.of("status", "ACTIVE"),
-                                "responseSelector", "$.items", "limit", 100, "timeoutMillis", 3000),
-                        Map.of("resourceType", "MODULE", "resourceCode", "customer", "actionCode", "LIST"), null));
-        assertThat(map(externalSource.get("boundary")))
-                .containsEntry("family", "EXTERNAL_API").containsEntry("runtimeReady", false)
-                .containsEntry("connectionMode", "MANAGED_REFERENCE")
-                .containsEntry("queryMode", "APPROVED_REQUEST_CODE");
-        externalSource = ok("/api/analytics/admin/data-sources/" + externalSource.get("id") + "/publish",
-                HttpMethod.POST, owner.token(), Map.of("expectedDraftRevision", externalSource.get("draftRevision")));
-        assertThat(list(externalSource.get("versions"))).singleElement();
-
-        Map<String, Object> databaseSource = ok("/api/analytics/admin/data-sources", HttpMethod.POST,
-                owner.token(), source("warehouse_summary", "仓库只读汇总", "DATABASE_CONNECTION",
-                        Map.of("connectionReference", "warehouse_readonly", "queryCode", "INVENTORY_SUMMARY",
-                                "parameters", Map.of("warehouse", "EAST"),
-                                "outputFields", List.of("warehouse", "quantity"), "limit", 200,
-                                "timeoutMillis", 5000), Map.of(), null));
-        assertThat(map(databaseSource.get("boundary")))
-                .containsEntry("family", "DATABASE").containsEntry("runtimeReady", false)
-                .containsEntry("connectionMode", "MANAGED_READ_ONLY_REFERENCE")
-                .containsEntry("queryMode", "APPROVED_QUERY_CODE");
-
-        Response exposedSecret = exchange("/api/analytics/admin/data-sources", HttpMethod.POST, owner.token(),
-                source("unsafe_external", "不安全连接", "EXTERNAL_API",
-                        Map.of("connectionReference", "erp_readonly", "requestCode", "LIST_ORDERS",
-                                "method", "GET", "token", "must-not-be-stored"), Map.of(), null));
-        assertThat(exposedSecret.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(exposedSecret.body()).containsEntry("code", "DASHBOARD_CONNECTION_SECRET_FORBIDDEN");
-
-        Response exposedSql = exchange("/api/analytics/admin/data-sources", HttpMethod.POST, owner.token(),
-                source("unsafe_database", "不安全查询", "DATABASE_CONNECTION",
-                        Map.of("connectionReference", "warehouse_readonly", "queryCode", "INVENTORY_SUMMARY",
-                                "sql", "select * from secrets"), Map.of(), null));
-        assertThat(exposedSql.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-        assertThat(exposedSql.body()).containsEntry("code", "DASHBOARD_CONNECTION_SECRET_FORBIDDEN");
 
         Map<String, Object> ambiguousDefinition = new java.util.LinkedHashMap<>(reportDefinition(100));
         ambiguousDefinition.put("relations", List.of());
@@ -384,15 +685,16 @@ class DashboardHttpTest {
         assertThat(ok("/api/analytics/runtime", HttpMethod.GET, owner.token(), null))
                 .containsEntry("contextType", "SYSTEM").containsEntry("name", "客户经营工作台");
 
-        assertThatThrownBy(() -> jdbc.update("update ana_data_source_version set definition_hash='x' where id=?",
-                sourceVersionId)).isInstanceOf(DataAccessException.class).hasMessageContaining("immutable");
-        assertThatThrownBy(() -> jdbc.update("delete from ana_dashboard_version where id=?", dashboardVersionId))
-                .isInstanceOf(DataAccessException.class).hasMessageContaining("immutable");
-        assertThat(count("audit_event", "event_code='DASHBOARD_DATA_SOURCE_PUBLISHED'")).isGreaterThanOrEqualTo(3);
-        assertThat(count("audit_event", "event_code='DASHBOARD_PUBLISHED'")).isEqualTo(2);
-        assertThat(count("audit_event", "event_code='ANALYTICS_REPORT_PREVIEWED'")).isGreaterThanOrEqualTo(1);
-        assertThat(count("audit_event", "event_code='ANALYTICS_REPORT_EXECUTED'")).isGreaterThanOrEqualTo(2);
-        assertThat(count("audit_event", "event_code='KPI_CALCULATED'")).isGreaterThanOrEqualTo(2);
+        // 发布版本由业务接口保持只读；草稿修改后的运行态仍读取固定版本，不依赖数据库触发器。
+        assertThat(number(ok("/api/analytics/runtime", HttpMethod.GET, owner.token(), null)
+                .get("versionId"))).isEqualTo(dashboardVersionId);
+        assertThat(jdbc.queryForObject("SELECT definition_hash FROM un_ana_data_source_version WHERE id=?",
+                String.class, sourceVersionId)).hasSize(64);
+        assertThat(count("un_audit_event", "event_code='DASHBOARD_DATA_SOURCE_PUBLISHED'")).isGreaterThanOrEqualTo(3);
+        assertThat(count("un_audit_event", "event_code='DASHBOARD_PUBLISHED'")).isGreaterThanOrEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='ANALYTICS_REPORT_PREVIEWED'")).isGreaterThanOrEqualTo(1);
+        assertThat(count("un_audit_event", "event_code='ANALYTICS_REPORT_EXECUTED'")).isGreaterThanOrEqualTo(2);
+        assertThat(count("un_audit_event", "event_code='KPI_CALCULATED'")).isGreaterThanOrEqualTo(2);
 
         Map<String, Object> updatedKpi = ok("/api/analytics/admin/kpis/" + kpiId, HttpMethod.PUT,
                 owner.token(), kpi("customer_monthly", "月度有效客户", reportVersionId, 3,

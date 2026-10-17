@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-09",
+  "scope": "当前统一 un_ 结构下的局部集成验证",
+  "schema": "18 个 Flyway 模块、188 张产品表；隔离库首装与 Base 两次生成见 s01-unified-schema-verification.json 和生成清单",
+  "build": "Java 21 Maven clean test-compile 通过；前端 vue-tsc 与 Vite build 通过",
+  "httpTests": [
+    {
+      "test": "DashboardHttpTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "ApplicationScopeHttpTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "BackgroundJobHttpTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "AuthenticationRegistrationHttpTest#standalonePlatformAccountCanCreateTwoSystemsButDisabledMemberCannotCreateMore",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "SystemAdministrationHttpTest (G1 selected methods)",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "SystemBootstrapServiceIntegrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "ModuleConfigurationHttpTest#visualPageAndMenuDraftsOnlyReachPermissionFilteredRuntimeAfterPublishAndRollback",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "test": "RuntimeDataHttpTest#publishedRuntimeStoresTypedValuesVersionsAndEnforcesActionScopeAndTenantBoundary",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "observed": "仪表盘报表关联、发布、预览、越权拒绝；主租户已发布数据源供获权非主租户绑定和执行，按访问者权限只读取其可见业务数据；应用角色变化后仍按发布授权和负责人范围查询，缺省负责人/创建人读回，异常人员缩范围、部门失效返回 403；后台任务重试与 Redis 尝试状态读回。G1 还验证了账号建系统、所属权转移、租户开关和两个不同模块的真实页面保存与读回，普通成员模块动作、字段和负责人范围组合，以及越权拒绝。",
+  "limits": "G1 仅覆盖身份、租户与双模块基础旅程；Flow、仪表盘、应用和 AI 的跨能力组合仍需后续集成门禁，不授予整站完成信用。",
+  "sourceHashes": {
+    "backend/src/main/java/com/unique/unexamine/authorization/manage/ChannelFieldPolicyResolver.java": "7c006c46ea1969f98be5cdeb0db26864742c873034d712286cce3456073ed9ac",
+    "backend/src/main/java/com/unique/unexamine/analytics/manage/DashboardService.java": "d08648d4ab1897e6383f72e6897ff1ec6765adfbab707709484c7ef51c0d76b6",
+    "backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java": "cec080bbb823d8806f1fe714746027d555aae097b6b3454e14b6e3a754d7ce38",
+    "db/final.sql": "759f6e62f6ede3cac05193a65ee3ae71f3b41f5cbc07eb521cbcca91ab9d6e07"
+  }
+}

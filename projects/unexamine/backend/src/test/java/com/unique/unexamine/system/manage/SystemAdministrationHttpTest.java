@@ -67,16 +67,16 @@ class SystemAdministrationHttpTest {
                 Map.of("name", "租户管理系统", "tenantMode", "SINGLE"));
         assertThat(updated.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(data(updated)).containsEntry("name", "租户管理系统").containsEntry("tenantMode", "SINGLE");
-        migrateToMulti(fixture);
+        enableMulti(fixture);
 
         ResponseEntity<Map> created = exchange("/api/admin/system/tenants", HttpMethod.POST, fixture.systemToken(),
                 Map.of("code", "branch", "name", "分公司"));
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
         long branchId = ((Number) data(created).get("id")).longValue();
         assertThat(data(created)).containsEntry("main", false).containsEntry("status", "ACTIVE");
-        assertThat(count("sys_tenant", "system_id = " + fixture.systemId())).isEqualTo(2);
-        assertThat(count("sys_tenant_member", "tenant_id = " + branchId + " and tenant_admin = 1")).isOne();
-        assertThat(count("sys_role_permission", "role_id in (select id from sys_role where tenant_id = " + branchId + ") and data_scope_type = 'ALL'")).isOne();
+        assertThat(count("un_sys_tenant", "system_id = " + fixture.systemId())).isEqualTo(2);
+        assertThat(count("un_sys_tenant_member", "tenant_id = " + branchId + " and tenant_admin = 0")).isOne();
+        assertThat(count("un_sys_role_permission", "role_id in (select id from un_sys_role where tenant_id = " + branchId + ") and data_scope_type = 'ALL'")).isOne();
 
         ResponseEntity<Map> entered = exchange("/api/systems/" + fixture.systemId() + "/tenants/" + branchId + "/enter",
                 HttpMethod.POST, fixture.platformToken(), Map.of(
@@ -84,7 +84,7 @@ class SystemAdministrationHttpTest {
         assertThat(entered.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(((Number) data(entered).get("tenantId")).longValue()).isEqualTo(branchId);
         assertThat(data(entered)).containsEntry("tenantName", "分公司");
-        assertThat((List<?>) data(entered).get("roleIds")).hasSize(1);
+        assertThat((List<?>) data(entered).get("roleIds")).isEmpty();
         assertThat((String) data(entered).get("contextRevision")).isNotBlank();
         assertThat(((List<?>) data(entered).get("redrawScopes")).stream().map(String::valueOf).toList())
                 .contains("NAVIGATION", "MODULES", "TODO", "MESSAGES");
@@ -104,39 +104,61 @@ class SystemAdministrationHttpTest {
         assertThat(enterDisabled.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(enterDisabled.getBody()).containsEntry("code", "TENANT_ACCESS_DENIED");
 
-        assertThat(count("audit_event", "event_code = 'SYSTEM_SETTINGS_UPDATED' and result_code = 'SUCCESS'")).isOne();
-        assertThat(count("audit_event", "event_code = 'TENANT_MODE_MIGRATION_COMPLETED' and result_code = 'SUCCESS'")).isOne();
-        assertThat(count("audit_event", "event_code = 'SYSTEM_CONTEXT_SWITCHED' and tenant_id = " + branchId)).isOne();
-        assertThat(count("audit_event", "event_code = 'TENANT_CREATED' and object_id = '" + branchId + "'")).isOne();
-        assertThat(count("audit_event", "event_code = 'TENANT_ENTER' and result_code = 'TENANT_ACCESS_DENIED'")).isOne();
+        assertThat(count("un_audit_event", "event_code = 'SYSTEM_SETTINGS_UPDATED' and result_code = 'SUCCESS' and system_id = "
+                + fixture.systemId())).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code = 'SYSTEM_CONTEXT_SWITCHED' and tenant_id = " + branchId)).isOne();
+        assertThat(count("un_audit_event", "event_code = 'TENANT_CREATED' and object_id = '" + branchId + "'")).isOne();
+        assertThat(count("un_audit_event", "event_code = 'TENANT_ENTER' and result_code = 'TENANT_ACCESS_DENIED'")).isOne();
     }
 
     @Test
-    void mainTenantIsProtectedAndMultiTenantCannotReturnToSingleWithSecondaryTenant() {
+    void mainTenantIsProtectedAndSwitchPausesSecondaryTenantWithoutChangingItsState() {
         Fixture fixture = register("tenant_safety", "tenant_safety_system");
-        migrateToMulti(fixture);
+        enableMulti(fixture);
         ResponseEntity<Map> created = exchange("/api/admin/system/tenants", HttpMethod.POST, fixture.systemToken(),
                 Map.of("code", "branch", "name", "分公司"));
         assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long branchId = ((Number) data(created).get("id")).longValue();
+        ResponseEntity<Map> entered = exchange("/api/systems/" + fixture.systemId() + "/tenants/" + branchId + "/enter",
+                HttpMethod.POST, fixture.platformToken(), null);
+        String branchToken = (String) ((Map<?, ?>) data(entered).get("tokens")).get("accessToken");
+        long ownerMemberId = jdbc.queryForObject("select id from un_sys_member where system_id=? and account_id="
+                + "(select id from un_plat_account where username='tenant_safety')", Long.class, fixture.systemId());
+        // 本用例只验证模式开关对已存授权行的影响，模块和记录标识不进入运行态查询。
+        jdbc.update("insert into un_biz_tenant_share(system_id,source_tenant_id,target_tenant_id,module_id,record_id,"
+                + "permission_json,status,granted_by_member_id) values (?,?,?,?,?,?,'ACTIVE',?)",
+                fixture.systemId(), fixture.mainTenantId(), branchId, 900001L, 900001L,
+                "[\"LIST\"]", ownerMemberId);
 
         ResponseEntity<Map> mainDisabled = exchange("/api/admin/system/tenants/" + fixture.mainTenantId() + "/status",
                 HttpMethod.PUT, fixture.systemToken(), Map.of("status", "DISABLED"));
         assertThat(mainDisabled.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(mainDisabled.getBody()).containsEntry("code", "MAIN_TENANT_PROTECTED");
-        assertThat(jdbc.queryForObject("select status from sys_tenant where id = ?", String.class, fixture.mainTenantId()))
+        assertThat(jdbc.queryForObject("select status from un_sys_tenant where id = ?", String.class, fixture.mainTenantId()))
                 .isEqualTo("ACTIVE");
-
-        ResponseEntity<Map> preflight = exchange("/api/admin/system/tenant-mode-migrations/preflight", HttpMethod.POST,
-                fixture.systemToken(), Map.of("toMode", "SINGLE"));
-        assertThat(preflight.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(data(preflight)).containsEntry("allowed", false);
-        assertThat(((List<?>) data(preflight).get("blockers")).stream().map(String::valueOf).toList())
-                .contains("存在其他租户，必须先执行独立租户合并方案");
 
         ResponseEntity<Map> direct = exchange("/api/admin/system/settings", HttpMethod.PUT, fixture.systemToken(),
                 Map.of("name", "租户安全系统", "tenantMode", "SINGLE"));
-        assertThat(direct.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(direct.getBody()).containsEntry("code", "TENANT_MODE_MIGRATION_REQUIRED");
+        assertThat(direct.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(direct)).containsEntry("tenantMode", "SINGLE");
+        assertThat(jdbc.queryForObject("select status from un_sys_tenant where id=?", String.class, branchId))
+                .isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("select status from un_biz_tenant_share where target_tenant_id=?", String.class,
+                branchId)).isEqualTo("ACTIVE");
+        assertThat(exchange("/api/auth/me", HttpMethod.GET, branchToken, null).getStatusCode())
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(((List<?>) exchange("/api/admin/system/tenants", HttpMethod.GET, fixture.systemToken(), null)
+                .getBody().get("data"))).hasSize(1);
+        assertThat(exchange("/api/systems/" + fixture.systemId() + "/tenants/" + branchId + "/enter",
+                HttpMethod.POST, fixture.platformToken(), null).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+
+        ResponseEntity<Map> reopened = exchange("/api/admin/system/settings", HttpMethod.PUT, fixture.systemToken(),
+                Map.of("name", "租户安全系统", "tenantMode", "MULTI"));
+        assertThat(reopened.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(((List<?>) exchange("/api/admin/system/tenants", HttpMethod.GET, fixture.systemToken(), null)
+                .getBody().get("data"))).hasSize(2);
+        assertThat(exchange("/api/systems/" + fixture.systemId() + "/tenants/" + branchId + "/enter",
+                HttpMethod.POST, fixture.platformToken(), null).getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
@@ -146,7 +168,7 @@ class SystemAdministrationHttpTest {
         try {
             int port = proofServer.getAddress().getPort();
             ResponseEntity<Map> saved = exchange("/api/admin/system/domains", HttpMethod.POST, fixture.systemToken(),
-                    Map.of("domainType", "CUSTOM", "host", "127.0.0.1:" + port,
+                    Map.of("tenantId", fixture.mainTenantId(), "domainType", "CUSTOM", "host", "127.0.0.1:" + port,
                             "basePath", "/workspace", "tlsRequired", false));
             assertThat(saved.getStatusCode()).isEqualTo(HttpStatus.OK);
             long domainId = ((Number) data(saved).get("id")).longValue();
@@ -173,37 +195,110 @@ class SystemAdministrationHttpTest {
                     HttpMethod.POST, fixture.systemToken(), null);
             assertThat(verified.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(data(verified)).containsEntry("status", "VERIFIED");
-            assertThat(data(verified).get("verifiedAt")).isNotNull();
+            assertThat(data(verified).get("verifyTime")).isNotNull();
 
             ResponseEntity<Map> published = exchange("/api/admin/system/domains/" + domainId + "/publish",
                     HttpMethod.POST, fixture.systemToken(), null);
             assertThat(published.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(data(published)).containsEntry("status", "PUBLISHED");
-            assertThat(jdbc.queryForObject("select status from sys_system_domain where id=?", String.class, domainId))
+            assertThat(jdbc.queryForObject("select status from un_sys_system_domain where id=?", String.class, domainId))
                     .isEqualTo("PUBLISHED");
-            assertThat(count("core_setting", "system_id = " + fixture.systemId()
+            assertThat(count("un_core_setting", "system_id = " + fixture.systemId()
                     + " and setting_key = 'domain.verification." + domainId + "'")).isOne();
-            assertThat(count("audit_event", "event_code = 'SYSTEM_DOMAIN_PUBLISH' and result_code = 'DOMAIN_NOT_VERIFIED'")).isOne();
-            assertThat(count("audit_event", "event_code = 'SYSTEM_DOMAIN_VERIFIED' and object_id = '" + domainId + "'")).isOne();
-            assertThat(count("audit_event", "event_code = 'SYSTEM_DOMAIN_PUBLISHED' and object_id = '" + domainId + "'")).isOne();
+            assertThat(count("un_audit_event", "event_code = 'SYSTEM_DOMAIN_PUBLISH' and result_code = 'DOMAIN_NOT_VERIFIED'")).isOne();
+            assertThat(count("un_audit_event", "event_code = 'SYSTEM_DOMAIN_VERIFIED' and object_id = '" + domainId + "'")).isOne();
+            assertThat(count("un_audit_event", "event_code = 'SYSTEM_DOMAIN_PUBLISHED' and object_id = '" + domainId + "'")).isOne();
         } finally {
             proofServer.stop(0);
         }
     }
 
     @Test
-    void memberWithoutSystemManagementPermissionCannotReadOrChangeSettings() {
+    void currentOwnerCanManageSystemWithoutAnAssignedRole() {
         Fixture fixture = register("tenant_limited", "tenant_limited_system");
-        Long tenantMemberId = jdbc.queryForObject("select id from sys_tenant_member where tenant_id = ?", Long.class,
+        Long tenantMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id = ?", Long.class,
                 fixture.mainTenantId());
-        jdbc.update("delete from sys_member_role where tenant_member_id = ?", tenantMemberId);
+        assertThat(count("un_sys_member_role", "tenant_member_id = " + tenantMemberId)).isZero();
         ResponseEntity<Map> entered = exchange("/api/systems/" + fixture.systemId() + "/enter", HttpMethod.POST,
                 fixture.platformToken(), null);
         String restrictedToken = (String) ((Map<?, ?>) data(entered).get("tokens")).get("accessToken");
 
-        ResponseEntity<Map> denied = exchange("/api/admin/system/settings", HttpMethod.GET, restrictedToken, null);
-        assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(denied.getBody()).containsEntry("code", "PERMISSION_DENIED");
+        ResponseEntity<Map> visible = exchange("/api/admin/system/settings", HttpMethod.GET, restrictedToken, null);
+        assertThat(visible.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(((Number) data(visible).get("ownerAccountId")).longValue())
+                .isEqualTo(jdbc.queryForObject("select creator_account_id from un_sys_system where id=?", Long.class,
+                        fixture.systemId()));
+        assertThat(exchange("/api/admin/system/settings", HttpMethod.PUT, restrictedToken,
+                Map.of("name", "仍可配置", "tenantMode", "SINGLE")).getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void ownerTransferMovesImplicitAuthorityAndKeepsExplicitRoles() {
+        Fixture former = register("transfer_former", "transfer_system");
+        Fixture recipient = register("transfer_recipient", "recipient_system");
+        enableMulti(former);
+        ResponseEntity<Map> created = exchange("/api/admin/system/tenants", HttpMethod.POST, former.systemToken(),
+                Map.of("code", "branch", "name", "分公司"));
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long branchId = ((Number) data(created).get("id")).longValue();
+        long formerMemberId = jdbc.queryForObject("select id from un_sys_tenant_member where tenant_id=? and "
+                + "system_member_id=(select id from un_sys_member where system_id=? and account_id="
+                + "(select id from un_plat_account where username='transfer_former'))", Long.class,
+                former.mainTenantId(), former.systemId());
+        // 手工授予一个有限权限角色，转让后仍应保留这项明确授权。
+        jdbc.update("insert into un_sys_role(system_id,tenant_id,code,name,status) values (?,?,?,?,'ACTIVE')",
+                former.systemId(), former.mainTenantId(), "manual_todo_view", "手工待办查看");
+        long roleId = jdbc.queryForObject("select id from un_sys_role where tenant_id=? and code='manual_todo_view'",
+                Long.class, former.mainTenantId());
+        jdbc.update("insert into un_sys_role_permission(system_id,tenant_id,role_id,resource_type,resource_code,"
+                + "action_code,data_scope_type) values (?,?,?,'TODO','SYSTEM','VIEW','SELF')",
+                former.systemId(), former.mainTenantId(), roleId);
+        jdbc.update("insert into un_sys_member_role(tenant_id,tenant_member_id,role_id) values (?,?,?)",
+                former.mainTenantId(), formerMemberId, roleId);
+
+        ResponseEntity<Map> candidates = exchange("/api/admin/system/settings/owner-candidates?query=transfer_recipient",
+                HttpMethod.GET, former.systemToken(), null);
+        assertThat(candidates.getStatusCode()).isEqualTo(HttpStatus.OK);
+        long recipientAccountId = jdbc.queryForObject("select id from un_plat_account where username='transfer_recipient'",
+                Long.class);
+        assertThat((List<?>) candidates.getBody().get("data")).anySatisfy(value ->
+                assertThat(((Number) ((Map<?, ?>) value).get("accountId")).longValue()).isEqualTo(recipientAccountId));
+        int version = ((Number) data(exchange("/api/admin/system/settings", HttpMethod.GET,
+                former.systemToken(), null)).get("version")).intValue();
+        ResponseEntity<Map> transferred = exchange("/api/admin/system/settings/owner", HttpMethod.PUT,
+                former.systemToken(), Map.of("accountId", recipientAccountId, "expectedVersion", version));
+        assertThat(transferred.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(((Number) data(transferred).get("ownerAccountId")).longValue()).isEqualTo(recipientAccountId);
+        assertThat(exchange("/api/auth/me", HttpMethod.GET, former.systemToken(), null).getStatusCode())
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(count("un_sys_member_role", "tenant_member_id = " + formerMemberId + " and role_id = " + roleId))
+                .isOne();
+        assertThat(count("un_sys_tenant_member", "system_id = " + former.systemId()
+                + " and system_member_id in (select id from un_sys_member where account_id = " + recipientAccountId + ")"
+                + " and status = 'ACTIVE' and tenant_id in (" + former.mainTenantId() + "," + branchId + ")"))
+                .isEqualTo(2);
+
+        ResponseEntity<Map> recipientMain = exchange("/api/systems/" + former.systemId() + "/enter",
+                HttpMethod.POST, recipient.platformToken(), null);
+        assertThat(recipientMain.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) data(recipientMain).get("roleIds")).isEmpty();
+        ResponseEntity<Map> recipientBranch = exchange("/api/systems/" + former.systemId() + "/tenants/" + branchId
+                + "/enter", HttpMethod.POST, recipient.platformToken(), null);
+        assertThat(recipientBranch.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String branchToken = (String) ((Map<?, ?>) data(recipientBranch).get("tokens")).get("accessToken");
+        assertThat(exchange("/api/admin/system/settings", HttpMethod.GET, branchToken, null).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<Map> formerReentered = exchange("/api/systems/" + former.systemId() + "/enter",
+                HttpMethod.POST, former.platformToken(), null);
+        assertThat(formerReentered.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(((List<?>) data(formerReentered).get("roleIds")).stream()
+                .map(value -> ((Number) value).longValue()).toList()).containsExactly(roleId);
+        assertThat(((Map<?, ?>) data(formerReentered).get("dataScopes")).keySet().stream()
+                .map(String::valueOf).toList()).doesNotContain("*:*:*");
+        String formerToken = (String) ((Map<?, ?>) data(formerReentered).get("tokens")).get("accessToken");
+        assertThat(exchange("/api/admin/system/settings", HttpMethod.GET, formerToken, null).getStatusCode())
+                .isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -272,11 +367,11 @@ class SystemAdministrationHttpTest {
         assertThat(stale.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(stale.getBody()).containsEntry("code", "CONCURRENT_MODIFICATION");
 
-        assertThat(jdbc.queryForObject("select count(*) from core_setting where context_type='PLATFORM' and system_id is null and setting_key='contact.follow-up-days'", Integer.class)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from core_setting where context_type='SYSTEM' and system_id=? and setting_key='contact.follow-up-days'", Integer.class, fixture.systemId())).isOne();
-        assertThat(jdbc.queryForObject("select json_extract(value_json, '$.days') from core_setting where id=?", Integer.class, systemSettingId)).isEqualTo(5);
-        assertThat(count("audit_event", "event_code = 'PLATFORM_SETTING_SAVED' and result_code = 'SUCCESS'")).isOne();
-        assertThat(count("audit_event", "event_code = 'SYSTEM_SETTING_SAVED' and object_id = '" + systemSettingId + "'")).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from un_core_setting where context_type='PLATFORM' and system_id is null and setting_key='contact.follow-up-days'", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_core_setting where context_type='SYSTEM' and system_id=? and setting_key='contact.follow-up-days'", Integer.class, fixture.systemId())).isOne();
+        assertThat(jdbc.queryForObject("select json_extract(value_json, '$.days') from un_core_setting where id=?", Integer.class, systemSettingId)).isEqualTo(5);
+        assertThat(count("un_audit_event", "event_code = 'PLATFORM_SETTING_SAVED' and result_code = 'SUCCESS'")).isOne();
+        assertThat(count("un_audit_event", "event_code = 'SYSTEM_SETTING_SAVED' and object_id = '" + systemSettingId + "'")).isEqualTo(2);
     }
 
     @Test
@@ -284,26 +379,28 @@ class SystemAdministrationHttpTest {
         Fixture fixture = register("identity_owner", "identity_target_system");
         Fixture guest = register("identity_guest", "identity_guest_system");
         register("identity_conflict", "identity_conflict_system");
-        long ownerAccountId = jdbc.queryForObject("select id from plat_account where username='identity_owner'", Long.class);
-        long guestAccountId = jdbc.queryForObject("select id from plat_account where username='identity_guest'", Long.class);
-        long conflictAccountId = jdbc.queryForObject("select id from plat_account where username='identity_conflict'", Long.class);
-        jdbc.update("insert into sys_department(system_id,tenant_id,parent_id,code,name,path_code,sort_order,status) values (?,?,null,'HQ','总部','/HQ',0,'ACTIVE')",
+        long ownerAccountId = jdbc.queryForObject("select id from un_plat_account where username='identity_owner'", Long.class);
+        long guestAccountId = jdbc.queryForObject("select id from un_plat_account where username='identity_guest'", Long.class);
+        long conflictAccountId = jdbc.queryForObject("select id from un_plat_account where username='identity_conflict'", Long.class);
+        jdbc.update("insert into un_sys_department(system_id,tenant_id,parent_id,code,name,path_code,sort_order,status) values (?,?,null,'HQ','总部','/HQ',0,'ACTIVE')",
                 fixture.systemId(), fixture.mainTenantId());
         long departmentId = jdbc.queryForObject(
-                "select id from sys_department where system_id=? and tenant_id=? and code='HQ'", Long.class,
+                "select id from un_sys_department where system_id=? and tenant_id=? and code='HQ'", Long.class,
                 fixture.systemId(), fixture.mainTenantId());
 
-        jdbc.update("insert into plat_sso_provider(code,name,protocol,issuer,client_id,metadata_json,status) values (?,?,?,?,?,json_object(),'DRAFT')",
-                "mapping_oidc", "企业目录", "OIDC", "https://id.example.com", "mapping-client");
-        long providerId = jdbc.queryForObject("select id from plat_sso_provider where code='mapping_oidc'", Long.class);
-        jdbc.update("insert into plat_sso_provider_version(provider_id,version_number,protocol,issuer,client_id,protocol_config_json,allowed_domains_json,attribute_mapping_json,jit_policy_json,mfa_policy_json,callback_uris_json,test_status,test_report_json,status,published_at,published_by_account_id) " +
+        long platformId = jdbc.queryForObject("select platform_id from un_sys_system where id=?", Long.class,
+                fixture.systemId());
+        jdbc.update("insert into un_plat_sso_provider(platform_id,code,name,protocol,issuer,client_id,metadata_json,status) values (?,?,?,?,?,?,json_object(),'DRAFT')",
+                platformId, "mapping_oidc", "企业目录", "OIDC", "https://id.example.com", "mapping-client");
+        long providerId = jdbc.queryForObject("select id from un_plat_sso_provider where code='mapping_oidc'", Long.class);
+        jdbc.update("insert into un_plat_sso_provider_version(provider_id,version_number,protocol,issuer,client_id,protocol_config_json,allowed_domains_json,attribute_mapping_json,jit_policy_json,mfa_policy_json,callback_uris_json,test_status,test_report_json,status,published_time,published_by_account_id) " +
                         "values (?,1,'OIDC','https://id.example.com','mapping-client',json_object(),json_array('example.com'),json_object(),json_object(),json_object(),json_array('http://localhost:5173/auth/sso/callback'),'PASSED',json_object(),'PUBLISHED',now(3),1)",
                 providerId);
         long providerVersionId = jdbc.queryForObject(
-                "select id from plat_sso_provider_version where provider_id=? and version_number=1", Long.class, providerId);
-        jdbc.update("update plat_sso_provider set status='PUBLISHED', published_version_id=?, published_version_number=1 where id=?",
+                "select id from un_plat_sso_provider_version where provider_id=? and version_number=1", Long.class, providerId);
+        jdbc.update("update un_plat_sso_provider set status='PUBLISHED', published_version_id=?, published_version_number=1 where id=?",
                 providerVersionId, providerId);
-        jdbc.update("insert into plat_sso_identity(provider_id,external_subject,account_id,attributes_json) values (?,?,?,json_object())",
+        jdbc.update("insert into un_plat_sso_identity(provider_id,external_subject,account_id,attributes_json) values (?,?,?,json_object())",
                 providerId, "conflict-ext", conflictAccountId);
 
         ResponseEntity<Map> providers = exchange("/api/admin/system/identity-mapping/providers", HttpMethod.GET,
@@ -359,12 +456,12 @@ class SystemAdministrationHttpTest {
                 .containsEntry("progressCurrent", 4).containsEntry("progressTotal", 4);
         long jobId = ((Number) data(confirmed).get("id")).longValue();
 
-        assertThat(jdbc.queryForObject("select count(*) from job_background where id=? and job_type='SYSTEM_IDENTITY_MAPPING_SYNC'", Integer.class, jobId)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from job_item_result where job_id=?", Integer.class, jobId)).isEqualTo(4);
-        assertThat(jdbc.queryForObject("select count(*) from plat_sso_identity where provider_id=? and external_subject in ('owner-ext','guest-ext')", Integer.class, providerId)).isEqualTo(2);
-        assertThat(jdbc.queryForObject("select count(*) from sys_access_request where system_id=? and account_id=? and status='PENDING'", Integer.class, fixture.systemId(), guestAccountId)).isOne();
-        assertThat(jdbc.queryForObject("select count(*) from sys_member where system_id=? and account_id=?", Integer.class, fixture.systemId(), guestAccountId)).isZero();
-        assertThat(jdbc.queryForObject("select count(*) from sys_member where system_id=? and account_id=?", Integer.class, fixture.systemId(), ownerAccountId)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_job_background where id=? and job_type='SYSTEM_IDENTITY_MAPPING_SYNC'", Integer.class, jobId)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_job_item_result where job_id=?", Integer.class, jobId)).isEqualTo(4);
+        assertThat(jdbc.queryForObject("select count(*) from un_plat_sso_identity where provider_id=? and external_subject in ('owner-ext','guest-ext')", Integer.class, providerId)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from un_sys_access_request where system_id=? and account_id=? and status='PENDING'", Integer.class, fixture.systemId(), guestAccountId)).isOne();
+        assertThat(jdbc.queryForObject("select count(*) from un_sys_member where system_id=? and account_id=?", Integer.class, fixture.systemId(), guestAccountId)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from un_sys_member where system_id=? and account_id=?", Integer.class, fixture.systemId(), ownerAccountId)).isOne();
 
         ResponseEntity<Map> logs = exchange(
                 "/api/admin/system/identity-mapping/logs?identityProvider=mapping_oidc&externalUserId=guest-ext&requestId=req-guest",
@@ -387,16 +484,16 @@ class SystemAdministrationHttpTest {
         Fixture owner = register("authorization_owner", "authorization_system");
         Fixture target = register("authorization_target", "authorization_target_system");
         long targetAccountId = jdbc.queryForObject(
-                "select id from plat_account where username='authorization_target'", Long.class);
-        jdbc.update("insert into sys_member(system_id,account_id,employee_number,display_name,status) values (?,?,?,'目标成员','ACTIVE')",
+                "select id from un_plat_account where username='authorization_target'", Long.class);
+        jdbc.update("insert into un_sys_member(system_id,account_id,employee_number,display_name,status) values (?,?,?,'目标成员','ACTIVE')",
                 owner.systemId(), targetAccountId, "AUTH-002");
         long targetSystemMemberId = jdbc.queryForObject(
-                "select id from sys_member where system_id=? and account_id=?", Long.class,
+                "select id from un_sys_member where system_id=? and account_id=?", Long.class,
                 owner.systemId(), targetAccountId);
-        jdbc.update("insert into sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) values (?,?,?,0,'ACTIVE')",
+        jdbc.update("insert into un_sys_tenant_member(system_id,tenant_id,system_member_id,tenant_admin,status) values (?,?,?,0,'ACTIVE')",
                 owner.systemId(), owner.mainTenantId(), targetSystemMemberId);
         long targetTenantMemberId = jdbc.queryForObject(
-                "select id from sys_tenant_member where tenant_id=? and system_member_id=?", Long.class,
+                "select id from un_sys_tenant_member where tenant_id=? and system_member_id=?", Long.class,
                 owner.mainTenantId(), targetSystemMemberId);
 
         ResponseEntity<Map> root = exchange("/api/admin/system/authorization/departments", HttpMethod.POST,
@@ -423,7 +520,7 @@ class SystemAdministrationHttpTest {
                 HttpMethod.POST, owner.systemToken(), Map.of("code", "customer_name", "name", "客户名称",
                         "fieldType", "TEXT", "required", true, "sortOrder", 10, "config", Map.of()));
         assertThat(field.getStatusCode()).isEqualTo(HttpStatus.OK);
-        int draftRevision = jdbc.queryForObject("select draft_revision from cfg_module where id=?", Integer.class, moduleId);
+        int draftRevision = jdbc.queryForObject("select draft_revision from un_cfg_module where id=?", Integer.class, moduleId);
         assertThat(exchange("/api/admin/module-config/modules/" + moduleId + "/publish", HttpMethod.POST,
                 owner.systemToken(), Map.of("expectedDraftRevision", draftRevision)).getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -509,7 +606,7 @@ class SystemAdministrationHttpTest {
         assertThat(operatorDraft.getStatusCode()).isEqualTo(HttpStatus.OK);
         long operatorRoleId = ((Number) data(operatorDraft).get("id")).longValue();
         int currentMemberVersion = jdbc.queryForObject(
-                "select version from sys_tenant_member where id=?", Integer.class, targetTenantMemberId);
+                "select version from un_sys_tenant_member where id=?", Integer.class, targetTenantMemberId);
         assertThat(exchange("/api/admin/system/authorization/members/" + targetTenantMemberId + "/assignment",
                 HttpMethod.POST, owner.systemToken(), Map.of("departmentId", childId,
                         "roleIds", List.of(managerRoleId, operatorRoleId), "expectedVersion", currentMemberVersion)).getStatusCode())
@@ -555,9 +652,9 @@ class SystemAdministrationHttpTest {
         assertThat(stalePreview.getBody()).containsEntry("code", "AUTHORIZATION_VERSION_EXPIRED");
 
         long previewAuditId = jdbc.queryForObject(
-                "select id from audit_event where event_code='AUTHORIZATION_PERMISSION_PREVIEW' and object_id=? order by id desc limit 1",
+                "select id from un_audit_event where event_code='AUTHORIZATION_PERMISSION_PREVIEW' and object_id=? order by id desc limit 1",
                 Long.class, String.valueOf(targetTenantMemberId));
-        jdbc.update("insert into audit_field_change(audit_event_id,field_code,value_type,before_value_json,after_value_json,sensitivity) values (?,'email','STRING',json_quote('old@example.com'),json_quote('new@example.com'),'SENSITIVE')",
+        jdbc.update("insert into un_audit_field_change(audit_event_id,field_code,value_type,before_value_json,after_value_json,sensitivity) values (?,'email','STRING',json_quote('old@example.com'),json_quote('new@example.com'),'SENSITIVE')",
                 previewAuditId);
         ResponseEntity<Map> maskedDetail = exchange("/api/admin/audit-events/" + previewAuditId,
                 HttpMethod.GET, targetSystemToken, null);
@@ -595,44 +692,29 @@ class SystemAdministrationHttpTest {
                         "referenceImpactConfirmed", true));
         assertThat(retained.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat((String) data(retained).get("snapshotHash")).hasSize(64);
-        assertThat(count("audit_retention_marker", "object_type = 'SYSTEM_TENANT_MEMBER' and object_id = '" + targetTenantMemberId + "'")).isOne();
-        assertThat(count("audit_event", "id = " + previewAuditId)).isOne();
+        assertThat(count("un_audit_retention_marker", "object_type = 'SYSTEM_TENANT_MEMBER' and object_id = '" + targetTenantMemberId + "'")).isOne();
+        assertThat(count("un_audit_event", "id = " + previewAuditId)).isOne();
 
-        assertThat(jdbc.queryForObject("select max(version_number) from auth_permission_version where system_id=? and tenant_id=?",
+        assertThat(jdbc.queryForObject("select max(version_number) from un_auth_permission_version where system_id=? and tenant_id=?",
                 Long.class, owner.systemId(), owner.mainTenantId())).isEqualTo(4L);
-        assertThat(jdbc.queryForObject("select permission_version from auth_session where account_id=? and system_id=? order by id desc limit 1",
+        assertThat(jdbc.queryForObject("select permission_version from un_auth_session where account_id=? and system_id=? order by id desc limit 1",
                 Long.class, targetAccountId, owner.systemId())).isEqualTo(4L);
-        assertThat(count("auth_field_policy", "role_id = " + operatorRoleId
+        assertThat(count("un_auth_field_policy", "role_id = " + operatorRoleId
                 + " and field_code = 'customer_name' and readable = 1")).isEqualTo(3);
-        assertThat(count("auth_field_policy", "role_id = " + operatorRoleId
+        assertThat(count("un_auth_field_policy", "role_id = " + operatorRoleId
                 + " and field_code = 'customer_name' and `channel` in ('PAGE','APPLICATION','FILE')")).isEqualTo(3);
-        assertThat(count("audit_event", "event_code = 'SYSTEM_AUTHORIZATION_PUBLISHED' and system_id = " + owner.systemId())).isEqualTo(2);
-        assertThat(count("audit_event", "event_code = 'AUTHORIZATION_PERMISSION_PREVIEW' and object_id = '" + targetTenantMemberId + "'")).isOne();
+        assertThat(count("un_audit_event", "event_code = 'SYSTEM_AUTHORIZATION_PUBLISHED' and system_id = " + owner.systemId())).isEqualTo(2);
+        assertThat(count("un_audit_event", "event_code = 'AUTHORIZATION_PERMISSION_PREVIEW' and object_id = '" + targetTenantMemberId + "'")).isOne();
     }
 
-    private void migrateToMulti(Fixture fixture) {
-        ResponseEntity<Map> preflight = exchange("/api/admin/system/tenant-mode-migrations/preflight", HttpMethod.POST,
-                fixture.systemToken(), Map.of("toMode", "MULTI"));
-        assertThat(preflight.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(data(preflight)).containsEntry("fromMode", "SINGLE").containsEntry("toMode", "MULTI")
-                .containsEntry("allowed", true);
-
-        ResponseEntity<Map> requested = exchange("/api/admin/system/tenant-mode-migrations", HttpMethod.POST,
-                fixture.systemToken(), Map.of("toMode", "MULTI"));
-        assertThat(requested.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(data(requested)).containsEntry("status", "PENDING_APPROVAL");
-        long migrationId = ((Number) data(requested).get("id")).longValue();
-
-        ResponseEntity<Map> approved = exchange(
-                "/api/admin/system/tenant-mode-migrations/" + migrationId + "/decision",
-                HttpMethod.POST, fixture.systemToken(), Map.of(
-                        "approved", true, "comment", "发布检查通过，执行模式迁移", "expectedVersion", 0));
-        assertThat(approved.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(data(approved)).containsEntry("status", "COMPLETED");
-        assertThat(data(approved).get("jobId")).isNotNull();
-        assertThat(jdbc.queryForObject("select tenant_mode from sys_system where id=?", String.class, fixture.systemId()))
+    private void enableMulti(Fixture fixture) {
+        String name = jdbc.queryForObject("select name from un_sys_system where id=?", String.class, fixture.systemId());
+        ResponseEntity<Map> enabled = exchange("/api/admin/system/settings", HttpMethod.PUT,
+                fixture.systemToken(), Map.of("name", name, "tenantMode", "MULTI"));
+        assertThat(enabled.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(data(enabled)).containsEntry("tenantMode", "MULTI");
+        assertThat(jdbc.queryForObject("select tenant_mode from un_sys_system where id=?", String.class, fixture.systemId()))
                 .isEqualTo("MULTI");
-        assertThat(count("job_item_result", "job_id = " + data(approved).get("jobId"))).isEqualTo(4);
     }
 
     private Fixture register(String username, String systemCode) {

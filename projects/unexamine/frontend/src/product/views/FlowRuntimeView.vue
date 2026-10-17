@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Empty, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { productDateTime } from '../presentation'
@@ -10,9 +11,12 @@ import PersonSelect from '../components/PersonSelect.vue'
 import BusinessAttachmentsPanel from '../components/BusinessAttachmentsPanel.vue'
 import RuntimeBusinessViewPanel from '../components/RuntimeBusinessViewPanel.vue'
 import FlowTaskFormEditor from '../components/FlowTaskFormEditor.vue'
+import AiApprovalSummary from '../components/AiApprovalSummary.vue'
 import type { BusinessAttachmentView, FlowRuntimeCatalogItem, FlowManualNodePreview, FlowManualNodeResult, FlowRuntimeActionResult, FlowRuntimeException, FlowRuntimeInstance, FlowRuntimeTask, FlowTaskDelegation, FlowParticipantDirectory, FlowRuntimeNodeRequest, FlowRuntimeNodePreview, PeopleDirectoryOption } from '../types'
 
 const props = withDefaults(defineProps<{ context?: 'platform' | 'system'; initialInstanceId?: number; initialTaskId?: number }>(), { context: 'system' })
+const route = useRoute()
+const router = useRouter()
 const token = computed(() => props.context === 'platform' ? platformTokens.value?.accessToken : systemTokens.value?.accessToken)
 const current = computed(() => props.context === 'platform' ? platformContext.value : systemContext.value)
 const contextCode = computed(() => props.context === 'platform' ? 'PLATFORM' : 'SYSTEM')
@@ -21,6 +25,10 @@ const instances = ref<FlowRuntimeInstance[]>([])
 const directory = ref<FlowParticipantDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const directoryError = ref('')
 const selected = ref<FlowRuntimeInstance>()
+function showSummarySource(eventId: number) {
+  if (!selected.value?.history.some(event => event.id === eventId)) return
+  document.getElementById(`flow-history-${selected.value.id}-${eventId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
 const loading = ref(false)
 const runtimeError = ref('')
 const busy = ref('')
@@ -530,6 +538,10 @@ async function selectInstance(id: number) {
     if (requestCurrent(context) && selection === selectionGeneration) {
       selected.value = detail
       runtimeError.value = ''
+      // 列表选中的实例写回地址，刷新和消息分享后仍打开同一个审批结果。
+      if (String(route.query.instanceId || '') !== String(id)) {
+        await router.replace({ query: { ...route.query, instanceId: String(id), taskId: undefined } })
+      }
     }
   } catch (error) {
     if (requestCurrent(context) && selection === selectionGeneration) handleError(error)
@@ -931,7 +943,10 @@ onBeforeUnmount(() => { active = false; clearRuntime() })
   <div class="flow-runtime-page">
     <div class="page-heading compact-heading">
       <div><p class="eyebrow">流程 · 运行记录</p><h1>发起、审批与路径说明</h1><p>流程固定使用发起时的发布版本；当前处理人、处理原因和下一步均来自实际运行记录。</p></div>
-      <a-button v-if="can('START')" type="primary" :disabled="!publishedFlows.length" @click="openStart">发起流程</a-button>
+      <a-space>
+        <a-button v-if="can('VIEW_RUNTIME')" :loading="loading" @click="load(selected?.id)">刷新流程</a-button>
+        <a-button v-if="can('START')" type="primary" :disabled="!publishedFlows.length" @click="openStart">发起流程</a-button>
+      </a-space>
     </div>
     <a-alert v-if="!can('VIEW_RUNTIME')" type="warning" show-icon message="当前工作范围没有流程运行查看权限" />
     <template v-else>
@@ -1026,7 +1041,8 @@ onBeforeUnmount(() => { active = false; clearRuntime() })
           </div>
         </section>
         <section v-if="selected.exceptions.length" class="panel-card runtime-exceptions"><div class="panel-title"><strong>处理异常</strong><a-tag color="red">{{ selected.exceptions.length }}</a-tag></div><div v-for="item in selected.exceptions" :key="item.id" class="runtime-exception-row"><a-alert type="error" show-icon :message="item.errorMessage" :description="item.status === 'RESOLVED' ? `已由 ${item.resolvedByName || '系统'} 处理` : selected.tasks.some(task => task.nodeKey === item.nodeKey && ['PENDING','QUEUED','SUSPENDED'].includes(task.status)) ? '原待办已保留，请由当前处理人补充内容、审批或转交；不能通过异常补偿跳过审批节点。' : '运行现场已保留，可重试或人工确认补偿后继续。'" /><span v-if="['OPEN','RETRY_SCHEDULED'].includes(item.status) && !selected.tasks.some(task => task.nodeKey === item.nodeKey && ['PENDING','QUEUED','SUSPENDED'].includes(task.status))"><a-button @click="openIncident(item, 'RETRY')">重试</a-button><a-button type="primary" @click="openIncident(item, 'RESUME')">补偿后继续</a-button></span></div></section>
-        <section class="panel-card runtime-timeline"><div class="panel-title"><strong>完整处理历史</strong><a-tag>{{ selected.history.length }} 条</a-tag></div><a-timeline><a-timeline-item v-for="event in selected.history" :key="event.id" :color="event.afterStatus === 'EXCEPTION' ? 'red' : event.afterStatus === 'COMPLETED' ? 'green' : 'blue'"><strong>{{ event.eventName }}</strong><p v-if="gatewayHistoryDescription(event)">{{ gatewayHistoryDescription(event) }}</p><p v-if="subflowHistoryDescription(event)">{{ subflowHistoryDescription(event) }}</p><p v-if="automaticHistoryDescription(event)">{{ automaticHistoryDescription(event) }}</p><p v-if="messageHistoryDescription(event)">{{ messageHistoryDescription(event) }}</p><p v-if="webhookHistoryDescription(event)">{{ webhookHistoryDescription(event) }}</p><p v-if="waitHistoryDescription(event)">{{ waitHistoryDescription(event) }}</p><p v-if="historyTransition(event)">{{ historyTransition(event) }}</p><small>{{ event.actorName }} · {{ productDateTime(event.occurredAt) }}</small></a-timeline-item></a-timeline><a-empty v-if="!selected.history.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="等待首个处理事件" /></section>
+        <AiApprovalSummary v-if="context === 'system' && selected.history.length" :key="selected.id" :instance-id="selected.id" :instance-version="selected.version" :history-count="selected.history.length" @source="showSummarySource" />
+        <section class="panel-card runtime-timeline"><div class="panel-title"><strong>完整处理历史</strong><a-tag>{{ selected.history.length }} 条</a-tag></div><a-timeline><a-timeline-item v-for="event in selected.history" :key="event.id" :id="`flow-history-${selected.id}-${event.id}`" :color="event.afterStatus === 'EXCEPTION' ? 'red' : event.afterStatus === 'COMPLETED' ? 'green' : 'blue'"><strong>{{ event.eventName }} · #{{ event.id }}</strong><p v-if="gatewayHistoryDescription(event)">{{ gatewayHistoryDescription(event) }}</p><p v-if="subflowHistoryDescription(event)">{{ subflowHistoryDescription(event) }}</p><p v-if="automaticHistoryDescription(event)">{{ automaticHistoryDescription(event) }}</p><p v-if="messageHistoryDescription(event)">{{ messageHistoryDescription(event) }}</p><p v-if="webhookHistoryDescription(event)">{{ webhookHistoryDescription(event) }}</p><p v-if="waitHistoryDescription(event)">{{ waitHistoryDescription(event) }}</p><p v-if="historyTransition(event)">{{ historyTransition(event) }}</p><small>{{ event.actorName }} · {{ productDateTime(event.occurredAt) }}</small></a-timeline-item></a-timeline><a-empty v-if="!selected.history.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="等待首个处理事件" /></section>
         <section v-if="selected.jobs.length" class="panel-card runtime-job-list"><div class="panel-title"><strong>后台作业</strong><a-tag>{{ selected.jobs.length }}</a-tag></div><a-descriptions v-for="job in selected.jobs" :key="job.id" bordered size="small" :column="3"><a-descriptions-item label="类型">{{ jobTypeLabel(job.jobType) }}</a-descriptions-item><a-descriptions-item label="状态">{{ jobStatusLabel(job.status) }}</a-descriptions-item><a-descriptions-item label="尝试">{{ job.attemptCount }} / {{ job.maxAttempts }}</a-descriptions-item><a-descriptions-item label="计划执行">{{ productDateTime(job.nextRunAt) }}</a-descriptions-item><a-descriptions-item label="结束时间">{{ job.completedAt ? productDateTime(job.completedAt) : '尚未结束' }}</a-descriptions-item><a-descriptions-item label="处理说明">{{ job.lastErrorMessage || '按发布时的策略执行' }}</a-descriptions-item></a-descriptions></section>
       </main>
     </div>

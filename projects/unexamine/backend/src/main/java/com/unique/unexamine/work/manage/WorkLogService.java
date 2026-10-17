@@ -157,7 +157,7 @@ public class WorkLogService {
                 .filter(log -> projectId == null || Objects.equals(projectId, log.getProjectId()))
                 .filter(log -> normalizedKeyword == null || searchableText(log).contains(normalizedKeyword))
                 .sorted(Comparator.comparing(WorkLog::getWorkDate).reversed()
-                        .thenComparing(WorkLog::getUpdatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                        .thenComparing(WorkLog::getUpdateTime, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(log -> view(context, log, false)).toList();
     }
 
@@ -168,31 +168,31 @@ public class WorkLogService {
         scopedTasks(context).stream().filter(task -> canReferenceTask(context.accountId(), task))
                 .filter(task -> task.getDeleteTime() == null)
                 .forEach(task -> result.add(candidate("TASK", task.getId(), "任务", task.getTitle(),
-                        task.getDescription(), task.getUpdatedAt())));
+                        task.getDescription(), task.getUpdateTime())));
 
         todoService.selectList(Wrappers.<TodoItem>lambdaQuery()
                         .eq(TodoItem::getAssigneeAccountId, context.accountId())
-                        .orderByDesc(TodoItem::getUpdatedAt).last("LIMIT 100"))
+                        .orderByDesc(TodoItem::getUpdateTime).last("LIMIT 100"))
                 .stream().filter(todo -> sameContext(context, todo))
                 .forEach(todo -> result.add(candidate("TODO", todo.getId(), "待办", todo.getTitle(),
-                        todo.getSummary(), todo.getUpdatedAt())));
+                        todo.getSummary(), todo.getUpdateTime())));
 
         List<Long> messageIds = recipientService.selectList(Wrappers.<MsgRecipient>lambdaQuery()
                         .eq(MsgRecipient::getAccountId, context.accountId())
-                        .orderByDesc(MsgRecipient::getUpdatedAt).last("LIMIT 100"))
+                        .orderByDesc(MsgRecipient::getUpdateTime).last("LIMIT 100"))
                 .stream().map(MsgRecipient::getMessageId).distinct().toList();
         messageIds.stream().map(messageService::selectById).filter(Objects::nonNull)
                 .filter(message -> sameContext(context, message))
                 .forEach(message -> result.add(candidate("MESSAGE", message.getId(), "消息", message.getSubject(),
-                        message.getContentText(), message.getCreatedAt())));
+                        message.getContentText(), message.getCreateTime())));
 
         auditEventService.selectList(Wrappers.<AuditEvent>lambdaQuery()
                         .eq(AuditEvent::getActorAccountId, context.accountId())
                         .eq(AuditEvent::getResultCode, "SUCCESS")
-                        .orderByDesc(AuditEvent::getOccurredAt).last("LIMIT 100"))
+                        .orderByDesc(AuditEvent::getOccurTime).last("LIMIT 100"))
                 .stream().filter(event -> sameContext(context, event))
                 .forEach(event -> result.add(candidate("BUSINESS_OPERATION", event.getId(), "业务操作",
-                        event.getEventCode(), safeJoin(event.getObjectType(), event.getObjectId()), event.getOccurredAt())));
+                        event.getEventCode(), safeJoin(event.getObjectType(), event.getObjectId()), event.getOccurTime())));
         return result.stream().sorted(Comparator.comparing(WorkLogModels.MaterialCandidate::sourceTime,
                         Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(250).toList();
@@ -299,7 +299,7 @@ public class WorkLogService {
         log.setCustomValuesJson(toJson(workConfigurationService.validateConfiguredValues(
                 context, "LOG", input.configuredValues())));
         applyBusiness(log, references.business());
-        log.setUpdatedAt(LocalDateTime.now());
+        log.setUpdateTime(LocalDateTime.now());
         if (logService.updateById(log) != 1) throw conflict();
         replaceTaskLinks(log.getId(), references.tasks());
         replaceMaterials(log.getId(), context, input.materials(), previous);
@@ -362,7 +362,7 @@ public class WorkLogService {
 
     private WorkLogModels.LogView finishLifecycle(
             AuthenticatedContext context, WorkLog log, String reason, String eventCode, String traceId) {
-        log.setUpdatedAt(LocalDateTime.now());
+        log.setUpdateTime(LocalDateTime.now());
         if (logService.updateById(log) != 1) throw conflict();
         insertRevision(log, nextRevision(log.getId()), reason.strip(), context.accountId());
         audit(context, traceId, eventCode, log.getId(), Map.of("status", log.getStatus()));
@@ -449,7 +449,7 @@ public class WorkLogService {
                 .map(revision -> new WorkLogModels.RevisionView(
                         revision.getId(), revision.getRevisionNumber(), readMap(revision.getSnapshotJson()),
                         revision.getRevisionReason(), displayName(context, revision.getRevisedByAccountId()),
-                        revision.getRevisedAt())).toList() : List.of();
+                        revision.getReviseTime())).toList() : List.of();
         WorkParticipantResolver.ResolvedPerson author = participantResolver.find(
                 context, log.getAuthorTenantMemberId(), log.getAuthorAccountId());
         WorkProject project = log.getProjectId() == null ? null : projectService.selectById(log.getProjectId());
@@ -466,7 +466,7 @@ public class WorkLogService {
                 log.getSubmittedTime(), log.getWithdrawnTime(), log.getProjectId(),
                 project == null ? null : project.getName(), tasks, log.getBusinessType(), log.getBusinessId(),
                 log.getBusinessTitle(), readMap(log.getCustomValuesJson()), log.getVersion(),
-                log.getCreatedAt(), log.getUpdatedAt(),
+                log.getCreateTime(), log.getUpdateTime(),
                 includeDetails ? materialViews(log.getId()) : List.of(),
                 includeDetails ? commentViews(context, log.getId()) : List.of(), revisionViews);
     }
@@ -638,7 +638,7 @@ public class WorkLogService {
         var query = Wrappers.<WorkTask>lambdaQuery().eq(WorkTask::getPlatformId, context.platformId());
         if (context.systemId() == null) query.isNull(WorkTask::getSystemId).isNull(WorkTask::getTenantId);
         else query.eq(WorkTask::getSystemId, context.systemId()).eq(WorkTask::getTenantId, context.tenantId());
-        return taskService.selectList(query.orderByDesc(WorkTask::getUpdatedAt).last("LIMIT 200"));
+        return taskService.selectList(query.orderByDesc(WorkTask::getUpdateTime).last("LIMIT 200"));
     }
 
     private WorkLog requireScoped(AuthenticatedContext context, Long logId) {

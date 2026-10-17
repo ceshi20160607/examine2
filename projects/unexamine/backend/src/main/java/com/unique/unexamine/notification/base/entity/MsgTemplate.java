@@ -10,63 +10,120 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 系统租户消息模板草稿
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("msg_template")
+@TableName("un_msg_template")
 public class MsgTemplate {
 
+    /**
+     * 系统消息模板主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 固定为系统上下文
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 系统所属平台主键
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 模板所属系统主键
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 模板所属租户主键
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 租户范围内的模板编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 模板显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 通知发送渠道
+     */
     @TableField("`channel`")
     private String channel;
 
+    /**
+     * 当前草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 消息主题模板
+     */
     @TableField("subject_template")
     private String subjectTemplate;
 
+    /**
+     * 消息正文模板
+     */
     @TableField("content_template")
     private String contentTemplate;
 
+    /**
+     * 模板变量定义
+     */
     @TableField("variable_schema_json")
     private String variableSchemaJson;
 
+    /**
+     * 模板草稿或发布状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 创建模板的系统成员账号
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建模板的当前系统成员主键
+     */
+    @TableField("created_by_member_id")
+    private Long createdByMemberId;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 模板创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
+    /**
+     * 模板更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
+
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -183,20 +240,28 @@ public class MsgTemplate {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Long getCreatedByMemberId() {
+        return createdByMemberId;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedByMemberId(Long createdByMemberId) {
+        this.createdByMemberId = createdByMemberId;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -224,8 +289,9 @@ public class MsgTemplate {
             ", variableSchemaJson = " + variableSchemaJson +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createdByMemberId = " + createdByMemberId +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

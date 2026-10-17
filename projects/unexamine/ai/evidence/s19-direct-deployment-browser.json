@@ -1,0 +1,13 @@
+{
+  "step": "S19.7",
+  "candidate": "0.1.0-s19.7-dev5",
+  "platformPage": {
+    "url": "http://127.0.0.1:15173/platform/dashboard",
+    "systemVisible": true
+  },
+  "systemPage": {
+    "url": "http://127.0.0.1:15173/systems/1",
+    "systemVisible": true
+  },
+  "screenshot": "projects/unexamine/ai/evidence/s19-direct-deployment-browser.png"
+}

@@ -1,0 +1,72 @@
+{
+  "step": "S16.3",
+  "status": "verified_contribution",
+  "integration_gate": "G16_CODE_RULES",
+  "source_rows": [
+    "R2222",
+    "R2231",
+    "R2232",
+    "R2235",
+    "R2237",
+    "R2238",
+    "R2239",
+    "R2240",
+    "R2241"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue"
+  ],
+  "checks_actual_results": [
+    "Flow create in system #164 rejected hyphen and dot codes with 422 FLOW_CODE_INVALID, rejected duplicate s16_flow_f3d7e3 with 409 FLOW_CODE_CONFLICT, and accepted the underscore code. Flow #23 START→END draft passed publication check and published immutable version #22.",
+    "Flow #23 name changed by API and admin page to 流程页面名称 without changing code s16_flow_f3d7e3 or currentVersionId 22; stale rename version returned 409 FLOW_DRAFT_VERSION_CONFLICT.",
+    "Published application #26 granted CREATE_DRAFT then RENAME_DRAFT separately. Signed application call created owned Flow #24 and renamed its display name to 应用流程新名; code s16_app_flow_0ca773 remained stable.",
+    "Print template #38 rejected a hyphen code with 400, duplicate code with 409 PRINT_TEMPLATE_CODE_EXISTS and attempted code mutation with 409 PRINT_TEMPLATE_IDENTITY_IMMUTABLE. Display name changed to 打印新名 while code s16_print_661995 stayed fixed, then published immutable version #47.",
+    "Unprivileged member received 403 PERMISSION_DENIED for Flow rename and print update. MySQL readback showed Flow #23/#24 and print #38 stable codes, and after backend restart admin/runtime API plus browser pages read the changed names and published references.",
+    "Java 21 Maven package, frontend vue-tsc/Vite build, workspace-validate and targeted git diff --check passed."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s16-flow-rename-ui.png",
+    "projects/unexamine/ai/evidence/s16-print-template-ui.png",
+    "projects/unexamine/ai/evidence/s16-flow-restart-ui.png",
+    "projects/unexamine/ai/evidence/s16-print-restart-ui.png"
+  ],
+  "permission_or_failure_result": "Invalid and duplicate identifiers, attempted print code mutation, stale Flow rename and unauthorized configuration updates were rejected.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignModels.java",
+      "sha256": "482b72ef169c7c97b48749fff6b6243701ed590259d73203c89f88a72ce1721c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "31e8236839db1876a462a05bc6f0f5fb71fc5b18e1c0021ed9f2eaa8b8bbefbf"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+      "sha256": "0416a17ba231fe01763c5708d0a34829a35149a927aeb8ab98645abff27e848e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationManagementService.java",
+      "sha256": "35a78cc8fb53198801ee95a1ddbdcf2337feb26d0b8bf7068d28a0a200ec22cf"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/application/manage/ApplicationBridgeService.java",
+      "sha256": "d939fc6581f968211b0ff2b22d031bfc21a86f8cada54a09875e1fc0460cca0c"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "00b02adf9976911c96843a4712eb5bd9c9e25dc3bb7bc343d834c431bfa41147"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ApplicationManagementView.vue",
+      "sha256": "831d950169c24a950f77db6cda88b1bd402a00cbef694bdb80b7001bbd963bce"
+    }
+  ],
+  "remaining": "S16.4 must verify the combined system/application/module/field/page/menu/role/dictionary/Flow/print code journey, import/export and print field-code references, permissions and tenant scope.",
+  "next_step": "S16.4"
+}

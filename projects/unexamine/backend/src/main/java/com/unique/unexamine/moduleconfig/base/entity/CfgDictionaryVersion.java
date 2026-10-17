@@ -9,44 +9,74 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 不可变的数据字典发布版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_dictionary_version")
+@TableName("un_cfg_dictionary_version")
 public class CfgDictionaryVersion {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属字典标识
+     */
     @TableField("dictionary_id")
     private Long dictionaryId;
 
+    /**
+     * 发布版本序号
+     */
     @TableField("version_number")
     private Integer versionNumber;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 发布时冻结的完整配置快照
+     */
     @TableField("snapshot_json")
     private String snapshotJson;
 
+    /**
+     * 字典发布快照内容摘要
+     */
     @TableField("snapshot_hash")
     private String snapshotHash;
 
+    /**
+     * 发布系统成员标识
+     */
     @TableField("published_by_member_id")
     private Long publishedByMemberId;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 发布时间
+     */
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
 
     public Long getId() {
         return id;
@@ -120,12 +150,12 @@ public class CfgDictionaryVersion {
         this.publishedByMemberId = publishedByMemberId;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishTime() {
+        return publishTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishTime(LocalDateTime publishTime) {
+        this.publishTime = publishTime;
     }
 
     @Override
@@ -140,7 +170,7 @@ public class CfgDictionaryVersion {
             ", snapshotJson = " + snapshotJson +
             ", snapshotHash = " + snapshotHash +
             ", publishedByMemberId = " + publishedByMemberId +
-            ", publishedAt = " + publishedAt +
+            ", publishTime = " + publishTime +
             "}";
     }
 }

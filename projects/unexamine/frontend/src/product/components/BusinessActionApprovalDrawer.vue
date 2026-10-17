@@ -82,6 +82,11 @@ function statusName(status?: string | null) {
   return runtime !== status ? runtime : productStatus(status).label
 }
 
+function businessStatusName(status?: string | null) {
+  return status && ['REJECTED', 'WITHDRAWN', 'TERMINATED', 'RETURNED'].includes(status)
+    ? '业务未生效' : statusName(status)
+}
+
 watch([() => props.open, () => props.moduleCode, () => props.actionId,
   () => systemTokens.value?.accessToken, identity], (current, previous) => {
   clear()
@@ -102,7 +107,7 @@ onBeforeUnmount(() => { active = false; clear() })
         <a-descriptions-item label="流程">{{ progress.flowName }}</a-descriptions-item>
         <a-descriptions-item label="流程版本">{{ versionLabel(progress.flowVersionNumber) }}</a-descriptions-item>
         <a-descriptions-item label="审批状态">{{ statusName(progress.status) }}</a-descriptions-item>
-        <a-descriptions-item label="业务状态">{{ statusName(progress.businessStatus) }}</a-descriptions-item>
+        <a-descriptions-item label="业务状态">{{ businessStatusName(progress.businessStatus) }}</a-descriptions-item>
         <a-descriptions-item label="当前节点">{{ progress.currentNodeName || '暂无当前节点' }}</a-descriptions-item>
         <a-descriptions-item label="开始时间">{{ productDateTime(progress.startTime) }}</a-descriptions-item>
         <a-descriptions-item v-if="progress.finishTime" label="结束时间">{{ productDateTime(progress.finishTime) }}</a-descriptions-item>

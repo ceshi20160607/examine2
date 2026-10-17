@@ -1,6 +1,7 @@
 package com.unique.unexamine.file.manage;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.audit.manage.AuditRecorder;
@@ -16,12 +17,19 @@ import com.unique.unexamine.file.base.service.FileReferenceBaseService;
 import com.unique.unexamine.file.base.service.FileSecurityScanBaseService;
 import com.unique.unexamine.file.base.service.FileStorageBackendBaseService;
 import com.unique.unexamine.file.base.service.FileUploadSessionBaseService;
+import com.unique.unexamine.foundation.base.entity.CoreQuotaPolicy;
+import com.unique.unexamine.foundation.base.service.CoreQuotaPolicyBaseService;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEvent;
+import com.unique.unexamine.foundation.manage.event.LocalBusinessEventPublisher;
 import com.unique.unexamine.flow.manage.FlowRuntimeService;
 import com.unique.unexamine.flow.base.entity.FlowHistoryEvent;
 import com.unique.unexamine.flow.base.service.FlowHistoryEventBaseService;
 import com.unique.unexamine.runtimedata.manage.RuntimeDataService;
-import com.unique.unexamine.shared.manage.security.RuntimeSecretCipher;
+import com.unique.unexamine.platform.base.entity.PlatformDefinition;
+import com.unique.unexamine.platform.base.service.PlatformDefinitionBaseService;
 import com.unique.unexamine.shared.manage.web.DomainException;
+import com.unique.unexamine.system.base.entity.SystemTenant;
+import com.unique.unexamine.system.base.service.SystemTenantBaseService;
 import com.unique.unexamine.work.manage.WorkManagementService;
 import com.unique.unexamine.work.manage.WorkLogService;
 import com.unique.unexamine.work.base.entity.WorkTaskHistory;
@@ -65,6 +73,9 @@ public class FileStorageService {
 
     private final FileStorageBackendBaseService backendService;
     private final FileUploadSessionBaseService sessionService;
+    private final CoreQuotaPolicyBaseService quotaPolicyService;
+    private final PlatformDefinitionBaseService platformService;
+    private final SystemTenantBaseService tenantService;
     private final FileObjectBaseService objectService;
     private final FileReferenceBaseService referenceService;
     private final FileSecurityScanBaseService scanService;
@@ -77,8 +88,8 @@ public class FileStorageService {
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
     private final FileUploadFailureRecorder failureRecorder;
+    private final LocalBusinessEventPublisher localEvents;
     private final ObjectMapper objectMapper;
-    private final RuntimeSecretCipher secretCipher;
     private final ManagedObjectStore objectStore;
     private final Path storageRoot;
     private final long maximumSize;
@@ -87,6 +98,9 @@ public class FileStorageService {
     public FileStorageService(
             FileStorageBackendBaseService backendService,
             FileUploadSessionBaseService sessionService,
+            CoreQuotaPolicyBaseService quotaPolicyService,
+            PlatformDefinitionBaseService platformService,
+            SystemTenantBaseService tenantService,
             FileObjectBaseService objectService,
             FileReferenceBaseService referenceService,
             FileSecurityScanBaseService scanService,
@@ -99,14 +113,17 @@ public class FileStorageService {
             PermissionChecker permissionChecker,
             AuditRecorder auditRecorder,
             FileUploadFailureRecorder failureRecorder,
+            LocalBusinessEventPublisher localEvents,
             ObjectMapper objectMapper,
-            RuntimeSecretCipher secretCipher,
             ManagedObjectStore objectStore,
             @Value("${app.file.storage-root:./data/files}") String storageRoot,
             @Value("${app.file.max-size-bytes:52428800}") long maximumSize,
             @Value("${app.file.context-quota-bytes:5368709120}") long contextQuota) {
         this.backendService = backendService;
         this.sessionService = sessionService;
+        this.quotaPolicyService = quotaPolicyService;
+        this.platformService = platformService;
+        this.tenantService = tenantService;
         this.objectService = objectService;
         this.referenceService = referenceService;
         this.scanService = scanService;
@@ -119,8 +136,8 @@ public class FileStorageService {
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
         this.failureRecorder = failureRecorder;
+        this.localEvents = localEvents;
         this.objectMapper = objectMapper;
-        this.secretCipher = secretCipher;
         this.objectStore = objectStore;
         this.storageRoot = Path.of(storageRoot).toAbsolutePath().normalize();
         this.maximumSize = maximumSize;
@@ -154,7 +171,7 @@ public class FileStorageService {
         session.setObjectKey(objectKey);
         session.setStatus("PENDING");
         session.setUploadTokenHash(sha256(token.getBytes(StandardCharsets.UTF_8)));
-        session.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        session.setExpireTime(LocalDateTime.now().plusMinutes(30));
         session.setVersion(0);
         sessionService.insert(session);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
@@ -171,8 +188,9 @@ public class FileStorageService {
         long used = usedBytes(context);
         long reserved = reservedBytes(context);
         FileStorageBackend active = backend(context);
-        return new FileModels.StoragePolicyView(maximumSize, contextQuota, used, reserved,
-                Math.max(0L, contextQuota - used - reserved), active.getBackendType(), active.getName());
+        long limit = quotaLimit(context, false);
+        return new FileModels.StoragePolicyView(maximumSize, limit, used, reserved,
+                Math.max(0L, limit - used - reserved), active.getBackendType(), active.getName());
     }
 
     @Transactional(readOnly = true)
@@ -207,6 +225,7 @@ public class FileStorageService {
             storage.setContextType(contextType(context));
             storage.setPlatformId(context.platformId());
             storage.setSystemId(context.systemId());
+            storage.setScopeOwnerId(context.systemId() == null ? context.platformId() : context.systemId());
             storage.setCode("OBJECT_DEFAULT");
             storage.setBackendType("S3");
             storage.setVersion(0);
@@ -216,7 +235,7 @@ public class FileStorageService {
         if ((accessKeyId == null) != (secretAccessKey == null)) {
             throw invalid("OBJECT_STORAGE_CREDENTIAL_INCOMPLETE", "访问密钥 ID 和访问密钥必须同时填写");
         }
-        if (storage.getCredentialRef() == null && accessKeyId == null) {
+        if (storage.getCredentialRefId() == null && accessKeyId == null) {
             throw invalid("OBJECT_STORAGE_CREDENTIAL_REQUIRED", "首次配置对象存储必须填写访问密钥");
         }
         storage.setName(input.name().strip());
@@ -225,9 +244,9 @@ public class FileStorageService {
         storage.setConfigJson(toJson(Map.of("region", input.region().strip(), "pathStyle", input.pathStyle())));
         storage.setStatus("INACTIVE");
         if (accessKeyId != null) {
-            storage.setCredentialRef(secretCipher.encrypt(
+            storage.setCredentialRefId(objectStore.saveCredentials(storage,
                     toJson(Map.of("accessKeyId", accessKeyId, "secretAccessKey", secretAccessKey)),
-                    objectStore.credentialBinding(storage)));
+                    context.accountId()));
         }
         if (created) backendService.insert(storage);
         else if (backendService.updateById(storage) != 1) {
@@ -282,7 +301,7 @@ public class FileStorageService {
         }
         if (!Set.of("CANCELLED", "EXPIRED", "FAILED").contains(session.getStatus())) {
             session.setStatus("CANCELLED");
-            session.setUpdatedAt(LocalDateTime.now());
+            session.setUpdateTime(LocalDateTime.now());
             sessionService.updateById(session);
         }
         deleteAfterCommit(partPath(session));
@@ -428,8 +447,8 @@ public class FileStorageService {
         scan.setResultCode(blocked ? "UNSAFE_CONTENT_SIGNATURE" : "CLEAN");
         scan.setResultDetailJson(toJson(Map.of("size", content.length,
                 "contentType", session.getContentType(), "sha256", contentSha)));
-        scan.setStartedAt(LocalDateTime.now());
-        scan.setFinishedAt(LocalDateTime.now());
+        scan.setStartTime(LocalDateTime.now());
+        scan.setFinishTime(LocalDateTime.now());
         scanService.insert(scan);
 
         object.setScanStatus(blocked ? "BLOCKED" : "CLEAN");
@@ -437,13 +456,18 @@ public class FileStorageService {
         object.setStatus(blocked ? "QUARANTINED" : "ACTIVE");
         objectService.updateById(object);
         session.setStatus("COMPLETED");
-        session.setCompletedAt(LocalDateTime.now());
-        session.setUpdatedAt(LocalDateTime.now());
+        session.setCompleteTime(LocalDateTime.now());
+        session.setUpdateTime(LocalDateTime.now());
         sessionService.updateById(session);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 blocked ? "FILE_UPLOAD_QUARANTINED" : "FILE_UPLOAD_COMPLETED", "FILE", object.getId().toString(),
                 blocked ? "UNSAFE_CONTENT_SIGNATURE" : "SUCCESS",
                 Map.of("size", content.length, "sha256", contentSha, "scanStatus", object.getScanStatus()));
+        // 仅安全扫描通过的上传进入可用文件扩展点；隔离文件不向后续自动化暴露。
+        if (!blocked) {
+            localEvents.publish(context, object.getTenantId(), LocalBusinessEvent.Type.FILE_UPLOADED,
+                    "FILE_OBJECT", object.getId().toString(), null);
+        }
         return view(objectService.selectById(object.getId()));
     }
 
@@ -453,7 +477,7 @@ public class FileStorageService {
         return objectService.selectList(Wrappers.<FileObject>lambdaQuery()
                         .eq(FileObject::getPlatformId, context.platformId())
                         .ne(FileObject::getStatus, "DELETED")
-                        .orderByDesc(FileObject::getCreatedAt))
+                        .orderByDesc(FileObject::getCreateTime))
                 .stream().filter(file -> inContext(file, context))
                 .filter(file -> canAccess(context, file, "VIEW", traceId)).map(this::view).toList();
     }
@@ -478,6 +502,7 @@ public class FileStorageService {
                 .findFirst().orElse(null);
         if (existing == null) {
             FileReference reference = new FileReference();
+            reference.setPlatformId(context.platformId());
             reference.setFileId(fileId);
             reference.setContextType(contextType(context));
             reference.setSystemId(context.systemId());
@@ -534,11 +559,11 @@ public class FileStorageService {
         String normalizedField = stripToNull(fieldCode);
         return referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
                         .eq(FileReference::getOwnerType, ownerType).eq(FileReference::getOwnerId, ownerId)
-                        .orderByDesc(FileReference::getCreatedAt))
-                .stream().filter(reference -> referenceInContext(reference, context))
+                        .orderByDesc(FileReference::getCreateTime))
+                .stream().filter(reference -> readableReferenceInContext(reference, context))
                 .filter(reference -> Objects.equals(reference.getFieldCode(), normalizedField))
                 .map(reference -> Map.entry(reference, objectService.selectById(reference.getFileId())))
-                .filter(entry -> entry.getValue() != null && inContext(entry.getValue(), context)
+                .filter(entry -> entry.getValue() != null && fileMatchesReference(entry.getValue(), entry.getKey())
                         && !"DELETED".equals(entry.getValue().getStatus()))
                 .map(entry -> businessAttachmentView(entry.getValue(), entry.getKey(), context, traceId))
                 .toList();
@@ -599,13 +624,14 @@ public class FileStorageService {
         scan.setResultCode(unsafe ? "UNSAFE_CONTENT_SIGNATURE" : "CLEAN");
         scan.setResultDetailJson(toJson(Map.of("size", content.length, "contentType", safeContentType,
                 "sha256", contentSha)));
-        scan.setStartedAt(LocalDateTime.now());
-        scan.setFinishedAt(LocalDateTime.now());
+        scan.setStartTime(LocalDateTime.now());
+        scan.setFinishTime(LocalDateTime.now());
         scanService.insert(scan);
 
         FileReference reference = null;
         if (!unsafe) {
             reference = new FileReference();
+            reference.setPlatformId(context.platformId());
             reference.setFileId(object.getId());
             reference.setContextType(contextType(context));
             reference.setSystemId(context.systemId());
@@ -651,6 +677,7 @@ public class FileStorageService {
                 .findFirst().orElse(null);
         if (reference == null) {
             reference = new FileReference();
+            reference.setPlatformId(context.platformId());
             reference.setFileId(fileId);
             reference.setContextType(contextType(context));
             reference.setSystemId(context.systemId());
@@ -709,7 +736,7 @@ public class FileStorageService {
         boolean bytesRemoved = false;
         if (remaining == 0) {
             file.setStatus("DELETED");
-            file.setDeletedAt(LocalDateTime.now());
+            file.setDeleteTime(LocalDateTime.now());
             objectService.updateById(file);
             deleteAfterCommit(requireBackend(file.getStorageBackendId()), file.getObjectKey());
             bytesRemoved = true;
@@ -727,14 +754,14 @@ public class FileStorageService {
             AuthenticatedContext context, Long attachmentId, String action, String traceId) {
         require(context, action);
         FileReference reference = referenceService.selectById(attachmentId);
-        if (reference == null || !referenceInContext(reference, context)) {
+        if (reference == null || !readableReferenceInContext(reference, context)) {
             throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
         }
         validateReferenceTarget(context, reference.getOwnerType(), reference.getOwnerId(), traceId);
         validateBusinessAttachmentField(context, reference.getOwnerType(), reference.getOwnerId(),
                 reference.getFieldCode(), false, traceId);
         FileObject file = objectService.selectById(reference.getFileId());
-        if (file == null || !inContext(file, context) || "DELETED".equals(file.getStatus())) {
+        if (file == null || !fileMatchesReference(file, reference) || "DELETED".equals(file.getStatus())) {
             throw notFound("BUSINESS_ATTACHMENT_NOT_FOUND", "业务附件不存在");
         }
         return new Attachment(reference, file);
@@ -746,8 +773,9 @@ public class FileStorageService {
         return new FileModels.BusinessAttachmentView(reference == null ? null : reference.getId(), file.getId(),
                 file.getOriginalName(), file.getContentType(), file.getSizeBytes(), file.getScanStatus(),
                 file.getPreviewStatus(), file.getStatus(), reference == null ? "QUARANTINE" : reference.getReferenceType(),
-                file.getCreatedAt(), accessible && "AVAILABLE".equals(file.getPreviewStatus()),
-                accessible && "CLEAN".equals(file.getScanStatus()), accessible && !managedRecordField(reference));
+                file.getCreateTime(), accessible && "AVAILABLE".equals(file.getPreviewStatus()),
+                accessible && "CLEAN".equals(file.getScanStatus()),
+                accessible && referenceInContext(reference, context) && !managedRecordField(reference));
     }
 
     private boolean managedRecordField(FileReference reference) {
@@ -780,7 +808,7 @@ public class FileStorageService {
             history.setAfterJson(toJson(detail));
             history.setCommentText(file.getOriginalName());
             history.setChangedByAccountId(context.accountId());
-            history.setChangedAt(LocalDateTime.now());
+            history.setChangeTime(LocalDateTime.now());
             workTaskHistoryService.insert(history);
             return;
         }
@@ -797,7 +825,7 @@ public class FileStorageService {
             history.setActorAccountId(context.accountId());
             history.setActorTenantMemberId(context.tenantMemberId());
             history.setDetailJson(toJson(detail));
-            history.setOccurredAt(LocalDateTime.now());
+            history.setOccurTime(LocalDateTime.now());
             flowHistoryService.insert(history);
         }
     }
@@ -854,11 +882,12 @@ public class FileStorageService {
         scan.setResultCode("GENERATED_CONTENT");
         scan.setResultDetailJson(toJson(Map.of("size", content.length, "sha256", contentSha,
                 "contentType", safeContentType)));
-        scan.setStartedAt(LocalDateTime.now());
-        scan.setFinishedAt(LocalDateTime.now());
+        scan.setStartTime(LocalDateTime.now());
+        scan.setFinishTime(LocalDateTime.now());
         scanService.insert(scan);
 
         FileReference reference = new FileReference();
+        reference.setPlatformId(context.platformId());
         reference.setFileId(object.getId());
         reference.setContextType(contextType(context));
         reference.setSystemId(context.systemId());
@@ -899,7 +928,7 @@ public class FileStorageService {
                 .eq(FileReference::getFileId, fileId)).size();
         if (references > 0) throw conflict("FILE_IN_USE", "文件仍被业务对象引用，必须先解除引用");
         file.setStatus("DELETED");
-        file.setDeletedAt(LocalDateTime.now());
+        file.setDeleteTime(LocalDateTime.now());
         if (objectService.updateById(file) != 1) {
             throw conflict("FILE_VERSION_CONFLICT", "文件状态已变化，请刷新后重试");
         }
@@ -923,6 +952,7 @@ public class FileStorageService {
         backend.setContextType(contextType(context));
         backend.setPlatformId(context.platformId());
         backend.setSystemId(context.systemId());
+        backend.setScopeOwnerId(context.systemId() == null ? context.platformId() : context.systemId());
         backend.setCode("LOCAL_DEFAULT");
         backend.setName(context.systemId() == null ? "平台本地文件存储" : "系统本地文件存储");
         backend.setBackendType("LOCAL");
@@ -955,32 +985,85 @@ public class FileStorageService {
             return new FileModels.StorageBackendView(backend.getId(), backend.getCode(), backend.getName(),
                     backend.getBackendType(), backend.getEndpoint(), backend.getBucketName(),
                     configuration.path("region").asText(null), configuration.path("pathStyle").asBoolean(false),
-                    backend.getCredentialRef() != null, backend.getStatus(), backend.getVersion());
+                    backend.getCredentialRefId() != null, backend.getStatus(), backend.getVersion());
         } catch (JsonProcessingException exception) {
             throw new DomainException("FILE_STORAGE_CONFIGURATION_INVALID", "文件存储配置损坏", HttpStatus.CONFLICT);
         }
     }
 
+    /** 上传会话先预留完整大小，直传文件按新增字节校验；同一租户的并发写入在租户行上串行化。 */
     private void requireQuota(AuthenticatedContext context, long requestedBytes) {
-        long used = usedBytes(context);
-        long reserved = reservedBytes(context);
-        if (requestedBytes > contextQuota - used - reserved) {
+        lockQuotaScope(context);
+        long limit = quotaLimit(context, true);
+        long used = usedBytes(context, true);
+        long reserved = reservedBytes(context, true);
+        if (requestedBytes > limit - used - reserved) {
             throw invalid("FILE_CONTEXT_QUOTA_EXCEEDED", "当前业务空间的文件容量不足，请删除无用文件或调整容量");
         }
     }
 
     private long usedBytes(AuthenticatedContext context) {
-        return objectService.selectList(Wrappers.<FileObject>lambdaQuery()
-                        .eq(FileObject::getPlatformId, context.platformId()).ne(FileObject::getStatus, "DELETED"))
-                .stream().filter(item -> inContext(item, context)).mapToLong(FileObject::getSizeBytes).sum();
+        return usedBytes(context, false);
+    }
+
+    private long usedBytes(AuthenticatedContext context, boolean currentRead) {
+        LambdaQueryWrapper<FileObject> query = Wrappers.<FileObject>lambdaQuery()
+                .eq(FileObject::getContextType, contextType(context))
+                .eq(FileObject::getPlatformId, context.platformId())
+                .ne(FileObject::getStatus, "DELETED");
+        if (context.systemId() == null) query.isNull(FileObject::getSystemId).isNull(FileObject::getTenantId);
+        else query.eq(FileObject::getSystemId, context.systemId()).eq(FileObject::getTenantId, context.tenantId());
+        if (currentRead) query.last("FOR UPDATE");
+        return objectService.selectList(query).stream().mapToLong(FileObject::getSizeBytes).sum();
     }
 
     private long reservedBytes(AuthenticatedContext context) {
+        return reservedBytes(context, false);
+    }
+
+    private long reservedBytes(AuthenticatedContext context, boolean currentRead) {
         LocalDateTime now = LocalDateTime.now();
-        return sessionService.selectList(Wrappers.<FileUploadSession>lambdaQuery()
-                        .eq(FileUploadSession::getPlatformId, context.platformId())
-                        .eq(FileUploadSession::getStatus, "PENDING").gt(FileUploadSession::getExpiresAt, now))
-                .stream().filter(item -> inContext(item, context)).mapToLong(FileUploadSession::getExpectedSize).sum();
+        LambdaQueryWrapper<FileUploadSession> query = Wrappers.<FileUploadSession>lambdaQuery()
+                .eq(FileUploadSession::getContextType, contextType(context))
+                .eq(FileUploadSession::getPlatformId, context.platformId())
+                .eq(FileUploadSession::getStatus, "PENDING")
+                .gt(FileUploadSession::getExpireTime, now);
+        if (context.systemId() == null) query.isNull(FileUploadSession::getSystemId).isNull(FileUploadSession::getTenantId);
+        else query.eq(FileUploadSession::getSystemId, context.systemId())
+                .eq(FileUploadSession::getTenantId, context.tenantId());
+        if (currentRead) query.last("FOR UPDATE");
+        return sessionService.selectList(query).stream().mapToLong(FileUploadSession::getExpectedSize).sum();
+    }
+
+    /** 锁住稳定存在的归属行，未配置租户策略时默认容量也不会被并发请求同时穿透。 */
+    private void lockQuotaScope(AuthenticatedContext context) {
+        if (context.systemId() == null) {
+            PlatformDefinition platform = platformService.selectList(Wrappers.<PlatformDefinition>lambdaQuery()
+                    .eq(PlatformDefinition::getId, context.platformId()).last("FOR UPDATE"))
+                    .stream().findFirst().orElse(null);
+            if (platform == null) throw conflict("FILE_PLATFORM_CONTEXT_INVALID", "平台文件空间不存在");
+        } else {
+            SystemTenant tenant = tenantService.selectList(Wrappers.<SystemTenant>lambdaQuery()
+                    .eq(SystemTenant::getId, context.tenantId())
+                    .eq(SystemTenant::getSystemId, context.systemId()).last("FOR UPDATE"))
+                    .stream().findFirst().orElse(null);
+            if (tenant == null) throw conflict("FILE_TENANT_CONTEXT_INVALID", "租户文件空间不存在");
+        }
+    }
+
+    /** 仅系统租户的总量策略覆盖部署默认容量；平台文件继续使用部署容量。 */
+    private long quotaLimit(AuthenticatedContext context, boolean currentRead) {
+        if (context.systemId() == null || context.tenantId() == null) return contextQuota;
+        LambdaQueryWrapper<CoreQuotaPolicy> query = Wrappers.<CoreQuotaPolicy>lambdaQuery()
+                .eq(CoreQuotaPolicy::getContextType, "SYSTEM")
+                .eq(CoreQuotaPolicy::getSystemId, context.systemId())
+                .eq(CoreQuotaPolicy::getTenantId, context.tenantId())
+                .eq(CoreQuotaPolicy::getQuotaCode, "STORAGE_BYTES")
+                .eq(CoreQuotaPolicy::getPeriodType, "TOTAL")
+                .eq(CoreQuotaPolicy::getStatus, "ACTIVE");
+        if (currentRead) query.last("FOR UPDATE");
+        CoreQuotaPolicy policy = quotaPolicyService.selectOne(query);
+        return policy == null ? contextQuota : policy.getHardLimit();
     }
 
     /** 过期分片不可恢复为文件对象；进入文件入口时顺带回收，避免依赖额外服务或软定时器。 */
@@ -988,7 +1071,7 @@ public class FileStorageService {
         LocalDateTime now = LocalDateTime.now();
         sessionService.selectList(Wrappers.<FileUploadSession>lambdaQuery()
                         .eq(FileUploadSession::getPlatformId, context.platformId())
-                        .eq(FileUploadSession::getStatus, "PENDING").le(FileUploadSession::getExpiresAt, now))
+                        .eq(FileUploadSession::getStatus, "PENDING").le(FileUploadSession::getExpireTime, now))
                 .stream().filter(item -> inContext(item, context)).forEach(session -> {
                     failureRecorder.fail(session.getId(), "EXPIRED");
                     deleteQuietly(partPath(session));
@@ -1010,7 +1093,8 @@ public class FileStorageService {
             AuthenticatedContext context, Long fileId, String action, String traceId) {
         require(context, action);
         FileObject file = objectService.selectById(fileId);
-        if (file == null || !inContext(file, context) || "DELETED".equals(file.getStatus())) {
+        if (file == null || (!inContext(file, context) && !sharedFileCandidate(file, context))
+                || "DELETED".equals(file.getStatus())) {
             throw notFound("FILE_NOT_FOUND", "文件不存在");
         }
         if (!canAccess(context, file, action, traceId)) {
@@ -1020,18 +1104,22 @@ public class FileStorageService {
     }
 
     private boolean canAccess(AuthenticatedContext context, FileObject file, String action, String traceId) {
-        if (permissionChecker.allows(context, "FILE", "OBJECT", "MANAGE")
-                || permissionChecker.allows(context, "FILE", "*", "MANAGE")) return true;
+        if (inContext(file, context) && (permissionChecker.allows(context, "FILE", "OBJECT", "MANAGE")
+                || permissionChecker.allows(context, "FILE", "*", "MANAGE"))) return true;
         List<FileReference> references = referenceService.selectList(Wrappers.<FileReference>lambdaQuery()
                 .eq(FileReference::getFileId, file.getId()));
-        if (references.isEmpty()) return Objects.equals(file.getUploadedByAccountId(), context.accountId());
-        return references.stream().filter(reference -> referenceInContext(reference, context))
+        if (references.isEmpty()) return inContext(file, context)
+                && Objects.equals(file.getUploadedByAccountId(), context.accountId());
+        return references.stream().filter(reference -> readableReferenceInContext(reference, context))
+                .filter(reference -> fileMatchesReference(file, reference))
                 .anyMatch(reference -> targetAccessible(context, reference, traceId));
     }
 
     private boolean targetAccessible(AuthenticatedContext context, FileReference reference, String traceId) {
         try {
             validateReferenceTarget(context, reference.getOwnerType(), reference.getOwnerId(), traceId);
+            validateBusinessAttachmentField(context, reference.getOwnerType(), reference.getOwnerId(),
+                    reference.getFieldCode(), false, traceId);
             return true;
         } catch (DomainException exception) {
             return false;
@@ -1094,30 +1182,30 @@ public class FileStorageService {
                         .eq(FileReference::getFileId, file.getId()).orderByAsc(FileReference::getId))
                 .stream().map(this::referenceView).toList();
         List<FileModels.ScanView> scans = scanService.selectList(Wrappers.<FileSecurityScan>lambdaQuery()
-                        .eq(FileSecurityScan::getFileId, file.getId()).orderByDesc(FileSecurityScan::getCreatedAt))
+                        .eq(FileSecurityScan::getFileId, file.getId()).orderByDesc(FileSecurityScan::getCreateTime))
                 .stream().map(this::scanView).toList();
         return new FileModels.FileView(file.getId(), file.getContextType(), file.getPlatformId(), file.getSystemId(),
                 file.getTenantId(), file.getUploadSessionId(), file.getOriginalName(), file.getContentType(),
                 file.getSizeBytes(), file.getSha256(), file.getScanStatus(), file.getPreviewStatus(), file.getStatus(),
-                file.getUploadedByAccountId(), file.getCreatedAt(), file.getDeletedAt(), file.getVersion(), references, scans);
+                file.getUploadedByAccountId(), file.getCreateTime(), file.getDeleteTime(), file.getVersion(), references, scans);
     }
 
     private FileModels.ReferenceView referenceView(FileReference item) {
         return new FileModels.ReferenceView(item.getId(), item.getContextType(), item.getSystemId(), item.getTenantId(),
                 item.getOwnerType(), item.getOwnerId(), item.getFieldCode(), item.getReferenceType(),
-                item.getCreatedByAccountId(), item.getCreatedAt());
+                item.getCreatedByAccountId(), item.getCreateTime());
     }
 
     private FileModels.ScanView scanView(FileSecurityScan item) {
         return new FileModels.ScanView(item.getId(), item.getScanner(), item.getScanVersion(), item.getStatus(),
-                item.getResultCode(), item.getResultDetailJson(), item.getStartedAt(), item.getFinishedAt());
+                item.getResultCode(), item.getResultDetailJson(), item.getStartTime(), item.getFinishTime());
     }
 
     private FileModels.UploadSessionView sessionView(FileUploadSession session, String token) {
         return new FileModels.UploadSessionView(session.getId(), session.getContextType(), session.getPlatformId(),
                 session.getSystemId(), session.getTenantId(), session.getOriginalName(), session.getContentType(),
                 session.getExpectedSize(), session.getExpectedSha256(), session.getStatus(), token, true,
-                session.getExpiresAt(), uploadedSize(session), session.getVersion());
+                session.getExpireTime(), uploadedSize(session), session.getVersion());
     }
 
     private FileUploadSession requireUploadSession(
@@ -1138,7 +1226,7 @@ public class FileStorageService {
         if (!"PENDING".equals(session.getStatus())) {
             throw conflict("FILE_UPLOAD_SESSION_NOT_PENDING", "上传会话已经完成、失败或过期");
         }
-        if (session.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (session.getExpireTime().isBefore(LocalDateTime.now())) {
             failureRecorder.fail(session.getId(), "EXPIRED");
             deleteQuietly(partPath(session));
             throw conflict("FILE_UPLOAD_SESSION_EXPIRED", "上传会话已过期，请重新创建");
@@ -1264,8 +1352,34 @@ public class FileStorageService {
 
     private boolean referenceInContext(FileReference item, AuthenticatedContext context) {
         return Objects.equals(item.getContextType(), contextType(context))
+                && Objects.equals(item.getPlatformId(), context.platformId())
                 && Objects.equals(item.getSystemId(), context.systemId())
                 && Objects.equals(item.getTenantId(), context.tenantId());
+    }
+
+    /** 跨租户只读取同系统共享业务记录的附件，实际共享、角色和字段权限仍由目标校验执行。 */
+    private boolean readableReferenceInContext(FileReference reference, AuthenticatedContext context) {
+        return referenceInContext(reference, context)
+                || "BUSINESS_RECORD".equals(reference.getOwnerType())
+                && "SYSTEM".equals(reference.getContextType())
+                && context.systemId() != null
+                && Objects.equals(reference.getPlatformId(), context.platformId())
+                && Objects.equals(reference.getSystemId(), context.systemId());
+    }
+
+    /** 文件字节必须仍属于该引用的来源租户，不能借用另一个租户的同名业务标识。 */
+    private boolean fileMatchesReference(FileObject file, FileReference reference) {
+        return Objects.equals(file.getContextType(), reference.getContextType())
+                && Objects.equals(file.getPlatformId(), reference.getPlatformId())
+                && Objects.equals(file.getSystemId(), reference.getSystemId())
+                && Objects.equals(file.getTenantId(), reference.getTenantId());
+    }
+
+    /** 对跨租户文件先限定同平台、同系统，再逐条检查有效共享引用。 */
+    private boolean sharedFileCandidate(FileObject file, AuthenticatedContext context) {
+        return "SYSTEM".equals(file.getContextType()) && context.systemId() != null
+                && Objects.equals(file.getPlatformId(), context.platformId())
+                && Objects.equals(file.getSystemId(), context.systemId());
     }
 
     private boolean sameContext(

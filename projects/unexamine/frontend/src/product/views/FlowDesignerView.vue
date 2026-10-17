@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Empty, message } from 'ant-design-vue'
+import { Empty, Modal, message } from 'ant-design-vue'
 import { ApiError, api } from '../api'
 import { allowsPermission } from '../permissions'
 import { platformContext, platformTokens, systemContext, systemTokens } from '../session'
 import { localFlowIssues } from '../flow-designer'
 import { productDateTime, versionLabel } from '../presentation'
 import PersonSelect from '../components/PersonSelect.vue'
+import AiFlowDraftPanel from '../components/AiFlowDraftPanel.vue'
 import FlowGraphCanvas from '../components/FlowGraphCanvas.vue'
 import FlowBindingsView from './FlowBindingsView.vue'
 import FlowRuntimeView from './FlowRuntimeView.vue'
@@ -17,6 +18,7 @@ import FlowNodeFieldPolicyEditor, { nodeFieldPolicyIssues } from '../components/
 import { bindingCondition, conditionFieldCodes, conditionIssues, emptyCondition, isConditionGroup,
   type ConditionField, type ConditionGroup, type ConditionNode } from '../conditions'
 import type {
+  ApplicationView,
   FlowDefinitionView, FlowEdgeInput, FlowIssue, FlowNodeInput, FlowNodeType, FlowNodeFormField,
   FlowPublicationCheck, FlowPublicationResult, FlowSimulationResult, FlowParticipantDirectory,
   RuntimeModuleCatalogItem, RuntimeRecordList, RuntimeRecord, FlowCallbackOption,
@@ -39,10 +41,15 @@ const graphCanvas = ref<InstanceType<typeof FlowGraphCanvas>>()
 const publicationCheck = ref<FlowPublicationCheck>()
 const simulation = ref<FlowSimulationResult>()
 const directory = ref<FlowParticipantDirectory>({ departments: [], people: [], permissionVersion: 0 })
+/** 外部审批人先选择本范围的应用，再填写该应用命名空间中的审批人标识。 */
+const externalApplications = ref<ApplicationView[]>([])
+const externalApplicationsError = ref('')
 const loading = ref(false)
 const busy = ref('')
 const pageError = ref('')
 const createOpen = ref(false)
+const renameOpen = ref(false)
+const renameName = ref('')
 const publishOpen = ref(false)
 const modules = ref<RuntimeModuleCatalogItem[]>([])
 const conditionFields = ref<ConditionField[]>([])
@@ -60,6 +67,10 @@ const automaticFieldsError = ref('')
 const callbackCatalog = ref<FlowCallbackOption[]>([])
 const callbackCatalogLoading = ref(false)
 const callbackCatalogError = ref('')
+/** 当前系统可用于流程 AI 节点的模型授权，只在系统设计态加载。 */
+const aiModels = ref<{ grantId: number; name: string; provider: string }[]>([])
+const aiModelsError = ref('')
+const aiModelsLoading = ref(false)
 const sampleError = ref('')
 const sampleRecords = ref<RuntimeRecord[]>([])
 const sampleRecordId = ref<number>()
@@ -105,6 +116,8 @@ const selectedCallbackKey = computed(() => {
 })
 const selectedCallback = computed(() => callbackCatalog.value.find(item =>
   `${item.applicationId}:${item.callbackId}` === selectedCallbackKey.value))
+const selectedAiGrantId = computed(() => Number(selectedNode.value?.config.modelGrantId) || undefined)
+const selectedAiModelAvailable = computed(() => aiModels.value.some(model => model.grantId === selectedAiGrantId.value))
 const connectionTargetKey = ref<string>()
 const createForm = reactive({ code: '', name: '', description: '' })
 const publishForm = reactive({ changeSummary: '' })
@@ -136,8 +149,8 @@ const manualActionCodes = [...defaultManualActionCodes, 'DELEGATE', 'ADD_SIGN', 
 const forcedOpinionActions = ['REJECT', 'RETURN', 'DELEGATE']
 
 function defaultManualOperationPolicy() {
-  // 新增可配置动作不扩大旧缺省和新节点的默认处理权限。
-  return { allowedActions: [...defaultManualActionCodes], opinionRequiredActions: [...forcedOpinionActions], requireClaim: false }
+  // 新节点只对默认允许的拒绝、退回要求意见；未启用的委托不能出现在必填意见中。
+  return { allowedActions: [...defaultManualActionCodes], opinionRequiredActions: forcedOpinionActions.filter(action => defaultManualActionCodes.includes(action)), requireClaim: false }
 }
 function manualOperationPolicy(node: FlowNodeInput | undefined): Record<string, unknown> {
   const configured = node?.config.manualOperationPolicy
@@ -420,6 +433,7 @@ const participantHelp = computed(() => props.context === 'platform'
 const approverTypeOptions = computed(() => {
   const options = [
     { value: 'PERSON', label: '指定人员' },
+    { value: 'EXTERNAL_PERSON', label: '外部应用审批人' },
     { value: 'INITIATOR', label: '发起人' },
     { value: 'DEPARTMENT', label: '部门成员' },
     { value: 'DEPARTMENT_MANAGER', label: '部门负责人' },
@@ -429,7 +443,9 @@ const approverTypeOptions = computed(() => {
     { value: 'PERSON_FIELD', label: '业务人员字段' },
     { value: 'STARTER_SELECTED', label: '发起时选择' },
     { value: 'PREVIOUS_HANDLER', label: '上一处理人' },
-  ].map(option => ({ ...option, disabled: props.context === 'platform' && option.value !== 'PERSON' }))
+  ].map(option => ({ ...option, disabled: (props.context === 'platform'
+    && !['PERSON', 'EXTERNAL_PERSON'].includes(option.value))
+    || (option.value === 'EXTERNAL_PERSON' && selectedNode.value?.nodeType !== 'APPROVAL') }))
   if (approverType.value && !options.some(option => option.value === approverType.value)) {
     options.push({ value: approverType.value, label: '原人员来源暂不可用', disabled: true })
   }
@@ -438,7 +454,8 @@ const approverTypeOptions = computed(() => {
 const platformParticipantWarning = computed(() => {
   if (props.context !== 'platform' || !selectedNode.value) return ''
   if (selectedNode.value.nodeType === 'FORM_TASK') return '平台填写节点的业务处理尚未接通，原配置保留；当前不能发布此填写节点。'
-  if (approverType.value !== 'PERSON') return '平台当前支持指定人员审批；此节点原有人员来源尚未接通，配置仍保留，请明确选择有效指定人员后再发布。'
+  if (approverType.value === 'EXTERNAL_PERSON') return ''
+  if (approverType.value !== 'PERSON') return '平台当前支持指定人员或外部应用审批人；此节点原有人员来源尚未接通，配置仍保留，请明确选择有效来源后再发布。'
   const policy = selectedNode.value.assigneePolicy
   return Array.isArray(policy?.tenantMemberIds) && !Array.isArray(policy?.platformAccountIds)
     ? '此平台节点仍使用原系统成员配置，配置已保留；请重新选择平台有效人员，不能直接把系统成员当作平台审批人。' : ''
@@ -454,6 +471,21 @@ const selectedApproverIds = computed({
       graphCanvas.value?.checkpoint()
       selectedNode.value.assigneePolicy = personPolicy(ids)
     }
+  },
+})
+const externalApplicationId = computed({
+  get: () => Number(selectedNode.value?.assigneePolicy?.applicationId) || undefined,
+  set: (applicationId: number | undefined) => {
+    if (!selectedNode.value || !can('DESIGN') || busy.value) return
+    graphCanvas.value?.checkpoint()
+    selectedNode.value.assigneePolicy = { ...selectedNode.value.assigneePolicy, type: 'EXTERNAL_PERSON', applicationId }
+  },
+})
+const externalApproverId = computed({
+  get: () => String(selectedNode.value?.assigneePolicy?.externalApproverId || ''),
+  set: (externalApproverId: string) => {
+    if (!selectedNode.value || !can('DESIGN') || busy.value) return
+    selectedNode.value.assigneePolicy = { ...selectedNode.value.assigneePolicy, type: 'EXTERNAL_PERSON', externalApproverId }
   },
 })
 const selectedDepartmentIds = computed({
@@ -980,8 +1012,24 @@ async function loadCallbackCatalog() {
   } finally { if (requestCurrent(context)) callbackCatalogLoading.value = false }
 }
 
+async function loadAiModels() {
+  aiModels.value = []; aiModelsError.value = ''
+  if (!token.value || props.context !== 'system' || !can('DESIGN')) return
+  const context = requestContext()
+  aiModelsLoading.value = true
+  try {
+    const result = await api<{ grantId: number; name: string; provider: string }[]>('/api/flows/ai-models', {}, context.token)
+    if (!requestCurrent(context)) return
+    aiModels.value = result
+    if (!result.length) aiModelsError.value = '当前系统没有可用于流程的模型授权，请先在 AI 管理中授权模型。'
+  } catch (error) {
+    if (!requestCurrent(context)) return
+    aiModelsError.value = error instanceof Error ? error.message : '读取模型授权失败'
+  } finally { if (requestCurrent(context)) aiModelsLoading.value = false }
+}
+
 function flowStatusLabel(status: string) {
-  return status === 'PUBLISHED' ? '已发布' : status === 'DRAFT' ? '草稿' : status
+  return status === 'PUBLISHED' ? '已发布' : status === 'DRAFT' ? '草稿' : status === 'DISABLED' ? '已停用' : status
 }
 
 function simulationStepName(nodeKey: string) {
@@ -1003,7 +1051,10 @@ async function loadFlows(preferId?: number) {
     if (!requestCurrent(context) || listRequest !== listGeneration) return
     flows.value = result
     if (selectingFlowId.value !== previousId) return
-    const id = preferId ?? selectingFlowId.value ?? flows.value[0]?.id
+    const routeFlowId = Number(route.query.flowId)
+    const requestedFlowId = Number.isSafeInteger(routeFlowId) && routeFlowId > 0
+      && flows.value.some(flow => flow.id === routeFlowId) ? routeFlowId : undefined
+    const id = preferId ?? selectingFlowId.value ?? requestedFlowId ?? flows.value[0]?.id
     if (id) await selectFlow(id)
     else clearDesigner()
   } catch (error) {
@@ -1218,9 +1269,14 @@ function autoLayout() {
 
 function setApproverType(type: string) {
   if (!selectedNode.value || !can('DESIGN') || busy.value || type === approverType.value) return
-  if (props.context === 'platform' && type !== 'PERSON') return
+  if (props.context === 'platform' && !['PERSON', 'EXTERNAL_PERSON'].includes(type)) return
   graphCanvas.value?.checkpoint()
   if (type === 'PERSON') selectedNode.value.assigneePolicy = personPolicy()
+  else if (type === 'EXTERNAL_PERSON' && selectedNode.value.nodeType === 'APPROVAL') {
+    selectedNode.value.assigneePolicy = { type, applicationId: undefined, externalApproverId: '' }
+    selectedNode.value.config = { ...selectedNode.value.config, approvalMode: 'OR_SIGN',
+      manualOperationPolicy: { allowedActions: ['APPROVE', 'REJECT'], opinionRequiredActions: ['REJECT'], requireClaim: false } }
+  }
   else if (['DEPARTMENT', 'DEPARTMENT_MANAGER'].includes(type)) {
     selectedNode.value.assigneePolicy = { type, departmentIds: [], includeDescendants: true }
   } else if (type === 'PERSON_FIELD') selectedNode.value.assigneePolicy = { type, fieldCode: '' }
@@ -1230,6 +1286,49 @@ function setApproverType(type: string) {
 function setConfig(key: string, value: unknown) {
   if (!selectedNode.value) return
   selectedNode.value.config = { ...selectedNode.value.config, [key]: value }
+}
+
+/** 名称修改直接保存到流程草稿，编码和发布版本的身份保持不变。 */
+async function renameFlow() {
+  if (!token.value || busy.value || !selected.value || !can('DESIGN') || !renameName.value.trim()) return
+  const context = requestContext()
+  busy.value = 'rename'
+  try {
+    const flow = await api<FlowDefinitionView>(`/api/flows/${selected.value.id}/name`, {
+      method: 'PUT', body: JSON.stringify({ name: renameName.value.trim(), expectedVersion: selected.value.version }),
+    }, context.token)
+    if (!requestCurrent(context, true, true)) return
+    selected.value = flow
+    renameOpen.value = false
+    message.success('流程名称已保存')
+    await loadFlows(flow.id)
+  } catch (error) {
+    if (requestCurrent(context, true, true)) message.error(describeError(error))
+  } finally {
+    if (requestCurrent(context, true, true)) busy.value = ''
+  }
+}
+
+async function loadExternalApplications() {
+  if (!token.value || !can('DESIGN')) return
+  const context = requestContext()
+  try {
+    const result = await api<ApplicationView[]>('/api/applications', {}, context.token)
+    if (requestCurrent(context)) {
+      externalApplications.value = result
+      externalApplicationsError.value = ''
+    }
+  } catch (error) {
+    if (requestCurrent(context)) externalApplicationsError.value = describeError(error, false)
+  }
+}
+
+function setAiModel(grantId?: number) {
+  if (!selectedNode.value || selectedNode.value.nodeType !== 'AI' || !can('DESIGN') || busy.value) return
+  graphCanvas.value?.checkpoint()
+  const config: Record<string, unknown> = { ...selectedNode.value.config, modelGrantId: grantId }
+  delete config.model
+  selectedNode.value.config = config
 }
 
 function setWebhookCallback(value?: string) {
@@ -1527,6 +1626,32 @@ async function publishFlow() {
   }
 }
 
+function confirmFlowStatus() {
+  const flow = selected.value
+  if (!flow || !flow.currentVersionId || !token.value || !can('PUBLISH') || busy.value) return
+  const disabling = flow.status === 'PUBLISHED'
+  Modal.confirm({
+    title: `${disabling ? '停用' : '重新启用'}“${flow.name}”的影响`,
+    content: disabling
+      ? '确认后，此流程从新发起目录移除，直接发起、应用发起和模块触发绑定都不能再启动新实例；已经在运行的实例继续按发起时固定的版本办理，历史版本和记录保留。'
+      : '确认后，现行发布版本重新可供新实例发起，原有有效绑定可再次命中；在途实例仍按各自固定的版本办理。',
+    okText: disabling ? '确认停用' : '确认启用', cancelText: '取消',
+    onOk: async () => {
+      busy.value = 'status'
+      try {
+        await api(`/api/flows/${flow.id}/status`, { method: 'PUT', body: JSON.stringify({
+          status: disabling ? 'DISABLED' : 'PUBLISHED', expectedVersion: flow.version,
+        }) }, token.value)
+        message.success(disabling ? '流程已停用，新实例无法发起' : '流程已重新启用')
+        await loadFlows(flow.id)
+      } catch (error) {
+        message.error(describeError(error))
+        throw error
+      } finally { busy.value = '' }
+    },
+  })
+}
+
 watch(businessModuleId, () => { void refreshBusinessFields() }, { flush: 'sync' })
 watch(() => [selectedNodeKey.value, automaticModuleId.value, automaticOperation.value, token.value],
   () => { void loadAutomaticFields() }, { flush: 'sync' })
@@ -1541,15 +1666,18 @@ watch(publishOpen, (open, previous) => { if (!open && previous) clearSamples() }
 watch(() => [activeSection.value, props.context, token.value, identity.value], () => {
   generation++; listGeneration++; clearDesigner(); modules.value = []; catalogReady = false
   callbackCatalog.value = []; callbackCatalogError.value = ''; callbackCatalogLoading.value = false
+  externalApplications.value = []; externalApplicationsError.value = ''
+  aiModels.value = []; aiModelsError.value = ''; aiModelsLoading.value = false
   flows.value = []; loading.value = false; pageError.value = ''
   directory.value = { departments: [], people: [], permissionVersion: 0 }
   if (activeSection.value === 'designer' && can('VIEW')) void Promise.all([
-    loadFlows(), loadDirectory(), loadModules(), loadCallbackCatalog(),
+    loadFlows(), loadDirectory(), loadModules(), loadCallbackCatalog(), loadAiModels(), loadExternalApplications(),
   ])
 }, { immediate: true, flush: 'sync' })
 onBeforeUnmount(() => {
   active = false; generation++; clearDesigner(); modules.value = []; flows.value = []
   callbackCatalog.value = []
+  aiModels.value = []
   directory.value = { departments: [], people: [], permissionVersion: 0 }
 })
 const formPersonFieldOptions = computed(() => nodeFormFields.value.filter(field => field.fieldType === 'MEMBER')
@@ -1571,13 +1699,17 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
     <FlowBindingsView v-if="context === 'system' && activeSection === 'bindings'" />
     <FlowRuntimeView v-if="activeSection === 'runtime'" :context="context" />
     <a-alert v-if="activeSection === 'designer' && !can('VIEW')" type="warning" show-icon message="当前工作范围没有流程查看权限" />
+    <AiFlowDraftPanel v-if="context === 'system' && activeSection === 'designer' && can('DESIGN')
+      && allowsPermission(systemContext?.permissions, 'CONFIG', 'MODULE', 'MANAGE')
+      && allowsPermission(systemContext?.permissions, 'AI', 'SYSTEM', 'VIEW')"
+      :modules="modules" @saved="loadFlows" />
     <div v-if="activeSection === 'designer' && can('VIEW')" class="flow-designer-layout">
       <section class="panel-card flow-list-panel">
         <div class="panel-title"><strong>流程列表</strong><a-tag>{{ context === 'platform' ? '平台' : '当前系统' }}</a-tag></div>
         <a-spin :spinning="loading">
           <button v-for="flow in flows" :key="flow.id" :class="['flow-list-item', { active: selected?.id === flow.id }]" @click="selectFlow(flow.id)">
             <span><strong>{{ flow.name }}</strong><small>{{ flow.description || '未填写流程说明' }}</small></span>
-            <span><a-tag :color="flow.status === 'PUBLISHED' ? 'green' : 'orange'">{{ flowStatusLabel(flow.status) }}</a-tag><small>{{ flow.currentVersionId ? '已有运行版本' : '尚未发布' }}</small></span>
+            <span><a-tag :color="flow.status === 'PUBLISHED' ? 'green' : 'orange'">{{ flowStatusLabel(flow.status) }}</a-tag><small>{{ flow.status === 'DISABLED' ? '已发布版本 · 暂停新发起' : flow.currentVersionId ? '已有运行版本' : '尚未发布' }}</small></span>
           </button>
           <a-empty v-if="!loading && !flows.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="pageError ? '当前无法读取流程，请确认权限后重新进入。' : '尚未创建流程'" />
         </a-spin>
@@ -1588,15 +1720,17 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
           <div class="flow-toolbar">
             <span><strong>{{ selected.name }}</strong><small>当前正在编辑草稿</small></span>
             <div>
+              <a-button v-if="can('DESIGN')" :disabled="Boolean(busy)" @click="renameName = selected.name; renameOpen = true">修改名称</a-button>
               <a-badge :count="issueCount" :number-style="{ backgroundColor: issueCount ? '#ff4d4f' : '#52c41a' }"><a-button @click="checkPublish">发布检查</a-button></a-badge>
               <a-button v-if="can('DESIGN')" @click="autoLayout">自动布局</a-button>
               <a-button v-if="can('DESIGN')" :disabled="Boolean(busy) || fieldsLoading || nodeFieldsLoading" :loading="busy === 'save'" @click="saveDraft()">保存草稿</a-button>
               <a-button v-if="can('SIMULATE')" :disabled="Boolean(busy) || fieldsLoading" :loading="busy === 'simulate'" @click="simulateFlow">模拟路径</a-button>
               <a-button v-if="can('PUBLISH')" type="primary" :disabled="!!issueCount" @click="publishOpen = true">发布版本</a-button>
+              <a-button v-if="can('PUBLISH') && selected.currentVersionId" :disabled="Boolean(busy)" :danger="selected.status === 'PUBLISHED'" @click="confirmFlowStatus">{{ selected.status === 'DISABLED' ? '重新启用' : '停用流程' }}</a-button>
             </div>
           </div>
           <div v-if="can('DESIGN')" class="flow-palette">
-            <button v-for="item in palette" :key="item.key" @click="addNode(item.type, item.gatewayMode)"><strong>{{ item.label }}</strong><small>{{ item.hint }}</small></button>
+            <button v-for="item in palette.filter(item => context === 'system' || item.type !== 'AI')" :key="item.key" @click="addNode(item.type, item.gatewayMode)"><strong>{{ item.label }}</strong><small>{{ item.hint }}</small></button>
           </div>
           <a-alert v-if="context === 'platform'" type="info" show-icon message="业务字段条件需进入对应系统配置；平台画布和原有无条件流程继续保留。" />
           <a-form v-else layout="vertical">
@@ -1673,16 +1807,16 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
             </a-form-item>
             <template v-if="['APPROVAL', 'FORM_TASK'].includes(selectedNode.nodeType)">
               <a-form-item label="允许处理人执行的操作" required extra="至少选择一种。保存发布后随流程版本冻结，不改变已经发起的实例。">
-                <a-checkbox-group v-model:value="manualAllowedActions" :options="manualActionOptions" :disabled="!can('DESIGN') || Boolean(busy)" />
+                <a-checkbox-group v-model:value="manualAllowedActions" :options="manualActionOptions" :disabled="approverType === 'EXTERNAL_PERSON' || !can('DESIGN') || Boolean(busy)" />
               </a-form-item>
               <a-form-item label="必须填写意见的操作" extra="拒绝、退回和委托启用时必须填写意见；未启用的操作不能设置意见要求。">
-                <a-checkbox-group v-model:value="manualOpinionActions" :options="manualOpinionOptions" :disabled="!can('DESIGN') || Boolean(busy)" />
+                <a-checkbox-group v-model:value="manualOpinionActions" :options="manualOpinionOptions" :disabled="approverType === 'EXTERNAL_PERSON' || !can('DESIGN') || Boolean(busy)" />
               </a-form-item>
               <a-form-item label="处理前必须领取" extra="仅适用于或签，单人也可启用。候选人员先领取同一待办再处理；取消领取恢复当前候选，不重置处理时限。">
-                <a-switch v-model:checked="manualRequireClaim" :disabled="!can('DESIGN') || Boolean(busy) || (!manualRequireClaim && approvalMode !== 'OR_SIGN')" checked-children="必须领取" un-checked-children="直接处理" />
+                <a-switch v-model:checked="manualRequireClaim" :disabled="approverType === 'EXTERNAL_PERSON' || !can('DESIGN') || Boolean(busy) || (!manualRequireClaim && approvalMode !== 'OR_SIGN')" checked-children="必须领取" un-checked-children="直接处理" />
               </a-form-item>
               <a-alert v-if="manualOperationIssues(selectedNode).length" type="warning" show-icon :message="manualOperationIssues(selectedNode).join('；')" style="margin-bottom:16px" />
-              <a-alert type="info" show-icon message="委托只允许原审批人为当前任务选择一名限时代办人；加签、减签调整同一节点参与人；新增节点使用运行页的“添加审批或抄送”。" style="margin-bottom:16px" />
+                <a-alert v-if="approverType !== 'EXTERNAL_PERSON'" type="info" show-icon message="委托只允许原审批人为当前任务选择一名限时代办人；加签、减签调整同一节点参与人；新增节点使用运行页的“添加审批或抄送”。" style="margin-bottom:16px" />
               <a-form-item label="审批附件" extra="开启后，处理人必须先在运行页上传至少一个已通过安全扫描的当前流程附件，才能同意或完成填写。">
                 <a-switch v-model:checked="approvalAttachmentRequired" :disabled="!can('DESIGN') || Boolean(busy)" checked-children="必须上传" un-checked-children="不要求" />
               </a-form-item>
@@ -1712,7 +1846,7 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
                   { value: 'OR_SIGN', label: '或签' },
                   { value: 'ALL_SIGN', label: '会签' },
                   { value: 'SEQUENTIAL', label: '顺序会签' },
-                ]" block />
+                ]" :disabled="approverType === 'EXTERNAL_PERSON' || !can('DESIGN') || Boolean(busy)" block />
               </a-form-item>
               <template v-if="selectedNode.nodeType === 'APPROVAL' && approvalMode === 'ALL_SIGN'">
                 <a-form-item label="会签完成条件" required extra="发布后随版本冻结；加减签会按当前有效参与人数重新计算分母。">
@@ -1750,8 +1884,22 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
                 <a-select v-model:value="approverType" :options="approverTypeOptions" :disabled="!can('DESIGN') || Boolean(busy)" />
               </a-form-item>
               <a-form-item v-if="approverType === 'PERSON'" :label="selectedNode.nodeType === 'FORM_TASK' ? '填写人' : '处理人'" required :extra="participantHelp">
-                <PersonSelect v-model="selectedApproverIds" :people="directory.people" :value-key="participantValueKey" :disabled="!can('DESIGN') || Boolean(busy)" multiple placeholder="搜索姓名、部门或岗位" />
+                <PersonSelect v-model="selectedApproverIds" :people="directory.people" :value-key="participantValueKey" :disabled="!can('DESIGN') || Boolean(busy)" multiple show-department-filter placeholder="搜索姓名、部门或岗位" />
               </a-form-item>
+              <template v-if="approverType === 'EXTERNAL_PERSON' && selectedNode.nodeType === 'APPROVAL'">
+                <a-form-item label="外部审批应用" required extra="先在当前系统或平台创建应用；发布流程后再为该应用逐项配置 Flow 调用授权。">
+                  <a-select v-model:value="externalApplicationId" show-search option-filter-prop="label"
+                    :options="externalApplications.map(item => ({ value: item.id,
+                      label: `${item.name} · ${item.code}${item.status === 'DISABLED' ? '（已停用）' : ''}`,
+                      disabled: item.status === 'DISABLED' }))"
+                    :disabled="!can('DESIGN') || Boolean(busy)" placeholder="选择当前范围的应用" />
+                  <a-button type="link" size="small" @click="loadExternalApplications">刷新应用列表</a-button>
+                  <small v-if="externalApplicationsError">{{ externalApplicationsError }}</small>
+                </a-form-item>
+                <a-form-item label="外部审批人标识" required extra="外部系统调用待办与审批接口时传入相同标识；该标识只在选定应用内有效。">
+                  <a-input v-model:value="externalApproverId" :maxlength="100" :disabled="!can('DESIGN') || Boolean(busy)" placeholder="例如 external-user-001" />
+                </a-form-item>
+              </template>
               <a-form-item v-if="['DEPARTMENT','DEPARTMENT_MANAGER'].includes(approverType)" label="部门" required>
                 <a-select v-model:value="selectedDepartmentIds" mode="multiple" show-search option-filter-prop="label" :disabled="context === 'platform' || !can('DESIGN') || Boolean(busy)"
                   :options="directory.departments.map(item => ({ value: item.id, label: item.fullName }))" placeholder="选择部门" />
@@ -1785,7 +1933,7 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
                 </a-form-item>
               </div>
               <a-form-item v-if="selectedTimeoutAction === 'TRANSFER'" label="超时转交给" :required="timeoutEnabled" :extra="participantHelp">
-                <PersonSelect v-model="timeoutTargetId" :people="directory.people" :value-key="participantValueKey" :disabled="!timeoutEnabled || !can('DESIGN') || Boolean(busy)" placeholder="选择一名有效处理人" />
+                <PersonSelect v-model="timeoutTargetId" :people="directory.people" :value-key="participantValueKey" :disabled="!timeoutEnabled || !can('DESIGN') || Boolean(busy)" show-department-filter placeholder="选择一名有效处理人" />
               </a-form-item>
               <a-alert type="info" show-icon :message="timeoutHelp" style="margin-bottom:16px" />
               <a-alert v-for="warning in timeoutWarnings" :key="warning" type="warning" show-icon :message="warning" style="margin-bottom:16px" />
@@ -1879,7 +2027,7 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
             <template v-if="['CC', 'NOTIFICATION', 'MESSAGE'].includes(selectedNode.nodeType)">
               <a-alert v-if="platformParticipantWarning" type="warning" show-icon :message="platformParticipantWarning" style="margin-bottom:16px" />
               <a-alert type="info" show-icon :message="`${nodeTypeLabel(selectedNode.nodeType)}使用站内消息可靠投递；接收人点击后进入当前流程运行页。`" style="margin-bottom:16px" />
-              <a-form-item :label="`${nodeTypeLabel(selectedNode.nodeType)}接收人`" required :extra="participantHelp"><PersonSelect v-model="selectedApproverIds" :people="directory.people" :value-key="participantValueKey" :disabled="!can('DESIGN') || Boolean(busy)" multiple placeholder="搜索姓名、部门或岗位" /></a-form-item>
+              <a-form-item :label="`${nodeTypeLabel(selectedNode.nodeType)}接收人`" required :extra="participantHelp"><PersonSelect v-model="selectedApproverIds" :people="directory.people" :value-key="participantValueKey" :disabled="!can('DESIGN') || Boolean(busy)" multiple show-department-filter placeholder="搜索姓名、部门或岗位" /></a-form-item>
               <a-form-item :label="`${nodeTypeLabel(selectedNode.nodeType)}标题`" required><a-input :value="selectedNode.config.subject" :maxlength="200" placeholder="填写接收人能够直接理解的标题" @input="setConfig('subject', ($event.target as HTMLInputElement).value)" /></a-form-item>
               <a-form-item label="标题附带流程名称"><a-switch :checked="selectedNode.config.appendInstanceTitle === true" @change="setConfig('appendInstanceTitle', $event)" /></a-form-item>
               <a-form-item :label="`${nodeTypeLabel(selectedNode.nodeType)}内容`" required extra="填写接收人需要了解的业务说明，不需要模板代码或 JSON。"><a-textarea :value="selectedNode.config.content" :maxlength="2000" show-count :rows="4" @input="setConfig('content', ($event.target as HTMLTextAreaElement).value)" /></a-form-item>
@@ -1942,8 +2090,21 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
               </a-form-item>
             </template>
             <template v-if="selectedNode.nodeType === 'AI'">
-              <a-form-item label="受控模型" required><a-input :value="selectedNode.config.model" @input="setConfig('model', ($event.target as HTMLInputElement).value)" /></a-form-item>
-              <a-form-item label="提示模板" required><a-textarea :value="selectedNode.config.prompt" @input="setConfig('prompt', ($event.target as HTMLTextAreaElement).value)" /></a-form-item>
+              <a-form-item label="受控模型" required>
+                <a-select :value="selectedAiModelAvailable ? selectedAiGrantId : undefined"
+                  :options="aiModels.map(model => ({ value: model.grantId, label: `${model.name} · ${model.provider}` }))"
+                  :loading="aiModelsLoading" placeholder="选择当前系统获授权的模型" show-search option-filter-prop="label"
+                  @update:value="setAiModel" />
+              </a-form-item>
+              <a-alert v-if="aiModelsError" type="warning" show-icon :message="aiModelsError" style="margin-bottom:16px" />
+              <a-alert v-else-if="selectedAiGrantId && !aiModelsLoading && !selectedAiModelAvailable"
+                type="warning" show-icon message="原模型授权已失效，请重新选择当前可用的模型。" style="margin-bottom:16px" />
+              <a-form-item label="提示模板" required :extra="'可使用 {{instanceTitle}} 和 {{flowName}} 引用实例标题与流程名称。'">
+                <a-textarea :value="selectedNode.config.prompt" :rows="4" @input="setConfig('prompt', ($event.target as HTMLTextAreaElement).value)" />
+              </a-form-item>
+              <a-form-item label="结果变量" extra="可选。填写后，模型回答会保存为流程变量供后续节点使用。">
+                <a-input :value="selectedNode.config.outputVariable" placeholder="例如 approvalSummary" @input="setConfig('outputVariable', ($event.target as HTMLInputElement).value)" />
+              </a-form-item>
             </template>
             <template v-if="['WEBHOOK','AI','UPDATE_FIELD','DATA_ACTION','CC','NOTIFICATION','MESSAGE'].includes(selectedNode.nodeType)">
               <a-divider>失败补偿</a-divider>
@@ -1969,8 +2130,12 @@ const formPersonFieldUnavailable = computed(() => selectedNode.value?.nodeType =
   <a-modal v-model:open="createOpen" title="新建流程" :confirm-loading="busy === 'create'" @ok="createFlow">
     <a-form layout="vertical"><a-form-item label="名称" required><a-input v-model:value="createForm.name" placeholder="例如：合同审批" /></a-form-item><a-form-item label="说明"><a-textarea v-model:value="createForm.description" /></a-form-item></a-form>
   </a-modal>
+  <a-modal v-model:open="renameOpen" title="修改流程名称" :confirm-loading="busy === 'rename'" @ok="renameFlow">
+    <a-form layout="vertical"><a-form-item label="流程名称" required><a-input v-model:value="renameName" :maxlength="200" /></a-form-item></a-form>
+  </a-modal>
   <a-modal v-model:open="publishOpen" title="发布流程版本" :confirm-loading="busy === 'publish'" :ok-button-props="{ disabled: !publishForm.changeSummary.trim() }" @ok="publishFlow">
-    <a-alert type="info" show-icon message="发布后，新实例固定使用该版本快照；后续草稿不会修改已有实例。" />
+    <a-alert type="warning" show-icon :message="`发布“${selected?.name || '当前流程'}”的影响`"
+      description="确认后将生成新的不可变版本，并立即成为该流程新实例使用的版本；已在运行的实例继续使用发起时的版本。后续草稿不会改变已发布版本。取消不会生成版本。" />
     <a-form layout="vertical" style="margin-top:16px"><a-form-item label="变更摘要" required><a-input v-model:value="publishForm.changeSummary" placeholder="例如：首版合同审批" /></a-form-item>
       <a-form-item v-for="field in simulationFields" :key="field.code" :label="`${field.name} · 模拟值`">
         <fieldset :disabled="Boolean(busy)"><ConditionValueInput :field="field" :model-value="sampleValues[field.code]" @update:model-value="setSampleValue(field.code, $event)" /></fieldset>

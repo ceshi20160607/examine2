@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("todo_contact_rule")
+@TableName("un_todo_contact_rule")
 public class TodoContactRule {
 
     /**
@@ -26,7 +26,7 @@ public class TodoContactRule {
     private Long id;
 
     /**
-     * 配置上下文类型：平台或系统
+     * 固定为系统上下文，平台不承载模块数据联系规则
      */
     @TableField("context_type")
     private String contextType;
@@ -38,13 +38,13 @@ public class TodoContactRule {
     private Long platformId;
 
     /**
-     * 所属系统主键，平台配置时为空
+     * 所属系统主键
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 所属租户主键，平台配置时为空
+     * 所属租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
@@ -114,6 +114,12 @@ public class TodoContactRule {
      */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
+
+    /**
+     * 创建规则的当前系统成员主键
+     */
+    @TableField("created_by_member_id")
+    private Long createdByMemberId;
 
     /**
      * 规则创建时间
@@ -262,6 +268,14 @@ public class TodoContactRule {
         this.createdByAccountId = createdByAccountId;
     }
 
+    public Long getCreatedByMemberId() {
+        return createdByMemberId;
+    }
+
+    public void setCreatedByMemberId(Long createdByMemberId) {
+        this.createdByMemberId = createdByMemberId;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -305,6 +319,7 @@ public class TodoContactRule {
             ", priority = " + priority +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
+            ", createdByMemberId = " + createdByMemberId +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             ", version = " + version +

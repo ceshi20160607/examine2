@@ -1,0 +1,64 @@
+{
+  "step": "S14.4",
+  "status": "verified_contribution",
+  "integration_gate": "G14_DAILY_PRODUCTIVITY",
+  "source_rows": [
+    "R2192",
+    "R2193",
+    "R2194",
+    "R2195",
+    "R2196",
+    "R2197",
+    "R2198",
+    "R2199",
+    "R2200",
+    "R2938"
+  ],
+  "changed_files": [
+    "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue"
+  ],
+  "checks_actual_results": [
+    "The integrated G14 receipt records one owner journey on module #78 and photo record #151 across command center, default view, draft, validation and mobile capture.",
+    "After backend restart, owner record and view API returned 200, while viewer/outsider record API and viewer file API returned 403.",
+    "Record #153 confirms quick-create draft correction persisted, and the reopened form did not restore a submitted draft.",
+    "After the later S15 restart check found route-only lifecycle restored an old default-view filter, route list state was reset as a complete snapshot; recycle-bin #154 and default view #8 both persisted across reload."
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/g14-daily-productivity-verification.json",
+    "projects/unexamine/ai/evidence/g14-integrated-command-center.png",
+    "projects/unexamine/ai/evidence/g14-integrated-view.png",
+    "projects/unexamine/ai/evidence/g14-integrated-draft-error.png",
+    "projects/unexamine/ai/evidence/g14-integrated-restart.png",
+    "projects/unexamine/ai/evidence/s15-record-restart.png",
+    "projects/unexamine/ai/evidence/s15-g14-view-regression.png"
+  ],
+  "permission_or_failure_result": "Viewer and unrelated account cannot open photo record #151; viewer cannot fetch image #148. Duplicate key save failed at the field, then corrected save succeeded.",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/frontend/src/product/views/RuntimeWorkspaceView.vue",
+      "sha256": "890dedf7ee56b600d3904cc238aa2a6b1fc32b1cf7159c24b74aecd9c9b40684"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/CommandCenter.vue",
+      "sha256": "9759533ed0cc232413a09fc2814b655844872f509a80d8b1f529a36cdcdb0afc"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeFieldInput.vue",
+      "sha256": "7e02f79fe37c118f3f50a8463b6a853a0027311ff86bf839df1925deb23d6133"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/RuntimeAttachmentFieldInput.vue",
+      "sha256": "930e2a48001847ec92762d4a82a1275e0fcfc45cc6365317fd80786f0f4492b2"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/foundation/manage/productivity/CommandCenterService.java",
+      "sha256": "d008c56e069192f8f76789de2a28aea99011bd5602671cec5c92a731f6c9887e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/runtimedata/manage/RuntimeListViewService.java",
+      "sha256": "47248d19fd074be2426703a5523be612f67f5b077b643716711dd6bd5695da59"
+    }
+  ],
+  "remaining": "The product as a whole remains unfinished; physical camera capture and third-party credentials are outside this local G14 check.",
+  "next_step": "S15.1"
+}

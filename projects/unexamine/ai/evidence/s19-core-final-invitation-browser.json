@@ -1,0 +1,17 @@
+{
+  "status": "admin_created_invitee_accepted_and_entered",
+  "adminView": {
+    "url": "http://127.0.0.1:15173/systems/1/admin?section=organization",
+    "invitationVisible": true,
+    "targetVisible": true
+  },
+  "preview": {
+    "invitationRoute": true,
+    "systemVisible": true,
+    "accountVisible": true
+  },
+  "accepted": {
+    "url": "http://127.0.0.1:15173/systems/1",
+    "systemVisible": true
+  }
+}

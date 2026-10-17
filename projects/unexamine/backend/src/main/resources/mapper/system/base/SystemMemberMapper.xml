@@ -10,15 +10,15 @@
         <result column="employee_number" property="employeeNumber" />
         <result column="display_name" property="displayName" />
         <result column="status" property="status" />
-        <result column="joined_at" property="joinedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="join_time" property="joinTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, account_id, employee_number, display_name, `status`, joined_at, created_at, updated_at, version
+        id, system_id, account_id, employee_number, display_name, `status`, join_time, create_time, update_time, version
     </sql>
 
 </mapper>

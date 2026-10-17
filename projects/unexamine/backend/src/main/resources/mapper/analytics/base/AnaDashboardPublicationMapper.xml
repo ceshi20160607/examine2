@@ -8,13 +8,13 @@
         <result column="dashboard_id" property="dashboardId" />
         <result column="current_version_id" property="currentVersionId" />
         <result column="updated_by_account_id" property="updatedByAccountId" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, dashboard_id, current_version_id, updated_by_account_id, updated_at, version
+        id, dashboard_id, current_version_id, updated_by_account_id, update_time, version
     </sql>
 
 </mapper>

@@ -1,0 +1,39 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev9",
+  "status": "platform_department_member_page_and_permission_verified",
+  "registration": {
+    "status": 200,
+    "code": "OK"
+  },
+  "department": {
+    "id": 3,
+    "name": "S19 平台组织 1792219833447 复核",
+    "version": 1
+  },
+  "member": {
+    "id": 16,
+    "username": "s19_org_1792219832660",
+    "departmentId": 3,
+    "title": "S19 平台组织验收",
+    "version": 1
+  },
+  "stale": {
+    "status": 409,
+    "code": "PLATFORM_ORGANIZATION_VERSION_CONFLICT"
+  },
+  "invalidDepartment": {
+    "status": 404,
+    "code": "PLATFORM_DEPARTMENT_NOT_FOUND"
+  },
+  "wrongContext": {
+    "status": 403,
+    "code": "PERMISSION_DENIED"
+  },
+  "unprivileged": {
+    "viewStatus": 403,
+    "editStatus": 403,
+    "systemEntryStatus": 403
+  },
+  "credentialNote": "Fresh account password remained in process memory and was excluded from evidence."
+}

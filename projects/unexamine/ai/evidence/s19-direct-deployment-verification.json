@@ -1,0 +1,156 @@
+{
+  "step": "S19.7",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1805",
+    "R1806",
+    "R1900",
+    "R2296"
+  ],
+  "changed_files": [
+    "projects/unexamine/deploy/scripts/frontend-server.mjs",
+    "projects/unexamine/deploy/scripts/common.ps1",
+    "projects/unexamine/deploy/scripts/start.ps1",
+    "projects/unexamine/deploy/scripts/stop.ps1",
+    "projects/unexamine/deploy/scripts/build-package.ps1",
+    "projects/unexamine/deploy/scripts/deploy.ps1",
+    "projects/unexamine/deploy/scripts/rollback.ps1",
+    "projects/unexamine/deploy/scripts/backup.ps1",
+    "projects/unexamine/deploy/README.md",
+    "projects/unexamine/deploy/local.env.example",
+    "projects/unexamine/deploy/env/development.env.example",
+    "projects/unexamine/deploy/env/test.env.example",
+    "projects/unexamine/deploy/env/production.nonsecret.env.example",
+    "projects/unexamine/deploy/package-manifest.example.json",
+    "projects/unexamine/tools/regenerate-base.ps1",
+    "projects/unexamine/tools/verify-product-release-direct-api.mjs",
+    "projects/unexamine/tools/verify-product-release-direct-browser.mjs",
+    "projects/unexamine/tools/verify-product-release-direct-deploy-db.ps1",
+    "projects/unexamine/ai/planning/product-closure-audit.md",
+    "projects/unexamine/ai/planning/spark-execution-plan.md"
+  ],
+  "checks_actual_results": [
+    "JDK 21 已通过的同一后端 JAR 和 Node 24 已通过的同一前端构建制成 manifest v3 的 0.1.0-s19.7-dev5；JAR、前端逐文件、前端服务脚本及 ZIP SHA-256 校验通过。现行包不包含 Compose、Nginx 或 MySQL/Redis 服务定义。",
+    "在现有 Docker mysql、redis 容器上只创建隔离数据库 unexamine_s19_direct；空库首装迁移到 V23，仅启动一个 Java 后端和一个 Node 前端。API 在前端同源端口登录、创建系统并进入；Edge 浏览器重新登录和进入同一系统，页面截图已目视检查。",
+    "同一安装目录完成停启、同版更新、回切和重新发布到 dev5；系统记录在 V23 库保留。只读核对运行中的两个应用 PID、原有两个容器、发布指针及三个制品哈希。",
+    "直接调用现有 mysql 容器内 mysqldump 生成单事务 SQL、空文件存储 ZIP、配置快照和密钥引用四件备份；四个长度与 SHA-256 有效，SQL 包含创建的系统，Flyway V23 与 191 张总表一致。",
+    "篡改前端服务脚本的发布预检因 SHA-256 不匹配拒绝；把 APP_DB_URL 指向非所选 MySQL 容器端口的预检拒绝，均未切换版本或停止现行两进程。PowerShell 脚本解析、Node 语法、workspace-validate 和 execution-context 通过。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s19-direct-deployment-api.json",
+    "projects/unexamine/ai/evidence/s19-direct-deployment-browser.json",
+    "projects/unexamine/ai/evidence/s19-direct-deployment-browser.png",
+    "projects/unexamine/ai/evidence/s19-direct-deployment-readback.json",
+    "projects/unexamine/ai/evidence/s19-direct-deployment-negative.json",
+    "projects/unexamine/ai/evidence/s19-direct-deployment-port-denial.json",
+    "projects/unexamine/release/0.1.0-s19.7-dev5/manifest.json",
+    "projects/unexamine/release/0.1.0-s19.7-dev5.zip",
+    "projects/unexamine/release/0.1.0-s19.7-dev5.zip.sha256.json"
+  ],
+  "permission_or_failure_result": "篡改前端服务脚本和错误 MySQL 端口在停止现行服务前被拒绝；发布/回切仅改动两个记录的应用进程，现有 mysql、redis 容器保持运行。",
+  "candidate": {
+    "buildVersion": "0.1.0-s19.7-dev5",
+    "mode": "one-java-one-node-existing-docker-dependencies",
+    "databaseVersion": "23",
+    "backendSha256": "ed303e36d059104b76f314b39a193113d4d32082e966e33d28cacb6782ba2135",
+    "frontendServerSha256": "b11fe663580229dcc5d564fe1761d521c8eb661eb081327fbae88684c2cc926f",
+    "zipSha256": "e30bcf138d7a9e7e1845be2293ed29e13dd4d7aa3686df06fc04162fa0f66583"
+  },
+  "control_limit": "当前包仅在隔离本地环境验证；旧 S19.2 Nginx 包的历史恢复证据不能当作当前包恢复证据。真实生产配置和身份源、AD/企业渠道/JIT、历史打印文件字节及全量需求追溯仍未签收。G18 与 S18.39 未验证。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/deploy/scripts/frontend-server.mjs",
+      "sha256": "b11fe663580229dcc5d564fe1761d521c8eb661eb081327fbae88684c2cc926f"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/common.ps1",
+      "sha256": "9ee72fb935e698c061378bee59871fcb1b8e01b49b159f5a9e7a92a4ad3b345e"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/start.ps1",
+      "sha256": "8060ebd117b4db656afa617df375e80e3ad0de02b1943a6fcfd1a5bce2425384"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/stop.ps1",
+      "sha256": "13b68c8fb78f8f3d33521397bc9924a66c20df44cbcdc35b577391847b933abb"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/build-package.ps1",
+      "sha256": "14409ca8bcdd0aa08977ae925dc76e70bc11fbe4e65f4bca93459de01ae88382"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/deploy.ps1",
+      "sha256": "3265a2758da6144b71c55991add7fadf7a0d883557639e5d1451803e0abec288"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/rollback.ps1",
+      "sha256": "78c155a57f6949b313f320a69e9b235d0352a51801eed29964432e85a3d8475f"
+    },
+    {
+      "path": "projects/unexamine/deploy/scripts/backup.ps1",
+      "sha256": "f65f43f9ebf1d696bffe2cd55e891e4adcddc60a15b0333b57f3e31e2ccfc5ea"
+    },
+    {
+      "path": "projects/unexamine/deploy/README.md",
+      "sha256": "a53e54b088741036e1457b8c7e228aab67c13cac9db70414add3c7248112fd2e"
+    },
+    {
+      "path": "projects/unexamine/deploy/local.env.example",
+      "sha256": "aabca24b4b53d9bc60fb2c79622244d16baf279265c3b634daf676122926cd5b"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/development.env.example",
+      "sha256": "0a086bc6bd135980b1750fceda14d635a6fdc3074c9ce7aaf91330817b67e67b"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/test.env.example",
+      "sha256": "7ad7081108df206baa849ecd53ec6d6a27383b930257f2d7587cef7c9444d414"
+    },
+    {
+      "path": "projects/unexamine/deploy/env/production.nonsecret.env.example",
+      "sha256": "910951645e925253c798d909e8de9db8628b44d3ab57268e4e480fcf9a85ab73"
+    },
+    {
+      "path": "projects/unexamine/deploy/package-manifest.example.json",
+      "sha256": "1e09c5d3a4e577ec5c35356742b64a9acb7bfa1ff1cfccf7651d9a7f950be9cb"
+    },
+    {
+      "path": "projects/unexamine/tools/regenerate-base.ps1",
+      "sha256": "f0f75751b5ab7bff14d92793361cd41eb7647d2cea004fe024baf8039e01ba79"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-direct-api.mjs",
+      "sha256": "515190b44f303b0d266e292f8faeebb0ffd78b89cc0d26a637c489eb96c8bcd3"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-direct-browser.mjs",
+      "sha256": "9317c0462e3f2054779fd7f10d74e10efb3529a3d16783acb62b55dad4883a96"
+    },
+    {
+      "path": "projects/unexamine/tools/verify-product-release-direct-deploy-db.ps1",
+      "sha256": "c425431ba2577bec1d0f674fdaa9a2f59e098045e272db5363b27bc898840a71"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/product-closure-audit.md",
+      "sha256": "f54e072cbdf53be0218074630cab81d7b0a7f3470aa3db9163b6d6fc122eb3a3"
+    },
+    {
+      "path": "projects/unexamine/ai/planning/spark-execution-plan.md",
+      "sha256": "e94624f338dc01d6c195b82260a754cf8561f86ba6e4e23014ec8ad47c07b91d"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.7-dev5/manifest.json",
+      "sha256": "33a3530ca33beed96e6e65e765c62741eb806f598ceb32be1a746cfc0625e1f5"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.7-dev5.zip",
+      "sha256": "e30bcf138d7a9e7e1845be2293ed29e13dd4d7aa3686df06fc04162fa0f66583"
+    },
+    {
+      "path": "projects/unexamine/release/0.1.0-s19.7-dev5.zip.sha256.json",
+      "sha256": "db4610782d79e3eb2b947805c38a14e5cdd0188061103fb3d46eba1df32ec280"
+    }
+  ],
+  "remaining": "G18_PRODUCT_RELEASE 继续进行。S19.8 从第 5.1 节 AD/JIT 和同一系统成员准入中选取下一项可执行发布阻断；S18.39 延后。",
+  "next_step": "S19.8"
+}

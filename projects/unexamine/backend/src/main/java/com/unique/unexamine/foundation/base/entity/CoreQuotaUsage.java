@@ -10,33 +10,54 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 配额周期内的已用和预留计数
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_quota_usage")
+@TableName("un_core_quota_usage")
 public class CoreQuotaUsage {
 
+    /**
+     * 周期配额用量主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属配额策略主键
+     */
     @TableField("quota_policy_id")
     private Long quotaPolicyId;
 
+    /**
+     * 配额统计周期标识
+     */
     @TableField("period_key")
     private String periodKey;
 
+    /**
+     * 当前周期已正式占用的配额量
+     */
     @TableField("used_value")
     private Long usedValue;
 
+    /**
+     * 当前周期已预留但尚未正式占用的配额量
+     */
     @TableField("reserved_value")
     private Long reservedValue;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 配额用量最后更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 配额用量乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -81,12 +102,12 @@ public class CoreQuotaUsage {
         this.reservedValue = reservedValue;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -105,7 +126,7 @@ public class CoreQuotaUsage {
             ", periodKey = " + periodKey +
             ", usedValue = " + usedValue +
             ", reservedValue = " + reservedValue +
-            ", updatedAt = " + updatedAt +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

@@ -10,69 +10,126 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 流程定时与异步等待任务
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("flow_job")
+@TableName("un_flow_job")
 public class FlowJob {
 
+    /**
+     * 主键ID
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属流程实例ID
+     */
     @TableField("instance_id")
     private Long instanceId;
 
+    /**
+     * 关联节点执行轮次ID
+     */
     @TableField("execution_id")
     private Long executionId;
 
+    /**
+     * 流程节点稳定编码
+     */
     @TableField("node_key")
     private String nodeKey;
 
+    /**
+     * 流程任务类型
+     */
     @TableField("job_type")
     private String jobType;
 
+    /**
+     * 当前业务状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 流程异步任务内容
+     */
     @TableField("payload_json")
     private String payloadJson;
 
+    /**
+     * 操作幂等键
+     */
     @TableField("idempotency_key")
     private String idempotencyKey;
 
+    /**
+     * 已尝试执行次数
+     */
     @TableField("attempt_count")
     private Integer attemptCount;
 
+    /**
+     * 最大允许执行次数
+     */
     @TableField("max_attempts")
     private Integer maxAttempts;
 
-    @TableField("next_run_at")
-    private LocalDateTime nextRunAt;
+    /**
+     * 下次可执行时间
+     */
+    @TableField("next_run_time")
+    private LocalDateTime nextRunTime;
 
-    @TableField("locked_at")
-    private LocalDateTime lockedAt;
+    /**
+     * 任务锁定时间
+     */
+    @TableField("lock_time")
+    private LocalDateTime lockTime;
 
+    /**
+     * 当前执行节点标识
+     */
     @TableField("locked_by")
     private String lockedBy;
 
+    /**
+     * 最近一次失败编码
+     */
     @TableField("last_error_code")
     private String lastErrorCode;
 
+    /**
+     * 最近一次失败说明
+     */
     @TableField("last_error_message")
     private String lastErrorMessage;
 
-    @TableField("completed_at")
-    private LocalDateTime completedAt;
+    /**
+     * 任务完成时间
+     */
+    @TableField("complete_time")
+    private LocalDateTime completeTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 最后修改时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -157,20 +214,20 @@ public class FlowJob {
         this.maxAttempts = maxAttempts;
     }
 
-    public LocalDateTime getNextRunAt() {
-        return nextRunAt;
+    public LocalDateTime getNextRunTime() {
+        return nextRunTime;
     }
 
-    public void setNextRunAt(LocalDateTime nextRunAt) {
-        this.nextRunAt = nextRunAt;
+    public void setNextRunTime(LocalDateTime nextRunTime) {
+        this.nextRunTime = nextRunTime;
     }
 
-    public LocalDateTime getLockedAt() {
-        return lockedAt;
+    public LocalDateTime getLockTime() {
+        return lockTime;
     }
 
-    public void setLockedAt(LocalDateTime lockedAt) {
-        this.lockedAt = lockedAt;
+    public void setLockTime(LocalDateTime lockTime) {
+        this.lockTime = lockTime;
     }
 
     public String getLockedBy() {
@@ -197,28 +254,28 @@ public class FlowJob {
         this.lastErrorMessage = lastErrorMessage;
     }
 
-    public LocalDateTime getCompletedAt() {
-        return completedAt;
+    public LocalDateTime getCompleteTime() {
+        return completeTime;
     }
 
-    public void setCompletedAt(LocalDateTime completedAt) {
-        this.completedAt = completedAt;
+    public void setCompleteTime(LocalDateTime completeTime) {
+        this.completeTime = completeTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -242,14 +299,14 @@ public class FlowJob {
             ", idempotencyKey = " + idempotencyKey +
             ", attemptCount = " + attemptCount +
             ", maxAttempts = " + maxAttempts +
-            ", nextRunAt = " + nextRunAt +
-            ", lockedAt = " + lockedAt +
+            ", nextRunTime = " + nextRunTime +
+            ", lockTime = " + lockTime +
             ", lockedBy = " + lockedBy +
             ", lastErrorCode = " + lastErrorCode +
             ", lastErrorMessage = " + lastErrorMessage +
-            ", completedAt = " + completedAt +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", completeTime = " + completeTime +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

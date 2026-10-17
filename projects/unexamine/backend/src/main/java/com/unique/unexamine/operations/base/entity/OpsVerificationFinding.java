@@ -10,48 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 验收发现的问题及整改证据
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_verification_finding")
+@TableName("un_ops_verification_finding")
 public class OpsVerificationFinding {
 
+    /**
+     * 验收发现问题主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属验收运行主键
+     */
     @TableField("verification_run_id")
     private Long verificationRunId;
 
+    /**
+     * 问题严重程度
+     */
     @TableField("severity")
     private String severity;
 
+    /**
+     * 问题稳定编码
+     */
     @TableField("finding_code")
     private String findingCode;
 
+    /**
+     * 问题标题
+     */
     @TableField("title")
     private String title;
 
+    /**
+     * 复现步骤、预期与实际结果
+     */
     @TableField("detail_text")
     private String detailText;
 
+    /**
+     * 日志、截图或读回数据证据引用
+     */
     @TableField("evidence_json")
     private String evidenceJson;
 
+    /**
+     * 问题处理状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 解决问题的平台账号主键
+     */
     @TableField("resolved_by_account_id")
     private Long resolvedByAccountId;
 
-    @TableField("resolved_at")
-    private LocalDateTime resolvedAt;
+    /**
+     * 问题解决时间
+     */
+    @TableField("resolve_time")
+    private LocalDateTime resolveTime;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 问题登记时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
+    /**
+     * 问题记录乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -128,20 +164,20 @@ public class OpsVerificationFinding {
         this.resolvedByAccountId = resolvedByAccountId;
     }
 
-    public LocalDateTime getResolvedAt() {
-        return resolvedAt;
+    public LocalDateTime getResolveTime() {
+        return resolveTime;
     }
 
-    public void setResolvedAt(LocalDateTime resolvedAt) {
-        this.resolvedAt = resolvedAt;
+    public void setResolveTime(LocalDateTime resolveTime) {
+        this.resolveTime = resolveTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     public Integer getVersion() {
@@ -164,8 +200,8 @@ public class OpsVerificationFinding {
             ", evidenceJson = " + evidenceJson +
             ", status = " + status +
             ", resolvedByAccountId = " + resolvedByAccountId +
-            ", resolvedAt = " + resolvedAt +
-            ", createdAt = " + createdAt +
+            ", resolveTime = " + resolveTime +
+            ", createTime = " + createTime +
             ", version = " + version +
             "}";
     }

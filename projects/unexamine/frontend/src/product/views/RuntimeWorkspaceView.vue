@@ -14,7 +14,6 @@ import { authorizedBlob, saveBlob } from '../file'
 import { allowsPermission } from '../permissions'
 import ModuleImportDrawer from '../components/ModuleImportDrawer.vue'
 import ModuleExportDrawer from '../components/ModuleExportDrawer.vue'
-import ModuleRangeSharingDrawer from '../components/ModuleRangeSharingDrawer.vue'
 import ProductPageHeader from '../components/ProductPageHeader.vue'
 import ProductPage from '../components/ProductPage.vue'
 import ProductListWorkspace from '../components/ProductListWorkspace.vue'
@@ -25,7 +24,7 @@ import SchemaRecordTable from '../components/SchemaRecordTable.vue'
 import SchemaRecordDetail from '../components/SchemaRecordDetail.vue'
 import { listPageSettings, type PageColumn } from '../page-layout'
 import { parseFormLayout } from '../form-layout'
-import { fieldFamily, isSharedRuntimeField } from '../field-capabilities'
+import { fieldFamily, formatMoneyValue, formatPlaceFieldValue, formatTemporalFieldValue, isSharedRuntimeField } from '../field-capabilities'
 import { richPlainText, structuredSummary, emptyJsonValue, newJsonSchema, type JsonSchema } from '../structured-content'
 import ProductFilterBar from '../components/ProductFilterBar.vue'
 import ProductDetailDrawer from '../components/ProductDetailDrawer.vue'
@@ -35,7 +34,8 @@ import PersonSelect from '../components/PersonSelect.vue'
 import DepartmentSelect from '../components/DepartmentSelect.vue'
 import BusinessAttachmentsPanel from '../components/BusinessAttachmentsPanel.vue'
 import AiContextAssistantPanel from '../components/AiContextAssistantPanel.vue'
-import { productDateTime, userFacingRecordNumber, userFacingWorkspaceName } from '../presentation'
+import AiErrorExplanation from '../components/AiErrorExplanation.vue'
+import { productDateTime, productStatus, userFacingRecordNumber, userFacingWorkspaceName } from '../presentation'
 import type {
   ConfiguredAction,
   RuntimeField,
@@ -137,13 +137,32 @@ const detail = ref<RuntimeRecord>()
 const printTemplates = ref<RuntimePrintTemplate[]>([])
 const printOpen = ref(false)
 const printing = ref(false)
-const selectedPrintTemplateId = ref<number>()
+const selectedPrintTemplateVersionId = ref<number>()
 const printJob = ref<PrintJob>()
 const printPreviewUrl = ref('')
 const timeline = ref<RuntimeRecordTimeline['entries']>([])
+interface RuntimeRecordComment {
+  id: number
+  body: string
+  parentCommentId?: number | null
+  createdByMemberId: number
+  createdByName: string
+  createdTime: string
+}
+const recordComments = ref<RuntimeRecordComment[]>([])
+const commentsPage = ref(1)
+const commentsTotal = ref(0)
+const commentsLoading = ref(false)
+const commentsError = ref('')
+const commentSubmitting = ref(false)
+const commentSubmitError = ref('')
+const commentDraft = ref('')
+const replyToCommentId = ref<number>()
+let commentsRequest = 0
 const editing = ref<RuntimeRecord>()
 const formConfiguration = ref<RuntimeModuleConfiguration>()
 const formError = ref('')
+const formApiError = ref<ApiError>()
 const fieldErrors = reactive<Record<string, string>>({})
 const lifecycleOpen = ref(false)
 let lifecycleDialogRequest = 0
@@ -152,9 +171,10 @@ const lifecycleAction = ref<'ARCHIVE' | 'DELETE' | 'RESTORE'>('ARCHIVE')
 const lifecycleRecord = ref<RuntimeRecord>()
 const lifecycleImpact = ref<RuntimeRecordLifecycleImpact>()
 const lifecycleReason = ref('')
-const batchDeleteTargets = ref<RuntimeRecord[]>([])
-const batchDeleteResults = ref<RuntimeBatchItem<RuntimeRecord>[]>([])
-const batchDeleteAction = createRuntimeBatchAction<RuntimeRecord>()
+const replacementRecordInput = ref('')
+const batchLifecycleTargets = ref<RuntimeRecord[]>([])
+const batchLifecycleResults = ref<RuntimeBatchItem<RuntimeRecord>[]>([])
+const batchLifecycleAction = createRuntimeBatchAction<RuntimeRecord>()
 const transferOpen = ref(false)
 const transferSaving = ref(false)
 const transferRecord = ref<RuntimeRecord>()
@@ -163,6 +183,7 @@ const transferAction = createRuntimeAction()
 const confirmedTransferRequest = ref<{ version: number; ownerMemberId: number; departmentId?: number; participantMemberIds: number[]; reason: string }>()
 const peopleDirectory = ref<SystemPeopleDirectory>({ departments: [], people: [], permissionVersion: 0 })
 const formOrganizationOptions = reactive<Record<string, SystemPeopleDirectory>>({})
+const formTeamDirectory = ref<SystemPeopleDirectory>()
 const transferOrganizationOptions = ref<SystemPeopleDirectory>()
 const manualOrganizationOptions = reactive<Record<string, SystemPeopleDirectory>>({})
 let formOrganizationRequest = 0
@@ -184,7 +205,6 @@ const batchConversionAction = createRuntimeBatchAction<RuntimeRecord, RuntimeRec
 const batchConversionRetryPreviewed = ref(false)
 const batchConversionFailed = computed(() => batchConversionResults.value.filter(item => item.status === 'FAILED'))
 const shareOpen = ref(false)
-const rangeSharingOpen = ref(false)
 const shareSaving = ref(false)
 const shareRecord = ref<RuntimeRecord>()
 const shareTargets = ref<TenantShareTarget[]>([])
@@ -192,7 +212,8 @@ const shareRows = ref<RuntimeTenantShare[]>([])
 const shareForm = reactive({ targetTenantId: undefined as number | undefined, allowedActions: [] as string[], expiresAt: '' })
 const form = reactive({
   title: '', recordNumber: '', status: 'ACTIVE', ownerMemberId: undefined as number | undefined,
-  departmentId: undefined as number | undefined, participantText: '', fields: {} as Record<string, unknown>,
+  departmentId: undefined as number | undefined, collaboratorMemberIds: [] as number[],
+  readOnlyMemberIds: [] as number[], followerMemberIds: [] as number[], fields: {} as Record<string, unknown>,
 })
 const formSnapshot = ref('')
 const formDraftRestored = ref(false)
@@ -210,7 +231,7 @@ const formReferenceSearchRequest = new Map<string, number>()
 const formReferenceSearchTimers = new Map<string, ReturnType<typeof setTimeout>>()
 let referenceRequest = 0
 let configurationRequest = 0
-type ManualActionConfig = { operation?: string; parameterFieldCodes?: string[]; confirmation?: boolean; confirmationText?: string }
+type ManualActionConfig = { operation?: string; parameterFieldCodes?: string[]; statusValue?: string; confirmation?: boolean; confirmationText?: string }
 const manualActionOpen = ref(false)
 const manualActionSaving = ref(false)
 const manualAction = ref<import('../types').ConfiguredAction>()
@@ -231,14 +252,21 @@ const manualActionResults = ref<RuntimeBatchItem<RuntimeRecord>[]>([])
 let manualBatchAction = createRuntimeBatchAction<RuntimeRecord>()
 
 const token = computed(() => systemTokens.value?.accessToken || '')
-const selectedPrintTemplate = computed(() => printTemplates.value.find(item => item.templateId === selectedPrintTemplateId.value))
+const selectedPrintTemplate = computed(() => printTemplates.value.find(item => item.versionId === selectedPrintTemplateVersionId.value))
 function configurationFields(current: RuntimeModuleConfiguration | undefined) {
   return current?.configuration.fields.filter(field => field.status === 'ACTIVE'
     && (field.access?.readable !== false || field.access?.writable === true)) || []
 }
 const fields = computed(() => configurationFields(configuration.value))
+/** 子表列仅属于父容器的行，不能再次进入主记录列表、筛选目录或详情字段。 */
+const childFieldCodes = computed(() => new Set((configuration.value?.configuration.fields || [])
+  .filter(field => field.parentFieldId != null).map(field => field.code)))
+function childFields(parent: RuntimeField, current = formConfiguration.value, writable = true) {
+  return configurationFields(current).filter(field => field.parentFieldId === parent.id
+    && (writable ? pageWritable(field) && !Boolean(fieldConfig(field).readOnly) : field.access?.readable !== false))
+}
 const fieldsForPage = (pageType: string, current = configuration.value) => {
-  const available = configurationFields(current)
+  const available = configurationFields(current).filter(field => !field.parentFieldId)
   const page = current?.configuration.pages.find((item) => item.pageType === pageType)
   if (!page) return available
   try {
@@ -251,7 +279,8 @@ const fieldsForPage = (pageType: string, current = configuration.value) => {
 function writableFormFields(current: RuntimeModuleConfiguration | undefined) {
   if (!current) return []
   return fieldsForPage('FORM', current).filter(field => pageWritable(field)
-    && !field.fieldType.startsWith('SYSTEM_') && !Boolean(fieldConfig(field).readOnly))
+    && !field.fieldType.startsWith('SYSTEM_') && field.fieldType !== 'AUTO_NUMBER'
+    && !Boolean(fieldConfig(field).readOnly))
 }
 const listFields = computed(() => fieldsForPage('LIST').filter((field) => field.access?.readable !== false))
 const formFields = computed(() => writableFormFields(formConfiguration.value))
@@ -261,12 +290,25 @@ const detailFields = computed(() => fieldsForPage('DETAIL')
 const attachmentFieldTypes = new Set(['ATTACHMENT', 'IMAGE', 'FILE', 'FILE_GROUP'])
 const recordAttachmentFields = computed(() => detailFields.value.filter(field => attachmentFieldTypes.has(field.fieldType)))
 const detailValueFields = computed(() => detailFields.value.filter(field => !attachmentFieldTypes.has(field.fieldType)))
+const detailSubtables = computed(() => detail.value?.shared ? [] : detailFields.value
+  .filter(field => field.fieldType === 'SUBTABLE')
+  .map(parent => ({
+    parent,
+    columns: childFields(parent, configuration.value, false),
+    rows: Array.isArray(detail.value?.fields[parent.code])
+      ? detail.value!.fields[parent.code] as Array<{ rowKey: string; fields: Record<string, unknown>; displayFields?: Record<string, string> }> : [],
+  })))
 const detailReadFields = computed(() => detail.value?.fieldPresentation ? recordReadFields(detail.value) : undefined)
 const formLayout = computed(() => formConfiguration.value?.configuration.pages.find(page => page.pageType === 'FORM')?.layoutJson)
 const listLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'LIST')?.layoutJson)
 const detailLayout = computed(() => configuration.value?.configuration.pages.find(page => page.pageType === 'DETAIL')?.layoutJson)
 const listCaption = computed(() => String(parseFormLayout(listLayout.value).components?.find(component => component.type === 'TABLE')?.title || ''))
-const formValueFields = computed(() => formFields.value)
+/** 自动编号由服务端在保存时生成，表单可展示已生成值，但不参与用户编辑与提交。 */
+const formValueFields = computed(() => fieldsForPage('FORM', formConfiguration.value)
+  .filter(field => formFields.value.some(item => item.code === field.code)
+    || field.fieldType === 'AUTO_NUMBER' && field.access?.readable !== false))
+const formHasSecretFields = computed(() => formFields.value.some(field => field.fieldType === 'SECRET'
+  || field.fieldType === 'SUBTABLE' && childFields(field).some(column => column.fieldType === 'SECRET')))
 const recordTitleField = computed(() => formValueFields.value.find(field => field.required
   && ['TEXT', 'MULTILINE_TEXT', 'PHONE', 'EMAIL', 'URL'].includes(field.fieldType)
   && !Boolean(fieldConfig(field).sensitive)))
@@ -278,7 +320,13 @@ const canUseAi = computed(() => allowsPermission(systemContext.value?.permission
 const recordAttachmentEndpoint = computed(() => detail.value && selectedAttachmentField.value
   ? `/api/business-attachments/records/${activeCode.value}/${detail.value.id}/fields/${selectedAttachmentField.value.code}` : '')
 const actions = computed(() => sharedRecordsMode.value ? [] : configuration.value?.configuration.actions || [])
+// 业务动作可写入管理员配置的状态值；未知值应原样展示，避免把真实状态误报为待确认。
+function recordStatusLabel(status?: string | null) {
+  return status && productStatus(status).label === '状态待确认' ? status : undefined
+}
 const manualActionFields = computed(() => manualActionContexts.value[0]?.parameters || [])
+const manualActionOperation = computed(() => manualActionContexts.value[0]?.operation || 'UPDATE_FIELDS')
+const manualActionStatusValue = computed(() => manualActionContexts.value[0]?.statusValue || '')
 const activeModule = computed(() => modules.value.find((item) => item.moduleCode === activeCode.value))
 const sharedRecordsMode = computed(() => activeModule.value?.configurationMode === 'SHARED_RECORDS')
 const groupedModules = computed(() => {
@@ -291,6 +339,21 @@ const groupedModules = computed(() => {
 })
 const activeGroup = computed(() => groupedModules.value.find(group =>
   group.modules.some(module => module.moduleCode === activeCode.value)) || groupedModules.value[0])
+const groupTabs = ref<HTMLElement>()
+
+// 从首页或业务链接进入模块时，顶部导航应直接露出其所属分组。
+watch(() => activeGroup.value?.id, async groupId => {
+  if (!groupId) return
+  await nextTick()
+  const tabs = groupTabs.value
+  const button = tabs?.querySelector<HTMLElement>(`[data-group-id="${groupId}"]`)
+  if (!tabs || !button) return
+  const tabsRect = tabs.getBoundingClientRect()
+  const buttonRect = button.getBoundingClientRect()
+  if (buttonRect.left < tabsRect.left || buttonRect.right > tabsRect.right) {
+    tabs.scrollTo({ left: tabs.scrollLeft + buttonRect.left - tabsRect.left - 8, behavior: 'smooth' })
+  }
+})
 
 function selectGroup(groupId: number) {
   const group = groupedModules.value.find(item => item.id === groupId)
@@ -314,7 +377,7 @@ const currentColumns = computed<RuntimeColumn[]>(() => {
   const configured = new Map(configuredColumns.value.map(column => [column.code, column]))
   const source = new Map(sourceColumns(records.value, configuredColumns.value).map(column => [column.code, column]))
   const builtins = new Set(['title', 'recordNumber', 'status', 'ownerMemberId', 'departmentId', 'createdAt', 'updatedAt', 'dataTenantName'])
-  return queryFields.value.map(field => configured.get(field.code) || source.get(field.code)
+  return queryFields.value.filter(field => !childFieldCodes.value.has(field.code)).map(field => configured.get(field.code) || source.get(field.code)
     || { code: field.code, label: field.name, width: 140, readOnlySource: !builtins.has(field.code) })
 })
 // 可展示但不可查询的保护后字段只随当前页存在，不进入个人列持久化。
@@ -348,13 +411,26 @@ const rowSelection = computed(() => ({
   onChange: (keys: Array<string | number>) => { selectedRowKeys.value = keys.map(Number) },
 }))
 const formDirty = computed(() => formOpen.value && (formSnapshot.value !== serializeForm()
-  || formFields.value.some(field => field.fieldType === 'SECRET' && form.fields[field.code] !== undefined && form.fields[field.code] !== '')))
+  || formFields.value.some(field => field.fieldType === 'SECRET' && form.fields[field.code] !== undefined && form.fields[field.code] !== '')
+  || formFields.value.some(parent => parent.fieldType === 'SUBTABLE' && Array.isArray(form.fields[parent.code])
+    && (form.fields[parent.code] as Array<{ fields?: Record<string, unknown> }>).some(row => childFields(parent)
+      .some(column => column.fieldType === 'SECRET' && row.fields?.[column.code] !== undefined && row.fields?.[column.code] !== '')))))
 
 function hasAction(code: string) {
   if (sharedRecordsMode.value) return false
-  return actions.value.some((action) => action.code === code && action.status === 'ACTIVE')
-    && allowsPermission(systemContext.value?.permissions, 'MODULE', activeCode.value, code)
+  const action = actions.value.find(item => item.code === code && item.status === 'ACTIVE')
+  return Boolean(action) && (allowsPermission(systemContext.value?.permissions, 'MODULE', activeCode.value, code)
+    || code === 'DASHBOARD' && Boolean(action?.legacyDashboardCompatibility)
+      && allowsPermission(systemContext.value?.permissions, 'MODULE', activeCode.value, 'LIST'))
 }
+
+/** 模块协作功能读取当前发布的详情动作；老版本没有开关时保留原有入口。 */
+function moduleFunctionEnabled(key: 'commentEnabled' | 'teamEnabled') {
+  const detailAction = actions.value.find(action => action.code === 'DETAIL')
+  try { return JSON.parse(detailAction?.configJson || '{}')[key] !== false }
+  catch { return true }
+}
+const teamEnabled = computed(() => moduleFunctionEnabled('teamEnabled'))
 
 function openAiCreate() {
   void router.replace({ path: route.path, query: { ...route.query, workspace: 'ai', aiMode: 'write', module: activeCode.value } })
@@ -364,8 +440,6 @@ function recordAllowsAction(record: RuntimeRecord, code: string) {
   if (Array.isArray(record.actions)) return record.actions.some(action => action.code === code && action.status === 'ACTIVE')
   return record.ownedByCurrentTenant && !record.shared && hasAction(code)
 }
-const canManageRangeShares = computed(() => Boolean(activeCode.value && configuration.value
-  && !sharedRecordsMode.value && hasAction('SHARE')))
 
 function recordActions(record: RuntimeRecord): ConfiguredAction[] {
   if (Array.isArray(record.actions)) return record.actions.filter(action => action.status === 'ACTIVE')
@@ -388,7 +462,7 @@ const batchActionList = computed(() => {
 })
 
 const shareActionOptions = computed(() => actions.value
-  .filter((action) => !['LIST', 'DETAIL', 'CREATE', 'RESTORE', 'SHARE'].includes(action.code))
+  .filter((action) => !['LIST', 'DETAIL', 'CREATE', 'RESTORE', 'SHARE', 'CONVERT', 'DASHBOARD'].includes(action.code))
   .map((action) => ({ label: action.name, value: action.code })))
 
 function actionNames(codes: string[]) {
@@ -402,7 +476,27 @@ function runPageUtility(key: string) {
 }
 
 const selectedActionRecord = computed(() => selectedRowKeys.value.length === 1 ? records.value.find(record => record.id === selectedRowKeys.value[0]) : undefined)
+const deleteNeedsReplacement = computed(() => lifecycleAction.value === 'DELETE' && !batchLifecycleTargets.value.length
+  && (lifecycleImpact.value?.incomingRelationCount || 0) > 0)
+const replacementRecordId = computed(() => {
+  const input = replacementRecordInput.value.trim()
+  if (!/^[1-9]\d*$/.test(input)) return undefined
+  const id = Number(input)
+  return Number.isSafeInteger(id) && id !== lifecycleRecord.value?.id ? id : undefined
+})
+/** 当前页只提示有权查看、与待删记录同模块同租户的正常记录；输入其他 ID 时仍由服务端校验。 */
+const replacementRecordOptions = computed(() => records.value.filter(record => record.id !== lifecycleRecord.value?.id
+  && record.dataTenantId === lifecycleRecord.value?.dataTenantId && record.ownedByCurrentTenant
+  && !record.shared && !record.archived && !record.deleted && canRecordAction('DETAIL', record))
+  .map(record => ({ value: String(record.id), label: `${record.title} · ${userFacingRecordNumber(record.recordNumber, '未设置业务编号')} · ID ${record.id}` })))
+function selectReplacementRecord(value: string | number) {
+  // AutoComplete 的输入变更与选项选择是两种事件；选中时明确写入选项 ID。
+  replacementRecordInput.value = String(value)
+}
 function canRecordAction(code: string, record: RuntimeRecord) {
+  const myRole = recordParticipantMembers(record).find(member => member.memberId === systemContext.value?.memberId)?.role
+  if ((myRole === 'READ_ONLY' || myRole === 'FOLLOWER') && record.ownerMemberId !== systemContext.value?.memberId
+    && !['LIST', 'DETAIL', 'PRINT'].includes(code)) return false
   if (Array.isArray(record.actions)) return recordAllowsAction(record, code)
   if (!record.ownedByCurrentTenant || record.shared) return false
   const configured = actions.value.find(action => action.code === code)
@@ -412,6 +506,12 @@ function canRecordAction(code: string, record: RuntimeRecord) {
   if (!actionAllowsRecord(configured || code, record, conversionTargetOptions.value.length > 0)) return false
   if (configured?.actionType === 'CUSTOM' && !actionVisibleForRecord(record)) return false
   return code !== 'UPDATE' || actionVisibleForRecord(record)
+}
+const canCommentOnDetail = computed(() => Boolean(detail.value?.ownedByCurrentTenant && !detail.value.shared
+  && moduleFunctionEnabled('commentEnabled') && canRecordAction('DETAIL', detail.value)))
+const replyToComment = computed(() => recordComments.value.find(comment => comment.id === replyToCommentId.value))
+function repliedAuthor(comment: RuntimeRecordComment) {
+  return recordComments.value.find(item => item.id === comment.parentCommentId)?.createdByName || '原评论作者'
 }
 function canPageAction(code: string) {
   const batch = batchActionList.value.find(action => action.code === code)
@@ -453,14 +553,15 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
     void openManualAction(configured, targets)
     return
   }
-  if (code === 'DELETE' && supportsBatchAction(configured) && !explicitRecord) {
+  if (['ARCHIVE', 'DELETE'].includes(code) && supportsBatchAction(configured) && !explicitRecord) {
     lifecycleDialogRequest++
-    batchDeleteTargets.value = records.value.filter(record => selectedRowKeys.value.includes(record.id)).map(record => recordWithoutSecrets(record))
-    batchDeleteResults.value = []
-    batchDeleteAction.clear()
-    lifecycleAction.value = 'DELETE'
+    batchLifecycleTargets.value = records.value.filter(record => selectedRowKeys.value.includes(record.id)).map(record => recordWithoutSecrets(record))
+    batchLifecycleResults.value = []
+    batchLifecycleAction.clear()
+    lifecycleAction.value = code as 'ARCHIVE' | 'DELETE'
     lifecycleImpact.value = undefined
     lifecycleReason.value = ''
+    replacementRecordInput.value = ''
     lifecycleOpen.value = true
     return
   }
@@ -472,10 +573,12 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
     LIST: () => { closeDetail(); void loadRecords() },
     CREATE: openCreate,
     IMPORT: () => { importOpen.value = true },
+    DASHBOARD: () => { void router.push({ path: route.path, query: { workspace: 'module-home', module: activeCode.value } }) },
     EXPORT: () => { if (explicitRecord) selectedRowKeys.value = [explicitRecord.id]; exportOpen.value = true },
     DETAIL: () => { if (record) void openDetail(record) },
     UPDATE: () => { if (record) void openEdit(record) },
     TRANSFER: () => { if (record) void openTransfer(record) },
+    APPROVAL: () => { if (record) void startApproval(record) },
     CONVERT: () => { if (record) void openConversion(record) },
     SHARE: () => { if (record) void openShare(record) },
     ARCHIVE: () => { if (record) void openLifecycle(record, 'ARCHIVE') },
@@ -483,6 +586,19 @@ function runConfiguredAction(code: string, explicitRecord?: RuntimeRecord) {
     RESTORE: () => { if (record) void openLifecycle(record, 'RESTORE') },
   }
   if (handlers[code]) runAction(code, handlers[code], configured)
+}
+
+/** 审批仅提交当前发布动作与记录编号，后端决定有效 Flow 及租户范围。 */
+async function startApproval(record: RuntimeRecord) {
+  if (!activeCode.value || !canRecordAction('APPROVAL', record)) return
+  try {
+    const result = await api<{ instance: { id: number }; replayed: boolean }>('/api/flow-runtime/module-approvals', {
+      method: 'POST', body: JSON.stringify({ moduleCode: activeCode.value, recordId: record.id,
+        idempotencyKey: crypto.randomUUID() }),
+    }, token.value)
+    message.success(result.replayed ? '审批申请已存在' : '审批已发起')
+    await router.push({ path: route.path, query: { ...route.query, workspace: 'flow', instanceId: String(result.instance.id) } })
+  } catch (reason) { message.error(readable(reason)) }
 }
 
 function actionConfiguration(code: string): ManualActionConfig & { targetModuleCode?: string; targets?: Array<{ moduleCode: string }> } {
@@ -508,6 +624,7 @@ function clearFormOrganizationOptions() {
   saving.value = false
   formOrganizationRequest++
   Object.keys(formOrganizationOptions).forEach(code => delete formOrganizationOptions[code])
+  formTeamDirectory.value = undefined
   formConfiguration.value = undefined
   Object.keys(formDictionaryOptions).forEach(code => delete formDictionaryOptions[code])
   Object.keys(formCascadeOptions).forEach(code => delete formCascadeOptions[code])
@@ -572,6 +689,45 @@ function formFieldDirectory(fieldCode: string) {
   return editing.value ? formOrganizationOptions[fieldCode] : peopleDirectory.value
 }
 
+type TeamRoleKey = 'collaboratorMemberIds' | 'readOnlyMemberIds' | 'followerMemberIds'
+const teamRoleKeys: TeamRoleKey[] = ['collaboratorMemberIds', 'readOnlyMemberIds', 'followerMemberIds']
+const formTeamPeople = computed(() => editing.value ? formTeamDirectory.value?.people || [] : peopleDirectory.value.people)
+
+/** 旧记录没有角色明细时仍按原有协作人展示，避免编辑后丢失已有成员。 */
+function recordParticipantMembers(record: RuntimeRecord) {
+  return Array.isArray(record.participantMembers) ? record.participantMembers
+    : record.participantMemberIds.map(memberId => ({ memberId, role: 'COLLABORATOR' as const }))
+}
+
+function recordTeamNames(record: RuntimeRecord, role: 'COLLABORATOR' | 'READ_ONLY' | 'FOLLOWER') {
+  return recordParticipantMembers(record).filter(member => member.role === role)
+    .map(member => organizationMemberName(record, member.memberId)).join('、') || '—'
+}
+
+function teamRoleExcluded(role: TeamRoleKey) {
+  return [form.ownerMemberId, ...teamRoleKeys.filter(key => key !== role).flatMap(key => form[key])]
+    .filter((memberId): memberId is number => typeof memberId === 'number')
+}
+
+function setTeamOwner(value: number | number[] | undefined) {
+  form.ownerMemberId = typeof value === 'number' ? value : undefined
+  if (form.ownerMemberId) teamRoleKeys.forEach(role => { form[role] = form[role].filter(id => id !== form.ownerMemberId) })
+}
+
+function setTeamRole(role: TeamRoleKey, value: number | number[] | undefined) {
+  const selected = Array.isArray(value) ? value : typeof value === 'number' ? [value] : []
+  const excluded = new Set(teamRoleExcluded(role))
+  form[role] = [...new Set(selected.filter(id => Number.isInteger(id) && id > 0 && !excluded.has(id)))]
+}
+
+function participantMembers() {
+  return [
+    ...form.collaboratorMemberIds.map(memberId => ({ memberId, role: 'COLLABORATOR' as const })),
+    ...form.readOnlyMemberIds.map(memberId => ({ memberId, role: 'READ_ONLY' as const })),
+    ...form.followerMemberIds.map(memberId => ({ memberId, role: 'FOLLOWER' as const })),
+  ]
+}
+
 /** 批量参数只能使用每条记录都授权的 ID；人员跨租户的部门信息不同则不展示。 */
 function intersectOrganizationOptions(directories: SystemPeopleDirectory[]): SystemPeopleDirectory {
   const first = directories[0]
@@ -606,6 +762,7 @@ function canonicalDefinition(value: unknown): string {
 
 function manualDefinition(context: RuntimeRecordActionContext) {
   return canonicalDefinition({ actionCode: context.actionCode, name: context.name,
+    operation: context.operation || 'UPDATE_FIELDS', statusValue: context.statusValue || '',
     confirmation: Boolean(context.confirmation), confirmationText: context.confirmationText || '', parameters: context.parameters.map(field => ({
     code: field.code, name: field.name, fieldType: field.fieldType, required: field.required,
     dictionaryId: field.dictionaryId ?? null, referenceModuleId: field.referenceModuleId ?? null,
@@ -674,7 +831,7 @@ async function loadManualOptions(context: ManualRequestContext, contexts: Runtim
         return loadLevel(undefined, 1)
       }))
       cascades[field.code] = intersectManualCascades(trees, Boolean(fieldConfig(field).allowIntermediate))
-    } else if (field.dictionaryId && ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS'].includes(field.fieldType)) {
+    } else if (field.dictionaryId && ['SINGLE_SELECT', 'MULTI_SELECT', 'TAG', 'STATUS'].includes(field.fieldType)) {
       const choices = await Promise.all(contexts.map(async item => {
         const query = new URLSearchParams({ actionCode: context.actionCode })
         const dictionary = await api<RuntimeDictionary>(`/api/runtime/modules/${context.moduleCode}/records/${item.record.id}/fields/${encodeURIComponent(field.code)}/dictionary?${query}`, {}, context.accessToken)
@@ -707,7 +864,10 @@ async function openManualAction(action: import('../types').ConfiguredAction, tar
       `/api/runtime/modules/${context.moduleCode}/records/${record.id}/actions/${encodeURIComponent(action.code)}/context`, {}, context.accessToken)))
     if (!manualRequestCurrent(context)) return
     if (contexts.some((item, index) => item.actionCode !== action.code || item.record.id !== targets[index]?.id)
-      || !contexts[0]?.parameters.length) throw new Error('动作上下文无效')
+      || !contexts[0] || (contexts[0].operation === 'SET_STATUS'
+        ? contexts[0].parameters.length !== 0 || !contexts[0].statusValue?.trim() || (contexts[0].statusValue || '').length > 64
+        : (contexts[0].operation && contexts[0].operation !== 'UPDATE_FIELDS')
+          || !contexts[0].parameters.length || contexts[0].parameters.length > 20)) throw new Error('动作上下文无效')
     const definition = manualDefinition(contexts[0])
     if (contexts.some(item => manualDefinition(item) !== definition)) {
       clearManualOrganizationOptions()
@@ -717,7 +877,8 @@ async function openManualAction(action: import('../types').ConfiguredAction, tar
     const catalogs = await loadManualOptions(context, contexts)
     if (!manualRequestCurrent(context)) return
     manualAction.value = { ...action, name: contexts[0].name,
-      configJson: JSON.stringify({ operation: 'UPDATE_FIELDS', parameterFieldCodes: contexts[0].parameters.map(field => field.code),
+      configJson: JSON.stringify({ operation: contexts[0].operation || 'UPDATE_FIELDS',
+        parameterFieldCodes: contexts[0].parameters.map(field => field.code), statusValue: contexts[0].statusValue,
         confirmation: Boolean(contexts[0].confirmation), confirmationText: contexts[0].confirmationText || '' }) }
     manualActionContexts.value = contexts.map(item => ({ ...item, record: recordWithoutSecrets(item.record, item.parameters) }))
     manualActionTargets.value = manualActionContexts.value.map(item => item.record)
@@ -784,7 +945,7 @@ function manualChoiceHint(field: RuntimeField) {
     ? !manualOrganizationOptions[field.code]?.people.length : !manualOrganizationOptions[field.code]?.departments.length)
     : field.fieldType === 'CASCADE' ? !manualCascadeOptions[field.code]?.length
     : field.fieldType === 'REFERENCE' ? !manualReferenceOptions[field.code]?.length
-    : ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS'].includes(field.fieldType) ? !manualOptions(field).length : false
+    : ['SINGLE_SELECT', 'MULTI_SELECT', 'TAG', 'STATUS'].includes(field.fieldType) ? !manualOptions(field).length : false
   if (empty) return manualActionTargets.value.length > 1
     ? '这些记录暂无共同可选项；需要选择新值时请按来源分开处理记录'
     : '当前暂无授权可选项；可以保留已返回值或清空非必填字段'
@@ -857,7 +1018,9 @@ async function submitManualAction(retryFailed = false) {
   const context = manualRequestContext
   if (!context || !manualActionOpen.value || !manualRequestCurrent(context) || manualActionSaving.value) return
   const fields = manualActionFields.value
-  if (!fields.length) { message.error('动作字段已经不可用，请联系管理员重新发布'); return }
+  if (!fields.length && (manualActionOperation.value !== 'SET_STATUS' || !manualActionStatusValue.value.trim())) {
+    message.error('动作配置已经不可用，请联系管理员重新发布'); return
+  }
   const missing = fields.find(field => field.required && !(field.fieldType === 'SECRET' && manualActionValues[field.code] === undefined)
     && (manualActionValues[field.code] === undefined || manualActionValues[field.code] === null || manualActionValues[field.code] === ''))
   if (missing) { message.warning(`请填写${missing.name}`); return }
@@ -866,6 +1029,7 @@ async function submitManualAction(retryFailed = false) {
     if (retryFailed && !await refreshRejectedManualContexts(context)) return
     if (!manualRequestCurrent(context)) return
     const targets = [...manualActionTargets.value]
+    const retriedCount = retryFailed ? manualActionResults.value.filter(item => item.status === 'FAILED').length : 0
     const values = manualSubmissionValues()
     const batchAction = manualBatchAction
     const result = await batchAction.submit(targets, manualActionResults.value, {
@@ -900,8 +1064,11 @@ async function submitManualAction(retryFailed = false) {
     if (!manualRequestCurrent(context)) return
     const failed = manualActionResults.value.filter(item => item.status === 'FAILED').length
     selectedRowKeys.value = manualActionResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId)
-    if (failed) message.warning(`${manualActionResults.value.length - failed} 条成功，${failed} 条失败，可只重试失败项`)
-    else message.success(`${manualActionResults.value.length} 条记录已提交`)
+    // 重试提示只统计本次发送的失败项，避免让用户误以为已成功记录再次提交。
+    if (failed) message.warning(retryFailed
+      ? `已重试 ${retriedCount} 条失败记录；当前 ${manualActionResults.value.length - failed} 条成功，${failed} 条失败`
+      : `${manualActionResults.value.length - failed} 条成功，${failed} 条失败，可只重试失败项`)
+    else message.success(retryFailed ? `${retriedCount} 条失败记录重试成功` : `${manualActionResults.value.length} 条记录已提交`)
   } catch (reason) { await rejectManualContext(context, reason) }
   finally { if (manualRequestCurrent(context)) manualActionSaving.value = false }
 }
@@ -957,7 +1124,6 @@ function workspaceReadCurrent(context: ReturnType<typeof workspaceReadContext>) 
 function clearModuleWorkspace() {
   moduleSelectionRequest++
   moduleInitializationSelection = undefined
-  rangeSharingOpen.value = false
   configurationRequest++
   savedViewsRequest++
   recordListRequest++
@@ -992,9 +1158,9 @@ function clearModuleWorkspace() {
   batchConversionTargets.value = []
   batchConversionPreviews.value = []
   batchConversionResults.value = []
-  batchDeleteAction.clear()
-  batchDeleteTargets.value = []
-  batchDeleteResults.value = []
+  batchLifecycleAction.clear()
+  batchLifecycleTargets.value = []
+  batchLifecycleResults.value = []
   lifecycleRecord.value = undefined
   deleteAction.clear()
   conversionSaving.value = false
@@ -1112,6 +1278,14 @@ function applyRouteListState() {
   const stateKeys = ['search', 'filters', 'lifecycle', 'tenantScope', 'sort', 'direction', 'page', 'pageSize']
   if (!stateKeys.some(key => routeValue(key) !== undefined && routeValue(key) !== null)) return
   queryRestoreError.value = ''
+  // 地址中的列表状态作为完整快照恢复；缺席的字段不能沿用个人默认视图，否则清除筛选后刷新会重新出现旧条件。
+  listFilters.value = []
+  lifecycleState.value = 'ACTIVE'
+  tenantScope.value = 'ALL'
+  sortField.value = 'updatedAt'
+  sortDirection.value = 'DESC'
+  page.value = 1
+  pageSize.value = 20
   searchText.value = String(routeValue('search') || '').slice(0, 200)
   const requestedLifecycle = String(routeValue('lifecycle') || '')
   if (['ACTIVE', 'ARCHIVED', 'DELETED'].includes(requestedLifecycle)) lifecycleState.value = requestedLifecycle as typeof lifecycleState.value
@@ -1129,7 +1303,8 @@ function applyRouteListState() {
 }
 
 function syncListRoute(recordId?: number) {
-  if (routeInitializing || !activeCode.value) return
+  // 首页动作可在列表初次加载期间触发；迟到的列表同步不能把已切换的首页地址覆盖回去。
+  if (routeInitializing || !activeCode.value || route.query.workspace !== 'runtime') return
   const query = { ...route.query, workspace: 'runtime', module: activeCode.value } as Record<string, string | undefined>
   const setOptional = (key: string, value: string, ordinary: string) => {
     if (value && value !== ordinary) query[key] = value
@@ -1151,12 +1326,11 @@ function syncListRoute(recordId?: number) {
   if (!unchanged) return router.replace({ path: route.path, query })
 }
 
-async function selectModule(code: string, fromRoute = false) {
+async function selectModule(code: string, fromRoute = false, recordVisit = true) {
   const selected = modules.value.find(module => module.moduleCode === code)
   if (!selected) return false
   moduleSelectionRequest++
   moduleInitializationSelection = moduleSelectionRequest
-  rangeSharingOpen.value = false
   configurationRequest++
   savedViewsRequest++
   recordListRequest++
@@ -1168,6 +1342,7 @@ async function selectModule(code: string, fromRoute = false) {
     records.value = []
     total.value = 0
     closeOrganizationDialogs()
+    clearRecordComments()
     detailOpen.value = false; detail.value = undefined; lastOpenedRouteRecordId.value = undefined
   }
   activeCode.value = code
@@ -1199,12 +1374,21 @@ async function selectModule(code: string, fromRoute = false) {
     if (!await loadSavedViews() || !current()) return false
     const preferred = savedViews.value.find((view) => view.defaultView)
     if (preferred) applySavedView(preferred, false)
-    if (fromRoute) applyRouteListState()
+    if (fromRoute) {
+      applyRouteListState()
+      // 链接中显式筛选覆盖个人默认视图时，不再把当前结果标为该视图。
+      if (preferred && (queryRestoreError.value || searchText.value !== preferred.search
+        || JSON.stringify(listFilters.value) !== JSON.stringify(preferred.filters)
+        || lifecycleState.value !== preferred.lifecycleState || tenantScope.value !== preferred.tenantScope
+        || sortField.value !== preferred.sortField || sortDirection.value !== preferred.sortDirection
+        || pageSize.value !== preferred.pageSize)) activeViewCode.value = ''
+    }
     if (!await loadQueryFields() || !current()) return false
     // 个人视图明确保存空列时保留其选择；只有无默认视图才初始化布局默认列。
     if (!preferred) initializeColumns()
     moduleInitializationSelection = undefined
     await loadRecords()
+    if (current() && recordVisit) rememberVisit(`module:${code}`)
     return current()
   } catch (reason) {
     if (!current()) return false
@@ -1232,6 +1416,8 @@ async function loadConfiguration() {
     `/api/runtime/modules/${context.moduleCode}/configuration`, {}, context.accessToken)
   if (request !== configurationRequest || !workspaceReadCurrent(context)) return false
   configuration.value = loaded
+  const nestedCodes = new Set(loaded.configuration.fields.filter(field => field.parentFieldId != null).map(field => field.code))
+  queryFields.value = queryFields.value.filter(field => !nestedCodes.has(field.code))
   await loadDictionaryOptions()
   return request === configurationRequest && workspaceReadCurrent(context)
 }
@@ -1243,6 +1429,9 @@ function fieldConfig(field: RuntimeField) {
     saveMode?: 'FINAL' | 'PATH'
     defaultValue?: unknown
     jsonSchema?: JsonSchema
+    multiple?: boolean
+    minRows?: number
+    maxRows?: number
     sensitive?: boolean
     readOnly?: boolean
   } }
@@ -1251,13 +1440,20 @@ function fieldConfig(field: RuntimeField) {
 
 function initialFieldValue(field: RuntimeField) {
   if (field.fieldType === 'SECRET') return undefined
+  if (field.fieldType === 'SUBTABLE') return Array.from({ length: Math.max(0, Math.min(fieldConfig(field).minRows || 0, 100)) },
+    () => ({ rowKey: crypto.randomUUID(), fields: {} }))
   const configured = fieldConfig(field).defaultValue
   if (configured === undefined || configured === null || configured === '') {
     if (field.fieldType === 'JSON' && field.required) return emptyJsonValue(fieldConfig(field).jsonSchema || newJsonSchema())
+    if (field.fieldType === 'REFERENCE' && fieldConfig(field).multiple) return []
     return field.fieldType === 'BOOLEAN' ? false : undefined
   }
   if (field.fieldType === 'BOOLEAN') return configured === true || String(configured).toLowerCase() === 'true'
-  if (['NUMBER', 'MONEY', 'MEMBER', 'DEPARTMENT', 'REFERENCE'].includes(field.fieldType)) {
+  if (field.fieldType === 'REFERENCE' && fieldConfig(field).multiple && Array.isArray(configured)) {
+    return configured.map(Number).filter(value => Number.isInteger(value) && value > 0)
+  }
+  if (field.fieldType === 'MONEY') return String(configured)
+  if (['NUMBER', 'MEMBER', 'DEPARTMENT', 'REFERENCE'].includes(field.fieldType)) {
     const numeric = Number(configured)
     return Number.isFinite(numeric) ? numeric : configured
   }
@@ -1275,7 +1471,7 @@ async function loadDictionaryOptions() {
   Object.keys(dictionaryOptions).forEach(code => delete dictionaryOptions[code])
   Object.keys(cascadeOptions).forEach((code) => delete cascadeOptions[code])
   const selectionFields = currentConfiguration?.configuration.fields
-    .filter(field => ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS'].includes(field.fieldType) && field.dictionaryId) || []
+    .filter(field => ['SINGLE_SELECT', 'MULTI_SELECT', 'TAG', 'STATUS'].includes(field.fieldType) && field.dictionaryId) || []
   await Promise.all(selectionFields.map(async field => {
     const dictionary = await api<RuntimeDictionary>(`/api/runtime/dictionaries/by-id/${field.dictionaryId}`, {}, accessToken)
     if (isCurrent()) {
@@ -1361,7 +1557,7 @@ function reconcileSavedViews(views: RuntimeListView[]) {
 
 function updateQueryDirectory(fields: RuntimeListQueryField[], scope: string) {
   const previousCodes = new Set(queryFields.value.map(field => field.code))
-  queryFields.value = fields
+  queryFields.value = fields.filter(field => !childFieldCodes.value.has(field.code))
   queryDirectoryScope.value = scope
   const codes = new Set(fields.map(field => field.code))
   visibleFieldCodes.value = visibleFieldCodes.value.filter(code => codes.has(code))
@@ -1744,15 +1940,36 @@ function columnValue(column: RuntimeColumn, record: RuntimeRecord) {
 }
 
 function recordReadFields(record: RuntimeRecord): RuntimeReadField[] {
-  return Object.entries(record.fieldPresentation || {}).map(([code, presentation]) => ({ code, ...presentation }))
+  return Object.entries(record.fieldPresentation || {}).filter(([code]) => !childFieldCodes.value.has(code))
+    .map(([code, presentation]) => ({ code, ...presentation }))
     .sort((left, right) => left.sortOrder - right.sortOrder || left.code.localeCompare(right.code))
 }
 
 /** 表单与动作缓存只保留非秘密读取值，秘密更新由用户重新输入。 */
+function withoutChildSecrets(values: Record<string, unknown>, actualFields: RuntimeField[]) {
+  const parents = new Map(actualFields.filter(field => field.fieldType === 'SUBTABLE').map(field => [field.id, field.code]))
+  const secretColumns = new Map([...parents.values()].map(code => [code, new Set<string>()]))
+  actualFields.filter(field => field.fieldType === 'SECRET' && field.parentFieldId).forEach(field => {
+    const parentCode = parents.get(field.parentFieldId!)
+    if (!parentCode) return
+    if (!secretColumns.has(parentCode)) secretColumns.set(parentCode, new Set())
+    secretColumns.get(parentCode)!.add(field.code)
+  })
+  return Object.fromEntries(Object.entries(values).map(([code, value]) => {
+    const secrets = secretColumns.get(code)
+    if (!secrets || !Array.isArray(value)) return [code, value]
+    return [code, value.map(row => {
+      if (!row || typeof row !== 'object' || !('fields' in row)) return row
+      const item = row as { rowKey?: string; fields: Record<string, unknown> }
+      return { rowKey: item.rowKey, fields: Object.fromEntries(Object.entries(item.fields || {}).filter(([column]) => !secrets.has(column))) }
+    })]
+  }))
+}
+
 function recordWithoutSecrets(record: RuntimeRecord, actualFields: RuntimeField[] = []): RuntimeRecord {
   const codes = new Set([...actualFields.filter(field => field.fieldType === 'SECRET').map(field => field.code),
     ...Object.entries(record.fieldPresentation || {}).filter(([, field]) => field.fieldType === 'SECRET').map(([code]) => code)])
-  return { ...record, fields: Object.fromEntries(Object.entries(record.fields).filter(([code]) => !codes.has(code))),
+  return { ...record, fields: withoutChildSecrets(Object.fromEntries(Object.entries(record.fields).filter(([code]) => !codes.has(code))), actualFields),
     ...(record.fieldPresentation ? { fieldPresentation: Object.fromEntries(Object.entries(record.fieldPresentation).filter(([code]) => !codes.has(code))) } : {}) }
 }
 
@@ -1784,6 +2001,7 @@ function readFieldValue(field: RuntimeReadField, value: unknown, record: Runtime
   if (['SINGLE_SELECT', 'STATUS', 'CASCADE', 'REFERENCE'].includes(field.fieldType)) return '名称暂不可用'
   if (field.fieldType === 'RICH_TEXT') return richPlainText(String(value)) || '—'
   if (field.fieldType === 'JSON') return structuredSummary(value)
+  if (field.fieldType === 'SUBTABLE') return Array.isArray(value) ? `${value.length} 条明细` : '—'
   return String(value)
 }
 
@@ -1885,7 +2103,96 @@ async function dismissInaccessibleRecord() {
   message.warning('记录已不可访问，已关闭表单和详情并刷新列表')
 }
 
-async function openDetail(record: RuntimeRecord) {
+/** 评论只保留当前记录与身份的投影；切换记录或身份后废弃仍在途的请求。 */
+function clearRecordComments() {
+  commentsRequest++
+  recordComments.value = []
+  commentsPage.value = 1
+  commentsTotal.value = 0
+  commentsLoading.value = false
+  commentsError.value = ''
+  commentSubmitting.value = false
+  commentSubmitError.value = ''
+  commentDraft.value = ''
+  replyToCommentId.value = undefined
+}
+
+async function loadRecordComments(recordId: number, page = 1) {
+  const request = ++commentsRequest
+  const moduleCode = activeCode.value
+  const accessToken = token.value
+  const systemId = systemContext.value?.systemId
+  const tenantId = systemContext.value?.tenantId
+  const current = () => request === commentsRequest && detailOpen.value && detail.value?.id === recordId
+    && moduleCode === activeCode.value && accessToken === token.value
+    && systemId === systemContext.value?.systemId && tenantId === systemContext.value?.tenantId
+  commentsLoading.value = true
+  commentsError.value = ''
+  try {
+    const result = await api<{ comments: RuntimeRecordComment[]; total: number; page: number; pageSize: number }>(
+      `/api/runtime/modules/${moduleCode}/records/${recordId}/comments?page=${page}&pageSize=100`, {}, accessToken)
+    if (!current()) return
+    recordComments.value = page === 1 ? result.comments : [...recordComments.value, ...result.comments]
+    commentsPage.value = page
+    commentsTotal.value = result.total
+    if (page === 1 && replyToCommentId.value && !result.comments.some(comment => comment.id === replyToCommentId.value)) {
+      replyToCommentId.value = undefined
+    }
+  } catch (reason) {
+    if (!current()) return
+    if (page === 1) {
+      recordComments.value = []
+      commentsPage.value = 1
+      commentsTotal.value = 0
+    }
+    commentsError.value = `评论读取失败：${readable(reason)}`
+  } finally {
+    if (current()) commentsLoading.value = false
+  }
+}
+
+function onDetailTabChange(key: string | number) {
+  if (key === 'comments' && detail.value) void loadRecordComments(detail.value.id)
+}
+
+function startCommentReply(comment: RuntimeRecordComment) {
+  replyToCommentId.value = comment.id
+  commentSubmitError.value = ''
+}
+
+async function submitRecordComment() {
+  const record = detail.value
+  const body = commentDraft.value.trim()
+  if (!record || !canCommentOnDetail.value || commentSubmitting.value) return
+  if (!body) return message.warning('请先填写评论内容')
+  const moduleCode = activeCode.value
+  const accessToken = token.value
+  const systemId = systemContext.value?.systemId
+  const tenantId = systemContext.value?.tenantId
+  const current = () => detailOpen.value && detail.value?.id === record.id && moduleCode === activeCode.value
+    && accessToken === token.value && systemId === systemContext.value?.systemId
+    && tenantId === systemContext.value?.tenantId
+  commentSubmitting.value = true
+  commentSubmitError.value = ''
+  try {
+    const comment = await api<RuntimeRecordComment>(
+      `/api/runtime/modules/${moduleCode}/records/${record.id}/comments`, {
+        method: 'POST', body: JSON.stringify({ body, parentCommentId: replyToCommentId.value }),
+      }, accessToken)
+    if (!current()) return
+    recordComments.value = [...recordComments.value, comment]
+    commentDraft.value = ''
+    replyToCommentId.value = undefined
+    message.success('评论已发布')
+    void loadRecordComments(record.id)
+  } catch (reason) {
+    if (current()) commentSubmitError.value = `评论发布失败：${readable(reason)}`
+  } finally {
+    if (current()) commentSubmitting.value = false
+  }
+}
+
+async function openDetail(record: RuntimeRecord, recordVisit = true) {
   const request = ++detailRequest
   const moduleCode = activeCode.value
   const accessToken = token.value
@@ -1901,10 +2208,12 @@ async function openDetail(record: RuntimeRecord) {
       api<RuntimePrintTemplate[]>(`/api/print/runtime/modules/${moduleCode}/templates`, {}, accessToken).catch(() => []),
     ])
     if (!current()) return
+    if (detail.value?.id !== record.id) clearRecordComments()
     detail.value = recordDetail
     if (!recordDetail.fieldPresentation && !recordDetail.shared && fields.value.some(field => field.fieldType === 'REFERENCE'
       && recordDetail.fields[field.code] != null
-      && !referenceOptions[field.code]?.some(option => option.value === Number(recordDetail.fields[field.code])))) {
+      && (Array.isArray(recordDetail.fields[field.code]) ? recordDetail.fields[field.code] as unknown[] : [recordDetail.fields[field.code]])
+        .some(id => !referenceOptions[field.code]?.some(option => option.value === Number(id))))) {
       loadReferenceOptions()
     }
     if (!recordAttachmentFields.value.some(field => field.code === attachmentFieldCode.value)) {
@@ -1916,6 +2225,8 @@ async function openDetail(record: RuntimeRecord) {
     detailOpen.value = true
     lastOpenedRouteRecordId.value = record.id
     syncListRoute(record.id)
+    if (recordVisit) rememberVisit(`record:${moduleCode}:${record.id}`)
+    void loadRecordComments(record.id)
   } catch (reason) {
     if (!current()) return
     if (recordAccessDenied(reason)) {
@@ -1928,6 +2239,7 @@ async function openDetail(record: RuntimeRecord) {
 
 function closeDetail() {
   detailRequest++
+  clearRecordComments()
   detailOpen.value = false
   detail.value = undefined
   lastOpenedRouteRecordId.value = undefined
@@ -1936,7 +2248,7 @@ function closeDetail() {
 
 async function handleAiBusinessWritten(value: { moduleCode: string; recordId: number; recordPath?: string }) {
   await loadRecords()
-  if (detail.value) await openDetail(detail.value)
+  if (detail.value) await openDetail(detail.value, false)
   message.success('助手已按确认内容写入业务记录，当前详情与列表已刷新')
 }
 
@@ -1946,20 +2258,21 @@ function clearPrintPreview() {
 }
 
 function openPrint() {
-  if (!detail.value || !printTemplates.value.length) return
+  if (!detail.value || !printTemplates.value.length || !canRecordAction('PRINT', detail.value)) return
   clearPrintPreview()
   printJob.value = undefined
-  selectedPrintTemplateId.value = printTemplates.value[0]?.templateId
+  selectedPrintTemplateVersionId.value = printTemplates.value[0]?.versionId
   printOpen.value = true
 }
 
 async function generatePrint() {
-  if (!detail.value || !selectedPrintTemplateId.value) return
+  if (!detail.value || !selectedPrintTemplateVersionId.value || !canRecordAction('PRINT', detail.value)) return
   printing.value = true
   clearPrintPreview()
   try {
-    const template = printTemplates.value.find(item => item.templateId === selectedPrintTemplateId.value)
-    printJob.value = await api<PrintJob>(`/api/print/runtime/modules/${activeCode.value}/records/${detail.value.id}/templates/${selectedPrintTemplateId.value}`, {
+    const template = selectedPrintTemplate.value
+    if (!template) return
+    printJob.value = await api<PrintJob>(`/api/print/runtime/modules/${activeCode.value}/records/${detail.value.id}/templates/${template.templateId}`, {
       method: 'POST', body: JSON.stringify({ templateVersionId: template?.versionId }),
     }, token.value)
     const blob = await authorizedBlob(printJob.value.previewPath, token.value)
@@ -2213,10 +2526,28 @@ async function openBatchConversionRecord(item: RuntimeBatchItem<RuntimeRecordCon
   conversionOpen.value = false
   const result = item.result?.value
   try {
-    if (!await selectModule(result?.targetModuleCode || batchConversionModule.value)
-      || context.accessToken !== token.value || context.identity !== workspaceIdentity()) return
-    await openDetail(result?.targetRecord || { id: item.recordId } as RuntimeRecord)
+    if (context.accessToken !== token.value || context.identity !== workspaceIdentity()) return
+    await openConvertedRecord(result?.targetModuleCode || batchConversionModule.value,
+      result?.targetRecord.id || item.recordId)
   } catch (reason) { message.error(readable(reason)) }
+}
+
+/** 失败来源在新页面修正，保留当前批量结果以便只重试失败项。 */
+function openBatchConversionSource(recordId: number) {
+  const href = router.resolve({ path: route.path,
+    query: { workspace: 'runtime', module: batchConversionModule.value, recordId: String(recordId) } }).href
+  // 同源新页继承当前会话，用户修正后可回到保留结果的批量弹窗。
+  window.open(href, '_blank')
+}
+
+/** 跨模块详情由地址恢复流程打开，避免模块切换刷新列表时清除刚打开的详情。 */
+async function openConvertedRecord(moduleCode: string, recordId: number) {
+  if (!modules.value.some(module => module.moduleCode === moduleCode)) {
+    message.warning('当前无权进入关联模块')
+    return
+  }
+  await router.replace({ path: route.path,
+    query: { workspace: 'runtime', module: moduleCode, recordId: String(recordId) } })
 }
 
 async function previewConversion() {
@@ -2263,8 +2594,8 @@ async function submitConversion() {
     if (!current()) return
     if (result.value) {
       try {
-        if (!await selectModule(result.value.targetModuleCode) || context.accessToken !== token.value || context.identity !== workspaceIdentity()) return
-        await openDetail(result.value.targetRecord)
+        if (context.accessToken !== token.value || context.identity !== workspaceIdentity()) return
+        await openConvertedRecord(result.value.targetModuleCode, result.value.targetRecord.id)
       }
       catch { message.warning('转化已完成，目标详情暂未打开；可从来源记录的转化页查看') }
     }
@@ -2284,10 +2615,9 @@ async function submitConversion() {
 async function openConversionLink(link: RuntimeRecordConversionLink) {
   const context = workspaceReadContext()
   try {
-    const linked = await api<RuntimeRecord>(`/api/runtime/modules/${link.moduleCode}/records/${link.recordId}`, {}, token.value)
-    if (!workspaceReadCurrent(context) || !await selectModule(link.moduleCode)
-      || context.accessToken !== token.value || context.identity !== workspaceIdentity()) return
-    await openDetail(linked)
+    await api<RuntimeRecord>(`/api/runtime/modules/${link.moduleCode}/records/${link.recordId}`, {}, token.value)
+    if (!workspaceReadCurrent(context)) return
+    await openConvertedRecord(link.moduleCode, link.recordId)
   } catch (reason) { message.error(readable(reason)) }
 }
 
@@ -2371,7 +2701,7 @@ async function loadEditFormOptions(writableFields: RuntimeField[], recordId: num
         }))
       }
       cascades[field.code] = await loadLevel(undefined, 1)
-    } else if (field.dictionaryId && ['SINGLE_SELECT', 'MULTI_SELECT', 'STATUS'].includes(field.fieldType)) {
+    } else if (field.dictionaryId && ['SINGLE_SELECT', 'MULTI_SELECT', 'TAG', 'STATUS'].includes(field.fieldType)) {
       const dictionary = await api<RuntimeDictionary>(`${endpoint}/dictionary`, {}, accessToken)
       dictionaries[field.code] = dictionary.items.map(item => ({ value: item.code, label: item.label }))
     } else if (field.fieldType === 'REFERENCE' && field.referenceModuleId) {
@@ -2438,7 +2768,11 @@ async function loadCreateReferenceOptions() {
   const accessToken = token.value
   const currentConfiguration = formConfiguration.value
   const tenantId = systemContext.value?.tenantId
-  const referenceFields = formFields.value.filter(field => field.fieldType === 'REFERENCE' && field.referenceModuleId)
+  const writableCodes = new Set([...formFields.value, ...formFields.value
+    .filter(field => field.fieldType === 'SUBTABLE').flatMap(parent => childFields(parent, currentConfiguration))]
+    .map(field => field.code))
+  const referenceFields = configurationFields(currentConfiguration).filter(field => field.fieldType === 'REFERENCE'
+    && field.referenceModuleId && writableCodes.has(field.code))
   const isCurrent = () => request === formOrganizationRequest && moduleCode === activeCode.value && accessToken === token.value
     && formConfiguration.value === currentConfiguration && !editing.value
   formCatalogLoading.value = true
@@ -2467,7 +2801,7 @@ function openCreate() {
   clearFormErrors()
   Object.assign(form, {
     title: '', recordNumber: '', status: 'ACTIVE', ownerMemberId: systemContext.value?.memberId || undefined,
-    departmentId: undefined, participantText: '', fields: {},
+    departmentId: undefined, collaboratorMemberIds: [], readOnlyMemberIds: [], followerMemberIds: [], fields: {},
   })
   formFields.value.forEach((field) => { form.fields[field.code] = initialFieldValue(field) })
   formSnapshot.value = serializeForm()
@@ -2487,25 +2821,34 @@ async function openEdit(record: RuntimeRecord) {
     if (request !== formOrganizationRequest || moduleCode !== activeCode.value || accessToken !== token.value) return
     const latest = context.record
     const writableFields = writableFormFields(context.configuration)
-    const catalogs = await loadEditFormOptions(writableFields, latest.id, request, moduleCode, accessToken)
+    const writableColumns = writableFields.filter(field => field.fieldType === 'SUBTABLE')
+      .flatMap(parent => childFields(parent, context.configuration))
+    const [catalogs, teamDirectory] = await Promise.all([
+      loadEditFormOptions([...writableFields, ...writableColumns], latest.id, request, moduleCode, accessToken),
+      recordOrganizationOptions(moduleCode, latest.id, 'UPDATE', accessToken),
+    ])
     if (request !== formOrganizationRequest || moduleCode !== activeCode.value || accessToken !== token.value) return
     formConfiguration.value = context.configuration
     Object.assign(formOrganizationOptions, catalogs.organizations)
+    formTeamDirectory.value = teamDirectory
     Object.assign(formDictionaryOptions, catalogs.dictionaries)
     Object.assign(formCascadeOptions, catalogs.cascades)
     Object.assign(formReferenceOptions, catalogs.references)
     formCatalogLoading.value = false
-    editing.value = recordWithoutSecrets(latest, writableFields)
+    editing.value = recordWithoutSecrets(latest, [...writableFields, ...writableColumns])
     clearFormErrors()
+    const team = recordParticipantMembers(latest).filter(member => member.memberId !== latest.ownerMemberId)
     Object.assign(form, {
       title: latest.title,
       recordNumber: latest.recordNumber || '',
       status: latest.status,
       ownerMemberId: latest.ownerMemberId,
       departmentId: latest.departmentId,
-      participantText: latest.participantMemberIds.join(','),
-      fields: Object.fromEntries(writableFields.filter(field => field.fieldType !== 'SECRET' && Object.prototype.hasOwnProperty.call(latest.fields, field.code)).map(field => {
-        const value = latest.fields[field.code]
+      collaboratorMemberIds: team.filter(member => member.role === 'COLLABORATOR').map(member => member.memberId),
+      readOnlyMemberIds: team.filter(member => member.role === 'READ_ONLY').map(member => member.memberId),
+      followerMemberIds: team.filter(member => member.role === 'FOLLOWER').map(member => member.memberId),
+      fields: Object.fromEntries(writableFields.filter(field => field.fieldType !== 'SECRET' && Object.prototype.hasOwnProperty.call(editing.value!.fields, field.code)).map(field => {
+        const value = editing.value!.fields[field.code]
         return [field.code, field.fieldType === 'CASCADE' ? cascadeEditValue(field, value, formCascadeOptions) : value]
       })),
     })
@@ -2533,10 +2876,12 @@ async function openLifecycle(record: RuntimeRecord, action: 'ARCHIVE' | 'DELETE'
   const generation = ++lifecycleDialogRequest
   const current = () => workspaceReadCurrent(context) && generation === lifecycleDialogRequest
   try {
-    batchDeleteTargets.value = []
+    batchLifecycleTargets.value = []
     lifecycleAction.value = action
     lifecycleRecord.value = recordWithoutSecrets(record)
+    lifecycleImpact.value = undefined
     lifecycleReason.value = ''
+    replacementRecordInput.value = ''
     const impact = await api<RuntimeRecordLifecycleImpact>(
       `/api/runtime/modules/${activeCode.value}/records/${record.id}/lifecycle-impact?action=${action}`, {}, token.value)
     if (!current()) return
@@ -2547,26 +2892,52 @@ async function openLifecycle(record: RuntimeRecord, action: 'ARCHIVE' | 'DELETE'
   }
 }
 
-async function submitBatchDelete(retryFailed = false) {
+async function submitBatchLifecycle(retryFailed = false) {
   const context = workspaceReadContext()
   let generation = lifecycleDialogRequest
   const current = () => workspaceReadCurrent(context) && generation === lifecycleDialogRequest
-  if (lifecycleSaving.value || !batchDeleteTargets.value.length) return
+  if (lifecycleSaving.value || !batchLifecycleTargets.value.length) return
   if (!lifecycleReason.value.trim()) { message.warning('请填写操作原因'); return }
   lifecycleSaving.value = true
   try {
-    const results = await batchDeleteAction.submit(batchDeleteTargets.value, batchDeleteResults.value, {
-      retryFailed, token: context.accessToken, current, completed: '记录已移入回收站',
-      request: record => ({ path: `/api/runtime/modules/${activeCode.value}/records/${record.id}/delete`,
-        body: { version: record.version, reason: lifecycleReason.value.trim() } }),
-    })
+    let results: RuntimeBatchItem<RuntimeRecord>[]
+    if (lifecycleAction.value === 'ARCHIVE') {
+      // 归档接口直接返回记录；逐条处理后保留成功项，未知提交结果先核对归档列表，不盲目重放。
+      const previous = new Map(batchLifecycleResults.value.map(item => [item.recordId, item]))
+      const submittedModule = activeCode.value
+      for (const record of batchLifecycleTargets.value) {
+        if (!current()) break
+        const old = previous.get(record.id)
+        if (old?.status === 'SUCCESS' || (retryFailed && (old?.status !== 'FAILED' || old.failureKind === 'UNKNOWN_RESULT'))) continue
+        try {
+          await api<RuntimeRecord>(`/api/runtime/modules/${submittedModule}/records/${record.id}/archive`, {
+            method: 'POST', body: JSON.stringify({ version: record.version, reason: lifecycleReason.value.trim() }),
+          }, context.accessToken)
+          if (!current()) break
+          previous.set(record.id, { recordId: record.id, title: record.title, status: 'SUCCESS', message: '记录已归档' })
+        } catch (reason) {
+          if (!current()) break
+          const rejected = reason instanceof ApiError && Boolean(reason.httpStatus && reason.httpStatus >= 400 && reason.httpStatus < 500)
+          previous.set(record.id, { recordId: record.id, title: record.title, status: 'FAILED',
+            failureKind: rejected ? 'REJECTED' : 'UNKNOWN_RESULT',
+            message: rejected ? readable(reason) : '提交结果未确认，请先查看归档列表再处理' })
+        }
+      }
+      results = batchLifecycleTargets.value.map(record => previous.get(record.id)).filter((item): item is RuntimeBatchItem<RuntimeRecord> => Boolean(item))
+    } else {
+      results = await batchLifecycleAction.submit(batchLifecycleTargets.value, batchLifecycleResults.value, {
+        retryFailed, token: context.accessToken, current, completed: '记录已移入回收站',
+        request: record => ({ path: `/api/runtime/modules/${activeCode.value}/records/${record.id}/delete`,
+          body: { version: record.version, reason: lifecycleReason.value.trim() } }),
+      })
+    }
     if (!current()) return
-    batchDeleteResults.value = results
+    batchLifecycleResults.value = results
     await loadRecords().catch(() => message.warning('请刷新列表查看最新数据'))
     if (!current()) return
     const currentRecords = new Map(records.value.map(record => [record.id, record]))
-    batchDeleteTargets.value = batchDeleteTargets.value.map(record => recordWithoutSecrets(currentRecords.get(record.id) || record))
-    selectedRowKeys.value = batchDeleteResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId)
+    batchLifecycleTargets.value = batchLifecycleTargets.value.map(record => recordWithoutSecrets(currentRecords.get(record.id) || record))
+    selectedRowKeys.value = batchLifecycleResults.value.filter(item => item.status === 'FAILED').map(item => item.recordId)
   } finally { if (current()) lifecycleSaving.value = false }
 }
 
@@ -2579,12 +2950,17 @@ async function submitLifecycle() {
     message.warning('请填写操作原因')
     return
   }
+  if (deleteNeedsReplacement.value && !replacementRecordId.value) {
+    message.warning('这条记录仍被其他业务引用，请选择同模块的替代记录')
+    return
+  }
   lifecycleSaving.value = true
   try {
     const action = lifecycleAction.value.toLowerCase()
     const submittedModule = activeCode.value
     const path = `/api/runtime/modules/${submittedModule}/records/${lifecycleRecord.value.id}/${action}`
-    const body = { reason: lifecycleReason.value.trim(), version: lifecycleRecord.value.version }
+    const body = { reason: lifecycleReason.value.trim(), version: lifecycleRecord.value.version,
+      ...(deleteNeedsReplacement.value ? { replacementRecordId: replacementRecordId.value } : {}) }
     const result = action === 'delete' ? await deleteAction<RuntimeRecord>(path, 'POST', body, context.accessToken, current) : undefined
     if (!current()) return
     if (result) lastAction.value = { moduleCode: submittedModule, result }
@@ -2617,8 +2993,20 @@ function formOptions(field: RuntimeField) {
   return options(field, formDictionaryOptions)
 }
 
-function participantIds() {
-  return [...new Set(form.participantText.split(',').map((item) => Number(item.trim())).filter((item) => Number.isInteger(item) && item > 0))]
+/** 子表列使用同一发布字段定义与已授权目录，行内值仍按列 code 传给运行时接口。 */
+function formChildOptions(parent: RuntimeField) {
+  return Object.fromEntries(childFields(parent).map(column => {
+    if (column.fieldType === 'REFERENCE') return [column.code, formReferenceOptions[column.code] || []]
+    if (column.fieldType === 'MEMBER') return [column.code, (formFieldDirectory(column.code)?.people || [])
+      .map(person => ({ value: person.systemMemberId, label: person.displayName }))]
+    if (column.fieldType === 'DEPARTMENT') return [column.code, (formFieldDirectory(column.code)?.departments || [])
+      .map(department => ({ value: department.id, label: department.fullName || department.name }))]
+    return [column.code, formOptions(column)]
+  }))
+}
+function formChildCascades(parent: RuntimeField) {
+  return Object.fromEntries(childFields(parent).filter(column => column.fieldType === 'CASCADE')
+    .map(column => [column.code, formCascadeOptions[column.code] || []]))
 }
 
 function normalizedFields() {
@@ -2628,7 +3016,13 @@ function normalizedFields() {
   return Object.fromEntries(Object.entries(form.fields)
     .filter(([code]) => writableCodes.has(code))
     .filter(([code, value]) => !secretCodes.has(code) || (value !== undefined && value !== ''))
-    .map(([code, value]) => [code, value === undefined || value === '' ? null : value]))
+    .map(([code, value]) => {
+      const field = formFields.value.find(item => item.code === code)
+      if (field?.fieldType === 'SUBTABLE' && Array.isArray(value)) return [code, value.map(row => ({
+        rowKey: row.rowKey, fields: row.fields,
+      }))]
+      return [code, value === undefined || value === '' ? null : value]
+    }))
 }
 
 function numericFieldValue(fieldCode: string) {
@@ -2658,6 +3052,12 @@ async function saveRecord() {
     target?.focus()
     return
   }
+  const team = participantMembers()
+  const teamIds = team.map(member => member.memberId)
+  if (new Set(teamIds).size !== teamIds.length || teamIds.includes(form.ownerMemberId || 0)) {
+    formError.value = '负责人、协作人、只读成员和关注人不能重复'
+    return
+  }
   saving.value = true
   clearFormErrors()
   try {
@@ -2667,7 +3067,8 @@ async function saveRecord() {
       status: form.status,
       ownerMemberId: form.ownerMemberId || null,
       departmentId: form.departmentId || null,
-      participantMemberIds: participantIds(),
+      participantMemberIds: teamIds,
+      participantMembers: team,
       fields: normalizedFields(),
       ...(editing.value ? { version: editing.value.version } : {}),
     }
@@ -2698,6 +3099,7 @@ async function saveRecord() {
       return
     }
     applyFormError(reason)
+    formApiError.value = reason instanceof ApiError ? reason : undefined
     message.error(formError.value)
   } finally {
     if (current()) saving.value = false
@@ -2706,6 +3108,7 @@ async function saveRecord() {
 
 function clearFormErrors() {
   formError.value = ''
+  formApiError.value = undefined
   Object.keys(fieldErrors).forEach((key) => delete fieldErrors[key])
 }
 
@@ -2738,9 +3141,12 @@ function serializeForm() {
   return JSON.stringify({
     title: form.title, recordNumber: form.recordNumber, status: form.status,
     ownerMemberId: form.ownerMemberId, departmentId: form.departmentId,
-    participantText: form.participantText,
-    fields: Object.fromEntries(Object.entries(form.fields)
-      .filter(([code]) => draftCodes.has(code))),
+    collaboratorMemberIds: form.collaboratorMemberIds,
+    readOnlyMemberIds: form.readOnlyMemberIds,
+    followerMemberIds: form.followerMemberIds,
+    fields: withoutChildSecrets(Object.fromEntries(Object.entries(form.fields)
+      .filter(([code]) => draftCodes.has(code))), [...formFields.value, ...formFields.value
+        .filter(field => field.fieldType === 'SUBTABLE').flatMap(parent => childFields(parent))]),
   })
 }
 
@@ -2757,11 +3163,23 @@ function restoreFormDraft() {
     const draft = JSON.parse(stored) as { value?: typeof form; updatedAt?: string }
     if (!draft.value || typeof draft.value !== 'object' || Array.isArray(draft.value)) return
     const draftCodes = new Set(formFields.value.filter(field => field.fieldType !== 'SECRET').map(field => field.code))
-    const safeFields = Object.fromEntries(Object.entries(draft.value.fields || {}).filter(([code]) => draftCodes.has(code)))
-    const metadata = Object.fromEntries(['title', 'recordNumber', 'status', 'ownerMemberId', 'departmentId', 'participantText']
+    const safeFields = withoutChildSecrets(Object.fromEntries(Object.entries(draft.value.fields || {})
+      .filter(([code]) => draftCodes.has(code))), [...formFields.value, ...formFields.value
+        .filter(field => field.fieldType === 'SUBTABLE').flatMap(parent => childFields(parent))])
+    const metadata = Object.fromEntries(['title', 'recordNumber', 'status', 'ownerMemberId', 'departmentId']
       .filter(key => Object.prototype.hasOwnProperty.call(draft.value, key))
       .map(key => [key, draft.value![key as keyof typeof form]]))
     Object.assign(form, metadata, { fields: { ...form.fields, ...safeFields } })
+    teamRoleKeys.forEach(role => {
+      const stored = draft.value?.[role]
+      if (Array.isArray(stored)) form[role] = [...new Set(stored.map(Number).filter(id => Number.isInteger(id) && id > 0))]
+    })
+    // 旧版草稿只有逗号分隔成员时，沿用原协作人语义。
+    const legacy = (draft.value as typeof form & { participantText?: string }).participantText
+    if (!Array.isArray(draft.value.collaboratorMemberIds) && typeof legacy === 'string') {
+      form.collaboratorMemberIds = [...new Set(legacy.split(',').map(value => Number(value.trim()))
+        .filter(id => Number.isInteger(id) && id > 0))]
+    }
     localStorage.setItem(formDraftKey(), JSON.stringify({ value: JSON.parse(serializeForm()), updatedAt: draft.updatedAt }))
     formDraftRestored.value = true
     message.info(`已恢复${draft.updatedAt ? ` ${draft.updatedAt} ` : ''}自动保存的表单草稿`)
@@ -2775,7 +3193,7 @@ function requestCloseForm() {
   }
   Modal.confirm({
     title: '当前表单有未提交的修改',
-    content: formFields.value.some(field => field.fieldType === 'SECRET')
+    content: formHasSecretFields.value
       ? '其他内容已保存为草稿；密码和密钥不会保存在浏览器，重新打开需要重新填写。确认离开？'
       : '草稿已经自动保存在当前浏览器。确认离开后可以再次进入此记录继续填写。',
     okText: '保留草稿并离开', cancelText: '继续编辑',
@@ -2803,6 +3221,13 @@ function displayValue(field: RuntimeField, value: unknown, record?: RuntimeRecor
   if (field.fieldType === 'SECRET') return '••••（已脱敏）'
   if (field.fieldType === 'RICH_TEXT') return richPlainText(String(value)) || '—'
   if (field.fieldType === 'JSON') return structuredSummary(value)
+  if (field.fieldType === 'MONEY') return formatMoneyValue(value, field.configJson)
+  if (field.fieldType === 'RATING') return `${value} / 5`
+  if (field.fieldType === 'PROGRESS' || field.fieldType === 'PERCENT') return `${value}%`
+  const place = formatPlaceFieldValue(field.fieldType, value)
+  if (place !== undefined) return place
+  const temporal = formatTemporalFieldValue(field.fieldType, value)
+  if (temporal !== undefined) return temporal
   if (field.fieldType === 'BOOLEAN') return value ? '是' : '否'
   if (['SYSTEM_CREATED_AT', 'SYSTEM_UPDATED_AT'].includes(field.fieldType)) return productDateTime(String(value))
   if (['SYSTEM_CREATED_BY', 'SYSTEM_UPDATED_BY'].includes(field.fieldType)) {
@@ -2819,7 +3244,9 @@ function displayValue(field: RuntimeField, value: unknown, record?: RuntimeRecor
   }
   if (field.fieldType === 'REFERENCE') {
     if (record?.shared) return '关联记录名称暂不可用'
-    return referenceOptions[field.code]?.find((item) => item.value === Number(value))?.label || '关联记录'
+    const selected = Array.isArray(value) ? value : [value]
+    return selected.map(id => referenceOptions[field.code]?.find(item => item.value === Number(id))?.label || `记录 ${id}`)
+      .join('、') || '—'
   }
   if (field.fieldType === 'MEMBER') {
     return organizationMemberName(record, value)
@@ -2846,6 +3273,39 @@ function timelineFieldValue(fieldCode: string, value: unknown) {
   if (field?.fieldType === 'SECRET' || detail.value?.fieldPresentation?.[fieldCode]?.fieldType === 'SECRET') return '••••（已脱敏）'
   // 当前记录的展示描述不代表历史 before/after 的字典或关联名称。
   return field ? displayValue(field, value, detail.value, false) : timelineValue(value)
+}
+
+/** 历史子表仅概述行数及当前有权查看的列，避免展示行标识、内部对象和脱敏列原值。 */
+function timelineSubtableChange(change: RuntimeRecordTimeline['entries'][number]['changes'][number]) {
+  if (change.beforeValue === '***' || change.afterValue === '***'
+    || change.beforeValue === '[已散列]' || change.afterValue === '[已散列]') return '••••（已脱敏）'
+  if ((change.beforeValue != null && !Array.isArray(change.beforeValue))
+    || (change.afterValue != null && !Array.isArray(change.afterValue))) return '明细已变更'
+  const before = Array.isArray(change.beforeValue) ? change.beforeValue : []
+  const after = Array.isArray(change.afterValue) ? change.afterValue : []
+  const summary = `${before.length} 条 → ${after.length} 条`
+  const parent = fields.value.find(field => field.code === change.fieldCode && field.fieldType === 'SUBTABLE')
+  if (!parent || detail.value?.shared) return summary
+  const columns = childFields(parent, configuration.value, false)
+    .filter(column => column.fieldType !== 'SECRET' && !column.access?.maskStrategy)
+  if (!columns.length) return summary
+  const rowFields = (row: unknown): Record<string, unknown> => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return {}
+    const values = (row as { fields?: unknown }).fields
+    return values && typeof values === 'object' && !Array.isArray(values) ? values as Record<string, unknown> : {}
+  }
+  const rowIdentity = (row: unknown, index: number) => {
+    if (row && typeof row === 'object' && !Array.isArray(row) && typeof (row as { rowKey?: unknown }).rowKey === 'string') {
+      return (row as { rowKey: string }).rowKey
+    }
+    return `position:${index}`
+  }
+  const previous = new Map(before.map((row, index) => [rowIdentity(row, index), rowFields(row)]))
+  const next = new Map(after.map((row, index) => [rowIdentity(row, index), rowFields(row)]))
+  const keys = [...new Set([...previous.keys(), ...next.keys()])]
+  const changed = columns.filter(column => keys.some(key =>
+    JSON.stringify(previous.get(key)?.[column.code] ?? null) !== JSON.stringify(next.get(key)?.[column.code] ?? null)))
+  return changed.length ? `${summary}；涉及字段：${changed.map(column => column.name).join('、')}` : summary
 }
 
 async function copyFieldValue(field: Pick<RuntimeField, 'name' | 'code' | 'fieldType'>, value: unknown) {
@@ -2881,7 +3341,7 @@ function readable(reason: unknown) {
 async function executeCommand(command: CommandCenterItem) {
   if (!command.moduleCode) return
   if (!modules.value.length) await loadModules()
-  if (activeCode.value !== command.moduleCode && !await selectModule(command.moduleCode)) return
+  if (activeCode.value !== command.moduleCode && !await selectModule(command.moduleCode, false, false)) return
   if (command.target === 'RUNTIME_CREATE') {
     if (!hasAction('CREATE')) {
       message.warning('快捷创建权限已变化，请刷新命令中心')
@@ -2893,8 +3353,33 @@ async function executeCommand(command: CommandCenterItem) {
   if (command.target === 'RUNTIME_RECORD' && command.recordId) {
     const row = records.value.find((record) => record.id === command.recordId)
       || ({ id: command.recordId } as RuntimeRecord)
-    await openDetail(row)
+    await openDetail(row, false)
   }
+}
+
+/** 普通导航也计入最近访问；命令中心自身已记录执行，不重复写入。 */
+function rememberVisit(commandId: string) {
+  const accessToken = token.value
+  if (!accessToken) return
+  void api('/api/command-center/execute', {
+    method: 'POST', body: JSON.stringify({ commandId }),
+  }, accessToken).catch(() => {
+    // 最近访问保存失败不阻止已经通过权限校验的业务页面。
+  })
+}
+
+/** 放弃当前浏览器的未提交草稿，不影响已经保存的业务记录。 */
+function discardFormDraft() {
+  Modal.confirm({
+    title: '放弃当前表单草稿？',
+    content: '当前未提交的填写内容会清除；已保存的业务记录不受影响。',
+    okText: '放弃草稿', okType: 'danger',
+    onOk: () => {
+      localStorage.removeItem(formDraftKey())
+      formOpen.value = false
+      formDraftRestored.value = false
+    },
+  })
 }
 
 watch(form, () => {
@@ -2930,9 +3415,11 @@ watch(lifecycleOpen, open => {
   if (open) return
   lifecycleDialogRequest++
   lifecycleRecord.value = undefined
-  batchDeleteTargets.value = []
-  batchDeleteResults.value = []
-  batchDeleteAction.clear()
+  lifecycleImpact.value = undefined
+  replacementRecordInput.value = ''
+  batchLifecycleTargets.value = []
+  batchLifecycleResults.value = []
+  batchLifecycleAction.clear()
   deleteAction.clear()
   lifecycleSaving.value = false
 }, { flush: 'sync' })
@@ -2944,14 +3431,13 @@ watch(() => [systemContext.value?.systemId, systemContext.value?.tenantId, token
   peopleDirectory.value = { people: [], departments: [], permissionVersion: 0 }
   if (token.value) { void loadPeopleDirectory(); void loadModules() }
 }, { flush: 'sync' })
-watch(canManageRangeShares, allowed => { if (!allowed) rangeSharingOpen.value = false }, { flush: 'sync' })
 
 watch(() => [route.query.module, route.query.recordId], async () => {
   if (routeInitializing) return
   const code = String(routeValue('module') || '')
   if (code && code !== activeCode.value && modules.value.some(module => module.moduleCode === code)) {
     routeInitializing = true
-    try { await selectModule(code, true) } finally { routeInitializing = false }
+    try { if (!await selectModule(code, true)) return } finally { routeInitializing = false }
   }
   await openRouteRecordDetail()
 })
@@ -2976,14 +3462,14 @@ onBeforeUnmount(() => {
   conversionUnlinkAction.clear()
   deleteAction.clear()
   batchConversionAction.clear()
-  batchDeleteAction.clear()
+  batchLifecycleAction.clear()
   conversionRecord.value = undefined
   conversionPreview.value = undefined
   batchConversionTargets.value = []
   batchConversionPreviews.value = []
   batchConversionResults.value = []
-  batchDeleteTargets.value = []
-  batchDeleteResults.value = []
+  batchLifecycleTargets.value = []
+  batchLifecycleResults.value = []
   window.removeEventListener('beforeunload', beforeWindowUnload)
   clearPrintPreview()
 })
@@ -2998,7 +3484,6 @@ defineExpose({ refresh: loadModules, executeCommand })
     <ProductPageHeader kicker="业务工作区" :title="activeModule?.moduleName || '业务模块'" description="查看、筛选并维护当前模块中的业务记录。">
       <template #actions>
         <RuntimeActionGroup :actions="actions" location="MODULE_ENTRY" :can="canPageAction" :disabled-reason="pageActionReason" :module-name="activeModule?.moduleName" @run="runConfiguredAction" />
-        <a-button v-if="canManageRangeShares" @click="rangeSharingOpen = true">范围共享</a-button>
         <a-dropdown>
           <a-button><MoreOutlined />更多</a-button>
           <template #overlay><a-menu @click="runPageUtility(String($event.key))">
@@ -3012,17 +3497,17 @@ defineExpose({ refresh: loadModules, executeCommand })
     <BusinessActionReceipt :module-code="activeCode" :result="lastAction?.moduleCode === activeCode ? lastAction.result : undefined"
       @executed="loadRecords" />
     <a-alert v-if="dashboardReturn" type="info" show-icon class="section-alert"
-      message="当前列表来自经营看板下钻" :description="listFilters.length ? `已应用 ${listFilters.length} 个看板筛选条件。` : '看板筛选字段在当前权限范围内不可用，已显示普通列表。'">
+      message="当前列表来自经营看板下钻" :description="loading ? '正在恢复看板筛选条件。' : error ? `筛选未生效：${error}` : listFilters.length ? `已应用 ${listFilters.length} 个看板筛选条件。` : '当前看板未附带筛选条件。'">
       <template #action><a-button type="link" @click="returnToDashboard">返回经营看板</a-button></template>
     </a-alert>
-    <nav v-if="groupedModules.length > 1" class="runtime-group-tabs" aria-label="业务模块组">
-      <button v-for="group in groupedModules" :key="group.id" type="button" :class="{ active: activeGroup?.id === group.id }" @click="selectGroup(group.id)">
+    <nav v-if="groupedModules.length" ref="groupTabs" class="runtime-group-tabs" aria-label="业务模块组">
+      <button v-for="group in groupedModules" :key="group.id" :data-group-id="group.id" type="button" :class="{ active: activeGroup?.id === group.id }" @click="selectGroup(group.id)">
         <strong>{{ group.name }}</strong><small>{{ group.modules.length }} 个模块</small>
       </button>
     </nav>
     <ProductListWorkspace :loading="loading" :has-content="Boolean(activeCode && records.length)" :empty="!loading && !records.length" :error="error"
       :empty-title="activeCode ? '当前条件下没有记录' : '当前没有可用的业务模块'"
-      :empty-description="activeCode ? (sharedRecordsMode ? '可以调整搜索或筛选条件；共享记录仅提供当前已授权的操作。' : '可以调整搜索或筛选条件，也可以新建第一条记录。') : '系统管理员发布并授权模块后，业务入口会显示在这里。'">
+      :empty-description="activeCode ? (sharedRecordsMode ? '可以调整搜索或筛选条件；共享记录仅提供当前已授权的操作。' : (hasAction('CREATE') && lifecycleState === 'ACTIVE' ? '可以调整搜索或筛选条件，也可以新建第一条记录。' : '当前条件下没有可见记录，可调整搜索或筛选条件。')) : '系统管理员发布并授权模块后，业务入口会显示在这里。'">
       <template #navigation>
         <div class="panel-title"><strong>{{ activeGroup?.name || '业务模块' }}</strong><span>{{ activeGroup?.modules.length || 0 }}</span></div>
         <section v-if="activeGroup" class="runtime-group">
@@ -3066,7 +3551,7 @@ defineExpose({ refresh: loadModules, executeCommand })
           <SchemaRecordTable class="record-table" :records="records" :columns="displayedColumns" :fixed-codes="fixedFieldCodes" :density="listSettings.density" :caption="listCaption" :loading="loading" :row-selection="canSelectRecords ? rowSelection : undefined" :custom-row="rowHandlers" :scroll="{ y: pageSize >= 100 ? 560 : undefined }" :virtual="pageSize >= 100">
             <template #value="{ column, record }"><template v-if="column.code === 'title'"><strong class="record-title">{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></template>
                 <a-tag v-else-if="column.code === 'dataTenantName'" :color="record.shared ? 'orange' : 'blue'">{{ record.shared ? `${userFacingWorkspaceName(record.dataTenantName)}共享` : '当前工作空间' }}</a-tag>
-                <ProductStatusTag v-else-if="column.code === 'status'" :status="record.status" /><template v-else>{{ columnValue(column, record) }}<small v-if="columnSourceName(column, record)" class="source-field-label">来源字段：{{ columnSourceName(column, record) }}</small></template></template>
+                <ProductStatusTag v-else-if="column.code === 'status'" :status="record.status" :label="recordStatusLabel(record.status)" /><template v-else>{{ columnValue(column, record) }}<small v-if="columnSourceName(column, record)" class="source-field-label">来源字段：{{ columnSourceName(column, record) }}</small></template></template>
             <template v-if="showRecordActions" #actions="{ record }"><RuntimeActionGroup :actions="rowActions(record)" location="ROW" :can="code => canRecordAction(code, record)" size="small" @run="runConfiguredAction($event, record)" /></template>
           </SchemaRecordTable>
           <div class="mobile-record-list" aria-label="业务记录卡片列表" :aria-busy="loading">
@@ -3074,7 +3559,7 @@ defineExpose({ refresh: loadModules, executeCommand })
             <a-checkbox v-if="canSelectRecords" :checked="selectedRowKeys.includes(record.id)" @change="selectedRowKeys = $event.target.checked ? [...new Set([...selectedRowKeys, record.id])] : selectedRowKeys.filter(id => id !== record.id)">选择此记录</a-checkbox>
             <button type="button" :data-status-tone="statusTone(record.status)" :disabled="!canRecordAction('DETAIL', record) && !canRecordAction('UPDATE', record)"
               @click="canRecordAction('DETAIL', record) ? openDetail(record) : openEdit(record)">
-              <header><span><strong>{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></span><ProductStatusTag :status="record.status" /></header>
+              <header><span><strong>{{ record.title }}</strong><small>{{ userFacingRecordNumber(record.recordNumber, '未设置业务编号') }} · {{ userFacingWorkspaceName(record.dataTenantName) }}</small></span><ProductStatusTag :status="record.status" :label="recordStatusLabel(record.status)" /></header>
               <dl>
                 <div v-for="column in displayedColumns.filter(item => !['title', 'status', 'dataTenantName'].includes(item.code) && ((!item.field && !item.readOnlySource) || recordFieldVisible(record, item.code))).slice(0, 3)" :key="column.code">
                   <dt>{{ columnSourceName(column, record) || column.label }}<small v-if="columnSourceName(column, record)">（来源字段）</small></dt><dd>{{ columnValue(column, record) }}</dd>
@@ -3122,29 +3607,55 @@ defineExpose({ refresh: loadModules, executeCommand })
 
     <ProductDetailDrawer :open="detailOpen" :title="detail?.title" :width="assistantOpen ? 'min(980px, 100vw)' : 'min(760px, 100vw)'" class="detail-drawer" @close="closeDetail">
       <template #extra><a-space wrap><RuntimeActionGroup v-if="detail" :actions="recordActions(detail)" location="DETAIL_HEADER" :can="code => canRecordAction(code, detail!)" @run="runConfiguredAction($event, detail)" /><a-button v-if="detail && canUseAi" @click="assistantOpen = !assistantOpen"><RobotOutlined />{{ assistantOpen ? '收起助手' : '询问当前记录' }}</a-button></a-space></template>
-      <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
-        <a-tabs class="detail-tabs-runtime">
-          <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :presentation="detail.fieldPresentation" :read-fields="detailReadFields" :read-text="(field, value) => readFieldValue(field, value, detail!)" :text="(field, value) => displayValue(field, value, detail)"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template><template #read-tools="{ field }"><a-button type="link" size="small" @click="copyReadFieldValue(field, detail!)">复制</a-button></template></SchemaRecordDetail><a-descriptions class="detail-system-meta" :column="1" bordered size="small">
-            <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="负责部门">{{ detail.departmentId ? organizationDepartmentName(detail, detail.departmentId) : '未设置' }}</a-descriptions-item><a-descriptions-item label="相关人">{{ detail.participantMemberIds.length ? detail.participantMemberIds.map(id => organizationMemberName(detail, id)).join('、') : '—' }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
-          <a-tab-pane key="relations" tab="转化"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><ProductStatusTag :status="item.recordStatus" /><a-tag v-if="item.relationStatus === 'INVALID'">关系已解除</a-tag><a-button v-if="item.canUnlink" type="link" danger @click="openConversionUnlink(item)">解除关联</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
-          <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :endpoint="recordAttachmentEndpoint" :writable="false" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示；请通过编辑记录替换或调整，必填校验与记录保存会在同一事务完成。" compact /></a-tab-pane>
+      <template v-if="detail"><div :class="['record-detail-shell', { 'record-detail-shell--assistant': assistantOpen && canUseAi }]"><section class="record-detail-main"><div class="detail-meta"><span>{{ userFacingRecordNumber(detail.recordNumber, '未设置业务编号') }}</span><ProductStatusTag :status="detail.status" :label="recordStatusLabel(detail.status)" /><a-tag :color="detail.shared ? 'orange' : 'blue'">数据归属：{{ userFacingWorkspaceName(detail.dataTenantName) }}</a-tag><span v-if="detail.shared" class="detail-share-status">共享状态：<ProductStatusTag :status="detail.shareStatus" /></span></div>
+        <a-tabs class="detail-tabs-runtime" @change="onDetailTabChange">
+          <a-tab-pane key="basic" tab="概览"><SchemaRecordDetail :layout="detailLayout" :fields="detailValueFields" :values="detail.fields" :presentation="detail.fieldPresentation" :read-fields="detailReadFields" :read-text="(field, value) => readFieldValue(field, value, detail!)" :text="(field, value) => displayValue(field, value, detail)"><template #tools="{ field }"><a-button type="link" size="small" @click="copyFieldValue(field, detail.fields[field.code])">复制</a-button></template><template #read-tools="{ field }"><a-button type="link" size="small" @click="copyReadFieldValue(field, detail!)">复制</a-button></template></SchemaRecordDetail>
+            <section v-for="table in detailSubtables" :key="table.parent.id" class="detail-subtable"><h3>{{ table.parent.name }} · {{ table.rows.length }} 条</h3><a-table v-if="table.columns.length" size="small" bordered :pagination="false" :data-source="table.rows" row-key="rowKey" :scroll="{ x: 'max-content' }"><a-table-column v-for="column in table.columns" :key="column.id" :title="column.name"><template #default="{ record }">{{ record.displayFields?.[column.code] ?? displayValue(column, record.fields[column.code], detail, false) }}</template></a-table-column></a-table><a-empty v-else description="当前没有可查看的明细列" /></section>
+            <a-descriptions class="detail-system-meta" :column="1" bordered size="small">
+            <a-descriptions-item label="负责人">{{ ownerDisplayName(detail) }}</a-descriptions-item><a-descriptions-item label="负责部门">{{ detail.departmentId ? organizationDepartmentName(detail, detail.departmentId) : '未设置' }}</a-descriptions-item><a-descriptions-item v-if="teamEnabled" label="协作人">{{ recordTeamNames(detail, 'COLLABORATOR') }}</a-descriptions-item><a-descriptions-item v-if="teamEnabled" label="只读成员">{{ recordTeamNames(detail, 'READ_ONLY') }}</a-descriptions-item><a-descriptions-item v-if="teamEnabled" label="关注人">{{ recordTeamNames(detail, 'FOLLOWER') }}</a-descriptions-item><a-descriptions-item label="创建时间">{{ productDateTime(detail.createdAt) }}</a-descriptions-item><a-descriptions-item label="更新时间">{{ productDateTime(detail.updatedAt) }}</a-descriptions-item></a-descriptions></a-tab-pane>
+          <a-tab-pane key="relations" tab="转化"><a-list v-if="conversionLinks.length" size="small" bordered :data-source="conversionLinks"><template #renderItem="{ item }"><a-list-item><a-button type="link" @click="openConversionLink(item)">{{ item.direction === 'SOURCE' ? '来源' : '目标' }} · {{ item.moduleName }} · {{ item.recordTitle }}</a-button><ProductStatusTag :status="item.recordStatus" :label="recordStatusLabel(item.recordStatus)" /><a-tag v-if="item.relationStatus === 'INVALID'">关系已解除</a-tag><a-button v-if="item.canUnlink" type="link" danger @click="openConversionUnlink(item)">解除关联</a-button><span>{{ productDateTime(item.convertedAt) }}</span></a-list-item></template></a-list><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无有权查看的关联数据" /></a-tab-pane>
+          <a-tab-pane v-if="recordAttachmentFields.length && canViewAttachments" key="attachments" tab="附件"><a-select v-if="recordAttachmentFields.length > 1" v-model:value="attachmentFieldCode" :options="recordAttachmentFields.map(field => ({ value: field.code, label: field.name }))" style="width:100%;margin-bottom:12px" placeholder="选择附件分类" /><BusinessAttachmentsPanel v-if="recordAttachmentEndpoint" :key="`${recordAttachmentEndpoint}:${detail?.updatedAt || ''}`" :endpoint="recordAttachmentEndpoint" :writable="false" :title="selectedAttachmentField?.name || '附件'" description="附件按当前字段权限展示；请通过编辑记录替换或调整，必填校验与记录保存会在同一事务完成。" compact /></a-tab-pane>
+          <a-tab-pane v-if="moduleFunctionEnabled('commentEnabled')" key="comments" tab="评论">
+            <div class="record-comments">
+              <a-alert v-if="commentsError" type="error" show-icon :message="commentsError"><template #action><a-button size="small" @click="loadRecordComments(detail.id)">重试</a-button></template></a-alert>
+              <a-spin :spinning="commentsLoading">
+                <a-empty v-if="!commentsLoading && !commentsError && !recordComments.length" :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无评论" />
+                <div v-else-if="recordComments.length || !commentsError" class="record-comments__list">
+                  <article v-for="comment in recordComments" :key="comment.id" :class="['record-comments__item', { 'record-comments__item--reply': comment.parentCommentId }]">
+                    <header><strong>{{ comment.createdByName || '系统成员' }}</strong><span v-if="comment.parentCommentId">回复 {{ repliedAuthor(comment) }}</span><time>{{ productDateTime(comment.createdTime) }}</time></header>
+                    <p>{{ comment.body }}</p>
+                    <a-button v-if="canCommentOnDetail" type="link" size="small" @click="startCommentReply(comment)">回复</a-button>
+                  </article>
+                </div>
+              </a-spin>
+              <a-button v-if="recordComments.length < commentsTotal" :loading="commentsLoading" @click="loadRecordComments(detail.id, commentsPage + 1)">加载更多评论</a-button>
+              <div v-if="canCommentOnDetail" class="record-comments__composer">
+                <div v-if="replyToComment" class="record-comments__reply">回复 {{ replyToComment.createdByName || '系统成员' }}<a-button type="link" size="small" @click="replyToCommentId = undefined">取消回复</a-button></div>
+                <a-textarea v-model:value="commentDraft" :rows="3" :disabled="commentSubmitting" :placeholder="replyToComment ? '填写回复内容' : '填写评论内容'" />
+                <a-alert v-if="commentSubmitError" type="error" show-icon :message="commentSubmitError" />
+                <div class="record-comments__actions"><a-button type="primary" :loading="commentSubmitting" :disabled="!commentDraft.trim()" @click="submitRecordComment">{{ replyToComment ? '发布回复' : '发布评论' }}</a-button></div>
+              </div>
+            </div>
+          </a-tab-pane>
           <a-tab-pane key="timeline" tab="历史"><a-timeline v-if="timeline.length"><a-timeline-item v-for="entry in timeline" :key="entry.eventId">
               <div class="timeline-heading"><strong>{{ entry.label }}</strong><span>{{ productDateTime(entry.occurredAt) }}</span></div><p>{{ entry.actorDisplayName }}<template v-if="entry.summary"> · {{ entry.summary }}</template></p>
-              <ul v-if="entry.changes.length" class="timeline-changes"><li v-for="change in entry.changes" :key="`${entry.eventId}-${change.fieldCode}`"><strong>{{ change.fieldName }}</strong>：<template v-if="change.masked">无查看权限</template><template v-else>{{ timelineFieldValue(change.fieldCode, change.beforeValue) }} → {{ timelineFieldValue(change.fieldCode, change.afterValue) }}</template></li></ul>
+              <ul v-if="entry.changes.length" class="timeline-changes"><li v-for="change in entry.changes" :key="`${entry.eventId}-${change.fieldCode}`"><strong>{{ change.fieldName }}</strong>：<template v-if="change.masked">无查看权限</template><template v-else-if="change.valueType === 'SUBTABLE'">{{ timelineSubtableChange(change) }}</template><template v-else>{{ timelineFieldValue(change.fieldCode, change.beforeValue) }} → {{ timelineFieldValue(change.fieldCode, change.afterValue) }}</template></li></ul>
             </a-timeline-item></a-timeline><a-empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无变更记录" /></a-tab-pane>
         </a-tabs></section><AiContextAssistantPanel v-if="assistantOpen && canUseAi" :key="`${activeCode}-${detail.id}`" :module-code="activeCode" :module-name="activeModule?.moduleName || activeCode" :record="detail" :visible-fields="detailValueFields" :modules="modules" @business-written="handleAiBusinessWritten" /></div></template>
-      <template #actions><RuntimeActionGroup v-if="detail" :actions="recordActions(detail)" location="DETAIL_MORE" :can="code => canRecordAction(code, detail!)" menu @run="runConfiguredAction($event, detail)" /><a-button v-if="printTemplates.length" @click="openPrint()"><PrinterOutlined />打印</a-button></template>
+      <template #actions><RuntimeActionGroup v-if="detail" :actions="recordActions(detail)" location="DETAIL_MORE" :can="code => canRecordAction(code, detail!)" menu @run="runConfiguredAction($event, detail)" /><a-button v-if="detail && printTemplates.length && canRecordAction('PRINT', detail)" @click="openPrint()"><PrinterOutlined />打印</a-button></template>
     </ProductDetailDrawer>
 
     <a-modal v-model:open="printOpen" title="记录打印与 PDF 预览" width="920" :footer="null" @cancel="clearPrintPreview">
-      <div class="print-runtime-toolbar"><a-select v-model:value="selectedPrintTemplateId" style="min-width:320px" :options="printTemplates.map(item => ({ value: item.templateId, label: `${item.name} · v${item.versionNumber} · ${item.pageSize}` }))" /><a-button type="primary" :loading="printing" @click="generatePrint"><PrinterOutlined />按发布版本生成</a-button><a-button :disabled="!printPreviewUrl" @click="openOriginalPrint">打开原始 PDF</a-button><a-button :disabled="!printJob" @click="downloadPrint"><ExportOutlined />下载 PDF</a-button></div>
+      <div class="print-runtime-toolbar"><a-select v-model:value="selectedPrintTemplateVersionId" style="min-width:320px" :options="printTemplates.map(item => ({ value: item.versionId, label: `${item.name} · v${item.versionNumber} · ${item.pageSize}` }))" @change="printJob = undefined; clearPrintPreview()" /><a-button type="primary" :loading="printing" @click="generatePrint"><PrinterOutlined />按发布版本生成</a-button><a-button :disabled="!printPreviewUrl" @click="openOriginalPrint">打开原始 PDF</a-button><a-button :disabled="!printJob" @click="downloadPrint"><ExportOutlined />下载 PDF</a-button></div>
       <a-alert v-if="printJob" type="success" show-icon :message="`打印文件已生成，共 ${printJob.pageCount} 页`" :description="`使用模板版本 v${printJob.templateVersionNumber} · 完成于 ${productDateTime(printJob.finishedAt)}`" />
       <section v-if="printJob?.pages.length" class="print-runtime-preview" aria-label="PDF 内容在线预览">
         <a-tag color="blue">PDF 内容预览 · 与下载文件使用同一打印任务快照</a-tag>
         <div class="print-page-stack">
           <article v-for="page in printJob.pages" :key="page.pageNumber" :class="['print-page', `print-page--${selectedPrintTemplate?.orientation.toLowerCase() || 'portrait'}`, `print-page--${selectedPrintTemplate?.pageSize.toLowerCase() || 'a4'}`]" :style="{ '--print-offset-x': `${(selectedPrintTemplate?.layout.offsetXmm || 0) * 3}px`, '--print-offset-y': `${(selectedPrintTemplate?.layout.offsetYmm || 0) * 3}px` }">
             <header><h2>{{ printJob.templateName }}</h2><p>{{ page.header }}</p><small>{{ page.recordNumber || '业务记录' }} · {{ page.recordTitle }}</small></header>
-            <dl><div v-for="field in page.fields" :key="`${page.pageNumber}-${field.code}`" :class="{ detail: field.detail }"><dt>{{ field.detail ? '明细 · ' : '' }}{{ field.name }}</dt><dd>{{ field.value }}</dd></div></dl>
+            <div class="print-page-body"><dl><div v-for="field in page.fields" :key="`${page.pageNumber}-${field.code}`" :class="{ detail: field.detail }"><dt>{{ field.detail ? '明细 · ' : '' }}{{ field.name }}</dt><dd>{{ field.value }}</dd></div></dl>
+              <section v-for="table in page.detailTables || []" :key="`${page.pageNumber}-${table.code}`" class="print-detail-table"><h3>{{ table.name }}</h3><table><thead><tr><th v-for="column in table.columns" :key="column.code">{{ column.name }}</th></tr></thead><tbody><tr v-for="row in table.rows" :key="row.rowNumber"><td v-for="(value, index) in row.values" :key="`${row.rowNumber}-${index}`">{{ value }}</td></tr></tbody></table></section>
+            </div>
             <div v-if="page.signatureLabel" class="print-signature">{{ page.signatureLabel }}：________________</div>
             <footer><span>{{ page.footer }}</span><b>第 {{ page.pageNumber }} / {{ page.pageCount }} 页</b></footer>
           </article>
@@ -3153,22 +3664,30 @@ defineExpose({ refresh: loadModules, executeCommand })
       <a-empty v-else description="选择已发布模板后生成 PDF；系统会在此刻重新校验记录和字段权限" />
     </a-modal>
     <ProductFormDrawer :open="formOpen" :title="`${editing ? '编辑' : '新建'}${formConfiguration?.configuration.module.name || activeModule?.moduleName || ''}`" :saving="saving" :error="formError" @close="requestCloseForm" @save="saveRecord">
+      <template #secondary><a-button v-if="formDraftRestored || formDirty" danger :disabled="saving" @click="discardFormDraft">放弃草稿</a-button></template>
+      <AiErrorExplanation v-if="formApiError && token" :error="formApiError" :operation="editing ? '更新业务记录' : '新建业务记录'" :token="token" />
       <a-alert v-if="formDraftRestored" type="info" show-icon message="已恢复自动保存的草稿" class="section-alert" />
-      <div class="form-change-state"><a-tag :color="formDirty ? 'orange' : 'green'">{{ formDirty ? (formFields.some(field => field.fieldType === 'SECRET') ? '有未提交修改 · 其他内容已保存草稿' : '有未提交修改 · 已自动保存草稿') : '尚未修改' }}</a-tag><small v-if="formFields.some(field => field.fieldType === 'SECRET')">密码和密钥不保存到草稿</small></div>
+      <div class="form-change-state"><a-tag :color="formDirty ? 'orange' : 'green'">{{ formDirty ? (formHasSecretFields ? '有未提交修改 · 其他内容已保存草稿' : '有未提交修改 · 已自动保存草稿') : '尚未修改' }}</a-tag><small v-if="formHasSecretFields">密码和密钥不保存到草稿</small></div>
       <a-alert v-if="recordTitleField" type="info" show-icon class="section-alert" :message="`记录名称使用“${recordTitleField.name}”，无需重复填写标题`" />
       <a-form layout="vertical"><div class="form-grid"><a-form-item v-if="!recordTitleField" label="标题" required><a-input id="runtime-record-title" v-model:value="form.title" /></a-form-item><a-form-item label="业务编号"><a-input v-model:value="form.recordNumber" /></a-form-item></div>
+        <a-divider>{{ teamEnabled ? '团队成员' : '负责人' }}</a-divider>
+        <div class="form-grid"><a-form-item label="负责人"><PersonSelect :model-value="form.ownerMemberId" :people="formTeamPeople" value-key="systemMemberId" show-department-filter placeholder="选择负责人" @update:model-value="setTeamOwner" /></a-form-item><a-form-item label="负责部门"><DepartmentSelect :model-value="form.departmentId" :departments="editing ? formTeamDirectory?.departments || [] : peopleDirectory.departments" @update:model-value="form.departmentId = $event" /></a-form-item></div>
+        <a-form-item v-if="teamEnabled" label="协作人" extra="参与记录处理"><PersonSelect :model-value="form.collaboratorMemberIds" :people="formTeamPeople" value-key="systemMemberId" multiple :excluded-values="teamRoleExcluded('collaboratorMemberIds')" placeholder="选择协作人" @update:model-value="setTeamRole('collaboratorMemberIds', $event)" /></a-form-item>
+        <a-form-item v-if="teamEnabled" label="只读成员" extra="可查看记录，不参与编辑"><PersonSelect :model-value="form.readOnlyMemberIds" :people="formTeamPeople" value-key="systemMemberId" multiple :excluded-values="teamRoleExcluded('readOnlyMemberIds')" placeholder="选择只读成员" @update:model-value="setTeamRole('readOnlyMemberIds', $event)" /></a-form-item>
+        <a-form-item v-if="teamEnabled" label="关注人" extra="关注这条记录的进展"><PersonSelect :model-value="form.followerMemberIds" :people="formTeamPeople" value-key="systemMemberId" multiple :excluded-values="teamRoleExcluded('followerMemberIds')" placeholder="选择关注人" @update:model-value="setTeamRole('followerMemberIds', $event)" /></a-form-item>
         <a-divider>模块字段</a-divider>
-        <SchemaFormLayout :layout="formLayout" :fields="formValueFields"><template #field="{ field }"><a-form-item :label="field.name" :required="field.required" :data-runtime-field="field.code"
+        <SchemaFormLayout :layout="formLayout" :fields="formValueFields"><template #field="{ field }"><a-form-item :label="field.name" :required="field.fieldType !== 'AUTO_NUMBER' && field.required" :data-runtime-field="field.code"
           :validate-status="fieldErrors[field.code] ? 'error' : undefined" :help="fieldErrors[field.code]">
-          <RuntimeAttachmentFieldInput v-if="attachmentFieldTypes.has(field.fieldType)" :model-value="attachmentFieldValue(field.code)" :field="field" :token="token" @update:model-value="form.fields[field.code] = $event" />
+          <a-input v-if="field.fieldType === 'AUTO_NUMBER'" :value="editing && editing.fields[field.code] != null ? displayValue(field, editing.fields[field.code], editing) : undefined" :placeholder="editing ? '暂无自动编号' : '保存后自动生成'" readonly />
+          <RuntimeFieldInput v-else-if="field.fieldType === 'SUBTABLE'" v-model="form.fields[field.code]" :field="field" :child-fields="childFields(field)" :child-options="formChildOptions(field)" :child-cascades="formChildCascades(field)" :token="token" :preserve-existing="Boolean(editing)" @reference-search="searchFormReferenceOptions" />
+          <RuntimeAttachmentFieldInput v-else-if="attachmentFieldTypes.has(field.fieldType)" :model-value="attachmentFieldValue(field.code)" :field="field" :token="token" @update:model-value="form.fields[field.code] = $event" />
           <RuntimeFieldInput v-else-if="isSharedRuntimeField(field.fieldType)" v-model="form.fields[field.code]" :field="field" :preserve-existing="Boolean(editing)" :options="formOptions(field)" />
-          <a-input-number v-else-if="field.fieldType === 'MONEY'" v-model:value="form.fields[field.code]" style="width:100%" />
           <a-select v-else-if="['SINGLE_SELECT', 'STATUS'].includes(field.fieldType)" v-model:value="form.fields[field.code]" :options="formOptions(field)" allow-clear />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" v-model:value="form.fields[field.code]" :options="formCascadeOptions[field.code] || []"
             :change-on-select="Boolean(fieldConfig(field).allowIntermediate)" allow-clear show-search placeholder="请选择级联项" />
-          <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="formFieldDirectory(field.code)?.people || []" value-key="systemMemberId" placeholder="搜索并选择成员" @update:model-value="form.fields[field.code] = $event" />
+          <PersonSelect v-else-if="field.fieldType === 'MEMBER'" :model-value="numericFieldValue(field.code)" :people="formFieldDirectory(field.code)?.people || []" value-key="systemMemberId" show-department-filter placeholder="搜索并选择成员" @update:model-value="form.fields[field.code] = $event" />
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="numericFieldValue(field.code)" :departments="formFieldDirectory(field.code)?.departments || []" @update:model-value="form.fields[field.code] = $event" />
-          <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" show-search allow-clear :loading="formCatalogLoading || formReferenceLoading[field.code]" :filter-option="false" :options="formReferenceOptions[field.code] || []" placeholder="搜索并选择业务记录" @search="(value: string) => searchFormReferenceOptions(field, value)"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
+          <a-select v-else-if="field.fieldType === 'REFERENCE'" v-model:value="form.fields[field.code]" :mode="fieldConfig(field).multiple ? 'multiple' : undefined" show-search allow-clear :loading="formCatalogLoading || formReferenceLoading[field.code]" :filter-option="false" :options="formReferenceOptions[field.code] || []" :placeholder="fieldConfig(field).multiple ? '搜索并选择多条业务记录' : '搜索并选择业务记录'" @search="(value: string) => searchFormReferenceOptions(field, value)"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
           <a-input v-else v-model:value="form.fields[field.code]" />
         </a-form-item></template></SchemaFormLayout>
       </a-form>
@@ -3176,10 +3695,12 @@ defineExpose({ refresh: loadModules, executeCommand })
     <a-modal v-model:open="manualActionOpen" :title="manualAction?.name || '执行业务动作'" :footer="null" :mask-closable="false" :closable="!manualActionSaving" :keyboard="!manualActionSaving" width="720px">
       <a-alert type="info" show-icon class="section-alert"
         :message="manualActionTargets.length === 1 ? `处理“${manualActionTargets[0]?.title}”` : `批量处理 ${manualActionTargets.length} 条记录`"
-        description="填写业务字段后统一执行；批量处理中每条记录独立校验、审批和记录结果。" />
+        :description="manualActionOperation === 'SET_STATUS'
+          ? `执行后状态设为“${manualActionStatusValue}”；每条记录独立校验、审批和记录结果。`
+          : '填写业务字段后统一执行；批量处理中每条记录独立校验、审批和记录结果。'" />
       <a-form layout="vertical" :disabled="manualActionSaving || manualActionResults.length > 0">
         <a-form-item v-for="field in manualActionFields" :key="field.code" :label="field.name" :required="field.required">
-          <PersonSelect v-if="field.fieldType === 'MEMBER'" :model-value="manualOrganizationValue(field)" :people="manualOrganizationOptions[field.code]?.people || []" value-key="systemMemberId" placeholder="选择各记录共同可用的成员" @update:model-value="manualActionValues[field.code] = $event" />
+          <PersonSelect v-if="field.fieldType === 'MEMBER'" :model-value="manualOrganizationValue(field)" :people="manualOrganizationOptions[field.code]?.people || []" value-key="systemMemberId" show-department-filter placeholder="选择各记录共同可用的成员" @update:model-value="manualActionValues[field.code] = $event" />
           <DepartmentSelect v-else-if="field.fieldType === 'DEPARTMENT'" :model-value="manualOrganizationValue(field)" :departments="manualOrganizationOptions[field.code]?.departments || []" @update:model-value="manualActionValues[field.code] = $event" />
           <a-cascader v-else-if="field.fieldType === 'CASCADE'" :value="manualCascadeValue(field)" :options="manualCascadeOptions[field.code] || []" :change-on-select="Boolean(fieldConfig(field).allowIntermediate)" allow-clear show-search placeholder="选择共同可用的层级项" @update:value="manualActionValues[field.code] = $event" />
           <a-select v-else-if="field.fieldType === 'REFERENCE'" :value="typeof manualActionValues[field.code] === 'number' ? manualActionValues[field.code] as number : undefined" show-search allow-clear :loading="manualReferenceLoading[field.code]" :filter-option="false" :options="manualReferenceDisplayOptions(field)" placeholder="搜索并选择共同可用的业务记录" @update:value="selectManualReference(field, $event)" @search="(value: string) => searchManualReferenceOptions(field, value)"><template #option="{ label, description }"><span class="reference-option"><strong>{{ label }}</strong><small>{{ description }}</small></span></template></a-select>
@@ -3200,28 +3721,36 @@ defineExpose({ refresh: loadModules, executeCommand })
         <a-button v-if="!manualActionResults.length" type="primary" :loading="manualActionSaving" @click="requestManualAction(false)">确认执行</a-button>
       </div>
     </a-modal>
-    <a-modal v-model:open="lifecycleOpen" :title="batchDeleteTargets.length ? '批量删除记录' : lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
-      :footer="batchDeleteTargets.length ? null : undefined" :mask-closable="false" :closable="!lifecycleSaving" :keyboard="!lifecycleSaving"
-      :confirm-loading="lifecycleSaving" ok-text="确认执行" cancel-text="取消" @ok="submitLifecycle">
-      <a-alert v-if="batchDeleteTargets.length" type="warning" show-icon :message="`将处理 ${batchDeleteTargets.length} 条记录`"
-        description="删除会移入回收站，可通过恢复操作找回；关联数据保留。每条记录独立校验权限、版本和审批配置，请确认后提交。" />
+    <a-modal v-model:open="lifecycleOpen" :title="batchLifecycleTargets.length ? (lifecycleAction === 'ARCHIVE' ? '批量归档记录' : '批量删除记录') : lifecycleAction === 'ARCHIVE' ? '确认归档记录' : lifecycleAction === 'DELETE' ? '确认删除记录' : '确认恢复记录'"
+      :footer="batchLifecycleTargets.length ? null : undefined" :mask-closable="false" :closable="!lifecycleSaving" :keyboard="!lifecycleSaving"
+      :confirm-loading="lifecycleSaving" :ok-button-props="{ disabled: deleteNeedsReplacement && !replacementRecordId }" ok-text="确认执行" cancel-text="取消" @ok="submitLifecycle">
+      <a-alert v-if="batchLifecycleTargets.length" type="warning" show-icon :message="`将处理 ${batchLifecycleTargets.length} 条记录`"
+        :description="lifecycleAction === 'ARCHIVE' ? '归档后记录从正常列表移至已归档，可逐条恢复。每条记录独立校验权限和版本。' : '成功删除的记录会从正常列表移入回收站，可逐条恢复。被其他有效业务引用的记录需先选择替代记录或处理引用，本次会逐条报告失败且不会删除该条；其余记录独立校验权限、版本和审批配置。取消不会提交任何删除。'" />
       <a-alert v-if="lifecycleImpact" type="warning" show-icon
         :message="`${lifecycleAction === 'ARCHIVE' ? '归档' : lifecycleAction === 'DELETE' ? '删除' : '恢复'}“${lifecycleRecord?.title}”`"
         class="section-alert">
         <template #description>{{ lifecycleImpact.warning }} 影响范围：出向关联 {{ lifecycleImpact.outgoingRelationCount }} 条，入向关联 {{ lifecycleImpact.incomingRelationCount }} 条，相关人 {{ lifecycleImpact.participantCount }} 人。</template>
       </a-alert>
-      <a-form layout="vertical" :disabled="lifecycleSaving || batchDeleteResults.length > 0 && batchDeleteTargets.length > 0"><a-form-item label="操作原因" required><a-textarea v-model:value="lifecycleReason" :rows="3" :maxlength="1000" show-count /></a-form-item></a-form>
-      <template v-if="batchDeleteTargets.length">
-        <ul v-if="!batchDeleteResults.length"><li v-for="record in batchDeleteTargets" :key="record.id">{{ record.title }}</li></ul>
-        <a-table v-else size="small" :pagination="false" :data-source="batchDeleteResults" row-key="recordId" :scroll="{ y: 240 }">
+      <a-alert v-if="deleteNeedsReplacement" type="warning" show-icon class="section-alert"
+        :message="`这条记录仍被 ${lifecycleImpact?.incomingRelationCount} 条有效业务引用`"
+        description="删除前必须选择同模块的一条正常记录作为替代；提交后引用会转到替代记录。" />
+      <a-form layout="vertical" :disabled="lifecycleSaving || batchLifecycleResults.length > 0 && batchLifecycleTargets.length > 0">
+        <a-form-item v-if="deleteNeedsReplacement" label="替代记录 ID" required extra="可从当前可见记录中选择，或输入同模块正常记录的 ID；不能选择待删记录。">
+          <a-auto-complete v-model:value="replacementRecordInput" :options="replacementRecordOptions" style="width:100%" placeholder="输入或选择替代记录 ID" @select="selectReplacementRecord" />
+        </a-form-item>
+        <a-form-item label="操作原因" required><a-textarea v-model:value="lifecycleReason" :rows="3" :maxlength="1000" show-count /></a-form-item>
+      </a-form>
+      <template v-if="batchLifecycleTargets.length">
+        <ul v-if="!batchLifecycleResults.length"><li v-for="record in batchLifecycleTargets" :key="record.id">{{ record.title }}</li></ul>
+        <a-table v-else size="small" :pagination="false" :data-source="batchLifecycleResults" row-key="recordId" :scroll="{ y: 240 }">
           <a-table-column title="记录" data-index="title" />
           <a-table-column title="结果" width="75"><template #default="{ record }"><a-tag :color="record.status === 'SUCCESS' ? 'green' : 'red'">{{ record.status === 'SUCCESS' ? '已提交' : '失败' }}</a-tag></template></a-table-column>
           <a-table-column title="说明" data-index="message" />
           <a-table-column title="处理详情" width="95"><template #default="{ record }"><a-button v-if="record.result" type="link" size="small" @click="lastAction = { moduleCode: activeCode, result: record.result }; lifecycleOpen = false">查看结果</a-button></template></a-table-column>
         </a-table>
         <div class="drawer-footer"><a-button :disabled="lifecycleSaving" @click="lifecycleOpen = false">关闭</a-button>
-          <a-button v-if="batchDeleteResults.some(item => item.status === 'FAILED')" :loading="lifecycleSaving" @click="submitBatchDelete(true)">只重试失败项</a-button>
-          <a-button v-if="!batchDeleteResults.length" type="primary" danger :loading="lifecycleSaving" @click="submitBatchDelete(false)">确认删除</a-button>
+          <a-button v-if="batchLifecycleResults.some(item => item.status === 'FAILED' && item.failureKind !== 'UNKNOWN_RESULT')" :loading="lifecycleSaving" @click="submitBatchLifecycle(true)">只重试明确失败项</a-button>
+          <a-button v-if="!batchLifecycleResults.length" type="primary" :danger="lifecycleAction === 'DELETE'" :loading="lifecycleSaving" @click="submitBatchLifecycle(false)">{{ lifecycleAction === 'ARCHIVE' ? `确认归档 ${batchLifecycleTargets.length} 条` : `确认删除 ${batchLifecycleTargets.length} 条` }}</a-button>
         </div>
       </template>
     </a-modal>
@@ -3236,7 +3765,7 @@ defineExpose({ refresh: loadModules, executeCommand })
       </a-table>
     </a-modal>
     <a-modal v-model:open="transferOpen" title="转交负责人和部门" :footer="null" :mask-closable="false" :closable="!transferSaving" :keyboard="!transferSaving">
-      <a-form layout="vertical" :disabled="transferSaving"><div class="form-grid"><a-form-item label="新负责人" required><PersonSelect :disabled="transferSaving" v-model="transferForm.ownerMemberId" :people="transferOrganizationOptions?.people || []" placeholder="搜索并选择来源成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="负责部门"><DepartmentSelect :disabled="transferSaving" v-model="transferForm.departmentId" :departments="transferOrganizationOptions?.departments || []" @change="transferPreview = undefined" /></a-form-item></div><a-form-item label="相关成员"><PersonSelect :disabled="transferSaving" v-model="transferForm.participantMemberIds" multiple :people="transferOrganizationOptions?.people || []" placeholder="搜索并选择来源协作成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="转交原因" required><a-textarea v-model:value="transferForm.reason" :rows="3" :maxlength="1000" show-count @change="transferPreview = undefined" /></a-form-item></a-form>
+      <a-form layout="vertical" :disabled="transferSaving"><div class="form-grid"><a-form-item label="新负责人" required><PersonSelect :disabled="transferSaving" v-model="transferForm.ownerMemberId" :people="transferOrganizationOptions?.people || []" show-department-filter placeholder="搜索并选择来源成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="负责部门"><DepartmentSelect :disabled="transferSaving" v-model="transferForm.departmentId" :departments="transferOrganizationOptions?.departments || []" @change="transferPreview = undefined" /></a-form-item></div><a-form-item label="相关成员"><PersonSelect :disabled="transferSaving" v-model="transferForm.participantMemberIds" multiple show-department-filter :people="transferOrganizationOptions?.people || []" placeholder="搜索并选择来源协作成员" @change="transferPreview = undefined" /></a-form-item><a-form-item label="转交原因" required><a-textarea v-model:value="transferForm.reason" :rows="3" :maxlength="1000" show-count @change="transferPreview = undefined" /></a-form-item></a-form>
       <a-alert v-if="transferPreview" type="info" show-icon class="section-alert" message="归属变化预览"><template #description>{{ transferPreview.fromOwnerName || '不可用成员' }} → {{ transferPreview.toOwnerName || '不可用成员' }}；{{ transferPreview.fromDepartmentName || '无部门' }} → {{ transferPreview.toDepartmentName || '无部门' }}；相关人 {{ transferPreview.fromParticipantNames.map(name => name || '不可用成员').join('、') || '无' }} → {{ transferPreview.toParticipantNames.map(name => name || '不可用成员').join('、') || '无' }}</template></a-alert>
       <a-alert v-if="transferPreview" type="info" :message="`关联影响：出向 ${transferPreview.outgoingRelationCount} 条，入向 ${transferPreview.incomingRelationCount} 条`" description="仅变更当前记录的负责人、部门及相关人；模块、数据工作空间和关联记录归属保留。" />
       <div class="drawer-footer"><a-button :disabled="transferSaving" @click="transferOpen = false">取消</a-button><a-button :loading="transferSaving" @click="previewTransfer">预览变化</a-button><a-button type="primary" :disabled="!transferPreview" :loading="transferSaving" @click="submitTransfer">确认转交</a-button></div>
@@ -3250,7 +3779,7 @@ defineExpose({ refresh: loadModules, executeCommand })
           <a-table-column title="来源记录" data-index="title" />
           <a-table-column title="预校验"><template #default="{ record }">{{ record.error || (record.preview?.executable ? '映射可执行' : record.preview?.issues.join('；')) }}</template></a-table-column>
           <a-table-column v-if="batchConversionResults.length" title="处理结果"><template #default="{ record }"><template v-for="item in batchConversionResults.filter(item => item.recordId === record.recordId)" :key="item.recordId"><a-tag>{{ batchConversionState(item) }}</a-tag><div>{{ item.message }}</div></template></template></a-table-column>
-          <a-table-column v-if="batchConversionResults.length" title="数据"><template #default="{ record }"><a-button v-for="item in batchConversionResults.filter(item => item.recordId === record.recordId && item.status === 'SUCCESS')" :key="item.recordId" type="link" size="small" :disabled="conversionSaving" @click="openBatchConversionRecord(item)">{{ item.result?.value ? '打开目标' : '查看来源' }}</a-button></template></a-table-column>
+          <a-table-column v-if="batchConversionResults.length" title="数据"><template #default="{ record }"><template v-for="item in batchConversionResults.filter(item => item.recordId === record.recordId)" :key="item.recordId"><a-button v-if="item.status === 'SUCCESS'" type="link" size="small" :disabled="conversionSaving" @click="openBatchConversionRecord(item)">{{ item.result?.value ? '打开目标' : '查看来源' }}</a-button><a-button v-else-if="item.status === 'FAILED'" type="link" size="small" :disabled="conversionSaving" @click="openBatchConversionSource(item.recordId)">打开来源修正</a-button></template></template></a-table-column>
           <template #expandedRowRender="{ record }"><template v-if="record.preview"><p>目标标题：{{ record.preview.targetTitle }}</p><a-table size="small" :pagination="false" :data-source="record.preview.mappings" row-key="targetFieldCode"><a-table-column title="目标字段" data-index="targetFieldName" /><a-table-column title="来源字段" data-index="sourceFieldName" /><a-table-column title="映射结果"><template #default="{ record: mapping }">{{ typeof mapping.value === 'boolean' ? (mapping.value ? '是' : '否') : timelineValue(mapping.value) }}</template></a-table-column><a-table-column title="校验" data-index="message" /></a-table></template><p v-else>{{ record.error }}</p></template>
         </a-table>
         <div class="drawer-footer">
@@ -3271,9 +3800,7 @@ defineExpose({ refresh: loadModules, executeCommand })
       <div class="drawer-footer"><a-button :disabled="conversionUnlinkSaving" @click="conversionUnlinkOpen = false">取消</a-button><a-button type="primary" danger :loading="conversionUnlinkSaving" @click="submitConversionUnlink">确认解除</a-button></div>
     </a-modal>
     <ModuleImportDrawer v-if="activeCode" v-model:open="importOpen" :module-code="activeCode" :module-name="activeModule?.moduleName" @records-changed="loadRecords" />
-    <ModuleRangeSharingDrawer v-if="activeCode" v-model:open="rangeSharingOpen" :module-code="activeCode"
-      :module-name="activeModule?.moduleName" :actions="actions" :enabled="canManageRangeShares" @changed="loadRecords" />
-    <ModuleExportDrawer v-if="activeCode" v-model:open="exportOpen" :module-code="activeCode" :module-name="activeModule?.moduleName"
+    <ModuleExportDrawer v-if="activeCode" v-model:open="exportOpen" :module-code="activeCode" :module-id="activeModule?.moduleId" :module-name="activeModule?.moduleName"
       :lifecycle-state="lifecycleState" :tenant-scope="tenantScope" :search="searchText" :filters="listFilters"
       :sort-field="sortField" :sort-direction="sortDirection" :selected-record-ids="selectedRowKeys" :visible-field-codes="visibleFieldCodes" />
   </ProductPage>
@@ -3281,4 +3808,18 @@ defineExpose({ refresh: loadModules, executeCommand })
 <style scoped>
 .source-field-label { display: block; margin-top: 3px; color: #64748b; font-size: 11px; }
 .manual-choice-hint { display: block; margin-top: 6px; color: #64748b; }
+.detail-subtable { margin: 16px 0; }
+.detail-subtable h3 { font-size: 14px; margin: 0 0 8px; }
+.record-comments { display: grid; gap: 16px; padding: 8px 0; }
+.record-comments__list { display: grid; gap: 10px; }
+.record-comments__item { padding: 12px; border: 1px solid #dbe4ef; border-radius: 8px; background: #fff; }
+.record-comments__item--reply { margin-left: 24px; background: #f8fafc; }
+.record-comments__item header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #64748b; font-size: 12px; }
+.record-comments__item header strong { color: #334155; font-size: 13px; }
+.record-comments__item header time { margin-left: auto; }
+.record-comments__item p { margin: 8px 0 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.record-comments__composer { display: grid; gap: 8px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+.record-comments__reply { display: flex; align-items: center; gap: 4px; color: #475569; font-size: 13px; }
+.record-comments__actions { display: flex; justify-content: flex-end; }
+@media (max-width: 600px) { .record-comments__item--reply { margin-left: 12px; } }
 </style>

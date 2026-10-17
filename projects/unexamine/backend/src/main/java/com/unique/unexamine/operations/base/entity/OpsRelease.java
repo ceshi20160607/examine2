@@ -9,44 +9,74 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 全局部署产物及兼容性版本目录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_release")
+@TableName("un_ops_release")
 public class OpsRelease {
 
+    /**
+     * 产品发布版本主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 全局唯一的产品发布版本号
+     */
     @TableField("version_name")
     private String versionName;
 
+    /**
+     * 部署产物校验摘要
+     */
     @TableField("artifact_hash")
     private String artifactHash;
 
+    /**
+     * 数据库结构版本
+     */
     @TableField("database_version")
     private String databaseVersion;
 
+    /**
+     * 配置结构版本
+     */
     @TableField("config_version")
     private String configVersion;
 
+    /**
+     * 升级兼容性及环境要求
+     */
     @TableField("compatibility_json")
     private String compatibilityJson;
 
+    /**
+     * 发布内容和升级说明
+     */
     @TableField("release_notes")
     private String releaseNotes;
 
+    /**
+     * 发布版本状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 登记版本的平台账号主键
+     */
     @TableField("created_by_account_id")
     private Long createdByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 发布版本登记时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -120,12 +150,12 @@ public class OpsRelease {
         this.createdByAccountId = createdByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -140,7 +170,7 @@ public class OpsRelease {
             ", releaseNotes = " + releaseNotes +
             ", status = " + status +
             ", createdByAccountId = " + createdByAccountId +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

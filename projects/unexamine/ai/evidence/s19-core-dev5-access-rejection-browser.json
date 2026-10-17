@@ -1,0 +1,29 @@
+{
+  "step": "S19.11",
+  "candidate": "0.1.0-s19.11-dev5",
+  "status": "interrupted_test_access_requests_rejected_by_admin_page",
+  "pending": [
+    {
+      "id": 1,
+      "name": "s19_access_1792216963732",
+      "status": "PENDING"
+    },
+    {
+      "id": 2,
+      "name": "s19_access_1792217019440",
+      "status": "PENDING"
+    }
+  ],
+  "rejected": [
+    {
+      "id": 1,
+      "status": "REJECTED",
+      "comment": "S19 验收脚本中断申请，关闭待办"
+    },
+    {
+      "id": 2,
+      "status": "REJECTED",
+      "comment": "S19 验收脚本中断申请，关闭待办"
+    }
+  ]
+}

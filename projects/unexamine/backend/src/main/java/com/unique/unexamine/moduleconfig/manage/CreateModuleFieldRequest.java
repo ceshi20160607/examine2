@@ -17,5 +17,14 @@ public record CreateModuleFieldRequest(
         Long dictionaryId,
         Long referenceModuleId,
         @Min(0) Integer sortOrder,
-        @NotNull JsonNode config) {
+        @NotNull JsonNode config,
+        @Min(1) Long parentFieldId) {
+
+    /** 保留既有主记录字段创建调用；子表列需要显式提供所属子表字段。 */
+    public CreateModuleFieldRequest(String code, String name, String fieldType, Boolean required,
+                                    Boolean uniqueValue, Boolean searchable, Long dictionaryId,
+                                    Long referenceModuleId, Integer sortOrder, JsonNode config) {
+        this(code, name, fieldType, required, uniqueValue, searchable, dictionaryId,
+                referenceModuleId, sortOrder, config, null);
+    }
 }

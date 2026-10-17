@@ -2,6 +2,7 @@
 package com.unique.unexamine.application.base.service;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.unique.unexamine.application.base.entity.AppCallNonce;
 import com.unique.unexamine.application.base.mapper.AppCallNonceMapper;
 import org.springframework.stereotype.Service;
@@ -27,5 +28,20 @@ public class AppCallNonceBaseService {
 
     public List<AppCallNonce> selectList(Wrapper<AppCallNonce> query) {
         return mapper.selectList(query);
+    }
+
+    /** 按条件读取一条记录；查询条件必须保证业务上的唯一性。 */
+    public AppCallNonce selectOne(Wrapper<AppCallNonce> query) {
+        return mapper.selectOne(query);
+    }
+
+    /** 统计符合条件的记录数量。 */
+    public Long selectCount(Wrapper<AppCallNonce> query) {
+        return mapper.selectCount(query);
+    }
+
+    /** 按条件分页读取记录。 */
+    public IPage<AppCallNonce> selectPage(IPage<AppCallNonce> page, Wrapper<AppCallNonce> query) {
+        return mapper.selectPage(page, query);
     }
 }

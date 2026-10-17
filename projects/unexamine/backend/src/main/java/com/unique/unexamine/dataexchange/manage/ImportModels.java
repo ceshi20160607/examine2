@@ -26,10 +26,11 @@ public final class ImportModels {
     public record SourceHeadersView(Long sourceFileId, String format, List<String> headers) {
     }
 
+    /** 冲突策略中 UPDATE 为新增并更新，UPDATE_ONLY 仅处理已匹配的记录。 */
     public record PreviewRequest(
             @NotNull Long sourceFileId,
             @NotNull Map<@Size(max = 200) String, @Size(max = 100) String> columnMapping,
-            @Pattern(regexp = "ERROR|SKIP|UPDATE") String conflictPolicy,
+            @Pattern(regexp = "ERROR|SKIP|UPDATE|UPDATE_ONLY") String conflictPolicy,
             @Size(max = 100) String matchFieldCode,
             @Size(max = 200) String mappingName) {
     }

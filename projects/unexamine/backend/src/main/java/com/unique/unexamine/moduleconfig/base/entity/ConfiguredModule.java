@@ -10,60 +10,108 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 业务模块草稿定义
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("cfg_module")
+@TableName("un_cfg_module")
 public class ConfiguredModule {
 
+    /**
+     * 主键标识
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属系统标识
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 配置所属租户标识
+     */
     @TableField("owner_tenant_id")
     private Long ownerTenantId;
 
+    /**
+     * 所属模块分组标识
+     */
     @TableField("group_id")
     private Long groupId;
 
+    /**
+     * 范围内稳定编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 业务说明
+     */
     @TableField("`description`")
     private String description;
 
+    /**
+     * 记录标题字段编码
+     */
     @TableField("title_field_code")
     private String titleFieldCode;
 
+    /**
+     * 记录编号序列编码
+     */
     @TableField("number_sequence_code")
     private String numberSequenceCode;
 
+    /**
+     * 记录状态字段编码
+     */
     @TableField("status_field_code")
     private String statusFieldCode;
 
+    /**
+     * 生命周期状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 草稿修订号
+     */
     @TableField("draft_revision")
     private Integer draftRevision;
 
+    /**
+     * 创建系统成员标识
+     */
     @TableField("created_by_member_id")
     private Long createdByMemberId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本号
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -172,20 +220,20 @@ public class ConfiguredModule {
         this.createdByMemberId = createdByMemberId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -212,8 +260,8 @@ public class ConfiguredModule {
             ", status = " + status +
             ", draftRevision = " + draftRevision +
             ", createdByMemberId = " + createdByMemberId +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

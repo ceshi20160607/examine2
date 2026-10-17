@@ -10,48 +10,84 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台或系统租户的受控特性开关
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("core_feature_flag")
+@TableName("un_core_feature_flag")
 public class CoreFeatureFlag {
 
+    /**
+     * 特性开关主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 特性开关归属：平台或系统租户
+     */
     @TableField("context_type")
     private String contextType;
 
+    /**
+     * 平台范围主键，系统租户开关为空
+     */
     @TableField("platform_id")
     private Long platformId;
 
+    /**
+     * 系统范围主键，平台开关为空
+     */
     @TableField("system_id")
     private Long systemId;
 
+    /**
+     * 系统租户主键，平台开关为空
+     */
     @TableField("tenant_id")
     private Long tenantId;
 
+    /**
+     * 归属范围内的特性编码
+     */
     @TableField("flag_key")
     private String flagKey;
 
+    /**
+     * 开关默认启用状态
+     */
     @TableField("enabled")
     private Boolean enabled;
 
+    /**
+     * 生效时间、目标对象与安全回退规则
+     */
     @TableField("rollout_json")
     private String rolloutJson;
 
+    /**
+     * 配置启停状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 创建时间，后续统一更名为 create_time
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 更新时间，后续统一更名为 update_time
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -128,20 +164,20 @@ public class CoreFeatureFlag {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -164,8 +200,8 @@ public class CoreFeatureFlag {
             ", enabled = " + enabled +
             ", rolloutJson = " + rolloutJson +
             ", status = " + status +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

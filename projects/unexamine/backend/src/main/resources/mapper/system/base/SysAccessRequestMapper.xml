@@ -19,15 +19,15 @@
         <result column="approved_data_scope_json" property="approvedDataScopeJson" />
         <result column="request_trace_id" property="requestTraceId" />
         <result column="decision_trace_id" property="decisionTraceId" />
-        <result column="decided_at" property="decidedAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="decide_time" property="decideTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, account_id, identity_provider, external_user_id, request_reason, requested_role, `status`, decided_by_member_id, decision_comment, approved_role_ids_json, approved_data_scope_json, request_trace_id, decision_trace_id, decided_at, created_at, updated_at, version
+        id, system_id, tenant_id, account_id, identity_provider, external_user_id, request_reason, requested_role, `status`, decided_by_member_id, decision_comment, approved_role_ids_json, approved_data_scope_json, request_trace_id, decision_trace_id, decide_time, create_time, update_time, version
     </sql>
 
 </mapper>

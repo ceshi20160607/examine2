@@ -10,54 +10,102 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台统一身份源配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_sso_provider")
+@TableName("un_plat_sso_provider")
 public class PlatSsoProvider {
 
+    /**
+     * 平台身份源主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台标识
+     */
+    @TableField("platform_id")
+    private Long platformId;
+
+    /**
+     * 平台范围内身份源编码
+     */
     @TableField("`code`")
     private String code;
 
+    /**
+     * 身份源显示名称
+     */
     @TableField("`name`")
     private String name;
 
+    /**
+     * 身份源认证协议
+     */
     @TableField("protocol")
     private String protocol;
 
+    /**
+     * 身份源发行者标识
+     */
     @TableField("`issuer`")
     private String issuer;
 
+    /**
+     * 身份源客户端标识
+     */
     @TableField("client_id")
     private String clientId;
 
+    /**
+     * 客户端密钥的受控引用
+     */
     @TableField("client_secret_ref")
     private String clientSecretRef;
 
+    /**
+     * 身份源公共元数据
+     */
     @TableField("metadata_json")
     private String metadataJson;
 
+    /**
+     * 身份源启用状态
+     */
     @TableField("`status`")
     private String status;
 
+    /**
+     * 当前发布的身份源版本标识
+     */
     @TableField("published_version_id")
     private Long publishedVersionId;
 
+    /**
+     * 当前发布的身份源版本号
+     */
     @TableField("published_version_number")
     private Integer publishedVersionNumber;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 身份源创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 身份源更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
+    /**
+     * 乐观锁版本
+     */
     @Version
     @TableField("version")
     private Integer version;
@@ -68,6 +116,14 @@ public class PlatSsoProvider {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(Long platformId) {
+        this.platformId = platformId;
     }
 
     public String getCode() {
@@ -150,20 +206,20 @@ public class PlatSsoProvider {
         this.publishedVersionNumber = publishedVersionNumber;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Integer getVersion() {
@@ -178,6 +234,7 @@ public class PlatSsoProvider {
     public String toString() {
         return "PlatSsoProvider{" +
             "id = " + id +
+            ", platformId = " + platformId +
             ", code = " + code +
             ", name = " + name +
             ", protocol = " + protocol +
@@ -188,8 +245,8 @@ public class PlatSsoProvider {
             ", status = " + status +
             ", publishedVersionId = " + publishedVersionId +
             ", publishedVersionNumber = " + publishedVersionNumber +
-            ", createdAt = " + createdAt +
-            ", updatedAt = " + updatedAt +
+            ", createTime = " + createTime +
+            ", updateTime = " + updateTime +
             ", version = " + version +
             "}";
     }

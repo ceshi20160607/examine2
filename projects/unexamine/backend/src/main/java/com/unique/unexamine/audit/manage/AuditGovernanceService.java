@@ -33,6 +33,7 @@ public class AuditGovernanceService {
     private final AuditRetentionMarkerBaseService markerService;
     private final PermissionChecker permissionChecker;
     private final AuditRecorder auditRecorder;
+    private final AuditEventRedactor redactor;
     private final ObjectMapper objectMapper;
 
     public AuditGovernanceService(AuditEventBaseService eventService,
@@ -40,12 +41,14 @@ public class AuditGovernanceService {
                                   AuditRetentionMarkerBaseService markerService,
                                   PermissionChecker permissionChecker,
                                   AuditRecorder auditRecorder,
+                                  AuditEventRedactor redactor,
                                   ObjectMapper objectMapper) {
         this.eventService = eventService;
         this.fieldChangeService = fieldChangeService;
         this.markerService = markerService;
         this.permissionChecker = permissionChecker;
         this.auditRecorder = auditRecorder;
+        this.redactor = redactor;
         this.objectMapper = objectMapper;
     }
 
@@ -57,6 +60,27 @@ public class AuditGovernanceService {
         List<AuditGovernanceModels.FieldChangeView> fields = fieldChangeService.selectList(
                         Wrappers.<AuditFieldChange>lambdaQuery().eq(AuditFieldChange::getAuditEventId, eventId))
                 .stream().map(field -> fieldView(field, sensitiveVisible)).toList();
+        redactor.redact(context, List.of(event));
+        return new AuditGovernanceModels.EventDetail(event, fields, sensitiveVisible);
+    }
+
+    /** 平台审计详情按平台主键隔离，字段前后值仍按独立敏感授权遮罩。 */
+    @Transactional(readOnly = true)
+    public AuditGovernanceModels.EventDetail platformDetail(AuthenticatedContext context, Long eventId) {
+        if (context.platformId() == null || context.systemId() != null) {
+            throw new DomainException("PLATFORM_CONTEXT_REQUIRED", "请先进入平台", HttpStatus.CONFLICT);
+        }
+        AuditEvent event = eventService.selectById(eventId);
+        if (event == null || !"PLATFORM".equals(event.getContextType())
+                || !context.platformId().equals(event.getPlatformId())
+                || event.getSystemId() != null || event.getTenantId() != null) {
+            throw new DomainException("AUDIT_EVENT_NOT_FOUND", "当前平台不存在该审计事件", HttpStatus.NOT_FOUND);
+        }
+        boolean sensitiveVisible = permissionChecker.allows(context, "PLATFORM", "AUDIT", "VIEW_SENSITIVE");
+        List<AuditGovernanceModels.FieldChangeView> fields = fieldChangeService.selectList(
+                        Wrappers.<AuditFieldChange>lambdaQuery().eq(AuditFieldChange::getAuditEventId, eventId))
+                .stream().map(field -> fieldView(field, sensitiveVisible)).toList();
+        redactor.redact(context, List.of(event));
         return new AuditGovernanceModels.EventDetail(event, fields, sensitiveVisible);
     }
 
@@ -103,7 +127,7 @@ public class AuditGovernanceService {
         marker.setSnapshotJson(snapshotJson);
         marker.setPurgeReason(input.reason().strip());
         marker.setPurgedByAccountId(context.accountId());
-        marker.setPurgedAt(LocalDateTime.now());
+        marker.setPurgeTime(LocalDateTime.now());
         markerService.insert(marker);
         auditRecorder.record(traceId, context.accountId(), context.systemId(), context.tenantId(), context.memberId(),
                 "AUDIT_PERMANENT_RETENTION_MARKED", "AUDIT_RETENTION_MARKER", marker.getId().toString(), "SUCCESS",
@@ -111,7 +135,7 @@ public class AuditGovernanceService {
                         "approvalReference", input.approvalReference(), "snapshotHash", marker.getSnapshotHash()));
         return new AuditGovernanceModels.RetentionMarkerView(marker.getId(), objectType, objectId,
                 marker.getBusinessKey(), marker.getSnapshotHash(), marker.getPurgeReason(),
-                marker.getPurgedByAccountId(), marker.getPurgedAt());
+                marker.getPurgedByAccountId(), marker.getPurgeTime());
     }
 
     private AuditGovernanceModels.RetentionPreflight inspect(

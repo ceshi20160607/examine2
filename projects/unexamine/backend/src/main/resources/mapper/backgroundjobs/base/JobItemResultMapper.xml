@@ -12,13 +12,13 @@
         <result column="result_json" property="resultJson" />
         <result column="error_code" property="errorCode" />
         <result column="error_message" property="errorMessage" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, job_id, item_key, `row_number`, `status`, result_json, error_code, error_message, created_at, updated_at
+        id, job_id, item_key, `row_number`, `status`, result_json, error_code, error_message, create_time, update_time
     </sql>
 
 </mapper>

@@ -68,7 +68,7 @@ class ModuleSkeletonServiceIntegrationTest {
         ModuleDraft created = moduleConfigurationService.createModule(context,
                 new CreateModuleRequest(null, "客户运营", null, "客户"), "module-skeleton-create");
         assertThat(created.module().getCode()).matches("module_[a-f0-9]{10}");
-        assertThat(jdbc.queryForObject("select code from cfg_module_group where id = ?", String.class,
+        assertThat(jdbc.queryForObject("select code from un_cfg_module_group where id = ?", String.class,
                 created.module().getGroupId())).matches("group_[a-f0-9]{10}");
         assertThat(created.pages()).extracting(page -> page.getPageType())
                 .containsExactly("LIST", "FORM", "DETAIL");
@@ -99,16 +99,16 @@ class ModuleSkeletonServiceIntegrationTest {
 
     private AuthenticatedContext systemContext(RegistrationResult registration) {
         long memberId = jdbc.queryForObject(
-                "select id from sys_member where system_id = ? and account_id = ?",
+                "select id from un_sys_member where system_id = ? and account_id = ?",
                 Long.class, registration.systemId(), registration.accountId());
         long tenantMemberId = jdbc.queryForObject(
-                "select id from sys_tenant_member where tenant_id = ? and system_member_id = ?",
+                "select id from un_sys_tenant_member where tenant_id = ? and system_member_id = ?",
                 Long.class, registration.tenantId(), memberId);
         long roleId = jdbc.queryForObject(
-                "select id from sys_role where tenant_id = ? and code = 'SYSTEM_SUPER_ADMIN'",
+                "select id from un_sys_role where tenant_id = ? and code = 'SYSTEM_SUPER_ADMIN'",
                 Long.class, registration.tenantId());
         return new AuthenticatedContext(null, registration.accountId(),
-                jdbc.queryForObject("select platform_id from sys_system where id = ?", Long.class, registration.systemId()),
+                jdbc.queryForObject("select platform_id from un_sys_system where id = ?", Long.class, registration.systemId()),
                 registration.systemId(), registration.tenantId(), memberId, tenantMemberId,
                 "module_owner", "模块管理员", "NONE", List.of(roleId),
                 List.of(new PermissionGrant("*", "*", "*", List.of(roleId))),

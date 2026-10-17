@@ -1,0 +1,103 @@
+{
+  "step": "S13.2",
+  "status": "verified_contribution",
+  "integration_gate": "G13_OPERATION_RISK_PROMPTS",
+  "source_rows": [
+    "R2175",
+    "R2177",
+    "R2178",
+    "R2181",
+    "R2186"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleConfigurationService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+    "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+    "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleCascadeConfigurationTest.java",
+    "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/NamedActionConfigurationTest.java"
+  ],
+  "checks_actual_results": [
+    "隔离系统 #151 的 Flow #20 停用前新建实例 #29；页面停用弹窗说明新发起和绑定受阻、在途实例保留冻结版本。取消无变化；确认后状态 DISABLED/version 4，运行目录不再列出 #20，直接发起返回 409 FLOW_RUNTIME_FLOW_DISABLED，已存在实例 #29 仍按版本 #19 审批为 COMPLETED。普通成员修改状态返回 403，旧版本修改返回 409。",
+    "页面重新启用 Flow #20 后状态 PUBLISHED/version 5，运行目录恢复；后端重启后页面、API 和已完成实例一致。",
+    "模块 #74 的删除弹窗说明后台/运行入口、字段草稿和关联影响；取消保留，确认后模块与字段 #171/#172 标为 DELETED，配置列表和草稿接口分别隐藏/404。字段 #172 的页面删除弹窗取消保留，确认后字段从草稿移除。第二个模块 #75 删除后自动选择合同模块，页面不再保留失效地址。",
+    "已发布模块 #73 和字段的删除分别返回 409 MODULE_IN_USE、MODULE_FIELD_IN_USE；普通成员删除模块返回 403，过期版本返回 409。模块 #76 被 #77 的字段关联时删除返回 409 MODULE_IN_USE；先删除引用方后可删除源模块。删除后新建字段引用 #76 返回 404 REFERENCE_MODULE_NOT_FOUND。",
+    "MySQL 持久化和审计读回：#74/#75/#76/#77 为 DELETED，字段 #171/#172/#173 为 DELETED；MODULE_FIELD_DRAFT_DELETED、MODULE_DRAFT_DELETED、FLOW_DISABLED、FLOW_ENABLED 均有 SUCCESS 审计。误用旧构建产生的隔离字段 #174 已清理为 DELETED，未进入发布版本。后端重启后旧审批记录读回通过。",
+    "Java 21 全量 clean package、局部 ModuleCascadeConfigurationTest/NamedActionConfigurationTest、前端 vue-tsc/Vite、workspace-validate、git diff --check 通过。Windows 本机全量测试中的 AI HTTP 用例触发已知 loopback selector 故障，本步骤以隔离 Linux 服务真实 API/页面/DB/重启验证。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s13-flow-disable-impact.png",
+    "projects/unexamine/ai/evidence/s13-flow-disabled.png",
+    "projects/unexamine/ai/evidence/s13-field-delete-impact.png",
+    "projects/unexamine/ai/evidence/s13-field-deleted.png",
+    "projects/unexamine/ai/evidence/s13-module-delete-impact.png",
+    "projects/unexamine/ai/evidence/s13-module-deleted.png",
+    "projects/unexamine/ai/evidence/s13-module-delete-navigation.png",
+    "projects/unexamine/ai/evidence/s13-module-restart.png",
+    "projects/unexamine/ai/evidence/s13-flow-reenabled-restart.png"
+  ],
+  "permission_or_failure_result": "拒绝已发布/被引用对象删除，普通成员 403，旧版本 409；已停用 Flow 的新实例 409，在途实例继续完成；已删除模块的草稿、规则和新关联均返回 404。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationService.java",
+      "sha256": "90f81ba998bcf41db55eae1d9a2798e25506e5ab9ad401c1fa31e9ab771c5468"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleConfigurationController.java",
+      "sha256": "876c9423a11596dd318f0b5d1d0de51124bc795aafe464dd7d30d53763962c84"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModulePublicationService.java",
+      "sha256": "9e439ab39cd25df00c5c028b7004e25b34900b4e0c82010767e72fcdacc5bf4a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/ModuleRuleConfigurationService.java",
+      "sha256": "b1eec66188da725fb636944c780da805d49b4dcdcda9852b1d88736b3a469e0c"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/moduleconfig/manage/TenantExtensionService.java",
+      "sha256": "d218497aaf8db06552b2a15f6cbcc52f38cb39ed8e0546317bf0e4c592021d4a"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignModels.java",
+      "sha256": "285c04288ee01719681b95607d030f8dc94f2bc1e33e02eb4f8b03e912d3a25e"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignController.java",
+      "sha256": "c600cc203f152661ef215b474436de75853f9317960d8e44dc8f01ad9cea2909"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowDesignService.java",
+      "sha256": "6e5ca7a1bf1e1190c5c74059118c6ae29c805c29287f750555bdbdb61dd9f770"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/flow/manage/FlowRuntimeService.java",
+      "sha256": "f97da257dbf7abfd788ad07ccea9e8d4641243114af371e613d696e7b7075044"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/ModuleConfigurationView.vue",
+      "sha256": "05de499921fa45592434ac0b520bebb9d14c894b9c6203eff01ce845ff185f06"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/FlowDesignerView.vue",
+      "sha256": "c28201ef3dcc8c6035c090f2aa0130aa41b2aee07012c6f5083fb3e33adfb9bd"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/ModuleCascadeConfigurationTest.java",
+      "sha256": "aaf9efa7edb29dfda3b24ba881b5460e4cce1a9973e70171d256c802585a6989"
+    },
+    {
+      "path": "projects/unexamine/backend/src/test/java/com/unique/unexamine/moduleconfig/manage/NamedActionConfigurationTest.java",
+      "sha256": "5bf3911c444ac807568181f1cc671c3050fb848ad7ad0daf199c3066ae2cbb17"
+    }
+  ],
+  "remaining": "G13 仍需 S13.3 的导入覆盖、批量删除和权限修改影响提示，以及组合验收。",
+  "next_step": "S13.3"
+}

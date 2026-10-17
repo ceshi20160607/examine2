@@ -136,7 +136,7 @@ onMounted(load)
     <div class="security-workbench">
       <section class="panel-card security-form"><div class="panel-title"><div><strong>1. 创建类型化密钥引用</strong><small>只在本次响应显示明文，后续页面和日志仅显示引用与版本。</small></div></div>
         <a-input v-model:value="secretForm.secretCode" placeholder="密钥编码" />
-        <a-select v-model:value="secretForm.secretType" :options="['APPLICATION','SSO','WEBHOOK','MODEL'].map(value => ({ value, label: value }))" />
+        <a-select v-model:value="secretForm.secretType" :options="['APPLICATION','SSO','WEBHOOK','MODEL','BACKUP'].map(value => ({ value, label: value }))" />
         <a-input v-model:value="secretForm.consumers" placeholder="使用方编码，逗号分隔" />
         <a-input v-model:value="secretForm.approvalReference" placeholder="审批单号" />
         <a-input v-model:value="secretForm.confirmation" :placeholder="createSecretConfirmation(secretForm.secretCode)" />

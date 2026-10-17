@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { dashboardComponentLabel, isVerificationArtifactName, productDateTime, productStatus, tenantModeLabel, userFacingDateTime, userFacingRecordNumber, userFacingWorkspaceName } from './presentation'
+import { dashboardComponentLabel, productDateTime, productStatus, tenantModeLabel, userFacingDateTime, userFacingRecordNumber, userFacingWorkspaceName } from './presentation'
 
-describe('Cycle 58 product presentation contract', () => {
+describe('Product presentation contract', () => {
   it('presents internal statuses as stable user language', () => {
     expect(productStatus('ACTIVE')).toMatchObject({ label: '启用', tone: 'positive' })
     expect(productStatus('READY')).toMatchObject({ label: '就绪', tone: 'positive' })
@@ -21,14 +21,12 @@ describe('Cycle 58 product presentation contract', () => {
     expect(tenantModeLabel('MULTI')).toBe('多工作空间')
   })
 
-  it('keeps verification fixtures and tenant implementation terms out of the default workspace', () => {
-    expect(isVerificationArtifactName('C45 AI Agent 验收系统')).toBe(true)
-    expect(isVerificationArtifactName('周期十六迁移验收系统')).toBe(true)
-    expect(isVerificationArtifactName('客户运营中心')).toBe(false)
+  it('shows authorized names and record numbers without guessing their origin', () => {
     expect(userFacingWorkspaceName('默认主租户')).toBe('主工作空间')
     expect(userFacingWorkspaceName('华东团队')).toBe('华东团队')
-    expect(userFacingRecordNumber('C68-SELL-227384')).toBe('业务记录')
+    expect(userFacingRecordNumber('C68-SELL-227384')).toBe('C68-SELL-227384')
     expect(userFacingRecordNumber('KH-2026-001')).toBe('KH-2026-001')
+    expect(userFacingRecordNumber('')).toBe('业务记录')
   })
 
   it('does not render invalid timestamps as invalid date', () => {

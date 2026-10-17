@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record SaveSystemDomainRequest(
         Long id,
+        @NotNull Long tenantId,
         @NotBlank @Pattern(regexp = "SUBDOMAIN|CUSTOM") String domainType,
         @NotBlank @Size(max = 255) String host,
         @NotBlank @Size(max = 255) String basePath,

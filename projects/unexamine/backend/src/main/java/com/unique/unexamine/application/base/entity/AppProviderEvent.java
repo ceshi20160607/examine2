@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * @author Template Base
  * @since generated
  */
-@TableName("app_provider_event")
+@TableName("un_app_provider_event")
 public class AppProviderEvent {
 
     /**

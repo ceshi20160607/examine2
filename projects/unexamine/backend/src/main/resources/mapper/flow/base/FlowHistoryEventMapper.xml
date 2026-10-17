@@ -16,12 +16,12 @@
         <result column="before_status" property="beforeStatus" />
         <result column="after_status" property="afterStatus" />
         <result column="detail_json" property="detailJson" />
-        <result column="occurred_at" property="occurredAt" />
+        <result column="occur_time" property="occurTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, instance_id, execution_id, task_id, node_key, event_type, event_name, actor_account_id, actor_tenant_member_id, before_status, after_status, detail_json, occurred_at
+        id, instance_id, execution_id, task_id, node_key, event_type, event_name, actor_account_id, actor_tenant_member_id, before_status, after_status, detail_json, occur_time
     </sql>
 
 </mapper>

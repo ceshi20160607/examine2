@@ -12,16 +12,16 @@
         <result column="status" property="status" />
         <result column="response_code" property="responseCode" />
         <result column="response_json" property="responseJson" />
-        <result column="locked_until" property="lockedUntil" />
-        <result column="expires_at" property="expiresAt" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="lock_expire_time" property="lockExpireTime" />
+        <result column="expire_time" property="expireTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, context_key, operation_code, idempotency_key, request_hash, `status`, response_code, response_json, locked_until, expires_at, created_at, updated_at, version
+        id, context_key, operation_code, idempotency_key, request_hash, `status`, response_code, response_json, lock_expire_time, expire_time, create_time, update_time, version
     </sql>
 
 </mapper>

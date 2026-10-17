@@ -21,10 +21,10 @@ import java.util.Set;
 @Component
 public class StructuredConditionProtocol {
     /** 尚未贯通的字段家族保留后续实现，不能退化为用户手写标识或配置。 */
-    public static final Set<String> TYPES = Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD",
+    public static final Set<String> TYPES = Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "BARCODE", "QRCODE",
             "NUMBER", "MONEY", "DATE", "DATETIME", "BOOLEAN", "SINGLE_SELECT", "MULTI_SELECT", "STATUS");
     private static final Set<String> ORDERED_TYPES = Set.of("NUMBER", "MONEY", "DATE", "DATETIME");
-    private static final Set<String> CONTAINS_TYPES = Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "MULTI_SELECT");
+    private static final Set<String> CONTAINS_TYPES = Set.of("TEXT", "MULTILINE_TEXT", "PHONE", "EMAIL", "URL", "ID_CARD", "BARCODE", "QRCODE", "MULTI_SELECT");
     private static final Set<String> OPTION_TYPES = Set.of("SINGLE_SELECT", "MULTI_SELECT", "STATUS");
     private final ObjectMapper json;
     private final StructuredRuleEvaluator evaluator;

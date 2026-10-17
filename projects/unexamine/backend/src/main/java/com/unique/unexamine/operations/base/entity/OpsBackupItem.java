@@ -9,38 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 备份清单内容及完整性校验
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("ops_backup_item")
+@TableName("un_ops_backup_item")
 public class OpsBackupItem {
 
+    /**
+     * 备份内容项主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属备份任务主键
+     */
     @TableField("backup_id")
     private Long backupId;
 
+    /**
+     * 数据库、文件、配置或模板等内容类别
+     */
     @TableField("item_type")
     private String itemType;
 
+    /**
+     * 备份内容的受控存储位置
+     */
     @TableField("storage_uri")
     private String storageUri;
 
+    /**
+     * 备份内容字节大小
+     */
     @TableField("size_bytes")
     private Long sizeBytes;
 
+    /**
+     * 备份内容 SHA-256 校验摘要
+     */
     @TableField("sha256")
     private String sha256;
 
+    /**
+     * 备份内容校验状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 备份内容登记时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
 
     public Long getId() {
         return id;
@@ -98,12 +122,12 @@ public class OpsBackupItem {
         this.status = status;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override
@@ -116,7 +140,7 @@ public class OpsBackupItem {
             ", sizeBytes = " + sizeBytes +
             ", sha256 = " + sha256 +
             ", status = " + status +
-            ", createdAt = " + createdAt +
+            ", createTime = " + createTime +
             "}";
     }
 }

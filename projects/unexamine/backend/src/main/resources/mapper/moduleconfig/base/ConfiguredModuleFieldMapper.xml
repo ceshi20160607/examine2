@@ -16,17 +16,18 @@
         <result column="searchable" property="searchable" />
         <result column="dictionary_id" property="dictionaryId" />
         <result column="reference_module_id" property="referenceModuleId" />
+        <result column="parent_field_id" property="parentFieldId" />
         <result column="sort_order" property="sortOrder" />
         <result column="status" property="status" />
         <result column="config_json" property="configJson" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, `code`, `name`, field_type, required, unique_value, searchable, dictionary_id, reference_module_id, sort_order, `status`, config_json, created_at, updated_at, version
+        id, system_id, owner_tenant_id, module_id, `code`, `name`, field_type, required, unique_value, searchable, dictionary_id, reference_module_id, parent_field_id, sort_order, `status`, config_json, create_time, update_time, version
     </sql>
 
 </mapper>

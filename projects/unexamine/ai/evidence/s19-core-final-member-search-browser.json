@@ -1,0 +1,17 @@
+{
+  "status": "member_search_narrows_and_excludes",
+  "menu": {
+    "customerGroupVisible": true,
+    "orderGroupVisible": true,
+    "customerVisible": true
+  },
+  "matching": {
+    "rows": [
+      "S19 上海客户未设置业务编号 · 主工作空间上海客户已跟进s19-customer-note.txt启用"
+    ]
+  },
+  "excluded": {
+    "rows": 0,
+    "empty": true
+  }
+}

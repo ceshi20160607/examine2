@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "step": "B10.2c.2a",
-  "nextStep": "B10.2c.2b",
-  "artifactIntegrity": "passed",
-  "completionCredit": false,
-  "verified_time": "2026-09-20T15:11:07.601360+08:00",
-  "command": "python template_base/tools/tb.py execution-verify --workspace workspace.json --receipt projects/unexamine/ai/evidence/flow-import-event-verification.json"
-}

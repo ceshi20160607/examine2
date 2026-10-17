@@ -9,77 +9,140 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ * 平台身份源的测试与发布版本
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("plat_sso_provider_version")
+@TableName("un_plat_sso_provider_version")
 public class PlatSsoProviderVersion {
 
+    /**
+     * 身份源版本主键
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 所属平台身份源标识
+     */
     @TableField("provider_id")
     private Long providerId;
 
+    /**
+     * 身份源内递增的版本号
+     */
     @TableField("version_number")
     private Integer versionNumber;
 
+    /**
+     * OIDC、SAML、OAuth2、LDAP 或企业身份协议
+     */
     @TableField("protocol")
     private String protocol;
 
+    /**
+     * 身份源发行者标识
+     */
     @TableField("`issuer`")
     private String issuer;
 
+    /**
+     * 身份源客户端标识
+     */
     @TableField("client_id")
     private String clientId;
 
+    /**
+     * 客户端密钥的受控引用
+     */
     @TableField("client_secret_ref")
     private String clientSecretRef;
 
+    /**
+     * 协议连接与证书配置快照
+     */
     @TableField("protocol_config_json")
     private String protocolConfigJson;
 
+    /**
+     * 允许登录的域名白名单
+     */
     @TableField("allowed_domains_json")
     private String allowedDomainsJson;
 
+    /**
+     * 外部身份属性映射快照
+     */
     @TableField("attribute_mapping_json")
     private String attributeMappingJson;
 
+    /**
+     * 即时建号与成员策略快照
+     */
     @TableField("jit_policy_json")
     private String jitPolicyJson;
 
+    /**
+     * 多因素认证策略快照
+     */
     @TableField("mfa_policy_json")
     private String mfaPolicyJson;
 
+    /**
+     * 允许的回调地址快照
+     */
     @TableField("callback_uris_json")
     private String callbackUrisJson;
 
+    /**
+     * 连接测试状态
+     */
     @TableField("test_status")
     private String testStatus;
 
+    /**
+     * 连接测试与预演报告
+     */
     @TableField("test_report_json")
     private String testReportJson;
 
-    @TableField("tested_at")
-    private LocalDateTime testedAt;
+    /**
+     * 最近一次测试完成时间
+     */
+    @TableField("tested_time")
+    private LocalDateTime testedTime;
 
+    /**
+     * 最近一次测试操作账号
+     */
     @TableField("tested_by_account_id")
     private Long testedByAccountId;
 
+    /**
+     * 草稿、发布或归档状态
+     */
     @TableField("`status`")
     private String status;
 
-    @TableField("published_at")
-    private LocalDateTime publishedAt;
+    /**
+     * 版本发布时间
+     */
+    @TableField("published_time")
+    private LocalDateTime publishedTime;
 
+    /**
+     * 发布操作账号
+     */
     @TableField("published_by_account_id")
     private Long publishedByAccountId;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 版本创建时间
+     */
+    @TableField("created_time")
+    private LocalDateTime createdTime;
 
     public Long getId() {
         return id;
@@ -201,12 +264,12 @@ public class PlatSsoProviderVersion {
         this.testReportJson = testReportJson;
     }
 
-    public LocalDateTime getTestedAt() {
-        return testedAt;
+    public LocalDateTime getTestedTime() {
+        return testedTime;
     }
 
-    public void setTestedAt(LocalDateTime testedAt) {
-        this.testedAt = testedAt;
+    public void setTestedTime(LocalDateTime testedTime) {
+        this.testedTime = testedTime;
     }
 
     public Long getTestedByAccountId() {
@@ -225,12 +288,12 @@ public class PlatSsoProviderVersion {
         this.status = status;
     }
 
-    public LocalDateTime getPublishedAt() {
-        return publishedAt;
+    public LocalDateTime getPublishedTime() {
+        return publishedTime;
     }
 
-    public void setPublishedAt(LocalDateTime publishedAt) {
-        this.publishedAt = publishedAt;
+    public void setPublishedTime(LocalDateTime publishedTime) {
+        this.publishedTime = publishedTime;
     }
 
     public Long getPublishedByAccountId() {
@@ -241,12 +304,12 @@ public class PlatSsoProviderVersion {
         this.publishedByAccountId = publishedByAccountId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
     }
 
     @Override
@@ -267,12 +330,12 @@ public class PlatSsoProviderVersion {
             ", callbackUrisJson = " + callbackUrisJson +
             ", testStatus = " + testStatus +
             ", testReportJson = " + testReportJson +
-            ", testedAt = " + testedAt +
+            ", testedTime = " + testedTime +
             ", testedByAccountId = " + testedByAccountId +
             ", status = " + status +
-            ", publishedAt = " + publishedAt +
+            ", publishedTime = " + publishedTime +
             ", publishedByAccountId = " + publishedByAccountId +
-            ", createdAt = " + createdAt +
+            ", createdTime = " + createdTime +
             "}";
     }
 }

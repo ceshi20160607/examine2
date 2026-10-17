@@ -9,17 +9,18 @@
         <result column="owner_tenant_id" property="ownerTenantId" />
         <result column="module_id" property="moduleId" />
         <result column="page_type" property="pageType" />
+        <result column="page_code" property="pageCode" />
         <result column="name" property="name" />
         <result column="layout_json" property="layoutJson" />
         <result column="status" property="status" />
-        <result column="created_at" property="createdAt" />
-        <result column="updated_at" property="updatedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
         <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, owner_tenant_id, module_id, page_type, `name`, layout_json, `status`, created_at, updated_at, version
+        id, system_id, owner_tenant_id, module_id, page_type, page_code, `name`, layout_json, `status`, create_time, update_time, version
     </sql>
 
 </mapper>

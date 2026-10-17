@@ -1,0 +1,105 @@
+{
+  "step": "S18.5",
+  "status": "verified_contribution",
+  "source_rows": [
+    "R1141",
+    "R1191",
+    "R1192",
+    "R1193",
+    "R1209",
+    "R1210",
+    "R1211",
+    "R1212",
+    "R1219",
+    "R1221",
+    "R1226",
+    "R1230",
+    "R1231",
+    "R1233",
+    "R1243",
+    "R1244",
+    "R2759"
+  ],
+  "changed_files": [
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryModels.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryService.java",
+    "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/SystemAiConfigurationController.java",
+    "projects/unexamine/frontend/src/product/types.ts",
+    "projects/unexamine/frontend/src/product/views/AiContextQueryView.vue",
+    "projects/unexamine/frontend/src/product/views/AiConfirmedWriteView.vue",
+    "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+    "projects/unexamine/frontend/src/product/views/SystemAdminHomeView.vue",
+    "projects/unexamine/frontend/src/product/routes.ts",
+    "projects/unexamine/frontend/src/product/routes.test.ts",
+    "projects/unexamine/frontend/src/product/ai-context.ts",
+    "projects/unexamine/frontend/src/product/ai-context.test.ts",
+    "projects/unexamine/frontend/src/product/components/AiContextAssistantPanel.vue"
+  ],
+  "checks_actual_results": [
+    "系统 #165 获得平台本地模型 #2 授权 #2；管理员创建采购 Agent #2，三个工具发布预览均有效，发布 V1 #2。本地夹具不计真实第三方模型验收。",
+    "普通成员 AI 查询仅返回本人采购明细 #172；管理员记录 #173 的详情查询没有来源。服务端按成员与 Agent 交集裁剪字段，并用获权业务记录展示关联名称与金额。",
+    "AI 候选 #4 保存时模块 #85 为 3 条；成员在页面补选申请 #167 和本人负责人、勾选确认后生成记录 #174，模块为 4 条。页面、主记录、字段值和审计一致。",
+    "模型夹具停机时返回 DEGRADED/AI_MODEL_CALL_FAILED 且来源为空；恢复后重启可再次查询。成员后台 AI 概览/预览 HTTP 403，直接后台路由拒绝；运行态 AI HTTP 200，管理员后台正常。",
+    "JDK21 Maven package、vue-tsc/Vite build、前端 routes 与 ai-context 共 13 项测试、workspace-validate、git diff --check 均通过；live 制品 SHA256 6851BFB1AFF852890F7556FDCF03966F79685ECE511A4965D971D514F6652507，重启 readiness UP。"
+  ],
+  "readback": [
+    "projects/unexamine/ai/evidence/s18-ai-procurement-readback.json"
+  ],
+  "permission_or_failure_result": "成员仅有 AI VIEW 和模块 SELF 范围，采购查询只含 #172/#174，不含管理员 #173；单字段查询来源和值仅含该字段。后台 AI 配置要求 MANAGE；提供方停机降级不返回业务来源，写入必须人工确认。",
+  "tested_file_hashes": [
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryModels.java",
+      "sha256": "3b225eefebf9f08fe13c4aa42e275296ac816a81ffe8c088180520bc5220fb19"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/AiContextQueryService.java",
+      "sha256": "672ca3f0254e570f1d069ce92faa1c596f012f812bdba11863cc1b21e3e9db7f"
+    },
+    {
+      "path": "projects/unexamine/backend/src/main/java/com/unique/unexamine/ai/manage/SystemAiConfigurationController.java",
+      "sha256": "343286a3a245b8245876717b97fd185b6484a2a84c6ae10b4ebc91714b217f9e"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/types.ts",
+      "sha256": "1b04dd13745b1370af9222a530887c4dae7e271d04d8c584d874d1d9c0c90be1"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/AiContextQueryView.vue",
+      "sha256": "f77d395a06f91617a3485ca9d9fbf025fa322bbe0636a52c5b83c610e3129bb3"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/AiConfirmedWriteView.vue",
+      "sha256": "16ebb447d692a6122e769225eb840a8b7a80800af4b29deff08f860d1a04780f"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/SystemHomeView.vue",
+      "sha256": "5468df43e23b5c3d19ff945d2163bdcce5f6822b3d9723ee743e0c83ee6de4e8"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/views/SystemAdminHomeView.vue",
+      "sha256": "ee1b1e42f7ab0534e57ba8d5072210aa112a6e8334f46d2c319a272c9790d278"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/routes.ts",
+      "sha256": "86256343a2fb4b4e44e27217b7f4eb0c6579c1c42da34c236533857b4c8707f6"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/routes.test.ts",
+      "sha256": "8853c5c08b41e4c963a5ea62ac006991a31d16356f06ee894990a97bcb62c57d"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/ai-context.ts",
+      "sha256": "7d9dc321742a196933d8c03b389dee6b1b093c0c66f3dba9e8da190c492e61db"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/ai-context.test.ts",
+      "sha256": "5c048e0de4b0a06b88f2642cd24fe631ef72974caddc982efd709059b9d87fab"
+    },
+    {
+      "path": "projects/unexamine/frontend/src/product/components/AiContextAssistantPanel.vue",
+      "sha256": "36620b6d35673a2114f12b35f24c949b81ccf60490ef6001fd895ceddb97de82"
+    }
+  ],
+  "remaining": "本地同系统 Agent 旅程已验证；真实第三方模型凭证、跨模块维度图表及整站组合验收仍需后续有界步骤，不能据此认定全产品完成。",
+  "next_step": "S18.6"
+}
