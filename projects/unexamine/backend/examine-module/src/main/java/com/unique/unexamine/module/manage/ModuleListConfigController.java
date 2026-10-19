@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.module.base.entity.UnModuleFieldSort;
 import com.unique.unexamine.module.base.entity.UnModuleQueryField;
 import com.unique.unexamine.module.base.mapper.UnModuleFieldSortMapper;
@@ -18,6 +21,7 @@ import java.util.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** 模块列表查询字段白名单与表头顺序。 */
+@Tag(name = "模块查询与表头", description = "查询字段、表头和排序配置。")
 @RestController
 @RequestMapping("/api/modules")
 public class ModuleListConfigController {
@@ -34,6 +38,7 @@ public class ModuleListConfigController {
         this.json = json;
     }
 
+    @Operation(summary = "查询查询字段（模块查询与表头）")
     @GetMapping("/{moduleId}/query-fields")
     public List<UnModuleQueryField> queryFields(@RequestParam long tenantId, @PathVariable long moduleId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -42,6 +47,7 @@ public class ModuleListConfigController {
                 .eq(UnModuleQueryField::getStatus, 1).orderByAsc(UnModuleQueryField::getSortNo));
     }
 
+    @Operation(summary = "保存查询字段（模块查询与表头）")
     @PutMapping("/{moduleId}/query-fields")
     @Transactional
     public List<UnModuleQueryField> saveQueryFields(@RequestParam long tenantId, @PathVariable long moduleId,
@@ -71,6 +77,7 @@ public class ModuleListConfigController {
         return queryFields(tenantId, moduleId, request);
     }
 
+    @Operation(summary = "查询表头（模块查询与表头）")
     @GetMapping("/{moduleId}/columns")
     public List<ColumnView> columns(@RequestParam long tenantId, @PathVariable long moduleId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -90,6 +97,7 @@ public class ModuleListConfigController {
         return columns;
     }
 
+    @Operation(summary = "保存表头（模块查询与表头）")
     @PutMapping("/{moduleId}/columns")
     @Transactional
     public List<ColumnView> saveColumns(@RequestParam long tenantId, @PathVariable long moduleId,

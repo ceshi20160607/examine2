@@ -1,5 +1,8 @@
 package com.unique.unexamine.common.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.common.base.entity.UnCommonNotice;
 import com.unique.unexamine.common.base.mapper.UnCommonNoticeMapper;
 
@@ -24,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 
 /** 公共公告的草稿、发布、撤销及范围内阅读入口。 */
+@Tag(name = "公共公告", description = "公告草稿、发布和撤销。")
 @RestController
 @RequestMapping("/api/common/notices")
 public class CommonNoticeController {
@@ -36,6 +40,7 @@ public class CommonNoticeController {
     }
 
     /** 普通成员只看到有效发布公告；管理员可显式查看草稿和撤销记录。 */
+    @Operation(summary = "查询列表（公共公告）")
     @GetMapping
     public IPage<UnCommonNotice> list(@RequestParam String scopeType, @RequestParam long scopeId,
                                       @RequestParam(defaultValue = "false") boolean includeDrafts,
@@ -62,6 +67,7 @@ public class CommonNoticeController {
     }
 
     /** 草稿和过期公告需要管理员权限才能查看。 */
+    @Operation(summary = "查询详情（公共公告）")
     @GetMapping("/{id}")
     public UnCommonNotice detail(@PathVariable long id, HttpServletRequest request) {
         UnCommonNotice item = notice(id);
@@ -71,6 +77,7 @@ public class CommonNoticeController {
     }
 
     /** 新公告先保存为草稿，发布操作单独执行。 */
+    @Operation(summary = "新建（公共公告）")
     @PostMapping
     public UnCommonNotice create(@Valid @RequestBody NoticeInput input, HttpServletRequest request) {
         scope.admin(input.scopeType(), input.scopeId(), request);
@@ -84,6 +91,7 @@ public class CommonNoticeController {
     }
 
     /** 只允许编辑尚未发布的公告内容，范围在创建后不可改变。 */
+    @Operation(summary = "修改（公共公告）")
     @PutMapping("/{id}")
     public UnCommonNotice update(@PathVariable long id, @Valid @RequestBody NoticeContentInput input,
                                  HttpServletRequest request) {
@@ -98,6 +106,7 @@ public class CommonNoticeController {
     }
 
     /** 发布时记录真实发布时间，过期时间必须晚于发布时间。 */
+    @Operation(summary = "发布公告（公共公告）")
     @PostMapping("/{id}/publish")
     public UnCommonNotice publish(@PathVariable long id, HttpServletRequest request) {
         UnCommonNotice item = notice(id);
@@ -114,6 +123,7 @@ public class CommonNoticeController {
     }
 
     /** 撤销发布公告后普通成员不再能读取。 */
+    @Operation(summary = "撤销公告（公共公告）")
     @PostMapping("/{id}/revoke")
     public UnCommonNotice revoke(@PathVariable long id, HttpServletRequest request) {
         UnCommonNotice item = notice(id);

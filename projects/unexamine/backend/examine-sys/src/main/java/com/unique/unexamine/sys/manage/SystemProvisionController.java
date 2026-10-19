@@ -1,5 +1,8 @@
 package com.unique.unexamine.sys.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysMemberRole;
 import com.unique.unexamine.sys.base.entity.UnSysRole;
@@ -38,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /** 平台管理员建立业务系统、租户和首位管理员的入口。 */
+@Tag(name = "系统与租户开通", description = "平台管理员开通业务系统、租户和系统成员。")
 @RestController
 @RequestMapping("/api/platform")
 public class SystemProvisionController {
@@ -69,6 +73,7 @@ public class SystemProvisionController {
     }
 
     /** 业务系统列表仅暴露明确的排序列。 */
+    @Operation(summary = "查询业务系统（系统与租户开通）")
     @GetMapping("/systems")
     public IPage<UnSysSystem> systems(@RequestParam(defaultValue = "1") long page,
                                      @RequestParam(defaultValue = "20") long size,
@@ -86,6 +91,7 @@ public class SystemProvisionController {
     }
 
     /** 平台创建系统，系统编码作为登录入口标识。 */
+    @Operation(summary = "新建业务系统（系统与租户开通）")
     @PostMapping("/systems")
     public UnSysSystem createSystem(@Valid @RequestBody SystemInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -98,6 +104,7 @@ public class SystemProvisionController {
     }
 
     /** 修改系统基本资料不改变其已有租户和成员。 */
+    @Operation(summary = "修改业务系统（系统与租户开通）")
     @PutMapping("/systems/{id}")
     public UnSysSystem updateSystem(@PathVariable long id, @Valid @RequestBody SystemInput input,
                                     HttpServletRequest request) {
@@ -110,6 +117,7 @@ public class SystemProvisionController {
     }
 
     /** 停用系统后登录和租户访问都应失效。 */
+    @Operation(summary = "修改业务系统状态（系统与租户开通）")
     @PutMapping("/systems/{id}/status")
     public UnSysSystem systemStatus(@PathVariable long id, @RequestBody StatusInput input,
                                     HttpServletRequest request) {
@@ -121,6 +129,7 @@ public class SystemProvisionController {
     }
 
     /** 查询系统配置，不暴露其他业务系统的数据。 */
+    @Operation(summary = "查询系统配置（系统与租户开通）")
     @GetMapping("/systems/{systemId}/config")
     public java.util.List<UnSysSystemConfig> configs(@PathVariable long systemId, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -130,6 +139,7 @@ public class SystemProvisionController {
     }
 
     /** 按系统和配置键保存基础设置。 */
+    @Operation(summary = "保存系统配置（系统与租户开通）")
     @PutMapping("/systems/{systemId}/config/{key}")
     public UnSysSystemConfig saveConfig(@PathVariable long systemId, @PathVariable String key,
                                         @RequestBody ConfigInput input, HttpServletRequest request) {
@@ -154,6 +164,7 @@ public class SystemProvisionController {
     }
 
     /** 在指定系统内查询租户，不能跨系统复用租户编码。 */
+    @Operation(summary = "查询租户（系统与租户开通）")
     @GetMapping("/systems/{systemId}/tenants")
     public IPage<UnSysTenant> tenants(@PathVariable long systemId,
                                      @RequestParam(defaultValue = "1") long page,
@@ -174,6 +185,7 @@ public class SystemProvisionController {
     }
 
     /** 创建租户时建立其管理员角色，首位加入的成员将被授予该角色。 */
+    @Operation(summary = "新建租户（系统与租户开通）")
     @PostMapping("/systems/{systemId}/tenants")
     @Transactional
     public UnSysTenant createTenant(@PathVariable long systemId, @Valid @RequestBody TenantInput input,
@@ -198,6 +210,7 @@ public class SystemProvisionController {
     }
 
     /** 编辑租户时验证编码在所属系统内唯一。 */
+    @Operation(summary = "修改租户（系统与租户开通）")
     @PutMapping("/tenants/{id}")
     public UnSysTenant updateTenant(@PathVariable long id, @Valid @RequestBody TenantInput input,
                                     HttpServletRequest request) {
@@ -210,6 +223,7 @@ public class SystemProvisionController {
     }
 
     /** 停用租户保留既有成员和授权，访问校验应立即拒绝。 */
+    @Operation(summary = "修改租户启用状态（系统与租户开通）")
     @PutMapping("/tenants/{id}/status")
     public UnSysTenant tenantStatus(@PathVariable long id, @RequestBody StatusInput input,
                                     HttpServletRequest request) {
@@ -221,6 +235,7 @@ public class SystemProvisionController {
     }
 
     /** 系统成员列表不返回密码摘要。 */
+    @Operation(summary = "查询成员（系统与租户开通）")
     @GetMapping("/systems/{systemId}/members")
     public IPage<MemberView> members(@PathVariable long systemId,
                                      @RequestParam(defaultValue = "1") long page,
@@ -241,6 +256,7 @@ public class SystemProvisionController {
     }
 
     /** 建立可登录的系统成员，密码只保存 BCrypt 摘要。 */
+    @Operation(summary = "新建成员（系统与租户开通）")
     @PostMapping("/systems/{systemId}/members")
     public MemberView createMember(@PathVariable long systemId, @Valid @RequestBody MemberInput input,
                                    HttpServletRequest request) {
@@ -258,6 +274,7 @@ public class SystemProvisionController {
     }
 
     /** 修改成员公开资料，不允许通过请求覆盖系统归属或密码摘要。 */
+    @Operation(summary = "修改成员（系统与租户开通）")
     @PutMapping("/system-members/{id}")
     public MemberView updateMember(@PathVariable long id, @Valid @RequestBody MemberProfileInput input,
                                    HttpServletRequest request) {
@@ -272,6 +289,7 @@ public class SystemProvisionController {
     }
 
     /** 系统成员停用后，其所有租户身份随会话检查失效。 */
+    @Operation(summary = "修改成员状态（系统与租户开通）")
     @PutMapping("/system-members/{id}/status")
     public MemberView memberStatus(@PathVariable long id, @RequestBody StatusInput input,
                                    HttpServletRequest request) {
@@ -283,6 +301,7 @@ public class SystemProvisionController {
     }
 
     /** 平台管理员重置系统成员密码。 */
+    @Operation(summary = "重置成员密码（系统与租户开通）")
     @PutMapping("/system-members/{id}/password")
     public void resetPassword(@PathVariable long id, @Valid @RequestBody PasswordInput input,
                               HttpServletRequest request) {
@@ -294,6 +313,7 @@ public class SystemProvisionController {
     }
 
     /** 租户成员列表必须以租户主键限定。 */
+    @Operation(summary = "查询租户成员（系统与租户开通）")
     @GetMapping("/tenants/{tenantId}/members")
     public IPage<UnSysTenantMember> tenantMembers(@PathVariable long tenantId,
                                                   @RequestParam(defaultValue = "1") long page,
@@ -314,6 +334,7 @@ public class SystemProvisionController {
     }
 
     /** 只允许同一系统成员加入租户；首位成员获租户管理员角色。 */
+    @Operation(summary = "添加租户成员（系统与租户开通）")
     @PostMapping("/tenants/{tenantId}/members")
     @Transactional
     public UnSysTenantMember addTenantMember(@PathVariable long tenantId, @Valid @RequestBody TenantMemberInput input,

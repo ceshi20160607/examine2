@@ -1,5 +1,8 @@
 package com.unique.unexamine.approval.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.approval.base.entity.UnExamine;
 import com.unique.unexamine.approval.base.entity.UnExamineConfig;
 import com.unique.unexamine.approval.base.entity.UnExamineConfigUser;
@@ -52,6 +55,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /** 审批实例、待办及处理入口；实例始终使用发起时冻结的配置快照。 */
+@Tag(name = "审批实例与待办", description = "审批实例、待办和处理动作。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/examines")
 public class ExamineInstanceController {
@@ -128,6 +132,7 @@ public class ExamineInstanceController {
     }
 
     /** 发起时核对模块绑定、业务记录和申请范围，并冻结审批定义。 */
+    @Operation(summary = "发起流程（审批实例与待办）")
     @PostMapping("/{examineId}/examples")
     @Transactional
     public UnExamineExample start(@PathVariable long tenantId, @PathVariable long examineId,
@@ -184,6 +189,7 @@ public class ExamineInstanceController {
     }
 
     /** 待办只返回本人所属且当前可处理的实例节点人员。 */
+    @Operation(summary = "查询待办（审批实例与待办）")
     @GetMapping("/tasks")
     public List<UnExamineExampleNodeUser> inbox(@PathVariable long tenantId, HttpServletRequest request) {
         long memberId = access.tenantMember(request, tenantId).getMemberId();
@@ -199,6 +205,7 @@ public class ExamineInstanceController {
     }
 
     /** 实例行锁使多人审批状态、意见和下一节点在同一事务内改变。 */
+    @Operation(summary = "处理流程待办（审批实例与待办）")
     @PostMapping("/examples/{exampleId}/actions")
     @Transactional
     public UnExamineExampleNodeUser act(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -242,6 +249,7 @@ public class ExamineInstanceController {
     }
 
     /** 当前待办人可把自己的处理席位转给同租户有效成员，原人员记录保留在实例历史。 */
+    @Operation(summary = "转办待办（审批实例与待办）")
     @PostMapping("/examples/{exampleId}/transfer")
     @Transactional
     public TransferView transfer(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -275,6 +283,7 @@ public class ExamineInstanceController {
     }
 
     /** 显式触发到期节点；管理员核对冻结配置和节点开始时间后执行自动通过或转办。 */
+    @Operation(summary = "处理超时（审批实例与待办）")
     @PostMapping("/examples/{exampleId}/timeout")
     @Transactional
     public UnExamineException timeout(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -350,6 +359,7 @@ public class ExamineInstanceController {
     }
 
     /** 仅发起人可撤回，且需符合发起时冻结的撤回规则。 */
+    @Operation(summary = "撤回实例（审批实例与待办）")
     @PostMapping("/examples/{exampleId}/withdraw")
     @Transactional
     public UnExamineExample withdraw(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -371,6 +381,7 @@ public class ExamineInstanceController {
     }
 
     /** 返回实例节点及逐人意见；租户边界由实例主记录核对。 */
+    @Operation(summary = "查询处理历史（审批实例与待办）")
     @GetMapping("/examples/{exampleId}")
     public ExampleHistory history(@PathVariable long tenantId, @PathVariable long exampleId, HttpServletRequest request) {
         long actorId = access.tenantMember(request, tenantId).getMemberId();

@@ -1,5 +1,8 @@
 package com.unique.unexamine.sys.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysDepartment;
 import com.unique.unexamine.sys.base.entity.UnSysMemberRole;
 import com.unique.unexamine.sys.base.entity.UnSysMenu;
@@ -39,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /** 租户角色、菜单及数据权限管理，所有关联主键按租户核对。 */
+@Tag(name = "租户授权", description = "租户角色、菜单和数据范围授权。")
 @RestController
 @RequestMapping("/api/system/tenants/{tenantId}")
 public class TenantAuthorizationController {
@@ -66,6 +70,7 @@ public class TenantAuthorizationController {
     }
 
     /** 角色列表受租户范围、分页和固定排序列约束。 */
+    @Operation(summary = "查询角色（租户授权）")
     @GetMapping("/roles")
     public IPage<UnSysRole> roles(@PathVariable long tenantId,
                                  @RequestParam(defaultValue = "1") long page,
@@ -85,6 +90,7 @@ public class TenantAuthorizationController {
     }
 
     /** 租户管理员只能新增自定义角色。 */
+    @Operation(summary = "新建角色（租户授权）")
     @PostMapping("/roles")
     public UnSysRole createRole(@PathVariable long tenantId, @Valid @RequestBody RoleInput input,
                                 HttpServletRequest request) {
@@ -100,6 +106,7 @@ public class TenantAuthorizationController {
     }
 
     /** 修改角色前确认其确实属于当前租户。 */
+    @Operation(summary = "修改角色（租户授权）")
     @PutMapping("/roles/{id}")
     public UnSysRole updateRole(@PathVariable long tenantId, @PathVariable long id,
                                 @Valid @RequestBody RoleInput input, HttpServletRequest request) {
@@ -114,6 +121,7 @@ public class TenantAuthorizationController {
     }
 
     /** 内置管理员角色不可停用，以保留租户管理入口。 */
+    @Operation(summary = "修改角色状态（租户授权）")
     @PutMapping("/roles/{id}/status")
     public UnSysRole roleStatus(@PathVariable long tenantId, @PathVariable long id,
                                 @RequestBody StatusInput input, HttpServletRequest request) {
@@ -127,6 +135,7 @@ public class TenantAuthorizationController {
     }
 
     /** 菜单树只返回当前租户的数据。 */
+    @Operation(summary = "查询菜单（租户授权）")
     @GetMapping("/menus")
     public List<UnSysMenu> menus(@PathVariable long tenantId, HttpServletRequest request) {
         access.tenantMember(request, tenantId);
@@ -136,6 +145,7 @@ public class TenantAuthorizationController {
     }
 
     /** 菜单编码在租户内唯一。 */
+    @Operation(summary = "新建菜单（租户授权）")
     @PostMapping("/menus")
     public UnSysMenu createMenu(@PathVariable long tenantId, @Valid @RequestBody MenuInput input,
                                 HttpServletRequest request) {
@@ -151,6 +161,7 @@ public class TenantAuthorizationController {
     }
 
     /** 菜单移动前验证父级属于当前租户且不形成环。 */
+    @Operation(summary = "修改菜单（租户授权）")
     @PutMapping("/menus/{id}")
     public UnSysMenu updateMenu(@PathVariable long tenantId, @PathVariable long id,
                                 @Valid @RequestBody MenuInput input, HttpServletRequest request) {
@@ -164,6 +175,7 @@ public class TenantAuthorizationController {
     }
 
     /** 停用菜单保留角色配置以便重新启用。 */
+    @Operation(summary = "修改菜单状态（租户授权）")
     @PutMapping("/menus/{id}/status")
     public UnSysMenu menuStatus(@PathVariable long tenantId, @PathVariable long id,
                                 @RequestBody StatusInput input, HttpServletRequest request) {
@@ -175,6 +187,7 @@ public class TenantAuthorizationController {
     }
 
     /** 读取成员在当前租户中的角色授权。 */
+    @Operation(summary = "查询成员角色（租户授权）")
     @GetMapping("/members/{memberId}/roles")
     public List<Long> memberRoles(@PathVariable long tenantId, @PathVariable long memberId,
                                   HttpServletRequest request) {
@@ -185,6 +198,7 @@ public class TenantAuthorizationController {
     }
 
     /** 全量授权前验证所有角色同属租户，并保留当前管理员自己的管理权限。 */
+    @Operation(summary = "替换成员角色（租户授权）")
     @PutMapping("/members/{memberId}/roles")
     @Transactional
     public void replaceMemberRoles(@PathVariable long tenantId, @PathVariable long memberId,
@@ -206,6 +220,7 @@ public class TenantAuthorizationController {
     }
 
     /** 读取角色当前菜单授权。 */
+    @Operation(summary = "查询角色菜单（租户授权）")
     @GetMapping("/roles/{roleId}/menus")
     public List<Long> roleMenus(@PathVariable long tenantId, @PathVariable long roleId,
                                 HttpServletRequest request) {
@@ -216,6 +231,7 @@ public class TenantAuthorizationController {
     }
 
     /** 全量替换角色菜单，拒绝任何跨租户菜单主键。 */
+    @Operation(summary = "替换角色菜单（租户授权）")
     @PutMapping("/roles/{roleId}/menus")
     @Transactional
     public void replaceRoleMenus(@PathVariable long tenantId, @PathVariable long roleId,
@@ -234,6 +250,7 @@ public class TenantAuthorizationController {
     }
 
     /** 读取角色数据范围。 */
+    @Operation(summary = "查询数据范围（租户授权）")
     @GetMapping("/roles/{roleId}/data-scope")
     public List<UnSysRoleData> dataScope(@PathVariable long tenantId, @PathVariable long roleId,
                                         HttpServletRequest request) {
@@ -244,6 +261,7 @@ public class TenantAuthorizationController {
     }
 
     /** 指定部门的数据范围必须引用当前租户部门。 */
+    @Operation(summary = "保存数据范围（租户授权）")
     @PutMapping("/roles/{roleId}/data-scope")
     @Transactional
     public void replaceDataScope(@PathVariable long tenantId, @PathVariable long roleId,

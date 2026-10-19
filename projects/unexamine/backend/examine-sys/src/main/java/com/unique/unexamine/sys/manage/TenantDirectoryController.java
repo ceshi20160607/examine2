@@ -1,5 +1,8 @@
 package com.unique.unexamine.sys.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysDepartment;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysTenant;
@@ -31,6 +34,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 /** 租户管理员维护租户内部门与成员归属。 */
+@Tag(name = "租户目录", description = "租户部门和成员目录。")
 @RestController
 @RequestMapping("/api/system/tenants/{tenantId}")
 public class TenantDirectoryController {
@@ -51,6 +55,7 @@ public class TenantDirectoryController {
     }
 
     /** 所有有效租户成员可读取所在租户的部门树。 */
+    @Operation(summary = "查询部门（租户目录）")
     @GetMapping("/departments")
     public List<UnSysDepartment> departments(@PathVariable long tenantId, HttpServletRequest request) {
         access.tenantMember(request, tenantId);
@@ -60,6 +65,7 @@ public class TenantDirectoryController {
     }
 
     /** 租户部门编码只在当前租户内唯一。 */
+    @Operation(summary = "新建部门（租户目录）")
     @PostMapping("/departments")
     public UnSysDepartment createDepartment(@PathVariable long tenantId,
                                             @Valid @RequestBody DepartmentInput input,
@@ -76,6 +82,7 @@ public class TenantDirectoryController {
     }
 
     /** 调整部门上级时，父级与负责人都必须属于当前租户。 */
+    @Operation(summary = "修改部门（租户目录）")
     @PutMapping("/departments/{id}")
     public UnSysDepartment updateDepartment(@PathVariable long tenantId, @PathVariable long id,
                                             @Valid @RequestBody DepartmentInput input,
@@ -90,6 +97,7 @@ public class TenantDirectoryController {
     }
 
     /** 停用部门保留已发生的业务归属。 */
+    @Operation(summary = "修改部门状态（租户目录）")
     @PutMapping("/departments/{id}/status")
     public UnSysDepartment departmentStatus(@PathVariable long tenantId, @PathVariable long id,
                                             @RequestBody StatusInput input, HttpServletRequest request) {
@@ -101,6 +109,7 @@ public class TenantDirectoryController {
     }
 
     /** 租户成员列表按范围分页，并限制可排序字段。 */
+    @Operation(summary = "查询成员（租户目录）")
     @GetMapping("/members")
     public IPage<UnSysTenantMember> members(@PathVariable long tenantId,
                                             @RequestParam(defaultValue = "1") long page,
@@ -122,6 +131,7 @@ public class TenantDirectoryController {
     }
 
     /** 租户管理员只能加入本系统已有成员，不能用请求指定别的系统身份。 */
+    @Operation(summary = "添加成员（租户目录）")
     @PostMapping("/members")
     public UnSysTenantMember addMember(@PathVariable long tenantId, @Valid @RequestBody MemberInput input,
                                        HttpServletRequest request) {
@@ -143,6 +153,7 @@ public class TenantDirectoryController {
     }
 
     /** 修改成员租户资料，不改变其系统登录身份。 */
+    @Operation(summary = "修改成员（租户目录）")
     @PutMapping("/members/{id}")
     public UnSysTenantMember updateMember(@PathVariable long tenantId, @PathVariable long id,
                                           @RequestBody MemberProfileInput input, HttpServletRequest request) {
@@ -159,6 +170,7 @@ public class TenantDirectoryController {
     }
 
     /** 管理员不能停用当前登录的租户身份。 */
+    @Operation(summary = "修改成员状态（租户目录）")
     @PutMapping("/members/{id}/status")
     public UnSysTenantMember memberStatus(@PathVariable long tenantId, @PathVariable long id,
                                           @RequestBody StatusInput input, HttpServletRequest request) {

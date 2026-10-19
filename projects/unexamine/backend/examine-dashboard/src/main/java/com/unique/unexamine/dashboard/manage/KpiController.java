@@ -1,5 +1,8 @@
 package com.unique.unexamine.dashboard.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.dashboard.base.entity.UnKpi;
 import com.unique.unexamine.dashboard.base.entity.UnKpiUser;
 import com.unique.unexamine.dashboard.base.mapper.UnKpiMapper;
@@ -33,6 +36,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /** 租户 KPI 配置、成员目标和真实模块记录统计入口。 */
+@Tag(name = "KPI", description = "KPI 定义、成员目标和统计值。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/kpis")
 public class KpiController {
@@ -57,6 +61,7 @@ public class KpiController {
     }
 
     /** 管理员创建 KPI，统计口径先验证为当前可执行的全周期计数或求和。 */
+    @Operation(summary = "新建（KPI）")
     @PostMapping
     public KpiView create(@PathVariable long tenantId, @Valid @RequestBody KpiInput input,
                           HttpServletRequest request) {
@@ -74,6 +79,7 @@ public class KpiController {
     }
 
     /** 管理员查看本租户全部配置；成员只查看明确分配给自己的启用 KPI。 */
+    @Operation(summary = "查询列表（KPI）")
     @GetMapping
     public KpiPage list(@PathVariable long tenantId, @RequestParam(defaultValue = "1") long page,
                         @RequestParam(defaultValue = "20") long size,
@@ -103,6 +109,7 @@ public class KpiController {
     }
 
     /** 租户管理员或被分配成员可以读取定义，停用 KPI 仅管理员可见。 */
+    @Operation(summary = "查询详情（KPI）")
     @GetMapping("/{kpiId}")
     public KpiView detail(@PathVariable long tenantId, @PathVariable long kpiId, HttpServletRequest request) {
         readable(tenantId, kpiId, request);
@@ -110,6 +117,7 @@ public class KpiController {
     }
 
     /** 允许修改统计口径，编码固定不变以免外部引用失效。 */
+    @Operation(summary = "修改（KPI）")
     @PutMapping("/{kpiId}")
     public KpiView update(@PathVariable long tenantId, @PathVariable long kpiId,
                           @Valid @RequestBody KpiUpdate input, HttpServletRequest request) {
@@ -129,6 +137,7 @@ public class KpiController {
     }
 
     /** 启停状态单独修改；停用后成员不可读取统计值。 */
+    @Operation(summary = "修改状态（KPI）")
     @PutMapping("/{kpiId}/status")
     public KpiView status(@PathVariable long tenantId, @PathVariable long kpiId,
                           @Valid @RequestBody StatusInput input, HttpServletRequest request) {
@@ -140,6 +149,7 @@ public class KpiController {
     }
 
     /** 成员只看到自己的目标；管理员可查看此 KPI 的全部成员目标。 */
+    @Operation(summary = "查询成员（KPI）")
     @GetMapping("/{kpiId}/members")
     public List<UnKpiUser> members(@PathVariable long tenantId, @PathVariable long kpiId,
                                    HttpServletRequest request) {
@@ -152,6 +162,7 @@ public class KpiController {
     }
 
     /** 管理员给有效租户成员设置个人目标，更新和新建共用同一入口。 */
+    @Operation(summary = "设置成员目标（KPI）")
     @PutMapping("/{kpiId}/members/{memberId}")
     @Transactional
     public UnKpiUser setMember(@PathVariable long tenantId, @PathVariable long kpiId,
@@ -177,6 +188,7 @@ public class KpiController {
     }
 
     /** 取消成员目标同时撤销其 KPI 读取范围。 */
+    @Operation(summary = "移除成员（KPI）")
     @DeleteMapping("/{kpiId}/members/{memberId}")
     @Transactional
     public void removeMember(@PathVariable long tenantId, @PathVariable long kpiId,
@@ -188,6 +200,7 @@ public class KpiController {
     }
 
     /** 汇总值来自当前租户未删除的模块记录，全周期统计不制造模拟数值。 */
+    @Operation(summary = "查询统计值（KPI）")
     @GetMapping("/{kpiId}/value")
     public ValueView value(@PathVariable long tenantId, @PathVariable long kpiId,
                            HttpServletRequest request) {
@@ -199,6 +212,7 @@ public class KpiController {
     }
 
     /** 个人实际值按记录负责人过滤，避免把租户总量误报成个人业绩。 */
+    @Operation(summary = "查询成员统计值（KPI）")
     @GetMapping("/{kpiId}/members/{memberId}/value")
     public MemberValueView memberValue(@PathVariable long tenantId, @PathVariable long kpiId,
                                        @PathVariable long memberId, HttpServletRequest request) {

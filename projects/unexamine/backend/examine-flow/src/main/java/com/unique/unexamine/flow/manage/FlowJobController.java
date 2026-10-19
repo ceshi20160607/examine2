@@ -1,5 +1,8 @@
 package com.unique.unexamine.flow.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.flow.base.entity.UnFlowExample;
 import com.unique.unexamine.flow.base.entity.UnFlowException;
 import com.unique.unexamine.flow.base.entity.UnFlowJob;
@@ -33,6 +36,7 @@ import java.util.*;
 import static com.unique.unexamine.flow.manage.FlowOperations.*;
 
 /** 流程超时任务与异常处置入口；到期任务逐项独立事务处理。 */
+@Tag(name = "流程定时与异常", description = "流程定时任务和异常记录。")
 @RestController
 @EnableScheduling
 @RequestMapping("/api/tenants/{tenantId}/flows")
@@ -62,6 +66,7 @@ public class FlowJobController {
     }
 
     /** 管理员为当前待办安排一次超时检查，同一待办只能保留一项待执行任务。 */
+    @Operation(summary = "处理定时任务（流程定时与异常）")
     @PostMapping("/examples/{exampleId}/tasks/{taskId}/timeout")
     @Transactional
     public UnFlowJob scheduleTimeout(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -96,6 +101,7 @@ public class FlowJobController {
         return jobs.selectById(job.getId());
     }
 
+    @Operation(summary = "查询定时任务（流程定时与异常）")
     @GetMapping("/examples/{exampleId}/jobs")
     public List<UnFlowJob> jobList(@PathVariable long tenantId, @PathVariable long exampleId,
                                    HttpServletRequest request) {
@@ -105,6 +111,7 @@ public class FlowJobController {
                 .eq(UnFlowJob::getExampleId, exampleId).orderByAsc(UnFlowJob::getId));
     }
 
+    @Operation(summary = "查询流程异常（流程定时与异常）")
     @GetMapping("/examples/{exampleId}/exceptions")
     public List<UnFlowException> exceptionList(@PathVariable long tenantId, @PathVariable long exampleId,
                                                HttpServletRequest request) {
@@ -115,6 +122,7 @@ public class FlowJobController {
     }
 
     /** 处置只确认异常并留下处理人和说明，不把失败实例伪装为恢复成功。 */
+    @Operation(summary = "处理流程异常（流程定时与异常）")
     @PostMapping("/examples/{exampleId}/exceptions/{exceptionId}/resolve")
     @Transactional
     public UnFlowException resolveException(@PathVariable long tenantId, @PathVariable long exampleId,

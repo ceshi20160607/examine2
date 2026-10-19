@@ -1,5 +1,8 @@
 package com.unique.unexamine.app.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.app.base.entity.UnApp;
 import com.unique.unexamine.app.base.entity.UnAppEvent;
 import com.unique.unexamine.app.base.mapper.UnAppEventMapper;
@@ -36,6 +39,7 @@ import java.util.Base64;
 import java.util.List;
 
 /** 管理业务系统及租户范围内的应用凭据和事件订阅。 */
+@Tag(name = "应用接入", description = "应用凭据和事件订阅。")
 @RestController
 @RequestMapping("/api/apps")
 public class AppController {
@@ -59,6 +63,7 @@ public class AppController {
     }
 
     /** 应用密钥只在创建或轮换时返回一次，列表和详情均不暴露摘要。 */
+    @Operation(summary = "新建（应用接入）")
     @PostMapping
     public CreatedApp create(@Valid @RequestBody AppInput input, HttpServletRequest request) {
         authorize(request, input.systemId(), input.tenantId(), true);
@@ -75,6 +80,7 @@ public class AppController {
     }
 
     /** 凭据验证仅确认应用自身身份与所属范围，不签发业务接口访问令牌。 */
+    @Operation(summary = "验证应用凭据（应用接入）")
     @PostMapping("/verify")
     public AppIdentity verify(@Valid @RequestBody VerifyInput input) {
         UnApp app = apps.selectOne(new LambdaQueryWrapper<UnApp>()
@@ -101,6 +107,7 @@ public class AppController {
     }
 
     /** 只有所属范围管理员可轮换；数据库写入新摘要后，旧密钥即刻失效。 */
+    @Operation(summary = "轮换应用密钥（应用接入）")
     @PostMapping("/{appId}/secret/rotate")
     public CreatedApp rotateSecret(@PathVariable long appId, HttpServletRequest request) {
         UnApp app = requireApp(appId);
@@ -112,6 +119,7 @@ public class AppController {
     }
 
     /** 按范围查询应用，排序只允许固定列。 */
+    @Operation(summary = "查询列表（应用接入）")
     @GetMapping
     public PagedApps list(@RequestParam long systemId, @RequestParam(required = false) Long tenantId,
                           @RequestParam(defaultValue = "1") long page,
@@ -142,6 +150,7 @@ public class AppController {
     }
 
     /** 更新应用显示名称或停用状态，不允许修改生成时确定的范围和密钥。 */
+    @Operation(summary = "修改（应用接入）")
     @PutMapping("/{appId}")
     public AppView update(@PathVariable long appId, @Valid @RequestBody AppUpdate input,
                           HttpServletRequest request) {
@@ -154,6 +163,7 @@ public class AppController {
     }
 
     /** 应用事件在所属应用内唯一，回调地址只接受 HTTPS。 */
+    @Operation(summary = "新建事件订阅（应用接入）")
     @PostMapping("/{appId}/events")
     public EventView createEvent(@PathVariable long appId, @Valid @RequestBody EventInput input,
                                  HttpServletRequest request) {
@@ -170,6 +180,7 @@ public class AppController {
     }
 
     /** 应用事件列表只显示当前可管理应用的配置。 */
+    @Operation(summary = "查询事件订阅（应用接入）")
     @GetMapping("/{appId}/events")
     public List<EventView> events(@PathVariable long appId, HttpServletRequest request) {
         UnApp app = requireApp(appId);
@@ -179,6 +190,7 @@ public class AppController {
                 .stream().map(this::eventView).toList();
     }
 
+    @Operation(summary = "修改事件订阅（应用接入）")
     @PutMapping("/{appId}/events/{eventId}")
     public EventView updateEvent(@PathVariable long appId, @PathVariable long eventId,
                                  @Valid @RequestBody EventUpdate input, HttpServletRequest request) {

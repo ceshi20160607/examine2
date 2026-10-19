@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.module.base.entity.UnModuleAction;
 import com.unique.unexamine.module.base.entity.UnModuleLog;
@@ -28,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
 /** 模块菜单、动作及保存时校验规则。 */
+@Tag(name = "模块动作规则", description = "模块菜单、动作和规则。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}")
 public class ModuleActionRuleController {
@@ -55,6 +59,7 @@ public class ModuleActionRuleController {
         this.json = json;
     }
 
+    @Operation(summary = "查询菜单（模块动作规则）")
     @GetMapping("/menus")
     public List<UnModuleMenu> menus(@PathVariable long moduleId, @RequestParam long tenantId, HttpServletRequest request) {
         read(request, tenantId, moduleId);
@@ -62,6 +67,7 @@ public class ModuleActionRuleController {
                 .eq(UnModuleMenu::getStatus, 1).orderByAsc(UnModuleMenu::getSortNo, UnModuleMenu::getId));
     }
 
+    @Operation(summary = "新建菜单（模块动作规则）")
     @PostMapping("/menus")
     public UnModuleMenu addMenu(@PathVariable long moduleId, @RequestParam long tenantId,
                                 @Valid @RequestBody MenuForm body, HttpServletRequest request) {
@@ -81,6 +87,7 @@ public class ModuleActionRuleController {
         return menus.selectById(row.getId());
     }
 
+    @Operation(summary = "修改菜单（模块动作规则）")
     @PutMapping("/menus/{id}")
     public UnModuleMenu updateMenu(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId,
                                    @Valid @RequestBody MenuForm body, HttpServletRequest request) {
@@ -96,6 +103,7 @@ public class ModuleActionRuleController {
         return menus.selectById(id);
     }
 
+    @Operation(summary = "停用菜单（模块动作规则）")
     @DeleteMapping("/menus/{id}")
     public void stopMenu(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId, HttpServletRequest request) {
         write(request, tenantId, moduleId);
@@ -105,6 +113,7 @@ public class ModuleActionRuleController {
         menus.updateById(row);
     }
 
+    @Operation(summary = "查询处理动作（模块动作规则）")
     @GetMapping("/actions")
     public List<UnModuleAction> actions(@PathVariable long moduleId, @RequestParam long tenantId, HttpServletRequest request) {
         read(request, tenantId, moduleId);
@@ -112,6 +121,7 @@ public class ModuleActionRuleController {
                 .eq(UnModuleAction::getStatus, 1).orderByAsc(UnModuleAction::getSortNo, UnModuleAction::getId));
     }
 
+    @Operation(summary = "新建动作（模块动作规则）")
     @PostMapping("/actions")
     public UnModuleAction addAction(@PathVariable long moduleId, @RequestParam long tenantId,
                                     @Valid @RequestBody ActionForm body, HttpServletRequest request) {
@@ -127,6 +137,7 @@ public class ModuleActionRuleController {
         return actions.selectById(row.getId());
     }
 
+    @Operation(summary = "修改动作（模块动作规则）")
     @PutMapping("/actions/{id}")
     public UnModuleAction updateAction(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId,
                                        @Valid @RequestBody ActionForm body, HttpServletRequest request) {
@@ -139,6 +150,7 @@ public class ModuleActionRuleController {
         return actions.selectById(id);
     }
 
+    @Operation(summary = "停用动作（模块动作规则）")
     @DeleteMapping("/actions/{id}")
     public void stopAction(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId, HttpServletRequest request) {
         write(request, tenantId, moduleId);
@@ -149,6 +161,7 @@ public class ModuleActionRuleController {
     }
 
     /** 先实现模块自身的状态动作；审批和流程动作须调用对应运行接口，不在此伪造实例。 */
+    @Operation(summary = "执行模块动作（模块动作规则）")
     @PostMapping("/records/{recordId}/actions/{actionCode}")
     @Transactional
     public UnModuleRecord executeAction(@PathVariable long moduleId, @PathVariable long recordId,
@@ -189,6 +202,7 @@ public class ModuleActionRuleController {
         return records.selectById(recordId);
     }
 
+    @Operation(summary = "查询规则（模块动作规则）")
     @GetMapping("/rules")
     public List<UnModuleRule> rules(@PathVariable long moduleId, @RequestParam long tenantId, HttpServletRequest request) {
         read(request, tenantId, moduleId);
@@ -196,6 +210,7 @@ public class ModuleActionRuleController {
                 .eq(UnModuleRule::getStatus, 1).orderByAsc(UnModuleRule::getSortNo, UnModuleRule::getId));
     }
 
+    @Operation(summary = "新建规则（模块动作规则）")
     @PostMapping("/rules")
     public UnModuleRule addRule(@PathVariable long moduleId, @RequestParam long tenantId,
                                 @Valid @RequestBody RuleForm body, HttpServletRequest request) {
@@ -211,6 +226,7 @@ public class ModuleActionRuleController {
         return rules.selectById(row.getId());
     }
 
+    @Operation(summary = "修改规则（模块动作规则）")
     @PutMapping("/rules/{id}")
     public UnModuleRule updateRule(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId,
                                    @Valid @RequestBody RuleForm body, HttpServletRequest request) {
@@ -223,6 +239,7 @@ public class ModuleActionRuleController {
         return rules.selectById(id);
     }
 
+    @Operation(summary = "停用规则（模块动作规则）")
     @DeleteMapping("/rules/{id}")
     public void stopRule(@PathVariable long moduleId, @PathVariable long id, @RequestParam long tenantId, HttpServletRequest request) {
         write(request, tenantId, moduleId);

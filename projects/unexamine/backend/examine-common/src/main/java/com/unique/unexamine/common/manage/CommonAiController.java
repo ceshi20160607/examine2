@@ -1,5 +1,8 @@
 package com.unique.unexamine.common.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.common.base.entity.UnCommonAi;
 import com.unique.unexamine.common.base.mapper.UnCommonAiMapper;
 
@@ -28,6 +31,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 /** 公共 AI 服务配置；凭据只接受写入并以 AES-GCM 加密存储。 */
+@Tag(name = "AI 配置", description = "按范围管理 AI 配置和凭据。")
 @RestController
 @RequestMapping("/api/common/ai-configs")
 public class CommonAiController {
@@ -41,6 +45,7 @@ public class CommonAiController {
     }
 
     /** 配置查询只返回有无凭据，不返回密文或明文。 */
+    @Operation(summary = "查询列表（AI 配置）")
     @GetMapping
     public IPage<AiView> list(@RequestParam String scopeType, @RequestParam long scopeId,
                               @RequestParam(defaultValue = "1") long page,
@@ -61,6 +66,7 @@ public class CommonAiController {
     }
 
     /** 新建时在范围内检查编码重复，存在凭据时要求部署方提供加密密钥。 */
+    @Operation(summary = "新建（AI 配置）")
     @PostMapping
     public AiView create(@Valid @RequestBody AiInput input, HttpServletRequest request) {
         scope.admin(input.scopeType(), input.scopeId(), request);
@@ -79,6 +85,7 @@ public class CommonAiController {
     }
 
     /** 修改时不变更资源范围；未提交凭据表示保留已有密文。 */
+    @Operation(summary = "修改（AI 配置）")
     @PutMapping("/{id}")
     public AiView update(@PathVariable long id, @Valid @RequestBody AiUpdateInput input,
                          HttpServletRequest request) {
@@ -95,6 +102,7 @@ public class CommonAiController {
     }
 
     /** 停用配置不删除历史设置和加密凭据。 */
+    @Operation(summary = "修改状态（AI 配置）")
     @PutMapping("/{id}/status")
     public AiView status(@PathVariable long id, @RequestBody StatusInput input,
                          HttpServletRequest request) {

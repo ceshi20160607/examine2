@@ -1,5 +1,8 @@
 package com.unique.unexamine.work.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.work.base.entity.UnWorkDaily;
 import com.unique.unexamine.work.base.entity.UnWorkDailyComment;
@@ -37,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 /** 租户日报字段、个人填写、提交及管理反馈。 */
+@Tag(name = "工作日报", description = "日报填写、提交和评论。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/work/dailies")
 public class WorkDailyController {
@@ -56,6 +60,7 @@ public class WorkDailyController {
     }
 
     /** 日报字段只能由租户管理员配置，编码稳定供既有日报使用。 */
+    @Operation(summary = "新建组件字段（工作日报）")
     @PostMapping("/fields")
     public FieldView addField(@PathVariable long tenantId, @Valid @RequestBody FieldInput input,
                               HttpServletRequest request) {
@@ -80,6 +85,7 @@ public class WorkDailyController {
         return fieldView(field);
     }
 
+    @Operation(summary = "查询字段（工作日报）")
     @GetMapping("/fields")
     public List<FieldView> fields(@PathVariable long tenantId, HttpServletRequest request) {
         access.tenantMember(request, tenantId);
@@ -89,6 +95,7 @@ public class WorkDailyController {
                 .stream().map(this::fieldView).toList();
     }
 
+    @Operation(summary = "修改字段（工作日报）")
     @PutMapping("/fields/{fieldId}")
     public FieldView updateField(@PathVariable long tenantId, @PathVariable long fieldId,
                                  @Valid @RequestBody FieldUpdate input, HttpServletRequest request) {
@@ -106,6 +113,7 @@ public class WorkDailyController {
     }
 
     /** 默认只返回自己的日报，管理员可指定成员查看租户内日报。 */
+    @Operation(summary = "查询列表（工作日报）")
     @GetMapping
     public DailyPage list(@PathVariable long tenantId, @RequestParam(required = false) Long memberId,
                           @RequestParam(defaultValue = "1") long page,
@@ -135,6 +143,7 @@ public class WorkDailyController {
         return new DailyPage(result.getRecords().stream().map(this::view).toList(), result.getTotal(), page, size);
     }
 
+    @Operation(summary = "新建（工作日报）")
     @PostMapping
     public DailyView create(@PathVariable long tenantId, @Valid @RequestBody DailyInput input,
                             HttpServletRequest request) {
@@ -150,6 +159,7 @@ public class WorkDailyController {
         return view(daily);
     }
 
+    @Operation(summary = "查询详情（工作日报）")
     @GetMapping("/{dailyId}")
     public DailyView detail(@PathVariable long tenantId, @PathVariable long dailyId,
                             HttpServletRequest request) {
@@ -157,6 +167,7 @@ public class WorkDailyController {
     }
 
     /** 已提交的日报不能再编辑，修改须保留管理反馈的真实历史。 */
+    @Operation(summary = "修改（工作日报）")
     @PutMapping("/{dailyId}")
     public DailyView update(@PathVariable long tenantId, @PathVariable long dailyId,
                             @Valid @RequestBody DailyInput input, HttpServletRequest request) {
@@ -168,6 +179,7 @@ public class WorkDailyController {
         return view(daily);
     }
 
+    @Operation(summary = "提交日报（工作日报）")
     @PostMapping("/{dailyId}/submit")
     public DailyView submit(@PathVariable long tenantId, @PathVariable long dailyId,
                             HttpServletRequest request) {
@@ -177,6 +189,7 @@ public class WorkDailyController {
         return view(daily);
     }
 
+    @Operation(summary = "发表评论（工作日报）")
     @PostMapping("/{dailyId}/comments")
     public CommentView comment(@PathVariable long tenantId, @PathVariable long dailyId,
                                @Valid @RequestBody CommentInput input, HttpServletRequest request) {
@@ -192,6 +205,7 @@ public class WorkDailyController {
         return new CommentView(comment.getId(), comment.getMemberId(), comment.getContent(), comment.getCreateTime());
     }
 
+    @Operation(summary = "查询评论（工作日报）")
     @GetMapping("/{dailyId}/comments")
     public List<CommentView> comments(@PathVariable long tenantId, @PathVariable long dailyId,
                                       HttpServletRequest request) {

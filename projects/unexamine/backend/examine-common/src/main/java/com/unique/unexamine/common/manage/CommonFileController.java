@@ -1,5 +1,8 @@
 package com.unique.unexamine.common.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.common.base.entity.UnCommonFile;
 import com.unique.unexamine.common.base.mapper.UnCommonFileMapper;
 
@@ -33,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 /** 公共文件元数据与磁盘文件的上传、列表、下载和删除入口。 */
+@Tag(name = "公共文件", description = "按范围管理文件上传、下载和删除。")
 @RestController
 @RequestMapping("/api/common/files")
 public class CommonFileController {
@@ -50,6 +54,7 @@ public class CommonFileController {
     }
 
     /** 列表只展示业务元数据，不暴露内部文件路径。 */
+    @Operation(summary = "查询列表（公共文件）")
     @GetMapping
     public IPage<FileView> list(@RequestParam String scopeType, @RequestParam long scopeId,
                                 @RequestParam(defaultValue = "1") long page,
@@ -70,6 +75,7 @@ public class CommonFileController {
     }
 
     /** 上传先写入随机文件名，再保存范围和元数据；失败时清理未入库文件。 */
+    @Operation(summary = "上传文件（公共文件）")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public FileView upload(@RequestParam String scopeType, @RequestParam long scopeId,
                            @RequestParam("file") MultipartFile upload, HttpServletRequest request) {
@@ -108,6 +114,7 @@ public class CommonFileController {
     }
 
     /** 下载前重新核对文件归属与磁盘真实路径，拒绝越界和符号链接。 */
+    @Operation(summary = "下载文件（公共文件）")
     @GetMapping("/{id}/download")
     public ResponseEntity<FileSystemResource> download(@PathVariable long id, HttpServletRequest request) {
         UnCommonFile item = file(id);
@@ -131,6 +138,7 @@ public class CommonFileController {
     }
 
     /** 删除元数据与文件时需要对应范围管理员权限。 */
+    @Operation(summary = "删除（公共文件）")
     @DeleteMapping("/{id}")
     @Transactional
     public void delete(@PathVariable long id, HttpServletRequest request) {

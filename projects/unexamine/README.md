@@ -24,4 +24,4 @@ Set-Location projects/unexamine/backend
 java -jar examine-web/target/examine-web-0.1.0.jar
 ```
 
-后端端口为 9999。建表及代码生成只证明数据模型可用，不能视为业务接口已验收。
+后端端口为 9999。启动后可打开 [Swagger UI](http://localhost:9999/swagger-ui.html) 查看按业务模块分组的接口，或访问 [OpenAPI JSON](http://localhost:9999/v3/api-docs) 供前端生成客户端。每个 Controller 使用 `@Tag` 标明业务分组，每个路由使用 `@Operation(summary = ...)` 标明用途；接口文档与代码保持同一提交更新。建表及代码生成只证明数据模型可用，不能视为业务接口已验收。

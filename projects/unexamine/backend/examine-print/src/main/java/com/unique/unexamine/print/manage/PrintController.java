@@ -1,5 +1,8 @@
 package com.unique.unexamine.print.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenant;
 import com.unique.unexamine.sys.base.mapper.UnSysTenantMapper;
 import com.unique.unexamine.module.base.entity.UnModule;
@@ -39,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** 打印模板按租户模块配置，预览只替换当前租户记录中的已保存字段。 */
+@Tag(name = "打印模板", description = "打印模板和模块记录预览。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/prints")
 public class PrintController {
@@ -66,6 +70,7 @@ public class PrintController {
         this.recordAccess = recordAccess;
     }
 
+    @Operation(summary = "查询列表（打印模板）")
     @GetMapping
     public PrintPage list(@PathVariable long tenantId, @RequestParam long moduleId,
                           @RequestParam(defaultValue = "1") long page,
@@ -83,6 +88,7 @@ public class PrintController {
                 result.getTotal(), page, size);
     }
 
+    @Operation(summary = "新建（打印模板）")
     @PostMapping
     public TemplateView create(@PathVariable long tenantId, @Valid @RequestBody TemplateInput input,
                                HttpServletRequest request) {
@@ -102,6 +108,7 @@ public class PrintController {
         return detailView(template);
     }
 
+    @Operation(summary = "查询详情（打印模板）")
     @GetMapping("/{templateId}")
     public TemplateView detail(@PathVariable long tenantId, @PathVariable long templateId,
                                HttpServletRequest request) {
@@ -109,6 +116,7 @@ public class PrintController {
         return detailView(requireTemplate(tenantId, templateId));
     }
 
+    @Operation(summary = "修改（打印模板）")
     @PutMapping("/{templateId}")
     public TemplateView update(@PathVariable long tenantId, @PathVariable long templateId,
                                @Valid @RequestBody TemplateUpdate input, HttpServletRequest request) {
@@ -122,6 +130,7 @@ public class PrintController {
     }
 
     /** 预览返回纯文本；模板和记录字段都不作为 HTML 或脚本执行。 */
+    @Operation(summary = "渲染打印预览（打印模板）")
     @GetMapping("/{templateId}/render")
     public RenderView render(@PathVariable long tenantId, @PathVariable long templateId,
                              @RequestParam long recordId, HttpServletRequest request) {

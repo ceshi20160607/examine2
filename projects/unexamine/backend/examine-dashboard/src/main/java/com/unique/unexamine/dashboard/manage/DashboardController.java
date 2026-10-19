@@ -1,5 +1,8 @@
 package com.unique.unexamine.dashboard.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.dashboard.base.entity.UnDashboard;
 import com.unique.unexamine.dashboard.base.entity.UnDashboardComponent;
 import com.unique.unexamine.dashboard.base.entity.UnDashboardComponentField;
@@ -37,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 /** 仪表盘和统计组件的配置、成员共享与实时数值读取。 */
+@Tag(name = "仪表盘", description = "仪表盘、组件和共享成员。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/dashboards")
 public class DashboardController {
@@ -66,6 +70,7 @@ public class DashboardController {
     }
 
     /** 只展示自己创建或明确共享给自己的仪表盘。 */
+    @Operation(summary = "查询列表（仪表盘）")
     @GetMapping
     public List<DashboardView> list(@PathVariable long tenantId, HttpServletRequest request) {
         long actorId = access.tenantMember(request, tenantId).getMemberId();
@@ -82,6 +87,7 @@ public class DashboardController {
                 .stream().map(this::dashboardView).toList();
     }
 
+    @Operation(summary = "新建（仪表盘）")
     @PostMapping
     public DashboardView create(@PathVariable long tenantId, @Valid @RequestBody DashboardInput input,
                                 HttpServletRequest request) {
@@ -96,12 +102,14 @@ public class DashboardController {
         return dashboardView(dashboard);
     }
 
+    @Operation(summary = "查询详情（仪表盘）")
     @GetMapping("/{dashboardId}")
     public DashboardView detail(@PathVariable long tenantId, @PathVariable long dashboardId,
                                 HttpServletRequest request) {
         return dashboardView(readable(tenantId, dashboardId, request));
     }
 
+    @Operation(summary = "修改（仪表盘）")
     @PutMapping("/{dashboardId}")
     public DashboardView update(@PathVariable long tenantId, @PathVariable long dashboardId,
                                 @Valid @RequestBody DashboardUpdate input, HttpServletRequest request) {
@@ -113,6 +121,7 @@ public class DashboardController {
         return dashboardView(dashboard);
     }
 
+    @Operation(summary = "查询仪表盘组件（仪表盘）")
     @GetMapping("/{dashboardId}/components")
     public List<ComponentView> components(@PathVariable long tenantId, @PathVariable long dashboardId,
                                           HttpServletRequest request) {
@@ -124,6 +133,7 @@ public class DashboardController {
     }
 
     /** 当前组件类型 metric 输出字段统计；其他图形能力待有对应数据形状时再开放。 */
+    @Operation(summary = "新建仪表盘组件（仪表盘）")
     @PostMapping("/{dashboardId}/components")
     public ComponentView addComponent(@PathVariable long tenantId, @PathVariable long dashboardId,
                                       @Valid @RequestBody ComponentInput input, HttpServletRequest request) {
@@ -144,6 +154,7 @@ public class DashboardController {
         return componentView(component);
     }
 
+    @Operation(summary = "修改组件（仪表盘）")
     @PutMapping("/{dashboardId}/components/{componentId}")
     public ComponentView updateComponent(@PathVariable long tenantId, @PathVariable long dashboardId,
                                          @PathVariable long componentId,
@@ -164,6 +175,7 @@ public class DashboardController {
         return componentView(component);
     }
 
+    @Operation(summary = "新建组件字段（仪表盘）")
     @PostMapping("/{dashboardId}/components/{componentId}/fields")
     public FieldView addField(@PathVariable long tenantId, @PathVariable long dashboardId,
                               @PathVariable long componentId, @Valid @RequestBody FieldInput input,
@@ -182,6 +194,7 @@ public class DashboardController {
         return fieldView(field);
     }
 
+    @Operation(summary = "查询字段（仪表盘）")
     @GetMapping("/{dashboardId}/components/{componentId}/fields")
     public List<FieldView> fields(@PathVariable long tenantId, @PathVariable long dashboardId,
                                   @PathVariable long componentId, HttpServletRequest request) {
@@ -194,6 +207,7 @@ public class DashboardController {
     }
 
     /** 实际指标按最新模块记录计算，不把配置 JSON 当成已经计算的图表。 */
+    @Operation(summary = "查询组件数据（仪表盘）")
     @GetMapping("/{dashboardId}/components/{componentId}/data")
     public Map<String, BigDecimal> componentData(@PathVariable long tenantId, @PathVariable long dashboardId,
                                                   @PathVariable long componentId, HttpServletRequest request) {
@@ -211,6 +225,7 @@ public class DashboardController {
     }
 
     /** 分享前验证目标人员在同一租户内，并保存查看或编辑权限。 */
+    @Operation(summary = "共享仪表盘（仪表盘）")
     @PostMapping("/{dashboardId}/users")
     public UserView share(@PathVariable long tenantId, @PathVariable long dashboardId,
                           @Valid @RequestBody UserInput input, HttpServletRequest request) {
@@ -240,6 +255,7 @@ public class DashboardController {
         return new UserView(existing.getId(), existing.getMemberId(), existing.getPermissionCode());
     }
 
+    @Operation(summary = "查询共享成员（仪表盘）")
     @GetMapping("/{dashboardId}/users")
     public List<UserView> users(@PathVariable long tenantId, @PathVariable long dashboardId,
                                 HttpServletRequest request) {

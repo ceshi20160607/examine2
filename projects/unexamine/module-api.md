@@ -1,6 +1,6 @@
 # 模块域后端接口契约
 
-本文按当前 `manage/module` 控制器实现整理，供前端直接接入。模块配置、记录、场景和辅助配置分别由所属 Controller 处理；审批与流程绑定入口保留 `/api/modules` 路径，但分别由审批域和流程域实现。路径表以 `/api/modules` 为前缀；表内「根路径」即 `/api/modules`，`{moduleId}`、`{recordId}` 等为实际 ID。
+本文按当前 `com.unique.unexamine.module.manage` 控制器实现整理，供前端直接接入。模块配置、记录、场景和辅助配置分别由所属 Controller 处理；审批与流程绑定入口保留 `/api/modules` 路径，但分别由审批域和流程域实现。路径表以 `/api/modules` 为前缀；表内「根路径」即 `/api/modules`，`{moduleId}`、`{recordId}` 等为实际 ID。
 
 ## 通用约定
 

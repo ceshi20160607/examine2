@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.mapper.UnSysTenantMemberMapper;
 import com.unique.unexamine.module.base.entity.UnModuleRecord;
@@ -18,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.*;
 
 /** 模块记录的团队成员及其访问角色。 */
+@Tag(name = "模块团队", description = "模块记录团队成员。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}")
 public class ModuleTeamController {
@@ -37,6 +41,7 @@ public class ModuleTeamController {
         this.members = members;
     }
 
+    @Operation(summary = "查询团队成员（模块团队）")
     @GetMapping("/records/{recordId}/teamers")
     public List<UnModuleTeamer> teamers(@PathVariable long moduleId, @PathVariable long recordId,
                                         @RequestParam long tenantId, HttpServletRequest request) {
@@ -45,6 +50,7 @@ public class ModuleTeamController {
                 .eq(UnModuleTeamer::getModuleId, moduleId).eq(UnModuleTeamer::getRecordId, recordId));
     }
 
+    @Operation(summary = "添加团队成员（模块团队）")
     @PostMapping("/records/{recordId}/teamers")
     public UnModuleTeamer addTeamer(@PathVariable long moduleId, @PathVariable long recordId,
                                     @RequestParam long tenantId, @Valid @RequestBody TeamerForm body,
@@ -67,6 +73,7 @@ public class ModuleTeamController {
         return teamers.selectById(row.getId());
     }
 
+    @Operation(summary = "移除团队成员（模块团队）")
     @DeleteMapping("/records/{recordId}/teamers/{id}")
     public void deleteTeamer(@PathVariable long moduleId, @PathVariable long recordId, @PathVariable long id,
                              @RequestParam long tenantId, HttpServletRequest request) {

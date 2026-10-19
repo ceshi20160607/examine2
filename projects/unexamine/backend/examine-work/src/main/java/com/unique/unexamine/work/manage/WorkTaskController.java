@@ -1,5 +1,8 @@
 package com.unique.unexamine.work.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkProjectMember;
@@ -47,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 /** 项目任务、可配置字段、分页列表及状态历史。 */
+@Tag(name = "工作任务", description = "任务字段、任务成员和任务处理。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/work/projects/{projectId}")
 public class WorkTaskController {
@@ -77,6 +81,7 @@ public class WorkTaskController {
     }
 
     /** 字段结构由项目管理员定义，字段编码创建后保持稳定。 */
+    @Operation(summary = "新建组件字段（工作任务）")
     @PostMapping("/fields")
     public FieldView addField(@PathVariable long tenantId, @PathVariable long projectId,
                               @Valid @RequestBody FieldInput input, HttpServletRequest request) {
@@ -101,6 +106,7 @@ public class WorkTaskController {
         return fieldView(field);
     }
 
+    @Operation(summary = "查询字段（工作任务）")
     @GetMapping("/fields")
     public List<FieldView> fields(@PathVariable long tenantId, @PathVariable long projectId,
                                   HttpServletRequest request) {
@@ -111,6 +117,7 @@ public class WorkTaskController {
                 .stream().map(this::fieldView).toList();
     }
 
+    @Operation(summary = "修改字段（工作任务）")
     @PutMapping("/fields/{fieldId}")
     public FieldView updateField(@PathVariable long tenantId, @PathVariable long projectId,
                                  @PathVariable long fieldId, @Valid @RequestBody FieldUpdate input,
@@ -129,6 +136,7 @@ public class WorkTaskController {
     }
 
     /** 任务列表仅接受固定字段排序，避免请求参数进入 SQL 表达式。 */
+    @Operation(summary = "查询列表（工作任务）")
     @GetMapping("/tasks")
     public TaskPage list(@PathVariable long tenantId, @PathVariable long projectId,
                          @RequestParam(required = false) Long groupId,
@@ -168,6 +176,7 @@ public class WorkTaskController {
     }
 
     /** 创建任务同时验证配置字段并记录初次状态。 */
+    @Operation(summary = "新建（工作任务）")
     @PostMapping("/tasks")
     @Transactional
     public TaskView create(@PathVariable long tenantId, @PathVariable long projectId,
@@ -194,6 +203,7 @@ public class WorkTaskController {
         return taskView(task);
     }
 
+    @Operation(summary = "查询详情（工作任务）")
     @GetMapping("/tasks/{taskId}")
     public TaskView detail(@PathVariable long tenantId, @PathVariable long projectId,
                            @PathVariable long taskId, HttpServletRequest request) {
@@ -201,6 +211,7 @@ public class WorkTaskController {
     }
 
     /** 编辑按版本条件写入；并发覆盖返回 409，日志与修改在同一事务提交。 */
+    @Operation(summary = "修改（工作任务）")
     @PutMapping("/tasks/{taskId}")
     @Transactional
     public TaskView update(@PathVariable long tenantId, @PathVariable long projectId, @PathVariable long taskId,
@@ -230,6 +241,7 @@ public class WorkTaskController {
     }
 
     /** 任务状态仅能在固定状态集合中变更，并追加可追溯的历史。 */
+    @Operation(summary = "修改状态（工作任务）")
     @PutMapping("/tasks/{taskId}/status")
     @Transactional
     public TaskView status(@PathVariable long tenantId, @PathVariable long projectId, @PathVariable long taskId,
@@ -250,6 +262,7 @@ public class WorkTaskController {
         return taskView(tasks.selectById(taskId));
     }
 
+    @Operation(summary = "查询处理历史（工作任务）")
     @GetMapping("/tasks/{taskId}/history")
     public List<HistoryView> history(@PathVariable long tenantId, @PathVariable long projectId,
                                      @PathVariable long taskId, HttpServletRequest request) {
@@ -263,6 +276,7 @@ public class WorkTaskController {
     }
 
     /** 协作者、关注人和验收人都必须先属于同一项目。 */
+    @Operation(summary = "添加成员（工作任务）")
     @PostMapping("/tasks/{taskId}/members")
     public MemberView addMember(@PathVariable long tenantId, @PathVariable long projectId,
                                 @PathVariable long taskId, @Valid @RequestBody MemberInput input,
@@ -287,6 +301,7 @@ public class WorkTaskController {
         return memberView(member);
     }
 
+    @Operation(summary = "查询成员（工作任务）")
     @GetMapping("/tasks/{taskId}/members")
     public List<MemberView> members(@PathVariable long tenantId, @PathVariable long projectId,
                                     @PathVariable long taskId, HttpServletRequest request) {
@@ -297,6 +312,7 @@ public class WorkTaskController {
                 .stream().map(this::memberView).toList();
     }
 
+    @Operation(summary = "移除成员（工作任务）")
     @DeleteMapping("/tasks/{taskId}/members/{relationId}")
     public void removeMember(@PathVariable long tenantId, @PathVariable long projectId,
                              @PathVariable long taskId, @PathVariable long relationId,

@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.module.base.entity.UnModuleQueryField;
 import com.unique.unexamine.module.base.entity.UnModuleScence;
@@ -25,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** 模块场景及其列表表头、筛选和排序配置。 */
+@Tag(name = "模块场景", description = "模块场景及场景配置。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}/scenes")
 public class ModuleSceneController {
@@ -45,6 +49,7 @@ public class ModuleSceneController {
     }
 
     /** 个人场景只向本人返回，共享场景只在当前租户内返回。 */
+    @Operation(summary = "查询列表（模块场景）")
     @GetMapping
     public List<SceneView> list(@PathVariable long moduleId, @RequestParam long tenantId, HttpServletRequest request) {
         long memberId = support.member(request, tenantId).getMemberId();
@@ -59,6 +64,7 @@ public class ModuleSceneController {
         return result;
     }
 
+    @Operation(summary = "查询详情（模块场景）")
     @GetMapping("/{sceneId}")
     public SceneView detail(@PathVariable long moduleId, @PathVariable long sceneId, @RequestParam long tenantId,
                             HttpServletRequest request) {
@@ -70,6 +76,7 @@ public class ModuleSceneController {
     }
 
     /** 创建场景时同时校验字段并保存其唯一配置行。 */
+    @Operation(summary = "新建（模块场景）")
     @PostMapping
     @Transactional
     public SceneView create(@PathVariable long moduleId, @RequestParam long tenantId,
@@ -95,6 +102,7 @@ public class ModuleSceneController {
         return view(scenes.selectById(row.getId()));
     }
 
+    @Operation(summary = "修改（模块场景）")
     @PutMapping("/{sceneId}")
     @Transactional
     public SceneView update(@PathVariable long moduleId, @PathVariable long sceneId, @RequestParam long tenantId,
@@ -114,6 +122,7 @@ public class ModuleSceneController {
         return view(scenes.selectById(sceneId));
     }
 
+    @Operation(summary = "设置默认场景（模块场景）")
     @PutMapping("/{sceneId}/default")
     @Transactional
     public SceneView makeDefault(@PathVariable long moduleId, @PathVariable long sceneId, @RequestParam long tenantId,
@@ -126,6 +135,7 @@ public class ModuleSceneController {
         return view(scenes.selectById(sceneId));
     }
 
+    @Operation(summary = "删除（模块场景）")
     @DeleteMapping("/{sceneId}")
     public void delete(@PathVariable long moduleId, @PathVariable long sceneId, @RequestParam long tenantId,
                        HttpServletRequest request) {

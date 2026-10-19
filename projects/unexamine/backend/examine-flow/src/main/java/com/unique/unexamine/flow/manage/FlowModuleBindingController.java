@@ -1,5 +1,8 @@
 package com.unique.unexamine.flow.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.flow.base.entity.UnFlow;
 import com.unique.unexamine.flow.base.mapper.UnFlowMapper;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /** 模块与流程定义之间的启动绑定；数据写入模块侧绑定表。 */
+@Tag(name = "流程模块绑定", description = "模块事件与流程定义的绑定。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}")
 public class FlowModuleBindingController {
@@ -36,6 +40,7 @@ public class FlowModuleBindingController {
         this.flowDefinitions = flowDefinitions;
     }
 
+    @Operation(summary = "查询流程绑定（流程模块绑定）")
     @GetMapping("/flow-bindings")
     public List<UnModuleFlow> flowBindings(@PathVariable long moduleId, @RequestParam long tenantId,
                                             HttpServletRequest request) {
@@ -44,6 +49,7 @@ public class FlowModuleBindingController {
                 .eq(UnModuleFlow::getModuleId, moduleId).eq(UnModuleFlow::getStatus, 1));
     }
 
+    @Operation(summary = "新建流程绑定（流程模块绑定）")
     @PostMapping("/flow-bindings")
     public UnModuleFlow bindFlow(@PathVariable long moduleId, @RequestParam long tenantId,
                                  @Valid @RequestBody BindingForm body, HttpServletRequest request) {
@@ -67,6 +73,7 @@ public class FlowModuleBindingController {
         return flows.selectById(row.getId());
     }
 
+    @Operation(summary = "停用流程绑定（流程模块绑定）")
     @DeleteMapping("/flow-bindings/{id}")
     public void stopFlowBinding(@PathVariable long moduleId, @PathVariable long id,
                                 @RequestParam long tenantId, HttpServletRequest request) {
@@ -77,6 +84,7 @@ public class FlowModuleBindingController {
         flows.updateById(row);
     }
 
+    @Operation(summary = "修改流程绑定（流程模块绑定）")
     @PutMapping("/flow-bindings/{id}")
     public UnModuleFlow updateFlowBinding(@PathVariable long moduleId, @PathVariable long id,
                                            @RequestParam long tenantId, @Valid @RequestBody BindingForm body,

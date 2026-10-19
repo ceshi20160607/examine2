@@ -1,5 +1,8 @@
 package com.unique.unexamine.work.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.mapper.UnSysTenantMemberMapper;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
@@ -32,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 /** 工作项目、参与成员与任务组的业务入口。 */
+@Tag(name = "工作项目", description = "工作项目、成员和任务组。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/work/projects")
 public class WorkProjectController {
@@ -52,6 +56,7 @@ public class WorkProjectController {
     }
 
     /** 只返回当前成员负责或参与的项目；分页和排序在数据库执行。 */
+    @Operation(summary = "查询列表（工作项目）")
     @GetMapping
     public ProjectPage list(@PathVariable long tenantId,
                             @RequestParam(defaultValue = "1") long page,
@@ -87,6 +92,7 @@ public class WorkProjectController {
     }
 
     /** 创建项目时把负责人加入参与人表，避免项目建立后只有负责人 ID 没有成员关系。 */
+    @Operation(summary = "新建（工作项目）")
     @PostMapping
     @Transactional
     public ProjectView create(@PathVariable long tenantId, @Valid @RequestBody ProjectInput input,
@@ -110,6 +116,7 @@ public class WorkProjectController {
         return view(project);
     }
 
+    @Operation(summary = "查询详情（工作项目）")
     @GetMapping("/{projectId}")
     public ProjectView detail(@PathVariable long tenantId, @PathVariable long projectId,
                               HttpServletRequest request) {
@@ -117,6 +124,7 @@ public class WorkProjectController {
     }
 
     /** 项目负责人和租户管理员可以修改项目基础信息及归档状态。 */
+    @Operation(summary = "修改（工作项目）")
     @PutMapping("/{projectId}")
     public ProjectView update(@PathVariable long tenantId, @PathVariable long projectId,
                               @Valid @RequestBody ProjectUpdate input, HttpServletRequest request) {
@@ -132,6 +140,7 @@ public class WorkProjectController {
     }
 
     /** 加入的成员必须属于项目租户，不能通过成员 ID 引入其他系统人员。 */
+    @Operation(summary = "添加成员（工作项目）")
     @PostMapping("/{projectId}/members")
     public MemberView addMember(@PathVariable long tenantId, @PathVariable long projectId,
                                 @Valid @RequestBody MemberInput input, HttpServletRequest request) {
@@ -150,6 +159,7 @@ public class WorkProjectController {
         return new MemberView(participant.getId(), input.memberId(), participant.getRoleCode());
     }
 
+    @Operation(summary = "查询成员（工作项目）")
     @GetMapping("/{projectId}/members")
     public List<MemberView> members(@PathVariable long tenantId, @PathVariable long projectId,
                                     HttpServletRequest request) {
@@ -161,6 +171,7 @@ public class WorkProjectController {
     }
 
     /** 项目负责人不能从参与人表移除，否则后续管理入口会失去稳定归属。 */
+    @Operation(summary = "移除成员（工作项目）")
     @DeleteMapping("/{projectId}/members/{relationId}")
     public void removeMember(@PathVariable long tenantId, @PathVariable long projectId,
                              @PathVariable long relationId, HttpServletRequest request) {
@@ -175,6 +186,7 @@ public class WorkProjectController {
         participants.deleteById(relationId);
     }
 
+    @Operation(summary = "新建任务组（工作项目）")
     @PostMapping("/{projectId}/groups")
     public GroupView addGroup(@PathVariable long tenantId, @PathVariable long projectId,
                               @Valid @RequestBody GroupInput input, HttpServletRequest request) {
@@ -187,6 +199,7 @@ public class WorkProjectController {
         return groupView(group);
     }
 
+    @Operation(summary = "查询分组（工作项目）")
     @GetMapping("/{projectId}/groups")
     public List<GroupView> groups(@PathVariable long tenantId, @PathVariable long projectId,
                                   HttpServletRequest request) {
@@ -197,6 +210,7 @@ public class WorkProjectController {
                 .stream().map(this::groupView).toList();
     }
 
+    @Operation(summary = "修改任务组（工作项目）")
     @PutMapping("/{projectId}/groups/{groupId}")
     public GroupView updateGroup(@PathVariable long tenantId, @PathVariable long projectId,
                                  @PathVariable long groupId, @Valid @RequestBody GroupInput input,

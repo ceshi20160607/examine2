@@ -1,5 +1,8 @@
 package com.unique.unexamine.approval.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.approval.base.entity.UnExamine;
 import com.unique.unexamine.approval.base.mapper.UnExamineMapper;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /** 模块与审批定义之间的启动绑定；数据写入模块侧绑定表。 */
+@Tag(name = "审批模块绑定", description = "模块与审批定义的绑定。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}")
 public class ExamineModuleBindingController {
@@ -36,6 +40,7 @@ public class ExamineModuleBindingController {
         this.examineDefinitions = examineDefinitions;
     }
 
+    @Operation(summary = "查询审批绑定（审批模块绑定）")
     @GetMapping("/examine-bindings")
     public List<UnModuleExamine> examineBindings(@PathVariable long moduleId, @RequestParam long tenantId,
                                                   HttpServletRequest request) {
@@ -44,6 +49,7 @@ public class ExamineModuleBindingController {
                 .eq(UnModuleExamine::getModuleId, moduleId).eq(UnModuleExamine::getStatus, 1));
     }
 
+    @Operation(summary = "新建审批绑定（审批模块绑定）")
     @PostMapping("/examine-bindings")
     public UnModuleExamine bindExamine(@PathVariable long moduleId, @RequestParam long tenantId,
                                       @Valid @RequestBody BindingForm body, HttpServletRequest request) {
@@ -67,6 +73,7 @@ public class ExamineModuleBindingController {
         return examines.selectById(row.getId());
     }
 
+    @Operation(summary = "停用审批绑定（审批模块绑定）")
     @DeleteMapping("/examine-bindings/{id}")
     public void stopExamineBinding(@PathVariable long moduleId, @PathVariable long id,
                                    @RequestParam long tenantId, HttpServletRequest request) {
@@ -77,6 +84,7 @@ public class ExamineModuleBindingController {
         examines.updateById(row);
     }
 
+    @Operation(summary = "修改审批绑定（审批模块绑定）")
     @PutMapping("/examine-bindings/{id}")
     public UnModuleExamine updateExamineBinding(@PathVariable long moduleId, @PathVariable long id,
                                                  @RequestParam long tenantId, @Valid @RequestBody BindingForm body,

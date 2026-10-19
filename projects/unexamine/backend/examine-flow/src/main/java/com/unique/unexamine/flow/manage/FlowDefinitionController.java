@@ -1,5 +1,8 @@
 package com.unique.unexamine.flow.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.flow.base.entity.UnFlow;
 import com.unique.unexamine.flow.base.entity.UnFlowBinding;
 import com.unique.unexamine.flow.base.entity.UnFlowEdge;
@@ -28,6 +31,7 @@ import static com.unique.unexamine.flow.manage.FlowOperations.*;
 import com.unique.unexamine.flow.manage.FlowOperations.DraftSnapshot;
 
 /** 流程定义、草稿发布及模块自动触发绑定入口。 */
+@Tag(name = "流程定义", description = "流程草稿、版本和发布。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/flows")
 public class FlowDefinitionController {
@@ -53,6 +57,7 @@ public class FlowDefinitionController {
     }
 
     /** 列出当前租户的流程，不返回其他租户的定义。 */
+    @Operation(summary = "查询列表（流程定义）")
     @GetMapping
     public Page<UnFlow> list(@PathVariable long tenantId, @RequestParam(defaultValue = "1") long page,
                              @RequestParam(defaultValue = "20") long size,
@@ -73,6 +78,7 @@ public class FlowDefinitionController {
     }
 
     /** 创建流程定义，节点及连线随后在草稿接口保存。 */
+    @Operation(summary = "新建（流程定义）")
     @PostMapping
     public UnFlow create(@PathVariable long tenantId, @Valid @RequestBody FlowInput body,
                          HttpServletRequest request) {
@@ -88,6 +94,7 @@ public class FlowDefinitionController {
     }
 
     /** 读取定义、草稿和已发布版本，便于编辑器呈现。 */
+    @Operation(summary = "查询详情（流程定义）")
     @GetMapping("/{flowId}")
     public FlowDetail detail(@PathVariable long tenantId, @PathVariable long flowId, HttpServletRequest request) {
         access.tenantMember(request, tenantId);
@@ -98,6 +105,7 @@ public class FlowDefinitionController {
     }
 
     /** 整体替换草稿；实例仅引用发布快照，不会受此操作影响。 */
+    @Operation(summary = "保存流程草稿（流程定义）")
     @PutMapping("/{flowId}/draft")
     @Transactional
     public FlowDetail saveDraft(@PathVariable long tenantId, @PathVariable long flowId,
@@ -147,6 +155,7 @@ public class FlowDefinitionController {
     }
 
     /** 校验可到达的有向无环流程后发布新版本；已有版本不执行更新。 */
+    @Operation(summary = "发布公告（流程定义）")
     @PostMapping("/{flowId}/publish")
     @Transactional
     public UnFlowVersion publish(@PathVariable long tenantId, @PathVariable long flowId, HttpServletRequest request) {
@@ -170,6 +179,7 @@ public class FlowDefinitionController {
     }
 
     /** 停用流程阻止新实例发起，既有实例继续按已冻结的版本执行。 */
+    @Operation(summary = "停用（流程定义）")
     @PostMapping("/{flowId}/disable")
     @Transactional
     public UnFlow disable(@PathVariable long tenantId, @PathVariable long flowId, HttpServletRequest request) {
@@ -181,6 +191,7 @@ public class FlowDefinitionController {
     }
 
     /** 自动触发绑定固定发布版本；仅模块记录成功创建或更新后由模块域调用。 */
+    @Operation(summary = "查询绑定关系（流程定义）")
     @GetMapping("/bindings")
     public List<UnFlowBinding> bindingList(@PathVariable long tenantId,
                                            @RequestParam(required = false) Long moduleId, HttpServletRequest request) {
@@ -191,6 +202,7 @@ public class FlowDefinitionController {
         return bindings.selectList(query);
     }
 
+    @Operation(summary = "新建绑定关系（流程定义）")
     @PostMapping("/bindings")
     @Transactional
     public UnFlowBinding bind(@PathVariable long tenantId, @Valid @RequestBody BindingInput body,
@@ -215,6 +227,7 @@ public class FlowDefinitionController {
         return bindings.selectById(binding.getId());
     }
 
+    @Operation(summary = "修改绑定状态（流程定义）")
     @PutMapping("/bindings/{bindingId}/status")
     @Transactional
     public UnFlowBinding bindingStatus(@PathVariable long tenantId, @PathVariable long bindingId,
@@ -232,6 +245,7 @@ public class FlowDefinitionController {
     }
 
     /** 显式换用最新发布版本；已有自动实例仍保留旧版本。 */
+    @Operation(summary = "刷新绑定版本（流程定义）")
     @PostMapping("/bindings/{bindingId}/refresh-version")
     @Transactional
     public UnFlowBinding refreshBindingVersion(@PathVariable long tenantId, @PathVariable long bindingId,

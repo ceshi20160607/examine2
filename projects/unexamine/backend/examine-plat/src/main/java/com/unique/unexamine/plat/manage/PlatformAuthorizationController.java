@@ -1,5 +1,8 @@
 package com.unique.unexamine.plat.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.plat.base.entity.UnPlatMember;
 import com.unique.unexamine.plat.base.entity.UnPlatMemberRole;
 import com.unique.unexamine.plat.base.entity.UnPlatMenu;
@@ -38,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 
 /** 平台角色、菜单和数据范围授权。 */
+@Tag(name = "平台授权", description = "平台角色、菜单和数据范围授权。")
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformAuthorizationController {
@@ -65,6 +69,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 角色分页只接受固定业务排序字段。 */
+    @Operation(summary = "查询角色（平台授权）")
     @GetMapping("/roles")
     public IPage<UnPlatRole> roles(@RequestParam(defaultValue = "1") long page,
                                   @RequestParam(defaultValue = "20") long size,
@@ -82,6 +87,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 新增自定义角色，内置管理员角色只由首次初始化创建。 */
+    @Operation(summary = "新建角色（平台授权）")
     @PostMapping("/roles")
     public UnPlatRole createRole(@Valid @RequestBody RoleInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -95,6 +101,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 修改角色名称和备注，不允许改内置角色编码和类型。 */
+    @Operation(summary = "修改角色（平台授权）")
     @PutMapping("/roles/{id}")
     public UnPlatRole updateRole(@PathVariable long id, @Valid @RequestBody RoleInput input,
                                  HttpServletRequest request) {
@@ -109,6 +116,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 内置管理员角色不可停用，以保留平台管理入口。 */
+    @Operation(summary = "修改角色状态（平台授权）")
     @PutMapping("/roles/{id}/status")
     public UnPlatRole roleStatus(@PathVariable long id, @RequestBody StatusInput input,
                                  HttpServletRequest request) {
@@ -122,6 +130,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 菜单列表按树形父级、排序号排列。 */
+    @Operation(summary = "查询菜单（平台授权）")
     @GetMapping("/menus")
     public List<UnPlatMenu> menus(HttpServletRequest request) {
         access.platformAccount(request);
@@ -130,6 +139,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 创建菜单前验证父级存在。 */
+    @Operation(summary = "新建菜单（平台授权）")
     @PostMapping("/menus")
     public UnPlatMenu createMenu(@Valid @RequestBody MenuInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -143,6 +153,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 菜单调整父级时防止循环引用。 */
+    @Operation(summary = "修改菜单（平台授权）")
     @PutMapping("/menus/{id}")
     public UnPlatMenu updateMenu(@PathVariable long id, @Valid @RequestBody MenuInput input,
                                  HttpServletRequest request) {
@@ -156,6 +167,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 菜单停用不删除已经保存的授权。 */
+    @Operation(summary = "修改菜单状态（平台授权）")
     @PutMapping("/menus/{id}/status")
     public UnPlatMenu menuStatus(@PathVariable long id, @RequestBody StatusInput input,
                                  HttpServletRequest request) {
@@ -167,6 +179,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 查询某平台成员的角色主键。 */
+    @Operation(summary = "查询成员角色（平台授权）")
     @GetMapping("/members/{memberId}/roles")
     public List<Long> memberRoles(@PathVariable long memberId, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -176,6 +189,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 全量替换成员角色时先验证角色，再在同一事务中更新关系。 */
+    @Operation(summary = "替换成员角色（平台授权）")
     @PutMapping("/members/{memberId}/roles")
     @Transactional
     public void replaceMemberRoles(@PathVariable long memberId, @RequestBody IdsInput input,
@@ -198,6 +212,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 查询角色已有菜单授权。 */
+    @Operation(summary = "查询角色菜单（平台授权）")
     @GetMapping("/roles/{roleId}/menus")
     public List<Long> roleMenus(@PathVariable long roleId, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -207,6 +222,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 全量替换角色菜单授权，拒绝不存在的菜单。 */
+    @Operation(summary = "替换角色菜单（平台授权）")
     @PutMapping("/roles/{roleId}/menus")
     @Transactional
     public void replaceRoleMenus(@PathVariable long roleId, @RequestBody IdsInput input,
@@ -225,6 +241,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 按角色读取数据范围规则。 */
+    @Operation(summary = "查询数据范围（平台授权）")
     @GetMapping("/roles/{roleId}/data-scope")
     public List<UnPlatRoleData> dataScope(@PathVariable long roleId, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -234,6 +251,7 @@ public class PlatformAuthorizationController {
     }
 
     /** 数据范围支持本人、部门、全部或指定部门；指定部门需要有效部门主键。 */
+    @Operation(summary = "保存数据范围（平台授权）")
     @PutMapping("/roles/{roleId}/data-scope")
     @Transactional
     public void replaceDataScope(@PathVariable long roleId, @RequestBody List<DataScopeInput> inputs,

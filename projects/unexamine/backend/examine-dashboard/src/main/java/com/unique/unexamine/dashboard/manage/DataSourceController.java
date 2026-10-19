@@ -1,5 +1,8 @@
 package com.unique.unexamine.dashboard.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.dashboard.base.entity.UnDataSource;
 import com.unique.unexamine.dashboard.base.entity.UnDataSourceConfig;
 import com.unique.unexamine.dashboard.base.mapper.UnDataSourceConfigMapper;
@@ -33,6 +36,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 /** 数据源先连接本产品的模块记录，供仪表盘和 KPI 读取真实数据。 */
+@Tag(name = "数据源", description = "模块记录数据源和预览。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/data-sources")
 public class DataSourceController {
@@ -58,6 +62,7 @@ public class DataSourceController {
     }
 
     /** 数据源的模块 ID 由服务端核对系统与租户启用关系。 */
+    @Operation(summary = "新建（数据源）")
     @PostMapping
     @Transactional
     public SourceView create(@PathVariable long tenantId, @Valid @RequestBody SourceInput input,
@@ -82,6 +87,7 @@ public class DataSourceController {
         return view(source, input.moduleId());
     }
 
+    @Operation(summary = "查询列表（数据源）")
     @GetMapping
     public SourcePage list(@PathVariable long tenantId,
                            @RequestParam(defaultValue = "1") long page,
@@ -109,6 +115,7 @@ public class DataSourceController {
                 result.getTotal(), page, size);
     }
 
+    @Operation(summary = "查询详情（数据源）")
     @GetMapping("/{sourceId}")
     public SourceView detail(@PathVariable long tenantId, @PathVariable long sourceId,
                              HttpServletRequest request) {
@@ -117,6 +124,7 @@ public class DataSourceController {
         return view(source, moduleId(source));
     }
 
+    @Operation(summary = "修改（数据源）")
     @PutMapping("/{sourceId}")
     public SourceView update(@PathVariable long tenantId, @PathVariable long sourceId,
                              @Valid @RequestBody SourceUpdate input, HttpServletRequest request) {
@@ -129,6 +137,7 @@ public class DataSourceController {
     }
 
     /** 预览直接统计该租户有效模块记录，证明数据源可读而非仅保存配置。 */
+    @Operation(summary = "预览数据（数据源）")
     @GetMapping("/{sourceId}/preview")
     public PreviewView preview(@PathVariable long tenantId, @PathVariable long sourceId,
                                HttpServletRequest request) {

@@ -1,5 +1,8 @@
 package com.unique.unexamine.plat.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.entity.UnPlatLogLogin;
 import com.unique.unexamine.plat.base.entity.UnPlatLogOpt;
@@ -33,6 +36,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 /** 平台审计日志及消息入口。 */
+@Tag(name = "平台审计与消息", description = "平台日志查询和平台消息。")
 @RestController
 @RequestMapping("/api/common")
 public class PlatformAuditMessageController {
@@ -55,6 +59,7 @@ public class PlatformAuditMessageController {
     }
 
     /** 平台管理员按账号和结果筛选登录尝试。 */
+    @Operation(summary = "查询平台登录日志（平台审计与消息）")
     @GetMapping("/logs/platform-login")
     public IPage<UnPlatLogLogin> platformLoginLogs(@RequestParam(defaultValue = "1") long page,
                                                    @RequestParam(defaultValue = "20") long size,
@@ -75,6 +80,7 @@ public class PlatformAuditMessageController {
     }
 
     /** 平台操作日志只供平台管理员查询。 */
+    @Operation(summary = "查询平台操作日志（平台审计与消息）")
     @GetMapping("/logs/platform-operation")
     public IPage<UnPlatLogOpt> platformOperationLogs(@RequestParam(defaultValue = "1") long page,
                                                      @RequestParam(defaultValue = "20") long size,
@@ -95,6 +101,7 @@ public class PlatformAuditMessageController {
     }
 
     /** 平台消息只返回当前登录账号关联成员收到的内容。 */
+    @Operation(summary = "查询平台消息（平台审计与消息）")
     @GetMapping("/messages/platform")
     public IPage<UnPlatMessage> platformMessages(@RequestParam(defaultValue = "1") long page,
                                                  @RequestParam(defaultValue = "20") long size,
@@ -117,6 +124,7 @@ public class PlatformAuditMessageController {
     }
 
     /** 平台管理员只能向有效且可登录的平台成员发送消息。 */
+    @Operation(summary = "发送平台消息（平台审计与消息）")
     @PostMapping("/messages/platform")
     @ResponseStatus(HttpStatus.CREATED)
     public UnPlatMessage sendPlatformMessage(@Valid @RequestBody PlatformMessageInput input,
@@ -141,6 +149,7 @@ public class PlatformAuditMessageController {
     }
 
     /** 标记已读前校验消息接收者是当前平台成员。 */
+    @Operation(summary = "标记平台消息已读（平台审计与消息）")
     @PutMapping("/messages/platform/{id}/read")
     public UnPlatMessage readPlatformMessage(@PathVariable long id, HttpServletRequest request) {
         Long memberId = platformMember(request).getId();

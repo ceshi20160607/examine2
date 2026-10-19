@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.module.base.entity.UnModuleQueryField;
 import com.unique.unexamine.module.base.entity.UnModuleScence;
 import com.unique.unexamine.module.base.entity.UnModuleScenceConfig;
@@ -19,6 +22,7 @@ import java.util.*;
 import com.unique.unexamine.module.manage.ModuleRecordController.RecordView;
 
 /** 模块记录列表：按场景与查询字段白名单筛选、排序和分页。 */
+@Tag(name = "模块记录列表", description = "模块记录分页、筛选和排序。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}/records")
 public class ModuleRecordListController {
@@ -50,6 +54,7 @@ public class ModuleRecordListController {
         this.reader = reader;
     }
 
+    @Operation(summary = "查询列表（模块记录列表）")
     @GetMapping
     public RecordPage list(@PathVariable long moduleId, @RequestParam long tenantId,
                            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size,

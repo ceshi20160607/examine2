@@ -1,5 +1,8 @@
 package com.unique.unexamine.sys.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysLogLogin;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysSystem;
@@ -32,6 +35,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /** 系统成员登录、租户切换所需的会话和可进入租户查询。 */
+@Tag(name = "系统会话", description = "系统成员登录、当前会话和租户切换。")
 @RestController
 @RequestMapping("/api/system/session")
 public class SystemSessionController {
@@ -55,6 +59,7 @@ public class SystemSessionController {
     }
 
     /** 登录时同时校验系统及成员状态；无论成败均保留登录日志。 */
+    @Operation(summary = "登录（系统会话）")
     @PostMapping
     public SessionView login(@Valid @RequestBody LoginRequest body, HttpServletRequest request) {
         UnSysSystem system = systemMapper.selectOne(new LambdaQueryWrapper<UnSysSystem>()
@@ -87,6 +92,7 @@ public class SystemSessionController {
     }
 
     /** 会话读取重新检查成员和系统状态，停用后立即失效。 */
+    @Operation(summary = "查询当前信息（系统会话）")
     @GetMapping
     public SessionView current(HttpServletRequest request) {
         UnSysMember member = access.systemMember(request);
@@ -98,6 +104,7 @@ public class SystemSessionController {
     }
 
     /** 退出时销毁整个服务端会话。 */
+    @Operation(summary = "退出登录（系统会话）")
     @DeleteMapping
     public void logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -105,6 +112,7 @@ public class SystemSessionController {
     }
 
     /** 只返回当前成员实际加入且未停用的租户，供用户选择工作范围。 */
+    @Operation(summary = "查询租户（系统会话）")
     @GetMapping("/tenants")
     public List<TenantView> tenants(HttpServletRequest request) {
         UnSysMember member = access.systemMember(request);

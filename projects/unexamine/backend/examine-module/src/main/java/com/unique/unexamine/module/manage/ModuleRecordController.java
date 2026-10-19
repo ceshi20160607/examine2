@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.mapper.UnSysTenantMemberMapper;
 import com.unique.unexamine.module.base.entity.UnModuleLog;
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /** 模块记录的表单保存、详情与变动历史。 */
+@Tag(name = "模块记录", description = "模块记录的详情、保存、修改和历史。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}/records")
 public class ModuleRecordController {
@@ -59,6 +63,7 @@ public class ModuleRecordController {
         this.flows = flows;
     }
 
+    @Operation(summary = "查询详情（模块记录）")
     @GetMapping("/{recordId}")
     public RecordView detail(@PathVariable long moduleId, @PathVariable long recordId, @RequestParam long tenantId,
                              HttpServletRequest request) {
@@ -70,6 +75,7 @@ public class ModuleRecordController {
     }
 
     /** 主记录、字段值和变动历史作为一个事务提交。 */
+    @Operation(summary = "新建（模块记录）")
     @PostMapping
     @Transactional
     public RecordView create(@PathVariable long moduleId, @RequestParam long tenantId,
@@ -107,6 +113,7 @@ public class ModuleRecordController {
         return reader.view(records.selectById(row.getId()));
     }
 
+    @Operation(summary = "修改（模块记录）")
     @PutMapping("/{recordId}")
     @Transactional
     public RecordView update(@PathVariable long moduleId, @PathVariable long recordId, @RequestParam long tenantId,
@@ -153,6 +160,7 @@ public class ModuleRecordController {
         return reader.view(records.selectById(recordId));
     }
 
+    @Operation(summary = "删除（模块记录）")
     @DeleteMapping("/{recordId}")
     @Transactional
     public void delete(@PathVariable long moduleId, @PathVariable long recordId, @RequestParam long tenantId,
@@ -172,6 +180,7 @@ public class ModuleRecordController {
         log(row, member.getMemberId(), "delete", reader.view(row).values(), null);
     }
 
+    @Operation(summary = "查询记录日志（模块记录）")
     @GetMapping("/{recordId}/logs")
     public List<UnModuleLog> logs(@PathVariable long moduleId, @PathVariable long recordId, @RequestParam long tenantId,
                                   HttpServletRequest request) {

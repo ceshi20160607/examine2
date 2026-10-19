@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.module.base.entity.UnModule;
 import com.unique.unexamine.module.base.entity.UnModuleRecord;
@@ -24,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.regex.Pattern;
 
 /** 模块关联配置与记录之间的关联。 */
+@Tag(name = "模块关联", description = "模块关联配置和记录关系。")
 @RestController
 @RequestMapping("/api/modules/{moduleId}")
 public class ModuleRelationController {
@@ -49,6 +53,7 @@ public class ModuleRelationController {
         this.json = json;
     }
 
+    @Operation(summary = "查询关联配置（模块关联）")
     @GetMapping("/relation-configs")
     public List<UnModuleRelationConfig> relationConfigs(@PathVariable long moduleId, @RequestParam long tenantId,
                                                           HttpServletRequest request) {
@@ -57,6 +62,7 @@ public class ModuleRelationController {
                 .eq(UnModuleRelationConfig::getSourceModuleId, moduleId).eq(UnModuleRelationConfig::getStatus, 1));
     }
 
+    @Operation(summary = "新建关联配置（模块关联）")
     @PostMapping("/relation-configs")
     public UnModuleRelationConfig addRelationConfig(@PathVariable long moduleId, @RequestParam long tenantId,
                                                      @Valid @RequestBody RelationConfigForm body, HttpServletRequest request) {
@@ -80,6 +86,7 @@ public class ModuleRelationController {
         return relationConfigs.selectById(row.getId());
     }
 
+    @Operation(summary = "修改关联配置（模块关联）")
     @PutMapping("/relation-configs/{id}")
     public UnModuleRelationConfig updateRelationConfig(@PathVariable long moduleId, @PathVariable long id,
                                                         @RequestParam long tenantId, @Valid @RequestBody RelationConfigForm body,
@@ -97,6 +104,7 @@ public class ModuleRelationController {
         return relationConfigs.selectById(id);
     }
 
+    @Operation(summary = "停用关联配置（模块关联）")
     @DeleteMapping("/relation-configs/{id}")
     public void stopRelationConfig(@PathVariable long moduleId, @PathVariable long id,
                                    @RequestParam long tenantId, HttpServletRequest request) {
@@ -107,6 +115,7 @@ public class ModuleRelationController {
         relationConfigs.updateById(row);
     }
 
+    @Operation(summary = "查询记录关联（模块关联）")
     @GetMapping("/records/{recordId}/relations")
     public List<UnModuleRelation> relations(@PathVariable long moduleId, @PathVariable long recordId,
                                              @RequestParam long tenantId, HttpServletRequest request) {
@@ -130,6 +139,7 @@ public class ModuleRelationController {
                 }).toList();
     }
 
+    @Operation(summary = "新建记录关联（模块关联）")
     @PostMapping("/records/{recordId}/relations")
     public UnModuleRelation addRelation(@PathVariable long moduleId, @PathVariable long recordId, @RequestParam long tenantId,
                                          @RequestBody RelationForm body, HttpServletRequest request) {
@@ -153,6 +163,7 @@ public class ModuleRelationController {
         return relations.selectById(row.getId());
     }
 
+    @Operation(summary = "删除记录关联（模块关联）")
     @DeleteMapping("/records/{recordId}/relations/{id}")
     public void deleteRelation(@PathVariable long moduleId, @PathVariable long recordId, @PathVariable long id,
                                @RequestParam long tenantId, HttpServletRequest request) {

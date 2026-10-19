@@ -1,5 +1,8 @@
 package com.unique.unexamine.plat.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.entity.UnPlatConfig;
 import com.unique.unexamine.plat.base.entity.UnPlatDepartment;
@@ -32,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 /** 平台账号、组织成员及基础配置接口；所有写操作需要平台管理员会话。 */
+@Tag(name = "平台目录", description = "平台账号、成员、部门和基础配置。")
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformDirectoryController {
@@ -53,6 +57,7 @@ public class PlatformDirectoryController {
     }
 
     /** 账号列表不返回密码摘要，排序字段由接口明确允许。 */
+    @Operation(summary = "查询平台账号（平台目录）")
     @GetMapping("/accounts")
     public IPage<AccountView> accounts(@RequestParam(defaultValue = "1") long page,
                                        @RequestParam(defaultValue = "20") long size,
@@ -75,6 +80,7 @@ public class PlatformDirectoryController {
     }
 
     /** 新建账号时只接收登录信息，服务端生成密码摘要。 */
+    @Operation(summary = "新建平台账号（平台目录）")
     @PostMapping("/accounts")
     public AccountView createAccount(@Valid @RequestBody AccountInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -92,6 +98,7 @@ public class PlatformDirectoryController {
     }
 
     /** 修改账号显示名不允许修改登录名和密码摘要。 */
+    @Operation(summary = "修改平台账号（平台目录）")
     @PutMapping("/accounts/{id}")
     public AccountView updateAccount(@PathVariable long id, @Valid @RequestBody NameInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -102,6 +109,7 @@ public class PlatformDirectoryController {
     }
 
     /** 停用当前账号前检查会话，避免管理员误锁死自己的入口。 */
+    @Operation(summary = "修改账号状态（平台目录）")
     @PutMapping("/accounts/{id}/status")
     public AccountView accountStatus(@PathVariable long id, @RequestBody StatusInput input, HttpServletRequest request) {
         UnPlatAccount actor = access.platformAdmin(request);
@@ -113,6 +121,7 @@ public class PlatformDirectoryController {
     }
 
     /** 密码仅写入摘要，响应不回传密码。 */
+    @Operation(summary = "重置成员密码（平台目录）")
     @PutMapping("/accounts/{id}/password")
     public void resetPassword(@PathVariable long id, @Valid @RequestBody PasswordInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -123,6 +132,7 @@ public class PlatformDirectoryController {
     }
 
     /** 平台部门按父级和排序号返回，树形关系由 parentId 表达。 */
+    @Operation(summary = "查询部门（平台目录）")
     @GetMapping("/departments")
     public List<UnPlatDepartment> departments(HttpServletRequest request) {
         access.platformAccount(request);
@@ -131,6 +141,7 @@ public class PlatformDirectoryController {
     }
 
     /** 创建部门前检查上级部门存在。 */
+    @Operation(summary = "新建部门（平台目录）")
     @PostMapping("/departments")
     public UnPlatDepartment createDepartment(@Valid @RequestBody DepartmentInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -143,6 +154,7 @@ public class PlatformDirectoryController {
     }
 
     /** 调整部门上级时拒绝形成部门循环。 */
+    @Operation(summary = "修改部门（平台目录）")
     @PutMapping("/departments/{id}")
     public UnPlatDepartment updateDepartment(@PathVariable long id, @Valid @RequestBody DepartmentInput input,
                                              HttpServletRequest request) {
@@ -156,6 +168,7 @@ public class PlatformDirectoryController {
     }
 
     /** 部门停用保留历史成员归属。 */
+    @Operation(summary = "修改部门状态（平台目录）")
     @PutMapping("/departments/{id}/status")
     public UnPlatDepartment departmentStatus(@PathVariable long id, @RequestBody StatusInput input,
                                              HttpServletRequest request) {
@@ -167,6 +180,7 @@ public class PlatformDirectoryController {
     }
 
     /** 平台成员分页查询，姓名和编号可排序。 */
+    @Operation(summary = "查询成员（平台目录）")
     @GetMapping("/members")
     public IPage<UnPlatMember> members(@RequestParam(defaultValue = "1") long page,
                                       @RequestParam(defaultValue = "20") long size,
@@ -191,6 +205,7 @@ public class PlatformDirectoryController {
     }
 
     /** 成员资料和登录账号独立保存；同一个账号只能关联一个成员。 */
+    @Operation(summary = "新建成员（平台目录）")
     @PostMapping("/members")
     public UnPlatMember createMember(@Valid @RequestBody MemberInput input, HttpServletRequest request) {
         access.platformAdmin(request);
@@ -204,6 +219,7 @@ public class PlatformDirectoryController {
     }
 
     /** 修改成员时重新检查账号、部门和上级归属。 */
+    @Operation(summary = "修改成员（平台目录）")
     @PutMapping("/members/{id}")
     public UnPlatMember updateMember(@PathVariable long id, @Valid @RequestBody MemberInput input,
                                      HttpServletRequest request) {
@@ -219,6 +235,7 @@ public class PlatformDirectoryController {
     }
 
     /** 停用成员保留其历史授权和业务操作记录。 */
+    @Operation(summary = "修改成员状态（平台目录）")
     @PutMapping("/members/{id}/status")
     public UnPlatMember memberStatus(@PathVariable long id, @RequestBody StatusInput input,
                                      HttpServletRequest request) {
@@ -232,6 +249,7 @@ public class PlatformDirectoryController {
     }
 
     /** 平台配置以唯一键保存，避免为简单设置增加抽象层。 */
+    @Operation(summary = "查询系统配置（平台目录）")
     @GetMapping("/config")
     public List<UnPlatConfig> configs(HttpServletRequest request) {
         access.platformAdmin(request);
@@ -239,6 +257,7 @@ public class PlatformDirectoryController {
     }
 
     /** 已存在的配置按键更新，不存在则创建。 */
+    @Operation(summary = "保存系统配置（平台目录）")
     @PutMapping("/config/{key}")
     public UnPlatConfig saveConfig(@PathVariable String key, @RequestBody ConfigInput input,
                                    HttpServletRequest request) {

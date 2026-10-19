@@ -1,5 +1,8 @@
 package com.unique.unexamine.plat.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.entity.UnPlatLogLogin;
 import com.unique.unexamine.plat.base.mapper.UnPlatAccountMapper;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /** 平台账号的登录、会话读取与退出入口。 */
+@Tag(name = "平台会话", description = "平台账号登录、当前会话和退出。")
 @RestController
 @RequestMapping("/api/platform/session")
 public class PlatformSessionController {
@@ -41,6 +45,7 @@ public class PlatformSessionController {
     }
 
     /** 验证平台账号，写入成功或失败日志，成功后更新服务端会话。 */
+    @Operation(summary = "登录（平台会话）")
     @PostMapping
     public AccountView login(@Valid @RequestBody LoginRequest body, HttpServletRequest request) {
         String loginAccount = body.account().trim();
@@ -61,6 +66,7 @@ public class PlatformSessionController {
     }
 
     /** 每次读取账号状态，停用账号不再保留有效会话。 */
+    @Operation(summary = "查询当前信息（平台会话）")
     @GetMapping
     public AccountView current(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -77,6 +83,7 @@ public class PlatformSessionController {
     }
 
     /** 退出时销毁服务端会话。 */
+    @Operation(summary = "退出登录（平台会话）")
     @DeleteMapping
     public void logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

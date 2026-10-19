@@ -1,5 +1,8 @@
 package com.unique.unexamine.sys.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.sys.base.entity.UnSysLogLogin;
 import com.unique.unexamine.sys.base.entity.UnSysLogOpt;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
@@ -36,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 /** 系统与租户审计日志及消息入口。 */
+@Tag(name = "系统审计与消息", description = "系统日志查询和系统消息。")
 @RestController
 @RequestMapping("/api/common")
 public class SystemAuditMessageController {
@@ -63,6 +67,7 @@ public class SystemAuditMessageController {
     }
 
     /** 系统登录日志要求平台管理员明确指定系统。 */
+    @Operation(summary = "查询系统登录日志（系统审计与消息）")
     @GetMapping("/logs/system-login")
     public IPage<UnSysLogLogin> systemLoginLogs(@RequestParam long systemId,
                                                @RequestParam(defaultValue = "1") long page,
@@ -83,6 +88,7 @@ public class SystemAuditMessageController {
     }
 
     /** 系统操作日志可限定租户，租户必须属于所选系统。 */
+    @Operation(summary = "查询系统操作日志（系统审计与消息）")
     @GetMapping("/logs/system-operation")
     public IPage<UnSysLogOpt> systemOperationLogs(@RequestParam long systemId,
                                                  @RequestParam(required = false) Long tenantId,
@@ -107,6 +113,7 @@ public class SystemAuditMessageController {
     }
 
     /** 系统消息默认只取系统级消息；租户消息须明确选择有权限的租户。 */
+    @Operation(summary = "查询系统消息（系统审计与消息）")
     @GetMapping("/messages/system")
     public IPage<UnSysMessage> systemMessages(@RequestParam(required = false) Long tenantId,
                                                @RequestParam(defaultValue = "1") long page,
@@ -134,6 +141,7 @@ public class SystemAuditMessageController {
     }
 
     /** 租户管理员按租户成员主键选接收人，服务端转换为该租户有效系统成员。 */
+    @Operation(summary = "发送系统消息（系统审计与消息）")
     @PostMapping("/messages/system")
     @ResponseStatus(HttpStatus.CREATED)
     public UnSysMessage sendTenantMessage(@Valid @RequestBody TenantMessageInput input,
@@ -163,6 +171,7 @@ public class SystemAuditMessageController {
     }
 
     /** 标记系统消息已读时再次校验所属系统、成员及租户。 */
+    @Operation(summary = "标记系统消息已读（系统审计与消息）")
     @PutMapping("/messages/system/{id}/read")
     public UnSysMessage readSystemMessage(@PathVariable long id, HttpServletRequest request) {
         UnSysMember member = access.systemMember(request);

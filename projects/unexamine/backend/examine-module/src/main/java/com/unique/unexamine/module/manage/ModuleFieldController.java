@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.module.base.entity.UnModuleField;
 import com.unique.unexamine.module.base.entity.UnModuleFieldSort;
 import com.unique.unexamine.module.base.entity.UnModuleTenantField;
@@ -22,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.regex.Pattern;
 
 /** 模块基础字段、租户字段和表单字段顺序。 */
+@Tag(name = "模块字段与表单", description = "基础字段、租户字段和表单结构。")
 @RestController
 @RequestMapping("/api/modules")
 public class ModuleFieldController {
@@ -42,6 +46,7 @@ public class ModuleFieldController {
         this.json = json;
     }
 
+    @Operation(summary = "查询字段（模块字段与表单）")
     @GetMapping("/{moduleId}/fields")
     public List<UnModuleField> fields(@RequestParam long tenantId, @PathVariable long moduleId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -51,6 +56,7 @@ public class ModuleFieldController {
     }
 
     /** 新字段编码固定；存在记录的字段停用仍保留历史值。 */
+    @Operation(summary = "新建字段（模块字段与表单）")
     @PostMapping("/{moduleId}/fields")
     public UnModuleField createField(@RequestParam long tenantId, @PathVariable long moduleId,
                                      @Valid @RequestBody FieldForm body, HttpServletRequest request) {
@@ -69,6 +75,7 @@ public class ModuleFieldController {
         return fields.selectById(field.getId());
     }
 
+    @Operation(summary = "修改字段（模块字段与表单）")
     @PutMapping("/{moduleId}/fields/{fieldId}")
     public UnModuleField updateField(@RequestParam long tenantId, @PathVariable long moduleId, @PathVariable long fieldId,
                                      @Valid @RequestBody FieldForm body, HttpServletRequest request) {
@@ -84,6 +91,7 @@ public class ModuleFieldController {
         return fields.selectById(fieldId);
     }
 
+    @Operation(summary = "停用字段（模块字段与表单）")
     @DeleteMapping("/{moduleId}/fields/{fieldId}")
     public void stopField(@RequestParam long tenantId, @PathVariable long moduleId, @PathVariable long fieldId,
                           HttpServletRequest request) {
@@ -95,6 +103,7 @@ public class ModuleFieldController {
         fields.updateById(field);
     }
 
+    @Operation(summary = "查询表单结构（模块字段与表单）")
     @GetMapping("/{moduleId}/form-schema")
     public List<ModuleSupport.FieldSpec> formSchema(@RequestParam long tenantId, @PathVariable long moduleId,
                                                      @RequestParam(defaultValue = "create") String purpose,
@@ -115,6 +124,7 @@ public class ModuleFieldController {
         return result;
     }
 
+    @Operation(summary = "保存字段顺序（模块字段与表单）")
     @PutMapping("/{moduleId}/fields/order")
     @Transactional
     public List<ModuleSupport.FieldSpec> saveFieldOrder(@RequestParam long tenantId, @PathVariable long moduleId,
@@ -142,6 +152,7 @@ public class ModuleFieldController {
         return formSchema(tenantId, moduleId, "detail".equals(viewType) ? "detail" : "create", request);
     }
 
+    @Operation(summary = "查询租户字段（模块字段与表单）")
     @GetMapping("/{moduleId}/tenant-fields")
     public List<UnModuleTenantField> tenantFields(@RequestParam long tenantId, @PathVariable long moduleId,
                                                    HttpServletRequest request) {
@@ -151,6 +162,7 @@ public class ModuleFieldController {
                 .eq(UnModuleTenantField::getTenantId, tenantId).eq(UnModuleTenantField::getModuleId, moduleId));
     }
 
+    @Operation(summary = "新建租户字段（模块字段与表单）")
     @PostMapping("/{moduleId}/tenant-fields")
     public UnModuleTenantField createTenantField(@RequestParam long tenantId, @PathVariable long moduleId,
                                                   @Valid @RequestBody FieldForm body, HttpServletRequest request) {
@@ -173,6 +185,7 @@ public class ModuleFieldController {
         return tenantFields.selectById(field.getId());
     }
 
+    @Operation(summary = "修改租户字段（模块字段与表单）")
     @PutMapping("/{moduleId}/tenant-fields/{fieldId}")
     public UnModuleTenantField updateTenantField(@RequestParam long tenantId, @PathVariable long moduleId,
                                                   @PathVariable long fieldId, @Valid @RequestBody FieldForm body,
@@ -192,6 +205,7 @@ public class ModuleFieldController {
     }
 
     /** 租户可调整基础字段的表单显示，但不放宽基础字段的存储类型与数值约束。 */
+    @Operation(summary = "覆盖基础字段（模块字段与表单）")
     @PutMapping("/{moduleId}/tenant-fields/base/{baseFieldId}")
     public UnModuleTenantField overrideBaseField(@RequestParam long tenantId, @PathVariable long moduleId,
                                                   @PathVariable long baseFieldId, @Valid @RequestBody FieldForm body,
@@ -230,6 +244,7 @@ public class ModuleFieldController {
         return tenantFields.selectById(field.getId());
     }
 
+    @Operation(summary = "停用租户字段（模块字段与表单）")
     @DeleteMapping("/{moduleId}/tenant-fields/{fieldId}")
     public void stopTenantField(@RequestParam long tenantId, @PathVariable long moduleId, @PathVariable long fieldId,
                                 HttpServletRequest request) {

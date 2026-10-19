@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.module.base.entity.UnModule;
 import com.unique.unexamine.module.base.entity.UnModuleDict;
 import com.unique.unexamine.module.base.mapper.UnModuleDictMapper;
@@ -17,6 +20,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /** 模块可选项字典配置。 */
+@Tag(name = "模块字典", description = "模块字典项的查询和维护。")
 @RestController
 @RequestMapping("/api/modules")
 public class ModuleDictionaryController {
@@ -29,6 +33,7 @@ public class ModuleDictionaryController {
         this.dictionaries = dictionaries;
     }
 
+    @Operation(summary = "查询字典（模块字典）")
     @GetMapping("/{moduleId}/dicts")
     public List<UnModuleDict> dicts(@RequestParam long tenantId, @PathVariable long moduleId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -38,6 +43,7 @@ public class ModuleDictionaryController {
                 .orderByAsc(UnModuleDict::getDictCode, UnModuleDict::getSortNo));
     }
 
+    @Operation(summary = "新建字典项（模块字典）")
     @PostMapping("/{moduleId}/dicts")
     public UnModuleDict createDictItem(@RequestParam long tenantId, @PathVariable long moduleId,
                                         @Valid @RequestBody DictForm body, HttpServletRequest request) {
@@ -60,6 +66,7 @@ public class ModuleDictionaryController {
         return dictionaries.selectById(row.getId());
     }
 
+    @Operation(summary = "修改字典项（模块字典）")
     @PutMapping("/{moduleId}/dicts/{dictId}")
     public UnModuleDict updateDictItem(@RequestParam long tenantId, @PathVariable long moduleId,
                                         @PathVariable long dictId, @Valid @RequestBody DictForm body,
@@ -77,6 +84,7 @@ public class ModuleDictionaryController {
         return dictionaries.selectById(dictId);
     }
 
+    @Operation(summary = "停用字典项（模块字典）")
     @DeleteMapping("/{moduleId}/dicts/{dictId}")
     public void stopDictItem(@RequestParam long tenantId, @PathVariable long moduleId,
                              @PathVariable long dictId, HttpServletRequest request) {

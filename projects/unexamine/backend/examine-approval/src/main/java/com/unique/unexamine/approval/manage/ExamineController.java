@@ -1,5 +1,8 @@
 package com.unique.unexamine.approval.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.approval.base.entity.UnExamine;
 import com.unique.unexamine.approval.base.entity.UnExamineConfig;
 import com.unique.unexamine.approval.base.entity.UnExamineConfigUser;
@@ -32,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.*;
 
 /** 审批定义、分组、节点和适用范围的配置入口。 */
+@Tag(name = "审批定义", description = "审批定义、分组和配置。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/examines")
 public class ExamineController {
@@ -63,6 +67,7 @@ public class ExamineController {
     }
 
     /** 租户成员可查看审批入口，分页上限避免一次取出全部定义。 */
+    @Operation(summary = "查询列表（审批定义）")
     @GetMapping
     public Page<UnExamine> list(@PathVariable long tenantId, @RequestParam(defaultValue = "1") long page,
                                 @RequestParam(defaultValue = "20") long size,
@@ -85,6 +90,7 @@ public class ExamineController {
     }
 
     /** 创建审批定义；启用前需保存完整节点和人员配置。 */
+    @Operation(summary = "新建（审批定义）")
     @PostMapping
     public UnExamine create(@PathVariable long tenantId, @Valid @RequestBody ExamineInput body,
                             HttpServletRequest request) {
@@ -104,6 +110,7 @@ public class ExamineController {
     }
 
     /** 管理审批分组及其展示顺序。 */
+    @Operation(summary = "查询分组（审批定义）")
     @GetMapping("/groups")
     public List<UnExamineGroup> groups(@PathVariable long tenantId, HttpServletRequest request) {
         access.tenantMember(request, tenantId);
@@ -111,6 +118,7 @@ public class ExamineController {
                 .eq(UnExamineGroup::getTenantId, tenantId).orderByAsc(UnExamineGroup::getSortNum));
     }
 
+    @Operation(summary = "新建分组（审批定义）")
     @PostMapping("/groups")
     public UnExamineGroup createGroup(@PathVariable long tenantId, @Valid @RequestBody GroupInput body,
                                       HttpServletRequest request) {
@@ -125,6 +133,7 @@ public class ExamineController {
     }
 
     /** 详情同时返回节点人员和节点字段，配置界面无需猜测缺失部分。 */
+    @Operation(summary = "查询详情（审批定义）")
     @GetMapping("/{examineId}")
     public ExamineDetail detail(@PathVariable long tenantId, @PathVariable long examineId,
                                 HttpServletRequest request) {
@@ -146,6 +155,7 @@ public class ExamineController {
     }
 
     /** 整体保存审批草稿；已发起实例的快照与人员不受草稿变化影响。 */
+    @Operation(summary = "保存审批设计（审批定义）")
     @PutMapping("/{examineId}/design")
     @Transactional
     public ExamineDetail saveDesign(@PathVariable long tenantId, @PathVariable long examineId,
@@ -237,6 +247,7 @@ public class ExamineController {
     }
 
     /** 启用前检查运行器支持的节点类型和处理人来源。 */
+    @Operation(summary = "启用（审批定义）")
     @PostMapping("/{examineId}/enable")
     @Transactional
     public UnExamine enable(@PathVariable long tenantId, @PathVariable long examineId, HttpServletRequest request) {
@@ -261,6 +272,7 @@ public class ExamineController {
     }
 
     /** 停用只影响新发起，已发起实例按冻结的人员和节点继续处理。 */
+    @Operation(summary = "停用（审批定义）")
     @PostMapping("/{examineId}/disable")
     @Transactional
     public UnExamine disable(@PathVariable long tenantId, @PathVariable long examineId, HttpServletRequest request) {

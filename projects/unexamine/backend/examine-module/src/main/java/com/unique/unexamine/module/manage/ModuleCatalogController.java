@@ -1,5 +1,8 @@
 package com.unique.unexamine.module.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.module.base.entity.UnModule;
 import com.unique.unexamine.module.base.entity.UnModuleGroup;
 import com.unique.unexamine.module.base.entity.UnModuleTenant;
@@ -20,6 +23,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /** 模块分组、模块和租户启用关系。 */
+@Tag(name = "模块目录", description = "模块分组、模块和租户启用关系。")
 @RestController
 @RequestMapping("/api/modules")
 public class ModuleCatalogController {
@@ -37,6 +41,7 @@ public class ModuleCatalogController {
         this.tenantModules = tenantModules;
     }
 
+    @Operation(summary = "查询分组（模块目录）")
     @GetMapping("/groups")
     public List<UnModuleGroup> groups(@RequestParam long tenantId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -45,6 +50,7 @@ public class ModuleCatalogController {
                 .eq(UnModuleGroup::getSystemId, systemId).orderByAsc(UnModuleGroup::getParentId, UnModuleGroup::getSortNo, UnModuleGroup::getId));
     }
 
+    @Operation(summary = "新建分组（模块目录）")
     @PostMapping("/groups")
     public UnModuleGroup createGroup(@RequestParam long tenantId, @Valid @RequestBody GroupForm body, HttpServletRequest request) {
         support.admin(request, tenantId);
@@ -66,6 +72,7 @@ public class ModuleCatalogController {
         return groups.selectById(group.getId());
     }
 
+    @Operation(summary = "修改任务组（模块目录）")
     @PutMapping("/groups/{groupId}")
     public UnModuleGroup updateGroup(@RequestParam long tenantId, @PathVariable long groupId,
                                      @Valid @RequestBody GroupForm body, HttpServletRequest request) {
@@ -83,6 +90,7 @@ public class ModuleCatalogController {
         return groups.selectById(groupId);
     }
 
+    @Operation(summary = "停用分组（模块目录）")
     @DeleteMapping("/groups/{groupId}")
     public void stopGroup(@RequestParam long tenantId, @PathVariable long groupId, HttpServletRequest request) {
         support.admin(request, tenantId);
@@ -96,6 +104,7 @@ public class ModuleCatalogController {
     }
 
     /** 列出同一业务系统的模块，并返回租户实际是否启用。 */
+    @Operation(summary = "查询模块（模块目录）")
     @GetMapping
     public List<Map<String, Object>> modules(@RequestParam long tenantId, HttpServletRequest request) {
         support.member(request, tenantId);
@@ -113,6 +122,7 @@ public class ModuleCatalogController {
         return result;
     }
 
+    @Operation(summary = "新建模块（模块目录）")
     @PostMapping
     @Transactional
     public UnModule createModule(@RequestParam long tenantId, @Valid @RequestBody ModuleForm body, HttpServletRequest request) {
@@ -142,6 +152,7 @@ public class ModuleCatalogController {
         return modules.selectById(module.getId());
     }
 
+    @Operation(summary = "修改模块（模块目录）")
     @PutMapping("/{moduleId}")
     public UnModule updateModule(@RequestParam long tenantId, @PathVariable long moduleId,
                                  @Valid @RequestBody ModuleForm body, HttpServletRequest request) {
@@ -158,6 +169,7 @@ public class ModuleCatalogController {
         return modules.selectById(moduleId);
     }
 
+    @Operation(summary = "修改租户启用状态（模块目录）")
     @PutMapping("/{moduleId}/tenant-status")
     public UnModuleTenant tenantStatus(@RequestParam long tenantId, @PathVariable long moduleId,
                                        @RequestBody TenantStatus body, HttpServletRequest request) {

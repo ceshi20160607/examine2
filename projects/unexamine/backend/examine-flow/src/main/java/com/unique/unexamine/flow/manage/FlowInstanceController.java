@@ -1,5 +1,8 @@
 package com.unique.unexamine.flow.manage;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import com.unique.unexamine.flow.base.entity.UnFlow;
 import com.unique.unexamine.flow.base.entity.UnFlowAction;
 import com.unique.unexamine.flow.base.entity.UnFlowBinding;
@@ -44,6 +47,7 @@ import static com.unique.unexamine.flow.manage.FlowOperations.*;
 import com.unique.unexamine.flow.manage.FlowOperations.DraftSnapshot;
 
 /** 流程实例自动或人工发起、待办处理与运行历史入口。 */
+@Tag(name = "流程实例与待办", description = "流程实例、待办和处理动作。")
 @RestController
 @RequestMapping("/api/tenants/{tenantId}/flows")
 public class FlowInstanceController implements ModuleRecordFlowTrigger {
@@ -162,6 +166,7 @@ public class FlowInstanceController implements ModuleRecordFlowTrigger {
     }
 
     /** 从发布版本启动实例；关联业务记录时同时校验租户、模块和发起人的修改权限。 */
+    @Operation(summary = "发起流程（流程实例与待办）")
     @PostMapping("/{flowId}/examples")
     @Transactional
     public UnFlowExample start(@PathVariable long tenantId, @PathVariable long flowId,
@@ -195,6 +200,7 @@ public class FlowInstanceController implements ModuleRecordFlowTrigger {
     }
 
     /** 待办从候选人和实例租户交叉核对，不接受客户端传入处理人编号。 */
+    @Operation(summary = "查询待办（流程实例与待办）")
     @GetMapping("/tasks")
     public List<UnFlowTask> inbox(@PathVariable long tenantId, HttpServletRequest request) {
         long memberId = access.tenantMember(request, tenantId).getMemberId();
@@ -209,6 +215,7 @@ public class FlowInstanceController implements ModuleRecordFlowTrigger {
     }
 
     /** 模块记录详情按读取权限查询相关流程实例，供页面定位自动触发结果。 */
+    @Operation(summary = "查询记录流程实例（流程实例与待办）")
     @GetMapping("/examples")
     public ExamplePage recordExamples(@PathVariable long tenantId, @RequestParam long moduleId,
                                       @RequestParam long recordId, @RequestParam(defaultValue = "1") long page,
@@ -229,6 +236,7 @@ public class FlowInstanceController implements ModuleRecordFlowTrigger {
     }
 
     /** 审批、拒绝和撤回在实例行锁下完成，重复请求返回原操作，其他冲突返回 409。 */
+    @Operation(summary = "处理流程待办（流程实例与待办）")
     @PostMapping("/examples/{exampleId}/actions")
     @Transactional
     public UnFlowAction act(@PathVariable long tenantId, @PathVariable long exampleId,
@@ -307,6 +315,7 @@ public class FlowInstanceController implements ModuleRecordFlowTrigger {
     }
 
     /** 实例历史包含冻结的定义、操作和不可变事件。 */
+    @Operation(summary = "查询处理历史（流程实例与待办）")
     @GetMapping("/examples/{exampleId}")
     public ExampleHistory history(@PathVariable long tenantId, @PathVariable long exampleId, HttpServletRequest request) {
         long actorId = access.tenantMember(request, tenantId).getMemberId();
