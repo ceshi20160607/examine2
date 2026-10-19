@@ -1,583 +1,109 @@
 package com.unique.templatebase.codegen;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
-import com.baomidou.mybatisplus.generator.config.INameConvert;
-import com.baomidou.mybatisplus.generator.config.OutputFile;
-import com.baomidou.mybatisplus.generator.config.TemplateType;
-import com.baomidou.mybatisplus.generator.config.po.TableField;
-import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
-import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
-import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
-import com.baomidou.mybatisplus.generator.keywords.MySqlKeyWordsHandler;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.flywaydb.core.Flyway;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.LinkOption;
-import java.security.MessageDigest;
 import java.sql.DriverManager;
-import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+/** 从已经建好的业务表生成 Entity 和 Mapper，不推断或修改业务表。 */
 public final class BaseCodeGenerator {
-    private static final ObjectMapper JSON = new ObjectMapper();
-
     private BaseCodeGenerator() {
     }
 
+    /** 校验项目配置和实际表名后，只生成贴表代码。 */
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            throw new IllegalArgumentException("usage: BaseCodeGenerator <project-codegen.json>");
+            throw new IllegalArgumentException("用法: BaseCodeGenerator <项目内的 base-codegen.json>");
         }
 
-        Path configPath = Path.of(args[0]).toAbsolutePath().normalize();
-        GeneratorConfig config = JSON.readValue(configPath.toFile(), GeneratorConfig.class);
-        Path projectRoot = resolveProjectRoot(configPath, config.projectRoot());
-        Path sourceRoot = resolveProjectPath(projectRoot, config.sourceRoot(), "sourceRoot");
-        Path mapperXmlRoot = resolveProjectPath(projectRoot, config.mapperXmlRoot(), "mapperXmlRoot");
-        Path migrationRoot = resolveProjectPath(projectRoot, config.migrationRoot(), "migrationRoot");
-        Path manifestPath = resolveProjectPath(projectRoot, config.manifestPath(), "manifestPath");
-        String url = environmentOrDefault("APP_DB_URL", config.database().url());
-        String username = environmentOrDefault("APP_DB_USERNAME", config.database().username());
-        String password = environmentOrDefault("APP_DB_PASSWORD", config.database().password());
-
-        validateConfig(config, sourceRoot, mapperXmlRoot, migrationRoot);
-        migrate(url, username, password, migrationRoot);
-        validateDatabaseTables(url, username, password, config.modules());
-        cleanGeneratedBase(config, projectRoot, sourceRoot, mapperXmlRoot, manifestPath);
-
-        List<String> generatedModules = new ArrayList<>();
-        for (ModuleConfig module : config.modules()) {
-            generateModule(config.basePackage(), module, sourceRoot, mapperXmlRoot, url, username, password);
-            generatedModules.add(module.name());
+        Path configFile = Path.of(args[0]).toAbsolutePath().normalize();
+        Path projectRoot = configFile.getParent();
+        Config config = new ObjectMapper().readValue(configFile.toFile(), Config.class);
+        if (config.sourceRoot() == null || config.basePackage() == null
+                || !config.basePackage().matches("[a-z][a-z0-9_.]+")
+                || config.databaseUrl() == null || config.databaseUsername() == null
+                || config.tables() == null || config.tables().isEmpty()) {
+            throw new IllegalArgumentException("生成配置缺少源码目录、包名、数据库或表名");
         }
-        Map<String, Object> manifest = writeManifest(
-                projectRoot, manifestPath, config, sourceRoot, mapperXmlRoot, url, username, password
-        );
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("ok", true);
-        result.put("generator", "MyBatis-Plus Generator 3.5.17");
-        result.put("database", sanitizedDatabase(url));
-        result.put("moduleCount", generatedModules.size());
-        result.put("modules", generatedModules);
-        result.put("tableCount", config.modules().stream().mapToInt(module -> module.tables().size()).sum());
-        result.put("schemaSha256", manifest.get("schemaSha256"));
-        result.put("generatedFileCount", ((List<?>) manifest.get("generatedFiles")).size());
-        result.put("manifest", projectRoot.relativize(manifestPath).toString().replace('\\', '/'));
-        System.out.println(JSON.writerWithDefaultPrettyPrinter().writeValueAsString(result));
-    }
-
-    private static void migrate(String url, String username, String password, Path migrationRoot) {
-        Flyway.configure()
-                .dataSource(url, username, password)
-                .locations("filesystem:" + migrationRoot.toString().replace('\\', '/'))
-                .cleanDisabled(true)
-                .load()
-                .migrate();
-    }
-
-    private static void generateModule(
-            String basePackage,
-            ModuleConfig module,
-            Path sourceRoot,
-            Path mapperXmlRoot,
-            String url,
-            String username,
-            String password
-    ) {
-        Map<String, TableConfig> tables = new LinkedHashMap<>();
-        for (TableConfig table : module.tables()) {
-            tables.put(table.name(), table);
+        Path sourceRoot = projectRoot.resolve(config.sourceRoot()).normalize();
+        if (!sourceRoot.startsWith(projectRoot) || !Files.isDirectory(sourceRoot)) {
+            throw new IllegalArgumentException("源码目录必须已存在且位于项目内");
         }
-        INameConvert nameConvert = new ConfiguredNameConvert(tables);
-        Set<String> immutableTables = new HashSet<>();
-        for (TableConfig table : module.tables()) {
-            if (table.immutable()) {
-                immutableTables.add(table.name());
+        Set<String> tableNames = new HashSet<>();
+        for (String table : config.tables()) {
+            if (table == null || !table.matches("un_[a-z0-9_]+") || !tableNames.add(table)) {
+                throw new IllegalArgumentException("表名无效或重复: " + table);
+            }
+        }
+        String url = envOrDefault("APP_DB_URL", config.databaseUrl());
+        String username = envOrDefault("APP_DB_USERNAME", config.databaseUsername());
+        String password = System.getenv("APP_DB_PASSWORD");
+        if (password == null) {
+            throw new IllegalArgumentException("请设置 APP_DB_PASSWORD 环境变量");
+        }
+        // 只允许从数据库中已经存在的原名业务表生成代码。
+        try (var connection = DriverManager.getConnection(url, username, password)) {
+            Set<String> actual = new HashSet<>();
+            try (var tables = connection.getMetaData().getTables(
+                    connection.getCatalog(), null, "%", new String[]{"TABLE"})) {
+                while (tables.next()) {
+                    actual.add(tables.getString("TABLE_NAME"));
+                }
+            }
+            if (!actual.containsAll(tableNames)) {
+                tableNames.removeAll(actual);
+                throw new IllegalStateException("数据库中缺少原名表: " + tableNames);
             }
         }
 
-        String parentPackage = basePackage + "." + module.javaPackage() + ".base";
-        Path moduleXmlRoot = mapperXmlRoot.resolve(module.name()).resolve("base").normalize();
         FastAutoGenerator.create(url, username, password)
-                .dataSourceConfig(builder -> builder
-                        .keyWordsHandler(new MySqlKeyWordsHandler())
-                        .typeConvertHandler((global, registry, metaInfo) -> {
-                            if ("tinyint".equalsIgnoreCase(metaInfo.getTypeName())) {
-                                return DbColumnType.BOOLEAN;
-                            }
-                            return registry.getColumnType(metaInfo);
-                        }))
                 .globalConfig(builder -> builder
                         .author("Template Base")
                         .disableOpenDir()
                         .outputDir(sourceRoot.toString())
-                        .dateType(DateType.TIME_PACK)
-                        .commentDate(() -> "generated"))
+                        .dateType(DateType.TIME_PACK))
                 .packageConfig(builder -> builder
-                        .parent(parentPackage)
+                        .parent(config.basePackage())
                         .entity("entity")
-                        .mapper("mapper")
-                        .service("service")
-                        .pathInfo(Map.of(OutputFile.xml, moduleXmlRoot.toString())))
+                        .mapper("mapper"))
                 .strategyConfig(builder -> {
-                    builder.disableSqlFilter().addInclude(new ArrayList<>(tables.keySet()));
+                    builder.disableSqlFilter().addInclude(config.tables());
                     builder.entityBuilder()
-                            .nameConvert(nameConvert)
-                            .naming(NamingStrategy.underline_to_camel)
-                            .columnNaming(NamingStrategy.underline_to_camel)
-                            .idType(IdType.AUTO)
-                            .disableSerialVersionUID()
                             .enableTableFieldAnnotation()
-                            .versionColumnName("version")
+                            .toString(false)
                             .enableFileOverride();
                     builder.mapperBuilder()
                             .enableMapperAnnotation()
-                            .enableBaseResultMap()
-                            .enableBaseColumnList()
+                            .disableMapperXml()
                             .enableFileOverride();
-                    builder.serviceBuilder()
-                            .formatServiceFileName("%sBaseService")
-                            .serviceTemplate("/templates/base-service.java")
-                            .disableServiceImpl()
-                            .enableFileOverride();
+                    builder.serviceBuilder().disable();
                     builder.controllerBuilder().disable();
                 })
-                .injectionConfig(builder -> builder.beforeOutputFile((table, values) ->
-                        values.put("immutable", immutableTables.contains(table.getName()))))
-                .templateConfig(builder -> builder.disable(TemplateType.CONTROLLER))
                 .templateEngine(new FreemarkerTemplateEngine())
                 .execute();
+        System.out.printf("已从 %d 张原名表生成 Entity 和 Mapper%n", config.tables().size());
     }
 
-    private static void validateConfig(GeneratorConfig config, Path sourceRoot, Path mapperXmlRoot, Path migrationRoot) {
-        if (config.basePackage() == null || !config.basePackage().matches("[a-z][a-z0-9_.]+")) {
-            throw new IllegalArgumentException("basePackage is invalid");
-        }
-        if (config.database() == null || config.modules() == null || config.modules().isEmpty()) {
-            throw new IllegalArgumentException("database and at least one module are required");
-        }
-        if (!Files.isDirectory(sourceRoot) || !Files.isDirectory(migrationRoot)) {
-            throw new IllegalArgumentException("sourceRoot and migrationRoot must exist");
-        }
-        if (!mapperXmlRoot.startsWith(sourceRoot.getParent().getParent())) {
-            throw new IllegalArgumentException("mapperXmlRoot must stay inside the backend project");
-        }
-
-        Set<String> moduleNames = new HashSet<>();
-        Set<String> tableNames = new HashSet<>();
-        for (ModuleConfig module : config.modules()) {
-            if (!moduleNames.add(module.name())) {
-                throw new IllegalArgumentException("duplicate module: " + module.name());
-            }
-            if (module.tables() == null || module.tables().isEmpty()) {
-                throw new IllegalArgumentException("module has no tables: " + module.name());
-            }
-            for (TableConfig table : module.tables()) {
-                if (!tableNames.add(table.name())) {
-                    throw new IllegalArgumentException("table is configured more than once: " + table.name());
-                }
-                if (table.entity() == null || !table.entity().matches("[A-Z][A-Za-z0-9]+")) {
-                    throw new IllegalArgumentException("invalid entity for table " + table.name());
-                }
-            }
-        }
-    }
-
-    private static void validateDatabaseTables(
-            String url,
-            String username,
-            String password,
-            List<ModuleConfig> modules
-    ) throws Exception {
-        Set<String> expected = new HashSet<>();
-        for (ModuleConfig module : modules) {
-            for (TableConfig table : module.tables()) {
-                expected.add(table.name());
-            }
-        }
-        Set<String> actual = new HashSet<>();
-        try (var connection = DriverManager.getConnection(url, username, password);
-             var result = connection.getMetaData().getTables(connection.getCatalog(), null, "%", new String[]{"TABLE"})) {
-            while (result.next()) {
-                actual.add(result.getString("TABLE_NAME"));
-            }
-        }
-        actual.remove("flyway_schema_history");
-        Set<String> missing = new HashSet<>(expected);
-        missing.removeAll(actual);
-        if (!missing.isEmpty()) {
-            throw new IllegalStateException("configured tables are missing in MySQL: " + missing);
-        }
-        Set<String> unassigned = new HashSet<>(actual);
-        unassigned.removeAll(expected);
-        if (!unassigned.isEmpty()) {
-            throw new IllegalStateException("MySQL tables are not assigned to a generated module: " + unassigned);
-        }
-    }
-
-    private static Map<String, Object> writeManifest(
-            Path projectRoot,
-            Path manifestPath,
-            GeneratorConfig config,
-            Path sourceRoot,
-            Path mapperXmlRoot,
-            String url,
-            String username,
-            String password
-    ) throws Exception {
-        List<Map<String, Object>> schema = new ArrayList<>();
-        try (var connection = DriverManager.getConnection(url, username, password)) {
-            for (ModuleConfig module : config.modules()) {
-                for (TableConfig table : module.tables()) {
-                    try (var columns = connection.getMetaData().getColumns(
-                            connection.getCatalog(), null, table.name(), "%"
-                    )) {
-                        while (columns.next()) {
-                            Map<String, Object> column = new LinkedHashMap<>();
-                            column.put("module", module.name());
-                            column.put("table", table.name());
-                            column.put("ordinal", columns.getInt("ORDINAL_POSITION"));
-                            column.put("name", columns.getString("COLUMN_NAME"));
-                            column.put("type", columns.getString("TYPE_NAME"));
-                            column.put("size", columns.getInt("COLUMN_SIZE"));
-                            column.put("nullable", columns.getInt("NULLABLE"));
-                            column.put("default", columns.getString("COLUMN_DEF"));
-                            column.put("autoIncrement", columns.getString("IS_AUTOINCREMENT"));
-                            schema.add(column);
-                        }
-                    }
-                }
-            }
-        }
-        schema.sort(Comparator
-                .comparing((Map<String, Object> value) -> (String) value.get("module"))
-                .thenComparing(value -> (String) value.get("table"))
-                .thenComparingInt(value -> (Integer) value.get("ordinal")));
-
-        List<Map<String, String>> generatedFiles = new ArrayList<>();
-        Path packageRoot = sourceRoot.resolve(config.basePackage().replace('.', '/')).normalize();
-        for (ModuleConfig module : config.modules()) {
-            addGeneratedFiles(
-                    projectRoot,
-                    packageRoot.resolve(module.javaPackage().replace('.', '/')).resolve("base"),
-                    generatedFiles
-            );
-            addGeneratedFiles(projectRoot, mapperXmlRoot.resolve(module.name()).resolve("base"), generatedFiles);
-        }
-        generatedFiles.sort(Comparator.comparing(value -> value.get("path")));
-        int expectedFileCount = config.modules().stream().mapToInt(value -> value.tables().size()).sum() * 4;
-        if (generatedFiles.size() != expectedFileCount) {
-            throw new IllegalStateException(
-                    "generated file count mismatch: expected " + expectedFileCount + ", got " + generatedFiles.size()
-            );
-        }
-
-        Map<String, Object> manifest = new LinkedHashMap<>();
-        manifest.put("schemaVersion", 1);
-        manifest.put("generator", "MyBatis-Plus Generator 3.5.17");
-        manifest.put("database", sanitizedDatabase(url));
-        manifest.put("schemaSha256", sha256(JSON.writeValueAsBytes(schema)));
-        manifest.put("moduleCount", config.modules().size());
-        manifest.put("tableCount", config.modules().stream().mapToInt(value -> value.tables().size()).sum());
-        manifest.put("generatedFiles", generatedFiles);
-        Files.createDirectories(manifestPath.getParent());
-        JSON.writerWithDefaultPrettyPrinter().writeValue(manifestPath.toFile(), manifest);
-        return manifest;
-    }
-
-    private static void addGeneratedFiles(
-            Path projectRoot,
-            Path generatedRoot,
-            List<Map<String, String>> generatedFiles
-    ) throws Exception {
-        if (!Files.isDirectory(generatedRoot)) {
-            throw new IllegalStateException("generated directory is missing: " + generatedRoot);
-        }
-        try (var paths = Files.walk(generatedRoot)) {
-            for (Path file : paths.filter(Files::isRegularFile).sorted().toList()) {
-                Map<String, String> entry = new LinkedHashMap<>();
-                entry.put("path", projectRoot.relativize(file).toString().replace('\\', '/'));
-                entry.put("sha256", sha256(Files.readAllBytes(file)));
-                generatedFiles.add(entry);
-            }
-        }
-    }
-
-    private static String sha256(byte[] bytes) throws Exception {
-        byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
-        return java.util.HexFormat.of().formatHex(digest);
-    }
-
-    /** 清理前先完整核对旧生成清单，防止覆盖手改 Base 或误删混入的业务文件。 */
-    static void cleanGeneratedBase(
-            GeneratorConfig config,
-            Path projectRoot,
-            Path sourceRoot,
-            Path mapperXmlRoot,
-            Path manifestPath
-    ) throws Exception {
-        Path packageRoot = sourceRoot.resolve(config.basePackage().replace('.', '/')).normalize();
-        List<Path> generatedRoots = new ArrayList<>();
-        for (ModuleConfig module : config.modules()) {
-            Path javaBase = packageRoot.resolve(module.javaPackage().replace('.', '/')).resolve("base").normalize();
-            Path xmlBase = mapperXmlRoot.resolve(module.name()).resolve("base").normalize();
-            assertSafeGeneratedRoot(projectRoot, sourceRoot, javaBase);
-            assertSafeGeneratedRoot(projectRoot, mapperXmlRoot, xmlBase);
-            generatedRoots.add(javaBase);
-            generatedRoots.add(xmlBase);
-        }
-
-        Map<Path, String> expectedHashes = readPreviousManifest(projectRoot, manifestPath, generatedRoots);
-        Set<Path> inspected = new HashSet<>();
-        // 所有目录先验证完再删除，后面模块出现脏文件也不能导致前面模块已丢失。
-        for (Path generatedRoot : generatedRoots) {
-            if (!Files.exists(generatedRoot, LinkOption.NOFOLLOW_LINKS)) {
-                continue;
-            }
-            Path generatedReal = generatedRoot.toRealPath();
-            try (var paths = Files.walk(generatedRoot)) {
-                for (Path file : paths.toList()) {
-                    if (Files.isSymbolicLink(file)) {
-                        throw new IllegalStateException("refusing to clean linked generated path: " + file);
-                    }
-                    if (!file.toRealPath().startsWith(generatedReal)) {
-                        throw new IllegalStateException("refusing to clean path outside generated root: " + file);
-                    }
-                    if (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS)) {
-                        continue;
-                    }
-                    if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)) {
-                        throw new IllegalStateException("refusing to clean unsafe generated file: " + file);
-                    }
-                    String expected = expectedHashes.get(file);
-                    if (expected == null) {
-                        throw new IllegalStateException("refusing to remove untracked Base file: " + file);
-                    }
-                    if (!expected.equals(sha256(Files.readAllBytes(file)))) {
-                        throw new IllegalStateException("generated Base file was modified: " + file);
-                    }
-                    inspected.add(file);
-                }
-            }
-        }
-        for (Path expected : expectedHashes.keySet()) {
-            if (!inspected.contains(expected)) {
-                throw new IllegalStateException("generated Base file from manifest is missing: " + expected);
-            }
-        }
-        for (Path generatedRoot : generatedRoots) {
-            if (generatedRoot.startsWith(sourceRoot)) {
-                deleteGeneratedDirectory(sourceRoot, generatedRoot);
-            } else {
-                deleteGeneratedDirectory(mapperXmlRoot, generatedRoot);
-            }
-        }
-    }
-
-    /** 清理范围必须保持在项目的生成目录内，且不经过符号链接或目录联接转向其他位置。 */
-    private static void assertSafeGeneratedRoot(Path projectRoot, Path allowedRoot, Path target) throws IOException {
-        if (!target.startsWith(allowedRoot) || target.equals(allowedRoot)
-                || !target.getFileName().toString().equals("base")) {
-            throw new IllegalArgumentException("refusing to clean unsafe generated path: " + target);
-        }
-        Path projectReal = projectRoot.toRealPath();
-        Path allowedReal = allowedRoot.toRealPath();
-        if (!allowedReal.startsWith(projectReal)) {
-            throw new IllegalArgumentException("generated root escapes project: " + allowedRoot);
-        }
-        for (Path ancestor = target; !ancestor.equals(allowedRoot); ancestor = ancestor.getParent()) {
-            if (Files.isSymbolicLink(ancestor)) {
-                throw new IllegalStateException("refusing to clean linked generated path: " + ancestor);
-            }
-        }
-        if (Files.exists(target, LinkOption.NOFOLLOW_LINKS)
-                && (!Files.isDirectory(target, LinkOption.NOFOLLOW_LINKS)
-                || !target.toRealPath().startsWith(allowedReal))) {
-            throw new IllegalStateException("generated root escapes allowed directory: " + target);
-        }
-        for (Path ancestor = target.getParent(); ancestor != null && !ancestor.equals(allowedRoot);
-                ancestor = ancestor.getParent()) {
-            if (Files.exists(ancestor, LinkOption.NOFOLLOW_LINKS)
-                    && !ancestor.toRealPath().startsWith(allowedReal)) {
-                throw new IllegalStateException("generated path escapes allowed directory: " + ancestor);
-            }
-        }
-    }
-
-    /** 旧清单只允许引用本次将重建的 Base 文件；新表尚无旧文件，因此不会妨碍扩表。 */
-    private static Map<Path, String> readPreviousManifest(
-            Path projectRoot,
-            Path manifestPath,
-            List<Path> generatedRoots
-    ) throws Exception {
-        Map<Path, String> expected = new HashMap<>();
-        if (!Files.exists(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
-            return expected;
-        }
-        if (Files.isSymbolicLink(manifestPath) || !manifestPath.toRealPath().startsWith(projectRoot.toRealPath())) {
-            throw new IllegalStateException("generated manifest escapes project: " + manifestPath);
-        }
-        JsonNode manifest = JSON.readTree(manifestPath.toFile());
-        if (manifest == null || manifest.path("schemaVersion").asInt(-1) != 1
-                || !manifest.path("generatedFiles").isArray()) {
-            throw new IllegalStateException("generated manifest is invalid: " + manifestPath);
-        }
-        for (JsonNode entry : manifest.path("generatedFiles")) {
-            String name = entry.path("path").asText("");
-            String hash = entry.path("sha256").asText("");
-            if (name.isBlank() || name.contains("\\") || !hash.matches("[0-9a-f]{64}")) {
-                throw new IllegalStateException("generated manifest contains invalid file entry: " + name);
-            }
-            Path relative = Path.of(name);
-            if (relative.isAbsolute() || relative.startsWith("..")) {
-                throw new IllegalStateException("generated manifest contains unsafe path: " + name);
-            }
-            Path file = projectRoot.resolve(relative).normalize();
-            if (!file.startsWith(projectRoot) || generatedRoots.stream().noneMatch(file::startsWith)
-                    || expected.putIfAbsent(file, hash) != null) {
-                throw new IllegalStateException("generated manifest contains unexpected path: " + name);
-            }
-        }
-        return expected;
-    }
-
-    private static void deleteGeneratedDirectory(Path allowedRoot, Path target) throws IOException {
-        if (!target.startsWith(allowedRoot) || target.equals(allowedRoot) || !target.getFileName().toString().equals("base")) {
-            throw new IllegalArgumentException("refusing to clean unsafe generated path: " + target);
-        }
-        if (!Files.exists(target)) {
-            return;
-        }
-        try (var paths = Files.walk(target)) {
-            for (Path path : paths.sorted((left, right) -> right.getNameCount() - left.getNameCount()).toList()) {
-                Files.delete(path);
-            }
-        }
-    }
-
-    private static Path resolveProjectPath(Path projectRoot, String configured, String name) {
-        if (configured == null || configured.isBlank()) {
-            throw new IllegalArgumentException(name + " is required");
-        }
-        Path result = projectRoot.resolve(configured).normalize().toAbsolutePath();
-        if (!result.startsWith(projectRoot)) {
-            throw new IllegalArgumentException(name + " must stay inside the project root");
-        }
-        return result;
-    }
-
-    private static Path resolveProjectRoot(Path configPath, String configured) {
-        if (configured == null || configured.isBlank()) {
-            throw new IllegalArgumentException("projectRoot is required");
-        }
-        Path result = configPath.getParent().resolve(configured).normalize().toAbsolutePath();
-        if (!configPath.startsWith(result) || result.getParent() == null) {
-            throw new IllegalArgumentException("projectRoot must contain the generator configuration");
-        }
-        return result;
-    }
-
-    private static String environmentOrDefault(String name, String fallback) {
-        String value = System.getenv(name);
+    /** 本地环境变量可覆盖项目里的数据库地址和账号。 */
+    private static String envOrDefault(String key, String fallback) {
+        String value = System.getenv(key);
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private static String sanitizedDatabase(String url) {
-        int query = url.indexOf('?');
-        return query < 0 ? url : url.substring(0, query);
-    }
-
-    private static String snakeToCamel(String value) {
-        StringBuilder result = new StringBuilder();
-        boolean upper = false;
-        for (char character : value.toCharArray()) {
-            if (character == '_') {
-                upper = true;
-            } else if (upper) {
-                result.append(Character.toUpperCase(character));
-                upper = false;
-            } else {
-                result.append(character);
-            }
-        }
-        return result.toString();
-    }
-
-    private static final class ConfiguredNameConvert implements INameConvert {
-        private final Map<String, TableConfig> tables;
-        private final Map<String, String> properties;
-
-        private ConfiguredNameConvert(Map<String, TableConfig> tables) {
-            this.tables = tables;
-            this.properties = new HashMap<>();
-            for (TableConfig table : tables.values()) {
-                for (Map.Entry<String, String> property : table.properties().entrySet()) {
-                    String previous = properties.putIfAbsent(property.getKey(), property.getValue());
-                    if (previous != null && !previous.equals(property.getValue())) {
-                        throw new IllegalArgumentException(
-                                "one module cannot map column " + property.getKey() + " to multiple properties"
-                        );
-                    }
-                }
-            }
-        }
-
-        @Override
-        public String entityNameConvert(TableInfo tableInfo) {
-            TableConfig table = tables.get(tableInfo.getName());
-            if (table == null) {
-                throw new IllegalStateException("table is not configured: " + tableInfo.getName());
-            }
-            return table.entity();
-        }
-
-        @Override
-        public String propertyNameConvert(TableField tableField) {
-            String configured = properties.get(tableField.getName());
-            return configured == null ? snakeToCamel(tableField.getName()) : configured;
-        }
-    }
-
-    public record GeneratorConfig(
-            String projectRoot,
-            String basePackage,
+    /** 项目本地配置仅列出已落地的原名业务表，数据库密码由环境变量提供。 */
+    public record Config(
             String sourceRoot,
-            String mapperXmlRoot,
-            String migrationRoot,
-            String manifestPath,
-            DatabaseConfig database,
-            List<ModuleConfig> modules
+            String basePackage,
+            String databaseUrl,
+            String databaseUsername,
+            List<String> tables
     ) {
-    }
-
-    public record DatabaseConfig(String url, String username, String password) {
-    }
-
-    public record ModuleConfig(String name, String javaPackage, List<TableConfig> tables) {
-    }
-
-    public record TableConfig(
-            String name,
-            String entity,
-            boolean immutable,
-            Map<String, String> properties
-    ) {
-        public TableConfig {
-            properties = properties == null ? Map.of() : Map.copyOf(properties);
-        }
     }
 }

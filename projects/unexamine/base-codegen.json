@@ -1,0 +1,10 @@
+{
+  "sourceRoot": "backend/src/main/java",
+  "basePackage": "com.unique.unexamine.base",
+  "databaseUrl": "jdbc:mysql://127.0.0.1:3306/unexamine_clean?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
+  "databaseUsername": "root",
+  "tables": [
+    "un_plat_account",
+    "un_plat_log_login"
+  ]
+}

@@ -1,21 +1,15 @@
-# 工作区边界
+# 本轮工作边界
 
-- `docs/user_requirement.md` 是唯一产品需求源。
-- `docs/表意义.md` 是用户提供的基础表模型参考；`docs/old_table1.sql` 只供研究早期审批逻辑，含旧数据与删表语句，不得执行。
-- `template_base/` 保存通用工程工具、MyBatis-Plus 生成器、Agent 职责和校验规则；`projects/unexamine/` 是唯一当前产品实现。
-- 清理前实现保存在 Git 标签 `r15-before-clean-restart-20261019`；更早版本保存在 `pre-rebuild-15-20261017`。两者均不得作为本轮需求或完成证据重新引入。
+- 先读 `docs/表意义.md`，其 94 个原始表名和用途是数据模型依据；`docs/user_requirement.md` 只整理对应的基础业务。两者冲突时以《表意义.md》为准。
+- `docs/old_table1.sql` 仅供参考早期审批逻辑，含删表和旧数据语句，不得执行。
+- `template_base/mybatis-plus-generator/` 是通用 Base 生成器；`template_base/agents/` 和 `template_base/rules/` 是简短开发参考；`projects/unexamine/` 是当前产品。旧提交和标签只用于恢复，不复用旧需求、设计和代码作为本轮实现。
+- 保持一个后端、一个前端；后端端口 9999，使用本机 MySQL 3306 和 Redis 6379。新数据放独立库，不改旧库。
 
 # 开发规约
 
-- 先看需求原文与 `projects/unexamine/ai/planning/rebuild-plan.md`，按当前业务旅程设计必要表，再通过 `db-prepare` 和 `template_base/mybatis-plus-generator` 生成 `base`，业务代码写入 `manage`，最后实现真实页面并验收。
-- 不为尚未实施的能力预建表或多余抽象。每批工作围绕一个可观察结果，估算不超过 240 分钟；前置依赖、共享迁移和测试资源保持串行。
-- 新建和修改的表及所有字段必须有中文备注；复杂 SQL 和迁移说明用途。数据库时间列用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移方案，不直接删表重建。
-- Java 类、方法、业务字段和关键逻辑写有意义的中文注释；沿用现有模块结构，简单 CRUD 不增加无用层。
-- 复用本机现有 Docker MySQL（3306）和 Redis（6379）；后端固定 9999；一个前端、一个后端，不增加 Nginx 或新的数据库容器。新实现使用隔离库 `unexamine_r15`，不改旧库；当前旧测试数据在表结构定稿前不操作。
-- 交付前检查注释、时间命名和不必要的封装，执行相关编译、测试与真实入口验证，说明结果。
-
-# 当前接续
-
-- 重开会话先读 `projects/unexamine/ai/planning/rebuild-plan.md` 和 `projects/unexamine/ai/planning/rebuild-state.json`，运行 `python template_base/tools/tb.py project-status --workspace workspace.json`。
-- 实施当前步骤前运行 `python template_base/tools/tb.py execution-context --workspace workspace.json`。业务结果、持久化、授权和失败结果未验收时保持未完成。
-- 只在当前步骤真实验证后运行 `execution-verify` 并更新准确断点。当前从 `C15_01_MODEL` 开始，旧验收一律不计入；工程校验或局部测试不等于全产品完成。
+- 按《表意义.md》的表名建表，不改名、不合并、不用自创替代表。只在功能实现时确定该表字段与关系，不预建空壳表。
+- 新建或修改表结构时，表和所有字段必须有中文备注。复杂查询、数据修复和迁移说明用途。
+- 数据库时间字段用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移，不直接删表重建。
+- Java 类、方法、业务字段和关键逻辑有适当中文注释，解释业务含义和限制。
+- 优先用现有模块结构；简单 CRUD 不额外封装。数据库表落地后用生成器产生 Entity 和 Mapper；业务逻辑写在 `manage`，页面调用真实后端。
+- 每个功能验证页面行为、持久化、授权和失败结果；交付前运行相关编译与测试，并说明真实进度。
