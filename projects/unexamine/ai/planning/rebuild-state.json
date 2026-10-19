@@ -1,271 +1,40 @@
 {
   "schema_version": 1,
-  "phase": "第15次重构：固定能力数据关系与 SQL 契约",
+  "phase": "第15次重构：干净基线与业务表关系",
   "plan": "projects/unexamine/ai/planning/rebuild-plan.md",
   "ledger": "projects/unexamine/ai/planning/rebuild-ledger.json",
   "requirement_source": "docs/user_requirement.md",
   "requirement_sha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
-  "current_step": "R15_12_SCHEMA_CONTRACT",
-  "next_step": "R15_12_SCHEMA_CONTRACT",
+  "current_step": "C15_01_MODEL",
+  "next_step": "C15_01_MODEL",
   "current_scope": {
-    "step": "R15_12_SCHEMA_CONTRACT",
+    "step": "C15_01_MODEL",
     "status": "in_progress",
-    "source_rows": [
-      "R2958",
-      "R2959",
-      "R2961",
-      "R2967",
-      "R2968"
-    ],
-    "reason": "同一候选系统基础旅程已验证；继续扩展前先按需求 A.18/A.19 梳理固定能力表关系、业务域命名、模块 SQL 来源和现有数据迁移，阻止下一次重复局部补表。",
-    "prerequisite_steps": [
-      "R15_11_INTEGRATED_JOURNEY"
-    ],
-    "entry_files": [
-      "db/init/V1__foundation.sql",
-      "db/update/V4__basic_approval.sql",
-      "db/update/V9__approval_message.sql",
-      "tools/regenerate-base.ps1",
-      "ai/planning/product-gap-audit.md"
-    ],
+    "source_rows": ["R0070", "R0071", "R0072", "R2958", "R2959", "R2961", "R2967", "R2968"],
+    "reason": "按用户给出的表模型和工程框架，从需求关系重新设计，不继承旧实现的完成状态。",
+    "prerequisite_steps": [],
+    "entry_files": ["ai/planning/rebuild-plan.md", "backend/pom.xml", "tools/project-starter.json"],
     "acceptance": [
-      "逐项比对现有 28 张实体表、用户表意义参考和需求固定能力，明确保留、改名、合并及尚需设计的业务关系，避免无用途预建表。",
-      "按业务模块收敛首装 SQL 与统一命名，给出现有候选数据安全迁移方案，空库复现和 Base 生成结果可核验。",
-      "验证原同一候选系统的基础旅程不因结构调整失效，并记录下一项直接影响发布的产品能力。"
+      "逐域核对 docs/表意义.md 与完整需求，记录首装必要表、后续关系、合并或改名依据以及授权归属。",
+      "确认各表使用 un_ 业务域名、无业务外键及触发器、中文表字段备注和 *_time 时间列；定义按模块维护首装 SQL 与 Base 生成契约。",
+      "工程外壳可构建，现有旧测试库未被改动；为下一步空库 SQL、Base 生成和真实旅程留下明确入口。"
     ]
   },
   "packages": [
-    {
-      "id": "R15_FOUNDATION",
-      "steps": {
-        "R15_01_SCHEMA": "verified",
-        "R15_02_ADMIN": "verified",
-        "R15_03_MODULE": "verified",
-        "R15_04_MEMBER": "verified",
-        "R15_05_APPROVAL": "verified",
-        "R15_04_RECORD": "verified"
-      }
-    },
-    {
-      "id": "R15_FILE_EXPORT",
-      "steps": {
-        "R15_06_FILE_EXPORT": "verified"
-      }
-    },
-    {
-      "id": "R15_IMPORT",
-      "steps": {
-        "R15_07_IMPORT": "verified"
-      }
-    },
-    {
-      "id": "R15_ACTION_CONFIG",
-      "steps": {
-        "R15_08_ACTION_CONFIG": "verified"
-      }
-    },
-    {
-      "id": "R15_MESSAGES",
-      "steps": {
-        "R15_09_MESSAGES": "verified"
-      }
-    },
-    {
-      "id": "R15_FIELD_TYPES",
-      "steps": {
-        "R15_10_FIELD_TYPES": "verified"
-      }
-    },
-    {
-      "id": "R15_INTEGRATED_JOURNEY",
-      "steps": {
-        "R15_11_INTEGRATED_JOURNEY": "verified"
-      }
-    },
-    {
-      "id": "R15_SCHEMA_CONTRACT",
-      "steps": {
-        "R15_12_SCHEMA_CONTRACT": "in_progress"
-      }
-    }
+    {"id": "R15_CLEAN", "steps": {
+      "C15_01_MODEL": "in_progress",
+      "C15_02_SCHEMA_BASE": "unverified",
+      "C15_03_ADMIN": "unverified",
+      "C15_04_MEMBER": "unverified",
+      "C15_05_FLOW": "unverified"
+    }}
   ],
   "pending_substeps": {
-    "R15_01_SCHEMA": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-01-schema.json"
-    },
-    "R15_02_ADMIN": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-02-admin.json"
-    },
-    "R15_03_MODULE": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-03-module.json"
-    },
-    "R15_04_MEMBER": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-04-member.json"
-    },
-    "R15_04_RECORD": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-04-record.json"
-    },
-    "R15_05_APPROVAL": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-05-approval.json"
-    },
-    "R15_06_FILE_EXPORT": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-06-file-export.json"
-    },
-    "R15_07_IMPORT": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-07-import.json"
-    },
-    "R15_08_ACTION_CONFIG": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-08-action-config.json"
-    },
-    "R15_09_MESSAGES": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-09-messages.json"
-    },
-    "R15_10_FIELD_TYPES": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-10-field-types.json"
-    },
-    "R15_11_INTEGRATED_JOURNEY": {
-      "status": "verified",
-      "evidence": "projects/unexamine/ai/evidence/r15-11-integrated-journey.json"
-    },
-    "R15_12_SCHEMA_CONTRACT": {
-      "status": "in_progress",
-      "evidence": "projects/unexamine/ai/evidence/r15-12-schema-contract.json"
-    }
+    "C15_01_MODEL": {"status": "in_progress", "evidence": "projects/unexamine/ai/evidence/c15-01-model.json"}
   },
-  "blockers": [
-    {
-      "id": "R15_RELEASE_1",
-      "status": "resolved",
-      "description": "页面动作配置与发布授权尚未闭合"
-    },
-    {
-      "id": "R15_RELEASE_2",
-      "status": "open",
-      "description": "高级字段和复杂流程未实现"
-    },
-    {
-      "id": "R15_RELEASE_3",
-      "status": "open",
-      "description": "审批以外的消息、应用访问与受控接口未实现"
-    },
-    {
-      "id": "R15_RELEASE_4",
-      "status": "open",
-      "description": "权限中心、多租户、仪表盘、移动端、AI 和部署验收未实现"
-    },
-    {
-      "id": "R15_RELEASE_5",
-      "status": "resolved",
-      "description": "普通用户消息入口与审批通知尚未闭合"
-    },
-    {
-      "id": "R15_RELEASE_6",
-      "status": "open",
-      "description": "固定能力表关系未定稿，首装 SQL 组织和部分业务域表名与需求 A.18/A.19 不一致"
-    }
-  ],
-  "environment_note": "同一候选系统的管理员、两名成员、记录、导入导出、审批、消息和撤权已完成 Edge/API/MySQL 集成读回；当前修正 A.18/A.19 工程结构缺口，整产品未完成。",
+  "blockers": [],
+  "environment_note": "当前版有模型文档、17 张表的临时库验证和生成 Base，尚无新版业务接口或真实页面；旧测试库尚未改动，整产品未完成。",
   "step_record_contract": {
-    "required": [
-      "step",
-      "status",
-      "source_rows",
-      "checks_actual_results",
-      "readback",
-      "permission_or_failure_result",
-      "tested_file_hashes",
-      "changed_files",
-      "next_step"
-    ]
-  },
-  "last_result": {
-    "step": "R15_11_INTEGRATED_JOURNEY",
-    "status": "verified_contribution",
-    "source_rows": [
-      "R0070",
-      "R0073",
-      "R0074",
-      "R0075",
-      "R0076",
-      "R0077",
-      "R0079",
-      "R0080",
-      "R0086",
-      "R0087",
-      "R0088",
-      "R0089",
-      "R0090",
-      "R0091",
-      "R0092",
-      "R0093",
-      "R0094",
-      "R0095"
-    ],
-    "checks_actual_results": [
-      "真实 Edge 中，系统所属人在同一候选系统配置字段并发布；两名成员获同一角色，申请人完成记录录入、附件、Excel 导入、金额筛选和 CSV 导出，审批人通过消息打开待办并同意，申请人从结果消息打开已通过记录。",
-      "API 验证同一系统的发布、授权、成员、记录、审批任务和消息；独立 MySQL 读回三条记录、一项成功导入、一项一行导出、已通过审批实例、两条消息和一条文件引用。",
-      "对照需求第2.3、第10节及 A.15-A.20 形成逐项产品缺口审计；该集成通过仅证明基础旅程，整产品未完成。Python 脚本编译、工作区边界验证、git diff --check 通过。"
-    ],
-    "readback": [
-      "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
-      "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
-      "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
-      "projects/unexamine/ai/planning/product-gap-audit.md"
-    ],
-    "permission_or_failure_result": [
-      "第二名成员的记录未进入申请人的筛选 CSV；审批任务附件只在指定审批人接口读回。",
-      "撤销同一角色的模块权限后，申请人对记录详情、附件、新导出请求均收到 404；消息仍可见，但页面再次打开目标提示无权访问。"
-    ],
-    "tested_file_hashes": [
-      {
-        "path": "projects/unexamine/README.md",
-        "sha256": "d540caf73bb7f7f9d7202889ef4578888a2b59ab0734b6863ed59dad666b9f29"
-      },
-      {
-        "path": "projects/unexamine/ai/planning/rebuild-plan.md",
-        "sha256": "5e6b06f6b60f3487a5c84cbb51b22270f5c2e7191bf64acdc93d04ae81f0cf6c"
-      },
-      {
-        "path": "projects/unexamine/ai/planning/product-gap-audit.md",
-        "sha256": "a71f6ac67299d992f978536c333621aa05e5afbee6061822b5474c8d42b97da6"
-      },
-      {
-        "path": "projects/unexamine/tools/verify-integrated-journey.py",
-        "sha256": "3e5244ee91036b25e59a901d518f792d7dc398d64a565891c56075d81f33a706"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
-        "sha256": "cf61c4b30026cd95d9019cb0b67d800b7329d4dae8518fc32ef60c16c46bfd89"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
-        "sha256": "37b427f0246e53f40ac3214bebda9aef222411cd3d60a2c85c5ab126642ba46a"
-      },
-      {
-        "path": "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png",
-        "sha256": "9124a2c800900ba8fec8df2d14dcb7fa7a0971ef676c3ec466b5ad1d4f66d116"
-      }
-    ],
-    "changed_files": [
-      "projects/unexamine/README.md",
-      "projects/unexamine/ai/planning/rebuild-plan.md",
-      "projects/unexamine/ai/planning/product-gap-audit.md",
-      "projects/unexamine/tools/verify-integrated-journey.py",
-      "projects/unexamine/ai/evidence/r15-11-integrated-readback.json",
-      "projects/unexamine/ai/evidence/r15-11-integrated-reviewer.png",
-      "projects/unexamine/ai/evidence/r15-11-integrated-applicant.png"
-    ],
-    "next_step": "R15_12_SCHEMA_CONTRACT"
+    "required": ["step", "status", "source_rows", "checks_actual_results", "readback", "permission_or_failure_result", "tested_file_hashes", "changed_files", "next_step"]
   }
 }

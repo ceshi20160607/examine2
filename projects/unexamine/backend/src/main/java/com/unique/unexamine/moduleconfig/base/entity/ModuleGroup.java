@@ -9,50 +9,56 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 系统运行态模块分组
+ * 业务模块运行态导航分组
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_group")
+@TableName("un_cfg_module_group")
 public class ModuleGroup {
 
     /**
-     * 模块组主键
+     * 模块组标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 模块组所属业务系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 系统内模块组编码
+     * 配置来源租户标识，首批为主租户
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("tenant_id")
+    private Long tenantId;
 
     /**
-     * 运行态顶栏模块组名称
+     * 系统内稳定模块组编码
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("group_code")
+    private String groupCode;
 
     /**
-     * 模块组显示顺序
+     * 运行态顶栏分组名称
+     */
+    @TableField("group_name")
+    private String groupName;
+
+    /**
+     * 顶栏展示顺序
      */
     @TableField("sort_order")
     private Integer sortOrder;
 
     /**
-     * 模块组启用状态
+     * 模块组状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 模块组创建时间
@@ -61,7 +67,7 @@ public class ModuleGroup {
     private LocalDateTime createTime;
 
     /**
-     * 模块组更新时间
+     * 模块组修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -82,20 +88,28 @@ public class ModuleGroup {
         this.systemId = systemId;
     }
 
-    public String getCode() {
-        return code;
+    public Long getTenantId() {
+        return tenantId;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
-    public String getName() {
-        return name;
+    public String getGroupCode() {
+        return groupCode;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setGroupCode(String groupCode) {
+        this.groupCode = groupCode;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public Integer getSortOrder() {
@@ -106,11 +120,11 @@ public class ModuleGroup {
         this.sortOrder = sortOrder;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -135,8 +149,9 @@ public class ModuleGroup {
         return "ModuleGroup{" +
             "id = " + id +
             ", systemId = " + systemId +
-            ", code = " + code +
-            ", name = " + name +
+            ", tenantId = " + tenantId +
+            ", groupCode = " + groupCode +
+            ", groupName = " + groupName +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", createTime = " + createTime +

@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 通用业务记录的自定义字段原始值 Mapper 接口
+ * 通用业务记录的动态字段原值 Mapper 接口
  * </p>
  *
  * @author Template Base

@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 平台内的业务系统
+ * 平台内业务系统
  * </p>
  *
  * @author Template Base
@@ -20,40 +19,46 @@ import java.time.LocalDateTime;
 public class SystemDefinition {
 
     /**
-     * 业务系统主键
+     * 业务系统标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 系统所属平台账号主键
+     * 全平台唯一系统编码
+     */
+    @TableField("system_code")
+    private String systemCode;
+
+    /**
+     * 业务系统名称
+     */
+    @TableField("system_name")
+    private String systemName;
+
+    /**
+     * 当前系统所属平台账号标识
      */
     @TableField("owner_account_id")
     private Long ownerAccountId;
 
     /**
-     * 系统唯一编码
+     * 系统创建时同步生成的主租户标识
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("primary_tenant_id")
+    private Long primaryTenantId;
 
     /**
-     * 系统显示名称
+     * 多租户开关：0关闭，1开启
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("multi_tenant_enabled")
+    private Boolean multiTenantEnabled;
 
     /**
-     * 系统用途说明
-     */
-    @TableField("`description`")
-    private String description;
-
-    /**
-     * 系统启用状态
+     * 系统状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 系统创建时间
@@ -62,17 +67,10 @@ public class SystemDefinition {
     private LocalDateTime createTime;
 
     /**
-     * 系统更新时间
+     * 系统修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 系统乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -80,6 +78,22 @@ public class SystemDefinition {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSystemCode() {
+        return systemCode;
+    }
+
+    public void setSystemCode(String systemCode) {
+        this.systemCode = systemCode;
+    }
+
+    public String getSystemName() {
+        return systemName;
+    }
+
+    public void setSystemName(String systemName) {
+        this.systemName = systemName;
     }
 
     public Long getOwnerAccountId() {
@@ -90,35 +104,27 @@ public class SystemDefinition {
         this.ownerAccountId = ownerAccountId;
     }
 
-    public String getCode() {
-        return code;
+    public Long getPrimaryTenantId() {
+        return primaryTenantId;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setPrimaryTenantId(Long primaryTenantId) {
+        this.primaryTenantId = primaryTenantId;
     }
 
-    public String getName() {
-        return name;
+    public Boolean getMultiTenantEnabled() {
+        return multiTenantEnabled;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setMultiTenantEnabled(Boolean multiTenantEnabled) {
+        this.multiTenantEnabled = multiTenantEnabled;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -138,26 +144,18 @@ public class SystemDefinition {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "SystemDefinition{" +
             "id = " + id +
+            ", systemCode = " + systemCode +
+            ", systemName = " + systemName +
             ", ownerAccountId = " + ownerAccountId +
-            ", code = " + code +
-            ", name = " + name +
-            ", description = " + description +
+            ", primaryTenantId = " + primaryTenantId +
+            ", multiTenantEnabled = " + multiTenantEnabled +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

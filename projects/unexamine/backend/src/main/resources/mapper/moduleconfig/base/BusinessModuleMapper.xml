@@ -6,21 +6,19 @@
     <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.BusinessModule">
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="group_id" property="groupId" />
-        <result column="code" property="code" />
-        <result column="name" property="name" />
-        <result column="description" property="description" />
+        <result column="module_code" property="moduleCode" />
+        <result column="module_name" property="moduleName" />
+        <result column="current_version_no" property="currentVersionNo" />
         <result column="status" property="status" />
-        <result column="draft_revision" property="draftRevision" />
-        <result column="published_version_id" property="publishedVersionId" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, group_id, `code`, `name`, `description`, `status`, draft_revision, published_version_id, create_time, update_time, version
+        id, system_id, tenant_id, group_id, module_code, module_name, current_version_no, `status`, create_time, update_time
     </sql>
 
 </mapper>

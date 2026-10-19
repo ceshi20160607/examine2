@@ -5,16 +5,18 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.ModuleVersion">
         <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="module_id" property="moduleId" />
-        <result column="version_number" property="versionNumber" />
+        <result column="version_no" property="versionNo" />
         <result column="snapshot_json" property="snapshotJson" />
-        <result column="published_by_account_id" property="publishedByAccountId" />
-        <result column="published_time" property="publishedTime" />
+        <result column="published_by_member_id" property="publishedByMemberId" />
+        <result column="publish_time" property="publishTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, module_id, version_number, snapshot_json, published_by_account_id, published_time
+        id, system_id, tenant_id, module_id, version_no, snapshot_json, published_by_member_id, publish_time
     </sql>
 
 </mapper>

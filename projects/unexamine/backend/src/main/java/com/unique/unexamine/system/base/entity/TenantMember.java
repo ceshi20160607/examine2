@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 系统成员在具体租户中的准入关系
+ * 系统成员与租户的显式关系
  * </p>
  *
  * @author Template Base
@@ -19,34 +19,34 @@ import java.time.LocalDateTime;
 public class TenantMember {
 
     /**
-     * 租户成员关系主键
+     * 租户成员关系标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 租户与成员共同所属系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 所属租户主键
+     * 所属租户标识
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 所属系统成员主键
+     * 系统成员标识
      */
     @TableField("member_id")
     private Long memberId;
 
     /**
-     * 租户成员准入状态
+     * 租户成员状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 加入租户时间
@@ -55,7 +55,7 @@ public class TenantMember {
     private LocalDateTime createTime;
 
     /**
-     * 租户成员关系更新时间
+     * 租户成员修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -92,11 +92,11 @@ public class TenantMember {
         this.memberId = memberId;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 

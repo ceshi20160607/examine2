@@ -1,6 +1,0 @@
-{
-  "status": "passed",
-  "screenshots": ["projects/unexamine/ai/evidence/r15-08-action-config-draft.png", "projects/unexamine/ai/evidence/r15-08-action-config-browser.png"],
-  "checks": ["draft_action", "draft_menu", "old_publish_stable", "new_publish_effective", "runtime_action_visibility", "no_page_errors"],
-  "observed": "真实 Edge 页面关闭导出草稿、修改菜单名称；发布前运行页保留原动作与菜单，发布第 2 版后导航显示新名称且导出入口消失，导入与新增仍可见。"
-}

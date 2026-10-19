@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 租户业务角色
+ * 系统租户角色
  * </p>
  *
  * @author Template Base
@@ -20,40 +19,40 @@ import java.time.LocalDateTime;
 public class SystemRole {
 
     /**
-     * 租户角色主键
+     * 租户角色标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 角色所属业务系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 角色所属租户主键
+     * 所属租户标识
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 租户内角色编码
+     * 租户内稳定角色编码
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("role_code")
+    private String roleCode;
 
     /**
-     * 角色显示名称
+     * 角色名称
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("role_name")
+    private String roleName;
 
     /**
-     * 角色启用状态
+     * 角色状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 角色创建时间
@@ -62,17 +61,10 @@ public class SystemRole {
     private LocalDateTime createTime;
 
     /**
-     * 角色更新时间
+     * 角色修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 角色乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -98,27 +90,27 @@ public class SystemRole {
         this.tenantId = tenantId;
     }
 
-    public String getCode() {
-        return code;
+    public String getRoleCode() {
+        return roleCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setRoleCode(String roleCode) {
+        this.roleCode = roleCode;
     }
 
-    public String getName() {
-        return name;
+    public String getRoleName() {
+        return roleName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -138,26 +130,17 @@ public class SystemRole {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "SystemRole{" +
             "id = " + id +
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
-            ", code = " + code +
-            ", name = " + name +
+            ", roleCode = " + roleCode +
+            ", roleName = " + roleName +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

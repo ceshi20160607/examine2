@@ -1,1 +1,0 @@
-{"status": "passed", "code": "web_eba7f674", "screenshot": "D:\\workspace\\01_project\\snow\\cursor\\examine2\\projects\\unexamine\\ai\\evidence\\r15-02-admin-browser.png", "checks": ["register_page", "create_system_page", "enter_system_page", "logout_page", "login_page", "no_page_errors"]}

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 平台账号在业务系统中的成员关系
+ * 平台账号与系统的显式成员映射
  * </p>
  *
  * @author Template Base
@@ -19,43 +19,43 @@ import java.time.LocalDateTime;
 public class SystemMember {
 
     /**
-     * 系统成员主键
+     * 系统成员标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 成员所属业务系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 成员对应平台账号主键
+     * 关联平台账号标识
      */
     @TableField("account_id")
     private Long accountId;
 
     /**
-     * 系统成员状态
+     * 系统内成员显示名称
+     */
+    @TableField("member_name")
+    private String memberName;
+
+    /**
+     * 成员状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 加入系统时间
-     */
-    @TableField("join_time")
-    private LocalDateTime joinTime;
-
-    /**
-     * 成员关系创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 成员关系更新时间
+     * 成员修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -84,20 +84,20 @@ public class SystemMember {
         this.accountId = accountId;
     }
 
-    public String getStatus() {
+    public String getMemberName() {
+        return memberName;
+    }
+
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
+    }
+
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
-    }
-
-    public LocalDateTime getJoinTime() {
-        return joinTime;
-    }
-
-    public void setJoinTime(LocalDateTime joinTime) {
-        this.joinTime = joinTime;
     }
 
     public LocalDateTime getCreateTime() {
@@ -122,8 +122,8 @@ public class SystemMember {
             "id = " + id +
             ", systemId = " + systemId +
             ", accountId = " + accountId +
+            ", memberName = " + memberName +
             ", status = " + status +
-            ", joinTime = " + joinTime +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             "}";

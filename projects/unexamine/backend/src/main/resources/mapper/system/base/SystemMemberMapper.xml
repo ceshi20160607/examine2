@@ -7,15 +7,15 @@
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
         <result column="account_id" property="accountId" />
+        <result column="member_name" property="memberName" />
         <result column="status" property="status" />
-        <result column="join_time" property="joinTime" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, account_id, `status`, join_time, create_time, update_time
+        id, system_id, account_id, member_name, `status`, create_time, update_time
     </sql>
 
 </mapper>

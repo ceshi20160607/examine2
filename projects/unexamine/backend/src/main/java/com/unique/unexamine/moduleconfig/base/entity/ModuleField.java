@@ -9,74 +9,86 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 业务模块的可配置字段草稿
+ * 业务模块字段草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_field")
+@TableName("un_cfg_module_field")
 public class ModuleField {
 
     /**
-     * 模块字段主键
+     * 模块字段标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 字段所属业务模块主键
+     * 所属业务系统标识
+     */
+    @TableField("system_id")
+    private Long systemId;
+
+    /**
+     * 字段配置来源租户标识
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 所属业务模块标识
      */
     @TableField("module_id")
     private Long moduleId;
 
     /**
-     * 模块内稳定的字段编码
+     * 模块内稳定字段编码
      */
-    @TableField("field_key")
-    private String fieldKey;
+    @TableField("field_code")
+    private String fieldCode;
 
     /**
-     * 字段在表单和列表中的名称
+     * 字段显示名称
      */
-    @TableField("label")
-    private String label;
+    @TableField("field_name")
+    private String fieldName;
 
     /**
-     * 文本、数字、日期、布尔等字段类型
+     * 已支持的字段类型编码
      */
     @TableField("field_type")
     private String fieldType;
 
     /**
-     * 新增和编辑时是否必填
+     * 表单是否必填：1是，0否
      */
     @TableField("required_flag")
     private Boolean requiredFlag;
 
     /**
-     * 是否允许作为筛选条件
+     * 是否允许列表筛选：1是，0否
      */
     @TableField("searchable_flag")
     private Boolean searchableFlag;
 
     /**
-     * 字段显示顺序
+     * 默认表单和列表排序
      */
     @TableField("sort_order")
     private Integer sortOrder;
 
     /**
-     * 选择类字段的候选项配置
+     * 字段类型相关约束与显示配置的 JSON 文本
      */
-    @TableField("options_json")
-    private String optionsJson;
+    @TableField("config_json")
+    private String configJson;
 
     /**
-     * 字段启用状态
+     * 字段草稿状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 字段创建时间
@@ -85,7 +97,7 @@ public class ModuleField {
     private LocalDateTime createTime;
 
     /**
-     * 字段更新时间
+     * 字段修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -98,6 +110,22 @@ public class ModuleField {
         this.id = id;
     }
 
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getModuleId() {
         return moduleId;
     }
@@ -106,20 +134,20 @@ public class ModuleField {
         this.moduleId = moduleId;
     }
 
-    public String getFieldKey() {
-        return fieldKey;
+    public String getFieldCode() {
+        return fieldCode;
     }
 
-    public void setFieldKey(String fieldKey) {
-        this.fieldKey = fieldKey;
+    public void setFieldCode(String fieldCode) {
+        this.fieldCode = fieldCode;
     }
 
-    public String getLabel() {
-        return label;
+    public String getFieldName() {
+        return fieldName;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
     }
 
     public String getFieldType() {
@@ -154,19 +182,19 @@ public class ModuleField {
         this.sortOrder = sortOrder;
     }
 
-    public String getOptionsJson() {
-        return optionsJson;
+    public String getConfigJson() {
+        return configJson;
     }
 
-    public void setOptionsJson(String optionsJson) {
-        this.optionsJson = optionsJson;
+    public void setConfigJson(String configJson) {
+        this.configJson = configJson;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -190,14 +218,16 @@ public class ModuleField {
     public String toString() {
         return "ModuleField{" +
             "id = " + id +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", moduleId = " + moduleId +
-            ", fieldKey = " + fieldKey +
-            ", label = " + label +
+            ", fieldCode = " + fieldCode +
+            ", fieldName = " + fieldName +
             ", fieldType = " + fieldType +
             ", requiredFlag = " + requiredFlag +
             ", searchableFlag = " + searchableFlag +
             ", sortOrder = " + sortOrder +
-            ", optionsJson = " + optionsJson +
+            ", configJson = " + configJson +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +

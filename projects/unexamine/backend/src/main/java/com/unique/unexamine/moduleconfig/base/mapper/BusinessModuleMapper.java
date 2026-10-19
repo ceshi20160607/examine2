@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 业务模块草稿与当前发布指针 Mapper 接口
+ * 可配置业务模块 Mapper 接口
  * </p>
  *
  * @author Template Base

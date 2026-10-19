@@ -1,7 +1,0 @@
-{
-  "status": "passed",
-  "system_id": 80,
-  "module_id": 70,
-  "checks": ["field_publish", "typed_create", "invalid_rejection", "filter", "excel_import", "percent_display", "datetime_import", "csv_export", "mysql_readback"],
-  "observed": "新系统成员提交多行文本、手机号、邮箱、网址、金额、百分比和日期时间后读回；非法手机号、邮箱、网址、金额小数位、百分比范围、日期时间精度和超长多行文本均拒绝。字段精确筛选、Excel 百分比和日期时间导入、CSV 下载成功；MySQL 读回字段类型、两条记录和六个筛选索引。"
-}

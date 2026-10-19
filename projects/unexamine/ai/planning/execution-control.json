@@ -2,15 +2,12 @@
   "schemaVersion": 1,
   "mode": "bounded_steps",
   "state": "projects/unexamine/ai/planning/rebuild-state.json",
-  "contextRoots": [
-    "projects/unexamine/backend",
-    "projects/unexamine/frontend"
-  ],
+  "contextRoots": ["projects/unexamine/backend", "projects/unexamine/frontend"],
   "maximumContextCharacters": 16000,
   "policy": {
-    "source": "docs/user_requirement.md 为唯一产品需求；docs/表意义.md 是表参考，docs/old_table1.sql 仅为旧审批参考。",
-    "entry": "每个步骤先运行 execution-context，先 SQL，再生成 base，再写 manage 和页面。",
-    "scope": "先完成基础旅程，后续能力在实际实施时补表。",
-    "checkpoint": "真实页面、数据库和权限结果齐备后才能标记业务步骤完成。"
+    "source": "docs/user_requirement.md 是唯一产品需求；docs/表意义.md 是表模型参考；docs/old_table1.sql 只阅读审批关系。",
+    "entry": "每步先运行 execution-context；先设计 SQL 和关系，再通过 db-prepare 与 MyBatis-Plus 生成 Base，随后编写 manage 和页面。",
+    "scope": "按可观察的业务旅程落地必要表，不因参考清单预建无用途表。",
+    "checkpoint": "业务行为、持久化、授权和失败结果经真实入口验证后才完成。"
   }
 }

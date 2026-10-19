@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 可筛选字段的类型化查询索引值 Mapper 接口
+ * 可由字段原值重建的类型化查询索引 Mapper 接口
  * </p>
  *
  * @author Template Base

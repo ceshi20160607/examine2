@@ -1,6 +1,0 @@
-{
-  "status": "passed",
-  "screenshots": ["projects/unexamine/ai/evidence/r15-09-message-todo-browser.png", "projects/unexamine/ai/evidence/r15-09-message-result-browser.png"],
-  "checks": ["todo_inbox", "unread_badge", "message_to_task", "reject", "result_inbox", "message_to_record", "read_count", "no_page_errors"],
-  "observed": "真实 Edge 审批人页面看到未读待办消息并打开原待办详情、完成拒绝；申请人页面看到审批结果消息并打开本人记录，两个消息阅读后未读数归零，无页面异常。"
-}

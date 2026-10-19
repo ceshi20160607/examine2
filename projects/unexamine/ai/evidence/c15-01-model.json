@@ -1,0 +1,40 @@
+{
+  "step": "C15_01_MODEL",
+  "status": "in_progress",
+  "date": "2026-10-19",
+  "requirement_source": "docs/user_requirement.md",
+  "model_reference": "docs/表意义.md",
+  "source_table_names": 94,
+  "unmapped_reference_names": 0,
+  "snapshot_tag": "r15-before-clean-restart-20261019",
+  "database_readback": {
+    "validation_schema": "unexamine_r15_schema_check_20261019",
+    "product_table_count": 17,
+    "blank_table_comments": 0,
+    "blank_column_comments": 0,
+    "invalid_time_column_names": 0,
+    "foreign_key_count": 0,
+    "trigger_count": 0,
+    "old_schema": "unexamine_r15",
+    "old_product_table_count": 28,
+    "old_schema_modified": false
+  },
+  "generation": {
+    "module_count": 4,
+    "table_count": 17,
+    "generated_file_count": 68,
+    "schema_sha256": "7e9bb41f2b26bfa1e9da1d08c17f01b0eac02398eec22ae859c0e1f757674b1a"
+  },
+  "checks": [
+    "Template Base starter-check: repeatable, 35 files",
+    "Template Base workspace-validate: passed",
+    "db-prepare: four initial sources and four Flyway inputs",
+    "Project regenerate-base.ps1 rerun against validation schema: passed, stable 17 tables and 68 Base files",
+    "JDK 21 Maven clean compile: passed",
+    "Node 24 Vue/Vite production build: passed",
+    "Backend on port 9999 with validation schema and Redis: actuator health UP"
+  ],
+  "business_acceptance": "not_tested: no current manage business interfaces or real product pages yet",
+  "permission_and_failure_result": "not_tested: no current authorization behavior yet",
+  "next_work": "Recheck the schema against first real admin and member journeys, then migrate only the isolated test database and implement manage/pages; keep this step unfinished until actual behavior, persistence, authorization and failure paths are verified."
+}

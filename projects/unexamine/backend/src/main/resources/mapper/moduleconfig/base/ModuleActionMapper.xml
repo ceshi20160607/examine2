@@ -5,19 +5,21 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.moduleconfig.base.entity.ModuleAction">
         <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="module_id" property="moduleId" />
-        <result column="code" property="code" />
-        <result column="name" property="name" />
-        <result column="action_type" property="actionType" />
-        <result column="enabled_flag" property="enabledFlag" />
+        <result column="action_code" property="actionCode" />
+        <result column="action_name" property="actionName" />
+        <result column="display_location" property="displayLocation" />
         <result column="sort_order" property="sortOrder" />
+        <result column="status" property="status" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, module_id, `code`, `name`, action_type, enabled_flag, sort_order, create_time, update_time
+        id, system_id, tenant_id, module_id, action_code, action_name, display_location, sort_order, `status`, create_time, update_time
     </sql>
 
 </mapper>

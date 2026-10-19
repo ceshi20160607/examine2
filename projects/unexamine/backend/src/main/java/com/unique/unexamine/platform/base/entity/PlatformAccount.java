@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 平台统一账号
+ * 统一平台账号
  * </p>
  *
  * @author Template Base
@@ -20,46 +19,52 @@ import java.time.LocalDateTime;
 public class PlatformAccount {
 
     /**
-     * 平台账号主键
+     * 平台账号标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 平台唯一登录用户名
+     * 全平台唯一登录名
      */
     @TableField("username")
     private String username;
 
     /**
-     * 带算法与盐信息的口令哈希编码
+     * 带盐的单向口令哈希
      */
     @TableField("password_hash")
     private String passwordHash;
 
     /**
-     * 账号展示名称
+     * 用户显示名称
      */
     @TableField("display_name")
     private String displayName;
 
     /**
-     * 账号绑定邮箱
+     * 电子邮箱
      */
     @TableField("email")
     private String email;
 
     /**
-     * 账号绑定手机号
+     * 手机号码
      */
     @TableField("mobile")
     private String mobile;
 
     /**
-     * 账号启用状态
+     * 账号状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
+
+    /**
+     * 最近成功登录时间
+     */
+    @TableField("last_login_time")
+    private LocalDateTime lastLoginTime;
 
     /**
      * 账号创建时间
@@ -68,17 +73,10 @@ public class PlatformAccount {
     private LocalDateTime createTime;
 
     /**
-     * 账号更新时间
+     * 账号修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 账号乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -128,12 +126,20 @@ public class PlatformAccount {
         this.mobile = mobile;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
+    }
+
+    public LocalDateTime getLastLoginTime() {
+        return lastLoginTime;
+    }
+
+    public void setLastLoginTime(LocalDateTime lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
     }
 
     public LocalDateTime getCreateTime() {
@@ -152,14 +158,6 @@ public class PlatformAccount {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "PlatformAccount{" +
@@ -170,9 +168,9 @@ public class PlatformAccount {
             ", email = " + email +
             ", mobile = " + mobile +
             ", status = " + status +
+            ", lastLoginTime = " + lastLoginTime +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

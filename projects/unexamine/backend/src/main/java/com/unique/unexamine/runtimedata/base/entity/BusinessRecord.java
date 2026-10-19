@@ -4,105 +4,127 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 自定义模块的通用业务主记录
+ * 用户自定义模块通用业务主记录
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_record")
+@TableName("un_biz_record")
 public class BusinessRecord {
 
     /**
-     * 通用业务记录主键
+     * 通用业务记录标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 记录所属业务系统主键
+     * 记录所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 记录所属租户主键
+     * 记录原始所属租户标识
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 记录所属业务模块主键
+     * 记录所属业务模块标识
      */
     @TableField("module_id")
     private Long moduleId;
 
     /**
-     * 记录创建时生效的模块发布版本主键
+     * 创建或最近验证时使用的模块发布版本号
      */
-    @TableField("module_version_id")
-    private Long moduleVersionId;
+    @TableField("module_version_no")
+    private Integer moduleVersionNo;
 
     /**
-     * 记录当前负责人系统成员主键
-     */
-    @TableField("owner_member_id")
-    private Long ownerMemberId;
-
-    /**
-     * 业务记录在列表与详情中显示的标题
-     */
-    @TableField("title")
-    private String title;
-
-    /**
-     * 业务记录在租户和模块内唯一的稳定编号
+     * 模块租户内唯一业务编号
      */
     @TableField("record_no")
     private String recordNo;
 
     /**
-     * 记录业务状态
+     * 业务记录标题
      */
-    @TableField("record_status")
-    private String recordStatus;
+    @TableField("title")
+    private String title;
 
     /**
-     * 创建记录的平台账号主键
+     * 业务状态编码
      */
-    @TableField("created_by_account_id")
-    private Long createdByAccountId;
+    @TableField("business_status")
+    private String businessStatus;
 
     /**
-     * 最近修改记录的平台账号主键
+     * 当前负责人系统成员标识
      */
-    @TableField("updated_by_account_id")
-    private Long updatedByAccountId;
+    @TableField("owner_member_id")
+    private Long ownerMemberId;
 
     /**
-     * 记录创建时间
+     * 当前负责部门标识，组织启用后使用
+     */
+    @TableField("owner_department_id")
+    private Long ownerDepartmentId;
+
+    /**
+     * 相关人员系统成员标识的 JSON 文本
+     */
+    @TableField("related_member_ids_json")
+    private String relatedMemberIdsJson;
+
+    /**
+     * 创建人系统成员标识
+     */
+    @TableField("created_by_member_id")
+    private Long createdByMemberId;
+
+    /**
+     * 最近修改人系统成员标识
+     */
+    @TableField("updated_by_member_id")
+    private Long updatedByMemberId;
+
+    /**
+     * 是否归档：1是，0否
+     */
+    @TableField("archived_flag")
+    private Boolean archivedFlag;
+
+    /**
+     * 是否逻辑删除：1是，0否
+     */
+    @TableField("deleted_flag")
+    private Boolean deletedFlag;
+
+    /**
+     * 乐观锁版本号
+     */
+    @TableField("version_no")
+    private Long versionNo;
+
+    /**
+     * 业务记录创建时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
 
     /**
-     * 记录更新时间
+     * 业务记录修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 记录乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -136,28 +158,12 @@ public class BusinessRecord {
         this.moduleId = moduleId;
     }
 
-    public Long getModuleVersionId() {
-        return moduleVersionId;
+    public Integer getModuleVersionNo() {
+        return moduleVersionNo;
     }
 
-    public void setModuleVersionId(Long moduleVersionId) {
-        this.moduleVersionId = moduleVersionId;
-    }
-
-    public Long getOwnerMemberId() {
-        return ownerMemberId;
-    }
-
-    public void setOwnerMemberId(Long ownerMemberId) {
-        this.ownerMemberId = ownerMemberId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public void setModuleVersionNo(Integer moduleVersionNo) {
+        this.moduleVersionNo = moduleVersionNo;
     }
 
     public String getRecordNo() {
@@ -168,28 +174,84 @@ public class BusinessRecord {
         this.recordNo = recordNo;
     }
 
-    public String getRecordStatus() {
-        return recordStatus;
+    public String getTitle() {
+        return title;
     }
 
-    public void setRecordStatus(String recordStatus) {
-        this.recordStatus = recordStatus;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public Long getCreatedByAccountId() {
-        return createdByAccountId;
+    public String getBusinessStatus() {
+        return businessStatus;
     }
 
-    public void setCreatedByAccountId(Long createdByAccountId) {
-        this.createdByAccountId = createdByAccountId;
+    public void setBusinessStatus(String businessStatus) {
+        this.businessStatus = businessStatus;
     }
 
-    public Long getUpdatedByAccountId() {
-        return updatedByAccountId;
+    public Long getOwnerMemberId() {
+        return ownerMemberId;
     }
 
-    public void setUpdatedByAccountId(Long updatedByAccountId) {
-        this.updatedByAccountId = updatedByAccountId;
+    public void setOwnerMemberId(Long ownerMemberId) {
+        this.ownerMemberId = ownerMemberId;
+    }
+
+    public Long getOwnerDepartmentId() {
+        return ownerDepartmentId;
+    }
+
+    public void setOwnerDepartmentId(Long ownerDepartmentId) {
+        this.ownerDepartmentId = ownerDepartmentId;
+    }
+
+    public String getRelatedMemberIdsJson() {
+        return relatedMemberIdsJson;
+    }
+
+    public void setRelatedMemberIdsJson(String relatedMemberIdsJson) {
+        this.relatedMemberIdsJson = relatedMemberIdsJson;
+    }
+
+    public Long getCreatedByMemberId() {
+        return createdByMemberId;
+    }
+
+    public void setCreatedByMemberId(Long createdByMemberId) {
+        this.createdByMemberId = createdByMemberId;
+    }
+
+    public Long getUpdatedByMemberId() {
+        return updatedByMemberId;
+    }
+
+    public void setUpdatedByMemberId(Long updatedByMemberId) {
+        this.updatedByMemberId = updatedByMemberId;
+    }
+
+    public Boolean getArchivedFlag() {
+        return archivedFlag;
+    }
+
+    public void setArchivedFlag(Boolean archivedFlag) {
+        this.archivedFlag = archivedFlag;
+    }
+
+    public Boolean getDeletedFlag() {
+        return deletedFlag;
+    }
+
+    public void setDeletedFlag(Boolean deletedFlag) {
+        this.deletedFlag = deletedFlag;
+    }
+
+    public Long getVersionNo() {
+        return versionNo;
+    }
+
+    public void setVersionNo(Long versionNo) {
+        this.versionNo = versionNo;
     }
 
     public LocalDateTime getCreateTime() {
@@ -208,14 +270,6 @@ public class BusinessRecord {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "BusinessRecord{" +
@@ -223,16 +277,20 @@ public class BusinessRecord {
             ", systemId = " + systemId +
             ", tenantId = " + tenantId +
             ", moduleId = " + moduleId +
-            ", moduleVersionId = " + moduleVersionId +
-            ", ownerMemberId = " + ownerMemberId +
-            ", title = " + title +
+            ", moduleVersionNo = " + moduleVersionNo +
             ", recordNo = " + recordNo +
-            ", recordStatus = " + recordStatus +
-            ", createdByAccountId = " + createdByAccountId +
-            ", updatedByAccountId = " + updatedByAccountId +
+            ", title = " + title +
+            ", businessStatus = " + businessStatus +
+            ", ownerMemberId = " + ownerMemberId +
+            ", ownerDepartmentId = " + ownerDepartmentId +
+            ", relatedMemberIdsJson = " + relatedMemberIdsJson +
+            ", createdByMemberId = " + createdByMemberId +
+            ", updatedByMemberId = " + updatedByMemberId +
+            ", archivedFlag = " + archivedFlag +
+            ", deletedFlag = " + deletedFlag +
+            ", versionNo = " + versionNo +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }

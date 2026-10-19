@@ -1,7 +1,0 @@
-{
-  "status": "passed",
-  "system_id": 62,
-  "module_id": 54,
-  "checks": ["template", "precheck", "error_xlsx", "no_write_before_commit", "insert", "idempotent_commit", "upsert", "owner_scope", "atomic_rollback", "corrected_error_reupload", "history_scope", "mysql_readback", "flyway_v7"],
-  "observed": "独立新系统中预检查未写入业务记录；确认后两条新增和一次更新/新增均成功；他人记录匹配被拒，记录版本变化使任务 FAILED 且已写入行回滚；错误文件修改后可再次预检查；MySQL 读回导入任务、业务记录和 Flyway V7。"
-}

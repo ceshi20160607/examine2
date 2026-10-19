@@ -5,19 +5,19 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.SystemDefinition">
         <id column="id" property="id" />
+        <result column="system_code" property="systemCode" />
+        <result column="system_name" property="systemName" />
         <result column="owner_account_id" property="ownerAccountId" />
-        <result column="code" property="code" />
-        <result column="name" property="name" />
-        <result column="description" property="description" />
+        <result column="primary_tenant_id" property="primaryTenantId" />
+        <result column="multi_tenant_enabled" property="multiTenantEnabled" />
         <result column="status" property="status" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, owner_account_id, `code`, `name`, `description`, `status`, create_time, update_time, version
+        id, system_code, system_name, owner_account_id, primary_tenant_id, multi_tenant_enabled, `status`, create_time, update_time
     </sql>
 
 </mapper>

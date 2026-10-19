@@ -1,6 +1,0 @@
-{
-  "status": "passed",
-  "screenshot": "projects/unexamine/ai/evidence/r15-10-field-types-browser.png",
-  "checks": ["owner_field_config", "published_form_types", "browser_email_validation", "typed_record_save", "detail_readback", "money_filter", "no_page_errors"],
-  "observed": "真实 Edge 管理员页面配置并发布文本、多行文本、手机号、邮箱、金额和日期时间字段；成员页面使用对应输入控件创建记录，浏览器拦截非法邮箱，详情显示换行文本，金额精确筛选仍能找到记录。"
-}

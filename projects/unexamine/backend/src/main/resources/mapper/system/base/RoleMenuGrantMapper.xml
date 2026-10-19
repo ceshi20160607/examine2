@@ -5,20 +5,17 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.RoleMenuGrant">
         <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
+        <result column="tenant_id" property="tenantId" />
         <result column="role_id" property="roleId" />
         <result column="menu_id" property="menuId" />
-        <result column="can_view" property="canView" />
-        <result column="can_create" property="canCreate" />
-        <result column="can_update" property="canUpdate" />
-        <result column="can_delete" property="canDelete" />
-        <result column="can_export" property="canExport" />
+        <result column="action_code" property="actionCode" />
         <result column="create_time" property="createTime" />
-        <result column="update_time" property="updateTime" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, role_id, menu_id, can_view, can_create, can_update, can_delete, can_export, create_time, update_time
+        id, system_id, tenant_id, role_id, menu_id, action_code, create_time
     </sql>
 
 </mapper>

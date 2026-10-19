@@ -7,17 +7,16 @@
         <id column="id" property="id" />
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
-        <result column="code" property="code" />
-        <result column="name" property="name" />
+        <result column="role_code" property="roleCode" />
+        <result column="role_name" property="roleName" />
         <result column="status" property="status" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, `code`, `name`, `status`, create_time, update_time, version
+        id, system_id, tenant_id, role_code, role_name, `status`, create_time, update_time
     </sql>
 
 </mapper>

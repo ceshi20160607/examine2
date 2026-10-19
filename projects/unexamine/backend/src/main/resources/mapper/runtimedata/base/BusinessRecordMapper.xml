@@ -8,21 +8,25 @@
         <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="module_id" property="moduleId" />
-        <result column="module_version_id" property="moduleVersionId" />
-        <result column="owner_member_id" property="ownerMemberId" />
-        <result column="title" property="title" />
+        <result column="module_version_no" property="moduleVersionNo" />
         <result column="record_no" property="recordNo" />
-        <result column="record_status" property="recordStatus" />
-        <result column="created_by_account_id" property="createdByAccountId" />
-        <result column="updated_by_account_id" property="updatedByAccountId" />
+        <result column="title" property="title" />
+        <result column="business_status" property="businessStatus" />
+        <result column="owner_member_id" property="ownerMemberId" />
+        <result column="owner_department_id" property="ownerDepartmentId" />
+        <result column="related_member_ids_json" property="relatedMemberIdsJson" />
+        <result column="created_by_member_id" property="createdByMemberId" />
+        <result column="updated_by_member_id" property="updatedByMemberId" />
+        <result column="archived_flag" property="archivedFlag" />
+        <result column="deleted_flag" property="deletedFlag" />
+        <result column="version_no" property="versionNo" />
         <result column="create_time" property="createTime" />
         <result column="update_time" property="updateTime" />
-        <result column="version" property="version" />
     </resultMap>
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, system_id, tenant_id, module_id, module_version_id, owner_member_id, title, record_no, record_status, created_by_account_id, updated_by_account_id, create_time, update_time, version
+        id, system_id, tenant_id, module_id, module_version_no, record_no, title, business_status, owner_member_id, owner_department_id, related_member_ids_json, created_by_member_id, updated_by_member_id, archived_flag, deleted_flag, version_no, create_time, update_time
     </sql>
 
 </mapper>

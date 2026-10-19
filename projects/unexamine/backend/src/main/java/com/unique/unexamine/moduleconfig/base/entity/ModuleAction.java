@@ -9,56 +9,68 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 业务模块页面动作草稿
+ * 业务模块动作草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_action")
+@TableName("un_cfg_module_action")
 public class ModuleAction {
 
     /**
-     * 模块动作主键
+     * 模块动作标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 动作所属业务模块主键
+     * 所属业务系统标识
+     */
+    @TableField("system_id")
+    private Long systemId;
+
+    /**
+     * 动作配置来源租户标识
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 所属业务模块标识
      */
     @TableField("module_id")
     private Long moduleId;
 
     /**
-     * 新增、编辑、查看等动作编码
+     * 模块内稳定动作编码
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("action_code")
+    private String actionCode;
 
     /**
-     * 页面动作显示名称
+     * 动作显示名称
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("action_name")
+    private String actionName;
 
     /**
-     * 模块动作的执行类别
+     * 模块入口、工具栏、行或详情中的展示位置
      */
-    @TableField("action_type")
-    private String actionType;
+    @TableField("display_location")
+    private String displayLocation;
 
     /**
-     * 动作是否在发布后可用
-     */
-    @TableField("enabled_flag")
-    private Boolean enabledFlag;
-
-    /**
-     * 动作在页面中的显示顺序
+     * 同位置动作排序
      */
     @TableField("sort_order")
     private Integer sortOrder;
+
+    /**
+     * 动作草稿状态：1启用，0停用
+     */
+    @TableField("`status`")
+    private Boolean status;
 
     /**
      * 动作创建时间
@@ -67,7 +79,7 @@ public class ModuleAction {
     private LocalDateTime createTime;
 
     /**
-     * 动作更新时间
+     * 动作修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -80,6 +92,22 @@ public class ModuleAction {
         this.id = id;
     }
 
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getModuleId() {
         return moduleId;
     }
@@ -88,36 +116,28 @@ public class ModuleAction {
         this.moduleId = moduleId;
     }
 
-    public String getCode() {
-        return code;
+    public String getActionCode() {
+        return actionCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setActionCode(String actionCode) {
+        this.actionCode = actionCode;
     }
 
-    public String getName() {
-        return name;
+    public String getActionName() {
+        return actionName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setActionName(String actionName) {
+        this.actionName = actionName;
     }
 
-    public String getActionType() {
-        return actionType;
+    public String getDisplayLocation() {
+        return displayLocation;
     }
 
-    public void setActionType(String actionType) {
-        this.actionType = actionType;
-    }
-
-    public Boolean getEnabledFlag() {
-        return enabledFlag;
-    }
-
-    public void setEnabledFlag(Boolean enabledFlag) {
-        this.enabledFlag = enabledFlag;
+    public void setDisplayLocation(String displayLocation) {
+        this.displayLocation = displayLocation;
     }
 
     public Integer getSortOrder() {
@@ -126,6 +146,14 @@ public class ModuleAction {
 
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreateTime() {
@@ -148,12 +176,14 @@ public class ModuleAction {
     public String toString() {
         return "ModuleAction{" +
             "id = " + id +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", moduleId = " + moduleId +
-            ", code = " + code +
-            ", name = " + name +
-            ", actionType = " + actionType +
-            ", enabledFlag = " + enabledFlag +
+            ", actionCode = " + actionCode +
+            ", actionName = " + actionName +
+            ", displayLocation = " + displayLocation +
             ", sortOrder = " + sortOrder +
+            ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
             "}";

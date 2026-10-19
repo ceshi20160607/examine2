@@ -5,6 +5,7 @@
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap" type="com.unique.unexamine.system.base.entity.MemberRole">
         <id column="id" property="id" />
+        <result column="system_id" property="systemId" />
         <result column="tenant_id" property="tenantId" />
         <result column="member_id" property="memberId" />
         <result column="role_id" property="roleId" />
@@ -13,7 +14,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, tenant_id, member_id, role_id, create_time
+        id, system_id, tenant_id, member_id, role_id, create_time
     </sql>
 
 </mapper>

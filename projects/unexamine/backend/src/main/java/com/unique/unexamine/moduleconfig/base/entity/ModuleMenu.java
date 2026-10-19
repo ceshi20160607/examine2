@@ -9,56 +9,62 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 业务模块运行态菜单草稿
+ * 业务模块运行菜单草稿配置
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_menu")
+@TableName("un_cfg_module_menu")
 public class ModuleMenu {
 
     /**
-     * 模块菜单主键
+     * 模块菜单标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 菜单指向的业务模块主键
+     * 所属业务系统标识
+     */
+    @TableField("system_id")
+    private Long systemId;
+
+    /**
+     * 菜单配置来源租户标识
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 所属业务模块标识
      */
     @TableField("module_id")
     private Long moduleId;
 
     /**
-     * 模块内菜单编码
+     * 模块内稳定菜单编码
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("menu_code")
+    private String menuCode;
 
     /**
-     * 运行态菜单显示名称
+     * 运行态左侧菜单名称
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("menu_name")
+    private String menuName;
 
     /**
-     * 列表或其他模块页面入口类型
-     */
-    @TableField("menu_type")
-    private String menuType;
-
-    /**
-     * 菜单显示顺序
+     * 左侧菜单排序
      */
     @TableField("sort_order")
     private Integer sortOrder;
 
     /**
-     * 菜单启用状态
+     * 菜单草稿状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 菜单创建时间
@@ -67,7 +73,7 @@ public class ModuleMenu {
     private LocalDateTime createTime;
 
     /**
-     * 菜单更新时间
+     * 菜单修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -80,6 +86,22 @@ public class ModuleMenu {
         this.id = id;
     }
 
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getModuleId() {
         return moduleId;
     }
@@ -88,28 +110,20 @@ public class ModuleMenu {
         this.moduleId = moduleId;
     }
 
-    public String getCode() {
-        return code;
+    public String getMenuCode() {
+        return menuCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setMenuCode(String menuCode) {
+        this.menuCode = menuCode;
     }
 
-    public String getName() {
-        return name;
+    public String getMenuName() {
+        return menuName;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMenuType() {
-        return menuType;
-    }
-
-    public void setMenuType(String menuType) {
-        this.menuType = menuType;
+    public void setMenuName(String menuName) {
+        this.menuName = menuName;
     }
 
     public Integer getSortOrder() {
@@ -120,11 +134,11 @@ public class ModuleMenu {
         this.sortOrder = sortOrder;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -148,10 +162,11 @@ public class ModuleMenu {
     public String toString() {
         return "ModuleMenu{" +
             "id = " + id +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", moduleId = " + moduleId +
-            ", code = " + code +
-            ", name = " + name +
-            ", menuType = " + menuType +
+            ", menuCode = " + menuCode +
+            ", menuName = " + menuName +
             ", sortOrder = " + sortOrder +
             ", status = " + status +
             ", createTime = " + createTime +

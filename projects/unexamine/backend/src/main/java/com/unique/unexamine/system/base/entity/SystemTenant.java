@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 业务系统租户及默认主租户
+ * 系统内租户
  * </p>
  *
  * @author Template Base
@@ -19,40 +19,40 @@ import java.time.LocalDateTime;
 public class SystemTenant {
 
     /**
-     * 系统租户主键
+     * 系统租户标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 所属业务系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 系统内租户编码
+     * 系统内唯一租户编码
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("tenant_code")
+    private String tenantCode;
 
     /**
-     * 租户显示名称
+     * 租户名称
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("tenant_name")
+    private String tenantName;
 
     /**
-     * 是否系统自动创建的主租户
+     * 是否主租户：1是，0否
      */
-    @TableField("main_flag")
-    private Boolean mainFlag;
+    @TableField("is_primary")
+    private Boolean isPrimary;
 
     /**
-     * 租户启用状态
+     * 租户状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
+    private Boolean status;
 
     /**
      * 租户创建时间
@@ -61,7 +61,7 @@ public class SystemTenant {
     private LocalDateTime createTime;
 
     /**
-     * 租户更新时间
+     * 租户修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -82,35 +82,35 @@ public class SystemTenant {
         this.systemId = systemId;
     }
 
-    public String getCode() {
-        return code;
+    public String getTenantCode() {
+        return tenantCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 
-    public String getName() {
-        return name;
+    public String getTenantName() {
+        return tenantName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTenantName(String tenantName) {
+        this.tenantName = tenantName;
     }
 
-    public Boolean getMainFlag() {
-        return mainFlag;
+    public Boolean getIsPrimary() {
+        return isPrimary;
     }
 
-    public void setMainFlag(Boolean mainFlag) {
-        this.mainFlag = mainFlag;
+    public void setIsPrimary(Boolean isPrimary) {
+        this.isPrimary = isPrimary;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -135,9 +135,9 @@ public class SystemTenant {
         return "SystemTenant{" +
             "id = " + id +
             ", systemId = " + systemId +
-            ", code = " + code +
-            ", name = " + name +
-            ", mainFlag = " + mainFlag +
+            ", tenantCode = " + tenantCode +
+            ", tenantName = " + tenantName +
+            ", isPrimary = " + isPrimary +
             ", status = " + status +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +

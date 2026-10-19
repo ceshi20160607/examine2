@@ -46,7 +46,7 @@
     },
     {
       "path": "backend/src/main/resources/application.yml",
-      "sha256": "6215582969faf87a72879017e11bbcc44e8d60b51aa28d95e490742e27390d6c"
+      "sha256": "ee4bcf5f7bc2fcad13826146f076e7aa0a9b9f9e7ce08c1954c73d058bcaf978"
     },
     {
       "path": "db/README.md",
@@ -86,7 +86,7 @@
     },
     {
       "path": "frontend/src/main.ts",
-      "sha256": "55929018a94e8ce0c82e2720f2df5924002caae73fb2566c5022b7e9db0b3b07"
+      "sha256": "484350464484fcf3ba1f5d72907cb9df0087acef4fee0c68370be89fccfcef71"
     },
     {
       "path": "frontend/src/product/routes.ts",
@@ -142,5 +142,5 @@
   "projectId": "unexamine",
   "requirementsSha256": "462065bf71803ebb69e97ff28f76f14da84d64e584e683c7d962280d1de68903",
   "schemaVersion": 1,
-  "starterSha256": "e508334c793d28747766e3cad921ce968bc89755081752d3b3af06ec633b3a2f"
+  "starterSha256": "16d0cfc8cbee8e681610361715ae2ecc89491ef02a04ce3b9cf35ed748800caf"
 }

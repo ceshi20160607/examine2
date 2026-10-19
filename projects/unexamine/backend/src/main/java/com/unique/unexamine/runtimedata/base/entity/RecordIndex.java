@@ -10,59 +10,77 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 可筛选字段的类型化查询索引值
+ * 可由字段原值重建的类型化查询索引
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module_record_index")
+@TableName("un_biz_record_index")
 public class RecordIndex {
 
     /**
-     * 记录查询索引主键
+     * 记录查询索引标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 所属业务主记录主键
+     * 记录所属业务系统标识
+     */
+    @TableField("system_id")
+    private Long systemId;
+
+    /**
+     * 记录原始所属租户标识
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 记录所属业务模块标识
+     */
+    @TableField("module_id")
+    private Long moduleId;
+
+    /**
+     * 关联通用业务主记录标识
      */
     @TableField("record_id")
     private Long recordId;
 
     /**
-     * 可筛选的模块字段主键
+     * 索引对应的发布字段标识
      */
     @TableField("field_id")
     private Long fieldId;
 
     /**
-     * 用于精确和前缀筛选的文本值
+     * 文本型筛选和排序值
      */
-    @TableField("text_value")
-    private String textValue;
+    @TableField("value_text")
+    private String valueText;
 
     /**
-     * 用于范围筛选的数字值
+     * 数值型筛选和排序值
      */
-    @TableField("number_value")
-    private BigDecimal numberValue;
+    @TableField("value_number")
+    private BigDecimal valueNumber;
 
     /**
-     * 用于时间范围筛选的日期值
+     * 日期时间型筛选和排序值
      */
-    @TableField("date_value")
-    private LocalDateTime dateValue;
+    @TableField("value_time")
+    private LocalDateTime valueTime;
 
     /**
-     * 用于布尔筛选的字段值
+     * 布尔型筛选值
      */
-    @TableField("boolean_value")
-    private Boolean booleanValue;
+    @TableField("value_boolean")
+    private Boolean valueBoolean;
 
     /**
-     * 查询索引值更新时间
+     * 索引值最近重建时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
@@ -73,6 +91,30 @@ public class RecordIndex {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(Long systemId) {
+        this.systemId = systemId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
     }
 
     public Long getRecordId() {
@@ -91,36 +133,36 @@ public class RecordIndex {
         this.fieldId = fieldId;
     }
 
-    public String getTextValue() {
-        return textValue;
+    public String getValueText() {
+        return valueText;
     }
 
-    public void setTextValue(String textValue) {
-        this.textValue = textValue;
+    public void setValueText(String valueText) {
+        this.valueText = valueText;
     }
 
-    public BigDecimal getNumberValue() {
-        return numberValue;
+    public BigDecimal getValueNumber() {
+        return valueNumber;
     }
 
-    public void setNumberValue(BigDecimal numberValue) {
-        this.numberValue = numberValue;
+    public void setValueNumber(BigDecimal valueNumber) {
+        this.valueNumber = valueNumber;
     }
 
-    public LocalDateTime getDateValue() {
-        return dateValue;
+    public LocalDateTime getValueTime() {
+        return valueTime;
     }
 
-    public void setDateValue(LocalDateTime dateValue) {
-        this.dateValue = dateValue;
+    public void setValueTime(LocalDateTime valueTime) {
+        this.valueTime = valueTime;
     }
 
-    public Boolean getBooleanValue() {
-        return booleanValue;
+    public Boolean getValueBoolean() {
+        return valueBoolean;
     }
 
-    public void setBooleanValue(Boolean booleanValue) {
-        this.booleanValue = booleanValue;
+    public void setValueBoolean(Boolean valueBoolean) {
+        this.valueBoolean = valueBoolean;
     }
 
     public LocalDateTime getUpdateTime() {
@@ -135,12 +177,15 @@ public class RecordIndex {
     public String toString() {
         return "RecordIndex{" +
             "id = " + id +
+            ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
+            ", moduleId = " + moduleId +
             ", recordId = " + recordId +
             ", fieldId = " + fieldId +
-            ", textValue = " + textValue +
-            ", numberValue = " + numberValue +
-            ", dateValue = " + dateValue +
-            ", booleanValue = " + booleanValue +
+            ", valueText = " + valueText +
+            ", valueNumber = " + valueNumber +
+            ", valueTime = " + valueTime +
+            ", valueBoolean = " + valueBoolean +
             ", updateTime = " + updateTime +
             "}";
     }

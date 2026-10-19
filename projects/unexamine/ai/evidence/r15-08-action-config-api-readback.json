@@ -1,7 +1,0 @@
-{
-  "status": "passed",
-  "system_id": 70,
-  "module_id": 62,
-  "checks": ["draft_action", "immutable_publish", "runtime_visibility", "backend_denial", "owner_cannot_bypass", "menu_publish", "role_intersection", "view_gate", "migration_backfill", "mysql_readback", "flyway_v8"],
-  "observed": "新系统双账号 API 验证导入、导出、新增、编辑和发起审批的草稿开关只在发布后生效；关闭后的接口返回 404，所属人不能绕过；菜单更名只随新版本生效；角色未授权不能导出。MySQL 读回四个不可变发布快照、动作草稿和旧模块迁移补齐结果。"
-}

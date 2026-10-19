@@ -1,6 +1,0 @@
-{
-  "status": "passed",
-  "screenshot": "projects/unexamine/ai/evidence/r15-07-import-browser.png",
-  "checks": ["template_download", "invalid_preview", "error_download", "ready_preview", "confirm", "record_readback", "no_page_errors"],
-  "observed": "真实 Edge 页面下载当前发布字段模板，显示 1/2 行错误并下载错误工作簿，随后预检查 2/2 行并确认导入，页面读回两条记录和导入历史。"
-}

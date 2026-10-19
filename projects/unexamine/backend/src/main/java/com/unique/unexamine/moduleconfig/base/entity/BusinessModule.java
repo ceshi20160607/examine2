@@ -4,74 +4,67 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 业务模块草稿与当前发布指针
+ * 可配置业务模块
  * </p>
  *
  * @author Template Base
  * @since generated
  */
-@TableName("un_module")
+@TableName("un_cfg_module")
 public class BusinessModule {
 
     /**
-     * 业务模块主键
+     * 业务模块标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 模块所属业务系统主键
+     * 所属业务系统标识
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 模块所在模块组主键
+     * 配置来源租户标识，首批为主租户
+     */
+    @TableField("tenant_id")
+    private Long tenantId;
+
+    /**
+     * 所属模块组标识
      */
     @TableField("group_id")
     private Long groupId;
 
     /**
-     * 系统内业务模块编码
+     * 系统内稳定模块编码
      */
-    @TableField("`code`")
-    private String code;
+    @TableField("module_code")
+    private String moduleCode;
 
     /**
-     * 业务模块显示名称
+     * 模块名称
      */
-    @TableField("`name`")
-    private String name;
+    @TableField("module_name")
+    private String moduleName;
 
     /**
-     * 模块业务用途说明
+     * 当前已发布版本号，0表示尚未发布
      */
-    @TableField("`description`")
-    private String description;
+    @TableField("current_version_no")
+    private Integer currentVersionNo;
 
     /**
-     * 模块草稿、发布或停用状态
+     * 模块状态：1启用，0停用
      */
     @TableField("`status`")
-    private String status;
-
-    /**
-     * 当前草稿修订号
-     */
-    @TableField("draft_revision")
-    private Integer draftRevision;
-
-    /**
-     * 当前生效的发布快照主键
-     */
-    @TableField("published_version_id")
-    private Long publishedVersionId;
+    private Boolean status;
 
     /**
      * 模块创建时间
@@ -80,17 +73,10 @@ public class BusinessModule {
     private LocalDateTime createTime;
 
     /**
-     * 模块更新时间
+     * 模块修改时间
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 模块乐观锁版本
-     */
-    @Version
-    @TableField("version")
-    private Integer version;
 
     public Long getId() {
         return id;
@@ -108,6 +94,14 @@ public class BusinessModule {
         this.systemId = systemId;
     }
 
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getGroupId() {
         return groupId;
     }
@@ -116,52 +110,36 @@ public class BusinessModule {
         this.groupId = groupId;
     }
 
-    public String getCode() {
-        return code;
+    public String getModuleCode() {
+        return moduleCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setModuleCode(String moduleCode) {
+        this.moduleCode = moduleCode;
     }
 
-    public String getName() {
-        return name;
+    public String getModuleName() {
+        return moduleName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 
-    public String getDescription() {
-        return description;
+    public Integer getCurrentVersionNo() {
+        return currentVersionNo;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setCurrentVersionNo(Integer currentVersionNo) {
+        this.currentVersionNo = currentVersionNo;
     }
 
-    public String getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Boolean status) {
         this.status = status;
-    }
-
-    public Integer getDraftRevision() {
-        return draftRevision;
-    }
-
-    public void setDraftRevision(Integer draftRevision) {
-        this.draftRevision = draftRevision;
-    }
-
-    public Long getPublishedVersionId() {
-        return publishedVersionId;
-    }
-
-    public void setPublishedVersionId(Long publishedVersionId) {
-        this.publishedVersionId = publishedVersionId;
     }
 
     public LocalDateTime getCreateTime() {
@@ -180,29 +158,19 @@ public class BusinessModule {
         this.updateTime = updateTime;
     }
 
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
     @Override
     public String toString() {
         return "BusinessModule{" +
             "id = " + id +
             ", systemId = " + systemId +
+            ", tenantId = " + tenantId +
             ", groupId = " + groupId +
-            ", code = " + code +
-            ", name = " + name +
-            ", description = " + description +
+            ", moduleCode = " + moduleCode +
+            ", moduleName = " + moduleName +
+            ", currentVersionNo = " + currentVersionNo +
             ", status = " + status +
-            ", draftRevision = " + draftRevision +
-            ", publishedVersionId = " + publishedVersionId +
             ", createTime = " + createTime +
             ", updateTime = " + updateTime +
-            ", version = " + version +
             "}";
     }
 }
