@@ -1,22 +1,22 @@
 package com.unique.unexamine.manage.platform;
 
+import com.unique.unexamine.identity.base.entity.UnPlatMember;
+import com.unique.unexamine.identity.base.entity.UnPlatMemberRole;
+import com.unique.unexamine.identity.base.entity.UnPlatMenu;
+import com.unique.unexamine.identity.base.entity.UnPlatRole;
+import com.unique.unexamine.identity.base.entity.UnPlatRoleData;
+import com.unique.unexamine.identity.base.entity.UnPlatRoleMenu;
+import com.unique.unexamine.identity.base.mapper.UnPlatDepartmentMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberRoleMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMenuMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatRoleDataMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatRoleMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatRoleMenuMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unique.unexamine.base.entity.UnPlatDepartment;
-import com.unique.unexamine.base.entity.UnPlatMember;
-import com.unique.unexamine.base.entity.UnPlatMemberRole;
-import com.unique.unexamine.base.entity.UnPlatMenu;
-import com.unique.unexamine.base.entity.UnPlatRole;
-import com.unique.unexamine.base.entity.UnPlatRoleData;
-import com.unique.unexamine.base.entity.UnPlatRoleMenu;
-import com.unique.unexamine.base.mapper.UnPlatDepartmentMapper;
-import com.unique.unexamine.base.mapper.UnPlatMemberMapper;
-import com.unique.unexamine.base.mapper.UnPlatMemberRoleMapper;
-import com.unique.unexamine.base.mapper.UnPlatMenuMapper;
-import com.unique.unexamine.base.mapper.UnPlatRoleDataMapper;
-import com.unique.unexamine.base.mapper.UnPlatRoleMapper;
-import com.unique.unexamine.base.mapper.UnPlatRoleMenuMapper;
 import com.unique.unexamine.manage.common.SessionAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

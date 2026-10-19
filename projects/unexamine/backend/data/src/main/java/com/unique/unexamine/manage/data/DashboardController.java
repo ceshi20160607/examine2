@@ -1,19 +1,20 @@
 package com.unique.unexamine.manage.data;
 
+import com.unique.unexamine.data.base.entity.UnDashboard;
+import com.unique.unexamine.data.base.entity.UnDashboardComponent;
+import com.unique.unexamine.data.base.entity.UnDashboardComponentField;
+import com.unique.unexamine.data.base.entity.UnDashboardUser;
+import com.unique.unexamine.data.base.mapper.UnDashboardComponentFieldMapper;
+import com.unique.unexamine.data.base.mapper.UnDashboardComponentMapper;
+import com.unique.unexamine.data.base.mapper.UnDashboardMapper;
+import com.unique.unexamine.data.base.mapper.UnDashboardUserMapper;
+import com.unique.unexamine.identity.base.entity.UnSysTenantMember;
+import com.unique.unexamine.identity.base.mapper.UnSysTenantMemberMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unique.unexamine.base.entity.UnDashboard;
-import com.unique.unexamine.base.entity.UnDashboardComponent;
-import com.unique.unexamine.base.entity.UnDashboardComponentField;
-import com.unique.unexamine.base.entity.UnDashboardUser;
-import com.unique.unexamine.base.entity.UnSysTenantMember;
-import com.unique.unexamine.base.mapper.UnDashboardComponentFieldMapper;
-import com.unique.unexamine.base.mapper.UnDashboardComponentMapper;
-import com.unique.unexamine.base.mapper.UnDashboardMapper;
-import com.unique.unexamine.base.mapper.UnDashboardUserMapper;
-import com.unique.unexamine.base.mapper.UnSysTenantMemberMapper;
 import com.unique.unexamine.manage.common.SessionAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

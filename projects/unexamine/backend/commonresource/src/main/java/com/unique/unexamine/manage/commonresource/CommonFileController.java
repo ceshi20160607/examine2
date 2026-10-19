@@ -1,10 +1,11 @@
 package com.unique.unexamine.manage.commonresource;
 
+import com.unique.unexamine.commonresource.base.entity.UnCommonFile;
+import com.unique.unexamine.commonresource.base.mapper.UnCommonFileMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unique.unexamine.base.entity.UnCommonFile;
-import com.unique.unexamine.base.mapper.UnCommonFileMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ContentDisposition;
@@ -44,7 +45,7 @@ public class CommonFileController {
         this.files = files;
         this.scope = scope;
         // 上传目录可由部署环境指定，默认目录位于当前服务工作目录下。
-        this.root = Paths.get(System.getenv().getOrDefault("APP_FILE_ROOT", "data/uploads"))
+        this.root = Paths.get(System.getenv().getOrDefault("APP_FILE_ROOT", "runtime/uploads"))
                 .toAbsolutePath().normalize();
     }
 

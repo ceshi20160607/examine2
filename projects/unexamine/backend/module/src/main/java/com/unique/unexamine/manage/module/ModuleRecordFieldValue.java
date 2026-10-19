@@ -1,10 +1,11 @@
 package com.unique.unexamine.manage.module;
 
+import com.unique.unexamine.module.base.entity.UnModuleDict;
+import com.unique.unexamine.module.base.mapper.UnModuleDictMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unique.unexamine.base.entity.*;
-import com.unique.unexamine.base.mapper.UnModuleDictMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;

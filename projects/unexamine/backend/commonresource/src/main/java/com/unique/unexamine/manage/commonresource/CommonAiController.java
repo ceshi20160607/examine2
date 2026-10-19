@@ -1,10 +1,11 @@
 package com.unique.unexamine.manage.commonresource;
 
+import com.unique.unexamine.commonresource.base.entity.UnCommonAi;
+import com.unique.unexamine.commonresource.base.mapper.UnCommonAiMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unique.unexamine.base.entity.UnCommonAi;
-import com.unique.unexamine.base.mapper.UnCommonAiMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

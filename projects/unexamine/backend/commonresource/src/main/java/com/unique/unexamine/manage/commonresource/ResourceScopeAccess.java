@@ -1,13 +1,14 @@
 package com.unique.unexamine.manage.commonresource;
 
+import com.unique.unexamine.identity.base.entity.UnPlatMember;
+import com.unique.unexamine.identity.base.entity.UnSysMember;
+import com.unique.unexamine.identity.base.entity.UnSysSystem;
+import com.unique.unexamine.identity.base.entity.UnSysTenant;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysSystemMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysTenantMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.UnPlatMember;
-import com.unique.unexamine.base.entity.UnSysMember;
-import com.unique.unexamine.base.entity.UnSysSystem;
-import com.unique.unexamine.base.entity.UnSysTenant;
-import com.unique.unexamine.base.mapper.UnPlatMemberMapper;
-import com.unique.unexamine.base.mapper.UnSysSystemMapper;
-import com.unique.unexamine.base.mapper.UnSysTenantMapper;
 import com.unique.unexamine.manage.common.SessionAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

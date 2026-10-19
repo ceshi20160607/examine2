@@ -1,10 +1,15 @@
 package com.unique.unexamine.manage.module;
 
+import com.unique.unexamine.module.base.entity.UnModuleQueryField;
+import com.unique.unexamine.module.base.entity.UnModuleScence;
+import com.unique.unexamine.module.base.entity.UnModuleScenceConfig;
+import com.unique.unexamine.module.base.mapper.UnModuleQueryFieldMapper;
+import com.unique.unexamine.module.base.mapper.UnModuleScenceConfigMapper;
+import com.unique.unexamine.module.base.mapper.UnModuleScenceMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unique.unexamine.base.entity.*;
-import com.unique.unexamine.base.mapper.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;

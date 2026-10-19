@@ -1,16 +1,17 @@
 package com.unique.unexamine.manage.platform;
 
+import com.unique.unexamine.identity.base.entity.UnPlatAccount;
+import com.unique.unexamine.identity.base.entity.UnPlatConfig;
+import com.unique.unexamine.identity.base.entity.UnPlatDepartment;
+import com.unique.unexamine.identity.base.entity.UnPlatMember;
+import com.unique.unexamine.identity.base.mapper.UnPlatAccountMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatConfigMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatDepartmentMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unique.unexamine.base.entity.UnPlatAccount;
-import com.unique.unexamine.base.entity.UnPlatConfig;
-import com.unique.unexamine.base.entity.UnPlatDepartment;
-import com.unique.unexamine.base.entity.UnPlatMember;
-import com.unique.unexamine.base.mapper.UnPlatAccountMapper;
-import com.unique.unexamine.base.mapper.UnPlatConfigMapper;
-import com.unique.unexamine.base.mapper.UnPlatDepartmentMapper;
-import com.unique.unexamine.base.mapper.UnPlatMemberMapper;
 import com.unique.unexamine.manage.common.SessionAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

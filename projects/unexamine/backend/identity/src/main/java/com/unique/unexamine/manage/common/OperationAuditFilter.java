@@ -1,11 +1,12 @@
 package com.unique.unexamine.manage.common;
 
-import com.unique.unexamine.base.entity.UnPlatLogOpt;
-import com.unique.unexamine.base.entity.UnSysLogOpt;
-import com.unique.unexamine.base.entity.UnSysMember;
-import com.unique.unexamine.base.mapper.UnPlatLogOptMapper;
-import com.unique.unexamine.base.mapper.UnSysLogOptMapper;
-import com.unique.unexamine.base.mapper.UnSysMemberMapper;
+import com.unique.unexamine.identity.base.entity.UnPlatLogOpt;
+import com.unique.unexamine.identity.base.entity.UnSysLogOpt;
+import com.unique.unexamine.identity.base.entity.UnSysMember;
+import com.unique.unexamine.identity.base.mapper.UnPlatLogOptMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysLogOptMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysMemberMapper;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

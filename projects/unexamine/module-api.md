@@ -1,6 +1,6 @@
 # 模块域后端接口契约
 
-本文按当前 `manage/module` 控制器实现整理，供前端直接接入。模块域现有 **70 个路由**：模块配置 27、记录 6、场景 6、辅助配置 31。路径表以 `/api/modules` 为前缀；表内「根路径」即 `/api/modules`，`{moduleId}`、`{recordId}` 等为实际 ID。
+本文按当前 `manage/module` 控制器实现整理，供前端直接接入。模块配置、记录、场景和辅助配置分别由所属 Controller 处理；审批与流程绑定入口保留 `/api/modules` 路径，但分别由审批域和流程域实现。路径表以 `/api/modules` 为前缀；表内「根路径」即 `/api/modules`，`{moduleId}`、`{recordId}` 等为实际 ID。
 
 ## 通用约定
 
@@ -155,22 +155,9 @@
 
 `RelationConfigForm = {code,name,targetModuleId,direction?,mapping?}`；`direction=forward|both`，默认 `forward`。`mapping` 当前作为 JSON 配置存储，建立关联时不执行自动字段映射。`RelationForm = {configId,targetRecordId}`。`TeamerForm = {memberId,roleCode}`，`roleCode=viewer|editor|manager`；三者均可读记录，`editor/manager` 可修改记录，团队配置本身仅管理员可写。
 
-## 7. 审批和流程绑定
+## 7. 审批和流程集成入口
 
-先配置 `examine` 或 `flow` 类型动作，再绑定同租户已启用的定义。绑定接口只管理模块与定义的关系，实际运行由审批/流程接口完成。
-
-| 方法 | 路径 | 请求体 | 返回 | 用途 |
-| --- | --- | --- | --- | --- |
-| GET | `/{moduleId}/examine-bindings` | — | `UnModuleExamine[]` | 有效审批绑定 |
-| POST | `/{moduleId}/examine-bindings` | `BindingForm` | `UnModuleExamine` | 管理员绑定审批定义 |
-| PUT | `/{moduleId}/examine-bindings/{id}` | `BindingForm` | `UnModuleExamine` | 管理员更新定义或触发动作，编码不变 |
-| DELETE | `/{moduleId}/examine-bindings/{id}` | — | 空 | 管理员停用绑定 |
-| GET | `/{moduleId}/flow-bindings` | — | `UnModuleFlow[]` | 有效流程绑定 |
-| POST | `/{moduleId}/flow-bindings` | `BindingForm` | `UnModuleFlow` | 管理员绑定已发布启用的流程定义 |
-| PUT | `/{moduleId}/flow-bindings/{id}` | `BindingForm` | `UnModuleFlow` | 管理员更新定义或触发动作，编码不变 |
-| DELETE | `/{moduleId}/flow-bindings/{id}` | — | 空 | 管理员停用绑定 |
-
-`BindingForm = {code,definitionId,actionCode}`。审批绑定返回实体中的定义 ID 字段为 `examineId`，流程绑定为 `flowId`；两者都有 `bindingCode/startActionCode/status`。流程定义还必须有已发布的 `currentVersionId`。
+模块域配置 `examine` 或 `flow` 类型动作。绑定接口保留 `/api/modules/{moduleId}` 地址供前端使用，定义状态校验和绑定写入分别归 [审批域](examine-api.md) 与 [流程域](flow-api.md)；模块域不依赖这两个下游模块。
 
 ## 返回实体的常用字段
 

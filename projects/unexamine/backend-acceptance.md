@@ -11,6 +11,8 @@
 
 ## 业务模块重整后的验证（2026-10-19）
 
+此节记录上一次 Controller 与构建目录拆分。当时 94 张表的 Entity/Mapper 仍集中在 `foundation`，所以这些请求结果**不能证明持久化代码已按业务模块归属**。该边界错误在下一节修正并重新验证。
+
 - 后端已从单个 Maven 产物拆成 `foundation`、九个业务模块和 `server`；只有 `server` 启动 9999 服务。模块域按目录、字段/表单、查询表头、场景、记录、动作规则、关联、团队和绑定拆开；流程域按定义与绑定、实例与待办、定时与异常拆开。模块记录保存只依赖 `ModuleRecordFlowTrigger`，流程模块提供实现。
 - MyBatis-Plus 生成器按更新的 `base-codegen.json` 从 `unexamine_r15` 的 94 张原名表重新生成 `foundation` 的 Entity/Mapper。JDK 21 `mvn -q -f projects/unexamine/backend/pom.xml clean package` 通过，启动 `server/target/unexamine-server-0.1.0.jar` 后监听 9999。
 - 同一系统会话下实际访问身份租户列表、模块目录/表单/表头/场景/金额升序记录列表、流程定义/待办、审批定义/待办、工作项目、数据源、仪表盘、KPI、打印列表、公共文件及应用列表，共 17 个读取入口，均返回 200。
@@ -18,6 +20,15 @@
 - 无效记录排序字段返回 400，未登录访问记录列表返回 401，已登录访问未所属租户返回 403。原模块 70 条、流程 19 条路由在拆分前后逐项核对，没有缺失或重复。
 - 审批域再按定义配置和实例处理拆开，原 15 条路由及事务注解逐项一致；重新 `clean package` 并启动新 jar 后，定义列表/分组/详情、待办、历史以及模块记录与流程实例入口仍返回 200。实际从模块 2 的记录 3 发起审批实例 8，返回 `PENDING`，历史读取 200，数据库存在该实例和 1 条节点记录。
 - 上述是本次模块重整的回归验证。其他业务域的深层操作仍以本文件既有逐项记录为准，尚未由用户完成后端验收；前端未启动。
+
+## 生成代码按业务归属后的验证（2026-10-19）
+
+- `base-codegen.json` 现在逐表指定业务模块；从同一 `unexamine_r15` 数据库重新生成 94 个 Entity 和 94 个 Mapper。按模块的生成类数分别为：`identity` 52、`commonresource` 6、`module` 38、`flow` 26、`examine` 24、`work` 20、`data` 16、`print` 2、`app` 4；`foundation` 为 0。源码中旧的 `com.unique.unexamine.base.entity/mapper` 引用为 0。
+- 编译暴露并修复了先前被公共生成包掩盖的反向依赖：模块绑定入口移到 `flow`、`examine`，`un_module_flow` 与 `un_module_examine` 的生成代码也分别由这两个模块持有；原 `/api/modules/{moduleId}/...-bindings` 路径保留，`module` 不再引用流程或审批的 Entity/Mapper。
+- JDK 21 从清空输出目录开始执行 `mvn -q -f projects/unexamine/backend/pom.xml clean package` 成功，`-pl module -am test` 也独立通过；新 jar 启动后监听 9999。同一系统会话实际访问身份、模块配置与列表、两种绑定、流程、审批、工作、数据源、仪表盘、KPI、打印、公共文件和应用共 19 个读取入口，均返回 200。
+- 新建模块 1 的记录 9，查询到 2 条关联流程实例；从模块 2 的记录 3 发起审批实例 9，返回 `PENDING`。MySQL 直接核对：库中 94 张表、记录 9 一条、关联流程实例两条、审批实例 9 一条。无效排序返回 400，跨租户读取返回 403。
+- 运行文件目录从与 `data` 业务模块重名的目录分离到 `backend/runtime/uploads`。新 jar 真实上传文件 2 返回 200，下载内容 SHA-256 与原文件一致；删除返回 200 后，运行目录文件数为 0，数据库该文件行数为 0。移动前旧上传目录为空、数据库无保留文件记录，因此无需文件迁移。
+- 本节验证了生成代码归属、单向编译依赖及代表性跨模块运行链；后端全部业务操作与用户验收仍在进行，前端未开始。
 
 ## 已执行的 HTTP 与持久化验证
 

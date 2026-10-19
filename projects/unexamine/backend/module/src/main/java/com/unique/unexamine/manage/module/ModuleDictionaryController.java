@@ -1,8 +1,10 @@
 package com.unique.unexamine.manage.module;
 
+import com.unique.unexamine.module.base.entity.UnModule;
+import com.unique.unexamine.module.base.entity.UnModuleDict;
+import com.unique.unexamine.module.base.mapper.UnModuleDictMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.*;
-import com.unique.unexamine.base.mapper.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

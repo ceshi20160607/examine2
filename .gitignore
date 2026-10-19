@@ -13,4 +13,4 @@ test-results/
 __pycache__/
 *.pyc
 projects/unexamine/data/
-projects/unexamine/backend/data/uploads/
+projects/unexamine/backend/runtime/

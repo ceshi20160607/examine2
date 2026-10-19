@@ -26,6 +26,19 @@
 | `POST /examples/{exampleId}/exceptions/{exceptionId}/resolve` | `{ "handleRemark": "已人工跟进" }` | 管理员将异常 `OPEN` 置为 `RESOLVED`；同一处置重试返回原记录 |
 | `GET /examples/{exampleId}` | 无 | `{ example, tasks, actions, events, jobs, exceptions }`，实例和完整事件历史 |
 
+## 与模块的流程绑定
+
+模块先配置 `flow` 类型动作。以下入口保留原 `/api/modules/{moduleId}` 地址，由流程域校验发布定义并维护 `un_module_flow`；读取要求有效租户成员，写入要求租户管理员。
+
+| 方法与路径 | 请求关键字段 | 返回及用途 |
+| --- | --- | --- |
+| `GET /api/modules/{moduleId}/flow-bindings?tenantId={tenantId}` | 无 | 有效 `UnModuleFlow[]` |
+| `POST /api/modules/{moduleId}/flow-bindings?tenantId={tenantId}` | `{code,definitionId,actionCode}` | 绑定同租户已发布启用的流程；返回 `UnModuleFlow` |
+| `PUT /api/modules/{moduleId}/flow-bindings/{id}?tenantId={tenantId}` | `{code,definitionId,actionCode}` | 更新定义或动作，绑定编码不可改 |
+| `DELETE /api/modules/{moduleId}/flow-bindings/{id}?tenantId={tenantId}` | 无 | 停用绑定，保留历史 |
+
+编码须符合模块编码规则且不能重复；`actionCode` 必须指向当前模块启用的 `flow` 类型动作。返回实体中的定义主键为 `flowId`，另含 `bindingCode/startActionCode/status`。
+
 `nodes[]` 的字段为 `nodeKey/name/nodeType/assigneeType/assigneeId/sortNum`。节点类型只支持 `START/TASK/END`；`TASK` 的处理人来源只支持 `STARTER/MEMBER/ROLE`。`MEMBER` 的 `assigneeId` 是系统成员主键；`ROLE` 的 `assigneeId` 是同租户启用角色主键。角色在发布时必须有有效成员，运行到节点时重新解析有效成员；多人候选中首个处理人完成任务，其余待办取消。
 
 `edges[]` 的字段为 `sourceNodeKey/targetNodeKey/conditionRule/sortNum`。每个非结束节点必须有且只有一条空 `conditionRule` 的默认连线，条件线按 `sortNum` 升序尝试。规则是**字符串形式的 JSON**，例如：

@@ -26,7 +26,18 @@
 
 `timeoutMinutes` 与 `timeoutAction` 须同时填写；当前动作只支持 `PASS` 和 `TRANSFER`，时长 1 至 525600 分钟。超时以**当前实例节点的 `startTime`** 计算。`PASS` 自动结束当前节点并取消原待办；`TRANSFER` 只支持当前节点一名待处理人，目标须是同租户其他有效成员。重复触发返回 409。当前没有后台定时调度和通知投递，需显式调用超时接口；`REMIND` 不可配置。手动转办仅允许当前待办人执行，表结构没有手动转办开关。审批条件节点与 `conditionRule` 尚不能启用。
 
-模块需先有 `examine` 类型操作，再通过 `POST /api/modules/{moduleId}/examine-bindings?tenantId={tenantId}` 绑定：`{ "code": "唯一绑定编码", "definitionId": 审批ID, "actionCode": "操作编码" }`。
+## 与模块的审批绑定
+
+模块先配置 `examine` 类型动作。以下入口保留原 `/api/modules/{moduleId}` 地址，由审批域校验启用定义并维护 `un_module_examine`；读取要求有效租户成员，写入要求租户管理员。
+
+| 方法与路径 | 请求关键字段 | 返回及用途 |
+| --- | --- | --- |
+| `GET /api/modules/{moduleId}/examine-bindings?tenantId={tenantId}` | 无 | 有效 `UnModuleExamine[]` |
+| `POST /api/modules/{moduleId}/examine-bindings?tenantId={tenantId}` | `{code,definitionId,actionCode}` | 绑定同租户已启用的审批；返回 `UnModuleExamine` |
+| `PUT /api/modules/{moduleId}/examine-bindings/{id}?tenantId={tenantId}` | `{code,definitionId,actionCode}` | 更新定义或动作，绑定编码不可改 |
+| `DELETE /api/modules/{moduleId}/examine-bindings/{id}?tenantId={tenantId}` | 无 | 停用绑定，保留历史 |
+
+编码须符合模块编码规则且不能重复；`actionCode` 必须指向当前模块启用的 `examine` 类型动作。返回实体中的定义主键为 `examineId`，另含 `bindingCode/startActionCode/status`。
 
 ## 错误与状态
 

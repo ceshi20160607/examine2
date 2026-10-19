@@ -1,8 +1,20 @@
 package com.unique.unexamine.manage.module;
 
+import com.unique.unexamine.identity.base.entity.UnSysDepartment;
+import com.unique.unexamine.identity.base.entity.UnSysMemberRole;
+import com.unique.unexamine.identity.base.entity.UnSysRole;
+import com.unique.unexamine.identity.base.entity.UnSysRoleData;
+import com.unique.unexamine.identity.base.entity.UnSysTenantMember;
+import com.unique.unexamine.identity.base.mapper.UnSysDepartmentMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysMemberRoleMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysRoleDataMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysRoleMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysTenantMemberMapper;
+import com.unique.unexamine.module.base.entity.UnModuleRecord;
+import com.unique.unexamine.module.base.entity.UnModuleTeamer;
+import com.unique.unexamine.module.base.mapper.UnModuleTeamerMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.*;
-import com.unique.unexamine.base.mapper.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

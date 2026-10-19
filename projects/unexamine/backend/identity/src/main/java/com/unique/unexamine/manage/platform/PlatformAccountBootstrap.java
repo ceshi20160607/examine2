@@ -1,14 +1,15 @@
 package com.unique.unexamine.manage.platform;
 
+import com.unique.unexamine.identity.base.entity.UnPlatAccount;
+import com.unique.unexamine.identity.base.entity.UnPlatMember;
+import com.unique.unexamine.identity.base.entity.UnPlatMemberRole;
+import com.unique.unexamine.identity.base.entity.UnPlatRole;
+import com.unique.unexamine.identity.base.mapper.UnPlatAccountMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatMemberRoleMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatRoleMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.UnPlatAccount;
-import com.unique.unexamine.base.entity.UnPlatMember;
-import com.unique.unexamine.base.entity.UnPlatMemberRole;
-import com.unique.unexamine.base.entity.UnPlatRole;
-import com.unique.unexamine.base.mapper.UnPlatAccountMapper;
-import com.unique.unexamine.base.mapper.UnPlatMemberMapper;
-import com.unique.unexamine.base.mapper.UnPlatMemberRoleMapper;
-import com.unique.unexamine.base.mapper.UnPlatRoleMapper;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

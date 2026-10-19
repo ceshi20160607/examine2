@@ -1,16 +1,17 @@
 package com.unique.unexamine.manage.system;
 
+import com.unique.unexamine.identity.base.entity.UnSysDepartment;
+import com.unique.unexamine.identity.base.entity.UnSysMember;
+import com.unique.unexamine.identity.base.entity.UnSysTenant;
+import com.unique.unexamine.identity.base.entity.UnSysTenantMember;
+import com.unique.unexamine.identity.base.mapper.UnSysDepartmentMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysMemberMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysTenantMapper;
+import com.unique.unexamine.identity.base.mapper.UnSysTenantMemberMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.unique.unexamine.base.entity.UnSysDepartment;
-import com.unique.unexamine.base.entity.UnSysMember;
-import com.unique.unexamine.base.entity.UnSysTenant;
-import com.unique.unexamine.base.entity.UnSysTenantMember;
-import com.unique.unexamine.base.mapper.UnSysDepartmentMapper;
-import com.unique.unexamine.base.mapper.UnSysMemberMapper;
-import com.unique.unexamine.base.mapper.UnSysTenantMapper;
-import com.unique.unexamine.base.mapper.UnSysTenantMemberMapper;
 import com.unique.unexamine.manage.common.SessionAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

@@ -1,8 +1,11 @@
 package com.unique.unexamine.manage.module;
 
+import com.unique.unexamine.module.base.entity.UnModuleFieldSort;
+import com.unique.unexamine.module.base.entity.UnModuleQueryField;
+import com.unique.unexamine.module.base.mapper.UnModuleFieldSortMapper;
+import com.unique.unexamine.module.base.mapper.UnModuleQueryFieldMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.*;
-import com.unique.unexamine.base.mapper.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

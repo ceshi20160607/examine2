@@ -1,10 +1,11 @@
 package com.unique.unexamine.manage.platform;
 
+import com.unique.unexamine.identity.base.entity.UnPlatAccount;
+import com.unique.unexamine.identity.base.entity.UnPlatLogLogin;
+import com.unique.unexamine.identity.base.mapper.UnPlatAccountMapper;
+import com.unique.unexamine.identity.base.mapper.UnPlatLogLoginMapper;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.base.entity.UnPlatAccount;
-import com.unique.unexamine.base.entity.UnPlatLogLogin;
-import com.unique.unexamine.base.mapper.UnPlatAccountMapper;
-import com.unique.unexamine.base.mapper.UnPlatLogLoginMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;

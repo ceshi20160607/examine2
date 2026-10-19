@@ -6,15 +6,15 @@
 | --- | --- | --- | --- |
 | `identity` 平台与系统租户 | `un_plat_*` 12、`un_sys_*` 14 | 平台开通系统和租户；成员登录、组织、角色、菜单、数据范围；平台及系统消息和日志 | `/api/platform/**`、`/api/system/**`、平台与租户消息/日志 |
 | `commonresource` 公共资源 | `un_common_*` 3 | 按平台、系统或租户范围上传文件、发布公告、保存 AI 配置 | `/api/common/**` |
-| `module` 可配置业务模块 | `un_module_*` 21 | 管理员定义字段、表单、查询字段、表头、动作和关联；成员保存记录、使用场景、查看历史 | `/api/modules/**` |
-| `flow` 通用流程 | `un_flow*` 12 | 定义草稿、发布版本、绑定模块事件；自动或手动发起实例、处理待办、定时和异常 | `/api/tenants/{tenantId}/flows/**` |
-| `examine` 审批 | `un_examine*` 11 | 配置审批及人员、节点与规则；从模块记录发起独立审批，处理和查看历史 | `/api/tenants/{tenantId}/examines/**` |
+| `module` 可配置业务模块 | `un_module*` 中 19 张 | 管理员定义字段、表单、查询字段、表头、动作和关联；成员保存记录、使用场景、查看历史 | `/api/modules/**` |
+| `flow` 通用流程 | `un_flow*` 12、`un_module_flow` 1 | 定义草稿、发布版本、绑定模块事件；自动或手动发起实例、处理待办、定时和异常 | `/api/tenants/{tenantId}/flows/**`、`/api/modules/{moduleId}/flow-bindings/**` |
+| `examine` 审批 | `un_examine*` 11、`un_module_examine` 1 | 配置审批及人员、节点与规则；从模块记录发起独立审批，处理和查看历史 | `/api/tenants/{tenantId}/examines/**`、`/api/modules/{moduleId}/examine-bindings/**` |
 | `work` 工作协作 | `un_work_*` 10 | 建项目、任务组和任务，协作处理、记历史、填写和评论日报 | `/api/tenants/{tenantId}/work/**` |
 | `data` 数据展示 | `un_data_source*`、`un_dashboard*`、`un_kpi*` 共 8 | 以有权限的模块记录为数据源，保存仪表盘和 KPI，并返回实际统计值 | `/api/tenants/{tenantId}/data-sources/**`、`dashboards/**`、`kpis/**` |
 | `print` 打印 | `un_print` 1 | 保存模板，并把当前成员有权读取的模块记录代入模板 | `/api/tenants/{tenantId}/prints/**` |
 | `app` 应用接入 | `un_app*` 2 | 创建和轮换应用密钥，验证应用身份，维护事件订阅配置 | `/api/apps/**` |
 
-表数为 `26 + 3 + 21 + 12 + 11 + 10 + 8 + 1 + 2 = 94`。`foundation` 只放按这 94 张表生成的 Entity/Mapper，以及分页、数据库冲突等通用设施；`server` 只组合业务模块并启动服务。`identity` 承担会话、租户身份和操作审计，其他业务模块不自行判断客户端传来的身份。
+表数为 `26 + 3 + 19 + 13 + 12 + 10 + 8 + 1 + 2 = 94`。每张表的 Entity/Mapper 由自己的业务模块生成并编译；`foundation` 没有业务表和业务判断，只放分页、数据库冲突等通用设施；`server` 只组合业务模块并启动服务。`identity` 承担会话、租户身份和操作审计，其他业务模块不自行判断客户端传来的身份。
 
 `identity` 内部仍分别有 `platform` 与 `system` 代码目录：前者负责平台账号与授权，后者负责业务系统、租户成员与授权；开通入口供平台管理员使用。两者共同维护同一条开通和登录链，底层会话校验只实现一次。
 
@@ -32,9 +32,10 @@
 | 模块目录、菜单、字典与动作规则 | `un_module_group`、`un_module`、`un_module_dict`、`un_module_menu`、`un_module_action`、`un_module_rule` |
 | 模块字段、表单、查询和租户覆盖 | `un_module_field`、`un_module_query_field`、`un_module_tenant`、`un_module_tenant_field`、`un_module_field_sort` |
 | 模块记录、字段值、场景、协作、关联与变动 | `un_module_record`、`un_module_record_data`、`un_module_scence`、`un_module_scence_config`、`un_module_teamer`、`un_module_relation`、`un_module_relation_config`、`un_module_log` |
-| 模块对审批与流程的显式配置关联 | `un_module_examine`、`un_module_flow` |
+| 流程与模块的显式配置关联 | `un_module_flow` |
 | 流程草稿、连线、发布版本和触发绑定 | `un_flow`、`un_flow_node`、`un_flow_edge`、`un_flow_version`、`un_flow_binding` |
 | 流程实例、待办、动作、事件、异常与定时 | `un_flow_example`、`un_flow_task`、`un_flow_task_candidate`、`un_flow_action`、`un_flow_exception`、`un_flow_event`、`un_flow_job` |
+| 审批与模块的显式配置关联 | `un_module_examine` |
 | 审批定义、分组、高级配置、审批人和节点 | `un_examine`、`un_examine_group`、`un_examine_config`、`un_examine_config_user`、`un_examine_node`、`un_examine_node_field`、`un_examine_node_user` |
 | 审批实例、逐节点处理人与异常 | `un_examine_example`、`un_examine_example_node`、`un_examine_example_node_user`、`un_examine_exception` |
 | 工作项目、成员、任务组、任务、字段和协作历史 | `un_work_project`、`un_work_project_member`、`un_work_task_group`、`un_work_task`、`un_work_task_field`、`un_work_task_member`、`un_work_task_history` |
@@ -43,7 +44,7 @@
 | KPI 定义与个人目标 | `un_kpi`、`un_kpi_user` |
 | 打印模板与应用身份、订阅配置 | `un_print`、`un_app`、`un_app_event` |
 
-`un_module_examine` 与 `un_module_flow` 是模块侧绑定配置，审批运行写 `un_examine*`，流程运行写 `un_flow*`。数据展示和打印只读取模块域允许当前成员查看的记录；应用订阅目前只保存配置，未发生实际事件投递。
+`un_module_examine` 与 `un_module_flow` 虽以 `un_module` 开头，实际写入必须校验对应审批/流程定义，因此分别由 `examine`、`flow` 持有生成代码和绑定接口；原 URL 保持 `/api/modules/{moduleId}/...-bindings`。模块域无需反向依赖审批或流程。数据展示和打印只读取模块域允许当前成员查看的记录；应用订阅目前只保存配置，未发生实际事件投递。
 
 ## 业务旅程和依赖
 

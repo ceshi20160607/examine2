@@ -26,20 +26,25 @@ public final class BaseCodeGenerator {
         Path configFile = Path.of(args[0]).toAbsolutePath().normalize();
         Path projectRoot = configFile.getParent();
         Config config = new ObjectMapper().readValue(configFile.toFile(), Config.class);
-        if (config.sourceRoot() == null || config.basePackage() == null
-                || !config.basePackage().matches("[a-z][a-z0-9_.]+")
-                || config.databaseUrl() == null || config.databaseUsername() == null
-                || config.tables() == null || config.tables().isEmpty()) {
-            throw new IllegalArgumentException("生成配置缺少源码目录、包名、数据库或表名");
-        }
-        Path sourceRoot = projectRoot.resolve(config.sourceRoot()).normalize();
-        if (!sourceRoot.startsWith(projectRoot) || !Files.isDirectory(sourceRoot)) {
-            throw new IllegalArgumentException("源码目录必须已存在且位于项目内");
+        if (config.databaseUrl() == null || config.databaseUsername() == null
+                || config.targets() == null || config.targets().isEmpty()) {
+            throw new IllegalArgumentException("生成配置缺少数据库或业务模块");
         }
         Set<String> tableNames = new HashSet<>();
-        for (String table : config.tables()) {
-            if (table == null || !table.matches("un_[a-z0-9_]+") || !tableNames.add(table)) {
-                throw new IllegalArgumentException("表名无效或重复: " + table);
+        for (Target target : config.targets()) {
+            if (target.sourceRoot() == null || target.basePackage() == null
+                    || !target.basePackage().matches("[a-z][a-z0-9_.]+")
+                    || target.tables() == null || target.tables().isEmpty()) {
+                throw new IllegalArgumentException("业务模块缺少源码目录、包名或表名");
+            }
+            Path sourceRoot = projectRoot.resolve(target.sourceRoot()).normalize();
+            if (!sourceRoot.startsWith(projectRoot) || !Files.isDirectory(sourceRoot)) {
+                throw new IllegalArgumentException("源码目录必须已存在且位于项目内");
+            }
+            for (String table : target.tables()) {
+                if (table == null || !table.matches("un_[a-z0-9_]+") || !tableNames.add(table)) {
+                    throw new IllegalArgumentException("表名无效或跨模块重复: " + table);
+                }
             }
         }
         String url = envOrDefault("APP_DB_URL", config.databaseUrl());
@@ -58,37 +63,43 @@ public final class BaseCodeGenerator {
                 }
             }
             if (!actual.containsAll(tableNames)) {
-                tableNames.removeAll(actual);
-                throw new IllegalStateException("数据库中缺少原名表: " + tableNames);
+                Set<String> missing = new HashSet<>(tableNames);
+                missing.removeAll(actual);
+                throw new IllegalStateException("数据库中缺少原名表: " + missing);
             }
         }
 
-        FastAutoGenerator.create(url, username, password)
-                .globalConfig(builder -> builder
-                        .author("Template Base")
-                        .disableOpenDir()
-                        .outputDir(sourceRoot.toString())
-                        .dateType(DateType.TIME_PACK))
-                .packageConfig(builder -> builder
-                        .parent(config.basePackage())
-                        .entity("entity")
-                        .mapper("mapper"))
-                .strategyConfig(builder -> {
-                    builder.disableSqlFilter().addInclude(config.tables());
-                    builder.entityBuilder()
-                            .enableTableFieldAnnotation()
-                            .toString(false)
-                            .enableFileOverride();
-                    builder.mapperBuilder()
-                            .enableMapperAnnotation()
-                            .disableMapperXml()
-                            .enableFileOverride();
-                    builder.serviceBuilder().disable();
-                    builder.controllerBuilder().disable();
-                })
-                .templateEngine(new FreemarkerTemplateEngine())
-                .execute();
-        System.out.printf("已从 %d 张原名表生成 Entity 和 Mapper%n", config.tables().size());
+        // 一张表只归一个业务模块；生成器不把全产品的持久化代码合并到公共模块。
+        for (Target target : config.targets()) {
+            Path sourceRoot = projectRoot.resolve(target.sourceRoot()).normalize();
+            FastAutoGenerator.create(url, username, password)
+                    .globalConfig(builder -> builder
+                            .author("Template Base")
+                            .disableOpenDir()
+                            .outputDir(sourceRoot.toString())
+                            .dateType(DateType.TIME_PACK))
+                    .packageConfig(builder -> builder
+                            .parent(target.basePackage())
+                            .entity("entity")
+                            .mapper("mapper"))
+                    .strategyConfig(builder -> {
+                        builder.disableSqlFilter().addInclude(target.tables());
+                        builder.entityBuilder()
+                                .enableTableFieldAnnotation()
+                                .toString(false)
+                                .enableFileOverride();
+                        builder.mapperBuilder()
+                                .enableMapperAnnotation()
+                                .disableMapperXml()
+                                .enableFileOverride();
+                        builder.serviceBuilder().disable();
+                        builder.controllerBuilder().disable();
+                    })
+                    .templateEngine(new FreemarkerTemplateEngine())
+                    .execute();
+            System.out.printf("%s：生成 %d 张表的 Entity 和 Mapper%n",
+                    target.basePackage(), target.tables().size());
+        }
     }
 
     /** 本地环境变量可覆盖项目里的数据库地址和账号。 */
@@ -97,12 +108,18 @@ public final class BaseCodeGenerator {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    /** 项目本地配置仅列出已落地的原名业务表，数据库密码由环境变量提供。 */
+    /** 项目本地配置按业务模块声明表归属，数据库密码由环境变量提供。 */
     public record Config(
-            String sourceRoot,
-            String basePackage,
             String databaseUrl,
             String databaseUsername,
+            List<Target> targets
+    ) {
+    }
+
+    /** 每个目标目录只承载本业务模块拥有的表。 */
+    public record Target(
+            String sourceRoot,
+            String basePackage,
             List<String> tables
     ) {
     }

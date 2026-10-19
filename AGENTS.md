@@ -7,7 +7,7 @@
 
 # 开发规约
 
-- 先看需求原文与 `projects/unexamine/ai/planning/rebuild-plan.md`，按当前业务旅程设计必要表，再通过 `db-prepare` 和 `template_base/mybatis-plus-generator` 生成 `base`，业务代码写入 `manage`，最后实现真实页面并验收。当前生成目录为 `projects/unexamine/backend/foundation/src/main/java`。
+- 先看需求原文与 `projects/unexamine/ai/planning/rebuild-plan.md`，按当前业务旅程设计必要表，再通过 `db-prepare` 和 `template_base/mybatis-plus-generator` 生成各业务模块自己的 `base`，业务代码写在同一模块的 `manage`，最后实现真实页面并验收。表到源码目录的归属以 `projects/unexamine/base-codegen.json` 为准；`foundation` 不放业务表的 Entity/Mapper。
 - 后端按 `projects/unexamine/business-modules.md` 的业务所有权放入 Maven 子模块，由 `server` 组合成一个服务。简单 CRUD 不增加无用层，只在真实跨模块调用时建立最小接口。
 - 不为尚未实施的能力预建表或多余抽象。每批工作围绕一个可观察结果，估算不超过 240 分钟；前置依赖、共享迁移和测试资源保持串行。
 - 新建和修改的表及所有字段必须有中文备注；复杂 SQL 和迁移说明用途。数据库时间列用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移方案，不直接删表重建。
