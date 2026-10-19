@@ -3,7 +3,7 @@
 - 先读 `docs/表意义.md`，其 94 个原始表名和用途是数据模型依据；`docs/user_requirement.md` 只整理对应的基础业务。两者冲突时以《表意义.md》为准。
 - `docs/old_table1.sql` 是旧字段参数与审批逻辑参考，含删表和旧数据语句，不得执行；缺失字段按当前需求与目标补全。
 - `template_base/mybatis-plus-generator/` 是通用 Base 生成器；`template_base/agents/` 和 `template_base/rules/` 是简短开发参考；`projects/unexamine/` 是当前产品。旧提交和标签只用于恢复，不复用旧需求、设计和代码作为本轮实现。
-- 后端先完成全部基础接口并由用户验收，再开发前端；后端端口 9999，复用本机 MySQL 3306 和 Redis 6379。历史项目库获准清理，只保留新建项目库；不删 MySQL 系统库。
+- 后端先完成全部基础接口并由用户验收，再开发前端；后端端口 9999，复用本机 MySQL 3306 和 Redis 6379，当前产品库为 `unexamine_r15`。历史项目库获准清理，只保留新建项目库；不删 MySQL 系统库。
 
 # 开发规约
 
@@ -14,3 +14,9 @@
 - Java 类、方法、业务字段和关键逻辑有适当中文注释，解释业务含义和限制。
 - 优先用现有模块结构；简单 CRUD 不额外封装。数据库表落地后用生成器产生 Entity 和 Mapper；业务逻辑写在 `manage`，页面调用真实后端。
 - 每个功能验证页面行为、持久化、授权和失败结果；交付前运行相关编译与测试，并说明真实进度。
+
+# 当前接续
+
+- 重开会话先读 `projects/unexamine/ai/planning/rebuild-plan.md` 和 `rebuild-state.json`，运行 `python template_base/tools/tb.py project-status --workspace workspace.json`。
+- 实施步骤前运行 `python template_base/tools/tb.py execution-context --workspace workspace.json`；真实验证后才调用 `execution-verify`，证据写入 `projects/unexamine/backend-acceptance.md`。
+- 后端尚待用户验收，断点保持进行中；前端不提前开发。

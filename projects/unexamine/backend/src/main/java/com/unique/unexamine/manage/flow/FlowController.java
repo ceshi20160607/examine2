@@ -11,21 +11,31 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.math.BigDecimal;
 
 /** 租户流程草稿、发布和人工任务入口；发布后的版本及事件只追加。 */
 @RestController
+@EnableScheduling
 @RequestMapping("/api/tenants/{tenantId}/flows")
 public class FlowController {
+    private static final Logger log = LoggerFactory.getLogger(FlowController.class);
     private final SessionAccess access;
     private final UnFlowMapper flows;
     private final UnFlowNodeMapper nodes;
@@ -36,19 +46,25 @@ public class FlowController {
     private final UnFlowTaskCandidateMapper candidates;
     private final UnFlowActionMapper actions;
     private final UnFlowEventMapper events;
+    private final UnFlowBindingMapper bindings;
+    private final UnFlowJobMapper jobs;
+    private final UnFlowExceptionMapper exceptions;
     private final UnModuleRecordMapper records;
     private final UnSysTenantMemberMapper tenantMembers;
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     private final ModuleRecordAccess recordAccess;
+    private final TransactionTemplate transactions;
 
     public FlowController(SessionAccess access, UnFlowMapper flows, UnFlowNodeMapper nodes,
                           UnFlowEdgeMapper edges, UnFlowVersionMapper versions,
                           UnFlowExampleMapper examples, UnFlowTaskMapper tasks,
                           UnFlowTaskCandidateMapper candidates, UnFlowActionMapper actions,
-                          UnFlowEventMapper events, UnModuleRecordMapper records,
+                          UnFlowEventMapper events, UnFlowBindingMapper bindings,
+                          UnFlowJobMapper jobs, UnFlowExceptionMapper exceptions,
+                          UnModuleRecordMapper records,
                           UnSysTenantMemberMapper tenantMembers, JdbcTemplate jdbc, ObjectMapper json,
-                          ModuleRecordAccess recordAccess) {
+                          ModuleRecordAccess recordAccess, PlatformTransactionManager transactionManager) {
         this.access = access;
         this.flows = flows;
         this.nodes = nodes;
@@ -59,11 +75,15 @@ public class FlowController {
         this.candidates = candidates;
         this.actions = actions;
         this.events = events;
+        this.bindings = bindings;
+        this.jobs = jobs;
+        this.exceptions = exceptions;
         this.records = records;
         this.tenantMembers = tenantMembers;
         this.jdbc = jdbc;
         this.json = json;
         this.recordAccess = recordAccess;
+        this.transactions = new TransactionTemplate(transactionManager);
     }
 
     /** 列出当前租户的流程，不返回其他租户的定义。 */
@@ -194,7 +214,151 @@ public class FlowController {
         return flow;
     }
 
-    /** 从发布版本启动实例，关联业务记录时只核对记录的租户和模块归属。 */
+    /** 自动触发绑定固定发布版本；仅模块记录成功创建或更新后由模块域调用。 */
+    @GetMapping("/bindings")
+    public List<UnFlowBinding> bindingList(@PathVariable long tenantId,
+                                           @RequestParam(required = false) Long moduleId, HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        LambdaQueryWrapper<UnFlowBinding> query = new LambdaQueryWrapper<UnFlowBinding>()
+                .eq(UnFlowBinding::getTenantId, tenantId).orderByAsc(UnFlowBinding::getId);
+        if (moduleId != null) query.eq(UnFlowBinding::getModuleId, moduleId);
+        return bindings.selectList(query);
+    }
+
+    @PostMapping("/bindings")
+    @Transactional
+    public UnFlowBinding bind(@PathVariable long tenantId, @Valid @RequestBody BindingInput body,
+                              HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        if (!Set.of("CREATE", "UPDATE").contains(body.triggerEvent())) bad("自动触发事件只支持 CREATE 或 UPDATE");
+        requireModule(tenantId, body.moduleId());
+        UnFlow flow = flowInTenant(tenantId, body.flowId());
+        if (!"ENABLED".equals(flow.getStatus()) || flow.getCurrentVersionId() == null) conflict("流程尚未发布或已停用");
+        if (bindings.selectCount(new LambdaQueryWrapper<UnFlowBinding>()
+                .eq(UnFlowBinding::getTenantId, tenantId).eq(UnFlowBinding::getModuleId, body.moduleId())
+                .eq(UnFlowBinding::getFlowId, body.flowId()).eq(UnFlowBinding::getTriggerEvent, body.triggerEvent())) > 0)
+            conflict("相同模块、流程和触发事件的绑定已存在");
+        UnFlowBinding binding = new UnFlowBinding();
+        binding.setTenantId(tenantId);
+        binding.setModuleId(body.moduleId());
+        binding.setFlowId(body.flowId());
+        binding.setVersionId(flow.getCurrentVersionId());
+        binding.setTriggerEvent(body.triggerEvent());
+        binding.setStatus("ENABLED");
+        bindings.insert(binding);
+        return bindings.selectById(binding.getId());
+    }
+
+    @PutMapping("/bindings/{bindingId}/status")
+    @Transactional
+    public UnFlowBinding bindingStatus(@PathVariable long tenantId, @PathVariable long bindingId,
+                                       @Valid @RequestBody BindingStatusInput body, HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        UnFlowBinding binding = lockBinding(tenantId, bindingId);
+        if (body.enabled()) {
+            requireModule(tenantId, binding.getModuleId());
+            UnFlow flow = flowInTenant(tenantId, binding.getFlowId());
+            if (!"ENABLED".equals(flow.getStatus())) conflict("流程已经停用");
+        }
+        binding.setStatus(body.enabled() ? "ENABLED" : "DISABLED");
+        bindings.updateById(binding);
+        return bindings.selectById(bindingId);
+    }
+
+    /** 显式换用最新发布版本；已有自动实例仍保留旧版本。 */
+    @PostMapping("/bindings/{bindingId}/refresh-version")
+    @Transactional
+    public UnFlowBinding refreshBindingVersion(@PathVariable long tenantId, @PathVariable long bindingId,
+                                               HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        UnFlowBinding binding = lockBinding(tenantId, bindingId);
+        UnFlow flow = flowInTenant(tenantId, binding.getFlowId());
+        if (!"ENABLED".equals(flow.getStatus()) || flow.getCurrentVersionId() == null) conflict("流程尚未发布或已停用");
+        binding.setVersionId(flow.getCurrentVersionId());
+        bindings.updateById(binding);
+        return bindings.selectById(bindingId);
+    }
+
+    /** 模块域在同一事务内调用；记录版本进入唯一请求号，重复调用不会产生第二个实例。 */
+    @Transactional
+    public List<UnFlowExample> triggerRecordEvent(long tenantId, long moduleId, long recordId,
+                                                   int recordVersion, long actorMemberId, String eventType) {
+        if (!Set.of("CREATE", "UPDATE").contains(eventType) || recordVersion < 1) bad("记录事件或版本无效");
+        requireTenantMember(tenantId, actorMemberId);
+        UnModuleRecord record = records.selectById(recordId);
+        if (record == null || !flowIdEquals(record.getTenantId(), tenantId)
+                || !flowIdEquals(record.getModuleId(), moduleId)) bad("自动触发的记录或模块不匹配");
+        List<UnFlowExample> result = new ArrayList<>();
+        for (UnFlowBinding found : bindings.selectList(new LambdaQueryWrapper<UnFlowBinding>()
+                .eq(UnFlowBinding::getTenantId, tenantId).eq(UnFlowBinding::getModuleId, moduleId)
+                .eq(UnFlowBinding::getTriggerEvent, eventType).eq(UnFlowBinding::getStatus, "ENABLED")
+                .orderByAsc(UnFlowBinding::getId))) {
+            UnFlowBinding binding = lockBinding(tenantId, found.getId());
+            if (!"ENABLED".equals(binding.getStatus())) continue;
+            UnFlow flow = flowInTenant(tenantId, binding.getFlowId());
+            if (!"ENABLED".equals(flow.getStatus())) continue;
+            String key = "AUTO:" + Long.toString(binding.getId(), 36) + ":" + Long.toString(recordId, 36)
+                    + ":" + Integer.toString(recordVersion, 36);
+            UnFlowAction previous = actions.selectOne(new LambdaQueryWrapper<UnFlowAction>()
+                    .eq(UnFlowAction::getTenantId, tenantId).eq(UnFlowAction::getRequestKey, key));
+            if (previous != null) {
+                result.add(exampleInTenant(tenantId, previous.getExampleId()));
+                continue;
+            }
+            if (record.getVersion() == null || record.getVersion() != recordVersion
+                    || (record.getRecordStatus() != null && record.getRecordStatus() == 2))
+                bad("自动触发的记录版本无效或记录已删除");
+            UnFlowVersion version = versions.selectById(binding.getVersionId());
+            if (version == null || !flowIdEquals(version.getFlowId(), flow.getId())) conflict("绑定发布版本不存在");
+            DraftSnapshot snapshot = readJson(version.getDefinitionSnapshot());
+            String startKey = snapshot.nodes().stream().filter(n -> "START".equals(n.getNodeType()))
+                    .findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "绑定版本缺少开始节点"))
+                    .getNodeKey();
+            UnFlowExample example = new UnFlowExample();
+            example.setTenantId(tenantId);
+            example.setFlowId(flow.getId());
+            example.setVersionId(version.getId());
+            example.setBindingId(binding.getId());
+            example.setModuleId(moduleId);
+            example.setRecordId(recordId);
+            example.setStarterMemberId(actorMemberId);
+            example.setDefinitionSnapshot(version.getDefinitionSnapshot());
+            example.setStatus("RUNNING");
+            example.setCurrentNodeKey(startKey);
+            examples.insert(example);
+            UnFlowAction action = new UnFlowAction();
+            action.setTenantId(tenantId);
+            action.setExampleId(example.getId());
+            action.setActorMemberId(actorMemberId);
+            action.setActionType("AUTO_START");
+            action.setRequestKey(key);
+            action.setResultStatus("SUCCESS");
+            action.setRemark(eventType + " recordVersion=" + recordVersion);
+            actions.insert(action);
+            event(example.getId(), null, action.getId(), "AUTO_TRIGGERED", actorMemberId, eventType);
+            try {
+                String next = nextNode(snapshot, startKey, tenantId, moduleId, recordId);
+                example.setCurrentNodeKey(next);
+                examples.updateById(example);
+                enterNode(tenantId, example, snapshot, next);
+            } catch (ResponseStatusException ex) {
+                LocalDateTime now = LocalDateTime.now();
+                example.setStatus("FAILED");
+                example.setCurrentNodeKey(null);
+                example.setFinishTime(now);
+                examples.updateById(example);
+                action.setResultStatus("FAILED");
+                actions.updateById(action);
+                String detail = ex.getReason() == null ? "自动流程执行失败" : ex.getReason();
+                recordException(example.getId(), null, detail.contains("处理人") ? "NO_ASSIGNEE" : "RULE_ERROR", detail);
+                event(example.getId(), null, action.getId(), "FAILED", actorMemberId, detail);
+            }
+            result.add(examples.selectById(example.getId()));
+        }
+        return result;
+    }
+
+    /** 从发布版本启动实例；关联业务记录时同时校验租户、模块和发起人的修改权限。 */
     @PostMapping("/{flowId}/examples")
     @Transactional
     public UnFlowExample start(@PathVariable long tenantId, @PathVariable long flowId,
@@ -241,11 +405,32 @@ public class FlowController {
         return result;
     }
 
+    /** 模块记录详情按读取权限查询相关流程实例，供页面定位自动触发结果。 */
+    @GetMapping("/examples")
+    public ExamplePage recordExamples(@PathVariable long tenantId, @RequestParam long moduleId,
+                                      @RequestParam long recordId, @RequestParam(defaultValue = "1") long page,
+                                      @RequestParam(defaultValue = "20") long size, HttpServletRequest request) {
+        access.tenantMember(request, tenantId);
+        if (page < 1 || size < 1 || size > 100) bad("分页范围无效");
+        UnModuleRecord record = records.selectById(recordId);
+        if (record == null || !flowIdEquals(record.getTenantId(), tenantId)
+                || !flowIdEquals(record.getModuleId(), moduleId)) notFound("业务记录不存在");
+        recordAccess.requireRead(recordAccess.scope(request, tenantId), record);
+        Page<UnFlowExample> found = examples.selectPage(new Page<>(page, size),
+                new LambdaQueryWrapper<UnFlowExample>().eq(UnFlowExample::getTenantId, tenantId)
+                        .eq(UnFlowExample::getModuleId, moduleId).eq(UnFlowExample::getRecordId, recordId)
+                        .orderByDesc(UnFlowExample::getStartTime).orderByDesc(UnFlowExample::getId));
+        return new ExamplePage(found.getRecords().stream().map(e -> new ExampleBrief(e.getId(), e.getFlowId(),
+                e.getVersionId(), e.getBindingId(), e.getStatus(), e.getStartTime(), e.getFinishTime())).toList(),
+                found.getTotal(), page, size);
+    }
+
     /** 审批、拒绝和撤回在实例行锁下完成，重复请求返回原操作，其他冲突返回 409。 */
     @PostMapping("/examples/{exampleId}/actions")
     @Transactional
     public UnFlowAction act(@PathVariable long tenantId, @PathVariable long exampleId,
                             @Valid @RequestBody ActionInput body, HttpServletRequest request) {
+        if (body.requestKey().startsWith("AUTO:")) bad("请求标识前缀保留给自动流程");
         long memberId = access.tenantMember(request, tenantId).getMemberId();
         UnFlowExample example = lockExample(tenantId, exampleId);
         UnFlowAction previous = actions.selectOne(new LambdaQueryWrapper<UnFlowAction>()
@@ -267,6 +452,7 @@ public class FlowController {
                 open.setFinishTime(now);
                 tasks.updateById(open);
                 cancelCandidates(open.getId(), now);
+                cancelJobs(open.getId(), now);
             }
             example.setStatus("WITHDRAWN");
             example.setCurrentNodeKey(null);
@@ -288,6 +474,7 @@ public class FlowController {
             task.setClaimTime(now);
             task.setFinishTime(now);
             tasks.updateById(task);
+            cancelJobs(task.getId(), now);
             if ("REJECT".equals(body.actionType())) {
                 example.setStatus("REJECTED");
                 example.setCurrentNodeKey(null);
@@ -316,6 +503,174 @@ public class FlowController {
         return action;
     }
 
+    /** 管理员为当前待办安排一次超时检查，同一待办只能保留一项待执行任务。 */
+    @PostMapping("/examples/{exampleId}/tasks/{taskId}/timeout")
+    @Transactional
+    public UnFlowJob scheduleTimeout(@PathVariable long tenantId, @PathVariable long exampleId,
+                                     @PathVariable long taskId, @Valid @RequestBody TimeoutInput body,
+                                     HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        UnFlowExample example = lockExample(tenantId, exampleId);
+        UnFlowTask task = tasks.selectById(taskId);
+        if (!"RUNNING".equals(example.getStatus()) || task == null
+                || !flowIdEquals(task.getExampleId(), exampleId) || !"PENDING".equals(task.getStatus()))
+            conflict("只能给当前运行的待办安排超时");
+        LocalDateTime executeTime = body.executeTime().truncatedTo(ChronoUnit.MILLIS);
+        if (!executeTime.isAfter(LocalDateTime.now())) bad("执行时间须在当前时间之后");
+        UnFlowJob existing = jobs.selectOne(new LambdaQueryWrapper<UnFlowJob>()
+                .eq(UnFlowJob::getTaskId, taskId).eq(UnFlowJob::getStatus, "PENDING"));
+        if (existing != null) {
+            if (existing.getExecuteTime().equals(executeTime)) return existing;
+            conflict("此待办已有未执行的超时任务");
+        }
+        UnFlowJob job = new UnFlowJob();
+        job.setExampleId(exampleId);
+        job.setTaskId(taskId);
+        job.setJobType("TIMEOUT");
+        job.setExecuteTime(executeTime);
+        job.setStatus("PENDING");
+        job.setRetryCount(0);
+        jobs.insert(job);
+        task.setDueTime(executeTime);
+        tasks.updateById(task);
+        event(exampleId, taskId, null, "TIMEOUT_SCHEDULED", access.tenantMember(request, tenantId).getMemberId(),
+                "处理期限：" + executeTime);
+        return jobs.selectById(job.getId());
+    }
+
+    @GetMapping("/examples/{exampleId}/jobs")
+    public List<UnFlowJob> jobList(@PathVariable long tenantId, @PathVariable long exampleId,
+                                   HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        exampleInTenant(tenantId, exampleId);
+        return jobs.selectList(new LambdaQueryWrapper<UnFlowJob>()
+                .eq(UnFlowJob::getExampleId, exampleId).orderByAsc(UnFlowJob::getId));
+    }
+
+    @GetMapping("/examples/{exampleId}/exceptions")
+    public List<UnFlowException> exceptionList(@PathVariable long tenantId, @PathVariable long exampleId,
+                                               HttpServletRequest request) {
+        access.tenantAdmin(request, tenantId);
+        exampleInTenant(tenantId, exampleId);
+        return exceptions.selectList(new LambdaQueryWrapper<UnFlowException>()
+                .eq(UnFlowException::getExampleId, exampleId).orderByAsc(UnFlowException::getId));
+    }
+
+    /** 处置只确认异常并留下处理人和说明，不把失败实例伪装为恢复成功。 */
+    @PostMapping("/examples/{exampleId}/exceptions/{exceptionId}/resolve")
+    @Transactional
+    public UnFlowException resolveException(@PathVariable long tenantId, @PathVariable long exampleId,
+                                             @PathVariable long exceptionId,
+                                             @Valid @RequestBody ResolveInput body, HttpServletRequest request) {
+        long memberId = access.tenantAdmin(request, tenantId).getMemberId();
+        lockExample(tenantId, exampleId);
+        UnFlowException incident = exceptions.selectById(exceptionId);
+        if (incident == null || !flowIdEquals(incident.getExampleId(), exampleId)) notFound("流程异常不存在");
+        if ("RESOLVED".equals(incident.getStatus())) {
+            if (flowIdEquals(incident.getHandleMemberId(), memberId)
+                    && body.handleRemark().equals(incident.getHandleRemark())) return incident;
+            conflict("异常已由其他处置记录确认");
+        }
+        if (!"OPEN".equals(incident.getStatus())) conflict("异常状态无效");
+        incident.setStatus("RESOLVED");
+        incident.setHandleMemberId(memberId);
+        incident.setHandleRemark(body.handleRemark());
+        incident.setHandleTime(LocalDateTime.now());
+        exceptions.updateById(incident);
+        event(exampleId, incident.getTaskId(), null, "EXCEPTION_RESOLVED", memberId, body.handleRemark());
+        return exceptions.selectById(exceptionId);
+    }
+
+    /** 后台按时间扫描到期任务；每个任务在独立事务中锁住实例后处理。 */
+    @Scheduled(fixedDelay = 2000)
+    public void runDueJobs() {
+        List<UnFlowJob> due = jobs.selectList(new LambdaQueryWrapper<UnFlowJob>()
+                .eq(UnFlowJob::getStatus, "PENDING").le(UnFlowJob::getExecuteTime, LocalDateTime.now())
+                .orderByAsc(UnFlowJob::getExecuteTime).last("LIMIT 20"));
+        for (UnFlowJob item : due) {
+            try {
+                transactions.executeWithoutResult(status -> processDueJob(item.getId()));
+            } catch (RuntimeException ex) {
+                log.error("流程定时任务 {} 执行失败", item.getId(), ex);
+                try { transactions.executeWithoutResult(status -> failJob(item.getId(), ex)); }
+                catch (RuntimeException writeError) { log.error("流程定时任务 {} 失败记录未写入", item.getId(), writeError); }
+            }
+        }
+    }
+
+    private void processDueJob(long jobId) {
+        UnFlowJob initial = jobs.selectById(jobId);
+        if (initial == null) return;
+        UnFlowExample example = examples.selectById(initial.getExampleId());
+        if (example == null) return;
+        // 锁定读取得到最新状态，避免审批动作与定时扫描并发时读取到事务旧快照。
+        List<Map<String, Object>> exampleRows = jdbc.queryForList(
+                "SELECT status FROM un_flow_example WHERE id = ? AND tenant_id = ? FOR UPDATE",
+                example.getId(), example.getTenantId());
+        if (exampleRows.isEmpty()) return;
+        List<Map<String, Object>> jobRows = jdbc.queryForList(
+                "SELECT status FROM un_flow_job WHERE id = ? FOR UPDATE", jobId);
+        if (jobRows.isEmpty()) return;
+        UnFlowJob job = jobs.selectById(jobId);
+        if (job == null || !"PENDING".equals(jobRows.getFirst().get("status"))
+                || job.getExecuteTime().isAfter(LocalDateTime.now())) return;
+        LocalDateTime now = LocalDateTime.now();
+        UnFlowTask task = job.getTaskId() == null ? null : tasks.selectById(job.getTaskId());
+        List<Map<String, Object>> taskRows = task == null ? List.of() : jdbc.queryForList(
+                "SELECT status FROM un_flow_task WHERE id = ? AND example_id = ? FOR UPDATE",
+                task.getId(), example.getId());
+        if (!"RUNNING".equals(exampleRows.getFirst().get("status")) || taskRows.isEmpty()
+                || !"PENDING".equals(taskRows.getFirst().get("status"))) {
+            job.setStatus("CANCELLED");
+            job.setFinishTime(now);
+            jobs.updateById(job);
+            return;
+        }
+        jdbc.update("UPDATE un_flow_task SET status = 'EXPIRED', finish_time = ? WHERE id = ?", now, task.getId());
+        cancelCandidates(task.getId(), now);
+        jdbc.update("UPDATE un_flow_example SET status = 'FAILED', current_node_key = NULL, finish_time = ? WHERE id = ?",
+                now, example.getId());
+        job.setStatus("DONE");
+        job.setFinishTime(now);
+        jobs.updateById(job);
+        recordException(example.getId(), task.getId(), "TIMEOUT", "任务超过处理期限，流程已停止");
+        event(example.getId(), task.getId(), null, "TASK_EXPIRED", null, "任务超时，流程已停止");
+    }
+
+    private void failJob(long jobId, RuntimeException error) {
+        UnFlowJob job = jobs.selectById(jobId);
+        if (job == null || !"PENDING".equals(job.getStatus())) return;
+        UnFlowExample example = examples.selectById(job.getExampleId());
+        if (example != null) lockExample(example.getTenantId(), example.getId());
+        jdbc.queryForList("SELECT id FROM un_flow_job WHERE id = ? FOR UPDATE", jobId);
+        job = jobs.selectById(jobId);
+        if (job == null || !"PENDING".equals(job.getStatus())) return;
+        job.setStatus("FAILED");
+        job.setRetryCount((job.getRetryCount() == null ? 0 : job.getRetryCount()) + 1);
+        job.setLastError(error.getMessage() == null ? "定时任务执行失败" : error.getMessage().substring(0,
+                Math.min(1000, error.getMessage().length())));
+        job.setFinishTime(LocalDateTime.now());
+        jobs.updateById(job);
+        if (example != null) {
+            LocalDateTime now = LocalDateTime.now();
+            UnFlowTask task = job.getTaskId() == null ? null : tasks.selectById(job.getTaskId());
+            if (task != null && "PENDING".equals(task.getStatus())) {
+                task.setStatus("EXPIRED");
+                task.setFinishTime(now);
+                tasks.updateById(task);
+                cancelCandidates(task.getId(), now);
+            }
+            if ("RUNNING".equals(example.getStatus())) {
+                example.setStatus("FAILED");
+                example.setCurrentNodeKey(null);
+                example.setFinishTime(now);
+                examples.updateById(example);
+            }
+            recordException(example.getId(), job.getTaskId(), "JOB_ERROR", job.getLastError());
+            event(example.getId(), job.getTaskId(), null, "JOB_FAILED", null, job.getLastError());
+        }
+    }
+
     /** 实例历史包含冻结的定义、操作和不可变事件。 */
     @GetMapping("/examples/{exampleId}")
     public ExampleHistory history(@PathVariable long tenantId, @PathVariable long exampleId, HttpServletRequest request) {
@@ -333,7 +688,9 @@ public class FlowController {
         return new ExampleHistory(example,
                 tasks.selectList(new LambdaQueryWrapper<UnFlowTask>().eq(UnFlowTask::getExampleId, exampleId).orderByAsc(UnFlowTask::getId)),
                 actions.selectList(new LambdaQueryWrapper<UnFlowAction>().eq(UnFlowAction::getExampleId, exampleId).orderByAsc(UnFlowAction::getId)),
-                events.selectList(new LambdaQueryWrapper<UnFlowEvent>().eq(UnFlowEvent::getExampleId, exampleId).orderByAsc(UnFlowEvent::getId)));
+                events.selectList(new LambdaQueryWrapper<UnFlowEvent>().eq(UnFlowEvent::getExampleId, exampleId).orderByAsc(UnFlowEvent::getId)),
+                jobs.selectList(new LambdaQueryWrapper<UnFlowJob>().eq(UnFlowJob::getExampleId, exampleId).orderByAsc(UnFlowJob::getId)),
+                exceptions.selectList(new LambdaQueryWrapper<UnFlowException>().eq(UnFlowException::getExampleId, exampleId).orderByAsc(UnFlowException::getId)));
     }
 
     private UnFlow flowInTenant(long tenantId, long flowId) {
@@ -357,6 +714,23 @@ public class FlowController {
     private UnFlow lockFlow(long tenantId, long flowId) {
         jdbc.queryForList("SELECT id FROM un_flow WHERE id = ? AND tenant_id = ? FOR UPDATE", flowId, tenantId);
         return flowInTenant(tenantId, flowId);
+    }
+
+    private UnFlowBinding lockBinding(long tenantId, long bindingId) {
+        jdbc.queryForList("SELECT id FROM un_flow_binding WHERE id = ? AND tenant_id = ? FOR UPDATE", bindingId, tenantId);
+        UnFlowBinding binding = bindings.selectById(bindingId);
+        if (binding == null || !flowIdEquals(binding.getTenantId(), tenantId)) notFound("自动流程绑定不存在");
+        return binding;
+    }
+
+    private void requireModule(long tenantId, Long moduleId) {
+        if (moduleId == null) bad("模块主键不能为空");
+        Long count = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM un_module module
+                JOIN un_sys_tenant tenant ON tenant.system_id = module.system_id
+                WHERE module.id = ? AND tenant.id = ? AND module.status = 1 AND tenant.status = 1
+                """, Long.class, moduleId, tenantId);
+        if (count == null || count == 0) bad("模块不属于此租户系统或已停用");
     }
 
     private List<UnFlowNode> draftNodes(long flowId) {
@@ -529,6 +903,26 @@ public class FlowController {
         }
     }
 
+    private void cancelJobs(long taskId, LocalDateTime now) {
+        for (UnFlowJob job : jobs.selectList(new LambdaQueryWrapper<UnFlowJob>()
+                .eq(UnFlowJob::getTaskId, taskId).eq(UnFlowJob::getStatus, "PENDING"))) {
+            job.setStatus("CANCELLED");
+            job.setFinishTime(now);
+            jobs.updateById(job);
+        }
+    }
+
+    private UnFlowException recordException(long exampleId, Long taskId, String type, String detail) {
+        UnFlowException incident = new UnFlowException();
+        incident.setExampleId(exampleId);
+        incident.setTaskId(taskId);
+        incident.setExceptionType(type);
+        incident.setDetail(detail == null ? "流程处理异常" : detail.substring(0, Math.min(1000, detail.length())));
+        incident.setStatus("OPEN");
+        exceptions.insert(incident);
+        return exceptions.selectById(incident.getId());
+    }
+
     private void requireTenantMember(long tenantId, Long memberId) {
         if (memberId == null || tenantMembers.selectCount(new LambdaQueryWrapper<UnSysTenantMember>()
                 .eq(UnSysTenantMember::getTenantId, tenantId).eq(UnSysTenantMember::getMemberId, memberId)
@@ -579,7 +973,16 @@ public class FlowController {
     public record StartInput(Long moduleId, Long recordId) {}
     public record ActionInput(@NotBlank String actionType, Long taskId,
                               @NotBlank @Size(max = 64) String requestKey, @Size(max = 1000) String remark) {}
+    public record BindingInput(@NotNull Long moduleId, @NotNull Long flowId, @NotBlank String triggerEvent) {}
+    public record BindingStatusInput(@NotNull Boolean enabled) {}
+    public record TimeoutInput(@NotNull LocalDateTime executeTime) {}
+    public record ResolveInput(@NotBlank @Size(max = 1000) String handleRemark) {}
     public record DraftSnapshot(List<UnFlowNode> nodes, List<UnFlowEdge> edges) {}
     public record FlowDetail(UnFlow flow, List<UnFlowNode> nodes, List<UnFlowEdge> edges, List<UnFlowVersion> versions) {}
-    public record ExampleHistory(UnFlowExample example, List<UnFlowTask> tasks, List<UnFlowAction> actions, List<UnFlowEvent> events) {}
+    public record ExampleHistory(UnFlowExample example, List<UnFlowTask> tasks,
+                                 List<UnFlowAction> actions, List<UnFlowEvent> events,
+                                 List<UnFlowJob> jobs, List<UnFlowException> exceptions) {}
+    public record ExampleBrief(Long id, Long flowId, Long versionId, Long bindingId, String status,
+                               LocalDateTime startTime, LocalDateTime finishTime) {}
+    public record ExamplePage(List<ExampleBrief> records, long total, long page, long size) {}
 }

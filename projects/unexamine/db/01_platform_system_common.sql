@@ -1,6 +1,6 @@
 -- 平台、公共能力及系统租户的基础表。此脚本只建用户定义的原名表，不导入旧 SQL 的数据。
 -- 账号与人员、系统成员与租户成员分开；跨域 ID 由业务接口校验，不设置跨域物理外键。
-USE `unexamine`;
+USE `unexamine_r15`;
 
 -- 平台账号保留现有登录接口使用的字段，人员资料由 un_plat_member 单独维护。
 CREATE TABLE IF NOT EXISTS `un_plat_account` (

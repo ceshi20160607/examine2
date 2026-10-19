@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
@@ -52,7 +54,7 @@ public class AppController {
         this.access = access;
     }
 
-    /** 应用密钥只在创建时返回一次，列表和详情均不暴露摘要。 */
+    /** 应用密钥只在创建或轮换时返回一次，列表和详情均不暴露摘要。 */
     @PostMapping
     public CreatedApp create(@Valid @RequestBody AppInput input, HttpServletRequest request) {
         authorize(request, input.systemId(), input.tenantId(), true);
@@ -62,11 +64,46 @@ public class AppController {
         app.setAppKey(input.appKey().trim());
         app.setAppName(input.appName().trim());
         app.setStatus((byte) 1);
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        String secret = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        String secret = newSecret();
         app.setSecretHash(encoder.encode(secret));
         apps.insert(app);
+        return new CreatedApp(view(app), secret);
+    }
+
+    /** 凭据验证仅确认应用自身身份与所属范围，不签发业务接口访问令牌。 */
+    @PostMapping("/verify")
+    public AppIdentity verify(@Valid @RequestBody VerifyInput input) {
+        UnApp app = apps.selectOne(new LambdaQueryWrapper<UnApp>()
+                .eq(UnApp::getAppKey, input.appKey().trim()));
+        if (app == null || !app.getAppKey().equals(input.appKey().trim())
+                || input.secret().length() != 43 || app.getSecretHash() == null
+                || !encoder.matches(input.secret(), app.getSecretHash())
+                || app.getStatus() == null || app.getStatus() != 1) {
+            throw invalidCredential();
+        }
+        UnSysSystem system = systems.selectById(app.getSystemId());
+        if (system == null || system.getStatus() == null || system.getStatus() != 1) {
+            throw invalidCredential();
+        }
+        if (app.getTenantId() != null) {
+            UnSysTenant tenant = tenants.selectById(app.getTenantId());
+            if (tenant == null || !app.getSystemId().equals(tenant.getSystemId())
+                    || tenant.getStatus() == null || tenant.getStatus() != 1) {
+                throw invalidCredential();
+            }
+        }
+        return new AppIdentity(app.getId(), app.getSystemId(), app.getTenantId(),
+                app.getAppKey(), app.getAppName());
+    }
+
+    /** 只有所属范围管理员可轮换；数据库写入新摘要后，旧密钥即刻失效。 */
+    @PostMapping("/{appId}/secret/rotate")
+    public CreatedApp rotateSecret(@PathVariable long appId, HttpServletRequest request) {
+        UnApp app = requireApp(appId);
+        authorize(request, app.getSystemId(), app.getTenantId(), true);
+        String secret = newSecret();
+        app.setSecretHash(encoder.encode(secret));
+        apps.updateById(app);
         return new CreatedApp(view(app), secret);
     }
 
@@ -167,6 +204,9 @@ public class AppController {
         if (tenant == null || !tenant.getSystemId().equals(systemId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "租户不属于此系统");
         }
+        if (tenant.getStatus() == null || tenant.getStatus() != 1) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "租户不存在或已停用");
+        }
         if (write) {
             access.tenantAdmin(request, tenantId);
         } else {
@@ -183,9 +223,26 @@ public class AppController {
     }
 
     private void validateCallback(String callback) {
-        if (!callback.trim().startsWith("https://")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "回调地址必须使用 HTTPS");
+        try {
+            URI uri = new URI(callback.trim());
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null
+                    || uri.getHost().isBlank() || uri.getUserInfo() != null
+                    || uri.getFragment() != null || uri.getPort() > 65535) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "回调地址必须为合法的 HTTPS 地址");
+            }
+        } catch (URISyntaxException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "回调地址必须为合法的 HTTPS 地址");
         }
+    }
+
+    private String newSecret() {
+        byte[] bytes = new byte[32];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private ResponseStatusException invalidCredential() {
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "应用凭据无效");
     }
 
     private AppView view(UnApp app) {
@@ -204,6 +261,9 @@ public class AppController {
     public record AppUpdate(@NotBlank @Size(max = 100) String appName, boolean enabled) { }
     public record AppView(Long id, Long systemId, Long tenantId, String appKey, String appName, Byte status) { }
     public record CreatedApp(AppView app, String secret) { }
+    public record VerifyInput(@NotBlank @Size(max = 64) String appKey,
+                              @NotBlank @Size(max = 200) String secret) { }
+    public record AppIdentity(Long id, Long systemId, Long tenantId, String appKey, String appName) { }
     public record PagedApps(List<AppView> records, long total, long page, long size) { }
     public record EventInput(@NotBlank @Size(max = 80) String eventKey,
                              @NotBlank @Size(max = 1000) String callbackUrl) { }

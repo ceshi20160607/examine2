@@ -68,7 +68,7 @@
 
 `fieldName/name/type` 必填；其他字段可省略。类型为 `text | textarea | number | integer | date | datetime | select | multiselect | boolean`。`select/multiselect` 必须有 `dictCode` 或非空 `optionData` 数组。`number/integer` 可设 `precisionScale`（0–8）、`minNumber`、`maxNumber`。`multiselect` 不支持唯一和排序。`FieldSpec` 返回 `{fieldName,name,type,required,unique,hidden,add,index,detail,sortable,maxLength,precisionScale,minNumber,maxNumber,dictCode,optionData}`；其中 `optionData` 是存储的 JSON **字符串**。`FieldForm` 中的 `optionData` 是 JSON 值。
 
-`QueryFieldForm = {fieldName, operators: string[]}`，保存接口整体替换旧配置。可配置操作符 `eq,ne,contains,gt,gte,lt,lte,in`；**当前记录列表实际支持前七种，不支持执行 `in`**，前端暂不提供 `in`。`UnModuleQueryField.operatorsJson` 为 JSON 字符串。`ColumnView = {fieldName,title,type,sortable,sortNo}`。`PUT /columns` 只调整顺序；字段是否进入默认表头由 `FieldForm.index` 控制，场景可另行控制本次显示列。`DictForm = {dictCode,itemCode,itemName,sortNo?}`。
+`QueryFieldForm = {fieldName, operators: string[]}`，保存接口整体替换旧配置。可配置操作符 `eq,ne,contains,gt,gte,lt,lte,in`；`in` 用于场景筛选，`value` 必须是含 1～50 个同类型标量值的数组。`UnModuleQueryField.operatorsJson` 为 JSON 字符串。`ColumnView = {fieldName,title,type,sortable,sortNo}`。`PUT /columns` 只调整顺序；字段是否进入默认表头由 `FieldForm.index` 控制，场景可另行控制本次显示列。`DictForm = {dictCode,itemCode,itemName,sortNo?}`。
 
 ## 3. 新建、编辑、查看记录
 

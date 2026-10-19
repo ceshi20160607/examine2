@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.base.entity.*;
 import com.unique.unexamine.base.mapper.*;
+import com.unique.unexamine.manage.flow.FlowController;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,13 +38,15 @@ public class ModuleRecordController {
     private final JdbcTemplate jdbc;
     private final ObjectMapper json;
     private final ModuleConfigController config;
+    private final FlowController flows;
 
     public ModuleRecordController(ModuleSupport support, ModuleRecordAccess access,
                                   UnModuleRecordMapper records, UnModuleRecordDataMapper data,
                                   UnModuleLogMapper logs, UnModuleQueryFieldMapper queryFields, UnModuleRuleMapper rules,
                                   UnModuleScenceMapper scenes, UnModuleScenceConfigMapper sceneConfigs,
                                   UnSysTenantMemberMapper tenantMembers, UnModuleDictMapper dictionaries,
-                                  JdbcTemplate jdbc, ObjectMapper json, ModuleConfigController config) {
+                                  JdbcTemplate jdbc, ObjectMapper json, ModuleConfigController config,
+                                  FlowController flows) {
         this.support = support;
         this.access = access;
         this.records = records;
@@ -58,6 +61,7 @@ public class ModuleRecordController {
         this.jdbc = jdbc;
         this.json = json;
         this.config = config;
+        this.flows = flows;
     }
 
     /** 列表筛选和排序在数据库执行，再分页；字段名只能来自有效查询字段。 */
@@ -168,6 +172,8 @@ public class ModuleRecordController {
             data.insert(value);
         }
         log(row, member.getMemberId(), "create", null, body.values());
+        // 自动绑定流程与记录保存处于同一事务，绑定版本和实例随记录一起提交。
+        flows.triggerRecordEvent(tenantId, moduleId, row.getId(), row.getVersion(), member.getMemberId(), "CREATE");
         return view(records.selectById(row.getId()));
     }
 
@@ -212,6 +218,8 @@ public class ModuleRecordController {
             data.insert(value);
         }
         log(before, member.getMemberId(), "update", previousValues, body.values());
+        flows.triggerRecordEvent(tenantId, moduleId, recordId, body.version() + 1,
+                member.getMemberId(), "UPDATE");
         return view(records.selectById(recordId));
     }
 
@@ -266,6 +274,16 @@ public class ModuleRecordController {
         if (field == null || !allowed.getOrDefault(filter.fieldName(), Set.of()).contains(filter.operator())) bad("筛选字段或操作符无效");
         String column = valueColumn(field.type());
         if (column.equals("value_json")) bad("集合字段暂不支持列表筛选");
+        if ("in".equals(filter.operator())) {
+            if (filter.value() == null || !filter.value().isArray()
+                    || filter.value().isEmpty() || filter.value().size() > 50) bad("IN 筛选须提供 1 至 50 个值");
+            where.append(" AND EXISTS (SELECT 1 FROM un_module_record_data fd WHERE fd.record_id=r.id AND fd.tenant_id=r.tenant_id")
+                    .append(" AND fd.field_name=? AND fd.").append(column).append(" IN (")
+                    .append(String.join(",", Collections.nCopies(filter.value().size(), "?"))).append("))");
+            params.add(filter.fieldName());
+            for (JsonNode value : filter.value()) params.add(comparableValue(field, value, tenantId, moduleId));
+            return;
+        }
         String comparator = switch (filter.operator()) {
             case "eq" -> "="; case "ne" -> "<>"; case "gt" -> ">"; case "gte" -> ">=";
             case "lt" -> "<"; case "lte" -> "<="; case "contains" -> "LIKE";

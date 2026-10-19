@@ -1,6 +1,6 @@
 -- 应用接入、工作管理、仪表盘、数据源、KPI 和打印的基础表。
 -- 仅保留实际功能所需的 ID 关联，跨域归属与权限由后端校验。
-USE `unexamine`;
+USE `unexamine_r15`;
 
 CREATE TABLE IF NOT EXISTS `un_app` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '应用主键',

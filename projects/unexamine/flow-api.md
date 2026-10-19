@@ -14,10 +14,17 @@
 | `PUT /{flowId}/draft` | `{ "name": "...", "description": "...", "nodes": [...], "edges": [...] }` | 完整替换草稿，返回详情 |
 | `POST /{flowId}/publish` | 无请求体 | 不可变版本，含 `versionNo/definitionSnapshot`；定义变为 `ENABLED` |
 | `POST /{flowId}/disable` | 无请求体 | 停止新发起；运行实例仍用原快照 |
+| `GET /bindings`、`POST /bindings` | 查询可传 `moduleId`；创建传 `{ "moduleId": 1, "flowId": 3, "triggerEvent": "CREATE" }`，事件可为 `CREATE/UPDATE` | 管理员查看或创建自动触发绑定；绑定冻结当前 `versionId` |
+| `PUT /bindings/{bindingId}/status` | `{ "enabled": false }` | 管理员启停绑定 |
+| `POST /bindings/{bindingId}/refresh-version` | 无请求体 | 管理员将绑定切换到流程当前发布版本；既有实例仍用旧快照 |
 | `POST /{flowId}/examples` | `{ "moduleId": 1, "recordId": 2 }`；无条件流程可传 `{}` | 流程实例，含 `id/versionId/status/currentNodeKey` |
+| `GET /examples` | `moduleId=1&recordId=2&page=1&size=20` | 按记录读取权限返回 `{ records, total, page, size }`；记录项含 `id/flowId/versionId/bindingId/status/startTime/finishTime`，按发起时间倒序 |
 | `GET /tasks` | 无 | 当前成员可处理的 `UnFlowTask[]` |
 | `POST /examples/{exampleId}/actions` | `{ "actionType": "APPROVE", "taskId": 8, "requestKey": "唯一请求号", "remark": "同意" }`；拒绝用 `REJECT`，发起人撤回用 `WITHDRAW` 且无需 `taskId` | 操作记录 `UnFlowAction`；相同请求号同操作重试返回原记录 |
-| `GET /examples/{exampleId}` | 无 | `{ example, tasks, actions, events }`，实例和完整事件历史 |
+| `POST /examples/{exampleId}/tasks/{taskId}/timeout` | `{ "executeTime": "2026-10-19T13:00:00.000" }` | 管理员为运行待办安排一次 `TIMEOUT` job；同时间重试返回原 job |
+| `GET /examples/{exampleId}/jobs`、`GET /examples/{exampleId}/exceptions` | 无 | 管理员查看定时任务及异常列表 |
+| `POST /examples/{exampleId}/exceptions/{exceptionId}/resolve` | `{ "handleRemark": "已人工跟进" }` | 管理员将异常 `OPEN` 置为 `RESOLVED`；同一处置重试返回原记录 |
+| `GET /examples/{exampleId}` | 无 | `{ example, tasks, actions, events, jobs, exceptions }`，实例和完整事件历史 |
 
 `nodes[]` 的字段为 `nodeKey/name/nodeType/assigneeType/assigneeId/sortNum`。节点类型只支持 `START/TASK/END`；`TASK` 的处理人来源只支持 `STARTER/MEMBER/ROLE`。`MEMBER` 的 `assigneeId` 是系统成员主键；`ROLE` 的 `assigneeId` 是同租户启用角色主键。角色在发布时必须有有效成员，运行到节点时重新解析有效成员；多人候选中首个处理人完成任务，其余待办取消。
 
@@ -27,7 +34,11 @@
 {"field":"amount","operator":"GTE","value":5}
 ```
 
-仅支持 `EQ/NE/GT/GTE/LT/LTE`；数值比较的 `value` 必须是数字，等值比较可用数字或字符串。值来自关联记录的 `un_module_record_data`；字段缺失或无值时不命中。条件流程发起时必须同时传 `moduleId` 和 `recordId`。发布会拒绝循环、不可达节点、缺少默认连线及无效规则；不执行脚本，不支持 `CONDITION` 节点、并行网关或自动触发绑定。
+仅支持 `EQ/NE/GT/GTE/LT/LTE`；数值比较的 `value` 必须是数字，等值比较可用数字或字符串。值来自关联记录的 `un_module_record_data`；字段缺失或无值时不命中。条件流程发起时必须同时传 `moduleId` 和 `recordId`。发布会拒绝循环、不可达节点、缺少默认连线及无效规则；不执行脚本，不支持 `CONDITION` 节点或并行网关。
+
+自动绑定在模块记录 `CREATE/UPDATE` 成功保存后、同一事务内触发。绑定捕获发布版本，后续发布不会自动改写绑定；更新绑定版本须显式调用 `refresh-version`。每个绑定、记录、记录版本产生一个 `AUTO_START` 操作请求号，重复回调只返回原实例。处理人失效等业务失败会保留 `FAILED` 实例及 `OPEN` 异常，模块记录仍保存；数据库写入失败会回滚同事务。当前自动触发只接入模块记录创建和修改，不监听删除。
+
+超时 job 由管理员显式安排，后台每 2 秒扫描到期任务。到期仍待办时，job 变 `DONE`、任务变 `EXPIRED`、实例变 `FAILED`，并生成 `TIMEOUT/OPEN` 异常；提前完成或撤回时 job 变 `CANCELLED`。管理员的 `resolve` 仅确认异常，不恢复失败实例。当前不自动为每个节点安排期限，也不执行 REMIND 通知或自动重试。
 
 ## 审批 Examine
 

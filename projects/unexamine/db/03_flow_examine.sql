@@ -1,6 +1,6 @@
 -- 通用流程与审批的基础结构。旧审批 SQL 仅用于理解字段含义，本脚本不迁移旧数据。
--- 本文件在全新 unexamine 库执行；已投产后的字段调整应编写增量迁移，不删除业务表。
-USE `unexamine`;
+-- 本文件在全新 unexamine_r15 库执行；已投产后的字段调整应编写增量迁移，不删除业务表。
+USE `unexamine_r15`;
 
 -- 流程定义保留可编辑草稿；发布后的结构另存于 un_flow_version。
 CREATE TABLE IF NOT EXISTS `un_flow` (

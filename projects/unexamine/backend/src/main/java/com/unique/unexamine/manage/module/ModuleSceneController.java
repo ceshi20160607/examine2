@@ -165,16 +165,21 @@ public class ModuleSceneController {
                 if ("contains".equals(filter.operator()) && !Set.of("text", "textarea", "select").contains(field.type()))
                     bad("此字段不能模糊查询");
                 if ("multiselect".equals(field.type())) bad("集合字段暂不支持列表筛选");
-                try {
-                    switch (field.type()) {
-                        case "number", "integer" -> new BigDecimal(filter.value().asText());
-                        case "date" -> LocalDate.parse(filter.value().asText());
-                        case "datetime" -> LocalDateTime.parse(filter.value().asText());
-                        case "boolean" -> { if (!filter.value().isBoolean()) bad("布尔筛选值无效"); }
-                        default -> { if (!filter.value().isTextual()) bad("文本筛选值无效"); }
+                if ("in".equals(filter.operator()) && (!filter.value().isArray()
+                        || filter.value().isEmpty() || filter.value().size() > 50)) bad("IN 筛选须提供 1 至 50 个值");
+                Iterable<JsonNode> values = "in".equals(filter.operator()) ? filter.value() : List.of(filter.value());
+                for (JsonNode value : values) {
+                    try {
+                        switch (field.type()) {
+                            case "number", "integer" -> new BigDecimal(value.asText());
+                            case "date" -> LocalDate.parse(value.asText());
+                            case "datetime" -> LocalDateTime.parse(value.asText());
+                            case "boolean" -> { if (!value.isBoolean()) bad("布尔筛选值无效"); }
+                            default -> { if (!value.isTextual()) bad("文本筛选值无效"); }
+                        }
+                    } catch (RuntimeException e) {
+                        bad("场景筛选值与字段类型不匹配");
                     }
-                } catch (RuntimeException e) {
-                    bad("场景筛选值与字段类型不匹配");
                 }
             }
         }

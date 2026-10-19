@@ -1,6 +1,6 @@
 -- 模块基础结构。仅使用《表意义.md》的原表名；旧 SQL 只提供字段语义参考。
 -- 先执行 00_database.sql。既有业务数据的后续结构变化须另写增量迁移。
-USE `unexamine`;
+USE `unexamine_r15`;
 
 CREATE TABLE IF NOT EXISTS `un_module_group` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '模块分组主键',

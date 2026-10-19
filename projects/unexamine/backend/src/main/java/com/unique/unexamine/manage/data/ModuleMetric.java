@@ -68,8 +68,8 @@ public class ModuleMetric {
                     .eq(UnModuleField::getStatus, 1));
             type = field == null ? null : field.getType();
         }
-        if (!"number".equals(type)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "求和字段必须是启用的数值字段");
+        if (!"number".equals(type) && !"integer".equals(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "求和字段必须是启用的数值或整数字段");
         }
         // 通过记录主键关联并再次限制租户/模块，避免扩展值孤儿数据或其他范围数据进入结果。
         List<Object> params = new ArrayList<>(List.of(tenantId, moduleId, tenantId, moduleId, fieldName));
