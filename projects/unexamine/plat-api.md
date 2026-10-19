@@ -1,0 +1,62 @@
+# 平台 API 契约
+
+本文记录当前后端已经实现的接口，供前端直接调用。基础地址为 `http://localhost:9999`。请求体使用 JSON；登录后由服务端保存会话，浏览器请求需携带会话 Cookie。同一个浏览器会话可分别持有平台和系统登录态。
+
+## 通用约定
+
+- 本文件列出的分页列表均使用 MyBatis-Plus 分页响应：请求参数 `page` 从 1 开始，`size` 为 1～100，默认分别为 1 和 20；响应字段为 `records`、`total`、`size`、`current`、`pages`，没有额外业务包装层。可排序列表的 `sort` 只接受下文列出的值。项目其他业务域中有自定义列表响应，使用 `page` 而非 `current`；前端应按各域接口契约读取页码，不能把本文件的响应结构套用到所有业务接口。
+- `status` 为 `0`（停用）或 `1`（启用）。部门、角色、菜单停用会保留历史关联。授权全量替换使用 `{ "ids": [1, 2] }`；空数组表示清空普通授权。数据范围使用数组，例如 `[{"scopeType":5,"departmentId":0}]`；`scopeType=6` 时 `departmentId` 必须是同范围的有效部门。
+- `401` 表示未登录或会话失效，`403` 表示无管理权限或不属于目标租户，`400` 表示参数或状态不合法，`404` 表示记录不存在，`409` 表示编码重复或状态冲突。接口直接返回 HTTP 错误状态，不依赖响应体中的成功标志。
+- 下文的“平台管理员”指有效平台账号关联的有效成员拥有启用的内置管理员角色；“租户管理员”指有效系统成员在目标租户中拥有启用的内置管理员角色。接口不信任客户端提交的成员或系统身份。
+
+## 平台会话与组织
+
+| 方法与路径 | 请求或查询 | 响应与权限 |
+| --- | --- | --- |
+| `POST /api/platform/session` | `{account,password}` | 登录成功返回 `{id,account,displayName}` 并建立会话；失败 `401`。 |
+| `GET /api/platform/session` / `DELETE /api/platform/session` | 无 | 当前账号公开信息 / 退出；平台登录态。 |
+| `GET /api/platform/accounts` | `page,size,sort,keyword`；`sort=account,displayName,createTime` | 分页账号公开信息 `{id,account,displayName,status}`，不返回密码摘要；平台管理员。 |
+| `POST /api/platform/accounts` | `{account,password,displayName}`，密码至少 12 位 | 新账号公开信息；平台管理员。 |
+| `PUT /api/platform/accounts/{id}` | `{name}` | 修改显示名；平台管理员。 |
+| `PUT /api/platform/accounts/{id}/status` | `{status}` | 停启账号；不能停用当前账号；平台管理员。 |
+| `PUT /api/platform/accounts/{id}/password` | `{password}`，至少 12 位 | 重置密码，不回传摘要；平台管理员。 |
+| `GET /api/platform/departments` | 无 | 按 `parentId,sortNo,id` 排列的部门数组；平台登录态。 |
+| `POST /api/platform/departments` / `PUT /api/platform/departments/{id}` | `{parentId,departmentCode,name,managerMemberId,sortNo,remark}` | 新增/编辑部门，`parentId=0` 或空表示根部门；平台管理员。 |
+| `PUT /api/platform/departments/{id}/status` | `{status}` | 停启部门；平台管理员。 |
+| `GET /api/platform/members` | `page,size,sort,departmentId,keyword`；`sort=memberNo,realName,createTime` | 分页成员；平台管理员。 |
+| `POST /api/platform/members` / `PUT /api/platform/members/{id}` | `{accountId,memberNo,realName,departmentId,leaderMemberId,mobile,email,gender,positionName}` | 新增/编辑成员。`accountId` 可空；一个账号只能关联一个成员；平台管理员。 |
+| `PUT /api/platform/members/{id}/status` | `{status}` | 停启成员，不能停用当前管理员成员；平台管理员。 |
+| `GET /api/platform/config` | 无 | 平台配置数组；平台管理员。 |
+| `PUT /api/platform/config/{key}` | `{value,description}` | 按键新增或更新平台配置；平台管理员。 |
+
+## 平台角色、菜单与授权
+
+| 方法与路径 | 请求或查询 | 响应与权限 |
+| --- | --- | --- |
+| `GET /api/platform/roles` | `page,size,sort`；`sort=roleCode,roleName,createTime` | 分页角色；平台管理员。 |
+| `POST /api/platform/roles` / `PUT /api/platform/roles/{id}` | `{roleCode,roleName,remark}` | 新增自定义角色/编辑角色；内置管理员角色编码不可改；平台管理员。 |
+| `PUT /api/platform/roles/{id}/status` | `{status}` | 停启角色；内置管理员角色不可停用。 |
+| `GET /api/platform/menus` | 无 | 按父级和排序号排列的菜单数组；平台登录态。 |
+| `POST /api/platform/menus` / `PUT /api/platform/menus/{id}` | `{parentId,menuCode,menuName,menuType,routePath,permissionCode,sortNo}`；`menuType` 为 1 目录、2 页面、3 操作 | 新增/编辑菜单；平台管理员。 |
+| `PUT /api/platform/menus/{id}/status` | `{status}` | 停启菜单；平台管理员。 |
+| `GET /api/platform/members/{memberId}/roles` / `PUT /api/platform/members/{memberId}/roles` | 写入 `{ids:[...]}` | 读取/全量替换成员角色主键数组；当前管理员不能移除自己的管理角色。 |
+| `GET /api/platform/roles/{roleId}/menus` / `PUT /api/platform/roles/{roleId}/menus` | 写入 `{ids:[...]}` | 读取/全量替换角色菜单主键数组；平台管理员。 |
+| `GET /api/platform/roles/{roleId}/data-scope` / `PUT /api/platform/roles/{roleId}/data-scope` | 写入数据范围数组 | 读取/全量替换角色数据范围；平台管理员。 |
+
+## 审计日志与消息
+
+日志与消息保留 /api/common 路径，由本模块持有表和接口。
+
+| 方法与路径 | 查询或请求 | 响应与权限 |
+| --- | --- | --- |
+| `GET /api/common/logs/platform-login` | `page,size,sort,account,success`；`sort=loginTime,loginAccount` | 平台登录日志；平台管理员。 |
+| `GET /api/common/logs/platform-operation` | `page,size,sort,accountId,actionCode`；`sort=createTime,actionCode` | 平台操作日志；平台管理员。 |
+| `GET /api/common/messages/platform` | `page,size,sort,unread`；`sort=createTime,title` | 当前平台成员的消息，`unread=true/false` 筛选已读状态。 |
+| `POST /api/common/messages/platform` | `{recipientMemberId,title,content,messageType,relatedType,relatedId}` | 平台管理员发送给有效且有启用账号的平台成员；返回 `201` 和消息记录。关联类型、主键可同时省略。 |
+| `PUT /api/common/messages/platform/{id}/read` | 无 | 当前平台接收成员标记已读，返回含 `readTime` 的消息。 |
+
+消息发送的 relatedType 和 relatedId 要么同时提供，要么同时省略；客户端不能指定已读时间。
+
+## 当前实现边界
+
+角色菜单和数据范围可以配置；普通角色的细粒度权限仍需在各业务接口逐项落实。接口响应和错误状态以前端联调时的真实 HTTP 结果为准。

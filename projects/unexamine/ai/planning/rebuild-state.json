@@ -8,20 +8,9 @@
   "userBackendAccepted": false,
   "verifiedChecks": [
     {
-      "step": "r15-flow-and-scene-http",
+      "step": "examine-domain-module-http",
       "evidence": "projects/unexamine/backend-acceptance.md",
-      "verifiedTime": "2026-10-19T05:09:32+00:00"
-    },
-    {
-      "step": "business-module-restructure-http",
-      "evidence": "projects/unexamine/backend-acceptance.md",
-      "verifiedTime": "2026-10-19T06:11:01+00:00",
-      "limitation": "当时仅验证 Controller、构建目录和运行链，Entity/Mapper 仍集中在 foundation；不作为持久化模块归属的完成证据"
-    },
-    {
-      "step": "domain-owned-base-http",
-      "evidence": "projects/unexamine/backend-acceptance.md",
-      "verifiedTime": "2026-10-19T07:07:27+00:00"
+      "verifiedTime": "2026-10-19T07:59:34+00:00"
     }
   ],
   "next": "按业务模块继续核对全部基础接口的业务结果、数据库持久化、授权与失败结果，列清未实现能力并准备用户验收"

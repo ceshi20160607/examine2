@@ -157,7 +157,7 @@
 
 ## 7. 审批和流程集成入口
 
-模块域配置 `examine` 或 `flow` 类型动作。绑定接口保留 `/api/modules/{moduleId}` 地址供前端使用，定义状态校验和绑定写入分别归 [审批域](examine-api.md) 与 [流程域](flow-api.md)；模块域不依赖这两个下游模块。
+模块域配置 `examine` 或 `flow` 类型动作。绑定接口保留 `/api/modules/{moduleId}` 地址供前端使用，定义状态校验和绑定写入分别归 [审批域](approval-api.md) 与 [流程域](flow-api.md)；模块域不依赖这两个下游模块。
 
 ## 返回实体的常用字段
 

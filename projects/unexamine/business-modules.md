@@ -4,19 +4,20 @@
 
 | 业务模块 | 自有表（张） | 用户实际完成的事 | 对外入口 |
 | --- | --- | --- | --- |
-| `identity` 平台与系统租户 | `un_plat_*` 12、`un_sys_*` 14 | 平台开通系统和租户；成员登录、组织、角色、菜单、数据范围；平台及系统消息和日志 | `/api/platform/**`、`/api/system/**`、平台与租户消息/日志 |
-| `commonresource` 公共资源 | `un_common_*` 3 | 按平台、系统或租户范围上传文件、发布公告、保存 AI 配置 | `/api/common/**` |
-| `module` 可配置业务模块 | `un_module*` 中 19 张 | 管理员定义字段、表单、查询字段、表头、动作和关联；成员保存记录、使用场景、查看历史 | `/api/modules/**` |
-| `flow` 通用流程 | `un_flow*` 12、`un_module_flow` 1 | 定义草稿、发布版本、绑定模块事件；自动或手动发起实例、处理待办、定时和异常 | `/api/tenants/{tenantId}/flows/**`、`/api/modules/{moduleId}/flow-bindings/**` |
-| `examine` 审批 | `un_examine*` 11、`un_module_examine` 1 | 配置审批及人员、节点与规则；从模块记录发起独立审批，处理和查看历史 | `/api/tenants/{tenantId}/examines/**`、`/api/modules/{moduleId}/examine-bindings/**` |
-| `work` 工作协作 | `un_work_*` 10 | 建项目、任务组和任务，协作处理、记历史、填写和评论日报 | `/api/tenants/{tenantId}/work/**` |
-| `data` 数据展示 | `un_data_source*`、`un_dashboard*`、`un_kpi*` 共 8 | 以有权限的模块记录为数据源，保存仪表盘和 KPI，并返回实际统计值 | `/api/tenants/{tenantId}/data-sources/**`、`dashboards/**`、`kpis/**` |
-| `print` 打印 | `un_print` 1 | 保存模板，并把当前成员有权读取的模块记录代入模板 | `/api/tenants/{tenantId}/prints/**` |
-| `app` 应用接入 | `un_app*` 2 | 创建和轮换应用密钥，验证应用身份，维护事件订阅配置 | `/api/apps/**` |
+| `examine-plat` 平台 | `un_plat_*` 12 | 平台账号、组织、授权、登录、平台消息与日志 | `/api/platform/**`、平台消息/日志 |
+| `examine-sys` 系统与租户 | `un_sys_*` 14 | 开通系统和租户、系统成员登录、租户授权、系统消息与日志 | `/api/system/**`、系统与租户消息/日志 |
+| `examine-common` 公共资源 | `un_common_*` 3 | 按平台、系统或租户范围上传文件、发布公告、保存 AI 配置 | `/api/common/**` |
+| `examine-module` 可配置业务模块 | `un_module*` 中 19 张 | 管理员定义字段、表单、查询字段、表头、动作和关联；成员保存记录、使用场景、查看历史 | `/api/modules/**` |
+| `examine-flow` 通用流程 | `un_flow*` 12、`un_module_flow` 1 | 定义草稿、发布版本、绑定模块事件；自动或手动发起实例、处理待办、定时和异常 | `/api/tenants/{tenantId}/flows/**`、`/api/modules/{moduleId}/flow-bindings/**` |
+| `examine-approval` 审批 | `un_examine*` 11、`un_module_examine` 1 | 配置审批及人员、节点与规则；从模块记录发起独立审批，处理和查看历史 | `/api/tenants/{tenantId}/examines/**`、`/api/modules/{moduleId}/examine-bindings/**` |
+| `examine-work` 工作协作 | `un_work_*` 10 | 建项目、任务组和任务，协作处理、记历史、填写和评论日报 | `/api/tenants/{tenantId}/work/**` |
+| `examine-dashboard` 数据展示 | `un_data_source*`、`un_dashboard*`、`un_kpi*` 共 8 | 以有权限的模块记录为数据源，保存仪表盘和 KPI，并返回实际统计值 | `/api/tenants/{tenantId}/data-sources/**`、`dashboards/**`、`kpis/**` |
+| `examine-print` 打印 | `un_print` 1 | 保存模板，并把当前成员有权读取的模块记录代入模板 | `/api/tenants/{tenantId}/prints/**` |
+| `examine-app` 应用接入 | `un_app*` 2 | 创建和轮换应用密钥，验证应用身份，维护事件订阅配置 | `/api/apps/**` |
 
-表数为 `26 + 3 + 19 + 13 + 12 + 10 + 8 + 1 + 2 = 94`。每张表的 Entity/Mapper 由自己的业务模块生成并编译；`foundation` 没有业务表和业务判断，只放分页、数据库冲突等通用设施；`server` 只组合业务模块并启动服务。`identity` 承担会话、租户身份和操作审计，其他业务模块不自行判断客户端传来的身份。
+表数为 `12 + 14 + 3 + 19 + 13 + 12 + 10 + 8 + 1 + 2 = 94`。每张表的 Entity/Mapper 由自己的业务模块生成并编译。每个模块在 `com.unique.unexamine.<业务域>/` 下平级放置 `base` 与 `manage`；`examine-web` 只放启动入口及跨域 Web 配置。平台和系统分别校验自己的会话身份，其他业务模块复用对应身份校验。
 
-`identity` 内部仍分别有 `platform` 与 `system` 代码目录：前者负责平台账号与授权，后者负责业务系统、租户成员与授权；开通入口供平台管理员使用。两者共同维护同一条开通和登录链，底层会话校验只实现一次。
+系统开通入口位于 `examine-sys`，调用 `examine-plat` 的管理员校验后写入系统与租户表；平台审计和系统审计分别在自己的模块，跨域操作日志过滤器位于 `examine-web`。
 
 ## 逐表归属与业务写入边界
 
@@ -54,7 +55,7 @@
 4. 审批和通用流程各自有定义、运行实例和历史表。审批依模块记录与审批绑定发起；流程通过冻结的发布版本运行。模块记录保存只调用 `ModuleRecordFlowTrigger`，由流程模块实现自动触发；模块不依赖流程实现类。
 5. 工作项目、任务与日报在 `work` 内闭环。数据展示和打印只读取当前成员有权访问的模块记录，不绕过记录权限。应用密钥与用户会话分离，当前不签发业务访问令牌。
 
-依赖方向：`foundation → identity → module → flow/examine/data/print` 表示后者可以依赖前者；`work/commonresource/app` 依赖 `identity`。`server` 最后组合全部模块。`flow` 不能反向成为 `module` 的编译依赖。只有真实跨域业务需要才加接口，普通 CRUD 仍直接留在所属模块。
+依赖方向：`examine-plat → examine-sys → examine-module → examine-flow/examine-approval/examine-dashboard/examine-print` 表示后者可以依赖前者；`examine-common` 与 `examine-app` 依赖平台和系统，`examine-work` 依赖系统。`examine-web` 最后组合全部模块。`examine-flow` 不能反向成为 `examine-module` 的编译依赖。只有真实跨域业务需要才加接口，普通 CRUD 仍直接留在所属模块。
 
 ## 每个模块如何验收
 
