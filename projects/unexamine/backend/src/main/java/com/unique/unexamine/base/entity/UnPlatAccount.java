@@ -46,7 +46,7 @@ public class UnPlatAccount implements Serializable {
     private String displayName;
 
     /**
-     * 账号状态：1 启用，0 停用
+     * 账号状态：1启用、0停用
      */
     @TableField("status")
     private Byte status;

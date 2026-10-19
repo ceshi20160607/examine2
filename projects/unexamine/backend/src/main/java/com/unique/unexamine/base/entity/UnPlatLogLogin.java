@@ -40,7 +40,7 @@ public class UnPlatLogLogin implements Serializable {
     private String loginAccount;
 
     /**
-     * 登录是否成功：1 成功，0 失败
+     * 登录是否成功：1成功、0失败
      */
     @TableField("success")
     private Byte success;
