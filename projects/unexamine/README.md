@@ -6,8 +6,8 @@
 
 - `db/00_database.sql` 与 `db/01_*.sql` 至 `db/04_*.sql`：新库及 94 张基础表；每张表和每个字段有中文备注。
 - `base-codegen.json`：按实际已建表生成 Entity 和 Mapper 的配置。
-- `backend/src/main/java/.../base`：生成代码；`manage`：具体业务接口。
-- `identity-api.md`、`module-api.md`、`flow-api.md`、`other-api.md`：按业务旅程整理的后端接口合同。
+- `backend/foundation/src/main/java/.../base`：94 张表生成的 Entity 与 Mapper；`backend/identity`、`module`、`flow`、`examine`、`work`、`data`、`print`、`commonresource`、`app`：各业务域；`backend/server`：唯一启动入口。
+- 后端接口合同按业务域独立维护：[身份](identity-api.md)、[公共资源](commonresource-api.md)、[可配置模块](module-api.md)、[通用流程](flow-api.md)、[审批](examine-api.md)、[工作协作](work-api.md)、[数据展示与 KPI](data-api.md)、[打印](print-api.md)、[应用接入](app-api.md)。
 - `template_base/mybatis-plus-generator`：通用生成器，不包含产品需求或业务判断。
 - `ai/planning/rebuild-plan.md` 与 `rebuild-state.json`：简短接续断点；根目录 `workspace.json` 与 `template_base/tools/tb.py` 提供状态查看和验证记录。
 
@@ -19,8 +19,9 @@
 
 ```powershell
 mvn -f template_base/mybatis-plus-generator/pom.xml compile exec:java '-Dexec.args=projects/unexamine/base-codegen.json'
+mvn -f projects/unexamine/backend/pom.xml clean package
 Set-Location projects/unexamine/backend
-mvn spring-boot:run
+java -jar server/target/unexamine-server-0.1.0.jar
 ```
 
 后端端口为 9999。建表及代码生成只证明数据模型可用，不能视为业务接口已验收。

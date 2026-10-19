@@ -1,6 +1,6 @@
 {
   "phase": "backend",
-  "currentStep": "backend-acceptance",
+  "currentStep": "backend-domain-acceptance",
   "status": "in_progress",
   "database": "unexamine_r15",
   "tableCount": 94,
@@ -11,7 +11,12 @@
       "step": "r15-flow-and-scene-http",
       "evidence": "projects/unexamine/backend-acceptance.md",
       "verifiedTime": "2026-10-19T05:09:32+00:00"
+    },
+    {
+      "step": "business-module-restructure-http",
+      "evidence": "projects/unexamine/backend-acceptance.md",
+      "verifiedTime": "2026-10-19T06:11:01+00:00"
     }
   ],
-  "next": "核对当前后端验收记录与未完成边界，等待用户验收后才进入前端"
+  "next": "按业务模块继续核对全部基础接口的业务结果、数据库持久化、授权与失败结果，列清未实现能力并准备用户验收"
 }

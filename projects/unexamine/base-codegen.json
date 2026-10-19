@@ -1,5 +1,5 @@
 {
-  "sourceRoot": "backend/src/main/java",
+  "sourceRoot": "backend/foundation/src/main/java",
   "basePackage": "com.unique.unexamine.base",
   "databaseUrl": "jdbc:mysql://127.0.0.1:3306/unexamine_r15?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai",
   "databaseUsername": "root",

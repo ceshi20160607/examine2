@@ -1,22 +1,22 @@
-# 本轮工作边界
+# 工作区边界
 
-- 先读 `docs/表意义.md`，其 94 个原始表名和用途是数据模型依据；`docs/user_requirement.md` 只整理对应的基础业务。两者冲突时以《表意义.md》为准。
-- `docs/old_table1.sql` 是旧字段参数与审批逻辑参考，含删表和旧数据语句，不得执行；缺失字段按当前需求与目标补全。
-- `template_base/mybatis-plus-generator/` 是通用 Base 生成器；`template_base/agents/` 和 `template_base/rules/` 是简短开发参考；`projects/unexamine/` 是当前产品。旧提交和标签只用于恢复，不复用旧需求、设计和代码作为本轮实现。
-- 后端先完成全部基础接口并由用户验收，再开发前端；后端端口 9999，复用本机 MySQL 3306 和 Redis 6379，当前产品库为 `unexamine_r15`。历史项目库获准清理，只保留新建项目库；不删 MySQL 系统库。
+- `docs/user_requirement.md` 是唯一产品需求源。
+- `docs/表意义.md` 是用户提供的基础表模型参考；`docs/old_table1.sql` 只供研究早期审批逻辑，含旧数据与删表语句，不得执行。
+- `template_base/` 保存通用工程工具、MyBatis-Plus 生成器、Agent 职责和校验规则；`projects/unexamine/` 是唯一当前产品实现。
+- 旧实现保存在 Git 标签 `pre-rebuild-15-20261017`，不得作为本轮需求或完成证据重新引入。
 
 # 开发规约
 
-- 以《表意义.md》的 94 张原名表实现基础业务，不改名、不合并、不用自创替代表。字段先参考旧 SQL，缺少的按业务补全；关系只建立实现必需的部分，不预建空壳表。
-- 后端 API 主动覆盖完整业务操作，特别是列表、表头、排序、场景、场景配置、表单字段和保存。按依赖拆分任务；共享迁移与接口合同串行，独立业务域并行。
-- 新建或修改表结构时，表和所有字段必须有中文备注。复杂查询、数据修复和迁移说明用途。
-- 数据库时间字段用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移，不直接删表重建。
-- Java 类、方法、业务字段和关键逻辑有适当中文注释，解释业务含义和限制。
-- 优先用现有模块结构；简单 CRUD 不额外封装。数据库表落地后用生成器产生 Entity 和 Mapper；业务逻辑写在 `manage`，页面调用真实后端。
-- 每个功能验证页面行为、持久化、授权和失败结果；交付前运行相关编译与测试，并说明真实进度。
+- 先看需求原文与 `projects/unexamine/ai/planning/rebuild-plan.md`，按当前业务旅程设计必要表，再通过 `db-prepare` 和 `template_base/mybatis-plus-generator` 生成 `base`，业务代码写入 `manage`，最后实现真实页面并验收。当前生成目录为 `projects/unexamine/backend/foundation/src/main/java`。
+- 后端按 `projects/unexamine/business-modules.md` 的业务所有权放入 Maven 子模块，由 `server` 组合成一个服务。简单 CRUD 不增加无用层，只在真实跨模块调用时建立最小接口。
+- 不为尚未实施的能力预建表或多余抽象。每批工作围绕一个可观察结果，估算不超过 240 分钟；前置依赖、共享迁移和测试资源保持串行。
+- 新建和修改的表及所有字段必须有中文备注；复杂 SQL 和迁移说明用途。数据库时间列用 `*_time`，Java 属性用 `*Time`。已有数据变更提供迁移方案，不直接删表重建。
+- Java 类、方法、业务字段和关键逻辑写有意义的中文注释；沿用现有模块结构，简单 CRUD 不增加无用层。
+- 复用本机现有 Docker MySQL（3306）和 Redis（6379）；后端固定 9999；一个前端、一个后端，不增加 Nginx 或新的数据库容器。新实现使用隔离库 `unexamine_r15`，不改旧库。
+- 交付前检查注释、时间命名和不必要的封装，执行相关编译、测试与真实入口验证，说明结果。后端需用户验收后再开发前端。
 
 # 当前接续
 
-- 重开会话先读 `projects/unexamine/ai/planning/rebuild-plan.md` 和 `rebuild-state.json`，运行 `python template_base/tools/tb.py project-status --workspace workspace.json`。
-- 实施步骤前运行 `python template_base/tools/tb.py execution-context --workspace workspace.json`；真实验证后才调用 `execution-verify`，证据写入 `projects/unexamine/backend-acceptance.md`。
-- 后端尚待用户验收，断点保持进行中；前端不提前开发。
+- 重开会话先读 `projects/unexamine/ai/planning/rebuild-plan.md` 和 `projects/unexamine/ai/planning/rebuild-state.json`，运行 `python template_base/tools/tb.py project-status --workspace workspace.json`。
+- 实施当前步骤前运行 `python template_base/tools/tb.py execution-context --workspace workspace.json`。业务结果、持久化、授权和失败结果未验收时保持未完成。
+- 只在当前步骤真实验证后运行 `execution-verify` 并更新准确断点。工程校验或局部测试不等于全产品完成。
