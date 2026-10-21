@@ -12,5 +12,5 @@ test-results/
 *.log
 __pycache__/
 *.pyc
-projects/unexamine/data/
-projects/unexamine/backend/runtime/
+/back/data/
+/back/runtime/

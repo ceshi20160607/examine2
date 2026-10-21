@@ -29,8 +29,8 @@
 ## 当前实现状态与实施选择
 
 - 采用一个 Spring Boot 后端与 MyBatis-Plus 生成器；前端实现暂停到后端接口验收之后。技术选型属于工程选择，不是《表意义.md》规定。
-- 本轮已按 94 张原名表建成 `unexamine_r15` 隔离库，后端基础接口正在按真实 HTTP、持久化、授权和失败结果验收；已验收及未完成范围分别记录于 `projects/unexamine/backend-acceptance.md` 和 `backend-plan.md`。
-- 通用生成器当前只生成 Entity 和 Mapper；具体业务查询、配置、保存和权限判断直接写在 `manage`，不为简单 CRUD 加额外层。
+- 本轮已按 94 张原名表建成 `unexamine_r15` 隔离库，后端基础接口正在按真实 HTTP、持久化、授权和失败结果验收；已验收及未完成范围分别记录于 `docs/backend-acceptance.md` 和 `docs/backend-plan.md`。
+- 通用生成器在各业务模块的 `base` 包生成 Entity、Mapper、IService 和 ServiceImpl，提供标准基础 CRUD。Controller 通过 Service 调用；`manage` 只写特殊逻辑、权限与业务编排，不重复包装基础 CRUD。
 
 ## 实施验收
 

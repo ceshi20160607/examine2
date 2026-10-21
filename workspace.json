@@ -1,7 +1,7 @@
 {
-  "product": "projects/unexamine",
+  "product": "back",
   "requirement": "docs/user_requirement.md",
   "tableReference": "docs/表意义.md",
-  "plan": "projects/unexamine/ai/planning/rebuild-plan.md",
-  "state": "projects/unexamine/ai/planning/rebuild-state.json"
+  "plan": "docs/ai/planning/rebuild-plan.md",
+  "state": "docs/ai/planning/rebuild-state.json"
 }

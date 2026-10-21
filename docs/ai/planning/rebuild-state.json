@@ -1,0 +1,22 @@
+{
+  "phase": "backend",
+  "currentStep": "backend-domain-acceptance",
+  "status": "in_progress",
+  "database": "unexamine_r15",
+  "tableCount": 94,
+  "frontend": "not_started",
+  "userBackendAccepted": false,
+  "verifiedChecks": [
+    {
+      "step": "examine-domain-module-http",
+      "evidence": "docs/backend-acceptance.md",
+      "verifiedTime": "2026-10-19T07:59:34+00:00"
+    },
+    {
+      "step": "backend-openapi-documentation",
+      "evidence": "docs/backend-acceptance.md",
+      "verifiedTime": "2026-10-19T14:04:16+00:00"
+    }
+  ],
+  "next": "back/ 现为 Maven 后端工程，分层规约已写入 docs/backend-layering.md；打印与模块团队已迁移薄 Controller → manage Service → base Service，其余业务 Controller 仍需逐域迁移。现有 MySQL 3306 未监听，待恢复后重跑生成器和 HTTP、持久化、授权及失败结果验收；后端尚未验收。"
+}

@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/** 从已经建好的业务表生成 Entity 和 Mapper，不推断或修改业务表。 */
+/** 从已经建好的业务表生成 base 层基础 CRUD，不推断或修改业务表。 */
 public final class BaseCodeGenerator {
     private BaseCodeGenerator() {
     }
@@ -78,10 +78,13 @@ public final class BaseCodeGenerator {
                             .disableOpenDir()
                             .outputDir(sourceRoot.toString())
                             .dateType(DateType.TIME_PACK))
+                    // base 包承载生成器产出的完整基础 CRUD；manage 包只写业务编排和特殊规则。
                     .packageConfig(builder -> builder
                             .parent(target.basePackage())
                             .entity("entity")
-                            .mapper("mapper"))
+                            .mapper("mapper")
+                            .service("service")
+                            .serviceImpl("service.impl"))
                     .strategyConfig(builder -> {
                         builder.disableSqlFilter().addInclude(target.tables());
                         builder.entityBuilder()
@@ -92,12 +95,19 @@ public final class BaseCodeGenerator {
                                 .enableMapperAnnotation()
                                 .disableMapperXml()
                                 .enableFileOverride();
-                        builder.serviceBuilder().disable();
+                        // IService 与 ServiceImpl 是每张表都需要的基础服务，不在 manage 中重复包装。
+                        builder.serviceBuilder()
+                                .formatServiceFileName("I%sService")
+                                .formatServiceImplFileName("%sServiceImpl")
+                                .enableFileOverride();
                         builder.controllerBuilder().disable();
                     })
+                    .templateConfig(builder -> builder
+                            .service("/templates/service.java")
+                            .serviceImpl("/templates/serviceImpl.java"))
                     .templateEngine(new FreemarkerTemplateEngine())
                     .execute();
-            System.out.printf("%s：生成 %d 张表的 Entity 和 Mapper%n",
+            System.out.printf("%s：生成 %d 张表的 Entity、Mapper、IService 和 ServiceImpl%n",
                     target.basePackage(), target.tables().size());
         }
     }
