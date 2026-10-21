@@ -17,11 +17,8 @@ public interface ${table.serviceName} extends IService<${entity}> {
     /** 按主键读取本表记录；不存在时明确失败。 */
     ${entity} queryById(Long id);
 
-    /** 返回基础字段及其默认布局。 */
-    List<FieldView> information(Long id);
-
-    /** 用模块字段宽度、顺序和扩展值组成真实详情布局。 */
-    List<FieldView> information(Long id, List<FieldLayout> layout, Map<String, Object> extensionValues);
+    /** 按已保存的表单字段配置填充详情值，配置及其顺序保持原样。 */
+    List<FieldView> information(Long id, List<FieldConfig> configurations, Map<String, Object> extensionValues);
 
     /** 按主键批量删除本表记录。 */
     boolean deleteByIds(List<Long> ids);
@@ -31,12 +28,11 @@ public interface ${table.serviceName} extends IService<${entity}> {
                      String sortField, boolean descending) {
     }
 
-    /** 模块字段配置中的显示宽度；50 表示半行。 */
-    record FieldLayout(String fieldName, String label, int widthPercent, int sortOrder) {
+    /** 已保存的字段配置；configuration 包含字段类型、拖拽位置、占位宽度等原始配置。 */
+    record FieldConfig(String fieldName, Map<String, Object> configuration) {
     }
 
-    /** 详情字段值及按宽度计算出的行号和行内偏移。 */
-    record FieldView(String fieldName, String label, Object value,
-                     int row, int leftPercent, int widthPercent) {
+    /** 详情只在原字段配置上配入值，不生成另一套布局。 */
+    record FieldView(String fieldName, Map<String, Object> configuration, Object value) {
     }
 }

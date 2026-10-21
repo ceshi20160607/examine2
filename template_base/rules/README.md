@@ -1,8 +1,9 @@
 # 开发检查
 
-1. 表名与 `docs/表意义.md` 一致；表和字段都有中文备注。
-2. 数据库时间列用 `*_time`，Java 属性用 `*Time`。
-3. 已有数据的结构变更有迁移步骤，不直接删表重建。
-4. Java 业务注释说明含义和限制；简单 CRUD 不增加无用层。
-5. 业务功能必须经过真实入口、持久化、授权和失败情况验证。
-6. 生成的基础 Service 有真实的 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`；Controller 不直接调用 Mapper 或执行 CRUD。
+1. 用户原始输入只读；开发方只维护一份最终需求理解，不保存其他版本的解释、计划、评审或验收历史。
+2. 表名、业务归属与项目定义一致；表和所有字段有中文备注。关联与依赖检查按需求由业务代码实现。
+3. 数据库时间列用 `*_time`，Java 属性用 `*Time`；已有数据结构变更有可执行迁移，不直接删表重建。
+4. Java 类、方法、业务字段和关键逻辑有中文业务注释，HTTP 接口有可读说明；简单 CRUD 不增加无用层。
+5. 表结构变更后从实际库运行生成器，生成结果直接进入业务模块 base；业务编排在同级 manage，Controller 只调用 Service。
+6. 生成的基础 Service 实现 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`；配置驱动的详情复用保存的配置，不重建另一套布局。
+7. 编译测试执行相关范围；业务通过实际入口检查持久化、授权和失败结果。局部工程检查不等于整体功能完成。

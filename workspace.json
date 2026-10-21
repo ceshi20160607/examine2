@@ -1,7 +1,12 @@
 {
-  "product": "back",
-  "requirement": "docs/user_requirement.md",
+  "requirementSource": "docs/user_requirement.md",
+  "requirementUnderstanding": "docs/requirement-understanding.md",
   "tableReference": "docs/表意义.md",
-  "plan": "docs/ai/planning/rebuild-plan.md",
-  "state": "docs/ai/planning/rebuild-state.json"
+  "schemaReference": "docs/old_table1.sql",
+  "framework": "template_base",
+  "backend": "back",
+  "frontend": "font_web",
+  "generator": "template_base/mybatis-plus-generator",
+  "codegenConfig": "back/base-codegen.json",
+  "javaHome": "D:/dev/jdk21"
 }

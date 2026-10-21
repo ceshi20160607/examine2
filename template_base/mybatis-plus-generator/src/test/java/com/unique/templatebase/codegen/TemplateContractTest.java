@@ -41,7 +41,7 @@ class TemplateContractTest {
     @TempDir
     Path temporary;
 
-    /** 模板本身必须完整生成基础 CRUD，而不是空 IService/ServiceImpl。 */
+    /** 基础方法可生成编译，详情保留已保存配置并填值，不能自行重新排版。 */
     @Test
     void generatedServiceCompilesWithFiveMethodsAndSafeInformation() throws Exception {
         String service = render("service.java.ftl");
@@ -52,6 +52,7 @@ class TemplateContractTest {
         }
         assertTrue(implementation.contains("values.put(\"name\""));
         assertFalse(implementation.contains("values.put(\"passwordHash\""), "敏感字段不进入基础详情");
+        assertFalse(implementation.contains("case \"passwordHash\""), "敏感字段不能作为基础筛选和排序条件");
 
         Path source = temporary.resolve("src");
         write(source, "com/unique/unexamine/print/base/entity/UnPrint.java", """
@@ -88,13 +89,17 @@ class TemplateContractTest {
         try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()},
                 getClass().getClassLoader())) {
             String servicePackage = "com.unique.unexamine.print.base.service.IUnPrintService";
-            Class<?> layoutClass = loader.loadClass(servicePackage + "$FieldLayout");
-            var layoutConstructor = layoutClass.getDeclaredConstructor(
-                    String.class, String.class, int.class, int.class);
-            List<Object> layout = List.of(
-                    layoutConstructor.newInstance("name", "名称", 50, 1),
-                    layoutConstructor.newInstance("id", "主键", 50, 2),
-                    layoutConstructor.newInstance("customField", "自定义字段", 100, 3));
+            Class<?> configClass = loader.loadClass(servicePackage + "$FieldConfig");
+            var configConstructor = configClass.getDeclaredConstructor(String.class, Map.class);
+            // 不约定设计器的存储结构，任意嵌套配置都应原样保留。
+            Map<String, Object> savedCustom = Map.of("label", "自定义字段", "type", "text",
+                    "layout", Map.of("position", "设计器保存的位置B", "width", "50%"));
+            Map<String, Object> savedName = Map.of("label", "名称",
+                    "layout", Map.of("position", "设计器保存的位置A", "width", "50%"));
+            List<Object> configurations = List.of(
+                    configConstructor.newInstance("customField", savedCustom),
+                    configConstructor.newInstance("name", savedName),
+                    configConstructor.newInstance("emptyField", Map.of("label", "未填字段")));
             Object serviceInstance = loader.loadClass(
                     "com.unique.unexamine.print.base.service.impl.FixtureService")
                     .getDeclaredConstructor().newInstance();
@@ -102,18 +107,18 @@ class TemplateContractTest {
                     "information", Long.class, List.class, Map.class);
             @SuppressWarnings("unchecked")
             List<Object> views = (List<Object>) information.invoke(serviceInstance, 1L,
-                    layout, Map.of("customField", "自定义值"));
+                    configurations, Map.of("customField", "自定义值"));
             assertEquals(3, views.size());
-            var row = views.get(0).getClass().getMethod("row");
-            var left = views.get(0).getClass().getMethod("leftPercent");
+            var fieldName = views.get(0).getClass().getMethod("fieldName");
+            var configuration = views.get(0).getClass().getMethod("configuration");
             var value = views.get(0).getClass().getMethod("value");
-            assertEquals(1, row.invoke(views.get(0)));
-            assertEquals(1, row.invoke(views.get(1)));
-            assertEquals(2, row.invoke(views.get(2)));
-            assertEquals(0, left.invoke(views.get(0)));
-            assertEquals(50, left.invoke(views.get(1)));
-            assertEquals(0, left.invoke(views.get(2)));
-            assertEquals("自定义值", value.invoke(views.get(2)));
+            assertEquals("customField", fieldName.invoke(views.get(0)));
+            assertEquals("name", fieldName.invoke(views.get(1)));
+            assertEquals(savedCustom, configuration.invoke(views.get(0)));
+            assertEquals(savedName, configuration.invoke(views.get(1)));
+            assertEquals("自定义值", value.invoke(views.get(0)));
+            assertEquals("示例", value.invoke(views.get(1)));
+            assertEquals(null, value.invoke(views.get(2)));
         }
     }
 

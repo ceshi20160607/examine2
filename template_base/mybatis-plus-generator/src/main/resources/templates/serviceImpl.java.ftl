@@ -6,11 +6,11 @@ import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import ${package.Entity}.${entity};
 import ${package.Mapper}.${table.mapperName};
 import ${package.Service}.${table.serviceName};
-import ${package.Service}.${table.serviceName}.FieldLayout;
+import ${package.Service}.${table.serviceName}.FieldConfig;
 import ${package.Service}.${table.serviceName}.FieldView;
 import ${package.Service}.${table.serviceName}.PageQuery;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +32,9 @@ public class ${table.serviceImplName} extends ServiceImpl<${table.mapperName}, $
         String column = switch (query.sortField() == null || query.sortField().isBlank()
                 ? "id" : query.sortField()) {
 <#list table.fields as field>
+<#if !field.propertyName?lower_case?matches(".*(password|secret|token|credential|salt|hash|cipher|privatekey).*")>
             case "${field.propertyName?j_string}" -> "${field.name?j_string}";
+</#if>
 </#list>
             default -> throw new IllegalArgumentException("排序字段无效");
         };
@@ -41,7 +43,9 @@ public class ${table.serviceImplName} extends ServiceImpl<${table.mapperName}, $
             query.filters().forEach((field, value) -> {
                 String filterColumn = switch (field) {
 <#list table.fields as field>
+<#if !field.propertyName?lower_case?matches(".*(password|secret|token|credential|salt|hash|cipher|privatekey).*")>
                     case "${field.propertyName?j_string}" -> "${field.name?j_string}";
+</#if>
 </#list>
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
@@ -92,26 +96,18 @@ public class ${table.serviceImplName} extends ServiceImpl<${table.mapperName}, $
         return model;
     }
 
-    /** 普通表使用字段定义的默认半行宽度；可配置模块调用带布局参数的重载方法。 */
+    /** 读取基础值并补入原表单字段配置，不重新排序或根据宽度计算位置。 */
     @Override
-    public List<FieldView> information(Long id) {
-        return information(id, List.of(), Map.of());
-    }
-
-    /** 按字段宽度顺序计算行号和行内偏移，50% + 50% 排在同一行。 */
-    @Override
-    public List<FieldView> information(Long id, List<FieldLayout> layout,
+    public List<FieldView> information(Long id, List<FieldConfig> configurations,
                                        Map<String, Object> extensionValues) {
+        if (configurations == null) {
+            throw new IllegalArgumentException("详情缺少已保存的表单字段配置");
+        }
         ${entity} model = queryById(id);
         Map<String, Object> values = new LinkedHashMap<>();
-        List<FieldLayout> defaults = new ArrayList<>();
-<#assign displayIndex = 0>
 <#list table.fields as field>
 <#if !field.propertyName?lower_case?matches(".*(password|secret|token|credential|salt|hash|cipher|privatekey).*")>
         values.put("${field.propertyName?j_string}", model.get${field.capitalName}());
-        defaults.add(new FieldLayout("${field.propertyName?j_string}",
-                "${(field.comment!field.propertyName)?j_string}", 50, ${displayIndex}));
-<#assign displayIndex = displayIndex + 1>
 </#if>
 </#list>
         if (extensionValues != null) {
@@ -120,26 +116,21 @@ public class ${table.serviceImplName} extends ServiceImpl<${table.mapperName}, $
                         .matches(".*(password|secret|token|credential|salt|hash|cipher|privatekey).*")) {
                     throw new IllegalArgumentException("详情字段无效");
                 }
-                values.putIfAbsent(field, value);
+                if (!values.containsKey(field)) {
+                    values.put(field, value);
+                }
             });
         }
-        List<FieldLayout> selected = layout == null || layout.isEmpty() ? defaults : layout;
         List<FieldView> fields = new ArrayList<>();
-        int row = 1;
-        int usedWidth = 0;
-        for (FieldLayout item : selected.stream()
-                .sorted(Comparator.comparingInt(FieldLayout::sortOrder)).toList()) {
-            if (item.fieldName() == null || !values.containsKey(item.fieldName())
-                    || item.widthPercent() < 1 || item.widthPercent() > 100) {
-                throw new IllegalArgumentException("详情布局字段或宽度无效");
+        for (FieldConfig item : configurations) {
+            if (item == null || item.fieldName() == null || item.configuration() == null
+                    || item.fieldName().toLowerCase(Locale.ROOT)
+                    .matches(".*(password|secret|token|credential|salt|hash|cipher|privatekey).*")) {
+                throw new IllegalArgumentException("详情字段配置无效");
             }
-            if (usedWidth + item.widthPercent() > 100) {
-                row++;
-                usedWidth = 0;
-            }
-            fields.add(new FieldView(item.fieldName(), item.label(), values.get(item.fieldName()),
-                    row, usedWidth, item.widthPercent()));
-            usedWidth += item.widthPercent();
+            fields.add(new FieldView(item.fieldName(),
+                    Collections.unmodifiableMap(new LinkedHashMap<>(item.configuration())),
+                    values.get(item.fieldName())));
         }
         return List.copyOf(fields);
     }

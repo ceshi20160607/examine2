@@ -1,10 +1,11 @@
-# Unexamine
+# examine2
 
-第 16 次重构从[基础需求](docs/user_requirement.md)和[94 张表的用途](docs/表意义.md)重新开始。当前只建立新工程和生成器，历史接口与验收不计入本轮进度；断点见[实施计划](docs/ai/planning/rebuild-plan.md)。
+examine2 包含可配置业务系统产品及为其开发服务的工程框架。
 
-- `back/`：后端 Maven 多模块工程，入口为 `examine-web`。
-- `template_base/`：通用 MyBatis-Plus 生成器、开发职责与检查规则。
-- `docs/`：唯一需求源、表用途与本轮计划。
-- `font_web/`：后端接口经用户验收后开发的前端。
+- [用户原始需求](docs/user_requirement.md)：只由用户维护。
+- [最终需求理解](docs/requirement-understanding.md)：开发方唯一维护的产品与实现理解。
+- [工程框架](template_base/README.md)：需求理解、职责分工、业务拆分、生成和验证流程。
+- `back/`：后端 Maven 多模块工程，唯一服务入口为 `examine-web`。
+- `font_web/`：后端接口经用户验收后开发的唯一前端。
 
-旧状态保存在本地 Git 标签 `pre-rebuild-16-20261021`。历史 SQL 和旧实现不作为本轮产品依据。
+`docs/表意义.md`、`docs/old_table1.sql` 是用户提供的只读参考，不作为并列的开发理解版本。工程配置位于 `workspace.json`，不存储中间计划、状态或变更记录。
