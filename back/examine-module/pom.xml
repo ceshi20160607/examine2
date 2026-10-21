@@ -9,4 +9,11 @@
     <version>0.2.0</version>
   </parent>
   <artifactId>examine-module</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>com.unique</groupId>
+      <artifactId>examine-sys</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 </project>

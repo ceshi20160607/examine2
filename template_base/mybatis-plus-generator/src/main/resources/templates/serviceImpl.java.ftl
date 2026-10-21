@@ -49,7 +49,11 @@ public class ${table.serviceImplName} extends ServiceImpl<${table.mapperName}, $
 </#list>
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
-                wrapper.eq(filterColumn, value);
+                if (value == null) {
+                    wrapper.isNull(filterColumn);
+                } else {
+                    wrapper.eq(filterColumn, value);
+                }
             });
         }
         wrapper.orderBy(true, !query.descending(), column);

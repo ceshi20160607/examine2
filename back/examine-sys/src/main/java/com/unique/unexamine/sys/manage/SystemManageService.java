@@ -202,6 +202,13 @@ public class SystemManageService {
                 actor.getId().equals(system.getOwnerAccountId()), Boolean.TRUE.equals(link.getIsAdmin()));
     }
 
+    /** 从登录会话和系统成员映射解析实际操作账号，供模块等业务域记录审计。 */
+    public Long accountId(String token, Long systemId) {
+        UnPlatAccount actor = auth.requireAccount(token);
+        member(systemId, actor.getId());
+        return actor.getId();
+    }
+
     /** 只列出当前账号可进入且当前模式允许显示的租户。 */
     public List<TenantView> tenants(String token, Long systemId) {
         UnPlatAccount actor = auth.requireAccount(token);
