@@ -137,11 +137,12 @@ CREATE TABLE IF NOT EXISTS un_sys_role_data (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统角色数据权限主键',
   role_id BIGINT NOT NULL COMMENT '租户角色主键',
   module_id BIGINT NOT NULL COMMENT '业务模块主键',
+  action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '查看编辑删除等模块动作编码',
   scope_code VARCHAR(40) NOT NULL COMMENT '负责人和组织数据范围编码',
   scope_config JSON DEFAULT NULL COMMENT '指定负责人或部门的范围配置',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_data_module (role_id, module_id)
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_data_action (role_id, module_id, action_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色数据权限';
 
 CREATE TABLE IF NOT EXISTS un_sys_log_login (

@@ -34,6 +34,7 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
             case "id" -> "id";
             case "roleId" -> "role_id";
             case "moduleId" -> "module_id";
+            case "actionCode" -> "action_code";
             case "scopeCode" -> "scope_code";
             case "scopeConfig" -> "scope_config";
             case "createTime" -> "create_time";
@@ -47,13 +48,18 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
                     case "id" -> "id";
                     case "roleId" -> "role_id";
                     case "moduleId" -> "module_id";
+                    case "actionCode" -> "action_code";
                     case "scopeCode" -> "scope_code";
                     case "scopeConfig" -> "scope_config";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
-                wrapper.eq(filterColumn, value);
+                if (value == null) {
+                    wrapper.isNull(filterColumn);
+                } else {
+                    wrapper.eq(filterColumn, value);
+                }
             });
         }
         wrapper.orderBy(true, !query.descending(), column);
@@ -105,6 +111,7 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
         values.put("id", model.getId());
         values.put("roleId", model.getRoleId());
         values.put("moduleId", model.getModuleId());
+        values.put("actionCode", model.getActionCode());
         values.put("scopeCode", model.getScopeCode());
         values.put("scopeConfig", model.getScopeConfig());
         values.put("createTime", model.getCreateTime());

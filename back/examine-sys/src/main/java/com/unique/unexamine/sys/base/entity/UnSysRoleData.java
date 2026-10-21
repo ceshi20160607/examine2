@@ -40,6 +40,12 @@ public class UnSysRoleData implements Serializable {
     private Long moduleId;
 
     /**
+     * æŸ¥çœ‹ç¼–è¾‘åˆ é™¤ç­‰æ¨¡å—åŠ¨ä½œç¼–ç 
+     */
+    @TableField("action_code")
+    private String actionCode;
+
+    /**
      * 负责人和组织数据范围编码
      */
     @TableField("scope_code")
@@ -85,6 +91,14 @@ public class UnSysRoleData implements Serializable {
 
     public void setModuleId(Long moduleId) {
         this.moduleId = moduleId;
+    }
+
+    public String getActionCode() {
+        return actionCode;
+    }
+
+    public void setActionCode(String actionCode) {
+        this.actionCode = actionCode;
     }
 
     public String getScopeCode() {
