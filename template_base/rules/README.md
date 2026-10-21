@@ -5,3 +5,4 @@
 3. 已有数据的结构变更有迁移步骤，不直接删表重建。
 4. Java 业务注释说明含义和限制；简单 CRUD 不增加无用层。
 5. 业务功能必须经过真实入口、持久化、授权和失败情况验证。
+6. 生成的基础 Service 有真实的 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`；Controller 不直接调用 Mapper 或执行 CRUD。

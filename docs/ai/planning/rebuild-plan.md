@@ -1,25 +1,23 @@
-# 第 15 次重构接续计划
+# 第 16 次重构实施计划
 
-## 依据
+## 唯一依据
 
-- 唯一产品需求源：`docs/user_requirement.md`；94 张表的名称和用途以 `docs/表意义.md` 为准。
-- `docs/old_table1.sql` 只参考字段和早期审批逻辑，禁止执行。
-- 后端接口范围、依赖顺序与验收点见 `docs/backend-plan.md`；已做过的真实验证见 `docs/backend-acceptance.md`。
-- 业务归属、表与模块依赖见 `docs/business-modules.md`；一个 Maven 子模块对应一个实际业务域。
+产品需求为 `docs/user_requirement.md`；表名和用途为 `docs/表意义.md`；`docs/old_table1.sql` 只研究早期字段与审批，不执行。旧代码和旧验收只在 Git 标签 `pre-rebuild-16-20261021` 中可恢复，不引用作本轮完成证据。`70a3979a` 只参考 Controller、Service、Mapper 调用和 `simple` 模板的五个基础方法，不带入旧 CRM 类型。
 
-## 当前步骤
+## 固定工程边界
 
-1. 按 94 张原名表建 `unexamine_r15`，在各业务模块生成各自的 Entity/Mapper；已完成，保留数据库和验收数据。
-2. 按 10 个业务域拆分 `examine-*` 子模块、生成代码所有权、Controller 与接口文档；`base/manage` 在各域包下平级，`examine-web` 为唯一入口；已经干净构建、94 表生成和 9999 真实入口验证。
-3. 逐模块完成基础接口，并核对真实请求、持久化、授权、失败结果及跨模块业务链；当前进行中。
-4. 由用户验收后端业务边界和接口；未验收前不启动前端开发。
-5. 按已验收接口开发一个前端，再验收真实页面行为。
+- 根目录保留 `docs/`、`template_base/`、`back/`、`font_web/`；`back/` 是 Maven 多模块后端，全部模块名为 `examine-*`，唯一入口是 `examine-web`。
+- 每个业务包下 `base` 放生成的 Entity、Mapper、IService、ServiceImpl；`manage` 放特定业务规则及 HTTP 入口。生成模板必须实际实现 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`，不能以 MyBatis-Plus 同名包装或空壳冒充分层。
+- 使用新库 `unexamine_r16`，本机既有 MySQL/Redis，不运行新容器。前端等后端接口真实验收后再开发。
 
-每项实现只围绕可观察结果，不为尚未确定的外部服务、计算口径或未来扩展预建抽象。未完成能力如实列于 `backend-acceptance.md`，编译成功不代表整个后端已验收。
+## 顺序与可观察结果
 
-## 基础 CRUD 分层纠正（2026-10-21）
+1. **规则与模板**：从 `70a3979a` 提取五种基础操作的输入、输出、错误和布局语义；新生成器只依赖 `template_base`，以独立样表渲染、编译和调用验证模板。验收点是生成的 ServiceImpl 真正查询、保存、读取、返回布局及删除，Controller 没有 Mapper/SQL/业务判断。
+2. **表与归属**：按《表意义.md》逐张确定业务模块、必要字段、中文备注和关系；新建 `unexamine_r16`，一次只执行当前批次的幂等 DDL，已有数据通过迁移而非删表。先完成平台账号、系统/租户与模块记录的最短业务旅程，再补齐其余表。
+3. **生成与业务**：从真实库运行生成器，生成代码只进入对应模块 `base`。`manage` 只处理会话授权、跨表约束和状态编排；每批最多 240 分钟，跨模块依赖串行。
+4. **后端验收**：每批通过编译后，用 9999 实际接口核对成功、持久化、越权和失败；整体接口清单覆盖列表、表头排序、场景、表单布局与保存、流程、审批、工作、展示等当前基础能力。未测不标完成。
+5. **前端**：用户验收后端业务边界和接口后，在 `font_web/` 实现唯一前端并验证实际页面。
 
-- 用户指出此前只生成空的 `IService/ServiceImpl`，Controller 仍承担持久化与业务规则；这不能算分层完成。详细规约见 `docs/backend-layering.md`。
-- 当前 Maven 后端工程位于 `back/`，需求和接口记录集中于 `docs/`，生成器留在 `template_base/`，前端根目录为 `font_web/`。`back/base-codegen.json` 已同步模块路径。
-- 已参照 `70a3979a` 的模板补上 Service 基础 CRUD 的实际生成实现，并将打印模块 Controller → manage Service → base Service 改通。其他业务模块的 Controller 尚待逐批迁移，不得按此前的“已纠正 94 个调用方”描述认定完成。
-- JDK 21 打印模块及依赖模块 `test`、生成器 `package` 通过。当前 3306 与 9999 未监听，待现有 MySQL 恢复后重新生成、回归 HTTP、持久化、授权与失败结果。未运行 `execution-verify`，后端验收仍进行中。
+## 当前断点
+
+第 15 次源码、派生文档与生成器已移出活动工作区；当前仅需求源、表用途和旧 SQL 参考保留在 `docs/`。五方法模板已通过独立样表的实际生成与编译；带布局的 `information` 已运行验证 50% + 50% 同行。下一步仍需设计首批表，并在真实 MySQL 验证五个方法的持久化结果。历史 `unexamine_r15` 与其 HTTP 记录不计入第 16 次进度。

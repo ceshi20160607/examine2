@@ -2,7 +2,7 @@
 
 - 需求：从用户原文和表用途确认当前功能、可见结果、授权和失败结果。
 - 数据库：按原表名设计该功能需要的字段、关系、中文备注和迁移。
-- 后端：用生成器创建 Base 的 Entity、Mapper；在 manage 实现业务规则。
+- 后端：用生成器创建 Base 的 Entity、Mapper、IService、ServiceImpl 和五个基础 CRUD 方法；在 manage 实现特殊规则，Controller 只调用 Service。
 - 前端：连接真实接口，实现普通用户可操作的页面。
 - 验收：检查页面、数据库结果、无权访问和失败输入；记录实际验证结果。
 

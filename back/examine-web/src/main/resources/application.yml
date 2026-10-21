@@ -1,15 +1,8 @@
 server:
   port: 9999
-  servlet:
-    session:
-      cookie:
-        http-only: true
-        same-site: lax
+
 spring:
   datasource:
-    url: ${APP_DB_URL:jdbc:mysql://127.0.0.1:3306/unexamine_r15?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    url: ${APP_DB_URL:jdbc:mysql://127.0.0.1:3306/unexamine_r16?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${APP_DB_USERNAME:root}
     password: ${APP_DB_PASSWORD:}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jackson:
-    time-zone: Asia/Shanghai

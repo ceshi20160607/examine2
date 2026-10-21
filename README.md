@@ -1,10 +1,10 @@
 # Unexamine
 
-本轮从用户的[表定义与用途](docs/表意义.md)重新开始，按[基础需求](docs/user_requirement.md)实现。94 个表名保持原样，物理表随对应业务落地，不用上轮的替代表和旧代码。
+第 16 次重构从[基础需求](docs/user_requirement.md)和[94 张表的用途](docs/表意义.md)重新开始。当前只建立新工程和生成器，历史接口与验收不计入本轮进度；断点见[实施计划](docs/ai/planning/rebuild-plan.md)。
 
-- [早期审批 SQL](docs/old_table1.sql) 只供阅读，不执行。
-- [Template Base](template_base/README.md) 只保留通用 MyBatis-Plus 代码生成器和简短开发参考。
-- [后端工程](back/pom.xml) 位于 `back/`，业务模块为 `examine-*`，入口为 `examine-web`。
-- [项目文档](docs/README.md) 保存需求、接口与验收记录；`template_base/` 保存生成器；`font_web/` 为前端根目录。
+- `back/`：后端 Maven 多模块工程，入口为 `examine-web`。
+- `template_base/`：通用 MyBatis-Plus 生成器、开发职责与检查规则。
+- `docs/`：唯一需求源、表用途与本轮计划。
+- `font_web/`：后端接口经用户验收后开发的前端。
 
-清理前状态已保存在 Git 标签 `pre-table-first-reset-20261019`，只用于恢复；不能作为本轮需求或完成证据。
+旧状态保存在本地 Git 标签 `pre-rebuild-16-20261021`。历史 SQL 和旧实现不作为本轮产品依据。

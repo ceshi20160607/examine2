@@ -1,18 +1,20 @@
 package com.unique.unexamine.web.config;
 
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/** 对列表接口统一启用数据库分页，避免先读全表再截取。 */
+/** 为所有业务模块的基础列表启用真实 SQL 分页。 */
 @Configuration
 public class PaginationConfig {
+    /** 单页最多一百条，与生成 Service 的参数校验保持一致。 */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
-        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        PaginationInnerInterceptor pagination = new PaginationInnerInterceptor();
+        PaginationInnerInterceptor pagination = new PaginationInnerInterceptor(DbType.MYSQL);
         pagination.setMaxLimit(100L);
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         interceptor.addInnerInterceptor(pagination);
         return interceptor;
     }
