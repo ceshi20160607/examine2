@@ -42,6 +42,16 @@ public class ModuleConfigController {
         return service.createModule(token, systemId, tenantId, request);
     }
 
+    /** 登录成员根据具体列表动作权限读取可用的模块组及模块。 */
+    @GetMapping("/navigation")
+    @Operation(summary = "查询获权模块导航")
+    public java.util.List<ModuleConfigService.NavigationGroup> navigation(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId) {
+        return service.navigation(token,systemId,tenantId);
+    }
+
     /** 保存设计器给出的字段位置和占位宽度。 */
     @PostMapping("/modules/{moduleId}/fields")
     @Operation(summary = "保存模块字段草稿")

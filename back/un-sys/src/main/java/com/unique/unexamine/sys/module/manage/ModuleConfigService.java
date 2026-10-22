@@ -70,6 +70,10 @@ public class ModuleConfigService {
     /** 角色字段与动作配置使用的稳定字段标识及发布定义。 */
     public record PublishedFieldView(Long fieldId, String fieldCode, Map<String,Object> configuration) {}
 
+    /** 普通成员导航只返回实际可执行列表动作的模块。 */
+    public record NavigationModule(Long id,String code,String name,Long ownerTenantId,boolean inherited) {}
+    public record NavigationGroup(Long id,String code,String name,List<NavigationModule> modules) {}
+
     /** 发布时由管理员按字段 ID 提交旧字典项 ID 到新字典项 ID 的映射。 */
     public record PublishRequest(Map<Long,Map<Long,Long>> optionMappings) {}
 
@@ -249,6 +253,36 @@ public class ModuleConfigService {
         publishedModule(systemId, moduleId, context.tenantId());
         return publishedFields(moduleId).stream().map(field -> new PublishedFieldView(field.getId(), field.getFieldCode(),
                 fieldConfig(field).configuration())).toList();
+    }
+
+    /** 按模块组和保存顺序提供运行态导航，权限来自具体 LIST 菜单而非模块配置读取权。 */
+    public List<NavigationGroup> navigation(String token,Long systemId,Long tenantId) {
+        var context=systems.context(token,systemId,tenantId);
+        Long root=systemRows.queryById(systemId).getRootTenantId();
+        List<UnModuleGroup> availableGroups=groups.list(new LambdaQueryWrapper<UnModuleGroup>()
+                .eq(UnModuleGroup::getSystemId,systemId).eq(UnModuleGroup::getTenantId,root)
+                .eq(UnModuleGroup::getStatus,"PUBLISHED").orderByAsc(UnModuleGroup::getSortNo)
+                .orderByAsc(UnModuleGroup::getId));
+        List<UnModule> availableModules=modules.list(new LambdaQueryWrapper<UnModule>()
+                .eq(UnModule::getSystemId,systemId).in(UnModule::getTenantId,List.of(root,context.tenantId()))
+                .eq(UnModule::getStatus,"PUBLISHED").orderByAsc(UnModule::getSortNo)
+                .orderByAsc(UnModule::getId));
+        List<NavigationGroup> result=new java.util.ArrayList<>();
+        for (UnModuleGroup group:availableGroups) {
+            List<NavigationModule> items=new java.util.ArrayList<>();
+            for (UnModule module:availableModules) {
+                if (!group.getId().equals(module.getGroupId())) continue;
+                try { permissions.require(token,systemId,context.tenantId(),module.getId(),"LIST"); }
+                catch (ResponseStatusException ex) {
+                    if (ex.getStatusCode().is4xxClientError()) continue;
+                    throw ex;
+                }
+                items.add(new NavigationModule(module.getId(),module.getCode(),module.getName(),
+                        module.getTenantId(),!module.getTenantId().equals(context.tenantId())));
+            }
+            if (!items.isEmpty()) result.add(new NavigationGroup(group.getId(),group.getCode(),group.getName(),items));
+        }
+        return result;
     }
 
     /** 运行态解析所选字典基础项及字段编辑许可，原始布局保持不变。 */

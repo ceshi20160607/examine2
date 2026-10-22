@@ -224,7 +224,8 @@ public class ModulePermissionService {
 
     private Rules load(SystemManageService.SystemContext context,Long moduleId,Long menuId) {
         var tenant=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>().eq(UnModuleTenant::getTenantId,context.tenantId()).eq(UnModuleTenant::getModuleId,moduleId));
-        if (tenant!=null && !"ACTIVE".equals(tenant.getStatus())) forbidden();
+        // 租户未显式启用的模块不能凭角色菜单授权绕过模块共享边界。
+        if (tenant==null || !"ACTIVE".equals(tenant.getStatus())) forbidden();
         Object configured=tenant==null?null:readMap(tenant.getConfigJson()).get("fieldPolicy");
         FieldAccess cap=configured==null?new FieldAccess(null,null,null):json.convertValue(configured,FieldAccess.class);
         List<Grant> grants=new ArrayList<>(); Set<String> readable=new HashSet<>(),writable=new HashSet<>(),exportable=new HashSet<>(); boolean menuAllowed=false;
