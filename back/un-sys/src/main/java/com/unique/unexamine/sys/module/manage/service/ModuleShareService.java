@@ -150,14 +150,21 @@ public class ModuleShareService {
     /** 指定菜单及时间窗同时有效，且只读取单条记录共享；范围共享尚未开放配置。 */
     private List<UnModuleShare> active(ModulePermissionService.Access access) {
         LocalDateTime now=LocalDateTime.now();
-        return shares.list(new LambdaQueryWrapper<UnModuleShare>()
+        List<UnModuleShare> candidates=shares.list(new LambdaQueryWrapper<UnModuleShare>()
                 .eq(UnModuleShare::getSystemId,access.context().systemId())
                 .eq(UnModuleShare::getTargetTenantId,access.context().tenantId())
                 .eq(UnModuleShare::getModuleId,access.definition().module().getId())
                 .eq(UnModuleShare::getStatus,"ACTIVE").isNotNull(UnModuleShare::getRecordId)
                 .le(UnModuleShare::getEffectiveTime,now)
-                .and(q->q.isNull(UnModuleShare::getExpireTime).or().gt(UnModuleShare::getExpireTime,now)))
-                .stream().filter(row->menuIds(row).contains(access.definition().menu().getId())).toList();
+                .and(q->q.isNull(UnModuleShare::getExpireTime).or().gt(UnModuleShare::getExpireTime,now)));
+        if (candidates.isEmpty()) return List.of();
+        Set<Long> activeSources=tenants.list(new LambdaQueryWrapper<UnSysTenant>()
+                .eq(UnSysTenant::getSystemId,access.context().systemId())
+                .eq(UnSysTenant::getStatus,"ACTIVE")
+                .in(UnSysTenant::getId,candidates.stream().map(UnModuleShare::getSourceTenantId).distinct().toList()))
+                .stream().map(UnSysTenant::getId).collect(Collectors.toSet());
+        return candidates.stream().filter(row->activeSources.contains(row.getSourceTenantId())
+                && menuIds(row).contains(access.definition().menu().getId())).toList();
     }
 
     private Set<Long> menuIds(UnModuleShare share) {
