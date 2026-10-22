@@ -7,10 +7,12 @@
 
 # 产品实现
 
-- `back/` 是后端 Maven 根目录，业务模块统一 `examine-*`，`examine-web` 组合成一个服务；`font_web/` 是唯一前端，后端经用户验收后开发前端。
+- `back/` 是后端 Maven 根目录，使用 `un-plat`、`un-sys`、`un-work`、`un-dashboard`、`un-app`、`un-examine`、`un-core`、`un-file`、`un-web`。只有 `un-web` 是 Boot 入口，模块间直接调用本地 Service；`font_web/` 是唯一前端，后端经用户验收后开发前端。
+- `un-sys` 包含系统、模块定义及相关 Flow，域内分包；打印与详情、转移、转化、导入导出同属可配置动作，不单独拆 Maven 模块。`un-examine` 负责审批，`un-core` 负责共用能力，`un-file` 提供可复用上传存储接入。
 - 每个业务包下 `base` 与 `manage` 平级。生成器提供 Entity、Mapper、IService、ServiceImpl 及真实基础 CRUD；manage 中的业务 Service 实现授权、主数据与自定义数据保存、关联检查和编排；Controller 只调用 Service。
 - 基础方法参考 `70a3979a` 的 Controller → Service 调用和 `simple` 模板结构：`queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`。不复制旧业务依赖。
-- 字段配置时已经拖拽确定表单位置、占位宽度等；新建、编辑和详情复用已保存配置，information 绑定数据，不重新排版。queryById 只读基础记录。
+- 字段配置已确定行、位置和宽度；单独占一行的 30% 字段仍只占该行 30%。新建、编辑、详情复用原配置并叠加登录人角色和租户字段权限；权限过滤不补位或拉伸。information 绑定有权读取的值，queryById 只读基础记录。
+- 管理员可配置系统预置动作和自定义动作。转化配置来源与目标模块的字段映射，执行时校验两端动作、字段及数据权限和目标发布规则，事务保存记录、关系与日志。
 - 先按完整业务理解设计表，在目标库执行并核对后运行生成器，再适配 manage。保留用户给定 94 张表原名；不建数据库外键或触发器，引用约束由业务 Service 执行。
 - 使用现有 Docker MySQL 3306、Redis 6379 和独立库 `unexamine_r16`；后端固定 9999，不新增数据库容器或 Nginx。
 

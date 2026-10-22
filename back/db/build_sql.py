@@ -6,16 +6,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MODULES = (
-    "examine-plat",
-    "examine-sys",
-    "examine-common",
-    "examine-module",
-    "examine-flow",
-    "examine-approval",
-    "examine-work",
-    "examine-dashboard",
-    "examine-print",
-    "examine-app",
+    "un-core",
+    "un-plat",
+    "un-sys",
+    "un-examine",
+    "un-work",
+    "un-dashboard",
+    "un-app",
 )
 
 

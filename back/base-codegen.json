@@ -3,7 +3,7 @@
   "databaseUsername": "root",
   "targets": [
     {
-      "sourceRoot": "examine-plat/src/main/java",
+      "sourceRoot": "un-plat/src/main/java",
       "basePackage": "com.unique.unexamine.plat.base",
       "tables": [
         "un_plat_account",
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "sourceRoot": "examine-sys/src/main/java",
+      "sourceRoot": "un-sys/src/main/java",
       "basePackage": "com.unique.unexamine.sys.base",
       "tables": [
         "un_sys_system",
@@ -41,17 +41,23 @@
       ]
     },
     {
-      "sourceRoot": "examine-common/src/main/java",
-      "basePackage": "com.unique.unexamine.common.base",
+      "sourceRoot": "un-core/src/main/java",
+      "basePackage": "com.unique.unexamine.core.file.base",
       "tables": [
-        "un_common_file",
+        "un_common_file"
+      ]
+    },
+    {
+      "sourceRoot": "un-core/src/main/java",
+      "basePackage": "com.unique.unexamine.core.common.base",
+      "tables": [
         "un_common_notice",
         "un_common_ai"
       ]
     },
     {
-      "sourceRoot": "examine-module/src/main/java",
-      "basePackage": "com.unique.unexamine.module.base",
+      "sourceRoot": "un-sys/src/main/java",
+      "basePackage": "com.unique.unexamine.sys.module.base",
       "tables": [
         "un_module_group",
         "un_module",
@@ -75,8 +81,8 @@
       ]
     },
     {
-      "sourceRoot": "examine-flow/src/main/java",
-      "basePackage": "com.unique.unexamine.flow.base",
+      "sourceRoot": "un-sys/src/main/java",
+      "basePackage": "com.unique.unexamine.sys.flow.base",
       "tables": [
         "un_module_flow",
         "un_flow",
@@ -94,8 +100,8 @@
       ]
     },
     {
-      "sourceRoot": "examine-approval/src/main/java",
-      "basePackage": "com.unique.unexamine.approval.base",
+      "sourceRoot": "un-examine/src/main/java",
+      "basePackage": "com.unique.unexamine.examine.base",
       "tables": [
         "un_module_examine",
         "un_examine",
@@ -112,7 +118,7 @@
       ]
     },
     {
-      "sourceRoot": "examine-work/src/main/java",
+      "sourceRoot": "un-work/src/main/java",
       "basePackage": "com.unique.unexamine.work.base",
       "tables": [
         "un_work_project",
@@ -128,7 +134,7 @@
       ]
     },
     {
-      "sourceRoot": "examine-dashboard/src/main/java",
+      "sourceRoot": "un-dashboard/src/main/java",
       "basePackage": "com.unique.unexamine.dashboard.base",
       "tables": [
         "un_dashboard",
@@ -142,14 +148,14 @@
       ]
     },
     {
-      "sourceRoot": "examine-print/src/main/java",
-      "basePackage": "com.unique.unexamine.print.base",
+      "sourceRoot": "un-sys/src/main/java",
+      "basePackage": "com.unique.unexamine.sys.action.print.base",
       "tables": [
         "un_print"
       ]
     },
     {
-      "sourceRoot": "examine-app/src/main/java",
+      "sourceRoot": "un-app/src/main/java",
       "basePackage": "com.unique.unexamine.app.base",
       "tables": [
         "un_app",

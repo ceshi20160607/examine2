@@ -33,7 +33,7 @@ public final class BaseCodeGenerator {
         Set<String> tableNames = new HashSet<>();
         for (Target target : config.targets()) {
             if (target.sourceRoot() == null || target.basePackage() == null
-                    || !target.basePackage().matches("com\\.unique\\.unexamine\\.[a-z]+\\.base")
+                    || !target.basePackage().matches("com\\.unique\\.unexamine(?:\\.[a-z][a-z0-9]*)+\\.base")
                     || target.tables() == null || target.tables().isEmpty()) {
                 throw new IllegalArgumentException("业务模块缺少源码目录、base 包名或表名");
             }

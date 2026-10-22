@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS unexamine_r16 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 USE unexamine_r16;
 
--- examine-plat 业务模块
+-- un-plat 业务模块
 -- 平台账号和平台管理数据。关联 ID 由业务 Service 校验，不使用数据库外键。
 CREATE TABLE IF NOT EXISTS un_plat_account (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '平台账号主键',
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS un_plat_message (
   PRIMARY KEY (id), KEY ix_plat_message_recipient (recipient_account_id, status, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台消息';
 
--- examine-sys 业务模块
+-- un-sys 业务模块
 -- 系统、租户、成员与授权数据。系统创建及租户模式变更在业务事务中执行。
 CREATE TABLE IF NOT EXISTS un_sys_system (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '业务系统主键',
@@ -335,7 +335,6 @@ CREATE TABLE IF NOT EXISTS un_sys_message (
   PRIMARY KEY (id), KEY ix_sys_message_recipient (recipient_member_id, status, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统消息';
 
--- examine-module 业务模块
 -- 模块配置与运行数据。配置发布和记录授权由模块业务 Service 校验。
 CREATE TABLE IF NOT EXISTS un_module_group (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块组主键',

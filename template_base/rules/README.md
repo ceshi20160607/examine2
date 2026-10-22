@@ -5,5 +5,5 @@
 3. 数据库时间列用 `*_time`，Java 属性用 `*Time`；已有数据结构变更有可执行迁移，不直接删表重建。
 4. Java 类、方法、业务字段和关键逻辑有中文业务注释，HTTP 接口有可读说明；简单 CRUD 不增加无用层。
 5. 表结构变更后从实际库运行生成器，生成结果直接进入业务模块 base；业务编排在同级 manage，Controller 只调用 Service。
-6. 生成的基础 Service 实现 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`；配置驱动的详情复用保存的配置，不重建另一套布局。
+6. 生成的基础 Service 实现 `queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`；配置驱动的详情复用保存的行、位置和宽度，不按宽度重新拼行或拉伸。业务字段权限由 manage 校验后传入，基础模板不自行推断角色或租户权限。
 7. 编译测试执行相关范围；业务通过实际入口检查持久化、授权和失败结果。局部工程检查不等于整体功能完成。

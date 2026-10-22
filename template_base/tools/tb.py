@@ -6,6 +6,7 @@ import os
 import shutil
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -40,21 +41,29 @@ def project_status(root: Path, config: dict) -> None:
     """只统计磁盘上的最终源码，不把文件数当成业务完成数。"""
     codegen = read_json(workspace_path(root, config["codegenConfig"]))
     backend = workspace_path(root, config["backend"])
-    modules = []
+    modules = {}
+    pom = ET.parse(backend / "pom.xml")
+    for entry in pom.findall("{*}modules/{*}module"):
+        modules[entry.text] = {
+            "module": entry.text, "basePackages": [], "tablesConfigured": 0,
+            "entities": 0, "baseServices": 0, "businessServices": 0, "controllers": 0,
+        }
     for target in codegen["targets"]:
         source = workspace_path(root, str((backend / target["sourceRoot"]).relative_to(root)))
         base = source.joinpath(*target["basePackage"].split("."))
         manage = base.parent / "manage"
-        modules.append({
-            "module": source.relative_to(backend).parts[0],
-            "tablesDefined": len(target["tables"]),
-            "entities": len(list((base / "entity").glob("*.java"))),
-            "baseServices": len(list((base / "service").glob("I*Service.java"))),
-            "businessServices": len(list(manage.rglob("*Service*.java"))) if manage.exists() else 0,
-            "controllers": len(list(manage.rglob("*Controller.java"))) if manage.exists() else 0,
-        })
+        name = source.relative_to(backend).parts[0]
+        if name not in modules:
+            raise ValueError(f"生成归属未列入 Maven 模块: {name}")
+        module = modules[name]
+        module["basePackages"].append(target["basePackage"])
+        module["tablesConfigured"] += len(target["tables"])
+        module["entities"] += len(list((base / "entity").glob("*.java")))
+        module["baseServices"] += len(list((base / "service").glob("I*Service.java")))
+        module["businessServices"] += len(list(manage.rglob("*Service*.java"))) if manage.exists() else 0
+        module["controllers"] += len(list(manage.rglob("*Controller.java"))) if manage.exists() else 0
     print(json.dumps({
-        "modules": modules,
+        "modules": list(modules.values()),
         "frontendPackageExists": (workspace_path(root, config["frontend"]) / "package.json").is_file(),
         "scope": "仅报告当前源码；不证明数据库、授权、HTTP 或完整产品已验收。",
     }, ensure_ascii=False, indent=2))

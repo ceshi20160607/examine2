@@ -56,8 +56,8 @@ class TemplateContractTest {
         assertFalse(implementation.contains("case \"passwordHash\""), "敏感字段不能作为基础筛选和排序条件");
 
         Path source = temporary.resolve("src");
-        write(source, "com/unique/unexamine/print/base/entity/UnPrint.java", """
-                package com.unique.unexamine.print.base.entity;
+        write(source, "com/unique/unexamine/sys/action/print/base/entity/UnPrint.java", """
+                package com.unique.unexamine.sys.action.print.base.entity;
                 public class UnPrint {
                     private Long id;
                     private String name;
@@ -69,17 +69,17 @@ class TemplateContractTest {
                     public String getPasswordHash() { return passwordHash; }
                 }
                 """);
-        write(source, "com/unique/unexamine/print/base/mapper/UnPrintMapper.java", """
-                package com.unique.unexamine.print.base.mapper;
+        write(source, "com/unique/unexamine/sys/action/print/base/mapper/UnPrintMapper.java", """
+                package com.unique.unexamine.sys.action.print.base.mapper;
                 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-                import com.unique.unexamine.print.base.entity.UnPrint;
+                import com.unique.unexamine.sys.action.print.base.entity.UnPrint;
                 public interface UnPrintMapper extends BaseMapper<UnPrint> { }
                 """);
-        write(source, "com/unique/unexamine/print/base/service/IUnPrintService.java", service);
-        write(source, "com/unique/unexamine/print/base/service/impl/UnPrintServiceImpl.java", implementation);
-        write(source, "com/unique/unexamine/print/base/service/impl/FixtureService.java", """
-                package com.unique.unexamine.print.base.service.impl;
-                import com.unique.unexamine.print.base.entity.UnPrint;
+        write(source, "com/unique/unexamine/sys/action/print/base/service/IUnPrintService.java", service);
+        write(source, "com/unique/unexamine/sys/action/print/base/service/impl/UnPrintServiceImpl.java", implementation);
+        write(source, "com/unique/unexamine/sys/action/print/base/service/impl/FixtureService.java", """
+                package com.unique.unexamine.sys.action.print.base.service.impl;
+                import com.unique.unexamine.sys.action.print.base.entity.UnPrint;
                 public class FixtureService extends UnPrintServiceImpl {
                     @Override
                     public UnPrint queryById(Long id) { return new UnPrint(id, "示例"); }
@@ -89,20 +89,20 @@ class TemplateContractTest {
         compile(source);
         try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()},
                 getClass().getClassLoader())) {
-            String servicePackage = "com.unique.unexamine.print.base.service.IUnPrintService";
+            String servicePackage = "com.unique.unexamine.sys.action.print.base.service.IUnPrintService";
             Class<?> configClass = loader.loadClass(servicePackage + "$FieldConfig");
             var configConstructor = configClass.getDeclaredConstructor(String.class, Map.class);
-            // 不约定设计器的存储结构，任意嵌套配置都应原样保留。
+            // 单独一行的 30% 字段仍保留该行及宽度，不能把下一行字段移入剩余位置。
             Map<String, Object> savedCustom = Map.of("label", "自定义字段", "type", "text",
-                    "layout", Map.of("position", "设计器保存的位置B", "width", "50%"));
+                    "layout", Map.of("row", "独立行", "position", "设计器保存的位置B", "width", "30%"));
             Map<String, Object> savedName = Map.of("label", "名称",
-                    "layout", Map.of("position", "设计器保存的位置A", "width", "50%"));
+                    "layout", Map.of("row", "后续行", "position", "设计器保存的位置A", "width", "50%"));
             List<Object> configurations = List.of(
                     configConstructor.newInstance("customField", savedCustom),
                     configConstructor.newInstance("name", savedName),
                     configConstructor.newInstance("emptyField", Map.of("label", "未填字段")));
             Object serviceInstance = loader.loadClass(
-                    "com.unique.unexamine.print.base.service.impl.FixtureService")
+                    "com.unique.unexamine.sys.action.print.base.service.impl.FixtureService")
                     .getDeclaredConstructor().newInstance();
             var information = serviceInstance.getClass().getMethod(
                     "information", Long.class, List.class, Map.class);
@@ -142,7 +142,7 @@ class TemplateContractTest {
         FastAutoGenerator.create(url, "sa", "")
                 .globalConfig(builder -> builder.author("Template Base").disableOpenDir()
                         .outputDir(source.toString()))
-                .packageConfig(builder -> builder.parent("com.unique.unexamine.print.base")
+                .packageConfig(builder -> builder.parent("com.unique.unexamine.sys.action.print.base")
                         .entity("entity").mapper("mapper").service("service").serviceImpl("service.impl"))
                 .strategyConfig(builder -> {
                     builder.addInclude("un_print");
@@ -156,16 +156,16 @@ class TemplateContractTest {
                         .serviceImpl("/templates/serviceImpl.java"))
                 .templateEngine(new FreemarkerTemplateEngine())
                 .execute();
-        Path service = source.resolve("com/unique/unexamine/print/base/service/IUnPrintService.java");
-        Path implementation = source.resolve("com/unique/unexamine/print/base/service/impl/UnPrintServiceImpl.java");
+        Path service = source.resolve("com/unique/unexamine/sys/action/print/base/service/IUnPrintService.java");
+        Path implementation = source.resolve("com/unique/unexamine/sys/action/print/base/service/impl/UnPrintServiceImpl.java");
         assertTrue(Files.isRegularFile(service), "生成器未输出 Service 接口");
         assertTrue(Files.isRegularFile(implementation), "生成器未输出 ServiceImpl");
         for (String method : List.of("queryPageList", "addOrUpdate", "queryById", "information", "deleteByIds")) {
             assertTrue(Files.readString(implementation).contains(method + "("), "生成实现缺少 " + method);
         }
-        write(source, "com/unique/unexamine/print/base/service/impl/FixtureService.java", """
-                package com.unique.unexamine.print.base.service.impl;
-                import com.unique.unexamine.print.base.mapper.UnPrintMapper;
+        write(source, "com/unique/unexamine/sys/action/print/base/service/impl/FixtureService.java", """
+                package com.unique.unexamine.sys.action.print.base.service.impl;
+                import com.unique.unexamine.sys.action.print.base.mapper.UnPrintMapper;
                 public class FixtureService extends UnPrintServiceImpl {
                     public void useMapper(UnPrintMapper mapper) { this.baseMapper = mapper; }
                 }
@@ -173,10 +173,10 @@ class TemplateContractTest {
         compile(source);
         try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()},
                 getClass().getClassLoader())) {
-            Class<?> entityClass = loader.loadClass("com.unique.unexamine.print.base.entity.UnPrint");
-            Class<?> mapperClass = loader.loadClass("com.unique.unexamine.print.base.mapper.UnPrintMapper");
+            Class<?> entityClass = loader.loadClass("com.unique.unexamine.sys.action.print.base.entity.UnPrint");
+            Class<?> mapperClass = loader.loadClass("com.unique.unexamine.sys.action.print.base.mapper.UnPrintMapper");
             Class<?> pageQueryClass = loader.loadClass(
-                    "com.unique.unexamine.print.base.service.IUnPrintService$PageQuery");
+                    "com.unique.unexamine.sys.action.print.base.service.IUnPrintService$PageQuery");
             MybatisConfiguration configuration = new MybatisConfiguration();
             configuration.addMapper(mapperClass);
             MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
@@ -188,7 +188,7 @@ class TemplateContractTest {
             factoryBean.afterPropertiesSet();
             try (SqlSession session = factoryBean.getObject().openSession(true)) {
                 Object fixture = loader.loadClass(
-                        "com.unique.unexamine.print.base.service.impl.FixtureService")
+                        "com.unique.unexamine.sys.action.print.base.service.impl.FixtureService")
                         .getDeclaredConstructor().newInstance();
                 fixture.getClass().getMethod("useMapper", mapperClass)
                         .invoke(fixture, session.getMapper(mapperClass));
@@ -257,10 +257,10 @@ class TemplateContractTest {
         Configuration configuration = new Configuration(Configuration.VERSION_2_3_34);
         configuration.setClassForTemplateLoading(BaseCodeGenerator.class, "/templates");
         Map<String, Object> packages = Map.of(
-                "Service", "com.unique.unexamine.print.base.service",
-                "ServiceImpl", "com.unique.unexamine.print.base.service.impl",
-                "Entity", "com.unique.unexamine.print.base.entity",
-                "Mapper", "com.unique.unexamine.print.base.mapper");
+                "Service", "com.unique.unexamine.sys.action.print.base.service",
+                "ServiceImpl", "com.unique.unexamine.sys.action.print.base.service.impl",
+                "Entity", "com.unique.unexamine.sys.action.print.base.entity",
+                "Mapper", "com.unique.unexamine.sys.action.print.base.mapper");
         Map<String, Object> table = Map.of(
                 "comment", "打印模板", "serviceName", "IUnPrintService",
                 "serviceImplName", "UnPrintServiceImpl", "mapperName", "UnPrintMapper",
