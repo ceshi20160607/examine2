@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class ModuleConfigService {
     private final ModuleFieldService fieldRules;
     private final ModulePermissionService permissions;
     private final ModuleMenuService menuService;
+    private final ModuleFieldMigrationService migrations;
 
     /** 创建运行态导航模块组。 */
     public record CreateGroupRequest(@NotBlank @Size(max = 80) String code,
@@ -68,12 +70,16 @@ public class ModuleConfigService {
     /** 角色字段与动作配置使用的稳定字段标识及发布定义。 */
     public record PublishedFieldView(Long fieldId, String fieldCode, Map<String,Object> configuration) {}
 
+    /** 发布时由管理员按字段 ID 提交旧字典项 ID 到新字典项 ID 的映射。 */
+    public record PublishRequest(Map<Long,Map<Long,Long>> optionMappings) {}
+
     /** 注入模块贴表 Service 和系统上下文业务服务。 */
     public ModuleConfigService(SystemManageService systems, IUnSysSystemService systemRows,
             IUnModuleGroupService groups,
             IUnModuleService modules, IUnModuleFieldService fields,
             IUnModuleTenantService tenantModules, ObjectMapper json, ModuleFieldService fieldRules,
-            ModulePermissionService permissions, ModuleMenuService menuService) {
+            ModulePermissionService permissions, ModuleMenuService menuService,
+            ModuleFieldMigrationService migrations) {
         this.systems = systems;
         this.systemRows = systemRows;
         this.groups = groups;
@@ -84,6 +90,7 @@ public class ModuleConfigService {
         this.fieldRules = fieldRules;
         this.permissions = permissions;
         this.menuService = menuService;
+        this.migrations = migrations;
     }
 
     /** 系统后台创建模块组；非管理员不能修改配置。 */
@@ -159,9 +166,21 @@ public class ModuleConfigService {
         return saveFieldInTransaction(module, request);
     }
 
-    /** 把当前设计器字段顺序与原布局一起发布，运行态只读取本次快照。 */
-    @Transactional(rollbackFor = Exception.class)
-    public ModuleView publish(String token, Long systemId, Long tenantId, Long moduleId) {
+    /** 预览草稿发布会影响的旧记录及原值；执行发布时仍重新扫描。 */
+    public ModuleFieldMigrationService.Preview previewMigration(String token,Long systemId,Long tenantId,
+            Long moduleId,Long fieldId) {
+        var context=systems.requireAdminContext(token,systemId,tenantId);
+        module(systemId,moduleId,context.tenantId());
+        UnModuleField field=fields.queryById(fieldId);
+        if (!moduleId.equals(field.getModuleId())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"字段不属于当前模块");
+        var definition=fieldRules.definition(systemId,context.tenantId(),field.getFieldCode(),field.getFieldName(),
+                field.getFieldType(),Boolean.TRUE.equals(field.getRequiredFlag()),readMap(field.getConfigJson()));
+        return migrations.preview(token,systemId,moduleId,field,definition);
+    }
+
+    /** 把字段草稿、显式旧值迁移及原布局在同一事务中发布。 */
+    @Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
+    public ModuleView publish(String token, Long systemId, Long tenantId, Long moduleId, PublishRequest request) {
         var context = systems.requireAdminContext(token, systemId, tenantId);
         lockModule(systemId, moduleId);
         UnModule module = module(systemId, moduleId, context.tenantId());
@@ -170,10 +189,16 @@ public class ModuleConfigService {
         if (definitions.isEmpty() || definitions.stream().noneMatch(field -> "name".equals(field.getFieldCode()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "模块缺少标题字段");
         }
+        Map<Long,Map<Long,Long>> mappings=request==null || request.optionMappings()==null?Map.of():request.optionMappings();
+        Set<Long> fieldIds=definitions.stream().map(UnModuleField::getId).collect(java.util.stream.Collectors.toSet());
+        if (!fieldIds.containsAll(mappings.keySet())) throw new IllegalArgumentException("迁移映射包含非本模块的草稿字段");
+        if (mappings.values().stream().anyMatch(java.util.Objects::isNull))
+            throw new IllegalArgumentException("字段迁移映射不能为空");
         int version = (module.getPublishedVersion() == null ? 0 : module.getPublishedVersion()) + 1;
         for (UnModuleField field : definitions) {
             var definition = fieldRules.definition(systemId, context.tenantId(), field.getFieldCode(), field.getFieldName(),
                     field.getFieldType(), Boolean.TRUE.equals(field.getRequiredFlag()), readMap(field.getConfigJson()));
+            migrations.apply(systemId,moduleId,field,definition,mappings.get(field.getId()),accountId(token,systemId),token);
             fieldRules.validateExisting(systemId, moduleId, field.getId(), definition);
             field.setPublishedLayoutJson(field.getLayoutJson());
             Map<String, Object> snapshot = new LinkedHashMap<>();

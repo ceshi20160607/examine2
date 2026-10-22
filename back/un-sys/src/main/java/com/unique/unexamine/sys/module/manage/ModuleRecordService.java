@@ -109,7 +109,7 @@ public class ModuleRecordService {
                                Map<String,String> beforeDisplay,Map<String,String> afterDisplay) {}
     /** 配置迁移与普通字段更新使用不同 actionCode，此处保存执行上下文。 */
     public record AuditDetail(String actionName,String operatorName,List<FieldChange> changes,
-                               Long relatedModuleId,Long relatedRecordId) {}
+                               Long relatedModuleId,Long relatedRecordId,String message) {}
     /** 返回的字段变化已经按当前字段读取许可过滤。 */
     public record OperationView(Long id,String operationType,Long operatorAccountId,LocalDateTime createTime,AuditDetail detail) {}
     /** 操作历史分页复用生成的基础日志服务。 */
@@ -456,7 +456,7 @@ public class ModuleRecordService {
                         List<FieldChange> changes,Long relatedModuleId,Long relatedRecordId) {
         var log=new UnModuleLog(); log.setSystemId(record.getSystemId()); log.setTenantId(record.getTenantId());
         log.setModuleId(module.getId()); log.setRecordId(record.getId()); log.setOperatorAccountId(operatorId); log.setActionCode(operation);
-        log.setDetailJson(writeValue(new AuditDetail(actionName,accounts.queryById(operatorId).getDisplayName(),changes,relatedModuleId,relatedRecordId))); logs.addOrUpdate(log);
+        log.setDetailJson(writeValue(new AuditDetail(actionName,accounts.queryById(operatorId).getDisplayName(),changes,relatedModuleId,relatedRecordId,null))); logs.addOrUpdate(log);
     }
 
     /** 操作历史与详情使用相同记录授权，并在服务端过滤无权读取的字段变化。 */
@@ -467,12 +467,13 @@ public class ModuleRecordService {
         var result=logs.queryPageList(new IUnModuleLogService.PageQuery(page,size,filters,"id",true));
         return new OperationPage(result.getTotal(),result.getCurrent(),result.getSize(),result.getRecords().stream().map(log->{
             AuditDetail detail;
-            try { detail=log.getDetailJson()==null?new AuditDetail(log.getActionCode(),null,List.of(),null,null):json.readValue(log.getDetailJson(),AuditDetail.class); }
+            try { detail=log.getDetailJson()==null?new AuditDetail(log.getActionCode(),null,List.of(),null,null,null):json.readValue(log.getDetailJson(),AuditDetail.class); }
             catch (JsonProcessingException ex) { throw new IllegalStateException("业务操作日志损坏",ex); }
             var visible=detail.changes()==null?List.<FieldChange>of():detail.changes().stream()
                     .filter(change->change.fieldId()==null || access.policy().readable(change.fieldCode())).toList();
             return new OperationView(log.getId(),log.getActionCode(),log.getOperatorAccountId(),log.getCreateTime(),
-                    new AuditDetail(detail.actionName(),detail.operatorName(),visible,detail.relatedModuleId(),detail.relatedRecordId()));
+                    new AuditDetail(detail.actionName(),detail.operatorName(),visible,detail.relatedModuleId(),detail.relatedRecordId(),
+                            visible.isEmpty()?null:detail.message()));
         }).toList());
     }
 

@@ -66,6 +66,11 @@ public class ModuleFieldService {
         validation.validateValue(resolved,value);
     }
 
+    /** 字段草稿发布和迁移使用严格的新配置范围，不允许沿用普通编辑的旧值保留规则。 */
+    public void validateDraftValue(Long systemId,Long tenantId,FieldDefinition field,Object value) {
+        validation.validateValue(withOptions(systemId,tenantId,field),value);
+    }
+
     /** 按稳定 ID 查询当前字典名称；调用方仅在操作日志中保存当时结果。 */
     public Map<String,String> display(Long systemId,Long tenantId,FieldDefinition field,Object value) {
         if (!field.type().options()) return Map.of();
@@ -171,12 +176,12 @@ public class ModuleFieldService {
         for (var record:existing) {
             Object value="name".equals(definition.code())?record.getName():stored.get(record.getId());
             try {
-                validation.validateValue(withOptions(systemId,record.getTenantId(),definition),value);
+                validateDraftValue(systemId,record.getTenantId(),definition,value);
                 validateUnique(systemId,record.getTenantId(),moduleId,record.getId(),definition,value);
             } catch (IllegalArgumentException ex) { impacted.add(record.getId()); }
         }
         if (!impacted.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT,
-                "字段变更影响 "+impacted.size()+" 条现有记录，须先确定数据迁移；记录 ID："+impacted.stream().limit(20).toList());
+                "字段变更影响 "+impacted.size()+" 条现有记录，须先查看字段迁移预览并确定数据迁移");
     }
     private Set<String> selected(Object value) {
         if (value==null) return Set.of(); Set<String> ids=new HashSet<>();

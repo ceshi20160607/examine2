@@ -72,14 +72,25 @@ public class ModuleConfigController {
         return service.publishedFieldViews(token, systemId, tenantId, moduleId);
     }
 
+    /** 列出当前字段草稿影响的旧值和记录，供管理员决定迁移映射。 */
+    @GetMapping("/modules/{moduleId}/fields/{fieldId}/migration-preview")
+    @Operation(summary = "预览字段变更影响")
+    public ModuleFieldMigrationService.Preview previewMigration(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long fieldId) {
+        return service.previewMigration(token,systemId,tenantId,moduleId,fieldId);
+    }
+
     /** 发布字段顺序和布局快照。 */
     @PostMapping("/modules/{moduleId}/publish")
     @Operation(summary = "发布模块配置")
     public ModuleConfigService.ModuleView publish(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
-            @PathVariable Long systemId, @PathVariable Long moduleId) {
-        return service.publish(token, systemId, tenantId, moduleId);
+            @PathVariable Long systemId, @PathVariable Long moduleId,
+            @RequestBody(required = false) ModuleConfigService.PublishRequest request) {
+        return service.publish(token, systemId, tenantId, moduleId,request);
     }
 
     /** 新建页面读取已经发布的字段布局。 */
