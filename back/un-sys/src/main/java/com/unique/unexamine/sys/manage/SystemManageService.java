@@ -161,7 +161,6 @@ public class SystemManageService {
             UnSysRoleMenu grant = new UnSysRoleMenu();
             grant.setRoleId(adminRole.getId());
             grant.setMenuId(menu.getId());
-            grant.setActionCode("VIEW");
             roleMenus.addOrUpdate(grant);
         }
         if (actor.getDefaultSystemId() == null) {

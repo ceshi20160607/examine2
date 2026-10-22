@@ -52,7 +52,7 @@ public class UnModuleRecordData implements Serializable {
     private String valueJson;
 
     /**
-     * 保存时的选项名称快照，保留历史展示
+     * 既有显示快照保留，业务展示按字典查询
      */
     @TableField("value_display_json")
     private String valueDisplayJson;

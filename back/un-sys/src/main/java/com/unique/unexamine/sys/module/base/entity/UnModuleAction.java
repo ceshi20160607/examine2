@@ -40,12 +40,6 @@ public class UnModuleAction implements Serializable {
     private Long tenantId;
 
     /**
-     * 新建编辑删除导入等动作编码
-     */
-    @TableField("action_code")
-    private String actionCode;
-
-    /**
      * 动作是否启用
      */
     @TableField("enabled_flag")
@@ -81,6 +75,30 @@ public class UnModuleAction implements Serializable {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
+    /**
+     * 动作对应的唯一菜单主键
+     */
+    @TableField("menu_id")
+    private Long menuId;
+
+    /**
+     * 基础动作或字段更新执行类型
+     */
+    @TableField("execution_type")
+    private String executionType;
+
+    /**
+     * 运行态发布的动作执行配置
+     */
+    @TableField("published_config_json")
+    private String publishedConfigJson;
+
+    /**
+     * 已发布动作是否启用
+     */
+    @TableField("published_enabled_flag")
+    private Boolean publishedEnabledFlag;
+
     public Long getId() {
         return id;
     }
@@ -103,14 +121,6 @@ public class UnModuleAction implements Serializable {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
-    }
-
-    public String getActionCode() {
-        return actionCode;
-    }
-
-    public void setActionCode(String actionCode) {
-        this.actionCode = actionCode;
     }
 
     public Boolean getEnabledFlag() {
@@ -159,5 +169,37 @@ public class UnModuleAction implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Long getMenuId() {
+        return menuId;
+    }
+
+    public void setMenuId(Long menuId) {
+        this.menuId = menuId;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public void setExecutionType(String executionType) {
+        this.executionType = executionType;
+    }
+
+    public String getPublishedConfigJson() {
+        return publishedConfigJson;
+    }
+
+    public void setPublishedConfigJson(String publishedConfigJson) {
+        this.publishedConfigJson = publishedConfigJson;
+    }
+
+    public Boolean getPublishedEnabledFlag() {
+        return publishedEnabledFlag;
+    }
+
+    public void setPublishedEnabledFlag(Boolean publishedEnabledFlag) {
+        this.publishedEnabledFlag = publishedEnabledFlag;
     }
 }

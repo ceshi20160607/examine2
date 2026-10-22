@@ -63,6 +63,16 @@ public class ModuleConfigController {
     }
 
     /** 发布字段顺序和布局快照。 */
+    @GetMapping("/modules/{moduleId}/fields")
+    @Operation(summary = "读取发布字段及稳定标识")
+    public java.util.List<ModuleConfigService.PublishedFieldView> fields(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId) {
+        return service.publishedFieldViews(token, systemId, tenantId, moduleId);
+    }
+
+    /** 发布字段顺序和布局快照。 */
     @PostMapping("/modules/{moduleId}/publish")
     @Operation(summary = "发布模块配置")
     public ModuleConfigService.ModuleView publish(

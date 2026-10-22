@@ -59,6 +59,8 @@ public class DictionaryService {
         UnModuleDict row=request.id()==null?new UnModuleDict():locked(request.id());
         if (request.id()!=null && (!systemId.equals(row.getSystemId()) || !context.tenantId().equals(row.getTenantId())))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"不能修改其他系统或租户的字典");
+        if (row.getId()!=null && !ids(request.options()).containsAll(ids(readOptions(row.getOptionsJson()))))
+            throw new IllegalArgumentException("字典基础项不能删除，请通过字段可选范围控制使用");
         if (row.getPublishedOptionsJson()!=null) {
             Set<String> ids=ids(request.options());
             if (!ids.containsAll(ids(snapshot(row).options())))

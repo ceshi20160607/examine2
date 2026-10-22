@@ -34,7 +34,6 @@ public class UnSysRoleMenuServiceImpl extends ServiceImpl<UnSysRoleMenuMapper, U
             case "id" -> "id";
             case "roleId" -> "role_id";
             case "menuId" -> "menu_id";
-            case "actionCode" -> "action_code";
             case "createTime" -> "create_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
@@ -45,7 +44,6 @@ public class UnSysRoleMenuServiceImpl extends ServiceImpl<UnSysRoleMenuMapper, U
                     case "id" -> "id";
                     case "roleId" -> "role_id";
                     case "menuId" -> "menu_id";
-                    case "actionCode" -> "action_code";
                     case "createTime" -> "create_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
@@ -105,7 +103,6 @@ public class UnSysRoleMenuServiceImpl extends ServiceImpl<UnSysRoleMenuMapper, U
         values.put("id", model.getId());
         values.put("roleId", model.getRoleId());
         values.put("menuId", model.getMenuId());
-        values.put("actionCode", model.getActionCode());
         values.put("createTime", model.getCreateTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {

@@ -35,6 +35,7 @@
         "un_sys_member_role",
         "un_sys_role_menu",
         "un_sys_role_data",
+        "un_sys_role_field",
         "un_sys_log_login",
         "un_sys_log_opt",
         "un_sys_message"

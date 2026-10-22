@@ -42,6 +42,7 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "menuType" -> "menu_type";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysMenu> wrapper = new QueryWrapper<>();
@@ -59,6 +60,7 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "menuType" -> "menu_type";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -125,6 +127,7 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("menuType", model.getMenuType());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

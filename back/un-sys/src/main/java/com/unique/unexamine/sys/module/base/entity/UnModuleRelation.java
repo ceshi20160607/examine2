@@ -40,7 +40,7 @@ public class UnModuleRelation implements Serializable {
     private Long targetRecordId;
 
     /**
-     * 对应模块关联配置主键
+     * 普通关联对应配置主键，转化关系为空
      */
     @TableField("relation_config_id")
     private Long relationConfigId;
@@ -68,6 +68,24 @@ public class UnModuleRelation implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
+
+    /**
+     * 普通关联或模块转化关系
+     */
+    @TableField("relation_type")
+    private String relationType;
+
+    /**
+     * 转化目标模块主键，普通关联为空
+     */
+    @TableField("target_module_id")
+    private Long targetModuleId;
+
+    /**
+     * 产生转化关系的操作菜单主键
+     */
+    @TableField("action_menu_id")
+    private Long actionMenuId;
 
     public Long getId() {
         return id;
@@ -131,5 +149,29 @@ public class UnModuleRelation implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getRelationType() {
+        return relationType;
+    }
+
+    public void setRelationType(String relationType) {
+        this.relationType = relationType;
+    }
+
+    public Long getTargetModuleId() {
+        return targetModuleId;
+    }
+
+    public void setTargetModuleId(Long targetModuleId) {
+        this.targetModuleId = targetModuleId;
+    }
+
+    public Long getActionMenuId() {
+        return actionMenuId;
+    }
+
+    public void setActionMenuId(Long actionMenuId) {
+        this.actionMenuId = actionMenuId;
     }
 }

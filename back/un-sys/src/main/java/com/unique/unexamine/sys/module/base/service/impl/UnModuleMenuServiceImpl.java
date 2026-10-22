@@ -36,12 +36,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
             case "tenantId" -> "tenant_id";
             case "moduleId" -> "module_id";
             case "menuId" -> "menu_id";
-            case "label" -> "label";
-            case "route" -> "route";
             case "sortNo" -> "sort_no";
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "displayPosition" -> "display_position";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleMenu> wrapper = new QueryWrapper<>();
@@ -53,12 +52,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
                     case "tenantId" -> "tenant_id";
                     case "moduleId" -> "module_id";
                     case "menuId" -> "menu_id";
-                    case "label" -> "label";
-                    case "route" -> "route";
                     case "sortNo" -> "sort_no";
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "displayPosition" -> "display_position";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -119,12 +117,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
         values.put("tenantId", model.getTenantId());
         values.put("moduleId", model.getModuleId());
         values.put("menuId", model.getMenuId());
-        values.put("label", model.getLabel());
-        values.put("route", model.getRoute());
         values.put("sortNo", model.getSortNo());
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("displayPosition", model.getDisplayPosition());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

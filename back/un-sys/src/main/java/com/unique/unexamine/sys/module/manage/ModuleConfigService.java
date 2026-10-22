@@ -40,6 +40,7 @@ public class ModuleConfigService {
     private final ObjectMapper json;
     private final ModuleFieldService fieldRules;
     private final ModulePermissionService permissions;
+    private final ModuleMenuService menuService;
 
     /** 创建运行态导航模块组。 */
     public record CreateGroupRequest(@NotBlank @Size(max = 80) String code,
@@ -64,12 +65,15 @@ public class ModuleConfigService {
     /** 新建表单仅传递已发布字段配置，不自行计算布局。 */
     public record FormView(Long moduleId, int version, List<FieldConfig> fields) {}
 
+    /** 角色字段与动作配置使用的稳定字段标识及发布定义。 */
+    public record PublishedFieldView(Long fieldId, String fieldCode, Map<String,Object> configuration) {}
+
     /** 注入模块贴表 Service 和系统上下文业务服务。 */
     public ModuleConfigService(SystemManageService systems, IUnSysSystemService systemRows,
             IUnModuleGroupService groups,
             IUnModuleService modules, IUnModuleFieldService fields,
             IUnModuleTenantService tenantModules, ObjectMapper json, ModuleFieldService fieldRules,
-            ModulePermissionService permissions) {
+            ModulePermissionService permissions, ModuleMenuService menuService) {
         this.systems = systems;
         this.systemRows = systemRows;
         this.groups = groups;
@@ -79,6 +83,7 @@ public class ModuleConfigService {
         this.json = json;
         this.fieldRules = fieldRules;
         this.permissions = permissions;
+        this.menuService = menuService;
     }
 
     /** 系统后台创建模块组；非管理员不能修改配置。 */
@@ -141,6 +146,7 @@ public class ModuleConfigService {
         // 默认标题字段只在模块创建时初始化；之后设计器保存的位置和宽度才是唯一布局来源。
         saveFieldInTransaction(module, new SaveFieldRequest("name", "标题", "TEXT", true, 0,
                 Map.of("position", 0, "widthPercent", 100), Map.of()));
+        menuService.initialize(module);
         return view(module);
     }
 
@@ -187,6 +193,7 @@ public class ModuleConfigService {
         } else if (!"PUBLISHED".equals(group.getStatus())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "主租户模块组尚未发布");
         }
+        menuService.publishInitial(module);
         module.setStatus("PUBLISHED");
         module.setPublishedVersion(version);
         modules.addOrUpdate(module);
@@ -208,6 +215,14 @@ public class ModuleConfigService {
     public List<ModuleFieldService.TypeView> fieldTypes(String token, Long systemId, Long tenantId) {
         systems.requireAdminContext(token, systemId, tenantId);
         return fieldRules.types();
+    }
+
+    /** 后台按授权上下文读取发布字段，不能按任意模块 ID 越权配置。 */
+    public List<PublishedFieldView> publishedFieldViews(String token, Long systemId, Long tenantId, Long moduleId) {
+        var context = systems.requireAdminContext(token, systemId, tenantId);
+        publishedModule(systemId, moduleId, context.tenantId());
+        return publishedFields(moduleId).stream().map(field -> new PublishedFieldView(field.getId(), field.getFieldCode(),
+                fieldConfig(field).configuration())).toList();
     }
 
     /** 运行态配置附加字典发布选项和字段编辑许可，原始布局保持不变。 */

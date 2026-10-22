@@ -31,13 +31,26 @@ public class ModulePermissionController {
     public void assign(@RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,@PathVariable Long systemId,
             @Valid @RequestBody ModulePermissionService.AssignRequest request) { service.assign(token,systemId,tenantId,request); }
-    /** 同一角色各动作可以配置不同数据和字段范围。 */
-    @PostMapping("/roles/{roleId}/modules/{moduleId}/{action}")
-    @Operation(summary="配置角色模块动作和数据字段权限")
+    /** 菜单许可和记录范围由角色菜单关系控制。 */
+    @PostMapping("/roles/{roleId}/modules/{moduleId}/menus/{menuId}")
+    @Operation(summary="配置角色菜单和数据范围")
     public void grant(@RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,@PathVariable Long systemId,
-            @PathVariable Long roleId,@PathVariable Long moduleId,@PathVariable String action,
-            @Valid @RequestBody ModulePermissionService.GrantRequest request) { service.grant(token,systemId,tenantId,roleId,moduleId,action,request); }
+            @PathVariable Long roleId,@PathVariable Long moduleId,@PathVariable Long menuId,
+            @Valid @RequestBody ModulePermissionService.GrantRequest request) { service.grant(token,systemId,tenantId,roleId,moduleId,menuId,request); }
+    /** 字段授权独立保存，新增字段不会继承普通角色的旧许可。 */
+    @PostMapping("/roles/{roleId}/modules/{moduleId}/fields")
+    @Operation(summary="配置角色模块字段许可")
+    public void fields(@RequestHeader(value="Authorization",required=false) String token,
+            @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,@PathVariable Long systemId,
+            @PathVariable Long roleId,@PathVariable Long moduleId,
+            @Valid @RequestBody ModulePermissionService.FieldsRequest request) { service.saveFields(token,systemId,tenantId,roleId,moduleId,request); }
+    /** 后台字段授权回显。 */
+    @GetMapping("/roles/{roleId}/modules/{moduleId}/fields")
+    @Operation(summary="读取角色模块字段许可")
+    public java.util.List<ModulePermissionService.FieldGrant> fields(@RequestHeader(value="Authorization",required=false) String token,
+            @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,@PathVariable Long systemId,
+            @PathVariable Long roleId,@PathVariable Long moduleId) { return service.configuredFields(token,systemId,tenantId,roleId,moduleId); }
     /** 主租户管理员设置目标租户的字段上限。 */
     @PostMapping("/tenants/{tenantId}/modules/{moduleId}/fields")
     @Operation(summary="配置租户字段许可")

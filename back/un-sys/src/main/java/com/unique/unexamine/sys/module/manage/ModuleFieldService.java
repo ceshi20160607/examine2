@@ -62,17 +62,27 @@ public class ModuleFieldService {
         validation.validateValue(resolved,value);
     }
 
-    /** 保存选项标识及当时名称，字典更名与停用不能改写历史详情。 */
-    public Map<String,String> display(Long systemId,Long tenantId,FieldDefinition field,Object value,
-                                       Map<String,String> previous,Object previousValue) {
+    /** 按稳定 ID 查询当前字典名称；调用方仅在操作日志中保存当时结果。 */
+    public Map<String,String> display(Long systemId,Long tenantId,FieldDefinition field,Object value) {
         if (!field.type().options()) return Map.of();
         FieldDefinition resolved=withOptions(systemId,tenantId,field);
-        Map<String,String> result=new LinkedHashMap<>(); Set<String> selected=selected(value),retained=selected(previousValue);
+        Map<String,String> result=new LinkedHashMap<>(); Set<String> selected=selected(value);
         if (resolved.rules().get("options") instanceof List<?> options) for (Object item:options) {
             Map<?,?> option=(Map<?,?>)item; String id=String.valueOf(option.get("id"));
-            if (selected.contains(id)) result.put(id,retained.contains(id) && previous.containsKey(id)?previous.get(id):String.valueOf(option.get("label")));
+            if (selected.contains(id)) result.put(id,String.valueOf(option.get("label")));
         }
         return result;
+    }
+
+    /** 转化配置和执行共用值形态检查；不同字典不能仅凭偶然相同的选项 ID 直接转化。 */
+    public void validateMapping(FieldDefinition source,FieldDefinition target) {
+        boolean textTarget=target.type().kind()==FieldType.Kind.TEXT
+                && Set.of(FieldType.Kind.DATE,FieldType.Kind.DATETIME,FieldType.Kind.TIME).contains(source.type().kind());
+        if (source.type().kind()!=target.type().kind() && !textTarget)
+            throw new IllegalArgumentException("转化字段值形态不兼容："+source.label()+"到"+target.label());
+        if (source.type().options() && target.type().options()
+                && !java.util.Objects.equals(source.rules().get("dictionaryId"),target.rules().get("dictionaryId")))
+            throw new IllegalArgumentException("不同字典之间的转化需要明确的选项映射");
     }
 
     /** 已保存快照转换为类型定义，不读取未发布的字段草稿。 */

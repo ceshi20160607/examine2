@@ -87,6 +87,12 @@ public class UnSysMenu implements Serializable {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
+    /**
+     * 菜单类型：目录页面或操作
+     */
+    @TableField("menu_type")
+    private String menuType;
+
     public Long getId() {
         return id;
     }
@@ -173,5 +179,13 @@ public class UnSysMenu implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getMenuType() {
+        return menuType;
+    }
+
+    public void setMenuType(String menuType) {
+        this.menuType = menuType;
     }
 }

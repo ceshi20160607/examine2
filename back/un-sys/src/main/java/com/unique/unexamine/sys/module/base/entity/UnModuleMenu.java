@@ -46,22 +46,10 @@ public class UnModuleMenu implements Serializable {
     private Long moduleId;
 
     /**
-     * 关联系统菜单主键
+     * 统一系统菜单主键
      */
     @TableField("menu_id")
     private Long menuId;
-
-    /**
-     * 运行态菜单名称
-     */
-    @TableField("label")
-    private String label;
-
-    /**
-     * 模块页面路由
-     */
-    @TableField("route")
-    private String route;
 
     /**
      * 菜单排序序号
@@ -86,6 +74,12 @@ public class UnModuleMenu implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
+
+    /**
+     * 模块内菜单展示位置
+     */
+    @TableField("display_position")
+    private String displayPosition;
 
     public Long getId() {
         return id;
@@ -127,22 +121,6 @@ public class UnModuleMenu implements Serializable {
         this.menuId = menuId;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public String getRoute() {
-        return route;
-    }
-
-    public void setRoute(String route) {
-        this.route = route;
-    }
-
     public Integer getSortNo() {
         return sortNo;
     }
@@ -173,5 +151,13 @@ public class UnModuleMenu implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getDisplayPosition() {
+        return displayPosition;
+    }
+
+    public void setDisplayPosition(String displayPosition) {
+        this.displayPosition = displayPosition;
     }
 }

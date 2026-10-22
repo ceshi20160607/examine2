@@ -34,13 +34,16 @@ public class UnModuleActionServiceImpl extends ServiceImpl<UnModuleActionMapper,
             case "id" -> "id";
             case "moduleId" -> "module_id";
             case "tenantId" -> "tenant_id";
-            case "actionCode" -> "action_code";
             case "enabledFlag" -> "enabled_flag";
             case "configJson" -> "config_json";
             case "status" -> "status";
             case "publishedVersion" -> "published_version";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "menuId" -> "menu_id";
+            case "executionType" -> "execution_type";
+            case "publishedConfigJson" -> "published_config_json";
+            case "publishedEnabledFlag" -> "published_enabled_flag";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleAction> wrapper = new QueryWrapper<>();
@@ -50,13 +53,16 @@ public class UnModuleActionServiceImpl extends ServiceImpl<UnModuleActionMapper,
                     case "id" -> "id";
                     case "moduleId" -> "module_id";
                     case "tenantId" -> "tenant_id";
-                    case "actionCode" -> "action_code";
                     case "enabledFlag" -> "enabled_flag";
                     case "configJson" -> "config_json";
                     case "status" -> "status";
                     case "publishedVersion" -> "published_version";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "menuId" -> "menu_id";
+                    case "executionType" -> "execution_type";
+                    case "publishedConfigJson" -> "published_config_json";
+                    case "publishedEnabledFlag" -> "published_enabled_flag";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -115,13 +121,16 @@ public class UnModuleActionServiceImpl extends ServiceImpl<UnModuleActionMapper,
         values.put("id", model.getId());
         values.put("moduleId", model.getModuleId());
         values.put("tenantId", model.getTenantId());
-        values.put("actionCode", model.getActionCode());
         values.put("enabledFlag", model.getEnabledFlag());
         values.put("configJson", model.getConfigJson());
         values.put("status", model.getStatus());
         values.put("publishedVersion", model.getPublishedVersion());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("menuId", model.getMenuId());
+        values.put("executionType", model.getExecutionType());
+        values.put("publishedConfigJson", model.getPublishedConfigJson());
+        values.put("publishedEnabledFlag", model.getPublishedEnabledFlag());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

@@ -40,12 +40,6 @@ public class UnSysRoleMenu implements Serializable {
     private Long menuId;
 
     /**
-     * 菜单内操作编码
-     */
-    @TableField("action_code")
-    private String actionCode;
-
-    /**
      * 授权时间
      */
     @TableField("create_time")
@@ -73,14 +67,6 @@ public class UnSysRoleMenu implements Serializable {
 
     public void setMenuId(Long menuId) {
         this.menuId = menuId;
-    }
-
-    public String getActionCode() {
-        return actionCode;
-    }
-
-    public void setActionCode(String actionCode) {
-        this.actionCode = actionCode;
     }
 
     public LocalDateTime getCreateTime() {

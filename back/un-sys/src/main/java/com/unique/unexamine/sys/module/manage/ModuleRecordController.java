@@ -68,6 +68,17 @@ public class ModuleRecordController {
     }
 
     /** 逻辑删除业务记录并保留字段值及历史。 */
+    @GetMapping("/{recordId}/operations")
+    @Operation(summary = "读取业务操作历史")
+    public ModuleRecordService.OperationPage operations(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long recordId,
+            @RequestParam(defaultValue = "1") long page, @RequestParam(defaultValue = "20") long size) {
+        return service.operations(token, systemId, tenantId, moduleId, recordId, page, size);
+    }
+
+    /** 逻辑删除业务记录并保留字段值及历史。 */
     @DeleteMapping("/{recordId}")
     @Operation(summary = "删除业务记录")
     public void delete(@RequestHeader(value = "Authorization", required = false) String token,
