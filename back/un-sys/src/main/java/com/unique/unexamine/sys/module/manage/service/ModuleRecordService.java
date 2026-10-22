@@ -22,9 +22,11 @@ import com.unique.unexamine.sys.base.service.IUnSysSystemService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.core.field.FieldDefinition;
+import com.unique.unexamine.core.field.FieldType;
 import com.unique.unexamine.core.permission.PermissionPolicy;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -164,13 +166,17 @@ public class ModuleRecordService {
             record.setSystemId(systemId); record.setTenantId(context.tenantId()); record.setModuleId(moduleId); record.setStatus("ACTIVE");
             record.setCreateUserId(systemRows.queryById(systemId).getOwnerAccountId());
         }
-        record.setName(name); record.setOwnerUserId(ownerId); record.setOwnerDeptId(owner.getDepartmentId()); record.setActualOperatorId(access.accountId());
-        records.addOrUpdate(record);
+        record.setName(name); record.setOwnerUserId(ownerId); record.setOwnerDeptId(owner.getDepartmentId());
+        record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
+        persistRecord(record);
         for (UnModuleField field:fields) {
             String code=field.getFieldCode(); if ("name".equals(code)) continue;
             var item=existing.getOrDefault(code,new UnModuleRecordData());
             if (item.getId()!=null && same(readValue(item.getValueJson()),effective.get(code))) continue;
-            item.setRecordId(record.getId()); item.setFieldId(field.getId()); item.setFieldCode(code); item.setValueJson(writeValue(effective.get(code))); data.addOrUpdate(item);
+            item.setRecordId(record.getId()); item.setFieldId(field.getId()); item.setFieldCode(code);
+            item.setValueJson(writeValue(effective.get(code)));
+            indexValue(item,fieldRules.published(code,config.fieldConfig(field).configuration()),effective.get(code));
+            persistDataValue(item);
         }
         audit(module,record,access.accountId(),operation,actionName,changes,relatedModuleId,relatedRecordId);
         return view(record,access.policy());
@@ -228,11 +234,8 @@ public class ModuleRecordService {
                 if (!submitted.isEmpty() || request.ownerAccountId()==null) throw new IllegalArgumentException("转移动作仅接受目标负责人");
                 var owner=ownerMembership(systemId,access.context().tenantId(),request.ownerAccountId());
                 Long before=record.getOwnerUserId(); record.setOwnerUserId(request.ownerAccountId()); record.setOwnerDeptId(owner.getDepartmentId());
-                record.setActualOperatorId(access.accountId());
-                // 新负责人无部门时也必须清空旧部门，不能依赖忽略 null 的通用实体更新。
-                records.update(new LambdaUpdateWrapper<UnModuleRecord>().eq(UnModuleRecord::getId,recordId)
-                        .set(UnModuleRecord::getOwnerUserId,record.getOwnerUserId()).set(UnModuleRecord::getOwnerDeptId,record.getOwnerDeptId())
-                        .set(UnModuleRecord::getActualOperatorId,access.accountId()));
+                record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
+                persistRecord(record);
                 audit(access.definition().module(),record,access.accountId(),"RECORD_TRANSFER",access.definition().menu().getName(),
                         List.of(new FieldChange(null,"ownerUserId","负责人",before,record.getOwnerUserId(),
                                 Map.of(String.valueOf(before),accounts.queryById(before).getDisplayName()),
@@ -382,8 +385,8 @@ public class ModuleRecordService {
         UnModuleRecord record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
         access.policy().requireOwner(record.getOwnerUserId());
         record.setDeletedTime(LocalDateTime.now());
-        record.setActualOperatorId(access.accountId());
-        records.addOrUpdate(record);
+        record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
+        persistRecord(record);
         audit(module, record, access.accountId(), "RECORD_DELETE", access.definition().menu().getName(), List.of(), null, null);
     }
 
@@ -430,6 +433,66 @@ public class ModuleRecordService {
             result.put(item.getFieldCode(), item);
         }
         return result;
+    }
+
+    /** 主记录的并发版本在业务 Service 中检查，负责人、部门及软删除允许显式清空旧值。 */
+    private void persistRecord(UnModuleRecord record) {
+        if (record.getId()==null) {
+            record.setLockVersion(0L);
+            records.addOrUpdate(record);
+            return;
+        }
+        long before=record.getLockVersion();
+        long next=before+1;
+        boolean updated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
+                .eq(UnModuleRecord::getId,record.getId()).eq(UnModuleRecord::getLockVersion,before)
+                .eq(UnModuleRecord::getSystemId,record.getSystemId())
+                .eq(UnModuleRecord::getTenantId,record.getTenantId())
+                .set(UnModuleRecord::getName,record.getName())
+                .set(UnModuleRecord::getStatus,record.getStatus())
+                .set(UnModuleRecord::getOwnerUserId,record.getOwnerUserId())
+                .set(UnModuleRecord::getOwnerDeptId,record.getOwnerDeptId())
+                .set(UnModuleRecord::getActualOperatorId,record.getActualOperatorId())
+                .set(UnModuleRecord::getUpdateUserId,record.getUpdateUserId())
+                .set(UnModuleRecord::getArchivedTime,record.getArchivedTime())
+                .set(UnModuleRecord::getDeletedTime,record.getDeletedTime())
+                .set(UnModuleRecord::getLockVersion,next));
+        if (!updated) throw new ResponseStatusException(HttpStatus.CONFLICT,"业务记录已被他人修改，请刷新后重试");
+        record.setLockVersion(next);
+    }
+
+    /** 字段筛选索引与原值在同一事务保存；复杂值仍只存原始 JSON。 */
+    static void indexValue(UnModuleRecordData item,FieldDefinition definition,Object value) {
+        item.setIndexText(null); item.setIndexDecimal(null); item.setIndexTime(null);
+        if (value==null) return;
+        FieldType type=definition.type();
+        switch (type.kind()) {
+            case NUMBER -> {
+                BigDecimal decimal=new BigDecimal(value.toString()).stripTrailingZeros();
+                // 索引列最多保留 22 位整数和 8 位小数；超出时使用原始 JSON 精确查询。
+                if (decimal.precision()-decimal.scale()<=22 && decimal.scale()<=8)
+                    item.setIndexDecimal(decimal);
+            }
+            case DATE -> item.setIndexTime(LocalDate.parse(value.toString()).atStartOfDay());
+            case DATETIME -> item.setIndexTime(LocalDateTime.parse(value.toString()));
+            case TEXT, OPTION, REFERENCE, BOOLEAN, TIME -> {
+                if (type==FieldType.SECRET || type==FieldType.RICH_TEXT) return;
+                if (value instanceof java.util.Collection<?>) return;
+                String text=value.toString();
+                if (text.length()<=255) item.setIndexText(text);
+            }
+            default -> { }
+        }
+    }
+
+    /** 明确写入空索引值，防止字段值清除后旧筛选结果仍命中。 */
+    private void persistDataValue(UnModuleRecordData item) {
+        if (item.getId()==null) { data.addOrUpdate(item); return; }
+        data.update(new LambdaUpdateWrapper<UnModuleRecordData>().eq(UnModuleRecordData::getId,item.getId())
+                .set(UnModuleRecordData::getValueJson,item.getValueJson())
+                .set(UnModuleRecordData::getIndexText,item.getIndexText())
+                .set(UnModuleRecordData::getIndexDecimal,item.getIndexDecimal())
+                .set(UnModuleRecordData::getIndexTime,item.getIndexTime()));
     }
 
     /** 字段值以 JSON 保存，保留数字布尔和空值的类型。 */
@@ -479,7 +542,10 @@ public class ModuleRecordService {
 
     /** 基础记录响应不包含字段扩展和布局。 */
     private RecordView view(UnModuleRecord record, PermissionPolicy policy) {
-        return new RecordView(record.getId(), policy.readable("name") ? record.getName() : null, record.getStatus(),
-                record.getOwnerUserId(), record.getCreateUserId(), record.getCreateTime());
+        return new RecordView(record.getId(), policy.readable("name") ? record.getName() : null,
+                policy.readable("status") ? record.getStatus() : null,
+                policy.readable("ownerUserId") ? record.getOwnerUserId() : null,
+                policy.readable("createUserId") ? record.getCreateUserId() : null,
+                policy.readable("createTime") ? record.getCreateTime() : null);
     }
 }

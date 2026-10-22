@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 模块菜单配置
+ * 模块与统一菜单的关联和展示配置
  * </p>
  *
  * @author Template Base
@@ -22,7 +22,7 @@ public class UnModuleMenu implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 模块菜单配置主键
+     * 模块菜单关系主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -52,13 +52,19 @@ public class UnModuleMenu implements Serializable {
     private Long menuId;
 
     /**
-     * 菜单排序序号
+     * 模块内菜单展示位置
+     */
+    @TableField("display_position")
+    private String displayPosition;
+
+    /**
+     * 同位置展示顺序
      */
     @TableField("sort_no")
     private Integer sortNo;
 
     /**
-     * 菜单配置发布状态
+     * 模块菜单发布状态
      */
     @TableField("status")
     private String status;
@@ -74,12 +80,6 @@ public class UnModuleMenu implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * 模块内菜单展示位置
-     */
-    @TableField("display_position")
-    private String displayPosition;
 
     public Long getId() {
         return id;
@@ -121,6 +121,14 @@ public class UnModuleMenu implements Serializable {
         this.menuId = menuId;
     }
 
+    public String getDisplayPosition() {
+        return displayPosition;
+    }
+
+    public void setDisplayPosition(String displayPosition) {
+        this.displayPosition = displayPosition;
+    }
+
     public Integer getSortNo() {
         return sortNo;
     }
@@ -151,13 +159,5 @@ public class UnModuleMenu implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getDisplayPosition() {
-        return displayPosition;
-    }
-
-    public void setDisplayPosition(String displayPosition) {
-        this.displayPosition = displayPosition;
     }
 }

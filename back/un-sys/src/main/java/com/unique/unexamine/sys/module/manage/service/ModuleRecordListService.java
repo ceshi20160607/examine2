@@ -121,7 +121,8 @@ public class ModuleRecordListService {
                 }
             }
             rows.add(new Row(record.getId(),access.policy().readable("name")?record.getName():null,
-                    record.getStatus(),record.getOwnerUserId(),cellValues,display));
+                    access.policy().readable("status")?record.getStatus():null,
+                    access.policy().readable("ownerUserId")?record.getOwnerUserId():null,cellValues,display));
         }
         return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,rows);
     }
@@ -134,11 +135,24 @@ public class ModuleRecordListService {
             else where.apply("LOCATE({0}, name) > 0",condition.value());
             return;
         }
-        if ("EQ".equals(condition.operator())) where.apply(
-                "EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                        +"AND d.field_id = {0} AND JSON_CONTAINS(d.value_json, CAST({1} AS JSON)))",
-                field.getId(),write(condition.value()));
-        else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
+        FieldType type=FieldType.parse(field.getFieldType());
+        if ("EQ".equals(condition.operator())) {
+            String index=switch (type.kind()) {
+                case NUMBER -> "index_decimal";
+                case TEXT, OPTION, REFERENCE, BOOLEAN, TIME -> "index_text";
+                default -> null;
+            };
+            if (index!=null && condition.value()!=null && !(condition.value() instanceof java.util.Collection<?>))
+                // 文本索引沿用数据库默认排序规则，先用索引缩小候选，再按原值区分大小写。
+                where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
+                        +"AND d.field_id = {0} AND ((d."+index+" = {1}"
+                        +("index_text".equals(index)?" AND HEX(d.index_text) = HEX({1})":"")+ ") OR "
+                        +"(d."+index+" IS NULL AND JSON_CONTAINS(d.value_json, CAST({2} AS JSON)))))",
+                        field.getId(),condition.value().toString(),write(condition.value()));
+            else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
+                            +"AND d.field_id = {0} AND JSON_CONTAINS(d.value_json, CAST({1} AS JSON)))",
+                    field.getId(),write(condition.value()));
+        } else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
                 +"AND d.field_id = {0} AND LOCATE({1}, JSON_UNQUOTE(d.value_json)) > 0)",
                 field.getId(),condition.value());
     }
@@ -151,9 +165,14 @@ public class ModuleRecordListService {
             if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.OBJECT,FieldType.Kind.ROWS,
                     FieldType.Kind.REFERENCES).contains(type.kind()))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");
-            String value="(SELECT JSON_UNQUOTE(d.value_json) FROM un_module_record_data d WHERE d.record_id = "
+            String indexed=switch (type.kind()) {
+                case NUMBER -> "index_decimal";
+                case DATE, DATETIME -> "index_time";
+                default -> "index_text";
+            };
+            String expression="index_text".equals(indexed)?"COALESCE(d.index_text, JSON_UNQUOTE(d.value_json))":"d."+indexed;
+            String value="(SELECT "+expression+" FROM un_module_record_data d WHERE d.record_id = "
                     +"un_module_record.id AND d.field_id = "+field.getId()+")";
-            if (type.kind()==FieldType.Kind.NUMBER) value="CAST("+value+" AS DECIMAL(30,10))";
             where.orderBy(true,!descending,value);
         }
         where.orderByDesc("id");

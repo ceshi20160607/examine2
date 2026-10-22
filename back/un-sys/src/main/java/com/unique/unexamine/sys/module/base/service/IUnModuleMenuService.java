@@ -6,7 +6,7 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleMenu;
 import java.util.List;
 import java.util.Map;
 
-/** 模块菜单配置的基础服务；租户权限和跨表规则在同模块 manage 中处理。 */
+/** 模块与统一菜单的关联和展示配置的基础服务；租户权限和跨表规则在同模块 manage 中处理。 */
 public interface IUnModuleMenuService extends IService<UnModuleMenu> {
     /** 分页和排序仅接受本表白名单字段。 */
     Page<UnModuleMenu> queryPageList(PageQuery query);

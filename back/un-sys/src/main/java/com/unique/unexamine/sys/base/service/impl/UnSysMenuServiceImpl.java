@@ -37,12 +37,12 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
             case "parentId" -> "parent_id";
             case "code" -> "code";
             case "name" -> "name";
+            case "menuType" -> "menu_type";
             case "route" -> "route";
             case "sortNo" -> "sort_no";
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
-            case "menuType" -> "menu_type";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysMenu> wrapper = new QueryWrapper<>();
@@ -55,12 +55,12 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
                     case "parentId" -> "parent_id";
                     case "code" -> "code";
                     case "name" -> "name";
+                    case "menuType" -> "menu_type";
                     case "route" -> "route";
                     case "sortNo" -> "sort_no";
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
-                    case "menuType" -> "menu_type";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -122,12 +122,12 @@ public class UnSysMenuServiceImpl extends ServiceImpl<UnSysMenuMapper, UnSysMenu
         values.put("parentId", model.getParentId());
         values.put("code", model.getCode());
         values.put("name", model.getName());
+        values.put("menuType", model.getMenuType());
         values.put("route", model.getRoute());
         values.put("sortNo", model.getSortNo());
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
-        values.put("menuType", model.getMenuType());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

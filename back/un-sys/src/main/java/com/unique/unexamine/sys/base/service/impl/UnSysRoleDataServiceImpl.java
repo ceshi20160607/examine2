@@ -33,11 +33,11 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
                 ? "id" : query.sortField()) {
             case "id" -> "id";
             case "roleId" -> "role_id";
+            case "menuId" -> "menu_id";
             case "scopeCode" -> "scope_code";
             case "scopeConfig" -> "scope_config";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
-            case "menuId" -> "menu_id";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysRoleData> wrapper = new QueryWrapper<>();
@@ -46,11 +46,11 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
                 String filterColumn = switch (field) {
                     case "id" -> "id";
                     case "roleId" -> "role_id";
+                    case "menuId" -> "menu_id";
                     case "scopeCode" -> "scope_code";
                     case "scopeConfig" -> "scope_config";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
-                    case "menuId" -> "menu_id";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -108,11 +108,11 @@ public class UnSysRoleDataServiceImpl extends ServiceImpl<UnSysRoleDataMapper, U
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", model.getId());
         values.put("roleId", model.getRoleId());
+        values.put("menuId", model.getMenuId());
         values.put("scopeCode", model.getScopeCode());
         values.put("scopeConfig", model.getScopeConfig());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
-        values.put("menuId", model.getMenuId());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

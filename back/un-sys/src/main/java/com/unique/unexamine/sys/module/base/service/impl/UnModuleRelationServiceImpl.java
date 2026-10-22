@@ -35,13 +35,13 @@ public class UnModuleRelationServiceImpl extends ServiceImpl<UnModuleRelationMap
             case "sourceRecordId" -> "source_record_id";
             case "targetRecordId" -> "target_record_id";
             case "relationConfigId" -> "relation_config_id";
+            case "relationType" -> "relation_type";
+            case "targetModuleId" -> "target_module_id";
+            case "actionMenuId" -> "action_menu_id";
             case "sortNo" -> "sort_no";
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
-            case "relationType" -> "relation_type";
-            case "targetModuleId" -> "target_module_id";
-            case "actionMenuId" -> "action_menu_id";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleRelation> wrapper = new QueryWrapper<>();
@@ -52,13 +52,13 @@ public class UnModuleRelationServiceImpl extends ServiceImpl<UnModuleRelationMap
                     case "sourceRecordId" -> "source_record_id";
                     case "targetRecordId" -> "target_record_id";
                     case "relationConfigId" -> "relation_config_id";
+                    case "relationType" -> "relation_type";
+                    case "targetModuleId" -> "target_module_id";
+                    case "actionMenuId" -> "action_menu_id";
                     case "sortNo" -> "sort_no";
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
-                    case "relationType" -> "relation_type";
-                    case "targetModuleId" -> "target_module_id";
-                    case "actionMenuId" -> "action_menu_id";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -118,13 +118,13 @@ public class UnModuleRelationServiceImpl extends ServiceImpl<UnModuleRelationMap
         values.put("sourceRecordId", model.getSourceRecordId());
         values.put("targetRecordId", model.getTargetRecordId());
         values.put("relationConfigId", model.getRelationConfigId());
+        values.put("relationType", model.getRelationType());
+        values.put("targetModuleId", model.getTargetModuleId());
+        values.put("actionMenuId", model.getActionMenuId());
         values.put("sortNo", model.getSortNo());
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
-        values.put("relationType", model.getRelationType());
-        values.put("targetModuleId", model.getTargetModuleId());
-        values.put("actionMenuId", model.getActionMenuId());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

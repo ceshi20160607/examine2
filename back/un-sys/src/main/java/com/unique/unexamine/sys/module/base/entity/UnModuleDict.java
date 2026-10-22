@@ -40,6 +40,12 @@ public class UnModuleDict implements Serializable {
     private Long tenantId;
 
     /**
+     * 基础值所属的字典分类编码
+     */
+    @TableField("dict_code")
+    private String dictCode;
+
+    /**
      * 基础值，例如1或0；创建后不可变更含义
      */
     @TableField("dict_value")
@@ -56,6 +62,42 @@ public class UnModuleDict implements Serializable {
      */
     @TableField("parent_id")
     private Long parentId;
+
+    /**
+     * 多级字典项从根开始的层级
+     */
+    @TableField("depth_level")
+    private Integer depthLevel;
+
+    /**
+     * 从根到本项的稳定主键路径
+     */
+    @TableField("depth_path")
+    private String depthPath;
+
+    /**
+     * 同级字典项展示顺序
+     */
+    @TableField("sort_no")
+    private Integer sortNo;
+
+    /**
+     * 状态选项展示颜色
+     */
+    @TableField("color")
+    private String color;
+
+    /**
+     * 状态选项展示图标
+     */
+    @TableField("icon")
+    private String icon;
+
+    /**
+     * 所属字典分类中的默认选项标记
+     */
+    @TableField("default_flag")
+    private Boolean defaultFlag;
 
     /**
      * 基础项资料提交版本，用于缓存隔离
@@ -99,6 +141,14 @@ public class UnModuleDict implements Serializable {
         this.tenantId = tenantId;
     }
 
+    public String getDictCode() {
+        return dictCode;
+    }
+
+    public void setDictCode(String dictCode) {
+        this.dictCode = dictCode;
+    }
+
     public String getDictValue() {
         return dictValue;
     }
@@ -121,6 +171,54 @@ public class UnModuleDict implements Serializable {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public Integer getDepthLevel() {
+        return depthLevel;
+    }
+
+    public void setDepthLevel(Integer depthLevel) {
+        this.depthLevel = depthLevel;
+    }
+
+    public String getDepthPath() {
+        return depthPath;
+    }
+
+    public void setDepthPath(String depthPath) {
+        this.depthPath = depthPath;
+    }
+
+    public Integer getSortNo() {
+        return sortNo;
+    }
+
+    public void setSortNo(Integer sortNo) {
+        this.sortNo = sortNo;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public Boolean getDefaultFlag() {
+        return defaultFlag;
+    }
+
+    public void setDefaultFlag(Boolean defaultFlag) {
+        this.defaultFlag = defaultFlag;
     }
 
     public Long getRevision() {

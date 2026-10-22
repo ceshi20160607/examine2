@@ -88,6 +88,24 @@ public class UnModuleRecord implements Serializable {
     private Long actualOperatorId;
 
     /**
+     * 最近一次修改业务记录的平台账号主键
+     */
+    @TableField("update_user_id")
+    private Long updateUserId;
+
+    /**
+     * 业务记录并发写入乐观锁版本
+     */
+    @TableField("lock_version")
+    private Long lockVersion;
+
+    /**
+     * 业务记录归档时间
+     */
+    @TableField("archived_time")
+    private LocalDateTime archivedTime;
+
+    /**
      * 逻辑删除时间
      */
     @TableField("deleted_time")
@@ -191,6 +209,30 @@ public class UnModuleRecord implements Serializable {
 
     public void setActualOperatorId(Long actualOperatorId) {
         this.actualOperatorId = actualOperatorId;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
+    }
+
+    public Long getLockVersion() {
+        return lockVersion;
+    }
+
+    public void setLockVersion(Long lockVersion) {
+        this.lockVersion = lockVersion;
+    }
+
+    public LocalDateTime getArchivedTime() {
+        return archivedTime;
+    }
+
+    public void setArchivedTime(LocalDateTime archivedTime) {
+        this.archivedTime = archivedTime;
     }
 
     public LocalDateTime getDeletedTime() {

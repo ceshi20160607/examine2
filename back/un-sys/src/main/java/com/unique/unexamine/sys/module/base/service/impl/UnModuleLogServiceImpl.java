@@ -34,11 +34,14 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
             case "id" -> "id";
             case "systemId" -> "system_id";
             case "tenantId" -> "tenant_id";
+            case "actorTenantId" -> "actor_tenant_id";
             case "moduleId" -> "module_id";
             case "recordId" -> "record_id";
+            case "shareId" -> "share_id";
             case "operatorAccountId" -> "operator_account_id";
             case "actionCode" -> "action_code";
             case "detailJson" -> "detail_json";
+            case "permissionJson" -> "permission_json";
             case "createTime" -> "create_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
@@ -49,11 +52,14 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
                     case "id" -> "id";
                     case "systemId" -> "system_id";
                     case "tenantId" -> "tenant_id";
+                    case "actorTenantId" -> "actor_tenant_id";
                     case "moduleId" -> "module_id";
                     case "recordId" -> "record_id";
+                    case "shareId" -> "share_id";
                     case "operatorAccountId" -> "operator_account_id";
                     case "actionCode" -> "action_code";
                     case "detailJson" -> "detail_json";
+                    case "permissionJson" -> "permission_json";
                     case "createTime" -> "create_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
@@ -113,11 +119,14 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
         values.put("id", model.getId());
         values.put("systemId", model.getSystemId());
         values.put("tenantId", model.getTenantId());
+        values.put("actorTenantId", model.getActorTenantId());
         values.put("moduleId", model.getModuleId());
         values.put("recordId", model.getRecordId());
+        values.put("shareId", model.getShareId());
         values.put("operatorAccountId", model.getOperatorAccountId());
         values.put("actionCode", model.getActionCode());
         values.put("detailJson", model.getDetailJson());
+        values.put("permissionJson", model.getPermissionJson());
         values.put("createTime", model.getCreateTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {

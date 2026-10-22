@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 模块菜单配置的基础 CRUD 实现；不在此推断租户权限或业务状态。 */
+/** 模块与统一菜单的关联和展示配置的基础 CRUD 实现；不在此推断租户权限或业务状态。 */
 @Service
 public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnModuleMenu>
         implements IUnModuleMenuService {
@@ -36,11 +36,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
             case "tenantId" -> "tenant_id";
             case "moduleId" -> "module_id";
             case "menuId" -> "menu_id";
+            case "displayPosition" -> "display_position";
             case "sortNo" -> "sort_no";
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
-            case "displayPosition" -> "display_position";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleMenu> wrapper = new QueryWrapper<>();
@@ -52,11 +52,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
                     case "tenantId" -> "tenant_id";
                     case "moduleId" -> "module_id";
                     case "menuId" -> "menu_id";
+                    case "displayPosition" -> "display_position";
                     case "sortNo" -> "sort_no";
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
-                    case "displayPosition" -> "display_position";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -117,11 +117,11 @@ public class UnModuleMenuServiceImpl extends ServiceImpl<UnModuleMenuMapper, UnM
         values.put("tenantId", model.getTenantId());
         values.put("moduleId", model.getModuleId());
         values.put("menuId", model.getMenuId());
+        values.put("displayPosition", model.getDisplayPosition());
         values.put("sortNo", model.getSortNo());
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
-        values.put("displayPosition", model.getDisplayPosition());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

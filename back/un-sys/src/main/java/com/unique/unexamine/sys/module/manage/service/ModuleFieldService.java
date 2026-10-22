@@ -139,6 +139,8 @@ public class ModuleFieldService {
             reference.put("id",id); references.add(reference);
         }
         var items=dictionaries.items(systemId,tenantId,ids); List<Map<String,Object>> options=new ArrayList<>();
+        if (items.values().stream().map(DictionaryService.Item::dictCode).distinct().count()!=1)
+            throw new IllegalArgumentException("同一字段的选项必须来自同一字典分类");
         for (var reference:references) {
             var item=items.get((Long)reference.get("id")); Map<String,Object> option=new LinkedHashMap<>(reference);
             option.put("label",item.name());

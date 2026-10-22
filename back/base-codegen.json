@@ -45,7 +45,8 @@
       "sourceRoot": "un-core/src/main/java",
       "basePackage": "com.unique.unexamine.core.file.base",
       "tables": [
-        "un_common_file"
+        "un_common_file",
+        "un_common_file_ref"
       ]
     },
     {
@@ -78,7 +79,11 @@
         "un_module_teamer",
         "un_module_relation",
         "un_module_relation_config",
-        "un_module_log"
+        "un_module_log",
+        "un_module_share",
+        "un_module_sequence",
+        "un_module_exchange_job",
+        "un_module_exchange_row"
       ]
     },
     {
@@ -145,7 +150,8 @@
         "un_data_source",
         "un_data_source_config",
         "un_kpi",
-        "un_kpi_user"
+        "un_kpi_user",
+        "un_kpi_result"
       ]
     },
     {
@@ -160,7 +166,8 @@
       "basePackage": "com.unique.unexamine.app.base",
       "tables": [
         "un_app",
-        "un_app_event"
+        "un_app_event",
+        "un_app_call"
       ]
     }
   ]

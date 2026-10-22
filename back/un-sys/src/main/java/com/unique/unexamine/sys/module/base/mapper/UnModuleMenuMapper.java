@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 模块菜单配置 Mapper 接口
+ * 模块与统一菜单的关联和展示配置 Mapper 接口
  * </p>
  *
  * @author Template Base

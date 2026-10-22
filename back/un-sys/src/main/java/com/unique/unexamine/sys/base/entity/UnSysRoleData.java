@@ -34,6 +34,12 @@ public class UnSysRoleData implements Serializable {
     private Long roleId;
 
     /**
+     * 对应操作菜单主键
+     */
+    @TableField("menu_id")
+    private Long menuId;
+
+    /**
      * 负责人和组织数据范围编码
      */
     @TableField("scope_code")
@@ -57,12 +63,6 @@ public class UnSysRoleData implements Serializable {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
-    /**
-     * 对应操作菜单主键
-     */
-    @TableField("menu_id")
-    private Long menuId;
-
     public Long getId() {
         return id;
     }
@@ -77,6 +77,14 @@ public class UnSysRoleData implements Serializable {
 
     public void setRoleId(Long roleId) {
         this.roleId = roleId;
+    }
+
+    public Long getMenuId() {
+        return menuId;
+    }
+
+    public void setMenuId(Long menuId) {
+        this.menuId = menuId;
     }
 
     public String getScopeCode() {
@@ -109,13 +117,5 @@ public class UnSysRoleData implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Long getMenuId() {
-        return menuId;
-    }
-
-    public void setMenuId(Long menuId) {
-        this.menuId = menuId;
     }
 }

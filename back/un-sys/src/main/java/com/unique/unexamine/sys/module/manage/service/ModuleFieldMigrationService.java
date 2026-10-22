@@ -1,6 +1,7 @@
 package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldDefinition;
@@ -96,7 +97,22 @@ public class ModuleFieldMigrationService {
             Map<String,String> beforeNames=display(systemId,recordTenantId,current.value());
             Map<String,String> afterNames=display(systemId,recordTenantId,after);
             current.data().setValueJson(write(after));
-            values.addOrUpdate(current.data());
+            ModuleRecordService.indexValue(current.data(),draft,after);
+            boolean updated=values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
+                    .eq(UnModuleRecordData::getId,current.data().getId())
+                    .set(UnModuleRecordData::getValueJson,current.data().getValueJson())
+                    .set(UnModuleRecordData::getIndexText,current.data().getIndexText())
+                    .set(UnModuleRecordData::getIndexDecimal,current.data().getIndexDecimal())
+                    .set(UnModuleRecordData::getIndexTime,current.data().getIndexTime()));
+            if (!updated) throw new ResponseStatusException(HttpStatus.CONFLICT,"待迁移字段值已变化，请重新预览");
+            long version=current.record().getLockVersion()==null?0:current.record().getLockVersion();
+            boolean recordUpdated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
+                    .eq(UnModuleRecord::getId,current.record().getId())
+                    .eq(UnModuleRecord::getLockVersion,version)
+                    .set(UnModuleRecord::getLockVersion,version+1)
+                    .set(UnModuleRecord::getUpdateUserId,operatorId)
+                    .set(UnModuleRecord::getActualOperatorId,operatorId));
+            if (!recordUpdated) throw new ResponseStatusException(HttpStatus.CONFLICT,"业务记录已变化，请重新预览迁移");
             LocalDateTime operationTime=LocalDateTime.now();
             String message="模块字段变更："+operatorName+"于"+LOG_TIME.format(operationTime)
                     +"将「"+field.getFieldName()+"」从「"+String.join("、",beforeNames.values())

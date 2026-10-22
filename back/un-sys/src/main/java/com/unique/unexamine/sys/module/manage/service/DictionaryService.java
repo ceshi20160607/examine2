@@ -12,6 +12,7 @@ import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleDict;
 import com.unique.unexamine.sys.module.base.service.IUnModuleDictService;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -30,10 +31,12 @@ public class DictionaryService {
     private final ObjectMapper json;
 
     /** 新增基础项或修改名称，已有基础值和父级不能被改作其他含义。 */
-    public record SaveRequest(Long id,@NotBlank @Size(max=100) String value,
-                              @NotBlank @Size(max=100) String name,Long parentId) {}
+    public record SaveRequest(Long id,@NotBlank @Size(max=80) @Pattern(regexp="[A-Za-z0-9_]+") String dictCode,
+                              @NotBlank @Size(max=100) String value,@NotBlank @Size(max=100) String name,
+                              Long parentId,Integer sortNo,String color,String icon,Boolean defaultFlag) {}
     /** 字段引用 id，value 是例如 1、0 的基础值，name 为当前显示名称。 */
-    public record Item(Long id,String value,String name,Long parentId,long revision) {}
+    public record Item(Long id,String dictCode,String value,String name,Long parentId,
+                       int depthLevel,String depthPath,int sortNo,String color,String icon,boolean defaultFlag,long revision) {}
     /** 基础项列表只包含当前租户和可继承的主租户资料。 */
     public record ItemPage(long total,long current,long size,List<Item> records) {}
 
@@ -51,18 +54,36 @@ public class DictionaryService {
         var row=request.id()==null?new UnModuleDict():dictionaries.getOne(
                 new LambdaQueryWrapper<UnModuleDict>().eq(UnModuleDict::getId,request.id()).last("FOR UPDATE"));
         if (row==null) throw new NoSuchElementException("字典基础项不存在");
-        String value=request.value().trim(),name=request.name().trim();
+        String code=request.dictCode().trim(),value=request.value().trim(),name=request.name().trim();
         if (row.getId()!=null) {
             if (!systemId.equals(row.getSystemId()) || !context.tenantId().equals(row.getTenantId())) forbidden();
-            if (!value.equals(row.getDictValue()) || !Objects.equals(request.parentId(),row.getParentId()))
-                throw new IllegalArgumentException("已有字典基础项只能修改名称，基础值和父级不可变更");
+            if (!code.equals(row.getDictCode()) || !value.equals(row.getDictValue())
+                    || !Objects.equals(request.parentId(),row.getParentId()))
+                throw new IllegalArgumentException("已有字典基础项的分类、基础值和父级不可变更");
         } else {
-            if (request.parentId()!=null) items(systemId,context.tenantId(),List.of(request.parentId()));
-            row.setSystemId(systemId); row.setTenantId(context.tenantId()); row.setDictValue(value);
+            UnModuleDict parent=null;
+            if (request.parentId()!=null) {
+                items(systemId,context.tenantId(),List.of(request.parentId()));
+                parent=dictionaries.queryById(request.parentId());
+                if (!code.equals(parent.getDictCode())) throw new IllegalArgumentException("级联父项必须属于同一字典分类");
+            }
+            row.setSystemId(systemId); row.setTenantId(context.tenantId()); row.setDictCode(code); row.setDictValue(value);
             row.setParentId(request.parentId()); row.setRevision(0L);
+            row.setDepthLevel(parent==null?0:parent.getDepthLevel()+1);
+            row.setDepthPath(parent==null?null:parent.getDepthPath());
         }
         Item before=row.getId()==null?null:view(row);
-        row.setName(name); row.setRevision(row.getRevision()+1); dictionaries.addOrUpdate(row);
+        row.setName(name);
+        if (request.sortNo()!=null || row.getId()==null) row.setSortNo(request.sortNo()==null?0:request.sortNo());
+        if (request.color()!=null || row.getId()==null) row.setColor(request.color());
+        if (request.icon()!=null || row.getId()==null) row.setIcon(request.icon());
+        if (request.defaultFlag()!=null || row.getId()==null)
+            row.setDefaultFlag(Boolean.TRUE.equals(request.defaultFlag()));
+        row.setRevision(row.getRevision()+1); dictionaries.addOrUpdate(row);
+        if (before==null) {
+            row.setDepthPath(row.getDepthPath()==null?row.getId().toString():row.getDepthPath()+","+row.getId());
+            dictionaries.addOrUpdate(row);
+        }
         var log=new UnSysLogOpt(); log.setSystemId(systemId); log.setTenantId(context.tenantId());
         log.setAccountId(systems.accountId(token,systemId)); log.setActionCode("DICTIONARY_ITEM_SAVE");
         log.setObjectType("DICTIONARY_ITEM"); log.setObjectId(row.getId());
@@ -73,15 +94,16 @@ public class DictionaryService {
     }
 
     /** 普通成员可查询作用域内基础项，角色字段授权仍在业务表单入口检查。 */
-    public ItemPage list(String token,Long systemId,Long tenantId,long page,long size,String name,String value,Long parentId) {
+    public ItemPage list(String token,Long systemId,Long tenantId,long page,long size,String dictCode,String name,String value,Long parentId) {
         var context=systems.context(token,systemId,tenantId);
         if (page<1 || size<1 || size>100) throw new IllegalArgumentException("分页参数无效");
         Long root=systemRows.queryById(systemId).getRootTenantId();
         var query=new LambdaQueryWrapper<UnModuleDict>().eq(UnModuleDict::getSystemId,systemId)
                 .in(UnModuleDict::getTenantId,new HashSet<>(List.of(root,context.tenantId())))
+                .eq(dictCode!=null && !dictCode.isBlank(),UnModuleDict::getDictCode,dictCode)
                 .like(name!=null && !name.isBlank(),UnModuleDict::getName,name)
                 .eq(value!=null,UnModuleDict::getDictValue,value).eq(parentId!=null,UnModuleDict::getParentId,parentId)
-                .orderByAsc(UnModuleDict::getId);
+                .orderByAsc(UnModuleDict::getSortNo).orderByAsc(UnModuleDict::getId);
         var result=dictionaries.page(new Page<>(page,size),query);
         return new ItemPage(result.getTotal(),page,size,result.getRecords().stream().map(this::view).toList());
     }
@@ -107,7 +129,9 @@ public class DictionaryService {
         return result;
     }
 
-    private Item view(UnModuleDict row) { return new Item(row.getId(),row.getDictValue(),row.getName(),row.getParentId(),row.getRevision()); }
+    private Item view(UnModuleDict row) { return new Item(row.getId(),row.getDictCode(),row.getDictValue(),row.getName(),
+            row.getParentId(),row.getDepthLevel(),row.getDepthPath(),row.getSortNo(),row.getColor(),row.getIcon(),
+            Boolean.TRUE.equals(row.getDefaultFlag()),row.getRevision()); }
     private String namespace(Long systemId,Long tenantId) { return "dictionary-item:"+systemId+":"+tenantId; }
     private void forbidden() { throw new ResponseStatusException(HttpStatus.FORBIDDEN,"字典基础项不属于当前系统租户"); }
 }

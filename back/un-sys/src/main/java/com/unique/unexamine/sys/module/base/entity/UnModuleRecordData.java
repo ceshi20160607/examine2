@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -50,6 +51,24 @@ public class UnModuleRecordData implements Serializable {
      */
     @TableField("value_json")
     private String valueJson;
+
+    /**
+     * 允许筛选排序的文本值索引
+     */
+    @TableField("index_text")
+    private String indexText;
+
+    /**
+     * 允许筛选排序的数值索引
+     */
+    @TableField("index_decimal")
+    private BigDecimal indexDecimal;
+
+    /**
+     * 允许筛选排序的时间值索引
+     */
+    @TableField("index_time")
+    private LocalDateTime indexTime;
 
     /**
      * 创建时间
@@ -101,6 +120,30 @@ public class UnModuleRecordData implements Serializable {
 
     public void setValueJson(String valueJson) {
         this.valueJson = valueJson;
+    }
+
+    public String getIndexText() {
+        return indexText;
+    }
+
+    public void setIndexText(String indexText) {
+        this.indexText = indexText;
+    }
+
+    public BigDecimal getIndexDecimal() {
+        return indexDecimal;
+    }
+
+    public void setIndexDecimal(BigDecimal indexDecimal) {
+        this.indexDecimal = indexDecimal;
+    }
+
+    public LocalDateTime getIndexTime() {
+        return indexTime;
+    }
+
+    public void setIndexTime(LocalDateTime indexTime) {
+        this.indexTime = indexTime;
     }
 
     public LocalDateTime getCreateTime() {

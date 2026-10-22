@@ -42,6 +42,9 @@ public class UnModuleRecordServiceImpl extends ServiceImpl<UnModuleRecordMapper,
             case "ownerDeptId" -> "owner_dept_id";
             case "createUserId" -> "create_user_id";
             case "actualOperatorId" -> "actual_operator_id";
+            case "updateUserId" -> "update_user_id";
+            case "lockVersion" -> "lock_version";
+            case "archivedTime" -> "archived_time";
             case "deletedTime" -> "deleted_time";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
@@ -62,6 +65,9 @@ public class UnModuleRecordServiceImpl extends ServiceImpl<UnModuleRecordMapper,
                     case "ownerDeptId" -> "owner_dept_id";
                     case "createUserId" -> "create_user_id";
                     case "actualOperatorId" -> "actual_operator_id";
+                    case "updateUserId" -> "update_user_id";
+                    case "lockVersion" -> "lock_version";
+                    case "archivedTime" -> "archived_time";
                     case "deletedTime" -> "deleted_time";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
@@ -131,6 +137,9 @@ public class UnModuleRecordServiceImpl extends ServiceImpl<UnModuleRecordMapper,
         values.put("ownerDeptId", model.getOwnerDeptId());
         values.put("createUserId", model.getCreateUserId());
         values.put("actualOperatorId", model.getActualOperatorId());
+        values.put("updateUserId", model.getUpdateUserId());
+        values.put("lockVersion", model.getLockVersion());
+        values.put("archivedTime", model.getArchivedTime());
         values.put("deletedTime", model.getDeletedTime());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());

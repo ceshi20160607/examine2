@@ -29,8 +29,9 @@ public class DictionaryController {
     public DictionaryService.ItemPage list(@RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,@PathVariable Long systemId,
             @RequestParam(defaultValue="1") long page,@RequestParam(defaultValue="20") long size,
-            @RequestParam(required=false) String name,@RequestParam(required=false) String value,@RequestParam(required=false) Long parentId) {
-        return service.list(token,systemId,tenantId,page,size,name,value,parentId);
+            @RequestParam(required=false) String dictCode,@RequestParam(required=false) String name,
+            @RequestParam(required=false) String value,@RequestParam(required=false) Long parentId) {
+        return service.list(token,systemId,tenantId,page,size,dictCode,name,value,parentId);
     }
 
     /** 按稳定 ID 查询当前基础值和名称。 */

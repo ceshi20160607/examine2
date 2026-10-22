@@ -34,10 +34,16 @@ public class UnModuleLog implements Serializable {
     private Long systemId;
 
     /**
-     * 操作租户主键
+     * 业务记录或配置所属租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
+
+    /**
+     * 实际操作人的当前租户主键
+     */
+    @TableField("actor_tenant_id")
+    private Long actorTenantId;
 
     /**
      * 所属业务模块主键
@@ -50,6 +56,12 @@ public class UnModuleLog implements Serializable {
      */
     @TableField("record_id")
     private Long recordId;
+
+    /**
+     * 跨租户操作使用的共享授权主键
+     */
+    @TableField("share_id")
+    private Long shareId;
 
     /**
      * 实际操作平台账号主键
@@ -68,6 +80,12 @@ public class UnModuleLog implements Serializable {
      */
     @TableField("detail_json")
     private String detailJson;
+
+    /**
+     * 操作发生时的菜单字段及数据权限摘要
+     */
+    @TableField("permission_json")
+    private String permissionJson;
 
     /**
      * 操作时间
@@ -99,6 +117,14 @@ public class UnModuleLog implements Serializable {
         this.tenantId = tenantId;
     }
 
+    public Long getActorTenantId() {
+        return actorTenantId;
+    }
+
+    public void setActorTenantId(Long actorTenantId) {
+        this.actorTenantId = actorTenantId;
+    }
+
     public Long getModuleId() {
         return moduleId;
     }
@@ -113,6 +139,14 @@ public class UnModuleLog implements Serializable {
 
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
+    }
+
+    public Long getShareId() {
+        return shareId;
+    }
+
+    public void setShareId(Long shareId) {
+        this.shareId = shareId;
     }
 
     public Long getOperatorAccountId() {
@@ -137,6 +171,14 @@ public class UnModuleLog implements Serializable {
 
     public void setDetailJson(String detailJson) {
         this.detailJson = detailJson;
+    }
+
+    public String getPermissionJson() {
+        return permissionJson;
+    }
+
+    public void setPermissionJson(String permissionJson) {
+        this.permissionJson = permissionJson;
     }
 
     public LocalDateTime getCreateTime() {
