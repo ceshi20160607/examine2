@@ -1,6 +1,7 @@
 package com.unique.unexamine.sys.manage;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.plat.manage.AuthManageService;
@@ -202,6 +203,14 @@ public class SystemManageService {
                 actor.getId().equals(system.getOwnerAccountId()), Boolean.TRUE.equals(link.getIsAdmin()));
     }
 
+    /** 各配置业务共用管理身份检查，不能通过普通角色名称取得管理员身份。 */
+    public SystemContext requireAdminContext(String token, Long systemId, Long tenantId) {
+        var context = context(token, systemId, tenantId);
+        if (!context.owner() && !context.tenantAdmin())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "缺少当前系统租户的管理权限");
+        return context;
+    }
+
     /** 从登录会话和系统成员映射解析实际操作账号，供模块等业务域记录审计。 */
     public Long accountId(String token, Long systemId) {
         UnPlatAccount actor = auth.requireAccount(token);
@@ -235,9 +244,10 @@ public class SystemManageService {
         requireSystemAdmin(system, actor.getId());
         UnSysSystemConfig config = config(systemId);
         boolean before = Boolean.TRUE.equals(config.getMultiTenantEnabled());
-        config.setMultiTenantEnabled(request.enabled());
-        config.setUpdateAccountId(actor.getId());
-        configs.addOrUpdate(config);
+        // 只写本次变更列，避免并发切换租户模式时覆盖授权事务递增的权限版本。
+        configs.update(new LambdaUpdateWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getId, config.getId())
+                .set(UnSysSystemConfig::getMultiTenantEnabled, request.enabled())
+                .set(UnSysSystemConfig::getUpdateAccountId, actor.getId()));
         audit(systemId, system.getRootTenantId(), actor.getId(), "TENANT_MODE_CHANGE", systemId,
                 "{\"before\":" + before + ",\"after\":" + request.enabled() + "}");
         return view(system, request.enabled(), actor.getId().equals(system.getOwnerAccountId()));

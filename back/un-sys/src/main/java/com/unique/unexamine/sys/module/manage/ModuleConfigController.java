@@ -52,6 +52,16 @@ public class ModuleConfigController {
         return service.saveField(token, systemId, tenantId, moduleId, request);
     }
 
+    /** 设计器只使用固定类型目录，不接受任意类型名称。 */
+    @GetMapping("/field-types")
+    @Operation(summary = "查询固定字段类型")
+    public java.util.List<ModuleFieldService.TypeView> fieldTypes(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId) {
+        return service.fieldTypes(token, systemId, tenantId);
+    }
+
     /** 发布字段顺序和布局快照。 */
     @PostMapping("/modules/{moduleId}/publish")
     @Operation(summary = "发布模块配置")

@@ -40,7 +40,7 @@ public class UnSysRoleData implements Serializable {
     private Long moduleId;
 
     /**
-     * æŸ¥çœ‹ç¼–è¾‘åˆ é™¤ç­‰æ¨¡å—åŠ¨ä½œç¼–ç 
+     * 查看编辑删除等模块动作编码
      */
     @TableField("action_code")
     private String actionCode;
@@ -52,7 +52,7 @@ public class UnSysRoleData implements Serializable {
     private String scopeCode;
 
     /**
-     * 指定负责人或部门的范围配置
+     * 负责人部门范围及动作字段读写许可
      */
     @TableField("scope_config")
     private String scopeConfig;

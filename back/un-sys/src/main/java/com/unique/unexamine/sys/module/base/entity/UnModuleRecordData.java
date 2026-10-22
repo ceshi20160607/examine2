@@ -52,6 +52,12 @@ public class UnModuleRecordData implements Serializable {
     private String valueJson;
 
     /**
+     * 保存时的选项名称快照，保留历史展示
+     */
+    @TableField("value_display_json")
+    private String valueDisplayJson;
+
+    /**
      * 创建时间
      */
     @TableField("create_time")
@@ -101,6 +107,14 @@ public class UnModuleRecordData implements Serializable {
 
     public void setValueJson(String valueJson) {
         this.valueJson = valueJson;
+    }
+
+    public String getValueDisplayJson() {
+        return valueDisplayJson;
+    }
+
+    public void setValueDisplayJson(String valueDisplayJson) {
+        this.valueDisplayJson = valueDisplayJson;
     }
 
     public LocalDateTime getCreateTime() {

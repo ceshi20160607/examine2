@@ -31,8 +31,6 @@ import org.springframework.web.server.ResponseStatusException;
 /** 模块组、模块、字段设计和发布的业务规则，布局由设计器保存后直接提供给表单。 */
 @Service
 public class ModuleConfigService {
-    private static final Set<String> SUPPORTED_TYPES = Set.of(
-            "TEXT", "MULTILINE", "NUMBER", "MONEY", "DATE", "DATETIME", "BOOLEAN", "EMAIL", "PHONE");
     private final SystemManageService systems;
     private final IUnSysSystemService systemRows;
     private final IUnModuleGroupService groups;
@@ -40,6 +38,8 @@ public class ModuleConfigService {
     private final IUnModuleFieldService fields;
     private final IUnModuleTenantService tenantModules;
     private final ObjectMapper json;
+    private final ModuleFieldService fieldRules;
+    private final ModulePermissionService permissions;
 
     /** 创建运行态导航模块组。 */
     public record CreateGroupRequest(@NotBlank @Size(max = 80) String code,
@@ -68,7 +68,8 @@ public class ModuleConfigService {
     public ModuleConfigService(SystemManageService systems, IUnSysSystemService systemRows,
             IUnModuleGroupService groups,
             IUnModuleService modules, IUnModuleFieldService fields,
-            IUnModuleTenantService tenantModules, ObjectMapper json) {
+            IUnModuleTenantService tenantModules, ObjectMapper json, ModuleFieldService fieldRules,
+            ModulePermissionService permissions) {
         this.systems = systems;
         this.systemRows = systemRows;
         this.groups = groups;
@@ -76,12 +77,14 @@ public class ModuleConfigService {
         this.fields = fields;
         this.tenantModules = tenantModules;
         this.json = json;
+        this.fieldRules = fieldRules;
+        this.permissions = permissions;
     }
 
     /** 系统后台创建模块组；非管理员不能修改配置。 */
     @Transactional(rollbackFor = Exception.class)
     public Long createGroup(String token, Long systemId, Long tenantId, CreateGroupRequest request) {
-        var context = adminContext(token, systemId, tenantId);
+        var context = systems.requireAdminContext(token, systemId, tenantId);
         if (!context.tenantId().equals(systemRows.queryById(systemId).getRootTenantId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "模块组只由主租户配置");
         }
@@ -106,7 +109,7 @@ public class ModuleConfigService {
     /** 创建业务模块，同时绑定当前租户并建立默认标题字段草稿。 */
     @Transactional(rollbackFor = Exception.class)
     public ModuleView createModule(String token, Long systemId, Long tenantId, CreateModuleRequest request) {
-        var context = adminContext(token, systemId, tenantId);
+        var context = systems.requireAdminContext(token, systemId, tenantId);
         UnModuleGroup group = groups.queryById(request.groupId());
         Long rootTenantId = systemRows.queryById(systemId).getRootTenantId();
         if (!systemId.equals(group.getSystemId()) || !rootTenantId.equals(group.getTenantId())
@@ -144,7 +147,8 @@ public class ModuleConfigService {
     /** 保存字段草稿；已发布字段继续使用上次发布快照，直到再次发布。 */
     @Transactional(rollbackFor = Exception.class)
     public Long saveField(String token, Long systemId, Long tenantId, Long moduleId, SaveFieldRequest request) {
-        var context = adminContext(token, systemId, tenantId);
+        var context = systems.requireAdminContext(token, systemId, tenantId);
+        lockModule(systemId, moduleId);
         UnModule module = module(systemId, moduleId, context.tenantId());
         return saveFieldInTransaction(module, request);
     }
@@ -152,7 +156,8 @@ public class ModuleConfigService {
     /** 把当前设计器字段顺序与原布局一起发布，运行态只读取本次快照。 */
     @Transactional(rollbackFor = Exception.class)
     public ModuleView publish(String token, Long systemId, Long tenantId, Long moduleId) {
-        var context = adminContext(token, systemId, tenantId);
+        var context = systems.requireAdminContext(token, systemId, tenantId);
+        lockModule(systemId, moduleId);
         UnModule module = module(systemId, moduleId, context.tenantId());
         UnModuleGroup group = groups.queryById(module.getGroupId());
         List<UnModuleField> definitions = draftFields(moduleId);
@@ -161,6 +166,8 @@ public class ModuleConfigService {
         }
         int version = (module.getPublishedVersion() == null ? 0 : module.getPublishedVersion()) + 1;
         for (UnModuleField field : definitions) {
+            fieldRules.definition(systemId, context.tenantId(), field.getFieldCode(), field.getFieldName(),
+                    field.getFieldType(), Boolean.TRUE.equals(field.getRequiredFlag()), readMap(field.getConfigJson()));
             field.setPublishedLayoutJson(field.getLayoutJson());
             Map<String, Object> snapshot = new LinkedHashMap<>();
             snapshot.put("fieldName", field.getFieldName());
@@ -188,13 +195,26 @@ public class ModuleConfigService {
 
     /** 返回已发布表单，字段顺序和占位宽度取持久化发布快照。 */
     public FormView newForm(String token, Long systemId, Long tenantId, Long moduleId) {
-        var context = systems.context(token, systemId, tenantId);
-        if (!context.owner() && !context.tenantAdmin()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "缺少模块数据操作权限");
-        }
+        var access = permissions.require(token, systemId, tenantId, moduleId, "CREATE");
+        var context = access.context();
         UnModule module = publishedModule(systemId, moduleId, context.tenantId());
-        return new FormView(moduleId, module.getPublishedVersion(), publishedFields(moduleId).stream()
-                .map(this::fieldConfig).toList());
+        return new FormView(moduleId, module.getPublishedVersion(), access.policy()
+                .filterReadable(publishedFields(moduleId), UnModuleField::getFieldCode).stream()
+                .map(field -> runtimeFieldConfig(systemId, context.tenantId(), field, access.policy().writable(field.getFieldCode())))
+                .toList());
+    }
+
+    /** 管理员读取固定字段类型及当前可执行能力。 */
+    public List<ModuleFieldService.TypeView> fieldTypes(String token, Long systemId, Long tenantId) {
+        systems.requireAdminContext(token, systemId, tenantId);
+        return fieldRules.types();
+    }
+
+    /** 运行态配置附加字典发布选项和字段编辑许可，原始布局保持不变。 */
+    public FieldConfig runtimeFieldConfig(Long systemId, Long tenantId, UnModuleField field, boolean writable) {
+        var result = fieldRules.configuration(systemId, tenantId, field.getFieldCode(), fieldConfig(field).configuration());
+        result.put("writable", writable);
+        return new FieldConfig(field.getFieldCode(), result);
     }
 
     /** 业务记录服务调用同一份发布配置。 */
@@ -227,6 +247,12 @@ public class ModuleConfigService {
         return module;
     }
 
+    /** 保存记录与发布配置按同一模块串行，保证唯一校验和发布快照一致。 */
+    public void lockModule(Long systemId, Long moduleId) {
+        modules.getOne(new LambdaQueryWrapper<UnModule>().eq(UnModule::getId, moduleId)
+                .eq(UnModule::getSystemId, systemId).last("FOR UPDATE"));
+    }
+
     /** 草稿字段按设计器保存顺序读取。 */
     private List<UnModuleField> draftFields(Long moduleId) {
         return fields.list(new LambdaQueryWrapper<UnModuleField>()
@@ -243,9 +269,9 @@ public class ModuleConfigService {
             throw new IllegalArgumentException("字段编码与系统字段冲突");
         }
         String type = request.fieldType().trim().toUpperCase(Locale.ROOT);
-        if (!SUPPORTED_TYPES.contains(type) || ("name".equals(fieldCode) && !"TEXT".equals(type))) {
-            throw new IllegalArgumentException("字段类型暂不支持保存");
-        }
+        if ("name".equals(fieldCode) && !"TEXT".equals(type)) throw new IllegalArgumentException("标题必须使用文本类型");
+        fieldRules.definition(module.getSystemId(), module.getTenantId(), fieldCode, request.fieldName(), type,
+                request.required(), request.config());
         if (request.sortNo() < 0 || request.layout().isEmpty()) {
             throw new IllegalArgumentException("字段布局和顺序无效");
         }
@@ -261,6 +287,8 @@ public class ModuleConfigService {
             field.setFieldCode(fieldCode);
             field.setStatus("DRAFT");
         }
+        if (field.getPublishedVersion() != null && field.getPublishedVersion() > 0 && !type.equals(field.getFieldType()))
+            throw new IllegalArgumentException("已发布字段变更类型需要先迁移既有数据");
         field.setFieldName(request.fieldName().trim());
         field.setFieldType(type);
         field.setRequiredFlag(request.required());
@@ -271,15 +299,6 @@ public class ModuleConfigService {
         field.setConfigJson(writeJson(request.config()));
         fields.addOrUpdate(field);
         return field.getId();
-    }
-
-    /** 配置操作要求当前系统租户有效且具备管理身份。 */
-    private SystemManageService.SystemContext adminContext(String token, Long systemId, Long tenantId) {
-        var context = systems.context(token, systemId, tenantId);
-        if (!context.owner() && !context.tenantAdmin()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "缺少模块配置权限");
-        }
-        return context;
     }
 
     /** 当前操作账号从系统成员关系取得，不允许请求体伪造。 */

@@ -40,6 +40,12 @@ public class UnSysSystemConfig implements Serializable {
     private Boolean multiTenantEnabled;
 
     /**
+     * 权限配置版本，变更后隔离旧缓存
+     */
+    @TableField("permission_revision")
+    private Long permissionRevision;
+
+    /**
      * 系统登录展示标题
      */
     @TableField("login_title")
@@ -103,6 +109,14 @@ public class UnSysSystemConfig implements Serializable {
 
     public void setMultiTenantEnabled(Boolean multiTenantEnabled) {
         this.multiTenantEnabled = multiTenantEnabled;
+    }
+
+    public Long getPermissionRevision() {
+        return permissionRevision;
+    }
+
+    public void setPermissionRevision(Long permissionRevision) {
+        this.permissionRevision = permissionRevision;
     }
 
     public String getLoginTitle() {

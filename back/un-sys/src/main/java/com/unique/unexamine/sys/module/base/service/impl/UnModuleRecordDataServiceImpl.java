@@ -36,6 +36,7 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
             case "fieldId" -> "field_id";
             case "fieldCode" -> "field_code";
             case "valueJson" -> "value_json";
+            case "valueDisplayJson" -> "value_display_json";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
             default -> throw new IllegalArgumentException("排序字段无效");
@@ -49,6 +50,7 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
                     case "fieldId" -> "field_id";
                     case "fieldCode" -> "field_code";
                     case "valueJson" -> "value_json";
+                    case "valueDisplayJson" -> "value_display_json";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
@@ -111,6 +113,7 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
         values.put("fieldId", model.getFieldId());
         values.put("fieldCode", model.getFieldCode());
         values.put("valueJson", model.getValueJson());
+        values.put("valueDisplayJson", model.getValueDisplayJson());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
         if (extensionValues != null) {

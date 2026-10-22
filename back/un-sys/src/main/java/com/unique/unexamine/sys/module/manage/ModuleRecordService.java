@@ -20,8 +20,9 @@ import com.unique.unexamine.sys.base.service.IUnSysMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.manage.SystemManageService;
+import com.unique.unexamine.core.field.FieldDefinition;
+import com.unique.unexamine.core.permission.PermissionPolicy;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,6 +32,7 @@ import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.web.server.ResponseStatusException;
 
 /** 发布模块的记录保存与读取；主记录、自定义字段和日志在同一事务中完成。 */
@@ -45,6 +47,8 @@ public class ModuleRecordService {
     private final IUnModuleRecordDataService data;
     private final IUnModuleLogService logs;
     private final ObjectMapper json;
+    private final ModulePermissionService permissions;
+    private final ModuleFieldService fieldRules;
 
     /** 表单提交主键为空时新增，传主键时更新同模块记录。 */
     public record SaveRecordRequest(Long id, Long ownerAccountId,
@@ -64,7 +68,8 @@ public class ModuleRecordService {
     public ModuleRecordService(SystemManageService systems, ModuleConfigService config,
             IUnSysSystemService systemRows, IUnSysMemberService members,
             IUnSysTenantMemberService tenantMembers, IUnModuleRecordService records,
-            IUnModuleRecordDataService data, IUnModuleLogService logs, ObjectMapper json) {
+            IUnModuleRecordDataService data, IUnModuleLogService logs, ObjectMapper json,
+            ModulePermissionService permissions, ModuleFieldService fieldRules) {
         this.systems = systems;
         this.config = config;
         this.systemRows = systemRows;
@@ -74,13 +79,18 @@ public class ModuleRecordService {
         this.data = data;
         this.logs = logs;
         this.json = json;
+        this.permissions = permissions;
+        this.fieldRules = fieldRules;
     }
 
     /** 表单保存同时校验发布字段类型、主数据归属与自定义数据。 */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     public RecordView save(String token, Long systemId, Long tenantId, Long moduleId,
                            SaveRecordRequest request) {
-        var context = authorizedContext(token, systemId, tenantId);
+        var access = permissions.require(token, systemId, tenantId, moduleId, request.id() == null ? "CREATE" : "EDIT");
+        var context = access.context();
+        access.policy().requireWritable(request.values().keySet());
+        config.lockModule(systemId, moduleId);
         UnModule module = config.publishedModule(systemId, moduleId, context.tenantId());
         List<UnModuleField> fields = config.publishedFields(moduleId);
         Set<String> allowed = fields.stream().map(UnModuleField::getFieldCode)
@@ -90,20 +100,25 @@ public class ModuleRecordService {
         }
         UnModuleRecord record = request.id() == null ? new UnModuleRecord()
                 : visibleRecord(systemId, context.tenantId(), moduleId, request.id());
+        if (request.id() != null) access.policy().requireOwner(record.getOwnerUserId());
         Map<String, UnModuleRecordData> existing = request.id() == null ? Map.of()
                 : dataByCode(record.getId());
         Map<String, Object> effective = new LinkedHashMap<>();
+        Map<String, Map<String, String>> displays = new LinkedHashMap<>();
         for (UnModuleField field : fields) {
             String code = field.getFieldCode();
-            Object value = request.values().containsKey(code) ? request.values().get(code)
-                    : "name".equals(code) ? record.getName()
+            Object previous = "name".equals(code) ? record.getName()
                     : existing.containsKey(code) ? readValue(existing.get(code).getValueJson()) : null;
             var published = config.fieldConfig(field).configuration();
-            if (Boolean.TRUE.equals(published.get("required"))
-                    && (value == null || value instanceof String s && s.isBlank())) {
-                throw new IllegalArgumentException(code + "是必填字段");
-            }
-            validateValue(code, (String) published.get("fieldType"), value);
+            FieldDefinition definition = fieldRules.published(code, published);
+            Object value = request.values().containsKey(code) ? request.values().get(code) : previous;
+            if (request.id() == null && !request.values().containsKey(code)) value = definition.rules().get("defaultValue");
+            // 标题入库时去除首尾空白，校验必须使用同一值，避免绕过唯一约束。
+            if ("name".equals(code) && value instanceof String text) value = text.trim();
+            fieldRules.validate(systemId, context.tenantId(), definition, value, previous);
+            fieldRules.validateUnique(systemId, context.tenantId(), moduleId, request.id(), definition, value);
+            Map<String,String> oldDisplay = existing.containsKey(code) ? display(existing.get(code)) : Map.of();
+            displays.put(code, fieldRules.display(systemId, context.tenantId(), definition, value, oldDisplay, previous));
             effective.put(code, value);
         }
         String name = (String) effective.get("name");
@@ -114,6 +129,7 @@ public class ModuleRecordService {
                 : request.id() == null ? systemRows.queryById(systemId).getOwnerAccountId()
                 : record.getOwnerUserId();
         UnSysTenantMember ownerLink = ownerMembership(systemId, context.tenantId(), ownerId);
+        access.policy().requireOwner(ownerId);
         if (request.id() == null) {
             record.setSystemId(systemId);
             record.setTenantId(context.tenantId());
@@ -135,67 +151,79 @@ public class ModuleRecordService {
             item.setFieldId(field.getId());
             item.setFieldCode(field.getFieldCode());
             item.setValueJson(writeValue(effective.get(field.getFieldCode())));
+            item.setValueDisplayJson(writeValue(displays.get(field.getFieldCode())));
             data.addOrUpdate(item);
         }
         audit(module, record, systems.accountId(token, systemId),
                 request.id() == null ? "RECORD_CREATE" : "RECORD_UPDATE");
-        return view(record);
+        return view(record, access.policy());
     }
 
     /** 基础记录查询，不混入扩展字段或详情布局。 */
     public RecordView queryById(String token, Long systemId, Long tenantId, Long moduleId, Long recordId) {
-        var context = authorizedContext(token, systemId, tenantId);
+        var access = permissions.require(token, systemId, tenantId, moduleId, "VIEW");
+        var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
-        return view(visibleRecord(systemId, context.tenantId(), moduleId, recordId));
+        var record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
+        access.policy().requireOwner(record.getOwnerUserId());
+        return view(record, access.policy());
     }
 
     /** 按发布时保存的字段顺序和布局填充记录详情。 */
     public RecordInformation information(String token, Long systemId, Long tenantId,
                                          Long moduleId, Long recordId) {
-        var context = authorizedContext(token, systemId, tenantId);
+        var access = permissions.require(token, systemId, tenantId, moduleId, "VIEW");
+        var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
         UnModuleRecord record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
+        access.policy().requireOwner(record.getOwnerUserId());
         Map<String, Object> values = new LinkedHashMap<>();
-        dataByCode(record.getId()).forEach((code, item) -> values.put(code, readValue(item.getValueJson())));
-        List<IUnModuleRecordService.FieldConfig> form = config.publishedFields(moduleId).stream()
-                .map(config::fieldConfig).toList();
+        var stored = dataByCode(record.getId());
+        stored.forEach((code, item) -> { if (access.policy().readable(code)) values.put(code, readValue(item.getValueJson())); });
+        List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(config.publishedFields(moduleId), UnModuleField::getFieldCode).stream()
+                .map(field -> {
+                    var item = config.runtimeFieldConfig(systemId, context.tenantId(), field, access.policy().writable(field.getFieldCode()));
+                    if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", display(stored.get(field.getFieldCode())));
+                    return item;
+                }).toList();
         return new RecordInformation(recordId, records.information(recordId, form, values));
     }
 
     /** 列表分页委托生成的基础 Service，软删除字段由 IS NULL 筛选。 */
     public RecordPage queryPageList(String token, Long systemId, Long tenantId, Long moduleId,
                                     long page, long size) {
-        var context = authorizedContext(token, systemId, tenantId);
+        var access = permissions.require(token, systemId, tenantId, moduleId, "VIEW");
+        var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
         Map<String, Object> filters = new HashMap<>();
         filters.put("systemId", systemId);
         filters.put("tenantId", context.tenantId());
         filters.put("moduleId", moduleId);
         filters.put("deletedTime", null);
-        Page<UnModuleRecord> result = records.queryPageList(new PageQuery(page, size, filters, "id", true));
+        if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页范围无效");
+        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) return new RecordPage(0,page,size,List.of());
+        Page<UnModuleRecord> result = access.policy().allData()
+                ? records.queryPageList(new PageQuery(page, size, filters, "id", true))
+                : records.page(Page.of(page, size), new LambdaQueryWrapper<UnModuleRecord>()
+                    .eq(UnModuleRecord::getSystemId,systemId).eq(UnModuleRecord::getTenantId,context.tenantId())
+                    .eq(UnModuleRecord::getModuleId,moduleId).isNull(UnModuleRecord::getDeletedTime)
+                    .in(UnModuleRecord::getOwnerUserId,access.policy().ownerAccountIds()).orderByDesc(UnModuleRecord::getId));
         return new RecordPage(result.getTotal(), result.getCurrent(), result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+                result.getRecords().stream().map(record -> view(record,access.policy())).toList());
     }
 
     /** 业务记录默认逻辑删除，保留字段值和操作历史。 */
     @Transactional(rollbackFor = Exception.class)
     public void delete(String token, Long systemId, Long tenantId, Long moduleId, Long recordId) {
-        var context = authorizedContext(token, systemId, tenantId);
+        var access = permissions.require(token, systemId, tenantId, moduleId, "DELETE");
+        var context = access.context();
         UnModule module = config.publishedModule(systemId, moduleId, context.tenantId());
         UnModuleRecord record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
+        access.policy().requireOwner(record.getOwnerUserId());
         record.setDeletedTime(LocalDateTime.now());
         record.setActualOperatorId(systems.accountId(token, systemId));
         records.addOrUpdate(record);
         audit(module, record, systems.accountId(token, systemId), "RECORD_DELETE");
-    }
-
-    /** 当前阶段业务记录动作要求系统所属人或租户管理员身份。 */
-    private SystemManageService.SystemContext authorizedContext(String token, Long systemId, Long tenantId) {
-        var context = systems.context(token, systemId, tenantId);
-        if (!context.owner() && !context.tenantAdmin()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "缺少模块数据操作权限");
-        }
-        return context;
     }
 
     /** 防止跨模块、跨租户读取和操作逻辑删除记录。 */
@@ -227,37 +255,10 @@ public class ModuleRecordService {
         return link;
     }
 
-    /** 主数据字段和自定义字段根据发布类型接受明确值形态。 */
-    private void validateValue(String code, String type, Object value) {
-        if (value == null) {
-            return;
-        }
-        try {
-            switch (type) {
-                case "TEXT", "MULTILINE" -> {
-                    if (!(value instanceof String)) throw new IllegalArgumentException();
-                }
-                case "EMAIL" -> {
-                    if (!(value instanceof String s) || !s.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
-                        throw new IllegalArgumentException();
-                }
-                case "PHONE" -> {
-                    if (!(value instanceof String s) || !s.matches("[+0-9() -]{6,30}"))
-                        throw new IllegalArgumentException();
-                }
-                case "NUMBER", "MONEY" -> {
-                    if (!(value instanceof Number)) throw new IllegalArgumentException();
-                }
-                case "BOOLEAN" -> {
-                    if (!(value instanceof Boolean)) throw new IllegalArgumentException();
-                }
-                case "DATE" -> LocalDate.parse((String) value);
-                case "DATETIME" -> LocalDateTime.parse((String) value);
-                default -> throw new IllegalArgumentException();
-            }
-        } catch (RuntimeException ex) {
-            throw new IllegalArgumentException(code + "的值不符合已发布字段类型", ex);
-        }
+    /** 历史字典名称来自记录保存快照，不以当前字典名称覆盖。 */
+    @SuppressWarnings("unchecked")
+    private Map<String,String> display(UnModuleRecordData row) {
+        return row.getValueDisplayJson() == null ? Map.of() : json.convertValue(readValue(row.getValueDisplayJson()), Map.class);
     }
 
     /** 读取已保存字段值并按字段编码组成详情数据。 */
@@ -301,8 +302,8 @@ public class ModuleRecordService {
     }
 
     /** 基础记录响应不包含字段扩展和布局。 */
-    private RecordView view(UnModuleRecord record) {
-        return new RecordView(record.getId(), record.getName(), record.getStatus(),
+    private RecordView view(UnModuleRecord record, PermissionPolicy policy) {
+        return new RecordView(record.getId(), policy.readable("name") ? record.getName() : null, record.getStatus(),
                 record.getOwnerUserId(), record.getCreateUserId(), record.getCreateTime());
     }
 }

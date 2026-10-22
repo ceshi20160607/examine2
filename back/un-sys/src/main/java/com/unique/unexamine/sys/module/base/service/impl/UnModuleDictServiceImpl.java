@@ -36,7 +36,9 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
             case "tenantId" -> "tenant_id";
             case "code" -> "code";
             case "name" -> "name";
+            case "dictType" -> "dict_type";
             case "optionsJson" -> "options_json";
+            case "publishedOptionsJson" -> "published_options_json";
             case "status" -> "status";
             case "publishedVersion" -> "published_version";
             case "createTime" -> "create_time";
@@ -52,7 +54,9 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
                     case "tenantId" -> "tenant_id";
                     case "code" -> "code";
                     case "name" -> "name";
+                    case "dictType" -> "dict_type";
                     case "optionsJson" -> "options_json";
+                    case "publishedOptionsJson" -> "published_options_json";
                     case "status" -> "status";
                     case "publishedVersion" -> "published_version";
                     case "createTime" -> "create_time";
@@ -117,7 +121,9 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
         values.put("tenantId", model.getTenantId());
         values.put("code", model.getCode());
         values.put("name", model.getName());
+        values.put("dictType", model.getDictType());
         values.put("optionsJson", model.getOptionsJson());
+        values.put("publishedOptionsJson", model.getPublishedOptionsJson());
         values.put("status", model.getStatus());
         values.put("publishedVersion", model.getPublishedVersion());
         values.put("createTime", model.getCreateTime());

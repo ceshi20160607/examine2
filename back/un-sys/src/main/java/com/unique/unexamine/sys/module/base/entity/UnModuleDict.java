@@ -52,10 +52,22 @@ public class UnModuleDict implements Serializable {
     private String name;
 
     /**
+     * 字典类型：列表树形级联状态标签或字段选项
+     */
+    @TableField("dict_type")
+    private String dictType;
+
+    /**
      * 选项编码名称顺序与停用状态
      */
     @TableField("options_json")
     private String optionsJson;
+
+    /**
+     * 已发布的字典名称类型与选项快照
+     */
+    @TableField("published_options_json")
+    private String publishedOptionsJson;
 
     /**
      * 字典发布状态
@@ -121,12 +133,28 @@ public class UnModuleDict implements Serializable {
         this.name = name;
     }
 
+    public String getDictType() {
+        return dictType;
+    }
+
+    public void setDictType(String dictType) {
+        this.dictType = dictType;
+    }
+
     public String getOptionsJson() {
         return optionsJson;
     }
 
     public void setOptionsJson(String optionsJson) {
         this.optionsJson = optionsJson;
+    }
+
+    public String getPublishedOptionsJson() {
+        return publishedOptionsJson;
+    }
+
+    public void setPublishedOptionsJson(String publishedOptionsJson) {
+        this.publishedOptionsJson = publishedOptionsJson;
     }
 
     public String getStatus() {

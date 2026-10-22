@@ -34,6 +34,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
             case "id" -> "id";
             case "systemId" -> "system_id";
             case "multiTenantEnabled" -> "multi_tenant_enabled";
+            case "permissionRevision" -> "permission_revision";
             case "loginTitle" -> "login_title";
             case "loginDomain" -> "login_domain";
             case "defaultHome" -> "default_home";
@@ -50,6 +51,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
                     case "id" -> "id";
                     case "systemId" -> "system_id";
                     case "multiTenantEnabled" -> "multi_tenant_enabled";
+                    case "permissionRevision" -> "permission_revision";
                     case "loginTitle" -> "login_title";
                     case "loginDomain" -> "login_domain";
                     case "defaultHome" -> "default_home";
@@ -115,6 +117,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
         values.put("id", model.getId());
         values.put("systemId", model.getSystemId());
         values.put("multiTenantEnabled", model.getMultiTenantEnabled());
+        values.put("permissionRevision", model.getPermissionRevision());
         values.put("loginTitle", model.getLoginTitle());
         values.put("loginDomain", model.getLoginDomain());
         values.put("defaultHome", model.getDefaultHome());
