@@ -11,6 +11,7 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
+import com.unique.unexamine.sys.module.base.entity.UnModuleShare;
 import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
@@ -139,9 +140,11 @@ public class ModuleRecordService {
         List<UnModuleField> fields=config.publishedFields(moduleId);
         Set<String> allowed=fields.stream().map(UnModuleField::getFieldCode).collect(java.util.stream.Collectors.toSet());
         if (!allowed.containsAll(request.values().keySet())) throw new IllegalArgumentException("提交包含未发布字段");
-        UnModuleRecord record=request.id()==null?new UnModuleRecord():visibleRecord(systemId,context.tenantId(),moduleId,request.id());
+        ActionRecord selected=request.id()==null?null:actionRecord(access,request.id());
+        UnModuleRecord record=selected==null?new UnModuleRecord():selected.record();
+        UnModuleShare share=selected==null?null:selected.share();
+        Long dataTenantId=selected==null?context.tenantId():record.getTenantId();
         if (request.id()!=null) {
-            access.policy().requireOwner(record.getOwnerUserId());
             if (request.ownerAccountId()!=null && !request.ownerAccountId().equals(record.getOwnerUserId()))
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,"负责人变更请使用转移动作");
         }
@@ -154,18 +157,19 @@ public class ModuleRecordService {
             Object value=request.values().containsKey(code)?request.values().get(code):previous;
             if (request.id()==null && !request.values().containsKey(code)) value=definition.rules().get("defaultValue");
             if ("name".equals(code) && value instanceof String text) value=text.trim();
-            fieldRules.validate(systemId,context.tenantId(),definition,value,previous);
-            fieldRules.validateUnique(systemId,context.tenantId(),moduleId,request.id(),definition,value);
+            fieldRules.validate(systemId,dataTenantId,definition,value,previous);
+            fieldRules.validateUnique(systemId,dataTenantId,moduleId,request.id(),definition,value);
             effective.put(code,value);
             if (!same(previous,value)) changes.add(new FieldChange(field.getId(),code,definition.label(),previous,value,
-                    fieldRules.display(systemId,context.tenantId(),definition,previous),
-                    fieldRules.display(systemId,context.tenantId(),definition,value)));
+                    fieldRules.display(systemId,dataTenantId,definition,previous),
+                    fieldRules.display(systemId,dataTenantId,definition,value)));
         }
         String name=(String)effective.get("name");
         if (name==null || name.isBlank()) throw new IllegalArgumentException("记录标题不能为空");
         Long ownerId=request.ownerAccountId()!=null?request.ownerAccountId():request.id()==null?
                 systemRows.queryById(systemId).getOwnerAccountId():record.getOwnerUserId();
-        var owner=ownerMembership(systemId,context.tenantId(),ownerId); access.policy().requireOwner(ownerId);
+        var owner=ownerMembership(systemId,dataTenantId,ownerId);
+        if (share==null) access.policy().requireOwner(ownerId);
         if (request.id()==null) {
             record.setSystemId(systemId); record.setTenantId(context.tenantId()); record.setModuleId(moduleId); record.setStatus("ACTIVE");
             record.setCreateUserId(systemRows.queryById(systemId).getOwnerAccountId());
@@ -182,7 +186,7 @@ public class ModuleRecordService {
             indexValue(item,fieldRules.published(code,config.fieldConfig(field).configuration()),effective.get(code));
             persistDataValue(item);
         }
-        audit(module,record,access.accountId(),operation,actionName,changes,relatedModuleId,relatedRecordId);
+        audit(module,record,access,share,operation,actionName,changes,relatedModuleId,relatedRecordId);
         return view(record,access.policy(),context.tenantId());
     }
 
@@ -206,11 +210,12 @@ public class ModuleRecordService {
     public RecordInformation actionForm(String token,Long systemId,Long tenantId,Long moduleId,Long menuId,Long recordId) {
         var access=permissions.requireMenu(token,systemId,tenantId,moduleId,menuId);
         if (!"UPDATE_FIELDS".equals(access.definition().settings().type())) throw new IllegalArgumentException("该动作不使用字段更新表单");
-        var record=visibleRecord(systemId,access.context().tenantId(),moduleId,recordId); access.policy().requireOwner(record.getOwnerUserId());
+        var record=readableRecord(access,recordId,false);
         var values=recordValues(record); conditions(access,values);
         var fields=actionFields(access.definition()); access.policy().requireWritable(fields.keySet());
-        var form=fields.values().stream().map(field->config.runtimeFieldConfig(systemId,access.context().tenantId(),field,true)).toList();
-        return new RecordInformation(recordId,record.getTenantId(),false,records.information(recordId,form,values));
+        var form=fields.values().stream().map(field->config.runtimeFieldConfig(systemId,record.getTenantId(),field,true)).toList();
+        return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(access.context().tenantId()),
+                records.information(recordId,form,values));
     }
 
     /** 动作执行统一检查菜单、条件、数据范围及字段许可，再进入同一业务保存事务。 */
@@ -224,7 +229,8 @@ public class ModuleRecordService {
         var access=permissions.requireMenu(token,systemId,tenantId,moduleId,menuId);
         if (!Objects.equals(initial.definition().settings().targetModuleId(),access.definition().settings().targetModuleId()))
             throw new ResponseStatusException(HttpStatus.CONFLICT,"动作配置已更新，请刷新后执行");
-        var record=visibleRecord(systemId,access.context().tenantId(),moduleId,recordId); access.policy().requireOwner(record.getOwnerUserId());
+        ActionRecord selected=actionRecord(access,recordId);
+        var record=selected.record();
         var values=recordValues(record); conditions(access,values);
         Map<String,Object> submitted=request.values()==null?Map.of():request.values();
         switch (access.definition().settings().type()) {
@@ -236,16 +242,17 @@ public class ModuleRecordService {
             }
             case "TRANSFER" -> {
                 if (!submitted.isEmpty() || request.ownerAccountId()==null) throw new IllegalArgumentException("转移动作仅接受目标负责人");
-                var owner=ownerMembership(systemId,access.context().tenantId(),request.ownerAccountId());
+                var owner=ownerMembership(systemId,record.getTenantId(),request.ownerAccountId());
                 Long before=record.getOwnerUserId(); record.setOwnerUserId(request.ownerAccountId()); record.setOwnerDeptId(owner.getDepartmentId());
                 record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
                 persistRecord(record);
-                audit(access.definition().module(),record,access.accountId(),"RECORD_TRANSFER",access.definition().menu().getName(),
+                audit(access.definition().module(),record,access,selected.share(),"RECORD_TRANSFER",access.definition().menu().getName(),
                         List.of(new FieldChange(null,"ownerUserId","负责人",before,record.getOwnerUserId(),
                                 Map.of(String.valueOf(before),accounts.queryById(before).getDisplayName()),
                                 Map.of(String.valueOf(record.getOwnerUserId()),accounts.queryById(record.getOwnerUserId()).getDisplayName()))),null,null);
             }
             case "CONVERT" -> {
+                if (selected.share()!=null) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"共享记录不能转化");
                 if (!submitted.isEmpty() || request.ownerAccountId()!=null) throw new IllegalArgumentException("转化只使用已发布的字段映射");
                 return convert(token,access,record,values);
             }
@@ -281,7 +288,7 @@ public class ModuleRecordService {
         var relation=new UnModuleRelation(); relation.setSourceRecordId(source.getId()); relation.setTargetRecordId(created.id());
         relation.setTargetModuleId(targetModule); relation.setActionMenuId(access.definition().menu().getId()); relation.setRelationType("CONVERSION");
         relation.setStatus("ACTIVE"); relations.addOrUpdate(relation);
-        audit(access.definition().module(),source,access.accountId(),"RECORD_CONVERT",access.definition().menu().getName(),List.of(),targetModule,created.id());
+        audit(access.definition().module(),source,access,null,"RECORD_CONVERT",access.definition().menu().getName(),List.of(),targetModule,created.id());
         return new ActionResult(source.getId(),targetModule,created.id());
     }
 
@@ -341,12 +348,26 @@ public class ModuleRecordService {
         var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
         UnModuleRecord record = readableRecord(access,recordId,false);
+        boolean shared=!record.getTenantId().equals(context.tenantId());
+        ModulePermissionService.Access editAccess=null;
+        if (shared) {
+            try {
+                editAccess=permissions.require(token,systemId,tenantId,moduleId,"EDIT");
+                shares.requireShared(editAccess,record);
+            } catch (ResponseStatusException ex) {
+                if (ex.getStatusCode().value()!=403 && ex.getStatusCode().value()!=404) throw ex;
+                editAccess=null;
+            }
+        }
+        final ModulePermissionService.Access effectiveEdit=editAccess;
         Map<String, Object> values = new LinkedHashMap<>();
         var stored = dataByCode(record.getId());
         stored.forEach((code, item) -> { if (access.policy().readable(code)) values.put(code, readValue(item.getValueJson())); });
         List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(config.publishedFields(moduleId), UnModuleField::getFieldCode).stream()
                 .map(field -> {
-                    var item = config.runtimeFieldConfig(systemId, context.tenantId(), field, access.policy().writable(field.getFieldCode()));
+                    boolean editable=shared?effectiveEdit!=null && effectiveEdit.policy().writable(field.getFieldCode())
+                            :access.policy().writable(field.getFieldCode());
+                    var item = config.runtimeFieldConfig(systemId, record.getTenantId(), field, editable);
                     if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", fieldRules.display(systemId, record.getTenantId(),
                             fieldRules.published(field.getFieldCode(), config.fieldConfig(field).configuration()),
                             readValue(stored.get(field.getFieldCode()).getValueJson())));
@@ -358,7 +379,7 @@ public class ModuleRecordService {
 
     /** 列表分页委托生成的基础 Service，软删除字段由 IS NULL 筛选。 */
     public RecordPage queryPageList(String token, Long systemId, Long tenantId, Long moduleId,
-                                    long page, long size) {
+                                    String scope,long page, long size) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "LIST");
         var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
@@ -368,8 +389,10 @@ public class ModuleRecordService {
         filters.put("moduleId", moduleId);
         filters.put("deletedTime", null);
         if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页范围无效");
-        Set<Long> sharedIds=shares.sharedRecordIds(access);
-        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty() && sharedIds.isEmpty())
+        if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
+        boolean own=!"SHARED".equals(scope);
+        Set<Long> sharedIds="MINE".equals(scope)?Set.of():shares.sharedRecordIds(access);
+        if ((!own || !access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) && sharedIds.isEmpty())
             return new RecordPage(0,page,size,List.of());
         Page<UnModuleRecord> result;
         if (sharedIds.isEmpty()) result = access.policy().allData()
@@ -381,9 +404,10 @@ public class ModuleRecordService {
         else {
             QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
                     .eq("system_id",systemId).eq("module_id",moduleId).isNull("deleted_time");
-            if (access.policy().allData()) where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
+            if (!own) where.in("id",sharedIds);
+            else if (access.policy().allData()) where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
             else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
-            else where.and(q->q.nested(own->own.eq("tenant_id",context.tenantId())
+            else where.and(q->q.nested(ownRow->ownRow.eq("tenant_id",context.tenantId())
                     .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
             result=records.page(Page.of(page,size),where.orderByDesc("id"));
         }
@@ -397,17 +421,12 @@ public class ModuleRecordService {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DELETE");
         var context = access.context();
         UnModule module = config.publishedModule(systemId, moduleId, context.tenantId());
-        UnModuleRecord record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
-        access.policy().requireOwner(record.getOwnerUserId());
+        ActionRecord selected=actionRecord(access,recordId);
+        UnModuleRecord record = selected.record();
         record.setDeletedTime(LocalDateTime.now());
         record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
         persistRecord(record);
-        audit(module, record, access.accountId(), "RECORD_DELETE", access.definition().menu().getName(), List.of(), null, null);
-    }
-
-    /** 防止跨模块、跨租户读取和操作逻辑删除记录。 */
-    private UnModuleRecord visibleRecord(Long systemId, Long tenantId, Long moduleId, Long id) {
-        return recordInScope(systemId, tenantId, moduleId, id, false);
+        audit(module, record, access, selected.share(), "RECORD_DELETE", access.definition().menu().getName(), List.of(), null, null);
     }
 
     /** 当前租户数据范围与有效共享范围求并集；共享撤销即时影响详情和历史入口。 */
@@ -425,14 +444,19 @@ public class ModuleRecordService {
         return record;
     }
 
-    /** 已删除记录允许有权成员查看操作历史，业务编辑入口仍明确拒绝。 */
-    private UnModuleRecord recordInScope(Long systemId, Long tenantId, Long moduleId, Long id, boolean includeDeleted) {
-        UnModuleRecord record = records.queryById(id);
-        if (!systemId.equals(record.getSystemId()) || !tenantId.equals(record.getTenantId())
-                || !moduleId.equals(record.getModuleId()) || (!includeDeleted && record.getDeletedTime() != null)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "业务记录不存在");
+    /** 写动作同时检查本租户负责人范围或锁定有效共享授权。 */
+    private record ActionRecord(UnModuleRecord record,UnModuleShare share) {}
+    private ActionRecord actionRecord(ModulePermissionService.Access access,Long id) {
+        UnModuleRecord record=records.queryById(id);
+        if (!access.context().systemId().equals(record.getSystemId())
+                || !access.definition().module().getId().equals(record.getModuleId())
+                || record.getDeletedTime()!=null)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"业务记录不存在");
+        if (access.context().tenantId().equals(record.getTenantId())) {
+            access.policy().requireOwner(record.getOwnerUserId());
+            return new ActionRecord(record,null);
         }
-        return record;
+        return new ActionRecord(record,shares.requireSharedForWrite(access,record));
     }
 
     /** 负责人必须是当前系统当前租户的有效成员，并以其部门计算数据范围。 */
@@ -545,11 +569,28 @@ public class ModuleRecordService {
     }
 
     /** 记录实际操作者和字段前后值；名称快照只用于业务操作历史。 */
-    private void audit(UnModule module,UnModuleRecord record,Long operatorId,String operation,String actionName,
+    private void audit(UnModule module,UnModuleRecord record,ModulePermissionService.Access access,UnModuleShare share,
+                       String operation,String actionName,
                         List<FieldChange> changes,Long relatedModuleId,Long relatedRecordId) {
+        Long operatorId=access.accountId();
         var log=new UnModuleLog(); log.setSystemId(record.getSystemId()); log.setTenantId(record.getTenantId());
+        log.setActorTenantId(access.context().tenantId());
+        if (share!=null) log.setShareId(share.getId());
         log.setModuleId(module.getId()); log.setRecordId(record.getId()); log.setOperatorAccountId(operatorId); log.setActionCode(operation);
-        log.setDetailJson(writeValue(new AuditDetail(actionName,accounts.queryById(operatorId).getDisplayName(),changes,relatedModuleId,relatedRecordId,null))); logs.addOrUpdate(log);
+        Map<String,Object> snapshot=new LinkedHashMap<>();
+        snapshot.put("menuId",access.definition().menu().getId());
+        snapshot.put("actorTenantId",access.context().tenantId());
+        snapshot.put("sourceTenantId",record.getTenantId());
+        snapshot.put("shareId",share==null?null:share.getId());
+        snapshot.put("allData",access.policy().allData());
+        snapshot.put("ownerAccountIds",access.policy().ownerAccountIds());
+        snapshot.put("allReadableFields",access.policy().allReadableFields());
+        snapshot.put("readableFields",access.policy().readableFields());
+        snapshot.put("allWritableFields",access.policy().allWritableFields());
+        snapshot.put("writableFields",access.policy().writableFields());
+        log.setPermissionJson(writeValue(snapshot));
+        log.setDetailJson(writeValue(new AuditDetail(actionName,accounts.queryById(operatorId).getDisplayName(),changes,relatedModuleId,relatedRecordId,null)));
+        logs.addOrUpdate(log);
     }
 
     /** 操作历史与详情使用相同记录授权，并在服务端过滤无权读取的字段变化。 */

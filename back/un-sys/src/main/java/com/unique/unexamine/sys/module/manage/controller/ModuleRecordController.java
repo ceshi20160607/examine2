@@ -41,15 +41,16 @@ public class ModuleRecordController {
         return service.save(token, systemId, tenantId, moduleId, request);
     }
 
-    /** 使用基础服务分页读取本租户未删除记录。 */
+    /** 按全部、本租户或共享范围分页读取未删除记录。 */
     @GetMapping
     @Operation(summary = "模块记录列表")
     public ModuleRecordService.RecordPage list(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId,
+            @RequestParam(defaultValue = "ALL") String scope,
             @RequestParam(defaultValue = "1") long page, @RequestParam(defaultValue = "20") long size) {
-        return service.queryPageList(token, systemId, tenantId, moduleId, page, size);
+        return service.queryPageList(token, systemId, tenantId, moduleId, scope,page, size);
     }
 
     /** 保存的场景和临时条件在数据库分页之前执行，并返回权限内列表列和值。 */

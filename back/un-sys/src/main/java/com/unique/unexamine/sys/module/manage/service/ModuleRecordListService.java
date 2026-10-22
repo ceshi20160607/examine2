@@ -12,6 +12,7 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
+import com.unique.unexamine.sys.module.manage.util.ModuleRecordFilter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ public class ModuleRecordListService {
 
     /** 临时筛选与已保存场景同时生效，分页范围由服务端限定。 */
     public record Query(Long sceneId,String search,List<ModuleSceneService.Condition> filters,
-                        Long sortFieldId,Boolean descending,List<Long> columnFieldIds,long page,long size) {}
+                        Long sortFieldId,Boolean descending,List<Long> columnFieldIds,long page,long size,String scope) {}
     /** 列标识、字段名称和类型来自当前发布定义。 */
     public record Column(Long fieldId,String code,String name,String type,Integer widthPx,String fixedSide) {}
     /** 列表行含基础记录及当前有权读取的自定义字段值。 */
@@ -61,6 +62,8 @@ public class ModuleRecordListService {
         var context=access.context(); modules.publishedModule(systemId,moduleId,context.tenantId());
         if (request==null || request.page()<1 || request.size()<1 || request.size()>100)
             throw new IllegalArgumentException("分页范围无效");
+        String scope=request.scope()==null?"ALL":request.scope();
+        if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
         if (request.search()!=null && request.search().length()>100)
             throw new IllegalArgumentException("搜索文本过长");
         if (request.search()!=null && !request.search().isBlank() && !access.policy().readable("name"))
@@ -91,8 +94,9 @@ public class ModuleRecordListService {
                 field.getFieldName(),field.getFieldType(),personal.containsKey(field.getId())
                 ?personal.get(field.getId()).widthPx():null,personal.containsKey(field.getId())
                 ?personal.get(field.getId()).fixedSide():null)).toList();
-        Set<Long> sharedIds=shares.sharedRecordIds(access);
-        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty() && sharedIds.isEmpty())
+        boolean own=!"SHARED".equals(scope);
+        Set<Long> sharedIds="MINE".equals(scope)?Set.of():shares.sharedRecordIds(access);
+        if ((!own || !access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) && sharedIds.isEmpty())
             return new Result(0,request.page(),request.size(),headers,List.of());
         QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
                 .eq("system_id",systemId).eq("module_id",moduleId)
@@ -100,14 +104,15 @@ public class ModuleRecordListService {
         if (sharedIds.isEmpty()) {
             where.eq("tenant_id",context.tenantId());
             if (!access.policy().allData()) where.in("owner_user_id",access.policy().ownerAccountIds());
-        } else if (access.policy().allData())
+        } else if (!own) where.in("id",sharedIds);
+        else if (access.policy().allData())
             where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
         else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
-        else where.and(q->q.nested(own->own.eq("tenant_id",context.tenantId())
+        else where.and(q->q.nested(ownRow->ownRow.eq("tenant_id",context.tenantId())
                 .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
         if (request.search()!=null && !request.search().isBlank())
             where.apply("LOCATE({0}, name) > 0",request.search().trim());
-        for (var condition:conditions) filter(where,fields.get(condition.fieldId()),condition);
+        for (var condition:conditions) ModuleRecordFilter.apply(where,fields.get(condition.fieldId()),condition,json);
         if (settings.sortFieldId()==null) where.orderByDesc("id");
         else sort(where,fields.get(settings.sortFieldId()),settings.descending());
         Page<UnModuleRecord> page=records.page(Page.of(request.page(),request.size()),where);
@@ -141,36 +146,6 @@ public class ModuleRecordListService {
         return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,rows);
     }
 
-    /** 动态字段条件通过相关子查询在数据库端参与分页，避免先分页后筛选。 */
-    private void filter(QueryWrapper<UnModuleRecord> where,UnModuleField field,ModuleSceneService.Condition condition) {
-        String code=field.getFieldCode();
-        if ("name".equals(code)) {
-            if ("EQ".equals(condition.operator())) where.eq("name",condition.value());
-            else where.apply("LOCATE({0}, name) > 0",condition.value());
-            return;
-        }
-        FieldType type=FieldType.parse(field.getFieldType());
-        if ("EQ".equals(condition.operator())) {
-            String index=switch (type.kind()) {
-                case NUMBER -> "index_decimal";
-                case TEXT, OPTION, REFERENCE, BOOLEAN, TIME -> "index_text";
-                default -> null;
-            };
-            if (index!=null && condition.value()!=null && !(condition.value() instanceof java.util.Collection<?>))
-                // 文本索引沿用数据库默认排序规则，先用索引缩小候选，再按原值区分大小写。
-                where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                        +"AND d.field_id = {0} AND ((d."+index+" = {1}"
-                        +("index_text".equals(index)?" AND HEX(d.index_text) = HEX({1})":"")+ ") OR "
-                        +"(d."+index+" IS NULL AND JSON_CONTAINS(d.value_json, CAST({2} AS JSON)))))",
-                        field.getId(),condition.value().toString(),write(condition.value()));
-            else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                            +"AND d.field_id = {0} AND JSON_CONTAINS(d.value_json, CAST({1} AS JSON)))",
-                    field.getId(),write(condition.value()));
-        } else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                +"AND d.field_id = {0} AND LOCATE({1}, JSON_UNQUOTE(d.value_json)) > 0)",
-                field.getId(),condition.value());
-    }
-
     /** 字段 ID 已从发布定义校验；相关子查询仅用于已授权的动态列排序。 */
     private void sort(QueryWrapper<UnModuleRecord> where,UnModuleField field,boolean descending) {
         if ("name".equals(field.getFieldCode())) where.orderBy(true,!descending,"name");
@@ -198,8 +173,4 @@ public class ModuleRecordListService {
         catch (JsonProcessingException ex) { throw new IllegalStateException("列表字段值损坏",ex); }
     }
 
-    private String write(Object value) {
-        try { return json.writeValueAsString(value); }
-        catch (JsonProcessingException ex) { throw new IllegalArgumentException("筛选值无法保存",ex); }
-    }
 }
