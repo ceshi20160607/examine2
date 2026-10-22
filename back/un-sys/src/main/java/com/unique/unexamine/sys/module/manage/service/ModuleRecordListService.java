@@ -94,22 +94,11 @@ public class ModuleRecordListService {
                 field.getFieldName(),field.getFieldType(),personal.containsKey(field.getId())
                 ?personal.get(field.getId()).widthPx():null,personal.containsKey(field.getId())
                 ?personal.get(field.getId()).fixedSide():null)).toList();
-        boolean own=!"SHARED".equals(scope);
-        Set<Long> sharedIds="MINE".equals(scope)?Set.of():shares.sharedRecordIds(access);
-        if ((!own || !access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) && sharedIds.isEmpty())
-            return new Result(0,request.page(),request.size(),headers,List.of());
         QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
                 .eq("system_id",systemId).eq("module_id",moduleId)
                 .isNull("deleted_time");
-        if (sharedIds.isEmpty()) {
-            where.eq("tenant_id",context.tenantId());
-            if (!access.policy().allData()) where.in("owner_user_id",access.policy().ownerAccountIds());
-        } else if (!own) where.in("id",sharedIds);
-        else if (access.policy().allData())
-            where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
-        else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
-        else where.and(q->q.nested(ownRow->ownRow.eq("tenant_id",context.tenantId())
-                .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
+        if (!shares.applyRecordScope(where,access,scope))
+            return new Result(0,request.page(),request.size(),headers,List.of());
         if (request.search()!=null && !request.search().isBlank())
             where.apply("LOCATE({0}, name) > 0",request.search().trim());
         for (var condition:conditions) ModuleRecordFilter.apply(where,fields.get(condition.fieldId()),condition,json);

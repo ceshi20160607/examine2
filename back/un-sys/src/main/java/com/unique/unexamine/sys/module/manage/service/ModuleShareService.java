@@ -193,17 +193,32 @@ public class ModuleShareService {
                 result.getRecords().stream().map(this::view).toList());
     }
 
-    /** 当前菜单下有效的外租户记录由共享关系决定，范围条件在来源数据上实时执行。 */
-    public Set<Long> sharedRecordIds(ModulePermissionService.Access access) {
-        if (!multiTenant(access.context().systemId())) return Set.of();
-        List<UnModuleShare> allowed=active(access);
-        if (allowed.isEmpty()) return Set.of();
-        Set<Long> result=new HashSet<>();
-        for (UnModuleShare share:allowed) {
-            QueryWrapper<UnModuleRecord> query=shareQuery(share);
-            records.list(query.select("id")).forEach(row->result.add(row.getId()));
-        }
-        return result;
+    /** 本租户负责人范围与有效共享范围在数据库条件中求并集，再由调用方分页。 */
+    public boolean applyRecordScope(QueryWrapper<UnModuleRecord> where,ModulePermissionService.Access access,String scope) {
+        boolean includeOwn=!"SHARED".equals(scope);
+        boolean ownAll=includeOwn && access.policy().allData();
+        Set<Long> ownerIds=includeOwn?access.policy().ownerAccountIds():Set.of();
+        List<UnModuleShare> allowed="MINE".equals(scope) || !multiTenant(access.context().systemId())
+                ?List.of():active(access);
+        if (!ownAll && ownerIds.isEmpty() && allowed.isEmpty()) return false;
+        where.and(combined->{
+            boolean hasOwn=ownAll || !ownerIds.isEmpty();
+            if (hasOwn) combined.nested(own->{
+                own.eq("tenant_id",access.context().tenantId());
+                if (!ownAll) own.in("owner_user_id",ownerIds);
+            });
+            for (UnModuleShare share:allowed) {
+                if (hasOwn) combined.or();
+                combined.nested(shared->applyGrant(shared,share));
+                hasOwn=true;
+            }
+        });
+        return true;
+    }
+
+    /** 无共享时基础列表可直接委托生成的同租户分页 CRUD。 */
+    public boolean hasActiveShares(ModulePermissionService.Access access) {
+        return multiTenant(access.context().systemId()) && !active(access).isEmpty();
     }
 
     /** 读取外租户记录时再查当前授权，撤销后不能靠旧缓存继续访问。 */
@@ -263,9 +278,16 @@ public class ModuleShareService {
     /** 共享范围只在来源租户数据上执行，目标租户不能借此扩大来源。 */
     private QueryWrapper<UnModuleRecord> shareQuery(UnModuleShare share) {
         QueryWrapper<UnModuleRecord> query=new QueryWrapper<UnModuleRecord>()
-                .eq("system_id",share.getSystemId()).eq("tenant_id",share.getSourceTenantId())
+                .eq("system_id",share.getSystemId())
                 .eq("module_id",share.getModuleId()).isNull("deleted_time");
-        if (share.getRecordId()!=null) return query.eq("id",share.getRecordId());
+        applyGrant(query,share);
+        return query;
+    }
+
+    /** 共享记录和条件范围使用同一条来源租户约束。 */
+    private void applyGrant(QueryWrapper<UnModuleRecord> query,UnModuleShare share) {
+        query.eq("tenant_id",share.getSourceTenantId());
+        if (share.getRecordId()!=null) { query.eq("id",share.getRecordId()); return; }
         RangeScope scope=scope(share);
         if (scope.ownerAccountIds().isEmpty() && scope.filters().isEmpty())
             throw new IllegalStateException("共享范围配置为空");
@@ -283,7 +305,6 @@ public class ModuleShareService {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,"共享范围字段条件已失效");
             ModuleRecordFilter.apply(query,field,condition,json);
         }
-        return query;
     }
 
     private RangeScope scope(UnModuleShare share) {

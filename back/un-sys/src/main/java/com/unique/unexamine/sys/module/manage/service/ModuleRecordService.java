@@ -390,25 +390,14 @@ public class ModuleRecordService {
         filters.put("deletedTime", null);
         if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页范围无效");
         if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
-        boolean own=!"SHARED".equals(scope);
-        Set<Long> sharedIds="MINE".equals(scope)?Set.of():shares.sharedRecordIds(access);
-        if ((!own || !access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) && sharedIds.isEmpty())
-            return new RecordPage(0,page,size,List.of());
         Page<UnModuleRecord> result;
-        if (sharedIds.isEmpty()) result = access.policy().allData()
-                ? records.queryPageList(new PageQuery(page, size, filters, "id", true))
-                : records.page(Page.of(page, size), new LambdaQueryWrapper<UnModuleRecord>()
-                    .eq(UnModuleRecord::getSystemId,systemId).eq(UnModuleRecord::getTenantId,context.tenantId())
-                    .eq(UnModuleRecord::getModuleId,moduleId).isNull(UnModuleRecord::getDeletedTime)
-                    .in(UnModuleRecord::getOwnerUserId,access.policy().ownerAccountIds()).orderByDesc(UnModuleRecord::getId));
+        if (access.policy().allData() && ("MINE".equals(scope)
+                || "ALL".equals(scope) && !shares.hasActiveShares(access)))
+            result=records.queryPageList(new PageQuery(page,size,filters,"id",true));
         else {
             QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
                     .eq("system_id",systemId).eq("module_id",moduleId).isNull("deleted_time");
-            if (!own) where.in("id",sharedIds);
-            else if (access.policy().allData()) where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
-            else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
-            else where.and(q->q.nested(ownRow->ownRow.eq("tenant_id",context.tenantId())
-                    .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
+            if (!shares.applyRecordScope(where,access,scope)) return new RecordPage(0,page,size,List.of());
             result=records.page(Page.of(page,size),where.orderByDesc("id"));
         }
         return new RecordPage(result.getTotal(), result.getCurrent(), result.getSize(),
