@@ -1,4 +1,4 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.enums;
 
 /** 仅用于模块创建时初始化默认菜单；运行时授权以实际菜单 ID 为准。 */
 public enum DefaultModuleAction {

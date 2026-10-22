@@ -1,10 +1,10 @@
-package com.unique.unexamine.sys.manage;
+package com.unique.unexamine.sys.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
-import com.unique.unexamine.plat.manage.AuthManageService;
+import com.unique.unexamine.plat.manage.service.AuthManageService;
 import com.unique.unexamine.sys.base.entity.UnSysLogOpt;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysMemberRole;

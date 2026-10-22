@@ -1,4 +1,6 @@
-package com.unique.unexamine.plat.manage;
+package com.unique.unexamine.plat.manage.startup;
+
+import com.unique.unexamine.plat.manage.service.AuthManageService;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

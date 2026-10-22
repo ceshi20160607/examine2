@@ -1,4 +1,4 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -9,7 +9,7 @@ import com.unique.unexamine.core.permission.PermissionPolicy;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.*;
 import com.unique.unexamine.sys.base.service.*;
-import com.unique.unexamine.sys.manage.SystemManageService;
+import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
 import jakarta.validation.Valid;
@@ -94,6 +94,11 @@ public class ModulePermissionService {
 
     private Access resolve(String token,SystemManageService.SystemContext context,ModuleMenuService.Definition definition) {
         Long actor=systems.accountId(token,context.systemId());
+        // 租户模块绑定属于实时共享边界，必须在读取权限缓存前核对。
+        var activeModule=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
+                .eq(UnModuleTenant::getTenantId,context.tenantId())
+                .eq(UnModuleTenant::getModuleId,definition.module().getId()),false);
+        if (activeModule==null || !"ACTIVE".equals(activeModule.getStatus())) forbidden();
         var config=configs.getOne(new LambdaQueryWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getSystemId,context.systemId()));
         String key=config.getPermissionRevision()+":"+context.tenantMemberId()+":"+definition.menu().getId();
         Rules rules=cache.get(namespace(context.systemId(),context.tenantId()),key,Rules.class,
@@ -226,7 +231,7 @@ public class ModulePermissionService {
         var tenant=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>().eq(UnModuleTenant::getTenantId,context.tenantId()).eq(UnModuleTenant::getModuleId,moduleId));
         // 租户未显式启用的模块不能凭角色菜单授权绕过模块共享边界。
         if (tenant==null || !"ACTIVE".equals(tenant.getStatus())) forbidden();
-        Object configured=tenant==null?null:readMap(tenant.getConfigJson()).get("fieldPolicy");
+        Object configured=readMap(tenant.getConfigJson()).get("fieldPolicy");
         FieldAccess cap=configured==null?new FieldAccess(null,null,null):json.convertValue(configured,FieldAccess.class);
         List<Grant> grants=new ArrayList<>(); Set<String> readable=new HashSet<>(),writable=new HashSet<>(),exportable=new HashSet<>(); boolean menuAllowed=false;
         Map<Long,String> codes=new HashMap<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)

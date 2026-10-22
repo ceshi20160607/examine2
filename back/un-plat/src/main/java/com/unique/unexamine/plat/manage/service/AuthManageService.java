@@ -1,4 +1,4 @@
-package com.unique.unexamine.plat.manage;
+package com.unique.unexamine.plat.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;

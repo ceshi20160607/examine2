@@ -1,4 +1,4 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,7 +13,7 @@ import com.unique.unexamine.sys.module.base.service.IUnModuleGroupService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService.FieldConfig;
 import com.unique.unexamine.sys.module.base.service.IUnModuleService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleTenantService;
-import com.unique.unexamine.sys.manage.SystemManageService;
+import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemService;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

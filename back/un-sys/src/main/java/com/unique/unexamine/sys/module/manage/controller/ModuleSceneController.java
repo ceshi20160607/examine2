@@ -1,4 +1,6 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.controller;
+
+import com.unique.unexamine.sys.module.manage.service.ModuleSceneService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

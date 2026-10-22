@@ -114,7 +114,7 @@
 - 仓库根目录的 `back/` 是后端 Maven 工程，模块统一使用 `un-*`。`un-sys` 内通过 `sys.module`、`sys.flow`、`sys.action.print` 等业务包组织相关能力；每个业务包的 `base` 与 `manage` 平级，生成归属和 Java 包同步调整，原始数据库表名不变。不建立独立 `un-module`、`un-flow`、`un-print`，不建 `foundation`、`identity` 聚合模块。平台独立 Flow 的原有需求继续保留，与系统/模块 Flow 复用同一套定义和运行能力，按所属作用域授权，审批仍由 `un-examine` 承担。
 - `un-core` 不反向依赖业务模块，`un-file` 的上传存储接入保持可复用；业务模块按实际需要声明编译依赖，避免相互依赖成环。`un-web` 负责装配，跨模块调用仍是本地 Service 调用。只有出现独立部署、团队边界或容量隔离的实际需要时再评估服务拆分。
 - 代码生成器按业务表生成 `base` 的 Entity、Mapper、`IService` 和 `ServiceImpl`。基础 CRUD 不能只是空接口与空实现：参照提交 `70a3979a` 的 `examine-core/src/main/resources/simple`，应在 Service 中有 `queryPageList`、`addOrUpdate`、`queryById`、带字段布局的 `information`、`deleteByIds` 的真实实现。Controller 接收 HTTP 参数并调用 Service；特殊规则、授权和跨表编排放同业务包的 `manage`，不把 CRUD 查询与保存逻辑堆进 Controller。新代码和模板须有适当的中文业务注释、`@Tag` 和 `@Operation`。
-- `manage` 中业务 Service 调用本模块 `base` Service，特殊逻辑在 `manage` 内按 Controller、Service 等职责分层，不能改用 JdbcTemplate 绕开基础服务。字段配置的业务归属不写进每张表的通用模板。
+- `manage` 中业务 Service 调用本模块 `base` Service，特殊逻辑按职责放在 `manage/controller`、`manage/service`、`manage/enums`、`manage/util` 等实际需要的子包；Controller 只负责接口参数和调用，枚举、工具类不与业务 Service 平铺。不能改用 JdbcTemplate 绕开基础服务。字段配置的业务归属不写进每张表的通用模板。
 - 先从表和模板建立可复现的生成链，再开发业务接口；不从旧 Controller 或旧 SQL 复制业务实现。简单 CRUD 不增加多余抽象。任务按不超过 240 分钟的可观察业务结果划分，每批核对结果是否符合原需求；局部测试通过不能证明业务理解正确。
 
 ## 工程框架如何服务交付

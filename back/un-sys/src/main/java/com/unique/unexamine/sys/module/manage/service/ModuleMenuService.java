@@ -1,4 +1,6 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.service;
+
+import com.unique.unexamine.sys.module.manage.enums.DefaultModuleAction;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -8,7 +10,7 @@ import com.unique.unexamine.core.cache.ConfigurationCache;
 import com.unique.unexamine.sys.base.entity.UnSysMenu;
 import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
 import com.unique.unexamine.sys.base.service.*;
-import com.unique.unexamine.sys.manage.SystemManageService;
+import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
 import jakarta.validation.constraints.*;

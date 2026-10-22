@@ -1,4 +1,6 @@
-package com.unique.unexamine.plat.manage;
+package com.unique.unexamine.plat.manage.controller;
+
+import com.unique.unexamine.plat.manage.service.AuthManageService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

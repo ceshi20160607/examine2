@@ -1,11 +1,11 @@
-package com.unique.unexamine.sys.module.manage;
+package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
-import com.unique.unexamine.sys.manage.SystemManageService;
+import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleScence;
 import com.unique.unexamine.sys.module.base.entity.UnModuleScenceConfig;
