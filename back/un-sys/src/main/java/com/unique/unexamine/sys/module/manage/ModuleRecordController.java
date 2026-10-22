@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "模块记录")
 public class ModuleRecordController {
     private final ModuleRecordService service;
+    private final ModuleRecordListService listService;
 
     /** 注入模块记录业务服务。 */
-    public ModuleRecordController(ModuleRecordService service) {
+    public ModuleRecordController(ModuleRecordService service,ModuleRecordListService listService) {
         this.service = service;
+        this.listService = listService;
     }
 
     /** 新增或编辑主记录和发布字段值。 */
@@ -45,6 +47,17 @@ public class ModuleRecordController {
             @PathVariable Long systemId, @PathVariable Long moduleId,
             @RequestParam(defaultValue = "1") long page, @RequestParam(defaultValue = "20") long size) {
         return service.queryPageList(token, systemId, tenantId, moduleId, page, size);
+    }
+
+    /** 保存的场景和临时条件在数据库分页之前执行，并返回权限内列表列和值。 */
+    @PostMapping("/query")
+    @Operation(summary = "按场景和高级筛选查询模块记录")
+    public ModuleRecordListService.Result query(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId,
+            @RequestBody ModuleRecordListService.Query request) {
+        return listService.query(token,systemId,tenantId,moduleId,request);
     }
 
     /** 按主键只读基础记录。 */
