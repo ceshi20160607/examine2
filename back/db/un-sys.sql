@@ -236,20 +236,17 @@ CREATE TABLE IF NOT EXISTS un_module (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务模块';
 
 CREATE TABLE IF NOT EXISTS un_module_dict (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统字典主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '字典基础项稳定主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '定义字典的租户主键',
-  code VARCHAR(80) NOT NULL COMMENT '系统内字典编码',
-  name VARCHAR(100) NOT NULL COMMENT '字典名称',
-  dict_type VARCHAR(30) NOT NULL DEFAULT 'LIST' COMMENT '字典类型：列表树形级联状态标签或字段选项',
-  options_json JSON NOT NULL COMMENT '选项编码名称顺序与停用状态',
-  published_options_json JSON DEFAULT NULL COMMENT '已发布的字典名称类型与选项快照',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '字典发布状态',
-  published_version INT NOT NULL DEFAULT 0 COMMENT '字典发布版本号',
+  tenant_id BIGINT NOT NULL COMMENT '定义基础项的租户主键',
+  dict_value VARCHAR(100) NOT NULL COMMENT '基础值，例如1或0；创建后不可变更含义',
+  name VARCHAR(100) NOT NULL COMMENT '基础项当前名称，例如是或否',
+  parent_id BIGINT DEFAULT NULL COMMENT '树形或级联基础项的父级主键，根项为空',
+  revision BIGINT NOT NULL DEFAULT 1 COMMENT '基础项资料提交版本，用于缓存隔离',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_module_dict_code (system_id, tenant_id, code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统数据字典基础';
+  PRIMARY KEY (id), KEY ix_module_dict_scope (system_id, tenant_id, parent_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='逐条保存值与名称的字典基础项';
 
 CREATE TABLE IF NOT EXISTS un_module_field (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块字段主键',
@@ -264,7 +261,7 @@ CREATE TABLE IF NOT EXISTS un_module_field (
   hidden_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '表单是否隐藏',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '设计器保存的字段顺序',
   layout_json JSON NOT NULL COMMENT '设计器保存的位置分组及占位宽度',
-  config_json JSON NOT NULL COMMENT '类型校验默认值选项及权限配置',
+  config_json JSON NOT NULL COMMENT '字段类型校验默认值和字典项引用配置',
   published_layout_json JSON DEFAULT NULL COMMENT '最近发布时的字段位置和占位宽度快照',
   published_config_json JSON DEFAULT NULL COMMENT '最近发布时的字段名称类型校验等配置快照',
   published_sort_no INT DEFAULT NULL COMMENT '最近发布时的字段顺序',
@@ -400,7 +397,6 @@ CREATE TABLE IF NOT EXISTS un_module_record_data (
   field_id BIGINT NOT NULL COMMENT '保存时对应的模块字段主键',
   field_code VARCHAR(80) NOT NULL COMMENT '保存时的字段编码快照',
   value_json JSON DEFAULT NULL COMMENT '按字段类型保存的业务值',
-  value_display_json JSON DEFAULT NULL COMMENT '既有显示快照保留，业务展示按字典查询',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (id), UNIQUE KEY uk_module_record_field (record_id, field_id),

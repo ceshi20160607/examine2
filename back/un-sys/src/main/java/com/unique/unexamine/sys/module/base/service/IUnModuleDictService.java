@@ -6,7 +6,7 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleDict;
 import java.util.List;
 import java.util.Map;
 
-/** 系统数据字典基础的基础服务；租户权限和跨表规则在同模块 manage 中处理。 */
+/** 逐条保存值与名称的字典基础项的基础服务；租户权限和跨表规则在同模块 manage 中处理。 */
 public interface IUnModuleDictService extends IService<UnModuleDict> {
     /** 分页和排序仅接受本表白名单字段。 */
     Page<UnModuleDict> queryPageList(PageQuery query);

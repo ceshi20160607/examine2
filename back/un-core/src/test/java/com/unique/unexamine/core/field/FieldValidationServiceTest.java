@@ -43,6 +43,7 @@ class FieldValidationServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,List.of("b","a")));
     }
     @Test void invalidRulesAndDateRangesCannotBePublishedOrStored() {
+        assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("unsupportedRule",true))));
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("pattern","["))));
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("maxLength",1.5))));
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("defaultValue",123))));

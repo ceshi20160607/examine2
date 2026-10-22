@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 系统数据字典基础的基础 CRUD 实现；不在此推断租户权限或业务状态。 */
+/** 逐条保存值与名称的字典基础项的基础 CRUD 实现；不在此推断租户权限或业务状态。 */
 @Service
 public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnModuleDict>
         implements IUnModuleDictService {
@@ -34,13 +34,10 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
             case "id" -> "id";
             case "systemId" -> "system_id";
             case "tenantId" -> "tenant_id";
-            case "code" -> "code";
+            case "dictValue" -> "dict_value";
             case "name" -> "name";
-            case "dictType" -> "dict_type";
-            case "optionsJson" -> "options_json";
-            case "publishedOptionsJson" -> "published_options_json";
-            case "status" -> "status";
-            case "publishedVersion" -> "published_version";
+            case "parentId" -> "parent_id";
+            case "revision" -> "revision";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
             default -> throw new IllegalArgumentException("排序字段无效");
@@ -52,13 +49,10 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
                     case "id" -> "id";
                     case "systemId" -> "system_id";
                     case "tenantId" -> "tenant_id";
-                    case "code" -> "code";
+                    case "dictValue" -> "dict_value";
                     case "name" -> "name";
-                    case "dictType" -> "dict_type";
-                    case "optionsJson" -> "options_json";
-                    case "publishedOptionsJson" -> "published_options_json";
-                    case "status" -> "status";
-                    case "publishedVersion" -> "published_version";
+                    case "parentId" -> "parent_id";
+                    case "revision" -> "revision";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
@@ -119,13 +113,10 @@ public class UnModuleDictServiceImpl extends ServiceImpl<UnModuleDictMapper, UnM
         values.put("id", model.getId());
         values.put("systemId", model.getSystemId());
         values.put("tenantId", model.getTenantId());
-        values.put("code", model.getCode());
+        values.put("dictValue", model.getDictValue());
         values.put("name", model.getName());
-        values.put("dictType", model.getDictType());
-        values.put("optionsJson", model.getOptionsJson());
-        values.put("publishedOptionsJson", model.getPublishedOptionsJson());
-        values.put("status", model.getStatus());
-        values.put("publishedVersion", model.getPublishedVersion());
+        values.put("parentId", model.getParentId());
+        values.put("revision", model.getRevision());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
         if (extensionValues != null) {

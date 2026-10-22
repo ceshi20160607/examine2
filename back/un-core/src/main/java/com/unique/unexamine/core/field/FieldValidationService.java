@@ -17,10 +17,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class FieldValidationService {
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    /** 只接受实际执行的规则，避免未支持的配置被原样保存却悄悄失效。 */
+    private static final Set<String> RULES = Set.of("min", "max", "scale", "precision", "minLength", "maxLength",
+            "pattern", "minItems", "maxItems", "unique", "multiple", "options", "defaultValue");
 
     /** 配置保存和发布前都核对规则自身，避免不可能满足的表单进入运行态。 */
     public void validateDefinition(FieldDefinition field) {
         Map<String, Object> rules = field.rules();
+        if (!RULES.containsAll(rules.keySet())) fail(field, "包含未支持的字段规则");
         for (String key : List.of("min", "max", "scale", "precision")) {
             if (rules.containsKey(key) && field.type().kind() != FieldType.Kind.NUMBER) fail(field, key + "仅适用于数值类型");
         }
@@ -60,9 +64,6 @@ public class FieldValidationService {
                         || !(option.get("label") instanceof String label) || label.isBlank()
                         || !ids.add(String.valueOf(option.get("id")))) fail(field, "选项必须有唯一标识和名称");
             }
-        }
-        if (rules.containsKey("dictionaryId") && (!field.type().options() || !positiveId(rules.get("dictionaryId")))) {
-            fail(field, "字典绑定无效");
         }
         if (rules.containsKey("defaultValue")) validateValue(field, rules.get("defaultValue"));
     }

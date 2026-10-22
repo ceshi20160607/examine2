@@ -94,10 +94,28 @@ public class UnModuleField implements Serializable {
     private String layoutJson;
 
     /**
-     * 类型校验默认值选项及权限配置
+     * 字段类型校验默认值和字典项引用配置
      */
     @TableField("config_json")
     private String configJson;
+
+    /**
+     * 最近发布时的字段位置和占位宽度快照
+     */
+    @TableField("published_layout_json")
+    private String publishedLayoutJson;
+
+    /**
+     * 最近发布时的字段名称类型校验等配置快照
+     */
+    @TableField("published_config_json")
+    private String publishedConfigJson;
+
+    /**
+     * 最近发布时的字段顺序
+     */
+    @TableField("published_sort_no")
+    private Integer publishedSortNo;
 
     /**
      * 字段草稿发布或停用状态
@@ -122,24 +140,6 @@ public class UnModuleField implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
-
-    /**
-     * æœ€è¿‘å‘å¸ƒæ—¶çš„å­—æ®µä½ç½®å’Œå ä½å®½åº¦å¿«ç…§
-     */
-    @TableField("published_layout_json")
-    private String publishedLayoutJson;
-
-    /**
-     * æœ€è¿‘å‘å¸ƒæ—¶çš„å­—æ®µåç§°ç±»åž‹æ ¡éªŒç­‰é…ç½®å¿«ç…§
-     */
-    @TableField("published_config_json")
-    private String publishedConfigJson;
-
-    /**
-     * æœ€è¿‘å‘å¸ƒæ—¶çš„å­—æ®µé¡ºåº
-     */
-    @TableField("published_sort_no")
-    private Integer publishedSortNo;
 
     public Long getId() {
         return id;
@@ -245,6 +245,30 @@ public class UnModuleField implements Serializable {
         this.configJson = configJson;
     }
 
+    public String getPublishedLayoutJson() {
+        return publishedLayoutJson;
+    }
+
+    public void setPublishedLayoutJson(String publishedLayoutJson) {
+        this.publishedLayoutJson = publishedLayoutJson;
+    }
+
+    public String getPublishedConfigJson() {
+        return publishedConfigJson;
+    }
+
+    public void setPublishedConfigJson(String publishedConfigJson) {
+        this.publishedConfigJson = publishedConfigJson;
+    }
+
+    public Integer getPublishedSortNo() {
+        return publishedSortNo;
+    }
+
+    public void setPublishedSortNo(Integer publishedSortNo) {
+        this.publishedSortNo = publishedSortNo;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -275,29 +299,5 @@ public class UnModuleField implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getPublishedLayoutJson() {
-        return publishedLayoutJson;
-    }
-
-    public void setPublishedLayoutJson(String publishedLayoutJson) {
-        this.publishedLayoutJson = publishedLayoutJson;
-    }
-
-    public String getPublishedConfigJson() {
-        return publishedConfigJson;
-    }
-
-    public void setPublishedConfigJson(String publishedConfigJson) {
-        this.publishedConfigJson = publishedConfigJson;
-    }
-
-    public Integer getPublishedSortNo() {
-        return publishedSortNo;
-    }
-
-    public void setPublishedSortNo(Integer publishedSortNo) {
-        this.publishedSortNo = publishedSortNo;
     }
 }

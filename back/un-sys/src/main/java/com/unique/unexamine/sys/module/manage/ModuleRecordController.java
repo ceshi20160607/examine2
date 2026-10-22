@@ -67,7 +67,7 @@ public class ModuleRecordController {
         return service.information(token, systemId, tenantId, moduleId, recordId);
     }
 
-    /** 逻辑删除业务记录并保留字段值及历史。 */
+    /** 按记录和字段读取权限查询操作历史。 */
     @GetMapping("/{recordId}/operations")
     @Operation(summary = "读取业务操作历史")
     public ModuleRecordService.OperationPage operations(

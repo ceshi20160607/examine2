@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 系统数据字典基础
+ * 逐条保存值与名称的字典基础项
  * </p>
  *
  * @author Template Base
@@ -22,7 +22,7 @@ public class UnModuleDict implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 系统字典主键
+     * 字典基础项稳定主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -34,52 +34,34 @@ public class UnModuleDict implements Serializable {
     private Long systemId;
 
     /**
-     * 定义字典的租户主键
+     * 定义基础项的租户主键
      */
     @TableField("tenant_id")
     private Long tenantId;
 
     /**
-     * 系统内字典编码
+     * 基础值，例如1或0；创建后不可变更含义
      */
-    @TableField("code")
-    private String code;
+    @TableField("dict_value")
+    private String dictValue;
 
     /**
-     * 字典名称
+     * 基础项当前名称，例如是或否
      */
     @TableField("name")
     private String name;
 
     /**
-     * 字典类型：列表树形级联状态标签或字段选项
+     * 树形或级联基础项的父级主键，根项为空
      */
-    @TableField("dict_type")
-    private String dictType;
+    @TableField("parent_id")
+    private Long parentId;
 
     /**
-     * 选项编码名称顺序与停用状态
+     * 基础项资料提交版本，用于缓存隔离
      */
-    @TableField("options_json")
-    private String optionsJson;
-
-    /**
-     * 已发布的字典名称类型与选项快照
-     */
-    @TableField("published_options_json")
-    private String publishedOptionsJson;
-
-    /**
-     * 字典发布状态
-     */
-    @TableField("status")
-    private String status;
-
-    /**
-     * 字典发布版本号
-     */
-    @TableField("published_version")
-    private Integer publishedVersion;
+    @TableField("revision")
+    private Long revision;
 
     /**
      * 创建时间
@@ -117,12 +99,12 @@ public class UnModuleDict implements Serializable {
         this.tenantId = tenantId;
     }
 
-    public String getCode() {
-        return code;
+    public String getDictValue() {
+        return dictValue;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setDictValue(String dictValue) {
+        this.dictValue = dictValue;
     }
 
     public String getName() {
@@ -133,44 +115,20 @@ public class UnModuleDict implements Serializable {
         this.name = name;
     }
 
-    public String getDictType() {
-        return dictType;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setDictType(String dictType) {
-        this.dictType = dictType;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
-    public String getOptionsJson() {
-        return optionsJson;
+    public Long getRevision() {
+        return revision;
     }
 
-    public void setOptionsJson(String optionsJson) {
-        this.optionsJson = optionsJson;
-    }
-
-    public String getPublishedOptionsJson() {
-        return publishedOptionsJson;
-    }
-
-    public void setPublishedOptionsJson(String publishedOptionsJson) {
-        this.publishedOptionsJson = publishedOptionsJson;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Integer getPublishedVersion() {
-        return publishedVersion;
-    }
-
-    public void setPublishedVersion(Integer publishedVersion) {
-        this.publishedVersion = publishedVersion;
+    public void setRevision(Long revision) {
+        this.revision = revision;
     }
 
     public LocalDateTime getCreateTime() {

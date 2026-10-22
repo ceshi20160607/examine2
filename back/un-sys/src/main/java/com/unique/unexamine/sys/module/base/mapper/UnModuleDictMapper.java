@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 系统数据字典基础 Mapper 接口
+ * 逐条保存值与名称的字典基础项 Mapper 接口
  * </p>
  *
  * @author Template Base

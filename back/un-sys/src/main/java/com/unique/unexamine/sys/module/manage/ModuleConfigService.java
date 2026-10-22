@@ -172,8 +172,9 @@ public class ModuleConfigService {
         }
         int version = (module.getPublishedVersion() == null ? 0 : module.getPublishedVersion()) + 1;
         for (UnModuleField field : definitions) {
-            fieldRules.definition(systemId, context.tenantId(), field.getFieldCode(), field.getFieldName(),
+            var definition = fieldRules.definition(systemId, context.tenantId(), field.getFieldCode(), field.getFieldName(),
                     field.getFieldType(), Boolean.TRUE.equals(field.getRequiredFlag()), readMap(field.getConfigJson()));
+            fieldRules.validateExisting(systemId, moduleId, field.getId(), definition);
             field.setPublishedLayoutJson(field.getLayoutJson());
             Map<String, Object> snapshot = new LinkedHashMap<>();
             snapshot.put("fieldName", field.getFieldName());
@@ -225,7 +226,7 @@ public class ModuleConfigService {
                 fieldConfig(field).configuration())).toList();
     }
 
-    /** 运行态配置附加字典发布选项和字段编辑许可，原始布局保持不变。 */
+    /** 运行态解析所选字典基础项及字段编辑许可，原始布局保持不变。 */
     public FieldConfig runtimeFieldConfig(Long systemId, Long tenantId, UnModuleField field, boolean writable) {
         var result = fieldRules.configuration(systemId, tenantId, field.getFieldCode(), fieldConfig(field).configuration());
         result.put("writable", writable);

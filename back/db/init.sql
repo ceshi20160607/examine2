@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS un_sys_system_config (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统基础配置主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
   multi_tenant_enabled TINYINT(1) NOT NULL DEFAULT 0 COMMENT '多租户模式开关，关闭时保留非主租户数据',
+  permission_revision BIGINT NOT NULL DEFAULT 0 COMMENT '权限配置版本，变更后隔离旧缓存',
   login_title VARCHAR(120) DEFAULT NULL COMMENT '系统登录展示标题',
   login_domain VARCHAR(190) DEFAULT NULL COMMENT '系统专属登录域名',
   default_home VARCHAR(255) DEFAULT NULL COMMENT '系统默认首页路由',
@@ -243,6 +244,7 @@ CREATE TABLE IF NOT EXISTS un_sys_menu (
   parent_id BIGINT DEFAULT NULL COMMENT '上级菜单主键',
   code VARCHAR(100) NOT NULL COMMENT '系统菜单权限编码',
   name VARCHAR(100) NOT NULL COMMENT '菜单名称',
+  menu_type VARCHAR(20) NOT NULL DEFAULT 'PAGE' COMMENT '菜单类型：目录页面或操作',
   route VARCHAR(255) DEFAULT NULL COMMENT '前端路由',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '菜单排序序号',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '菜单状态',
@@ -276,22 +278,33 @@ CREATE TABLE IF NOT EXISTS un_sys_role_menu (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '租户角色菜单授权主键',
   role_id BIGINT NOT NULL COMMENT '租户角色主键',
   menu_id BIGINT NOT NULL COMMENT '租户菜单主键',
-  action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '菜单内操作编码',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_menu_action (role_id, menu_id, action_code)
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_menu (role_id, menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统租户角色菜单授权';
 
 CREATE TABLE IF NOT EXISTS un_sys_role_data (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统角色数据权限主键',
   role_id BIGINT NOT NULL COMMENT '租户角色主键',
-  module_id BIGINT NOT NULL COMMENT '业务模块主键',
-  action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '查看编辑删除等模块动作编码',
+  menu_id BIGINT NOT NULL COMMENT '对应操作菜单主键',
   scope_code VARCHAR(40) NOT NULL COMMENT '负责人和组织数据范围编码',
-  scope_config JSON DEFAULT NULL COMMENT '指定负责人或部门的范围配置',
+  scope_config JSON DEFAULT NULL COMMENT '指定负责人和部门范围',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_data_action (role_id, module_id, action_code)
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_data_menu (role_id, menu_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色数据权限';
+
+CREATE TABLE IF NOT EXISTS un_sys_role_field (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '角色模块字段许可主键',
+  role_id BIGINT NOT NULL COMMENT '当前租户角色主键',
+  module_id BIGINT NOT NULL COMMENT '字段所属业务模块主键',
+  field_id BIGINT NOT NULL COMMENT '稳定模块字段主键',
+  readable_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否允许读取字段',
+  writable_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否允许写入字段',
+  exportable_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否允许导出字段',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_role_field (role_id, module_id, field_id), KEY ix_sys_role_field_module (module_id, field_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户角色对模块字段的控制';
 
 CREATE TABLE IF NOT EXISTS un_sys_log_login (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统登录日志主键',
@@ -371,18 +384,17 @@ CREATE TABLE IF NOT EXISTS un_module (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务模块';
 
 CREATE TABLE IF NOT EXISTS un_module_dict (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统字典主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '字典基础项稳定主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '定义字典的租户主键',
-  code VARCHAR(80) NOT NULL COMMENT '系统内字典编码',
-  name VARCHAR(100) NOT NULL COMMENT '字典名称',
-  options_json JSON NOT NULL COMMENT '选项编码名称顺序与停用状态',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '字典发布状态',
-  published_version INT NOT NULL DEFAULT 0 COMMENT '字典发布版本号',
+  tenant_id BIGINT NOT NULL COMMENT '定义基础项的租户主键',
+  dict_value VARCHAR(100) NOT NULL COMMENT '基础值，例如1或0；创建后不可变更含义',
+  name VARCHAR(100) NOT NULL COMMENT '基础项当前名称，例如是或否',
+  parent_id BIGINT DEFAULT NULL COMMENT '树形或级联基础项的父级主键，根项为空',
+  revision BIGINT NOT NULL DEFAULT 1 COMMENT '基础项资料提交版本，用于缓存隔离',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_module_dict_code (system_id, tenant_id, code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统数据字典基础';
+  PRIMARY KEY (id), KEY ix_module_dict_scope (system_id, tenant_id, parent_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='逐条保存值与名称的字典基础项';
 
 CREATE TABLE IF NOT EXISTS un_module_field (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块字段主键',
@@ -397,7 +409,7 @@ CREATE TABLE IF NOT EXISTS un_module_field (
   hidden_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '表单是否隐藏',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '设计器保存的字段顺序',
   layout_json JSON NOT NULL COMMENT '设计器保存的位置分组及占位宽度',
-  config_json JSON NOT NULL COMMENT '类型校验默认值选项及权限配置',
+  config_json JSON NOT NULL COMMENT '字段类型校验默认值和字典项引用配置',
   published_layout_json JSON DEFAULT NULL COMMENT '最近发布时的字段位置和占位宽度快照',
   published_config_json JSON DEFAULT NULL COMMENT '最近发布时的字段名称类型校验等配置快照',
   published_sort_no INT DEFAULT NULL COMMENT '最近发布时的字段顺序',
@@ -410,33 +422,35 @@ CREATE TABLE IF NOT EXISTS un_module_field (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块字段';
 
 CREATE TABLE IF NOT EXISTS un_module_menu (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块菜单配置主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块菜单关系主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
   tenant_id BIGINT NOT NULL COMMENT '定义菜单的租户主键',
   module_id BIGINT NOT NULL COMMENT '所属业务模块主键',
-  menu_id BIGINT DEFAULT NULL COMMENT '关联系统菜单主键',
-  label VARCHAR(100) NOT NULL COMMENT '运行态菜单名称',
-  route VARCHAR(255) DEFAULT NULL COMMENT '模块页面路由',
-  sort_no INT NOT NULL DEFAULT 0 COMMENT '菜单排序序号',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '菜单配置发布状态',
+  menu_id BIGINT NOT NULL COMMENT '统一系统菜单主键',
+  display_position VARCHAR(40) NOT NULL DEFAULT 'DETAIL_HEADER' COMMENT '模块内菜单展示位置',
+  sort_no INT NOT NULL DEFAULT 0 COMMENT '同位置展示顺序',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '模块菜单发布状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), KEY ix_module_menu_module (module_id, status, sort_no)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块菜单配置';
+  PRIMARY KEY (id), UNIQUE KEY uk_module_menu_binding (module_id, menu_id), KEY ix_module_menu_module (module_id, status, sort_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块与统一菜单的关联和展示配置';
 
 CREATE TABLE IF NOT EXISTS un_module_action (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块动作配置主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块动作执行配置主键',
   module_id BIGINT NOT NULL COMMENT '所属业务模块主键',
   tenant_id BIGINT NOT NULL COMMENT '定义动作的租户主键',
-  action_code VARCHAR(80) NOT NULL COMMENT '新建编辑删除导入等动作编码',
-  enabled_flag TINYINT(1) NOT NULL DEFAULT 1 COMMENT '动作是否启用',
-  config_json JSON DEFAULT NULL COMMENT '动作触发流程审批等配置',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '动作配置发布状态',
-  published_version INT NOT NULL DEFAULT 0 COMMENT '动作生效版本号',
+  menu_id BIGINT NOT NULL COMMENT '动作对应的唯一菜单主键',
+  execution_type VARCHAR(40) NOT NULL COMMENT '基础动作或字段更新执行类型',
+  enabled_flag TINYINT(1) NOT NULL DEFAULT 1 COMMENT '草稿动作是否启用',
+  config_json JSON DEFAULT NULL COMMENT '草稿字段条件转化映射及执行配置',
+  published_config_json JSON DEFAULT NULL COMMENT '运行态发布的动作执行配置',
+  published_enabled_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '已发布动作是否启用',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '动作发布状态',
+  published_version INT NOT NULL DEFAULT 0 COMMENT '动作发布版本号',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), UNIQUE KEY uk_module_action_code (module_id, tenant_id, action_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块动作配置';
+  PRIMARY KEY (id), UNIQUE KEY uk_module_action_menu (menu_id), KEY ix_module_action_module (module_id, tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单操作的模块动作执行配置';
 
 CREATE TABLE IF NOT EXISTS un_module_rule (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块规则配置主键',
@@ -579,13 +593,16 @@ CREATE TABLE IF NOT EXISTS un_module_relation (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '业务记录关联主键',
   source_record_id BIGINT NOT NULL COMMENT '来源业务记录主键',
   target_record_id BIGINT NOT NULL COMMENT '目标业务记录主键',
-  relation_config_id BIGINT NOT NULL COMMENT '对应模块关联配置主键',
+  relation_config_id BIGINT DEFAULT NULL COMMENT '普通关联对应配置主键，转化关系为空',
+  relation_type VARCHAR(20) NOT NULL DEFAULT 'RELATION' COMMENT '普通关联或模块转化关系',
+  target_module_id BIGINT DEFAULT NULL COMMENT '转化目标模块主键，普通关联为空',
+  action_menu_id BIGINT DEFAULT NULL COMMENT '产生转化关系的操作菜单主键',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '子表明细或关联展示顺序',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '关联状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (id), UNIQUE KEY uk_module_relation (source_record_id, target_record_id, relation_config_id),
-  KEY ix_module_relation_target (target_record_id)
+  UNIQUE KEY uk_module_conversion_target (source_record_id, target_module_id, relation_type), KEY ix_module_relation_target (target_record_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块关联关系';
 
 CREATE TABLE IF NOT EXISTS un_module_relation_config (
