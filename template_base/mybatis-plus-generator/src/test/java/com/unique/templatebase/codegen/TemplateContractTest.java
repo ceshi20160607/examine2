@@ -30,17 +30,37 @@ import java.sql.DriverManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /** 模拟一张含敏感字段的业务表，核对五方法模板能生成并编译。 */
 class TemplateContractTest {
     @TempDir
     Path temporary;
+
+    /** 即使本批目标表已存在，其他固定业务表缺失时也不能启动局部生成。 */
+    @Test
+    void generatorRequiresWholeSchemaBeforeBatchGeneration() throws Exception {
+        String url = "jdbc:h2:mem:schema_gate_" + UUID.randomUUID().toString().replace("-", "")
+                + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
+        try (var connection = DriverManager.getConnection(url, "sa", "");
+             var statement = connection.createStatement()) {
+            statement.execute("CREATE TABLE un_print (id BIGINT PRIMARY KEY)");
+            Set<String> required = Set.of("un_print", "un_work_task");
+            var failure = assertThrows(IllegalStateException.class,
+                    () -> BaseCodeGenerator.verifyCompleteSchema(connection, required));
+            assertTrue(failure.getMessage().contains("un_work_task"));
+            statement.execute("CREATE TABLE un_work_task (id BIGINT PRIMARY KEY)");
+            assertDoesNotThrow(() -> BaseCodeGenerator.verifyCompleteSchema(connection, required));
+        }
+    }
 
     /** 基础方法可生成编译，详情保留已保存配置并填值，不能自行重新排版。 */
     @Test
