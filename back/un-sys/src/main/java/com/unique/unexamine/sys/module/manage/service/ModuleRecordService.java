@@ -1,6 +1,7 @@
 package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -62,6 +63,7 @@ public class ModuleRecordService {
     private final ModuleMenuService menus;
     private final IUnModuleRelationService relations;
     private final IUnPlatAccountService accounts;
+    private final ModuleShareService shares;
 
     /** 表单提交主键为空时新增，传主键时更新同模块记录。 */
     public record SaveRecordRequest(Long id, Long ownerAccountId,
@@ -69,13 +71,14 @@ public class ModuleRecordService {
 
     /** `queryById` 只展示基础记录，不拼接表单布局。 */
     public record RecordView(Long id, String name, String status, Long ownerAccountId,
-                             Long createAccountId, LocalDateTime createTime) {}
+                             Long createAccountId, LocalDateTime createTime,
+                             Long sourceTenantId,boolean shared) {}
 
     /** 模块列表的实际分页结果。 */
     public record RecordPage(long total, long current, long size, List<RecordView> records) {}
 
     /** `information` 复用发布的表单配置并填入基础及扩展值。 */
-    public record RecordInformation(Long id, List<FieldView> fields) {}
+    public record RecordInformation(Long id,Long sourceTenantId,boolean shared,List<FieldView> fields) {}
 
     /** 注入已生成基础 Service 和系统成员关系服务。 */
     public ModuleRecordService(SystemManageService systems, ModuleConfigService config,
@@ -83,7 +86,7 @@ public class ModuleRecordService {
             IUnSysTenantMemberService tenantMembers, IUnModuleRecordService records,
             IUnModuleRecordDataService data, IUnModuleLogService logs, ObjectMapper json,
             ModulePermissionService permissions, ModuleFieldService fieldRules, ModuleMenuService menus,
-            IUnModuleRelationService relations, IUnPlatAccountService accounts) {
+            IUnModuleRelationService relations, IUnPlatAccountService accounts,ModuleShareService shares) {
         this.systems = systems;
         this.config = config;
         this.systemRows = systemRows;
@@ -98,6 +101,7 @@ public class ModuleRecordService {
         this.menus = menus;
         this.relations = relations;
         this.accounts = accounts;
+        this.shares = shares;
     }
 
     /** 输入字段只允许动作指定的业务字段；归属转移使用单独的负责人参数。 */
@@ -179,7 +183,7 @@ public class ModuleRecordService {
             persistDataValue(item);
         }
         audit(module,record,access.accountId(),operation,actionName,changes,relatedModuleId,relatedRecordId);
-        return view(record,access.policy());
+        return view(record,access.policy(),context.tenantId());
     }
 
     /** 候选动作逐个以真实菜单鉴权，配置中的草稿和停用项不会返回。 */
@@ -206,7 +210,7 @@ public class ModuleRecordService {
         var values=recordValues(record); conditions(access,values);
         var fields=actionFields(access.definition()); access.policy().requireWritable(fields.keySet());
         var form=fields.values().stream().map(field->config.runtimeFieldConfig(systemId,access.context().tenantId(),field,true)).toList();
-        return new RecordInformation(recordId,records.information(recordId,form,values));
+        return new RecordInformation(recordId,record.getTenantId(),false,records.information(recordId,form,values));
     }
 
     /** 动作执行统一检查菜单、条件、数据范围及字段许可，再进入同一业务保存事务。 */
@@ -326,9 +330,8 @@ public class ModuleRecordService {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DETAIL");
         var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
-        var record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
-        access.policy().requireOwner(record.getOwnerUserId());
-        return view(record, access.policy());
+        var record = readableRecord(access,recordId,false);
+        return view(record, access.policy(),context.tenantId());
     }
 
     /** 按发布时保存的字段顺序和布局填充记录详情。 */
@@ -337,20 +340,20 @@ public class ModuleRecordService {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DETAIL");
         var context = access.context();
         config.publishedModule(systemId, moduleId, context.tenantId());
-        UnModuleRecord record = visibleRecord(systemId, context.tenantId(), moduleId, recordId);
-        access.policy().requireOwner(record.getOwnerUserId());
+        UnModuleRecord record = readableRecord(access,recordId,false);
         Map<String, Object> values = new LinkedHashMap<>();
         var stored = dataByCode(record.getId());
         stored.forEach((code, item) -> { if (access.policy().readable(code)) values.put(code, readValue(item.getValueJson())); });
         List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(config.publishedFields(moduleId), UnModuleField::getFieldCode).stream()
                 .map(field -> {
                     var item = config.runtimeFieldConfig(systemId, context.tenantId(), field, access.policy().writable(field.getFieldCode()));
-                    if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", fieldRules.display(systemId, context.tenantId(),
+                    if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", fieldRules.display(systemId, record.getTenantId(),
                             fieldRules.published(field.getFieldCode(), config.fieldConfig(field).configuration()),
                             readValue(stored.get(field.getFieldCode()).getValueJson())));
                     return item;
                 }).toList();
-        return new RecordInformation(recordId, records.information(recordId, form, values));
+        return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(context.tenantId()),
+                records.information(recordId, form, values));
     }
 
     /** 列表分页委托生成的基础 Service，软删除字段由 IS NULL 筛选。 */
@@ -365,15 +368,27 @@ public class ModuleRecordService {
         filters.put("moduleId", moduleId);
         filters.put("deletedTime", null);
         if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页范围无效");
-        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty()) return new RecordPage(0,page,size,List.of());
-        Page<UnModuleRecord> result = access.policy().allData()
+        Set<Long> sharedIds=shares.sharedRecordIds(access);
+        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty() && sharedIds.isEmpty())
+            return new RecordPage(0,page,size,List.of());
+        Page<UnModuleRecord> result;
+        if (sharedIds.isEmpty()) result = access.policy().allData()
                 ? records.queryPageList(new PageQuery(page, size, filters, "id", true))
                 : records.page(Page.of(page, size), new LambdaQueryWrapper<UnModuleRecord>()
                     .eq(UnModuleRecord::getSystemId,systemId).eq(UnModuleRecord::getTenantId,context.tenantId())
                     .eq(UnModuleRecord::getModuleId,moduleId).isNull(UnModuleRecord::getDeletedTime)
                     .in(UnModuleRecord::getOwnerUserId,access.policy().ownerAccountIds()).orderByDesc(UnModuleRecord::getId));
+        else {
+            QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
+                    .eq("system_id",systemId).eq("module_id",moduleId).isNull("deleted_time");
+            if (access.policy().allData()) where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
+            else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
+            else where.and(q->q.nested(own->own.eq("tenant_id",context.tenantId())
+                    .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
+            result=records.page(Page.of(page,size),where.orderByDesc("id"));
+        }
         return new RecordPage(result.getTotal(), result.getCurrent(), result.getSize(),
-                result.getRecords().stream().map(record -> view(record,access.policy())).toList());
+                result.getRecords().stream().map(record -> view(record,access.policy(),context.tenantId())).toList());
     }
 
     /** 业务记录默认逻辑删除，保留字段值和操作历史。 */
@@ -393,6 +408,21 @@ public class ModuleRecordService {
     /** 防止跨模块、跨租户读取和操作逻辑删除记录。 */
     private UnModuleRecord visibleRecord(Long systemId, Long tenantId, Long moduleId, Long id) {
         return recordInScope(systemId, tenantId, moduleId, id, false);
+    }
+
+    /** 当前租户数据范围与有效共享范围求并集；共享撤销即时影响详情和历史入口。 */
+    private UnModuleRecord readableRecord(ModulePermissionService.Access access,Long id,boolean includeDeleted) {
+        UnModuleRecord record=records.queryById(id);
+        if (!access.context().systemId().equals(record.getSystemId())
+                || !access.definition().module().getId().equals(record.getModuleId())
+                || (!includeDeleted && record.getDeletedTime()!=null))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"业务记录不存在");
+        if (access.context().tenantId().equals(record.getTenantId())) access.policy().requireOwner(record.getOwnerUserId());
+        else {
+            if (record.getDeletedTime()!=null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"业务记录不存在");
+            shares.requireShared(access,record);
+        }
+        return record;
     }
 
     /** 已删除记录允许有权成员查看操作历史，业务编辑入口仍明确拒绝。 */
@@ -525,8 +555,8 @@ public class ModuleRecordService {
     /** 操作历史与详情使用相同记录授权，并在服务端过滤无权读取的字段变化。 */
     public OperationPage operations(String token,Long systemId,Long tenantId,Long moduleId,Long recordId,long page,long size) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"DETAIL");
-        var record=recordInScope(systemId,access.context().tenantId(),moduleId,recordId,true); access.policy().requireOwner(record.getOwnerUserId());
-        var filters=Map.<String,Object>of("systemId",systemId,"tenantId",access.context().tenantId(),"moduleId",moduleId,"recordId",recordId);
+        var record=readableRecord(access,recordId,true);
+        var filters=Map.<String,Object>of("systemId",systemId,"tenantId",record.getTenantId(),"moduleId",moduleId,"recordId",recordId);
         var result=logs.queryPageList(new IUnModuleLogService.PageQuery(page,size,filters,"id",true));
         return new OperationPage(result.getTotal(),result.getCurrent(),result.getSize(),result.getRecords().stream().map(log->{
             AuditDetail detail;
@@ -536,16 +566,17 @@ public class ModuleRecordService {
                     .filter(change->change.fieldId()==null || access.policy().readable(change.fieldCode())).toList();
             return new OperationView(log.getId(),log.getActionCode(),log.getOperatorAccountId(),log.getCreateTime(),
                     new AuditDetail(detail.actionName(),detail.operatorName(),visible,detail.relatedModuleId(),detail.relatedRecordId(),
-                            visible.isEmpty()?null:detail.message()));
+                            visible.isEmpty() && detail.changes()!=null && !detail.changes().isEmpty()?null:detail.message()));
         }).toList());
     }
 
     /** 基础记录响应不包含字段扩展和布局。 */
-    private RecordView view(UnModuleRecord record, PermissionPolicy policy) {
+    private RecordView view(UnModuleRecord record, PermissionPolicy policy,Long viewerTenantId) {
         return new RecordView(record.getId(), policy.readable("name") ? record.getName() : null,
                 policy.readable("status") ? record.getStatus() : null,
                 policy.readable("ownerUserId") ? record.getOwnerUserId() : null,
                 policy.readable("createUserId") ? record.getCreateUserId() : null,
-                policy.readable("createTime") ? record.getCreateTime() : null);
+                policy.readable("createTime") ? record.getCreateTime() : null,
+                record.getTenantId(),!record.getTenantId().equals(viewerTenantId));
     }
 }

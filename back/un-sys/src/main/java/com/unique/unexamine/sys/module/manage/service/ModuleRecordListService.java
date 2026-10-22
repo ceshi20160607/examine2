@@ -33,6 +33,7 @@ public class ModuleRecordListService {
     private final IUnModuleRecordService records;
     private final IUnModuleRecordDataService data;
     private final ObjectMapper json;
+    private final ModuleShareService shares;
 
     /** 临时筛选与已保存场景同时生效，分页范围由服务端限定。 */
     public record Query(Long sceneId,String search,List<ModuleSceneService.Condition> filters,
@@ -41,16 +42,17 @@ public class ModuleRecordListService {
     public record Column(Long fieldId,String code,String name,String type,Integer widthPx,String fixedSide) {}
     /** 列表行含基础记录及当前有权读取的自定义字段值。 */
     public record Row(Long id,String name,String status,Long ownerAccountId,
+                      Long sourceTenantId,boolean shared,
                       Map<String,Object> values,Map<String,Map<String,String>> valueDisplay) {}
     public record Result(long total,long current,long size,List<Column> columns,List<Row> records) {}
 
     /** 注入生成的基础 Service；动态查询仍复用基础持久化入口。 */
     public ModuleRecordListService(ModulePermissionService permissions,ModuleConfigService modules,
             ModuleSceneService scenes,ModuleColumnService columnPreferences,ModuleFieldService fieldRules,IUnModuleRecordService records,
-            IUnModuleRecordDataService data,ObjectMapper json) {
+            IUnModuleRecordDataService data,ObjectMapper json,ModuleShareService shares) {
         this.permissions=permissions; this.modules=modules; this.scenes=scenes;
         this.columnPreferences=columnPreferences; this.fieldRules=fieldRules;
-        this.records=records; this.data=data; this.json=json;
+        this.records=records; this.data=data; this.json=json; this.shares=shares;
     }
 
     /** 列表场景与请求条件求交集，权限在条件、排序和返回列三处分别执行。 */
@@ -61,6 +63,9 @@ public class ModuleRecordListService {
             throw new IllegalArgumentException("分页范围无效");
         if (request.search()!=null && request.search().length()>100)
             throw new IllegalArgumentException("搜索文本过长");
+        if (request.search()!=null && !request.search().isBlank() && !access.policy().readable("name"))
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
+                    "没有标题字段的查询权限");
         var saved=scenes.resolve(moduleId,request.sceneId(),access);
         List<ModuleSceneService.Condition> conditions=new ArrayList<>(saved.filters());
         if (request.filters()!=null) conditions.addAll(request.filters());
@@ -86,12 +91,20 @@ public class ModuleRecordListService {
                 field.getFieldName(),field.getFieldType(),personal.containsKey(field.getId())
                 ?personal.get(field.getId()).widthPx():null,personal.containsKey(field.getId())
                 ?personal.get(field.getId()).fixedSide():null)).toList();
-        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty())
+        Set<Long> sharedIds=shares.sharedRecordIds(access);
+        if (!access.policy().allData() && access.policy().ownerAccountIds().isEmpty() && sharedIds.isEmpty())
             return new Result(0,request.page(),request.size(),headers,List.of());
         QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
-                .eq("system_id",systemId).eq("tenant_id",context.tenantId()).eq("module_id",moduleId)
+                .eq("system_id",systemId).eq("module_id",moduleId)
                 .isNull("deleted_time");
-        if (!access.policy().allData()) where.in("owner_user_id",access.policy().ownerAccountIds());
+        if (sharedIds.isEmpty()) {
+            where.eq("tenant_id",context.tenantId());
+            if (!access.policy().allData()) where.in("owner_user_id",access.policy().ownerAccountIds());
+        } else if (access.policy().allData())
+            where.and(q->q.eq("tenant_id",context.tenantId()).or().in("id",sharedIds));
+        else if (access.policy().ownerAccountIds().isEmpty()) where.in("id",sharedIds);
+        else where.and(q->q.nested(own->own.eq("tenant_id",context.tenantId())
+                .in("owner_user_id",access.policy().ownerAccountIds())).or().in("id",sharedIds));
         if (request.search()!=null && !request.search().isBlank())
             where.apply("LOCATE({0}, name) > 0",request.search().trim());
         for (var condition:conditions) filter(where,fields.get(condition.fieldId()),condition);
@@ -117,12 +130,13 @@ public class ModuleRecordListService {
                 if (value!=null) {
                     FieldDefinition definition=fieldRules.published(field.getFieldCode(),modules.fieldConfig(field).configuration());
                     if (definition.type().options()) display.put(field.getFieldCode(),
-                            fieldRules.display(systemId,context.tenantId(),definition,value));
+                            fieldRules.display(systemId,record.getTenantId(),definition,value));
                 }
             }
             rows.add(new Row(record.getId(),access.policy().readable("name")?record.getName():null,
                     access.policy().readable("status")?record.getStatus():null,
-                    access.policy().readable("ownerUserId")?record.getOwnerUserId():null,cellValues,display));
+                    access.policy().readable("ownerUserId")?record.getOwnerUserId():null,
+                    record.getTenantId(),!record.getTenantId().equals(context.tenantId()),cellValues,display));
         }
         return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,rows);
     }
