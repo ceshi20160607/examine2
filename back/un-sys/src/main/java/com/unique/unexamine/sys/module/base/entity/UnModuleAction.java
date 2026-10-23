@@ -3,6 +3,7 @@ package com.unique.unexamine.sys.module.base.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @TableName("un_module_action")
 public class UnModuleAction implements Serializable {
@@ -64,28 +65,10 @@ public class UnModuleAction implements Serializable {
     private String configJson;
 
     /**
-     * 运行态发布的动作执行配置
-     */
-    @TableField("published_config_json")
-    private String publishedConfigJson;
-
-    /**
-     * 已发布动作是否启用
-     */
-    @TableField("published_enabled_flag")
-    private Boolean publishedEnabledFlag;
-
-    /**
-     * 动作发布状态
+     * 当前启停状态
      */
     @TableField("status")
     private String status;
-
-    /**
-     * 动作发布版本号
-     */
-    @TableField("published_version")
-    private Integer publishedVersion;
 
     /**
      * 创建时间
@@ -98,6 +81,13 @@ public class UnModuleAction implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
+
+    /**
+     * 逻辑删除时间，空表示未删除
+     */
+    @TableLogic
+    @TableField("deleted_time")
+    private LocalDateTime deletedTime;
 
     public Long getId() {
         return id;
@@ -155,36 +145,12 @@ public class UnModuleAction implements Serializable {
         this.configJson = configJson;
     }
 
-    public String getPublishedConfigJson() {
-        return publishedConfigJson;
-    }
-
-    public void setPublishedConfigJson(String publishedConfigJson) {
-        this.publishedConfigJson = publishedConfigJson;
-    }
-
-    public Boolean getPublishedEnabledFlag() {
-        return publishedEnabledFlag;
-    }
-
-    public void setPublishedEnabledFlag(Boolean publishedEnabledFlag) {
-        this.publishedEnabledFlag = publishedEnabledFlag;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Integer getPublishedVersion() {
-        return publishedVersion;
-    }
-
-    public void setPublishedVersion(Integer publishedVersion) {
-        this.publishedVersion = publishedVersion;
     }
 
     public LocalDateTime getCreateTime() {
@@ -201,5 +167,13 @@ public class UnModuleAction implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public LocalDateTime getDeletedTime() {
+        return deletedTime;
+    }
+
+    public void setDeletedTime(LocalDateTime deletedTime) {
+        this.deletedTime = deletedTime;
     }
 }

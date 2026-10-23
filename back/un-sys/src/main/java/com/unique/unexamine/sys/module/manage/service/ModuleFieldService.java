@@ -6,8 +6,13 @@ import com.unique.unexamine.core.field.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
+import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
+import com.unique.unexamine.sys.base.entity.UnSysMember;
+import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
+import com.unique.unexamine.sys.base.service.IUnSysMemberService;
+import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import java.util.*;
 import java.math.BigDecimal;
 import org.springframework.http.HttpStatus;
@@ -22,20 +27,25 @@ public class ModuleFieldService {
     private final ObjectMapper json;
     private final IUnModuleRecordService records;
     private final IUnModuleRecordDataService values;
+    private final IUnSysMemberService members;
+    private final IUnSysTenantMemberService tenantMembers;
     /** 类型目录在服务中统一提供，Controller 不另维护枚举。 */
-    public record TypeView(String code,String name,boolean available) {}
+    public record TypeView(String code,String name,String valueColumn,boolean available) {}
+    /** 人员值对外展示当前成员资料，业务表中始终只保存成员主键。 */
+    public record MemberView(Long id,Long accountId,String displayName,String employeeNo,Long departmentId) {}
     /** 注入共用校验与模块范围数据服务。 */
     public ModuleFieldService(FieldValidationService validation,DictionaryService dictionaries,ObjectMapper json,
-            IUnModuleRecordService records,IUnModuleRecordDataService values) {
+            IUnModuleRecordService records,IUnModuleRecordDataService values,
+            IUnSysMemberService members,IUnSysTenantMemberService tenantMembers) {
         this.validation=validation; this.dictionaries=dictionaries; this.json=json;
-        this.records=records; this.values=values;
+        this.records=records; this.values=values; this.members=members; this.tenantMembers=tenantMembers;
     }
 
-    /** 所有固定类型可识别；依赖引用、文件、公式引擎的类型在完整实现前禁止发布使用。 */
+    /** 所有固定类型可识别；依赖引用、文件、公式引擎的类型在完整实现前禁止启用使用。 */
     public List<TypeView> types() { return Arrays.stream(FieldType.values())
-            .map(t->new TypeView(t.name(),t.label(),supported(t))).toList(); }
+            .map(t->new TypeView(t.name(),t.label(),t.valueColumn().sqlName(),supported(t))).toList(); }
 
-    /** 配置和发布共用同一条定义校验链，并验证绑定字典的租户边界。 */
+    /** 配置保存共用同一条定义校验链，并验证绑定字典的租户边界。 */
     public FieldDefinition definition(Long systemId,Long tenantId,String code,String label,String type,
                                        boolean required,Map<String,Object> rules) {
         FieldType fieldType=FieldType.parse(type);
@@ -46,10 +56,13 @@ public class ModuleFieldService {
         return definition;
     }
 
-    /** 当前发布字段校验；旧停用选项仅可原样保留，新增选择仍然拒绝。 */
+    /** 当前字段校验；旧停用选项仅可原样保留，新增选择仍然拒绝。 */
     public void validate(Long systemId,Long tenantId,FieldDefinition field,Object value,Object previous) {
         if (field.type().options() && !validation.empty(value)) {
-            if (value instanceof List<?> selected) selected.forEach(this::optionId); else optionId(value);
+            if (value instanceof Map<?,?> object && object.get("path") instanceof List<?> path)
+                path.forEach(this::optionId);
+            else if (value instanceof List<?> selected) selected.forEach(this::optionId);
+            else optionId(value);
         }
         FieldDefinition resolved=withOptions(systemId,tenantId,field);
         if (resolved.type().options() && resolved.rules().get("options") instanceof List<?> options) {
@@ -64,11 +77,46 @@ public class ModuleFieldService {
             resolved=new FieldDefinition(field.code(),field.label(),field.type(),field.required(),rules);
         }
         validation.validateValue(resolved,value);
+        validateMember(systemId,tenantId,field,value);
     }
 
-    /** 字段草稿发布和迁移使用严格的新配置范围，不允许沿用普通编辑的旧值保留规则。 */
-    public void validateDraftValue(Long systemId,Long tenantId,FieldDefinition field,Object value) {
+    /** 字段配置保存和迁移使用严格的新配置范围，不允许沿用普通编辑的旧值保留规则。 */
+    public void validateConfiguredValue(Long systemId,Long tenantId,FieldDefinition field,Object value) {
         validation.validateValue(withOptions(systemId,tenantId,field),value);
+        validateMember(systemId,tenantId,field,value);
+    }
+
+    /** 选人字段必须引用当前系统、当前数据租户的有效成员。 */
+    private void validateMember(Long systemId,Long tenantId,FieldDefinition field,Object value) {
+        if (field.type()!=FieldType.USER || value==null) return;
+        List<?> ids=value instanceof List<?> list?list:List.of(value);
+        for (Object raw:ids) {
+            Long id=new BigDecimal(raw.toString()).longValueExact();
+            UnSysMember member=members.getById(id);
+            if (member==null || !systemId.equals(member.getSystemId()) || !"ACTIVE".equals(member.getStatus())
+                    || tenantMembers.count(new LambdaQueryWrapper<UnSysTenantMember>()
+                    .eq(UnSysTenantMember::getSystemId,systemId).eq(UnSysTenantMember::getTenantId,tenantId)
+                    .eq(UnSysTenantMember::getMemberId,id).eq(UnSysTenantMember::getStatus,"ACTIVE"))==0)
+                throw new IllegalArgumentException(field.label()+"：所选人员不是当前租户的有效成员");
+        }
+    }
+
+    /** 展示阶段按保存的成员 ID 查当前资料，不把姓名快照混入业务值。 */
+    public Object present(Long systemId,Long tenantId,FieldDefinition field,Object value) {
+        if (field.type()!=FieldType.USER || value==null) return value;
+        if (value instanceof List<?> list) return list.stream().map(id->memberView(systemId,tenantId,id)).toList();
+        return memberView(systemId,tenantId,value);
+    }
+
+    private MemberView memberView(Long systemId,Long tenantId,Object raw) {
+        Long id=new BigDecimal(raw.toString()).longValueExact();
+        UnSysMember member=members.getById(id);
+        if (member==null || !systemId.equals(member.getSystemId())) return null;
+        UnSysTenantMember link=tenantMembers.getOne(new LambdaQueryWrapper<UnSysTenantMember>()
+                .eq(UnSysTenantMember::getSystemId,systemId).eq(UnSysTenantMember::getTenantId,tenantId)
+                .eq(UnSysTenantMember::getMemberId,id),false);
+        if (link==null) return null;
+        return new MemberView(id,member.getAccountId(),member.getDisplayName(),member.getEmployeeNo(),link.getDepartmentId());
     }
 
     /** 按稳定 ID 查询当前字典名称；调用方仅在操作日志中保存当时结果。 */
@@ -83,6 +131,25 @@ public class ModuleFieldService {
         return result;
     }
 
+    /** 写入已校验值，只占用与字段类型对应的物理值列。 */
+    public void store(UnModuleRecordData row, FieldDefinition definition, Object value) {
+        var cells=FieldValueCodec.encode(definition.type(),value,json);
+        row.setValueVarchar(cells.varchar()); row.setValueText(cells.text()); row.setValueNumber(cells.number());
+        row.setValueTime(cells.time()); row.setValueJson(cells.json());
+    }
+
+    /** 按保存的字段类型还原原始值，不能从 SQL 列内容猜类型。 */
+    public Object stored(UnModuleRecordData row,FieldType type) {
+        if (row==null) return null;
+        return FieldValueCodec.decode(type,new FieldValueCodec.Cells(row.getValueVarchar(),row.getValueText(),
+                row.getValueNumber(),row.getValueTime(),row.getValueJson()),json);
+    }
+
+    /** 配置即时生效，按当前保存类型解释已验证的数据。 */
+    public FieldType storedType(UnModuleField field) {
+        return FieldType.parse(field.getFieldType());
+    }
+
     /** 转化配置和执行共用值形态检查；选项共用基础项 ID，实际值仍须通过目标范围校验。 */
     public void validateMapping(FieldDefinition source,FieldDefinition target) {
         boolean textTarget=target.type().kind()==FieldType.Kind.TEXT
@@ -91,11 +158,11 @@ public class ModuleFieldService {
             throw new IllegalArgumentException("转化字段值形态不兼容："+source.label()+"到"+target.label());
     }
 
-    /** 已保存快照转换为类型定义，不读取未发布的字段草稿。 */
-    public FieldDefinition published(String code,Map<String,Object> published) {
-        Map<String,Object> rules=json.convertValue(published.getOrDefault("config",Map.of()),new TypeReference<Map<String,Object>>(){});
-        return new FieldDefinition(code,(String)published.get("fieldName"),FieldType.parse((String)published.get("fieldType")),
-                Boolean.TRUE.equals(published.get("required")),rules);
+    /** 当前保存的配置转换为类型定义。 */
+    public FieldDefinition configured(String code,Map<String,Object> configured) {
+        Map<String,Object> rules=json.convertValue(configured.getOrDefault("config",Map.of()),new TypeReference<Map<String,Object>>(){});
+        return new FieldDefinition(code,(String)configured.get("fieldName"),FieldType.parse((String)configured.get("fieldType")),
+                Boolean.TRUE.equals(configured.get("required")),rules);
     }
     /** 调用方持有模块行锁后检查唯一值，范围仅限当前系统租户的未删除记录。 */
     public void validateUnique(Long systemId,Long tenantId,Long moduleId,Long recordId,FieldDefinition field,Object value) {
@@ -105,11 +172,14 @@ public class ModuleFieldService {
                 .isNull(UnModuleRecord::getDeletedTime).ne(recordId!=null,UnModuleRecord::getId,recordId);
         if ("name".equals(field.code())) query.eq(UnModuleRecord::getName,value);
         else {
-            String encoded;
-            try { encoded=json.writeValueAsString(value); }
-            catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new IllegalArgumentException("字段值无法校验",ex); }
-            List<Long> duplicates=values.list(new LambdaQueryWrapper<UnModuleRecordData>()
-                    .eq(UnModuleRecordData::getFieldCode,field.code()).apply("value_json = CAST({0} AS JSON)",encoded))
+            var cells=FieldValueCodec.encode(field.type(),value,json);
+            var duplicateQuery=new LambdaQueryWrapper<UnModuleRecordData>().eq(UnModuleRecordData::getFieldCode,field.code());
+            if (cells.number()!=null) duplicateQuery.eq(UnModuleRecordData::getValueNumber,cells.number());
+            else if (cells.time()!=null) duplicateQuery.eq(UnModuleRecordData::getValueTime,cells.time());
+            else if (cells.varchar()!=null) duplicateQuery.eq(UnModuleRecordData::getValueVarchar,cells.varchar());
+            else if (cells.text()!=null) duplicateQuery.apply("HEX(value_text) = HEX({0})",cells.text());
+            else duplicateQuery.apply("value_json = CAST({0} AS JSON)",cells.json());
+            List<Long> duplicates=values.list(duplicateQuery)
                     .stream().map(UnModuleRecordData::getRecordId).toList();
             if (duplicates.isEmpty()) return;
             query.in(UnModuleRecord::getId,duplicates);
@@ -117,10 +187,10 @@ public class ModuleFieldService {
         if (records.count(query)>0) throw new IllegalArgumentException(field.label()+"：值已存在");
     }
 
-    /** 保持原布局，额外补入当前可选择的发布选项。 */
-    public Map<String,Object> configuration(Long systemId,Long tenantId,String code,Map<String,Object> published) {
-        Map<String,Object> result=new LinkedHashMap<>(published);
-        FieldDefinition field=withOptions(systemId,tenantId,published(code,published));
+    /** 保持原布局，额外补入当前可选择的选项。 */
+    public Map<String,Object> configuration(Long systemId,Long tenantId,String code,Map<String,Object> configured) {
+        Map<String,Object> result=new LinkedHashMap<>(configured);
+        FieldDefinition field=withOptions(systemId,tenantId,configured(code,configured));
         result.put("config",field.rules()); return result;
     }
     /** 配置只保存稳定引用和字段自身设置，名称、基础值和父级始终从基础表解析。 */
@@ -163,22 +233,21 @@ public class ModuleFieldService {
         } catch (ArithmeticException ex) { throw new IllegalArgumentException("字典项 ID 必须是正整数",ex); }
     }
 
-    /** 发布前核对全部租户的现有记录，禁止缩小范围后留下无法解释的旧值。 */
-    public void validateExisting(Long systemId,Long moduleId,Long fieldId,FieldDefinition definition) {
+    /** 保存前核对全部租户的现有记录，禁止缩小范围后留下无法解释的旧值。 */
+    public void validateExisting(Long systemId,Long moduleId,UnModuleField field,FieldDefinition definition) {
         var existing=records.list(new LambdaQueryWrapper<UnModuleRecord>().eq(UnModuleRecord::getSystemId,systemId)
                 .eq(UnModuleRecord::getModuleId,moduleId).isNull(UnModuleRecord::getDeletedTime));
         if (existing.isEmpty()) return;
         Map<Long,Object> stored=new HashMap<>();
         if (!"name".equals(definition.code())) for (var row:values.list(new LambdaQueryWrapper<UnModuleRecordData>()
-                .eq(UnModuleRecordData::getFieldId,fieldId).in(UnModuleRecordData::getRecordId,existing.stream().map(UnModuleRecord::getId).toList()))) {
-            try { stored.put(row.getRecordId(),row.getValueJson()==null?null:json.readValue(row.getValueJson(),Object.class)); }
-            catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new IllegalStateException("已有字段值无法读取",ex); }
+                .eq(UnModuleRecordData::getFieldId,field.getId()).in(UnModuleRecordData::getRecordId,existing.stream().map(UnModuleRecord::getId).toList()))) {
+            stored.put(row.getRecordId(),stored(row,storedType(field)));
         }
         List<Long> impacted=new ArrayList<>();
         for (var record:existing) {
             Object value="name".equals(definition.code())?record.getName():stored.get(record.getId());
             try {
-                validateDraftValue(systemId,record.getTenantId(),definition,value);
+                validateConfiguredValue(systemId,record.getTenantId(),definition,value);
                 validateUnique(systemId,record.getTenantId(),moduleId,record.getId(),definition,value);
             } catch (IllegalArgumentException ex) { impacted.add(record.getId()); }
         }
@@ -187,12 +256,17 @@ public class ModuleFieldService {
     }
     private Set<String> selected(Object value) {
         if (value==null) return Set.of(); Set<String> ids=new HashSet<>();
+        if (value instanceof Map<?,?> object && object.get("path") instanceof List<?> path) {
+            path.forEach(v->ids.add(String.valueOf(v))); return ids;
+        }
         if (value instanceof List<?> list) list.forEach(v->ids.add(String.valueOf(v))); else ids.add(String.valueOf(value)); return ids;
     }
     private boolean supported(FieldType type) {
         return switch (type.kind()) {
             case TEXT -> !Set.of(FieldType.SECRET,FieldType.RICH_TEXT,FieldType.AI).contains(type);
             case NUMBER,DATE,DATETIME,DATE_RANGE,TIME,TIME_RANGE,BOOLEAN,OPTION,OPTIONS,OBJECT -> true;
+            case REFERENCES -> Set.of(FieldType.ATTACHMENT,FieldType.IMAGE,FieldType.FILE_GROUP).contains(type);
+            case REFERENCE -> type==FieldType.USER;
             default -> false;
         };
     }

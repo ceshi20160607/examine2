@@ -71,7 +71,7 @@ public class SystemManageService {
     public record TenantView(Long id, String code, String name, boolean root) {}
 
     /** 进入系统后重建的系统、租户和成员上下文。 */
-    public record SystemContext(Long systemId, Long tenantId, Long memberId,
+    public record SystemContext(Long systemId, Long tenantId, Long accountId, Long memberId,
                                 Long tenantMemberId, boolean owner, boolean tenantAdmin) {}
 
     /** 注入本业务链使用的已生成基础服务。 */
@@ -198,7 +198,7 @@ public class SystemManageService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "租户不可进入");
         }
         UnSysTenantMember link = tenantMember(tenantId, member.getId());
-        return new SystemContext(systemId, tenantId, member.getId(), link.getId(),
+        return new SystemContext(systemId, tenantId, actor.getId(), member.getId(), link.getId(),
                 actor.getId().equals(system.getOwnerAccountId()), Boolean.TRUE.equals(link.getIsAdmin()));
     }
 

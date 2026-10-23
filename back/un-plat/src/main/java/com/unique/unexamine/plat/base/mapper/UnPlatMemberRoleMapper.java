@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @Mapper
 public interface UnPlatMemberRoleMapper extends BaseMapper<UnPlatMemberRole> {

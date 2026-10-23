@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS un_app (
   create_account_id BIGINT NOT NULL COMMENT '创建应用的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_app_identifier (app_id),
   KEY ix_app_scope (scope_type, system_id, tenant_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台或系统受控访问应用';
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS un_app_event (
   published_config_json JSON DEFAULT NULL COMMENT '已发布事件执行配置快照',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_app_event (application_id, event_code, resource_type, resource_id),
   KEY ix_app_event_resource (resource_type, resource_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='受控应用事件配置';
@@ -59,6 +61,7 @@ CREATE TABLE IF NOT EXISTS un_app_call (
   duration_ms INT DEFAULT NULL COMMENT '接口处理耗时毫秒',
   caller_ip VARCHAR(45) DEFAULT NULL COMMENT '调用方网络地址',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '调用发生时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_app_call_request (application_id, request_id),
   KEY ix_app_call_scope (system_id, tenant_id, create_time),
   KEY ix_app_call_result (application_id, result_code, create_time)

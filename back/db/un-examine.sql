@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS un_module_examine (
   status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_module_examine_trigger (module_id, tenant_id, trigger_code, status),
   KEY ix_module_examine_examine (examine_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务模块审批关联配置';
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS un_examine_group (
   create_account_id BIGINT NOT NULL COMMENT '创建分组的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_group_scope (system_id, tenant_id, status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批分组';
 
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS un_examine (
   create_account_id BIGINT NOT NULL COMMENT '创建审批的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_examine_code (tenant_id, code),
   KEY ix_examine_group (group_id, status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批定义';
@@ -58,6 +61,7 @@ CREATE TABLE IF NOT EXISTS un_examine_config (
   status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_examine_config_rule (examine_id, rule_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批撤回超时等高级配置';
 
@@ -67,6 +71,7 @@ CREATE TABLE IF NOT EXISTS un_examine_config_user (
   subject_type VARCHAR(20) NOT NULL COMMENT '适用人员部门或角色类型',
   subject_id BIGINT NOT NULL COMMENT '适用对象主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '配置时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_examine_config_user (config_id, subject_type, subject_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批高级规则适用人员';
 
@@ -83,6 +88,7 @@ CREATE TABLE IF NOT EXISTS un_examine_node (
   status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_examine_node_code (examine_id, node_code),
   KEY ix_examine_node_order (examine_id, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批设计器节点';
@@ -95,6 +101,7 @@ CREATE TABLE IF NOT EXISTS un_examine_node_field (
   writable_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '节点处理人能否写入该字段',
   required_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '节点提交时是否必填',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '配置时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_examine_node_field (node_id, field_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批节点字段配置';
 
@@ -107,6 +114,7 @@ CREATE TABLE IF NOT EXISTS un_examine_node_user (
   sort_no INT NOT NULL DEFAULT 0 COMMENT '顺序会签的处理顺序',
   config_json JSON DEFAULT NULL COMMENT '上级截止人及人员解析补充规则',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '配置时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_node_user (node_id, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批节点处理人员配置';
 
@@ -126,6 +134,7 @@ CREATE TABLE IF NOT EXISTS un_examine_example (
   start_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '审批发起时间',
   finish_time DATETIME(3) DEFAULT NULL COMMENT '审批完成时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '实例更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_example_record (system_id, tenant_id, module_id, record_id),
   KEY ix_examine_example_status (examine_id, status, start_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='保存发起快照的审批实例';
@@ -141,6 +150,7 @@ CREATE TABLE IF NOT EXISTS un_examine_example_node (
   auto_reason VARCHAR(500) DEFAULT NULL COMMENT '自动处理或跳过节点的可解释原因',
   start_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '节点本轮开始时间',
   finish_time DATETIME(3) DEFAULT NULL COMMENT '节点本轮完成时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_example_node (example_id, node_code, round_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例节点执行轮次';
 
@@ -155,6 +165,7 @@ CREATE TABLE IF NOT EXISTS un_examine_example_node_user (
   action_json JSON DEFAULT NULL COMMENT '字段回写附件和代理加签操作快照',
   action_time DATETIME(3) DEFAULT NULL COMMENT '实际办理时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '待办创建时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_example_user_node (example_node_id, status),
   KEY ix_examine_example_user_account (account_id, status),
   KEY ix_examine_example_user_external (application_id, external_id, status)
@@ -171,6 +182,7 @@ CREATE TABLE IF NOT EXISTS un_examine_exception (
   resolution_json JSON DEFAULT NULL COMMENT '异常处置动作和结果摘要',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '异常发现时间',
   resolve_time DATETIME(3) DEFAULT NULL COMMENT '异常处置完成时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_exception_open (status, create_time),
   KEY ix_examine_exception_example (example_id, example_node_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批运行异常与处置';

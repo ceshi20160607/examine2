@@ -32,15 +32,17 @@ class FieldValidationServiceTest {
         assertDoesNotThrow(()->service.validateValue(field(FieldType.MULTI_SELECT,false,Map.of()),List.of()));
     }
     @Test void optionValidationRejectsDisabledUnknownDuplicateAndBrokenCascade() {
-        var options=List.of(Map.of("id","a","label","甲"),Map.of("id","b","label","乙","parentId","a"),Map.of("id","x","label","禁用","enabled",false));
+        var options=List.of(Map.of("id",1L,"label","甲"),Map.of("id",2L,"label","乙","parentId",1L),
+                Map.of("id",3L,"label","禁用","enabled",false));
         var multi=field(FieldType.MULTI_SELECT,false,Map.of("options",options));
-        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of("a","a")));
-        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of("x")));
-        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of("missing")));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of(1L,1L)));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of(3L)));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(multi,List.of(99L)));
         var cascade=field(FieldType.CASCADE,true,Map.of("options",options));
-        assertDoesNotThrow(()->service.validateValue(cascade,List.of("a","b")));
-        assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,List.of("b")));
-        assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,List.of("b","a")));
+        assertDoesNotThrow(()->service.validateValue(cascade,Map.of("path",List.of(1L,2L))));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,List.of(1L,2L)));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,Map.of("path",List.of(2L))));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,Map.of("path",List.of(2L,1L))));
     }
     @Test void invalidRulesAndDateRangesCannotBePublishedOrStored() {
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("unsupportedRule",true))));
@@ -50,5 +52,12 @@ class FieldValidationServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field(FieldType.DATE_RANGE,false,Map.of()),List.of("2026-10-22","2026-10-21")));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field(FieldType.FORMULA,false,Map.of()),10));
         assertThrows(IllegalArgumentException.class,()->FieldType.parse("arbitrary"));
+    }
+
+    @Test void attachmentUsesIndependentUuidBatchRatherThanFileId() {
+        var field=field(FieldType.ATTACHMENT,false,Map.of());
+        assertDoesNotThrow(()->service.validateValue(field,FileBatchId.create()));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(field,123L));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(field,"not-a-uuid"));
     }
 }

@@ -37,6 +37,7 @@ public class UnFlowVersionServiceImpl extends ServiceImpl<UnFlowVersionMapper, U
             case "snapshotJson" -> "snapshot_json";
             case "publishAccountId" -> "publish_account_id";
             case "publishTime" -> "publish_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnFlowVersion> wrapper = new QueryWrapper<>();
@@ -49,6 +50,7 @@ public class UnFlowVersionServiceImpl extends ServiceImpl<UnFlowVersionMapper, U
                     case "snapshotJson" -> "snapshot_json";
                     case "publishAccountId" -> "publish_account_id";
                     case "publishTime" -> "publish_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -110,6 +112,7 @@ public class UnFlowVersionServiceImpl extends ServiceImpl<UnFlowVersionMapper, U
         values.put("snapshotJson", model.getSnapshotJson());
         values.put("publishAccountId", model.getPublishAccountId());
         values.put("publishTime", model.getPublishTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

@@ -19,7 +19,7 @@ public class ModuleColumnService {
     private final ModuleConfigService modules;
     private final IUnModuleFieldSortService preferences;
 
-    /** 保存顺序、显隐、宽度与固定侧，字段身份使用已发布字段主键。 */
+    /** 保存顺序、显隐、宽度与固定侧，字段身份使用当前保存字段主键。 */
     public record Preference(Long fieldId,int sortNo,Integer widthPx,boolean hidden,String fixedSide) {}
 
     /** 注入生成的表头基础 Service 和模块权限入口。 */
@@ -32,10 +32,10 @@ public class ModuleColumnService {
     @Transactional(rollbackFor=Exception.class)
     public List<Preference> save(String token,Long systemId,Long tenantId,Long moduleId,List<Preference> requested) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        modules.publishedModule(systemId,moduleId,access.context().tenantId());
+        modules.activeModule(systemId,moduleId,access.context().tenantId());
         if (requested==null || requested.size()>100) throw new IllegalArgumentException("表头配置数量无效");
         Map<Long,UnModuleField> fields=new HashMap<>();
-        for (var field:modules.publishedFields(moduleId)) fields.put(field.getId(),field);
+        for (var field:modules.currentFields(moduleId)) fields.put(field.getId(),field);
         Set<Long> ids=new HashSet<>(); Set<Integer> positions=new HashSet<>();
         for (Preference item:requested) {
             if (item==null || item.fieldId()==null || !ids.add(item.fieldId()) || !positions.add(item.sortNo())
@@ -44,7 +44,7 @@ public class ModuleColumnService {
                 throw new IllegalArgumentException("表头列标识、顺序、宽度或固定位置无效");
             UnModuleField field=fields.get(item.fieldId());
             if (field==null || !access.policy().readable(field.getFieldCode()))
-                throw new IllegalArgumentException("表头包含未发布或无权读取的字段");
+                throw new IllegalArgumentException("表头包含未配置或无权读取的字段");
         }
         List<UnModuleFieldSort> existing=rows(moduleId,access.context().tenantId(),access.accountId());
         Map<Long,UnModuleFieldSort> byField=new HashMap<>();
@@ -64,10 +64,10 @@ public class ModuleColumnService {
         return list(token,systemId,tenantId,moduleId);
     }
 
-    /** 查询只返回当前仍有权读取的发布字段的个人配置。 */
+    /** 查询只返回当前仍有权读取的当前字段的个人配置。 */
     public List<Preference> list(String token,Long systemId,Long tenantId,Long moduleId) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        modules.publishedModule(systemId,moduleId,access.context().tenantId());
+        modules.activeModule(systemId,moduleId,access.context().tenantId());
         return effective(moduleId,access).values().stream().sorted(java.util.Comparator.comparingInt(Preference::sortNo))
                 .toList();
     }
@@ -75,7 +75,7 @@ public class ModuleColumnService {
     /** 列表服务调用同一份个人偏好，不使用请求体中的账号 ID。 */
     public Map<Long,Preference> effective(Long moduleId,ModulePermissionService.Access access) {
         Map<Long,UnModuleField> fields=new HashMap<>();
-        for (var field:modules.publishedFields(moduleId)) fields.put(field.getId(),field);
+        for (var field:modules.currentFields(moduleId)) fields.put(field.getId(),field);
         Map<Long,Preference> result=new HashMap<>();
         for (var row:rows(moduleId,access.context().tenantId(),access.accountId())) {
             UnModuleField field=fields.get(row.getFieldId());

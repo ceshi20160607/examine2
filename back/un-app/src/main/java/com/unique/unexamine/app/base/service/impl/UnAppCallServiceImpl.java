@@ -45,6 +45,7 @@ public class UnAppCallServiceImpl extends ServiceImpl<UnAppCallMapper, UnAppCall
             case "durationMs" -> "duration_ms";
             case "callerIp" -> "caller_ip";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnAppCall> wrapper = new QueryWrapper<>();
@@ -65,6 +66,7 @@ public class UnAppCallServiceImpl extends ServiceImpl<UnAppCallMapper, UnAppCall
                     case "durationMs" -> "duration_ms";
                     case "callerIp" -> "caller_ip";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -134,6 +136,7 @@ public class UnAppCallServiceImpl extends ServiceImpl<UnAppCallMapper, UnAppCall
         values.put("durationMs", model.getDurationMs());
         values.put("callerIp", model.getCallerIp());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

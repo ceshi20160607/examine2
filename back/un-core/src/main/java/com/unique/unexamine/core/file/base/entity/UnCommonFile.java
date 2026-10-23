@@ -3,6 +3,7 @@ package com.unique.unexamine.core.file.base.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @TableName("un_common_file")
 public class UnCommonFile implements Serializable {
@@ -44,6 +45,24 @@ public class UnCommonFile implements Serializable {
      */
     @TableField("tenant_id")
     private Long tenantId;
+
+    /**
+     * 附件所属业务模块主键，未关联记录时为空
+     */
+    @TableField("module_id")
+    private Long moduleId;
+
+    /**
+     * 附件所属模块业务记录主键，未关联记录时为空
+     */
+    @TableField("data_id")
+    private Long dataId;
+
+    /**
+     * 同一附件字段共享的32位UUID批次标识
+     */
+    @TableField("batch_id")
+    private String batchId;
 
     /**
      * 实际上传平台账号主键
@@ -117,6 +136,13 @@ public class UnCommonFile implements Serializable {
     @TableField("update_time")
     private LocalDateTime updateTime;
 
+    /**
+     * 逻辑删除时间，空表示未删除
+     */
+    @TableLogic
+    @TableField("deleted_time")
+    private LocalDateTime deletedTime;
+
     public Long getId() {
         return id;
     }
@@ -147,6 +173,30 @@ public class UnCommonFile implements Serializable {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
+    }
+
+    public Long getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(Long dataId) {
+        this.dataId = dataId;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
     }
 
     public Long getUploaderAccountId() {
@@ -243,5 +293,13 @@ public class UnCommonFile implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public LocalDateTime getDeletedTime() {
+        return deletedTime;
+    }
+
+    public void setDeletedTime(LocalDateTime deletedTime) {
+        this.deletedTime = deletedTime;
     }
 }

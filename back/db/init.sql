@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS un_common_file (
   scope_type VARCHAR(20) NOT NULL COMMENT '平台或系统作用域',
   system_id BIGINT DEFAULT NULL COMMENT '系统作用域的业务系统主键',
   tenant_id BIGINT DEFAULT NULL COMMENT '系统作用域的租户主键',
+  module_id BIGINT DEFAULT NULL COMMENT '附件所属业务模块主键，未关联记录时为空',
+  data_id BIGINT DEFAULT NULL COMMENT '附件所属模块业务记录主键，未关联记录时为空',
+  batch_id VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '同一附件字段共享的32位UUID批次标识',
   uploader_account_id BIGINT NOT NULL COMMENT '实际上传平台账号主键',
   original_name VARCHAR(255) NOT NULL COMMENT '上传时的原始文件名',
   content_type VARCHAR(120) NOT NULL COMMENT '文件内容类型',
@@ -22,23 +25,10 @@ CREATE TABLE IF NOT EXISTS un_common_file (
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '文件登记时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最近状态更新时间',
   PRIMARY KEY (id), KEY ix_common_file_scope (scope_type, system_id, tenant_id, status),
+  KEY ix_common_file_batch (system_id, tenant_id, batch_id),
+  KEY ix_common_file_record (module_id, data_id),
   KEY ix_common_file_hash (sha256)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公共文件元数据';
-
-CREATE TABLE IF NOT EXISTS un_common_file_ref (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '文件业务引用主键',
-  file_id BIGINT NOT NULL COMMENT '被引用公共文件元数据主键',
-  scope_type VARCHAR(20) NOT NULL COMMENT '平台或系统引用作用域',
-  system_id BIGINT DEFAULT NULL COMMENT '系统业务引用所属系统主键',
-  tenant_id BIGINT DEFAULT NULL COMMENT '系统业务引用所属租户主键',
-  object_type VARCHAR(50) NOT NULL COMMENT '模块记录任务工作日志等对象类型',
-  object_id BIGINT NOT NULL COMMENT '业务对象主键',
-  field_id BIGINT DEFAULT NULL COMMENT '模块字段引用时的字段主键',
-  create_account_id BIGINT NOT NULL COMMENT '建立引用的平台账号主键',
-  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '建立引用时间',
-  PRIMARY KEY (id), KEY ix_common_file_ref_file (file_id),
-  KEY ix_common_file_ref_object (scope_type, system_id, tenant_id, object_type, object_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文件与多个业务对象的引用关系';
 
 CREATE TABLE IF NOT EXISTS un_common_notice (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '公告主键',
@@ -629,17 +619,18 @@ CREATE TABLE IF NOT EXISTS un_module_record_data (
   record_id BIGINT NOT NULL COMMENT '通用业务主记录主键',
   field_id BIGINT NOT NULL COMMENT '保存时对应的模块字段主键',
   field_code VARCHAR(80) NOT NULL COMMENT '保存时的字段编码快照',
-  value_json JSON DEFAULT NULL COMMENT '按字段类型保存的业务值',
-  index_text VARCHAR(255) DEFAULT NULL COMMENT '允许筛选排序的文本值索引',
-  index_decimal DECIMAL(30,8) DEFAULT NULL COMMENT '允许筛选排序的数值索引',
-  index_time DATETIME(3) DEFAULT NULL COMMENT '允许筛选排序的时间值索引',
+  value_varchar VARCHAR(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '短字符串及附件批次UUID业务值',
+  value_text TEXT DEFAULT NULL COMMENT '多行文本及其他长文本业务值',
+  value_number DECIMAL(65,30) DEFAULT NULL COMMENT '数值标识和布尔等数值业务值',
+  value_time DATETIME(3) DEFAULT NULL COMMENT '日期和日期时间业务值',
+  value_json JSON DEFAULT NULL COMMENT '多选级联和结构化字段业务值',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (id), UNIQUE KEY uk_module_record_field (record_id, field_id),
   KEY ix_module_record_data_field (field_id, record_id),
-  KEY ix_module_record_data_text (field_id, index_text, record_id),
-  KEY ix_module_record_data_decimal (field_id, index_decimal, record_id),
-  KEY ix_module_record_data_time (field_id, index_time, record_id)
+  KEY ix_module_record_data_varchar (field_id, value_varchar, record_id),
+  KEY ix_module_record_data_number (field_id, value_number, record_id),
+  KEY ix_module_record_data_time (field_id, value_time, record_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块通用业务扩展记录';
 
 CREATE TABLE IF NOT EXISTS un_module_scence (
@@ -1231,7 +1222,11 @@ CREATE TABLE IF NOT EXISTS un_work_project (
   create_account_id BIGINT NOT NULL COMMENT '创建项目的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), KEY ix_work_project_scope (scope_type, system_id, tenant_id, status),
+  PRIMARY KEY (id),
+  -- 唯一键把平台作用域的空系统和租户映射为 0，避免多个 NULL 绕过编号约束。
+  UNIQUE KEY uk_work_project_scope_code (scope_type, (COALESCE(system_id, 0)),
+    (COALESCE(tenant_id, 0)), code),
+  KEY ix_work_project_scope (scope_type, system_id, tenant_id, status),
   KEY ix_work_project_owner (owner_account_id, due_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作项目';
 

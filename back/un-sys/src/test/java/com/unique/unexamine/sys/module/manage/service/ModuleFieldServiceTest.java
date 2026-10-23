@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.*;
+import com.unique.unexamine.sys.base.service.IUnSysMemberService;
+import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.module.base.service.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,8 @@ import org.junit.jupiter.api.Test;
 class ModuleFieldServiceTest {
     private final DictionaryService dictionaries=mock(DictionaryService.class);
     private final ModuleFieldService service=new ModuleFieldService(new FieldValidationService(),dictionaries,
-            new ObjectMapper(),mock(IUnModuleRecordService.class),mock(IUnModuleRecordDataService.class));
+            new ObjectMapper(),mock(IUnModuleRecordService.class),mock(IUnModuleRecordDataService.class),
+            mock(IUnSysMemberService.class),mock(IUnSysTenantMemberService.class));
     private final Map<Long,DictionaryService.Item> items=new HashMap<>(Map.of(
             101L,item(101L,"1","是",null,1),
             102L,item(102L,"0","否",null,1),
@@ -66,8 +69,9 @@ class ModuleFieldServiceTest {
         resolve(); items.put(101L,new DictionaryService.Item(101L,"AREA","country","国家",null,0,"101",0,null,null,false,1));
         items.put(102L,new DictionaryService.Item(102L,"AREA","city","城市",101L,1,"101,102",0,null,null,false,1));
         var field=definition(FieldType.CASCADE,List.of(Map.of("id",101L),Map.of("id",102L)));
-        assertDoesNotThrow(()->service.validate(1L,1L,field,List.of(101L,102L),null));
-        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,List.of(102L),null));
+        assertDoesNotThrow(()->service.validate(1L,1L,field,Map.of("path",List.of(101L,102L)),null));
+        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,List.of(101L,102L),null));
+        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,Map.of("path",List.of(102L)),null));
         assertThrows(IllegalArgumentException.class,()->definition(FieldType.CASCADE,List.of(Map.of("id",102L))));
     }
 

@@ -35,12 +35,14 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
             case "recordId" -> "record_id";
             case "fieldId" -> "field_id";
             case "fieldCode" -> "field_code";
+            case "valueVarchar" -> "value_varchar";
+            case "valueText" -> "value_text";
+            case "valueNumber" -> "value_number";
+            case "valueTime" -> "value_time";
             case "valueJson" -> "value_json";
-            case "indexText" -> "index_text";
-            case "indexDecimal" -> "index_decimal";
-            case "indexTime" -> "index_time";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleRecordData> wrapper = new QueryWrapper<>();
@@ -51,12 +53,14 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
                     case "recordId" -> "record_id";
                     case "fieldId" -> "field_id";
                     case "fieldCode" -> "field_code";
+                    case "valueVarchar" -> "value_varchar";
+                    case "valueText" -> "value_text";
+                    case "valueNumber" -> "value_number";
+                    case "valueTime" -> "value_time";
                     case "valueJson" -> "value_json";
-                    case "indexText" -> "index_text";
-                    case "indexDecimal" -> "index_decimal";
-                    case "indexTime" -> "index_time";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -116,12 +120,14 @@ public class UnModuleRecordDataServiceImpl extends ServiceImpl<UnModuleRecordDat
         values.put("recordId", model.getRecordId());
         values.put("fieldId", model.getFieldId());
         values.put("fieldCode", model.getFieldCode());
+        values.put("valueVarchar", model.getValueVarchar());
+        values.put("valueText", model.getValueText());
+        values.put("valueNumber", model.getValueNumber());
+        values.put("valueTime", model.getValueTime());
         values.put("valueJson", model.getValueJson());
-        values.put("indexText", model.getIndexText());
-        values.put("indexDecimal", model.getIndexDecimal());
-        values.put("indexTime", model.getIndexTime());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

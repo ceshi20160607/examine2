@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS un_dashboard (
   create_account_id BIGINT NOT NULL COMMENT '创建仪表盘的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_dashboard_scope (scope_type, system_id, tenant_id, owner_account_id, status),
   KEY ix_dashboard_module (module_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='自定义仪表盘';
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS un_dashboard_component (
   status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '组件草稿发布或停用状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_dashboard_component (dashboard_id, component_code),
   KEY ix_dashboard_component_source (data_source_id, module_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='仪表盘配置组件';
@@ -46,6 +48,7 @@ CREATE TABLE IF NOT EXISTS un_dashboard_component_field (
   config_json JSON DEFAULT NULL COMMENT '展示格式及字段级补充配置',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_component_field (component_id, source_field_id, field_role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='仪表组件字段配置';
 
@@ -55,6 +58,7 @@ CREATE TABLE IF NOT EXISTS un_dashboard_user (
   subject_type VARCHAR(20) NOT NULL COMMENT '授权成员角色或部门类型',
   subject_id BIGINT NOT NULL COMMENT '成员角色或部门主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_dashboard_subject (dashboard_id, subject_type, subject_id),
   KEY ix_dashboard_user_subject (subject_type, subject_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='仪表盘人员与组织访问范围';
@@ -73,6 +77,7 @@ CREATE TABLE IF NOT EXISTS un_data_source (
   create_account_id BIGINT NOT NULL COMMENT '创建数据源的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_data_source_scope (scope_type, system_id, tenant_id, status),
   KEY ix_data_source_root (root_module_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='按模块及关联配置的自定义数据源';
@@ -87,6 +92,7 @@ CREATE TABLE IF NOT EXISTS un_data_source_config (
   published_json JSON DEFAULT NULL COMMENT '已发布查询配置整体快照',
   published_version INT NOT NULL DEFAULT 0 COMMENT '查询配置发布版本',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_data_source_config (data_source_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='自定义数据源的关联输出筛选配置';
 
@@ -107,6 +113,7 @@ CREATE TABLE IF NOT EXISTS un_kpi (
   published_version INT NOT NULL DEFAULT 0 COMMENT '已发布指标版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_kpi_code (tenant_id, code),
   KEY ix_kpi_source (data_source_id, module_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='关键绩效指标配置';
@@ -124,6 +131,7 @@ CREATE TABLE IF NOT EXISTS un_kpi_user (
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '目标启用或停用状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_kpi_target_period (kpi_id, target_type, target_id, period_key),
   KEY ix_kpi_user_target (target_type, target_id, period_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='指标人员组织目标与计算结果';
@@ -135,5 +143,6 @@ CREATE TABLE IF NOT EXISTS un_kpi_result (
   actual_value DECIMAL(20,4) NOT NULL COMMENT '本次计算的实际指标值',
   source_json JSON NOT NULL COMMENT '来源模块数据源筛选口径与权限摘要',
   calculation_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '指标实际计算时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_kpi_result_target (kpi_user_id, calculation_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='可解释的指标计算历史';

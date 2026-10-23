@@ -36,6 +36,7 @@ public class UnDashboardUserServiceImpl extends ServiceImpl<UnDashboardUserMappe
             case "subjectType" -> "subject_type";
             case "subjectId" -> "subject_id";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnDashboardUser> wrapper = new QueryWrapper<>();
@@ -47,6 +48,7 @@ public class UnDashboardUserServiceImpl extends ServiceImpl<UnDashboardUserMappe
                     case "subjectType" -> "subject_type";
                     case "subjectId" -> "subject_id";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -107,6 +109,7 @@ public class UnDashboardUserServiceImpl extends ServiceImpl<UnDashboardUserMappe
         values.put("subjectType", model.getSubjectType());
         values.put("subjectId", model.getSubjectId());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

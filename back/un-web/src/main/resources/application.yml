@@ -1,7 +1,19 @@
 server:
   port: 9999
 
+# 全部业务表以删除时间统一逻辑删除；关联查询及统计仍由业务入口核对过滤范围。
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deletedTime
+      logic-not-delete-value: 'null'
+      logic-delete-value: 'now(3)'
+
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   datasource:
     url: ${APP_DB_URL:jdbc:mysql://127.0.0.1:3306/unexamine_r16?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${APP_DB_USERNAME:root}

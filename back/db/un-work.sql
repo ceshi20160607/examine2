@@ -20,7 +20,12 @@ CREATE TABLE IF NOT EXISTS un_work_project (
   create_account_id BIGINT NOT NULL COMMENT '创建项目的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
-  PRIMARY KEY (id), KEY ix_work_project_scope (scope_type, system_id, tenant_id, status),
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id),
+  -- 唯一键把平台作用域的空系统和租户映射为 0，避免多个 NULL 绕过编号约束。
+  UNIQUE KEY uk_work_project_scope_code (scope_type, (COALESCE(system_id, 0)),
+    (COALESCE(tenant_id, 0)), code),
+  KEY ix_work_project_scope (scope_type, system_id, tenant_id, status),
   KEY ix_work_project_owner (owner_account_id, due_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作项目';
 
@@ -31,6 +36,7 @@ CREATE TABLE IF NOT EXISTS un_work_project_member (
   member_type VARCHAR(30) NOT NULL COMMENT '负责人协作或观察成员身份',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '成员关系状态',
   join_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入项目时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_work_project_member (project_id, account_id, member_type),
   KEY ix_work_project_member_account (account_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作项目参与人';
@@ -46,6 +52,7 @@ CREATE TABLE IF NOT EXISTS un_work_task_group (
   due_time DATETIME(3) DEFAULT NULL COMMENT '任务组计划完成时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_task_group_project (project_id, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='项目任务组';
 
@@ -75,6 +82,7 @@ CREATE TABLE IF NOT EXISTS un_work_task (
   archived_time DATETIME(3) DEFAULT NULL COMMENT '任务归档时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_task_scope (scope_type, system_id, tenant_id, status, due_time),
   KEY ix_work_task_project (project_id, task_group_id, status),
   KEY ix_work_task_owner (owner_account_id, status, due_time)
@@ -96,6 +104,7 @@ CREATE TABLE IF NOT EXISTS un_work_task_field (
   published_version INT NOT NULL DEFAULT 0 COMMENT '已发布任务字段版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_task_field_scope (scope_type, system_id, tenant_id, task_kind, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务字段与看板取数配置';
 
@@ -106,6 +115,7 @@ CREATE TABLE IF NOT EXISTS un_work_task_member (
   member_type VARCHAR(20) NOT NULL COMMENT '协作关注或验收成员身份',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '参与关系状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入任务时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_work_task_member (task_id, account_id, member_type),
   KEY ix_work_task_member_account (account_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务协作关注与验收成员';
@@ -119,6 +129,7 @@ CREATE TABLE IF NOT EXISTS un_work_task_history (
   after_json JSON DEFAULT NULL COMMENT '操作后业务值摘要',
   content TEXT DEFAULT NULL COMMENT '评论进度说明或操作原因',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '操作时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_task_history_task (task_id, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务状态与业务操作历史';
 
@@ -144,6 +155,7 @@ CREATE TABLE IF NOT EXISTS un_work_daily (
   submit_time DATETIME(3) DEFAULT NULL COMMENT '本版本提交时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '本版本创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '本版本更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_daily_owner (scope_type, system_id, tenant_id, account_id, log_date),
   KEY ix_work_daily_root (root_id, version_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户手动创建的每日工作日志及版本';
@@ -163,6 +175,7 @@ CREATE TABLE IF NOT EXISTS un_work_daily_field (
   published_version INT NOT NULL DEFAULT 0 COMMENT '已发布工作日志字段版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_daily_field_scope (scope_type, system_id, tenant_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作日志字段配置';
 
@@ -175,5 +188,6 @@ CREATE TABLE IF NOT EXISTS un_work_daily_comment (
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '正常或撤回状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '评论时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_work_daily_comment_root (daily_root_id, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工作日志评论与管理反馈';

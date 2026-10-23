@@ -44,13 +44,10 @@ public class UnModuleFieldServiceImpl extends ServiceImpl<UnModuleFieldMapper, U
             case "sortNo" -> "sort_no";
             case "layoutJson" -> "layout_json";
             case "configJson" -> "config_json";
-            case "publishedLayoutJson" -> "published_layout_json";
-            case "publishedConfigJson" -> "published_config_json";
-            case "publishedSortNo" -> "published_sort_no";
             case "status" -> "status";
-            case "publishedVersion" -> "published_version";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleField> wrapper = new QueryWrapper<>();
@@ -70,13 +67,10 @@ public class UnModuleFieldServiceImpl extends ServiceImpl<UnModuleFieldMapper, U
                     case "sortNo" -> "sort_no";
                     case "layoutJson" -> "layout_json";
                     case "configJson" -> "config_json";
-                    case "publishedLayoutJson" -> "published_layout_json";
-                    case "publishedConfigJson" -> "published_config_json";
-                    case "publishedSortNo" -> "published_sort_no";
                     case "status" -> "status";
-                    case "publishedVersion" -> "published_version";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -145,13 +139,10 @@ public class UnModuleFieldServiceImpl extends ServiceImpl<UnModuleFieldMapper, U
         values.put("sortNo", model.getSortNo());
         values.put("layoutJson", model.getLayoutJson());
         values.put("configJson", model.getConfigJson());
-        values.put("publishedLayoutJson", model.getPublishedLayoutJson());
-        values.put("publishedConfigJson", model.getPublishedConfigJson());
-        values.put("publishedSortNo", model.getPublishedSortNo());
         values.put("status", model.getStatus());
-        values.put("publishedVersion", model.getPublishedVersion());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

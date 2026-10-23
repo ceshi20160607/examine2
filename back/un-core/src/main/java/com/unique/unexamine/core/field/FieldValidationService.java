@@ -79,6 +79,11 @@ public class FieldValidationService {
                         && (value instanceof Map<?, ?> || type == FieldType.JSON && value instanceof List<?>)) return;
         }
         if (type.computed()) fail(field, "由系统计算，不能直接提交");
+        // 附件字段存储同批文件共享的 UUID，而不是文件主键或文件 ID 数组。
+        if (Set.of(FieldType.ATTACHMENT, FieldType.IMAGE, FieldType.FILE_GROUP).contains(type)) {
+            if (!FileBatchId.valid(value)) fail(field, "必须是32位UUID文件批次 ID");
+            return;
+        }
         try {
             switch (type.kind()) {
                 case TEXT -> text(field, value);
@@ -89,7 +94,10 @@ public class FieldValidationService {
                 case TIME -> LocalTime.parse(string(value));
                 case DATE_RANGE, TIME_RANGE -> range(field, value);
                 case OPTION -> option(field, value);
-                case OPTIONS -> options(field, value);
+                case OPTIONS -> {
+                    if (type == FieldType.CASCADE) cascade(field, value);
+                    else options(field, value);
+                }
                 case REFERENCE -> {
                     if (Boolean.TRUE.equals(field.rules().get("multiple"))) references(field, value);
                     else if (!positiveId(value)) fail(field, "必须是有效关联标识");
@@ -114,6 +122,8 @@ public class FieldValidationService {
     private void text(FieldDefinition field, Object value) {
         String text = string(value);
         int length = text.codePointCount(0, text.length());
+        if (field.type().valueColumn()==FieldType.ValueColumn.VARCHAR && length>255)
+            fail(field,"长度不能超过255字符");
         limit(field, length, "minLength", "maxLength", "文本长度");
         Object pattern = field.rules().get("pattern");
         if (pattern instanceof String expression && !Pattern.matches(expression, text)) fail(field, "不符合格式规则");
@@ -153,7 +163,7 @@ public class FieldValidationService {
     }
 
     private void option(FieldDefinition field, Object value) {
-        if (!validOptionId(value)) fail(field, "选项标识无效");
+        if (!positiveId(value)) fail(field, "选项标识必须是字典项 ID");
         if (field.rules().get("options") instanceof List<?> options) {
             boolean found = options.stream().filter(Map.class::isInstance).map(Map.class::cast)
                     .anyMatch(option -> String.valueOf(value).equals(String.valueOf(option.get("id")))
@@ -170,16 +180,31 @@ public class FieldValidationService {
             option(field, item);
             if (!selected.add(String.valueOf(item))) fail(field, "不能重复选择同一选项");
         }
-        if (field.type() == FieldType.CASCADE && field.rules().get("options") instanceof List<?> options) {
-            String parent = null;
-            for (Object id : values) {
+    }
+
+    /** 级联使用对象承载有序路径，不能把末级 ID 或普通多选数组混作省市区值。 */
+    private void cascade(FieldDefinition field, Object value) {
+        if (!(value instanceof Map<?,?>)) fail(field, "必须是包含非空 path 的级联对象");
+        Map<?,?> object = (Map<?,?>) value;
+        if (object.size() != 1 || !(object.get("path") instanceof List<?>))
+            fail(field, "必须是包含非空 path 的级联对象");
+        List<?> path = (List<?>) object.get("path");
+        if (path.isEmpty()) fail(field, "必须是包含非空 path 的级联对象");
+        items(field, path);
+        Set<String> seen = new HashSet<>();
+        String parent = null;
+        for (Object id : path) {
+            option(field, id);
+            if (!seen.add(String.valueOf(id))) fail(field, "级联路径不能重复");
+            if (field.rules().get("options") instanceof List<?> options) {
                 Map<?,?> option = options.stream().filter(Map.class::isInstance).map(Map.class::cast)
-                        .filter(item -> String.valueOf(id).equals(String.valueOf(item.get("id")))).findFirst().orElseThrow();
+                        .filter(item -> String.valueOf(id).equals(String.valueOf(item.get("id"))))
+                        .findFirst().orElseThrow();
                 Object configuredParent = option.get("parentId");
                 if (!java.util.Objects.equals(parent, configuredParent == null ? null : String.valueOf(configuredParent)))
                     fail(field, "级联值必须按完整父子路径选择");
-                parent = String.valueOf(id);
             }
+            parent = String.valueOf(id);
         }
     }
 

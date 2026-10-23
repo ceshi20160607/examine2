@@ -38,6 +38,7 @@ public class UnExamineNodeFieldServiceImpl extends ServiceImpl<UnExamineNodeFiel
             case "writableFlag" -> "writable_flag";
             case "requiredFlag" -> "required_flag";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnExamineNodeField> wrapper = new QueryWrapper<>();
@@ -51,6 +52,7 @@ public class UnExamineNodeFieldServiceImpl extends ServiceImpl<UnExamineNodeFiel
                     case "writableFlag" -> "writable_flag";
                     case "requiredFlag" -> "required_flag";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -113,6 +115,7 @@ public class UnExamineNodeFieldServiceImpl extends ServiceImpl<UnExamineNodeFiel
         values.put("writableFlag", model.getWritableFlag());
         values.put("requiredFlag", model.getRequiredFlag());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

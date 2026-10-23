@@ -56,7 +56,7 @@ public class ModuleSceneService {
     @Transactional(rollbackFor=Exception.class)
     public SceneView save(String token,Long systemId,Long tenantId,Long moduleId,SaveRequest request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        var context=access.context(); modules.publishedModule(systemId,moduleId,context.tenantId());
+        var context=access.context(); modules.activeModule(systemId,moduleId,context.tenantId());
         if (!request.personal()) systems.requireAdminContext(token,systemId,tenantId);
         Settings settings=new Settings(request.filters()==null?List.of():List.copyOf(request.filters()),
                 request.columnFieldIds()==null?List.of():List.copyOf(request.columnFieldIds()),
@@ -72,14 +72,13 @@ public class ModuleSceneService {
             scene.setCode("SCENE_"+UUID.randomUUID().toString().replace("-", ""));
             scene.setSortNo(0);
         }
-        scene.setName(request.name().trim()); scene.setStatus("PUBLISHED"); scenes.addOrUpdate(scene);
+        scene.setName(request.name().trim()); scene.setStatus("ACTIVE"); scenes.addOrUpdate(scene);
         UnModuleScenceConfig row=configurations.getOne(new LambdaQueryWrapper<UnModuleScenceConfig>()
                 .eq(UnModuleScenceConfig::getScenceId,scene.getId()));
         if (row==null) { row=new UnModuleScenceConfig(); row.setScenceId(scene.getId()); }
         row.setFilterJson(write(settings.filters())); row.setColumnJson(write(settings.columnFieldIds()));
         row.setSortJson(write(Map.of("fieldId",settings.sortFieldId()==null?0L:settings.sortFieldId(),
                 "descending",settings.descending())));
-        row.setPublishedVersion(row.getPublishedVersion()==null?1:row.getPublishedVersion()+1);
         configurations.addOrUpdate(row);
         return view(scene,settings);
     }
@@ -87,11 +86,11 @@ public class ModuleSceneService {
     /** 只列出当前账号可执行、可读取字段的公共及个人场景。 */
     public List<SceneView> list(String token,Long systemId,Long tenantId,Long moduleId) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        modules.publishedModule(systemId,moduleId,access.context().tenantId());
+        modules.activeModule(systemId,moduleId,access.context().tenantId());
         List<SceneView> result=new ArrayList<>();
         for (UnModuleScence scene:scenes.list(new LambdaQueryWrapper<UnModuleScence>()
                 .eq(UnModuleScence::getModuleId,moduleId).eq(UnModuleScence::getTenantId,access.context().tenantId())
-                .eq(UnModuleScence::getStatus,"PUBLISHED").orderByAsc(UnModuleScence::getSortNo)
+                .eq(UnModuleScence::getStatus,"ACTIVE").orderByAsc(UnModuleScence::getSortNo)
                 .orderByAsc(UnModuleScence::getId))) {
             if (scene.getOwnerAccountId()!=null && !scene.getOwnerAccountId().equals(access.accountId())) continue;
             Settings settings=stored(scene.getId());
@@ -105,7 +104,7 @@ public class ModuleSceneService {
         if (sceneId==null) return new Settings(List.of(),List.of(),null,true);
         UnModuleScence scene=scenes.queryById(sceneId);
         if (!moduleId.equals(scene.getModuleId()) || !access.context().tenantId().equals(scene.getTenantId())
-                || !"PUBLISHED".equals(scene.getStatus()) || scene.getOwnerAccountId()!=null
+                || !"ACTIVE".equals(scene.getStatus()) || scene.getOwnerAccountId()!=null
                 && !scene.getOwnerAccountId().equals(access.accountId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"场景不属于当前账号和模块");
         Settings settings=stored(sceneId);
@@ -113,7 +112,7 @@ public class ModuleSceneService {
         return visibleColumns(moduleId,settings,access);
     }
 
-    /** 条件和排序只能引用当前有权读取的已发布字段。 */
+    /** 条件和排序只能引用当前有权读取的已保存字段。 */
     public void check(Long systemId,Long tenantId,Long moduleId,Settings settings,ModulePermissionService.Access access) {
         check(systemId,tenantId,moduleId,settings,access,true);
     }
@@ -121,7 +120,7 @@ public class ModuleSceneService {
     /** 保存时只接受已授权列；运行时过滤后来撤销的展示列，但筛选和排序必须仍有权限。 */
     private void check(Long systemId,Long tenantId,Long moduleId,Settings settings,
             ModulePermissionService.Access access,boolean requireReadableColumns) {
-        Map<Long,UnModuleField> fields=modules.publishedFields(moduleId).stream()
+        Map<Long,UnModuleField> fields=modules.currentFields(moduleId).stream()
                 .collect(Collectors.toMap(UnModuleField::getId,field->field));
         if (settings.filters().size()>20 || settings.columnFieldIds().size()>100)
             throw new IllegalArgumentException("场景筛选或列数量超出范围");
@@ -129,7 +128,7 @@ public class ModuleSceneService {
             if (condition==null || condition.fieldId()==null || condition.operator()==null)
                 throw new IllegalArgumentException("场景筛选条件不完整");
             UnModuleField field=readable(fields,condition.fieldId(),access);
-            FieldDefinition definition=fieldRules.published(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
             if ("EQ".equals(condition.operator()))
                 fieldRules.validate(systemId,tenantId,definition,condition.value(),null);
             else if ("CONTAINS".equals(condition.operator())) {
@@ -142,13 +141,15 @@ public class ModuleSceneService {
             throw new IllegalArgumentException("场景列表列重复或为空");
         for (Long id:settings.columnFieldIds()) {
             if (requireReadableColumns) readable(fields,id,access);
-            else if (!fields.containsKey(id)) throw new IllegalArgumentException("场景引用了未发布字段");
+            else if (!fields.containsKey(id)) throw new IllegalArgumentException("场景引用了未保存字段");
         }
         if (settings.sortFieldId()!=null) {
             UnModuleField field=readable(fields,settings.sortFieldId(),access);
-            FieldType.Kind kind=FieldType.parse(field.getFieldType()).kind();
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldType.Kind kind=definition.type().kind();
             if (List.of(FieldType.Kind.OPTIONS,FieldType.Kind.OBJECT,FieldType.Kind.ROWS,
-                    FieldType.Kind.REFERENCES).contains(kind))
+                    FieldType.Kind.REFERENCES).contains(kind) || definition.type().valueColumn()==FieldType.ValueColumn.JSON
+                    || kind==FieldType.Kind.REFERENCE && Boolean.TRUE.equals(definition.rules().get("multiple")))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");
         }
     }
@@ -163,7 +164,7 @@ public class ModuleSceneService {
     }
 
     private Settings visibleColumns(Long moduleId,Settings settings,ModulePermissionService.Access access) {
-        Map<Long,UnModuleField> fields=modules.publishedFields(moduleId).stream()
+        Map<Long,UnModuleField> fields=modules.currentFields(moduleId).stream()
                 .collect(Collectors.toMap(UnModuleField::getId,field->field));
         List<Long> visible=settings.columnFieldIds().stream()
                 .filter(id->fields.containsKey(id) && access.policy().readable(fields.get(id).getFieldCode())).toList();
@@ -174,7 +175,7 @@ public class ModuleSceneService {
 
     private UnModuleField readable(Map<Long,UnModuleField> fields,Long fieldId,ModulePermissionService.Access access) {
         UnModuleField field=fields.get(fieldId);
-        if (field==null) throw new IllegalArgumentException("场景引用了未发布字段");
+        if (field==null) throw new IllegalArgumentException("场景引用了未保存字段");
         if (!access.policy().readable(field.getFieldCode()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"场景引用了无权读取的字段");
         return field;
@@ -183,7 +184,7 @@ public class ModuleSceneService {
     private Settings stored(Long sceneId) {
         UnModuleScenceConfig row=configurations.getOne(new LambdaQueryWrapper<UnModuleScenceConfig>()
                 .eq(UnModuleScenceConfig::getScenceId,sceneId));
-        if (row==null || row.getPublishedVersion()==null || row.getPublishedVersion()<1)
+        if (row==null)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"场景没有可用的查询配置");
         try {
             List<Condition> filters=json.readValue(row.getFilterJson(),json.getTypeFactory()

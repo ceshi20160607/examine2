@@ -37,6 +37,7 @@ public class UnKpiResultServiceImpl extends ServiceImpl<UnKpiResultMapper, UnKpi
             case "actualValue" -> "actual_value";
             case "sourceJson" -> "source_json";
             case "calculationTime" -> "calculation_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnKpiResult> wrapper = new QueryWrapper<>();
@@ -49,6 +50,7 @@ public class UnKpiResultServiceImpl extends ServiceImpl<UnKpiResultMapper, UnKpi
                     case "actualValue" -> "actual_value";
                     case "sourceJson" -> "source_json";
                     case "calculationTime" -> "calculation_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -110,6 +112,7 @@ public class UnKpiResultServiceImpl extends ServiceImpl<UnKpiResultMapper, UnKpi
         values.put("actualValue", model.getActualValue());
         values.put("sourceJson", model.getSourceJson());
         values.put("calculationTime", model.getCalculationTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

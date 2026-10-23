@@ -48,6 +48,7 @@ public class UnAppServiceImpl extends ServiceImpl<UnAppMapper, UnApp>
             case "createAccountId" -> "create_account_id";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnApp> wrapper = new QueryWrapper<>();
@@ -71,6 +72,7 @@ public class UnAppServiceImpl extends ServiceImpl<UnAppMapper, UnApp>
                     case "createAccountId" -> "create_account_id";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -143,6 +145,7 @@ public class UnAppServiceImpl extends ServiceImpl<UnAppMapper, UnApp>
         values.put("createAccountId", model.getCreateAccountId());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

@@ -27,6 +27,7 @@ import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
 import com.unique.unexamine.core.permission.PermissionPolicy;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.web.server.ResponseStatusException;
 
-/** 发布模块的记录保存与读取；主记录、自定义字段和日志在同一事务中完成。 */
+/** 有效模块的记录保存与读取；主记录、自定义字段和日志在同一事务中完成。 */
 @Service
 public class ModuleRecordService {
     private final SystemManageService systems;
@@ -65,6 +66,7 @@ public class ModuleRecordService {
     private final IUnModuleRelationService relations;
     private final IUnPlatAccountService accounts;
     private final ModuleShareService shares;
+    private final ModuleFileBatchService fileBatches;
 
     /** 表单提交主键为空时新增，传主键时更新同模块记录。 */
     public record SaveRecordRequest(Long id, Long ownerAccountId,
@@ -78,7 +80,10 @@ public class ModuleRecordService {
     /** 模块列表的实际分页结果。 */
     public record RecordPage(long total, long current, long size, List<RecordView> records) {}
 
-    /** `information` 复用发布的表单配置并填入基础及扩展值。 */
+    /** 批量删除的记录标识；每条记录仍逐条检查当前动作的数据权限。 */
+    public record DeleteRecordsRequest(@NotEmpty List<@NotNull Long> ids) {}
+
+    /** `information` 复用当前保存的表单配置并填入基础及扩展值。 */
     public record RecordInformation(Long id,Long sourceTenantId,boolean shared,List<FieldView> fields) {}
 
     /** 注入已生成基础 Service 和系统成员关系服务。 */
@@ -87,7 +92,8 @@ public class ModuleRecordService {
             IUnSysTenantMemberService tenantMembers, IUnModuleRecordService records,
             IUnModuleRecordDataService data, IUnModuleLogService logs, ObjectMapper json,
             ModulePermissionService permissions, ModuleFieldService fieldRules, ModuleMenuService menus,
-            IUnModuleRelationService relations, IUnPlatAccountService accounts,ModuleShareService shares) {
+            IUnModuleRelationService relations, IUnPlatAccountService accounts,ModuleShareService shares,
+            ModuleFileBatchService fileBatches) {
         this.systems = systems;
         this.config = config;
         this.systemRows = systemRows;
@@ -103,6 +109,7 @@ public class ModuleRecordService {
         this.relations = relations;
         this.accounts = accounts;
         this.shares = shares;
+        this.fileBatches = fileBatches;
     }
 
     /** 输入字段只允许动作指定的业务字段；归属转移使用单独的负责人参数。 */
@@ -136,10 +143,10 @@ public class ModuleRecordService {
         var context=access.context(); Long systemId=context.systemId();
         if (request.values()==null) throw new IllegalArgumentException("字段值不能为空");
         access.policy().requireWritable(request.values().keySet());
-        UnModule module=config.publishedModule(systemId,moduleId,context.tenantId());
-        List<UnModuleField> fields=config.publishedFields(moduleId);
+        UnModule module=config.activeModule(systemId,moduleId,context.tenantId());
+        List<UnModuleField> fields=config.currentFields(moduleId);
         Set<String> allowed=fields.stream().map(UnModuleField::getFieldCode).collect(java.util.stream.Collectors.toSet());
-        if (!allowed.containsAll(request.values().keySet())) throw new IllegalArgumentException("提交包含未发布字段");
+        if (!allowed.containsAll(request.values().keySet())) throw new IllegalArgumentException("提交包含未配置字段");
         ActionRecord selected=request.id()==null?null:actionRecord(access,request.id());
         UnModuleRecord record=selected==null?new UnModuleRecord():selected.record();
         UnModuleShare share=selected==null?null:selected.share();
@@ -152,8 +159,8 @@ public class ModuleRecordService {
         Map<String,Object> effective=new LinkedHashMap<>(); List<FieldChange> changes=new ArrayList<>();
         for (UnModuleField field:fields) {
             String code=field.getFieldCode();
-            Object previous="name".equals(code)?record.getName():existing.containsKey(code)?readValue(existing.get(code).getValueJson()):null;
-            FieldDefinition definition=fieldRules.published(code,config.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(code,config.fieldConfig(field).configuration());
+            Object previous="name".equals(code)?record.getName():fieldRules.stored(existing.get(code),definition.type());
             Object value=request.values().containsKey(code)?request.values().get(code):previous;
             if (request.id()==null && !request.values().containsKey(code)) value=definition.rules().get("defaultValue");
             if ("name".equals(code) && value instanceof String text) value=text.trim();
@@ -166,6 +173,7 @@ public class ModuleRecordService {
         }
         String name=(String)effective.get("name");
         if (name==null || name.isBlank()) throw new IllegalArgumentException("记录标题不能为空");
+        fileBatches.validate(systemId,dataTenantId,request.id(),access.accountId(),fields,effective);
         Long ownerId=request.ownerAccountId()!=null?request.ownerAccountId():request.id()==null?
                 systemRows.queryById(systemId).getOwnerAccountId():record.getOwnerUserId();
         var owner=ownerMembership(systemId,dataTenantId,ownerId);
@@ -180,19 +188,20 @@ public class ModuleRecordService {
         for (UnModuleField field:fields) {
             String code=field.getFieldCode(); if ("name".equals(code)) continue;
             var item=existing.getOrDefault(code,new UnModuleRecordData());
-            if (item.getId()!=null && same(readValue(item.getValueJson()),effective.get(code))) continue;
+            FieldDefinition definition=fieldRules.configured(code,config.fieldConfig(field).configuration());
+            if (item.getId()!=null && same(fieldRules.stored(item,definition.type()),effective.get(code))) continue;
             item.setRecordId(record.getId()); item.setFieldId(field.getId()); item.setFieldCode(code);
-            item.setValueJson(writeValue(effective.get(code)));
-            indexValue(item,fieldRules.published(code,config.fieldConfig(field).configuration()),effective.get(code));
+            fieldRules.store(item,definition,effective.get(code));
             persistDataValue(item);
         }
+        fileBatches.sync(record,fields,effective);
         audit(module,record,access,share,operation,actionName,changes,relatedModuleId,relatedRecordId);
         return view(record,access.policy(),context.tenantId());
     }
 
-    /** 候选动作逐个以真实菜单鉴权，配置中的草稿和停用项不会返回。 */
+    /** 候选动作逐个以真实菜单鉴权，配置中的停用项不会返回。 */
     public List<RuntimeAction> availableActions(String token,Long systemId,Long tenantId,Long moduleId) {
-        var context=systems.context(token,systemId,tenantId); config.publishedModule(systemId,moduleId,context.tenantId());
+        var context=systems.context(token,systemId,tenantId); config.activeModule(systemId,moduleId,context.tenantId());
         List<RuntimeAction> result=new ArrayList<>();
         for (var definition:menus.definitions(context,moduleId)) {
             try {
@@ -214,6 +223,10 @@ public class ModuleRecordService {
         var values=recordValues(record); conditions(access,values);
         var fields=actionFields(access.definition()); access.policy().requireWritable(fields.keySet());
         var form=fields.values().stream().map(field->config.runtimeFieldConfig(systemId,record.getTenantId(),field,true)).toList();
+        for (UnModuleField field:fields.values()) if (values.containsKey(field.getFieldCode())) {
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),config.fieldConfig(field).configuration());
+            values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,values.get(field.getFieldCode())));
+        }
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(access.context().tenantId()),
                 records.information(recordId,form,values));
     }
@@ -253,7 +266,7 @@ public class ModuleRecordService {
             }
             case "CONVERT" -> {
                 if (selected.share()!=null) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"共享记录不能转化");
-                if (!submitted.isEmpty() || request.ownerAccountId()!=null) throw new IllegalArgumentException("转化只使用已发布的字段映射");
+                if (!submitted.isEmpty() || request.ownerAccountId()!=null) throw new IllegalArgumentException("转化只使用当前保存的字段映射");
                 return convert(token,access,record,values);
             }
             default -> throw new IllegalArgumentException("请使用该基础动作对应的业务入口");
@@ -270,15 +283,15 @@ public class ModuleRecordService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"此记录已转化到该目标模块");
         var targetAccess=permissions.require(token,access.context().systemId(),access.context().tenantId(),targetModule,"CREATE");
         Map<Long,UnModuleField> sourceFields=new HashMap<>(),targetFields=new HashMap<>();
-        config.publishedFields(source.getModuleId()).forEach(f->sourceFields.put(f.getId(),f));
-        config.publishedFields(targetModule).forEach(f->targetFields.put(f.getId(),f));
+        config.currentFields(source.getModuleId()).forEach(f->sourceFields.put(f.getId(),f));
+        config.currentFields(targetModule).forEach(f->targetFields.put(f.getId(),f));
         Map<String,Object> mapped=new LinkedHashMap<>();
         for (var mapping:settings.mappings()) {
             var from=sourceFields.get(mapping.sourceFieldId()); var to=targetFields.get(mapping.targetFieldId());
             if (from==null || to==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"字段映射已失效，请重新配置");
             if (!access.policy().readable(from.getFieldCode())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"没有来源字段读取权限");
-            var fromDefinition=fieldRules.published(from.getFieldCode(),config.fieldConfig(from).configuration());
-            var toDefinition=fieldRules.published(to.getFieldCode(),config.fieldConfig(to).configuration());
+            var fromDefinition=fieldRules.configured(from.getFieldCode(),config.fieldConfig(from).configuration());
+            var toDefinition=fieldRules.configured(to.getFieldCode(),config.fieldConfig(to).configuration());
             fieldRules.validateMapping(fromDefinition,toDefinition);
             if (mapped.containsKey(to.getFieldCode())) throw new IllegalArgumentException("目标字段映射重复");
             mapped.put(to.getFieldCode(),values.get(from.getFieldCode()));
@@ -294,7 +307,7 @@ public class ModuleRecordService {
 
     /** 已配置条件只使用有权读取的字段值，禁止执行任意表达式或 SQL。 */
     private void conditions(ModulePermissionService.Access access,Map<String,Object> values) {
-        Map<Long,UnModuleField> definitions=new HashMap<>(); config.publishedFields(access.definition().module().getId()).forEach(f->definitions.put(f.getId(),f));
+        Map<Long,UnModuleField> definitions=new HashMap<>(); config.currentFields(access.definition().module().getId()).forEach(f->definitions.put(f.getId(),f));
         for (var condition:access.definition().settings().conditions()) {
             var field=definitions.get(condition.fieldId());
             if (field==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"动作条件字段已失效");
@@ -320,12 +333,16 @@ public class ModuleRecordService {
     }
     private Map<String,UnModuleField> actionFields(ModuleMenuService.Definition definition) {
         Map<String,UnModuleField> result=new LinkedHashMap<>(); var ids=definition.settings().fieldIds();
-        for (var field:config.publishedFields(definition.module().getId())) if (ids.contains(field.getId())) result.put(field.getFieldCode(),field);
+        for (var field:config.currentFields(definition.module().getId())) if (ids.contains(field.getId())) result.put(field.getFieldCode(),field);
         if (result.size()!=ids.size()) throw new ResponseStatusException(HttpStatus.CONFLICT,"动作字段已失效"); return result;
     }
     private Map<String,Object> recordValues(UnModuleRecord record) {
         Map<String,Object> result=new LinkedHashMap<>(); result.put("name",record.getName());
-        dataByCode(record.getId()).forEach((code,row)->result.put(code,readValue(row.getValueJson()))); return result;
+        Map<String,FieldType> types=new HashMap<>();
+        config.currentFields(record.getModuleId()).forEach(field->types.put(field.getFieldCode(),FieldType.parse(field.getFieldType())));
+        dataByCode(record.getId()).forEach((code,row)->{
+            if (types.containsKey(code)) result.put(code,fieldRules.stored(row,types.get(code)));
+        }); return result;
     }
     private boolean same(Object left,Object right) {
         if (left instanceof Number && right instanceof Number) return new BigDecimal(left.toString()).compareTo(new BigDecimal(right.toString()))==0;
@@ -336,17 +353,17 @@ public class ModuleRecordService {
     public RecordView queryById(String token, Long systemId, Long tenantId, Long moduleId, Long recordId) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DETAIL");
         var context = access.context();
-        config.publishedModule(systemId, moduleId, context.tenantId());
+        config.activeModule(systemId, moduleId, context.tenantId());
         var record = readableRecord(access,recordId,false);
         return view(record, access.policy(),context.tenantId());
     }
 
-    /** 按发布时保存的字段顺序和布局填充记录详情。 */
+    /** 按当前保存的字段顺序和布局填充记录详情。 */
     public RecordInformation information(String token, Long systemId, Long tenantId,
                                          Long moduleId, Long recordId) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DETAIL");
         var context = access.context();
-        config.publishedModule(systemId, moduleId, context.tenantId());
+        config.activeModule(systemId, moduleId, context.tenantId());
         UnModuleRecord record = readableRecord(access,recordId,false);
         boolean shared=!record.getTenantId().equals(context.tenantId());
         ModulePermissionService.Access editAccess=null;
@@ -362,15 +379,20 @@ public class ModuleRecordService {
         final ModulePermissionService.Access effectiveEdit=editAccess;
         Map<String, Object> values = new LinkedHashMap<>();
         var stored = dataByCode(record.getId());
-        stored.forEach((code, item) -> { if (access.policy().readable(code)) values.put(code, readValue(item.getValueJson())); });
-        List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(config.publishedFields(moduleId), UnModuleField::getFieldCode).stream()
+        List<UnModuleField> currentFields=config.currentFields(moduleId);
+        for (UnModuleField field:currentFields) if (access.policy().readable(field.getFieldCode()) && stored.containsKey(field.getFieldCode())) {
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),config.fieldConfig(field).configuration());
+            Object raw=fieldRules.stored(stored.get(field.getFieldCode()),definition.type());
+            values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,raw));
+        }
+        List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(currentFields, UnModuleField::getFieldCode).stream()
                 .map(field -> {
                     boolean editable=shared?effectiveEdit!=null && effectiveEdit.policy().writable(field.getFieldCode())
                             :access.policy().writable(field.getFieldCode());
                     var item = config.runtimeFieldConfig(systemId, record.getTenantId(), field, editable);
                     if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", fieldRules.display(systemId, record.getTenantId(),
-                            fieldRules.published(field.getFieldCode(), config.fieldConfig(field).configuration()),
-                            readValue(stored.get(field.getFieldCode()).getValueJson())));
+                            fieldRules.configured(field.getFieldCode(), config.fieldConfig(field).configuration()),
+                            fieldRules.stored(stored.get(field.getFieldCode()),FieldType.parse(field.getFieldType()))));
                     return item;
                 }).toList();
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(context.tenantId()),
@@ -382,7 +404,7 @@ public class ModuleRecordService {
                                     String scope,long page, long size) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "LIST");
         var context = access.context();
-        config.publishedModule(systemId, moduleId, context.tenantId());
+        config.activeModule(systemId, moduleId, context.tenantId());
         Map<String, Object> filters = new HashMap<>();
         filters.put("systemId", systemId);
         filters.put("tenantId", context.tenantId());
@@ -407,15 +429,31 @@ public class ModuleRecordService {
     /** 业务记录默认逻辑删除，保留字段值和操作历史。 */
     @Transactional(rollbackFor = Exception.class)
     public void delete(String token, Long systemId, Long tenantId, Long moduleId, Long recordId) {
+        softDeleteRecords(token,systemId,tenantId,moduleId,List.of(recordId));
+    }
+
+    /** 批量删除先检查整批授权，再逐条写入删除时间与操作历史；任一失败回滚整批。 */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteByIds(String token,Long systemId,Long tenantId,Long moduleId,DeleteRecordsRequest request) {
+        if (request==null || request.ids()==null || request.ids().isEmpty() || request.ids().stream().anyMatch(Objects::isNull))
+            throw new IllegalArgumentException("请选择要删除的业务记录");
+        softDeleteRecords(token,systemId,tenantId,moduleId,new ArrayList<>(new java.util.LinkedHashSet<>(request.ids())));
+    }
+
+    private void softDeleteRecords(String token,Long systemId,Long tenantId,Long moduleId,List<Long> ids) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "DELETE");
         var context = access.context();
-        UnModule module = config.publishedModule(systemId, moduleId, context.tenantId());
-        ActionRecord selected=actionRecord(access,recordId);
-        UnModuleRecord record = selected.record();
-        record.setDeletedTime(LocalDateTime.now());
-        record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
-        persistRecord(record);
-        audit(module, record, access, selected.share(), "RECORD_DELETE", access.definition().menu().getName(), List.of(), null, null);
+        UnModule module = config.activeModule(systemId, moduleId, context.tenantId());
+        List<ActionRecord> selected=new ArrayList<>();
+        for (Long id:ids) selected.add(actionRecord(access,id));
+        LocalDateTime deletedTime=LocalDateTime.now();
+        for (ActionRecord item:selected) {
+            UnModuleRecord record=item.record();
+            record.setDeletedTime(deletedTime);
+            record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
+            persistRecord(record);
+            audit(module,record,access,item.share(),"RECORD_DELETE",access.definition().menu().getName(),List.of(),null,null);
+        }
     }
 
     /** 当前租户数据范围与有效共享范围求并集；共享撤销即时影响详情和历史入口。 */
@@ -504,38 +542,15 @@ public class ModuleRecordService {
         record.setLockVersion(next);
     }
 
-    /** 字段筛选索引与原值在同一事务保存；复杂值仍只存原始 JSON。 */
-    static void indexValue(UnModuleRecordData item,FieldDefinition definition,Object value) {
-        item.setIndexText(null); item.setIndexDecimal(null); item.setIndexTime(null);
-        if (value==null) return;
-        FieldType type=definition.type();
-        switch (type.kind()) {
-            case NUMBER -> {
-                BigDecimal decimal=new BigDecimal(value.toString()).stripTrailingZeros();
-                // 索引列最多保留 22 位整数和 8 位小数；超出时使用原始 JSON 精确查询。
-                if (decimal.precision()-decimal.scale()<=22 && decimal.scale()<=8)
-                    item.setIndexDecimal(decimal);
-            }
-            case DATE -> item.setIndexTime(LocalDate.parse(value.toString()).atStartOfDay());
-            case DATETIME -> item.setIndexTime(LocalDateTime.parse(value.toString()));
-            case TEXT, OPTION, REFERENCE, BOOLEAN, TIME -> {
-                if (type==FieldType.SECRET || type==FieldType.RICH_TEXT) return;
-                if (value instanceof java.util.Collection<?>) return;
-                String text=value.toString();
-                if (text.length()<=255) item.setIndexText(text);
-            }
-            default -> { }
-        }
-    }
-
-    /** 明确写入空索引值，防止字段值清除后旧筛选结果仍命中。 */
+    /** 明确写入所有值列，防止清除或变更字段类型后旧值残留。 */
     private void persistDataValue(UnModuleRecordData item) {
         if (item.getId()==null) { data.addOrUpdate(item); return; }
         data.update(new LambdaUpdateWrapper<UnModuleRecordData>().eq(UnModuleRecordData::getId,item.getId())
-                .set(UnModuleRecordData::getValueJson,item.getValueJson())
-                .set(UnModuleRecordData::getIndexText,item.getIndexText())
-                .set(UnModuleRecordData::getIndexDecimal,item.getIndexDecimal())
-                .set(UnModuleRecordData::getIndexTime,item.getIndexTime()));
+                .set(UnModuleRecordData::getValueVarchar,item.getValueVarchar())
+                .set(UnModuleRecordData::getValueText,item.getValueText())
+                .set(UnModuleRecordData::getValueNumber,item.getValueNumber())
+                .set(UnModuleRecordData::getValueTime,item.getValueTime())
+                .set(UnModuleRecordData::getValueJson,item.getValueJson()));
     }
 
     /** 字段值以 JSON 保存，保留数字布尔和空值的类型。 */
@@ -544,16 +559,6 @@ public class ModuleRecordService {
             return json.writeValueAsString(value);
         } catch (JsonProcessingException ex) {
             throw new IllegalArgumentException("字段值无法保存", ex);
-        }
-    }
-
-    /** 详情还原存储时的字段类型，不从文本猜测。 */
-    private Object readValue(String value) {
-        if (value == null) return null;
-        try {
-            return json.readValue(value, Object.class);
-        } catch (JsonProcessingException ex) {
-            throw new IllegalStateException("业务字段值损坏", ex);
         }
     }
 

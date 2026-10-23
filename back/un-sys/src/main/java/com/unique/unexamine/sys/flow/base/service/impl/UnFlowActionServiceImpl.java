@@ -42,6 +42,7 @@ public class UnFlowActionServiceImpl extends ServiceImpl<UnFlowActionMapper, UnF
             case "resultCode" -> "result_code";
             case "payloadJson" -> "payload_json";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnFlowAction> wrapper = new QueryWrapper<>();
@@ -59,6 +60,7 @@ public class UnFlowActionServiceImpl extends ServiceImpl<UnFlowActionMapper, UnF
                     case "resultCode" -> "result_code";
                     case "payloadJson" -> "payload_json";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -125,6 +127,7 @@ public class UnFlowActionServiceImpl extends ServiceImpl<UnFlowActionMapper, UnF
         values.put("resultCode", model.getResultCode());
         values.put("payloadJson", model.getPayloadJson());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

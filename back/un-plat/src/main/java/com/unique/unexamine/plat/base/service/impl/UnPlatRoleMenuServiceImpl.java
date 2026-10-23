@@ -36,6 +36,7 @@ public class UnPlatRoleMenuServiceImpl extends ServiceImpl<UnPlatRoleMenuMapper,
             case "menuId" -> "menu_id";
             case "actionCode" -> "action_code";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnPlatRoleMenu> wrapper = new QueryWrapper<>();
@@ -47,6 +48,7 @@ public class UnPlatRoleMenuServiceImpl extends ServiceImpl<UnPlatRoleMenuMapper,
                     case "menuId" -> "menu_id";
                     case "actionCode" -> "action_code";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -107,6 +109,7 @@ public class UnPlatRoleMenuServiceImpl extends ServiceImpl<UnPlatRoleMenuMapper,
         values.put("menuId", model.getMenuId());
         values.put("actionCode", model.getActionCode());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

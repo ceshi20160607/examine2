@@ -50,6 +50,7 @@ public class UnFlowExampleServiceImpl extends ServiceImpl<UnFlowExampleMapper, U
             case "startTime" -> "start_time";
             case "finishTime" -> "finish_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnFlowExample> wrapper = new QueryWrapper<>();
@@ -75,6 +76,7 @@ public class UnFlowExampleServiceImpl extends ServiceImpl<UnFlowExampleMapper, U
                     case "startTime" -> "start_time";
                     case "finishTime" -> "finish_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -149,6 +151,7 @@ public class UnFlowExampleServiceImpl extends ServiceImpl<UnFlowExampleMapper, U
         values.put("startTime", model.getStartTime());
         values.put("finishTime", model.getFinishTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

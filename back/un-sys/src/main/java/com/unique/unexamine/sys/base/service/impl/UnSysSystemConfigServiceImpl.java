@@ -42,6 +42,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
             case "updateAccountId" -> "update_account_id";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysSystemConfig> wrapper = new QueryWrapper<>();
@@ -59,6 +60,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
                     case "updateAccountId" -> "update_account_id";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -125,6 +127,7 @@ public class UnSysSystemConfigServiceImpl extends ServiceImpl<UnSysSystemConfigM
         values.put("updateAccountId", model.getUpdateAccountId());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

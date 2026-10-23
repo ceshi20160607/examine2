@@ -3,6 +3,7 @@ package com.unique.unexamine.sys.module.base.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @TableName("un_module_record_data")
 public class UnModuleRecordData implements Serializable {
@@ -47,28 +48,34 @@ public class UnModuleRecordData implements Serializable {
     private String fieldCode;
 
     /**
-     * 按字段类型保存的业务值
+     * 短字符串及附件批次UUID业务值
+     */
+    @TableField("value_varchar")
+    private String valueVarchar;
+
+    /**
+     * 多行文本及其他长文本业务值
+     */
+    @TableField("value_text")
+    private String valueText;
+
+    /**
+     * 数值标识和布尔等数值业务值
+     */
+    @TableField("value_number")
+    private BigDecimal valueNumber;
+
+    /**
+     * 日期和日期时间业务值
+     */
+    @TableField("value_time")
+    private LocalDateTime valueTime;
+
+    /**
+     * 多选级联和结构化字段业务值
      */
     @TableField("value_json")
     private String valueJson;
-
-    /**
-     * 允许筛选排序的文本值索引
-     */
-    @TableField("index_text")
-    private String indexText;
-
-    /**
-     * 允许筛选排序的数值索引
-     */
-    @TableField("index_decimal")
-    private BigDecimal indexDecimal;
-
-    /**
-     * 允许筛选排序的时间值索引
-     */
-    @TableField("index_time")
-    private LocalDateTime indexTime;
 
     /**
      * 创建时间
@@ -81,6 +88,13 @@ public class UnModuleRecordData implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
+
+    /**
+     * 逻辑删除时间，空表示未删除
+     */
+    @TableLogic
+    @TableField("deleted_time")
+    private LocalDateTime deletedTime;
 
     public Long getId() {
         return id;
@@ -114,36 +128,44 @@ public class UnModuleRecordData implements Serializable {
         this.fieldCode = fieldCode;
     }
 
+    public String getValueVarchar() {
+        return valueVarchar;
+    }
+
+    public void setValueVarchar(String valueVarchar) {
+        this.valueVarchar = valueVarchar;
+    }
+
+    public String getValueText() {
+        return valueText;
+    }
+
+    public void setValueText(String valueText) {
+        this.valueText = valueText;
+    }
+
+    public BigDecimal getValueNumber() {
+        return valueNumber;
+    }
+
+    public void setValueNumber(BigDecimal valueNumber) {
+        this.valueNumber = valueNumber;
+    }
+
+    public LocalDateTime getValueTime() {
+        return valueTime;
+    }
+
+    public void setValueTime(LocalDateTime valueTime) {
+        this.valueTime = valueTime;
+    }
+
     public String getValueJson() {
         return valueJson;
     }
 
     public void setValueJson(String valueJson) {
         this.valueJson = valueJson;
-    }
-
-    public String getIndexText() {
-        return indexText;
-    }
-
-    public void setIndexText(String indexText) {
-        this.indexText = indexText;
-    }
-
-    public BigDecimal getIndexDecimal() {
-        return indexDecimal;
-    }
-
-    public void setIndexDecimal(BigDecimal indexDecimal) {
-        this.indexDecimal = indexDecimal;
-    }
-
-    public LocalDateTime getIndexTime() {
-        return indexTime;
-    }
-
-    public void setIndexTime(LocalDateTime indexTime) {
-        this.indexTime = indexTime;
     }
 
     public LocalDateTime getCreateTime() {
@@ -160,5 +182,13 @@ public class UnModuleRecordData implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public LocalDateTime getDeletedTime() {
+        return deletedTime;
+    }
+
+    public void setDeletedTime(LocalDateTime deletedTime) {
+        this.deletedTime = deletedTime;
     }
 }

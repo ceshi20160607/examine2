@@ -3,6 +3,7 @@ package com.unique.unexamine.sys.module.base.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @TableName("un_module_field")
 public class UnModuleField implements Serializable {
@@ -100,34 +101,10 @@ public class UnModuleField implements Serializable {
     private String configJson;
 
     /**
-     * 最近发布时的字段位置和占位宽度快照
-     */
-    @TableField("published_layout_json")
-    private String publishedLayoutJson;
-
-    /**
-     * 最近发布时的字段名称类型校验等配置快照
-     */
-    @TableField("published_config_json")
-    private String publishedConfigJson;
-
-    /**
-     * 最近发布时的字段顺序
-     */
-    @TableField("published_sort_no")
-    private Integer publishedSortNo;
-
-    /**
-     * 字段草稿发布或停用状态
+     * ?ֶ???ͣ״̬?????漴?
      */
     @TableField("status")
     private String status;
-
-    /**
-     * 字段生效版本号
-     */
-    @TableField("published_version")
-    private Integer publishedVersion;
 
     /**
      * 创建时间
@@ -140,6 +117,13 @@ public class UnModuleField implements Serializable {
      */
     @TableField("update_time")
     private LocalDateTime updateTime;
+
+    /**
+     * 逻辑删除时间，空表示未删除
+     */
+    @TableLogic
+    @TableField("deleted_time")
+    private LocalDateTime deletedTime;
 
     public Long getId() {
         return id;
@@ -245,44 +229,12 @@ public class UnModuleField implements Serializable {
         this.configJson = configJson;
     }
 
-    public String getPublishedLayoutJson() {
-        return publishedLayoutJson;
-    }
-
-    public void setPublishedLayoutJson(String publishedLayoutJson) {
-        this.publishedLayoutJson = publishedLayoutJson;
-    }
-
-    public String getPublishedConfigJson() {
-        return publishedConfigJson;
-    }
-
-    public void setPublishedConfigJson(String publishedConfigJson) {
-        this.publishedConfigJson = publishedConfigJson;
-    }
-
-    public Integer getPublishedSortNo() {
-        return publishedSortNo;
-    }
-
-    public void setPublishedSortNo(Integer publishedSortNo) {
-        this.publishedSortNo = publishedSortNo;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Integer getPublishedVersion() {
-        return publishedVersion;
-    }
-
-    public void setPublishedVersion(Integer publishedVersion) {
-        this.publishedVersion = publishedVersion;
     }
 
     public LocalDateTime getCreateTime() {
@@ -299,5 +251,13 @@ public class UnModuleField implements Serializable {
 
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public LocalDateTime getDeletedTime() {
+        return deletedTime;
+    }
+
+    public void setDeletedTime(LocalDateTime deletedTime) {
+        this.deletedTime = deletedTime;
     }
 }

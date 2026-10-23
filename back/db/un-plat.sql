@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS un_plat_account (
   last_login_time DATETIME(3) DEFAULT NULL COMMENT '最近登录时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_account_username (username),
   UNIQUE KEY uk_plat_account_email (email), UNIQUE KEY uk_plat_account_mobile (mobile)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台账号';
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS un_plat_config (
   update_account_id BIGINT DEFAULT NULL COMMENT '最近修改账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_config_key (config_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台基础配置';
 
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS un_plat_department (
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '部门状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_department_code (code), KEY ix_plat_department_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台组织部门';
 
@@ -46,6 +49,7 @@ CREATE TABLE IF NOT EXISTS un_plat_member (
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '平台成员状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_member_account (account_id),
   UNIQUE KEY uk_plat_member_employee (employee_no), KEY ix_plat_member_department (department_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台成员';
@@ -58,6 +62,7 @@ CREATE TABLE IF NOT EXISTS un_plat_role (
   description VARCHAR(500) DEFAULT NULL COMMENT '角色业务说明',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_role_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色';
 
@@ -66,6 +71,7 @@ CREATE TABLE IF NOT EXISTS un_plat_member_role (
   member_id BIGINT NOT NULL COMMENT '平台成员主键',
   role_id BIGINT NOT NULL COMMENT '平台角色主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_member_role (member_id, role_id), KEY ix_plat_member_role_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台成员角色关系';
 
@@ -79,6 +85,7 @@ CREATE TABLE IF NOT EXISTS un_plat_menu (
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '菜单状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_menu_code (code), KEY ix_plat_menu_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台菜单';
 
@@ -88,6 +95,7 @@ CREATE TABLE IF NOT EXISTS un_plat_role_menu (
   menu_id BIGINT NOT NULL COMMENT '平台菜单主键',
   action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '菜单内操作编码',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_role_menu_action (role_id, menu_id, action_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色菜单授权';
 
@@ -99,6 +107,7 @@ CREATE TABLE IF NOT EXISTS un_plat_role_data (
   scope_config JSON DEFAULT NULL COMMENT '数据范围补充配置',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_plat_role_data_resource (role_id, resource_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色数据权限';
 
@@ -112,6 +121,7 @@ CREATE TABLE IF NOT EXISTS un_plat_log_login (
   user_agent VARCHAR(500) DEFAULT NULL COMMENT '客户端标识',
   trace_id VARCHAR(80) DEFAULT NULL COMMENT '请求追踪标识',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '登录尝试时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_plat_login_account_time (account_id, create_time), KEY ix_plat_login_username_time (username, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台登录日志';
 
@@ -124,6 +134,7 @@ CREATE TABLE IF NOT EXISTS un_plat_log_opt (
   detail_json JSON DEFAULT NULL COMMENT '操作摘要和影响范围',
   trace_id VARCHAR(80) DEFAULT NULL COMMENT '请求追踪标识',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '操作时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_plat_opt_actor_time (account_id, create_time), KEY ix_plat_opt_object (object_type, object_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台操作日志';
 
@@ -137,5 +148,6 @@ CREATE TABLE IF NOT EXISTS un_plat_message (
   status VARCHAR(20) NOT NULL DEFAULT 'UNREAD' COMMENT '消息阅读归档状态',
   read_time DATETIME(3) DEFAULT NULL COMMENT '阅读时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_plat_message_recipient (recipient_account_id, status, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台消息';

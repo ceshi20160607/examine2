@@ -10,6 +10,12 @@
   </parent>
   <artifactId>un-sys</artifactId>
   <dependencies>
+    <!-- 模块接口测试经 MockMvc 验证实际 HTTP 映射和请求体。 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -22,6 +28,11 @@
     <dependency>
       <groupId>com.unique</groupId>
       <artifactId>un-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.unique</groupId>
+      <artifactId>un-file</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

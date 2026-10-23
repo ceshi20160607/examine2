@@ -43,6 +43,7 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
             case "detailJson" -> "detail_json";
             case "permissionJson" -> "permission_json";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleLog> wrapper = new QueryWrapper<>();
@@ -61,6 +62,7 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
                     case "detailJson" -> "detail_json";
                     case "permissionJson" -> "permission_json";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -128,6 +130,7 @@ public class UnModuleLogServiceImpl extends ServiceImpl<UnModuleLogMapper, UnMod
         values.put("detailJson", model.getDetailJson());
         values.put("permissionJson", model.getPermissionJson());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

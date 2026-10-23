@@ -39,6 +39,7 @@ public class UnWorkTaskHistoryServiceImpl extends ServiceImpl<UnWorkTaskHistoryM
             case "afterJson" -> "after_json";
             case "content" -> "content";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnWorkTaskHistory> wrapper = new QueryWrapper<>();
@@ -53,6 +54,7 @@ public class UnWorkTaskHistoryServiceImpl extends ServiceImpl<UnWorkTaskHistoryM
                     case "afterJson" -> "after_json";
                     case "content" -> "content";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -116,6 +118,7 @@ public class UnWorkTaskHistoryServiceImpl extends ServiceImpl<UnWorkTaskHistoryM
         values.put("afterJson", model.getAfterJson());
         values.put("content", model.getContent());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

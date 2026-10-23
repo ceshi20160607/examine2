@@ -36,9 +36,9 @@ public class UnModuleTenantFieldServiceImpl extends ServiceImpl<UnModuleTenantFi
             case "tenantId" -> "tenant_id";
             case "fieldId" -> "field_id";
             case "status" -> "status";
-            case "publishedVersion" -> "published_version";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleTenantField> wrapper = new QueryWrapper<>();
@@ -50,9 +50,9 @@ public class UnModuleTenantFieldServiceImpl extends ServiceImpl<UnModuleTenantFi
                     case "tenantId" -> "tenant_id";
                     case "fieldId" -> "field_id";
                     case "status" -> "status";
-                    case "publishedVersion" -> "published_version";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -113,9 +113,9 @@ public class UnModuleTenantFieldServiceImpl extends ServiceImpl<UnModuleTenantFi
         values.put("tenantId", model.getTenantId());
         values.put("fieldId", model.getFieldId());
         values.put("status", model.getStatus());
-        values.put("publishedVersion", model.getPublishedVersion());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

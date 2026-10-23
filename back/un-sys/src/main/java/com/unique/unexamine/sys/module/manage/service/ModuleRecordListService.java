@@ -39,12 +39,12 @@ public class ModuleRecordListService {
     /** 临时筛选与已保存场景同时生效，分页范围由服务端限定。 */
     public record Query(Long sceneId,String search,List<ModuleSceneService.Condition> filters,
                         Long sortFieldId,Boolean descending,List<Long> columnFieldIds,long page,long size,String scope) {}
-    /** 列标识、字段名称和类型来自当前发布定义。 */
+    /** 列标识、字段名称和类型来自当前当前定义。 */
     public record Column(Long fieldId,String code,String name,String type,Integer widthPx,String fixedSide) {}
     /** 列表行含基础记录及当前有权读取的自定义字段值。 */
     public record Row(Long id,String name,String status,Long ownerAccountId,
                       Long sourceTenantId,boolean shared,
-                      Map<String,Object> values,Map<String,Map<String,String>> valueDisplay) {}
+                      Map<String,Object> values,Map<String,Object> valueDisplay) {}
     public record Result(long total,long current,long size,List<Column> columns,List<Row> records) {}
 
     /** 注入生成的基础 Service；动态查询仍复用基础持久化入口。 */
@@ -59,8 +59,19 @@ public class ModuleRecordListService {
     /** 列表场景与请求条件求交集，权限在条件、排序和返回列三处分别执行。 */
     public Result query(String token,Long systemId,Long tenantId,Long moduleId,Query request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        var context=access.context(); modules.publishedModule(systemId,moduleId,context.tenantId());
-        if (request==null || request.page()<1 || request.size()<1 || request.size()>100)
+        return queryWithAccess(access,systemId,moduleId,request,false);
+    }
+
+    /** 导出复用列表场景和筛选，但使用独立导出菜单及字段导出许可。 */
+    public Result export(String token,Long systemId,Long tenantId,Long moduleId,Query request) {
+        var access=permissions.require(token,systemId,tenantId,moduleId,"EXPORT");
+        return queryWithAccess(access,systemId,moduleId,request,true);
+    }
+
+    private Result queryWithAccess(ModulePermissionService.Access access,Long systemId,Long moduleId,
+                                   Query request,boolean exporting) {
+        var context=access.context(); modules.activeModule(systemId,moduleId,context.tenantId());
+        if (request==null || request.page()<1 || request.size()<1 || request.size()>(exporting?500:100))
             throw new IllegalArgumentException("分页范围无效");
         String scope=request.scope()==null?"ALL":request.scope();
         if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
@@ -77,16 +88,25 @@ public class ModuleRecordListService {
                 request.sortFieldId()==null?saved.sortFieldId():request.sortFieldId(),
                 request.descending()==null?saved.descending():request.descending());
         scenes.check(systemId,context.tenantId(),moduleId,settings,access);
-        List<UnModuleField> published=modules.publishedFields(moduleId);
-        Map<Long,UnModuleField> fields=published.stream().collect(Collectors.toMap(UnModuleField::getId,field->field));
+        List<UnModuleField> currentFields=modules.currentFields(moduleId);
+        Map<Long,UnModuleField> fields=currentFields.stream().collect(Collectors.toMap(UnModuleField::getId,field->field));
         Map<Long,ModuleColumnService.Preference> personal=columnPreferences.effective(moduleId,access);
-        List<UnModuleField> selected=settings.columnFieldIds().isEmpty()?published:settings.columnFieldIds()
+        List<UnModuleField> selected=settings.columnFieldIds().isEmpty()?currentFields:settings.columnFieldIds()
                 .stream().map(fields::get).toList();
+        Set<Long> actionFields=exporting?Set.copyOf(access.definition().settings().fieldIds()):Set.of();
+        if (exporting && request.columnFieldIds()!=null && !request.columnFieldIds().isEmpty()
+                && selected.stream().anyMatch(field->
+                !access.policy().exportable(field.getFieldCode())
+                        || !actionFields.isEmpty() && !actionFields.contains(field.getId())))
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
+                    "导出列超出动作或字段权限");
         Map<Long,Integer> defaultPositions=new HashMap<>();
         for (int position=0;position<selected.size();position++) defaultPositions.put(selected.get(position).getId(),position);
         List<UnModuleField> columns=selected.stream()
-                .filter(field->access.policy().readable(field.getFieldCode()))
-                .filter(field->!personal.containsKey(field.getId()) || !personal.get(field.getId()).hidden())
+                .filter(field->exporting?access.policy().exportable(field.getFieldCode())
+                        && (actionFields.isEmpty() || actionFields.contains(field.getId()))
+                        :access.policy().readable(field.getFieldCode()))
+                .filter(field->exporting || !personal.containsKey(field.getId()) || !personal.get(field.getId()).hidden())
                 .sorted(Comparator.comparingInt(field->personal.containsKey(field.getId())
                         ?personal.get(field.getId()).sortNo():1000+defaultPositions.get(field.getId())))
                 .toList();
@@ -112,19 +132,23 @@ public class ModuleRecordListService {
         Map<Long,Map<Long,Object>> values=new HashMap<>();
         if (!extensionIds.isEmpty()) for (var row:data.list(new LambdaQueryWrapper<UnModuleRecordData>()
                 .in(UnModuleRecordData::getRecordId,recordIds).in(UnModuleRecordData::getFieldId,extensionIds))) {
-            values.computeIfAbsent(row.getRecordId(),id->new HashMap<>()).put(row.getFieldId(),read(row.getValueJson()));
+            UnModuleField field=fields.get(row.getFieldId());
+            values.computeIfAbsent(row.getRecordId(),id->new HashMap<>())
+                    .put(row.getFieldId(),fieldRules.stored(row,FieldType.parse(field.getFieldType())));
         }
         List<Row> rows=new ArrayList<>();
         for (UnModuleRecord record:page.getRecords()) {
-            Map<String,Object> cellValues=new LinkedHashMap<>(); Map<String,Map<String,String>> display=new LinkedHashMap<>();
+            Map<String,Object> cellValues=new LinkedHashMap<>(); Map<String,Object> display=new LinkedHashMap<>();
             for (UnModuleField field:columns) {
                 Object value="name".equals(field.getFieldCode())?record.getName()
                         :values.getOrDefault(record.getId(),Map.of()).get(field.getId());
                 cellValues.put(field.getFieldCode(),value);
                 if (value!=null) {
-                    FieldDefinition definition=fieldRules.published(field.getFieldCode(),modules.fieldConfig(field).configuration());
+                    FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
                     if (definition.type().options()) display.put(field.getFieldCode(),
                             fieldRules.display(systemId,record.getTenantId(),definition,value));
+                    else if (definition.type()==FieldType.USER) display.put(field.getFieldCode(),
+                            fieldRules.present(systemId,record.getTenantId(),definition,value));
                 }
             }
             rows.add(new Row(record.getId(),access.policy().readable("name")?record.getName():null,
@@ -135,7 +159,7 @@ public class ModuleRecordListService {
         return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,rows);
     }
 
-    /** 字段 ID 已从发布定义校验；相关子查询仅用于已授权的动态列排序。 */
+    /** 字段 ID 已从当前定义校验；相关子查询仅用于已授权的动态列排序。 */
     private void sort(QueryWrapper<UnModuleRecord> where,UnModuleField field,boolean descending) {
         if ("name".equals(field.getFieldCode())) where.orderBy(true,!descending,"name");
         else {
@@ -143,23 +167,18 @@ public class ModuleRecordListService {
             if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.OBJECT,FieldType.Kind.ROWS,
                     FieldType.Kind.REFERENCES).contains(type.kind()))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");
-            String indexed=switch (type.kind()) {
-                case NUMBER -> "index_decimal";
-                case DATE, DATETIME -> "index_time";
-                default -> "index_text";
-            };
-            String expression="index_text".equals(indexed)?"COALESCE(d.index_text, JSON_UNQUOTE(d.value_json))":"d."+indexed;
-            String value="(SELECT "+expression+" FROM un_module_record_data d WHERE d.record_id = "
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            if (type.kind()==FieldType.Kind.REFERENCE && Boolean.TRUE.equals(definition.rules().get("multiple")))
+                throw new IllegalArgumentException("多选人员字段暂不支持列表排序");
+            String indexed=type.valueColumn().sqlName();
+            if (indexed==null || "value_json".equals(indexed))
+                throw new IllegalArgumentException("该字段类型暂不支持列表排序");
+            String expression="d."+indexed;
+            String value="(SELECT "+expression+" FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = "
                     +"un_module_record.id AND d.field_id = "+field.getId()+")";
             where.orderBy(true,!descending,value);
         }
         where.orderByDesc("id");
-    }
-
-    private Object read(String source) {
-        if (source==null) return null;
-        try { return json.readValue(source,Object.class); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("列表字段值损坏",ex); }
     }
 
 }

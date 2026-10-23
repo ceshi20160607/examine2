@@ -10,12 +10,13 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 模块配置和表单接口，布局保存与发布由 manage Service 处理。 */
+/** 模块配置和表单接口，布局保存由 manage Service 处理。 */
 @RestController
 @RequestMapping("/api/systems/{systemId}")
 @Tag(name = "模块配置")
@@ -58,7 +59,7 @@ public class ModuleConfigController {
 
     /** 保存设计器给出的字段位置和占位宽度。 */
     @PostMapping("/modules/{moduleId}/fields")
-    @Operation(summary = "保存模块字段草稿")
+    @Operation(summary = "保存模块字段并立即生效")
     public Long saveField(@RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId,
@@ -76,38 +77,39 @@ public class ModuleConfigController {
         return service.fieldTypes(token, systemId, tenantId);
     }
 
-    /** 发布字段顺序和布局快照。 */
+    /** 读取当前字段顺序和布局。 */
     @GetMapping("/modules/{moduleId}/fields")
-    @Operation(summary = "读取发布字段及稳定标识")
-    public java.util.List<ModuleConfigService.PublishedFieldView> fields(
+    @Operation(summary = "读取当前字段及稳定标识")
+    public java.util.List<ModuleConfigService.FieldDefinitionView> fields(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId) {
-        return service.publishedFieldViews(token, systemId, tenantId, moduleId);
+        return service.fieldViews(token, systemId, tenantId, moduleId);
     }
 
-    /** 列出当前字段草稿影响的旧值和记录，供管理员决定迁移映射。 */
-    @GetMapping("/modules/{moduleId}/fields/{fieldId}/migration-preview")
+    /** 列出拟保存字段配置影响的旧值和记录，供管理员决定迁移映射。 */
+    @PostMapping("/modules/{moduleId}/fields/{fieldId}/migration-preview")
     @Operation(summary = "预览字段变更影响")
     public ModuleFieldMigrationService.Preview previewMigration(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
-            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long fieldId) {
-        return service.previewMigration(token,systemId,tenantId,moduleId,fieldId);
+            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long fieldId,
+            @Valid @RequestBody ModuleConfigService.SaveFieldRequest request) {
+        return service.previewMigration(token,systemId,tenantId,moduleId,fieldId,request);
     }
 
-    /** 发布字段顺序和布局快照。 */
-    @PostMapping("/modules/{moduleId}/publish")
-    @Operation(summary = "发布模块配置")
-    public ModuleConfigService.ModuleView publish(
+    /** 模块名称、说明和启停保存即生效。 */
+    @PutMapping("/modules/{moduleId}")
+    @Operation(summary = "保存模块设置")
+    public ModuleConfigService.ModuleView updateModule(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId,
-            @RequestBody(required = false) ModuleConfigService.PublishRequest request) {
-        return service.publish(token, systemId, tenantId, moduleId,request);
+            @Valid @RequestBody ModuleConfigService.UpdateModuleRequest request) {
+        return service.updateModule(token, systemId, tenantId, moduleId, request);
     }
 
-    /** 新建页面读取已经发布的字段布局。 */
+    /** 新建页面读取当前保存的字段布局。 */
     @GetMapping("/modules/{moduleId}/form")
     @Operation(summary = "读取新建表单")
     public ModuleConfigService.FormView form(

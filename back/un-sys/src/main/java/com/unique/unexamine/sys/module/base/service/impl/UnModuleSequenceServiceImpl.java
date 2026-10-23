@@ -38,6 +38,7 @@ public class UnModuleSequenceServiceImpl extends ServiceImpl<UnModuleSequenceMap
             case "periodKey" -> "period_key";
             case "currentValue" -> "current_value";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleSequence> wrapper = new QueryWrapper<>();
@@ -51,6 +52,7 @@ public class UnModuleSequenceServiceImpl extends ServiceImpl<UnModuleSequenceMap
                     case "periodKey" -> "period_key";
                     case "currentValue" -> "current_value";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -113,6 +115,7 @@ public class UnModuleSequenceServiceImpl extends ServiceImpl<UnModuleSequenceMap
         values.put("periodKey", model.getPeriodKey());
         values.put("currentValue", model.getCurrentValue());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

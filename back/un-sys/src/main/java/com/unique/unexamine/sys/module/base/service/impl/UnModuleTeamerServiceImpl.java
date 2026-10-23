@@ -37,6 +37,7 @@ public class UnModuleTeamerServiceImpl extends ServiceImpl<UnModuleTeamerMapper,
             case "memberType" -> "member_type";
             case "status" -> "status";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnModuleTeamer> wrapper = new QueryWrapper<>();
@@ -49,6 +50,7 @@ public class UnModuleTeamerServiceImpl extends ServiceImpl<UnModuleTeamerMapper,
                     case "memberType" -> "member_type";
                     case "status" -> "status";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -110,6 +112,7 @@ public class UnModuleTeamerServiceImpl extends ServiceImpl<UnModuleTeamerMapper,
         values.put("memberType", model.getMemberType());
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

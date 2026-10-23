@@ -1,1 +1,154 @@
--- 当前首装定义即最终结构，无增量更新。
+-- 在原首装结构上执行的保留数据迁移；已有目标库按尚未执行的步骤更新，不重复执行整份增量。
+
+-- 配置保存即生效：保留当前配置与业务数据，移除错误的模块草稿/发布副本；不修改 Flow 或审批的运行关联。
+-- 统一以删除时间进行逻辑删除，已有记录的删除时间保持为空，不物理清除业务数据。
+ALTER TABLE un_app ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_app_event ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_app_call ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_common_file ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_common_notice ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_common_ai ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_dashboard ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_dashboard_component ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_dashboard_component_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_dashboard_user ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_data_source ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_data_source_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_kpi ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_kpi_user ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_kpi_result ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_examine ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_group ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_config_user ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_node ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_node_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_node_user ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_example ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_example_node ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_example_node_user ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_examine_exception ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_account ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_department ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_member ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_role ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_member_role ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_menu ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_role_menu ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_role_data ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_log_login ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_log_opt ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_plat_message ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_system ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_system_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_tenant ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_member ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_department ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_tenant_member ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_menu ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_role ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_member_role ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+-- un_sys_member_role：有效关系保持唯一，撤销后可重新建立，删除历史保留。
+ALTER TABLE un_sys_member_role DROP INDEX uk_sys_member_role, ADD UNIQUE KEY uk_sys_member_role (tenant_member_id, role_id, (IF(deleted_time IS NULL, 1, NULL)));
+ALTER TABLE un_sys_role_menu ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+-- un_sys_role_menu：有效关系保持唯一，撤销后可重新建立，删除历史保留。
+ALTER TABLE un_sys_role_menu DROP INDEX uk_sys_role_menu, ADD UNIQUE KEY uk_sys_role_menu (role_id, menu_id, (IF(deleted_time IS NULL, 1, NULL)));
+ALTER TABLE un_sys_role_data ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+-- un_sys_role_data：有效关系保持唯一，撤销后可重新建立，删除历史保留。
+ALTER TABLE un_sys_role_data DROP INDEX uk_sys_role_data_menu, ADD UNIQUE KEY uk_sys_role_data_menu (role_id, menu_id, (IF(deleted_time IS NULL, 1, NULL)));
+ALTER TABLE un_sys_role_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+-- un_sys_role_field：有效关系保持唯一，撤销后可重新建立，删除历史保留。
+ALTER TABLE un_sys_role_field DROP INDEX uk_sys_role_field, ADD UNIQUE KEY uk_sys_role_field (role_id, module_id, field_id, (IF(deleted_time IS NULL, 1, NULL)));
+ALTER TABLE un_sys_log_login ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_log_opt ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_sys_message ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_group ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_group DROP COLUMN published_version;
+UPDATE un_module_group SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_group MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module DROP COLUMN published_version;
+UPDATE un_module SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_dict ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_field DROP COLUMN published_layout_json;
+ALTER TABLE un_module_field DROP COLUMN published_config_json;
+ALTER TABLE un_module_field DROP COLUMN published_sort_no;
+ALTER TABLE un_module_field DROP COLUMN published_version;
+UPDATE un_module_field SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_field MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_menu ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+UPDATE un_module_menu SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_menu MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_action ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_action DROP COLUMN published_config_json;
+ALTER TABLE un_module_action DROP COLUMN published_enabled_flag;
+ALTER TABLE un_module_action DROP COLUMN published_version;
+UPDATE un_module_action SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_action MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_rule ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_rule DROP COLUMN published_version;
+UPDATE un_module_rule SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_rule MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_query_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_tenant ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_tenant_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_tenant_field DROP COLUMN published_version;
+UPDATE un_module_tenant_field SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_tenant_field MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '当前启停状态';
+ALTER TABLE un_module_field_sort ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+-- un_module_field_sort：有效关系保持唯一，撤销后可重新建立，删除历史保留。
+ALTER TABLE un_module_field_sort DROP INDEX uk_module_field_sort, ADD UNIQUE KEY uk_module_field_sort (module_id, tenant_id, account_id, field_id, (IF(deleted_time IS NULL, 1, NULL)));
+ALTER TABLE un_module_record_data ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_scence ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_scence_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_scence_config DROP COLUMN published_version;
+ALTER TABLE un_module_teamer ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_relation ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_relation_config ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_log ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_share ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_sequence ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_exchange_job ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_exchange_row ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_module_flow ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_node ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_edge ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_version ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_binding ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_example ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_task ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_task_candidate ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_action ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_exception ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_event ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_flow_job ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_print ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_project ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_project_member ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_task_group ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_task ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_task_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_task_member ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_task_history ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_daily ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_daily_field ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+ALTER TABLE un_work_daily_comment ADD COLUMN deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除';
+
+-- 场景配置随保存立即生效，保留原筛选和数据，仅统一旧状态及新建默认值。
+ALTER TABLE un_module_scence MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '场景启停状态，保存即生效';
+UPDATE un_module_scence SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+
+-- 普通模块配置仅保留当前启停状态；模块编码只约束未删除模块，保留被删除模块原行及其引用。
+ALTER TABLE un_module_group MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '模块组启停状态，保存即生效';
+ALTER TABLE un_module MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '模块启停状态，保存即生效';
+ALTER TABLE un_module_field MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '字段启停状态，保存即生效';
+ALTER TABLE un_module_query_field MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '查询配置启停状态，保存即生效';
+UPDATE un_module_query_field SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module_relation_config MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '关联配置启停状态，保存即生效';
+UPDATE un_module_relation_config SET status='ACTIVE' WHERE status IN ('DRAFT','PUBLISHED');
+ALTER TABLE un_module DROP INDEX uk_module_code, ADD UNIQUE KEY uk_module_code (system_id, tenant_id, code, (IF(deleted_time IS NULL, 1, NULL)));

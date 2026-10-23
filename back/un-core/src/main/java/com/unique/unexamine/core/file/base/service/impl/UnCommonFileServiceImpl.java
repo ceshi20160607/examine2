@@ -35,6 +35,9 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
             case "scopeType" -> "scope_type";
             case "systemId" -> "system_id";
             case "tenantId" -> "tenant_id";
+            case "moduleId" -> "module_id";
+            case "dataId" -> "data_id";
+            case "batchId" -> "batch_id";
             case "uploaderAccountId" -> "uploader_account_id";
             case "originalName" -> "original_name";
             case "contentType" -> "content_type";
@@ -47,6 +50,7 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
             case "status" -> "status";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnCommonFile> wrapper = new QueryWrapper<>();
@@ -57,6 +61,9 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
                     case "scopeType" -> "scope_type";
                     case "systemId" -> "system_id";
                     case "tenantId" -> "tenant_id";
+                    case "moduleId" -> "module_id";
+                    case "dataId" -> "data_id";
+                    case "batchId" -> "batch_id";
                     case "uploaderAccountId" -> "uploader_account_id";
                     case "originalName" -> "original_name";
                     case "contentType" -> "content_type";
@@ -69,6 +76,7 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
                     case "status" -> "status";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -128,6 +136,9 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
         values.put("scopeType", model.getScopeType());
         values.put("systemId", model.getSystemId());
         values.put("tenantId", model.getTenantId());
+        values.put("moduleId", model.getModuleId());
+        values.put("dataId", model.getDataId());
+        values.put("batchId", model.getBatchId());
         values.put("uploaderAccountId", model.getUploaderAccountId());
         values.put("originalName", model.getOriginalName());
         values.put("contentType", model.getContentType());
@@ -140,6 +151,7 @@ public class UnCommonFileServiceImpl extends ServiceImpl<UnCommonFileMapper, UnC
         values.put("status", model.getStatus());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

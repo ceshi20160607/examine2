@@ -40,6 +40,7 @@ public class UnDashboardComponentFieldServiceImpl extends ServiceImpl<UnDashboar
             case "configJson" -> "config_json";
             case "createTime" -> "create_time";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnDashboardComponentField> wrapper = new QueryWrapper<>();
@@ -55,6 +56,7 @@ public class UnDashboardComponentFieldServiceImpl extends ServiceImpl<UnDashboar
                     case "configJson" -> "config_json";
                     case "createTime" -> "create_time";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -119,6 +121,7 @@ public class UnDashboardComponentFieldServiceImpl extends ServiceImpl<UnDashboar
         values.put("configJson", model.getConfigJson());
         values.put("createTime", model.getCreateTime());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

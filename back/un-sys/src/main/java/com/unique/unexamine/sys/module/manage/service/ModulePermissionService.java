@@ -193,7 +193,7 @@ public class ModulePermissionService {
     public void saveFields(String token,Long systemId,Long tenantId,Long roleId,Long moduleId,FieldsRequest request) {
         var context=systems.requireAdminContext(token,systemId,tenantId); role(context,roleId); module(context,moduleId);
         Set<Long> allowed=new HashSet<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)
-                .eq(UnModuleField::getStatus,"PUBLISHED")).forEach(f->allowed.add(f.getId()));
+                .eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->allowed.add(f.getId()));
         Set<Long> seen=new HashSet<>();
         for (var grant:request.fields()) if (grant==null || !allowed.contains(grant.fieldId()) || !seen.add(grant.fieldId())
                 || (!grant.readable() && (grant.writable() || grant.exportable()))) throw new IllegalArgumentException("字段许可无效、重复或超出可读范围");
@@ -235,7 +235,7 @@ public class ModulePermissionService {
         FieldAccess cap=configured==null?new FieldAccess(null,null,null):json.convertValue(configured,FieldAccess.class);
         List<Grant> grants=new ArrayList<>(); Set<String> readable=new HashSet<>(),writable=new HashSet<>(),exportable=new HashSet<>(); boolean menuAllowed=false;
         Map<Long,String> codes=new HashMap<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)
-                .eq(UnModuleField::getStatus,"PUBLISHED")).forEach(f->codes.put(f.getId(),f.getFieldCode()));
+                .eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->codes.put(f.getId(),f.getFieldCode()));
         for (var link:memberRoles.list(new LambdaQueryWrapper<UnSysMemberRole>().eq(UnSysMemberRole::getTenantMemberId,context.tenantMemberId()))) {
             var role=roles.getById(link.getRoleId());
             if (role==null || !context.systemId().equals(role.getSystemId()) || !context.tenantId().equals(role.getTenantId()) || !"ACTIVE".equals(role.getStatus())) continue;
@@ -299,15 +299,15 @@ public class ModulePermissionService {
     private void validateFields(Long moduleId,FieldAccess access) {
         if (access==null) throw new IllegalArgumentException("字段权限不能为空");
         Set<String> codes=new HashSet<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)
-                .eq(UnModuleField::getStatus,"PUBLISHED")).forEach(f->codes.add(f.getFieldCode()));
+                .eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->codes.add(f.getFieldCode()));
         if (access.readable()!=null && !codes.containsAll(access.readable()) || access.writable()!=null && !codes.containsAll(access.writable())
                 || access.exportable()!=null && !codes.containsAll(access.exportable()))
-            throw new IllegalArgumentException("字段权限超出发布字段或写入超出可读范围");
+            throw new IllegalArgumentException("字段权限超出当前字段或写入超出可读范围");
     }
     private UnModule module(SystemManageService.SystemContext context,Long id) {
         var module=modules.queryById(id); Long root=systemRows.queryById(context.systemId()).getRootTenantId();
         if (!context.systemId().equals(module.getSystemId()) || !List.of(context.tenantId(),root).contains(module.getTenantId())) forbidden();
-        if (!"PUBLISHED".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块尚未发布");
+        if (!"ACTIVE".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块尚未配置");
         return module;
     }
     private void role(SystemManageService.SystemContext context,Long id) {

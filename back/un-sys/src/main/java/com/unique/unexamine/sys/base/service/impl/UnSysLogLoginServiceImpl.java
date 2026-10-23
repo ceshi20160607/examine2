@@ -40,6 +40,7 @@ public class UnSysLogLoginServiceImpl extends ServiceImpl<UnSysLogLoginMapper, U
             case "ipAddress" -> "ip_address";
             case "traceId" -> "trace_id";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysLogLogin> wrapper = new QueryWrapper<>();
@@ -55,6 +56,7 @@ public class UnSysLogLoginServiceImpl extends ServiceImpl<UnSysLogLoginMapper, U
                     case "ipAddress" -> "ip_address";
                     case "traceId" -> "trace_id";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -119,6 +121,7 @@ public class UnSysLogLoginServiceImpl extends ServiceImpl<UnSysLogLoginMapper, U
         values.put("ipAddress", model.getIpAddress());
         values.put("traceId", model.getTraceId());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

@@ -41,6 +41,7 @@ public class UnSysLogOptServiceImpl extends ServiceImpl<UnSysLogOptMapper, UnSys
             case "detailJson" -> "detail_json";
             case "traceId" -> "trace_id";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnSysLogOpt> wrapper = new QueryWrapper<>();
@@ -57,6 +58,7 @@ public class UnSysLogOptServiceImpl extends ServiceImpl<UnSysLogOptMapper, UnSys
                     case "detailJson" -> "detail_json";
                     case "traceId" -> "trace_id";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -122,6 +124,7 @@ public class UnSysLogOptServiceImpl extends ServiceImpl<UnSysLogOptMapper, UnSys
         values.put("detailJson", model.getDetailJson());
         values.put("traceId", model.getTraceId());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

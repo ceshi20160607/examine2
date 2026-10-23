@@ -4,6 +4,9 @@ CREATE TABLE IF NOT EXISTS un_common_file (
   scope_type VARCHAR(20) NOT NULL COMMENT '平台或系统作用域',
   system_id BIGINT DEFAULT NULL COMMENT '系统作用域的业务系统主键',
   tenant_id BIGINT DEFAULT NULL COMMENT '系统作用域的租户主键',
+  module_id BIGINT DEFAULT NULL COMMENT '附件所属业务模块主键，未关联记录时为空',
+  data_id BIGINT DEFAULT NULL COMMENT '附件所属模块业务记录主键，未关联记录时为空',
+  batch_id VARCHAR(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '同一附件字段共享的32位UUID批次标识',
   uploader_account_id BIGINT NOT NULL COMMENT '实际上传平台账号主键',
   original_name VARCHAR(255) NOT NULL COMMENT '上传时的原始文件名',
   content_type VARCHAR(120) NOT NULL COMMENT '文件内容类型',
@@ -16,24 +19,12 @@ CREATE TABLE IF NOT EXISTS un_common_file (
   status VARCHAR(20) NOT NULL DEFAULT 'UPLOADING' COMMENT '上传中可用或待清理状态',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '文件登记时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最近状态更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_common_file_scope (scope_type, system_id, tenant_id, status),
+  KEY ix_common_file_batch (system_id, tenant_id, batch_id),
+  KEY ix_common_file_record (module_id, data_id),
   KEY ix_common_file_hash (sha256)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公共文件元数据';
-
-CREATE TABLE IF NOT EXISTS un_common_file_ref (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '文件业务引用主键',
-  file_id BIGINT NOT NULL COMMENT '被引用公共文件元数据主键',
-  scope_type VARCHAR(20) NOT NULL COMMENT '平台或系统引用作用域',
-  system_id BIGINT DEFAULT NULL COMMENT '系统业务引用所属系统主键',
-  tenant_id BIGINT DEFAULT NULL COMMENT '系统业务引用所属租户主键',
-  object_type VARCHAR(50) NOT NULL COMMENT '模块记录任务工作日志等对象类型',
-  object_id BIGINT NOT NULL COMMENT '业务对象主键',
-  field_id BIGINT DEFAULT NULL COMMENT '模块字段引用时的字段主键',
-  create_account_id BIGINT NOT NULL COMMENT '建立引用的平台账号主键',
-  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '建立引用时间',
-  PRIMARY KEY (id), KEY ix_common_file_ref_file (file_id),
-  KEY ix_common_file_ref_object (scope_type, system_id, tenant_id, object_type, object_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文件与多个业务对象的引用关系';
 
 CREATE TABLE IF NOT EXISTS un_common_notice (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '公告主键',
@@ -49,6 +40,7 @@ CREATE TABLE IF NOT EXISTS un_common_notice (
   create_account_id BIGINT NOT NULL COMMENT '创建公告的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_common_notice_scope (scope_type, system_id, tenant_id, status, publish_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公共公告';
 
@@ -68,5 +60,6 @@ CREATE TABLE IF NOT EXISTS un_common_ai (
   create_account_id BIGINT NOT NULL COMMENT '创建配置的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_common_ai_scope (scope_type, system_id, tenant_id, code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公共智能能力配置';

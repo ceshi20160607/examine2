@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldType;
+import com.unique.unexamine.core.field.FieldValueCodec;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.manage.service.ModuleSceneService;
@@ -23,27 +24,23 @@ public final class ModuleRecordFilter {
         }
         FieldType type=FieldType.parse(field.getFieldType());
         if ("EQ".equals(condition.operator())) {
-            String index=switch (type.kind()) {
-                case NUMBER -> "index_decimal";
-                case TEXT, OPTION, REFERENCE, BOOLEAN, TIME -> "index_text";
-                default -> null;
-            };
-            if (index!=null && condition.value()!=null && !(condition.value() instanceof java.util.Collection<?>))
-                where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                        +"AND d.field_id = {0} AND ((d."+index+" = {1}"
-                        +("index_text".equals(index)?" AND HEX(d.index_text) = HEX({1})":"")+") OR "
-                        +"(d."+index+" IS NULL AND JSON_CONTAINS(d.value_json, CAST({2} AS JSON)))))",
-                        field.getId(),condition.value().toString(),write(json,condition.value()));
-            else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                            +"AND d.field_id = {0} AND JSON_CONTAINS(d.value_json, CAST({1} AS JSON)))",
-                    field.getId(),write(json,condition.value()));
-        } else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.record_id = un_module_record.id "
-                +"AND d.field_id = {0} AND LOCATE({1}, JSON_UNQUOTE(d.value_json)) > 0)",
+            var cells=FieldValueCodec.encode(type,condition.value(),json);
+            String base="EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = un_module_record.id AND d.field_id = {0} AND ";
+            if (cells.number()!=null) where.apply(base+"d.value_number = {1})",field.getId(),cells.number());
+            else if (cells.time()!=null) where.apply(base+"d.value_time = {1})",field.getId(),cells.time());
+            else if (cells.varchar()!=null)
+                where.apply(base+"d.value_varchar = {1})",field.getId(),cells.varchar());
+            else if (cells.text()!=null) where.apply(base+"HEX(d.value_text) = HEX({1}))",field.getId(),cells.text());
+            else if (cells.json()!=null) where.apply(base
+                    +"JSON_CONTAINS(d.value_json, CAST({1} AS JSON)) "
+                    +"AND JSON_CONTAINS(CAST({1} AS JSON), d.value_json))",field.getId(),cells.json());
+            else where.apply("(NOT EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = un_module_record.id AND d.field_id = {0}) "
+                    +"OR EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = un_module_record.id "
+                    +"AND d.field_id = {0} AND d.value_varchar IS NULL AND d.value_text IS NULL AND d.value_number IS NULL "
+                    +"AND d.value_time IS NULL AND d.value_json IS NULL))",field.getId());
+        } else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = un_module_record.id "
+                +"AND d.field_id = {0} AND LOCATE({1}, d."+type.valueColumn().sqlName()+") > 0)",
                 field.getId(),condition.value());
     }
 
-    private static String write(ObjectMapper json,Object value) {
-        try { return json.writeValueAsString(value); }
-        catch (JsonProcessingException ex) { throw new IllegalArgumentException("筛选值无法保存",ex); }
-    }
 }

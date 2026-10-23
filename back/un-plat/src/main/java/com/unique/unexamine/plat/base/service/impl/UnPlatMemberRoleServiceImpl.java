@@ -35,6 +35,7 @@ public class UnPlatMemberRoleServiceImpl extends ServiceImpl<UnPlatMemberRoleMap
             case "memberId" -> "member_id";
             case "roleId" -> "role_id";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnPlatMemberRole> wrapper = new QueryWrapper<>();
@@ -45,6 +46,7 @@ public class UnPlatMemberRoleServiceImpl extends ServiceImpl<UnPlatMemberRoleMap
                     case "memberId" -> "member_id";
                     case "roleId" -> "role_id";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -104,6 +106,7 @@ public class UnPlatMemberRoleServiceImpl extends ServiceImpl<UnPlatMemberRoleMap
         values.put("memberId", model.getMemberId());
         values.put("roleId", model.getRoleId());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

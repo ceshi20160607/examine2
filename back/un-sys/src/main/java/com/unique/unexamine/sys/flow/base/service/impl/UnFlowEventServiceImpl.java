@@ -40,6 +40,7 @@ public class UnFlowEventServiceImpl extends ServiceImpl<UnFlowEventMapper, UnFlo
             case "actorExternalId" -> "actor_external_id";
             case "detailJson" -> "detail_json";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnFlowEvent> wrapper = new QueryWrapper<>();
@@ -55,6 +56,7 @@ public class UnFlowEventServiceImpl extends ServiceImpl<UnFlowEventMapper, UnFlo
                     case "actorExternalId" -> "actor_external_id";
                     case "detailJson" -> "detail_json";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -119,6 +121,7 @@ public class UnFlowEventServiceImpl extends ServiceImpl<UnFlowEventMapper, UnFlo
         values.put("actorExternalId", model.getActorExternalId());
         values.put("detailJson", model.getDetailJson());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

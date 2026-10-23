@@ -81,7 +81,8 @@ public final class BaseCodeGenerator {
                             .service("service").serviceImpl("service.impl"))
                     .strategyConfig(builder -> {
                         builder.disableSqlFilter().addInclude(batchTables);
-                        builder.entityBuilder().enableTableFieldAnnotation().toString(false).enableFileOverride();
+                        builder.entityBuilder().enableTableFieldAnnotation().logicDeleteColumnName("deleted_time")
+                                .toString(false).enableFileOverride();
                         builder.mapperBuilder().enableMapperAnnotation().disableMapperXml().enableFileOverride();
                         builder.serviceBuilder().formatServiceFileName("I%sService")
                                 .formatServiceImplFileName("%sServiceImpl").enableFileOverride();

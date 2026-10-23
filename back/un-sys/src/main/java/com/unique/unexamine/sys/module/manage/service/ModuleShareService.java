@@ -60,7 +60,7 @@ public class ModuleShareService {
     private final IUnModuleLogService logs;
     private final ObjectMapper json;
 
-    /** 单条记录与范围二选一；范围至少含负责人或已发布字段筛选条件。 */
+    /** 单条记录与范围二选一；范围至少含负责人或当前保存字段筛选条件。 */
     public record SaveRequest(@NotNull Long targetTenantId,Long recordId,List<Long> ownerAccountIds,
                               List<ModuleSceneService.Condition> filters,List<Long> actionMenuIds,
                               LocalDateTime effectiveTime,LocalDateTime expireTime) {}
@@ -100,7 +100,7 @@ public class ModuleShareService {
         if ((request.recordId()==null)==!range || request.recordId()!=null && request.recordId()<1)
             throw new IllegalArgumentException("共享记录与共享范围必须且只能配置一种");
         modules.lockModule(systemId,moduleId);
-        modules.publishedModule(systemId,moduleId,source.tenantId());
+        modules.activeModule(systemId,moduleId,source.tenantId());
         UnModuleRecord record=null;
         RangeScope scope=null;
         if (request.recordId()!=null) {
@@ -185,7 +185,7 @@ public class ModuleShareService {
     /** 授权列表走生成的基础分页服务，租户与模块边界由本层固定。 */
     public SharePage list(String token,Long systemId,Long sourceTenantId,Long moduleId,long page,long size) {
         var source=systems.requireAdminContext(token,systemId,sourceTenantId);
-        modules.publishedModule(systemId,moduleId,source.tenantId());
+        modules.activeModule(systemId,moduleId,source.tenantId());
         if (page<1 || size<1 || size>100) throw new IllegalArgumentException("分页范围无效");
         var filters=Map.<String,Object>of("systemId",systemId,"sourceTenantId",source.tenantId(),"moduleId",moduleId);
         var result=shares.queryPageList(new IUnModuleShareService.PageQuery(page,size,filters,"id",true));
@@ -292,12 +292,12 @@ public class ModuleShareService {
         if (scope.ownerAccountIds().isEmpty() && scope.filters().isEmpty())
             throw new IllegalStateException("共享范围配置为空");
         if (!scope.ownerAccountIds().isEmpty()) query.in("owner_user_id",scope.ownerAccountIds());
-        Map<Long,UnModuleField> fields=modules.publishedFields(share.getModuleId()).stream()
+        Map<Long,UnModuleField> fields=modules.currentFields(share.getModuleId()).stream()
                 .collect(Collectors.toMap(UnModuleField::getId,row->row));
         for (var condition:scope.filters()) {
             UnModuleField field=fields.get(condition.fieldId());
             if (field==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"共享范围引用了失效字段");
-            FieldDefinition definition=fieldRules.published(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
             if ("EQ".equals(condition.operator()))
                 fieldRules.validate(share.getSystemId(),share.getSourceTenantId(),definition,condition.value(),null);
             else if (!"CONTAINS".equals(condition.operator()) || definition.type().kind()!=FieldType.Kind.TEXT

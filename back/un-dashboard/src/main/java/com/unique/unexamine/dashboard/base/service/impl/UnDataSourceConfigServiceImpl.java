@@ -40,6 +40,7 @@ public class UnDataSourceConfigServiceImpl extends ServiceImpl<UnDataSourceConfi
             case "publishedJson" -> "published_json";
             case "publishedVersion" -> "published_version";
             case "updateTime" -> "update_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnDataSourceConfig> wrapper = new QueryWrapper<>();
@@ -55,6 +56,7 @@ public class UnDataSourceConfigServiceImpl extends ServiceImpl<UnDataSourceConfi
                     case "publishedJson" -> "published_json";
                     case "publishedVersion" -> "published_version";
                     case "updateTime" -> "update_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -119,6 +121,7 @@ public class UnDataSourceConfigServiceImpl extends ServiceImpl<UnDataSourceConfi
         values.put("publishedJson", model.getPublishedJson());
         values.put("publishedVersion", model.getPublishedVersion());
         values.put("updateTime", model.getUpdateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

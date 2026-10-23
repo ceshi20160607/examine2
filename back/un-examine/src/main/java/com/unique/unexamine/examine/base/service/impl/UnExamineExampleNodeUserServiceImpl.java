@@ -41,6 +41,7 @@ public class UnExamineExampleNodeUserServiceImpl extends ServiceImpl<UnExamineEx
             case "actionJson" -> "action_json";
             case "actionTime" -> "action_time";
             case "createTime" -> "create_time";
+            case "deletedTime" -> "deleted_time";
             default -> throw new IllegalArgumentException("排序字段无效");
         };
         QueryWrapper<UnExamineExampleNodeUser> wrapper = new QueryWrapper<>();
@@ -57,6 +58,7 @@ public class UnExamineExampleNodeUserServiceImpl extends ServiceImpl<UnExamineEx
                     case "actionJson" -> "action_json";
                     case "actionTime" -> "action_time";
                     case "createTime" -> "create_time";
+                    case "deletedTime" -> "deleted_time";
                     default -> throw new IllegalArgumentException("筛选字段无效");
                 };
                 if (value == null) {
@@ -122,6 +124,7 @@ public class UnExamineExampleNodeUserServiceImpl extends ServiceImpl<UnExamineEx
         values.put("actionJson", model.getActionJson());
         values.put("actionTime", model.getActionTime());
         values.put("createTime", model.getCreateTime());
+        values.put("deletedTime", model.getDeletedTime());
         if (extensionValues != null) {
             extensionValues.forEach((field, value) -> {
                 if (field == null || field.toLowerCase(Locale.ROOT)

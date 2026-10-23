@@ -3,6 +3,7 @@ package com.unique.unexamine.work.base.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-22
+ * @since 2026-10-23
  */
 @TableName("un_work_project_member")
 public class UnWorkProjectMember implements Serializable {
@@ -56,6 +57,13 @@ public class UnWorkProjectMember implements Serializable {
      */
     @TableField("join_time")
     private LocalDateTime joinTime;
+
+    /**
+     * 逻辑删除时间，空表示未删除
+     */
+    @TableLogic
+    @TableField("deleted_time")
+    private LocalDateTime deletedTime;
 
     public Long getId() {
         return id;
@@ -103,5 +111,13 @@ public class UnWorkProjectMember implements Serializable {
 
     public void setJoinTime(LocalDateTime joinTime) {
         this.joinTime = joinTime;
+    }
+
+    public LocalDateTime getDeletedTime() {
+        return deletedTime;
+    }
+
+    public void setDeletedTime(LocalDateTime deletedTime) {
+        this.deletedTime = deletedTime;
     }
 }

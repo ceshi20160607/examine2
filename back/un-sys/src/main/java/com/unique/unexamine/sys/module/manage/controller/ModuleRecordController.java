@@ -30,7 +30,7 @@ public class ModuleRecordController {
         this.listService = listService;
     }
 
-    /** 新增或编辑主记录和发布字段值。 */
+    /** 新增或编辑主记录和当前字段值。 */
     @PostMapping
     @Operation(summary = "保存业务记录")
     public ModuleRecordService.RecordView save(
@@ -102,5 +102,15 @@ public class ModuleRecordController {
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long recordId) {
         service.delete(token, systemId, tenantId, moduleId, recordId);
+    }
+
+    /** 列表批量选择后整批软删除，任一记录无权限时整批不生效。 */
+    @PostMapping("/batch-delete")
+    @Operation(summary = "批量删除业务记录")
+    public void deleteByIds(@RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId,
+            @Valid @RequestBody ModuleRecordService.DeleteRecordsRequest request) {
+        service.deleteByIds(token,systemId,tenantId,moduleId,request);
     }
 }

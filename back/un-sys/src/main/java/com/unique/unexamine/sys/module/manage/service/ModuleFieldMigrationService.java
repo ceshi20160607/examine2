@@ -27,7 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-/** 字段选项发布前检查旧记录，并在模块发布事务中执行显式映射及逐条审计。 */
+/** 字段选项保存前检查旧记录，并在模块保存事务中执行显式映射及逐条审计。 */
 @Service
 public class ModuleFieldMigrationService {
     private static final DateTimeFormatter LOG_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -53,40 +53,40 @@ public class ModuleFieldMigrationService {
         this.dictionaries=dictionaries; this.fieldRules=fieldRules; this.permissions=permissions; this.json=json;
     }
 
-    /** 按草稿的有效选项和规则检查记录；只读预览不更改发布快照。 */
-    public Preview preview(String token, Long systemId, Long moduleId, UnModuleField field, FieldDefinition draft) {
+    /** 按拟保存配置的有效选项和规则检查记录；只读预览不更改保存快照。 */
+    public Preview preview(String token, Long systemId, Long moduleId, UnModuleField field, FieldDefinition proposed) {
         List<Impact> impacted=new ArrayList<>();
         for (Current current:currentValues(systemId,moduleId,field)) {
-            String reason=invalidReason(systemId,moduleId,draft,current);
+            String reason=invalidReason(systemId,moduleId,proposed,current);
             if (reason!=null) {
                 requireMigrationAccess(token,systemId,moduleId,field,current.record());
                 impacted.add(new Impact(current.record().getId(),current.record().getTenantId(),
-                        current.value(),draft.type().options()?display(systemId,current.record().getTenantId(),current.value()):Map.of(),reason));
+                        current.value(),proposed.type().options()?display(systemId,current.record().getTenantId(),current.value()):Map.of(),reason));
             }
         }
         return new Preview(impacted.size(),impacted);
     }
 
-    /** 发布事务持有模块行锁；映射只处理受新配置影响的旧值，值和日志一起提交。 */
-    public void apply(Long systemId, Long moduleId, UnModuleField field, FieldDefinition draft,
+    /** 保存事务持有模块行锁；映射只处理受新配置影响的旧值，值和日志一起提交。 */
+    public void apply(Long systemId, Long moduleId, UnModuleField field, FieldDefinition proposed,
             Map<Long,Long> mappings, Long operatorId, String token) {
         if (mappings==null || mappings.isEmpty()) return;
-        if (!draft.type().options() || field.getPublishedVersion()==null || field.getPublishedVersion()<1)
-            throw new IllegalArgumentException("只有已发布选项字段才能指定旧值迁移");
+        if (!proposed.type().options() || field.getId()==null)
+            throw new IllegalArgumentException("只有已保存选项字段才能指定旧值迁移");
         if (mappings.entrySet().stream().anyMatch(entry -> entry.getKey()==null || entry.getValue()==null
                 || entry.getKey()<1 || entry.getValue()<1 || entry.getKey().equals(entry.getValue())))
             throw new IllegalArgumentException("旧值与新值必须是不同的有效字典项 ID");
         String operatorName=accounts.queryById(operatorId).getDisplayName();
         Set<Long> used=new LinkedHashSet<>();
         for (Current current:currentValues(systemId,moduleId,field)) {
-            if (invalidReason(systemId,moduleId,draft,current)==null) continue;
+            if (invalidReason(systemId,moduleId,proposed,current)==null) continue;
             requireMigrationAccess(token,systemId,moduleId,field,current.record());
             if (current.data()==null) throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "记录 "+current.record().getId()+" 没有可迁移的旧字段值");
             Object after=replace(current.value(),mappings,used);
             try {
-                fieldRules.validateDraftValue(systemId,current.record().getTenantId(),draft,after);
-                fieldRules.validateUnique(systemId,current.record().getTenantId(),moduleId,current.record().getId(),draft,after);
+                fieldRules.validateConfiguredValue(systemId,current.record().getTenantId(),proposed,after);
+                fieldRules.validateUnique(systemId,current.record().getTenantId(),moduleId,current.record().getId(),proposed,after);
             } catch (IllegalArgumentException ex) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,
                         "记录 "+current.record().getId()+" 的迁移目标不符合新字段规则："+ex.getMessage(),ex);
@@ -96,14 +96,14 @@ public class ModuleFieldMigrationService {
             Long recordTenantId=current.record().getTenantId();
             Map<String,String> beforeNames=display(systemId,recordTenantId,current.value());
             Map<String,String> afterNames=display(systemId,recordTenantId,after);
-            current.data().setValueJson(write(after));
-            ModuleRecordService.indexValue(current.data(),draft,after);
+            fieldRules.store(current.data(),proposed,after);
             boolean updated=values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
                     .eq(UnModuleRecordData::getId,current.data().getId())
-                    .set(UnModuleRecordData::getValueJson,current.data().getValueJson())
-                    .set(UnModuleRecordData::getIndexText,current.data().getIndexText())
-                    .set(UnModuleRecordData::getIndexDecimal,current.data().getIndexDecimal())
-                    .set(UnModuleRecordData::getIndexTime,current.data().getIndexTime()));
+                    .set(UnModuleRecordData::getValueVarchar,current.data().getValueVarchar())
+                    .set(UnModuleRecordData::getValueText,current.data().getValueText())
+                    .set(UnModuleRecordData::getValueNumber,current.data().getValueNumber())
+                    .set(UnModuleRecordData::getValueTime,current.data().getValueTime())
+                    .set(UnModuleRecordData::getValueJson,current.data().getValueJson()));
             if (!updated) throw new ResponseStatusException(HttpStatus.CONFLICT,"待迁移字段值已变化，请重新预览");
             long version=current.record().getLockVersion()==null?0:current.record().getLockVersion();
             boolean recordUpdated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
@@ -153,16 +153,16 @@ public class ModuleFieldMigrationService {
         for (var record:existing) {
             UnModuleRecordData row=stored.get(record.getId());
             result.add(new Current(record,row,"name".equals(field.getFieldCode())?record.getName()
-                    :row==null?null:read(row.getValueJson())));
+                    :fieldRules.stored(row,fieldRules.storedType(field))));
         }
         return result;
     }
 
     /** 复用字段共用校验，同时纳入当前租户的唯一性约束。 */
-    private String invalidReason(Long systemId,Long moduleId,FieldDefinition draft,Current current) {
+    private String invalidReason(Long systemId,Long moduleId,FieldDefinition proposed,Current current) {
         try {
-            fieldRules.validateDraftValue(systemId,current.record().getTenantId(),draft,current.value());
-            fieldRules.validateUnique(systemId,current.record().getTenantId(),moduleId,current.record().getId(),draft,current.value());
+            fieldRules.validateConfiguredValue(systemId,current.record().getTenantId(),proposed,current.value());
+            fieldRules.validateUnique(systemId,current.record().getTenantId(),moduleId,current.record().getId(),proposed,current.value());
             return null;
         } catch (IllegalArgumentException ex) { return ex.getMessage(); }
     }
@@ -170,7 +170,9 @@ public class ModuleFieldMigrationService {
     /** 选项基础项 ID 由字典统一解析，旧名称和目标名称在日志写入时冻结。 */
     private Map<String,String> display(Long systemId,Long tenantId,Object value) {
         Set<Long> ids=new LinkedHashSet<>();
-        if (value instanceof List<?> list) list.forEach(item->ids.add(optionId(item)));
+        if (value instanceof Map<?,?> object && object.get("path") instanceof List<?> path)
+            path.forEach(item->ids.add(optionId(item)));
+        else if (value instanceof List<?> list) list.forEach(item->ids.add(optionId(item)));
         else if (value!=null) ids.add(optionId(value));
         Map<String,String> names=new LinkedHashMap<>();
         if (!ids.isEmpty()) {
@@ -182,6 +184,11 @@ public class ModuleFieldMigrationService {
 
     /** 单选、多选及级联路径均按管理员明确给出的 ID 映射替换。 */
     private Object replace(Object before,Map<Long,Long> mappings,Set<Long> used) {
+        if (before instanceof Map<?,?> object && object.get("path") instanceof List<?> path) {
+            List<Long> after=new ArrayList<>(path.size());
+            for (Object item:path) after.add(mapped(item,mappings,used));
+            return Map.of("path",after);
+        }
         if (before instanceof List<?> list) {
             List<Long> after=new ArrayList<>(list.size());
             for (Object item:list) after.add(mapped(item,mappings,used));

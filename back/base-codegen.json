@@ -45,8 +45,7 @@
       "sourceRoot": "un-core/src/main/java",
       "basePackage": "com.unique.unexamine.core.file.base",
       "tables": [
-        "un_common_file",
-        "un_common_file_ref"
+        "un_common_file"
       ]
     },
     {
