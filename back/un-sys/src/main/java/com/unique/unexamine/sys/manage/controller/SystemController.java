@@ -1,7 +1,13 @@
 package com.unique.unexamine.sys.manage.controller;
 
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.CreateSystemRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.CreateTenantRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.SystemContext;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.SystemView;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.TenantModeRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.TenantView;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,53 +37,53 @@ public class SystemController {
     /** 为当前平台账号创建系统及主租户。 */
     @PostMapping
     @Operation(summary = "创建系统及主租户")
-    public SystemManageService.SystemView create(
+    public Result<SystemView> create(
             @RequestHeader(value = "Authorization", required = false) String token,
-            @Valid @RequestBody SystemManageService.CreateSystemRequest request) {
-        return service.create(token, request);
+            @Valid @RequestBody CreateSystemRequest request) {
+        return Result.ok(service.create(token, request));
     }
 
     /** 列出当前账号拥有系统成员身份的系统。 */
     @GetMapping
     @Operation(summary = "我的系统")
-    public List<SystemManageService.SystemView> list(
+    public Result<List<SystemView>> list(
             @RequestHeader(value = "Authorization", required = false) String token) {
-        return service.list(token);
+        return Result.ok(service.list(token));
     }
 
     /** 建立当前系统与租户上下文。 */
     @GetMapping("/{systemId}/context")
     @Operation(summary = "进入系统租户")
-    public SystemManageService.SystemContext context(
+    public Result<SystemContext> context(
             @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long systemId, @RequestParam(required = false) Long tenantId) {
-        return service.context(token, systemId, tenantId);
+        return Result.ok(service.context(token, systemId, tenantId));
     }
 
     /** 根据租户模式列出当前成员可进入的租户。 */
     @GetMapping("/{systemId}/tenants")
     @Operation(summary = "可进入的租户")
-    public List<SystemManageService.TenantView> tenants(
+    public Result<List<TenantView>> tenants(
             @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long systemId) {
-        return service.tenants(token, systemId);
+        return Result.ok(service.tenants(token, systemId));
     }
 
     /** 系统管理员直接开启或关闭多租户。 */
     @PutMapping("/{systemId}/tenant-mode")
     @Operation(summary = "设置多租户模式")
-    public SystemManageService.SystemView tenantMode(
+    public Result<SystemView> tenantMode(
             @RequestHeader(value = "Authorization", required = false) String token,
-            @PathVariable Long systemId, @Valid @RequestBody SystemManageService.TenantModeRequest request) {
-        return service.setTenantMode(token, systemId, request);
+            @PathVariable Long systemId, @Valid @RequestBody TenantModeRequest request) {
+        return Result.ok(service.setTenantMode(token, systemId, request));
     }
 
     /** 在已开启的多租户模式内创建租户。 */
     @PostMapping("/{systemId}/tenants")
     @Operation(summary = "创建系统租户")
-    public SystemManageService.TenantView createTenant(
+    public Result<TenantView> createTenant(
             @RequestHeader(value = "Authorization", required = false) String token,
-            @PathVariable Long systemId, @Valid @RequestBody SystemManageService.CreateTenantRequest request) {
-        return service.createTenant(token, systemId, request);
+            @PathVariable Long systemId, @Valid @RequestBody CreateTenantRequest request) {
+        return Result.ok(service.createTenant(token, systemId, request));
     }
 }

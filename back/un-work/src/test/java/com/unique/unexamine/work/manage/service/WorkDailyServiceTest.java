@@ -1,5 +1,7 @@
 package com.unique.unexamine.work.manage.service;
 
+import com.unique.unexamine.work.manage.dto.WorkDailyDto;
+
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.work.base.entity.UnWorkDaily;
@@ -57,7 +59,7 @@ class WorkDailyServiceTest {
         when(dailies.addOrUpdate(any(UnWorkDaily.class))).thenAnswer(invocation->{
             UnWorkDaily row=invocation.getArgument(0);row.setId(7L);return row;
         });
-        var result=service.create("token",null,null,new WorkDailyService.DailyRequest(
+        var result=service.create("token",null,null,new WorkDailyDto.DailyRequest(
                 LocalDate.of(2026,10,23),"完成测试",null,null,null,null,
                 List.of(20L),List.of(40L)));
         assertEquals(List.of(20L),result.relations().projectIds());

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleFieldSort;
 import com.unique.unexamine.sys.module.base.service.IUnModuleFieldSortService;
+import com.unique.unexamine.sys.module.manage.dto.ModuleColumnDto.Preference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,9 +19,6 @@ public class ModuleColumnService {
     private final ModulePermissionService permissions;
     private final ModuleConfigService modules;
     private final IUnModuleFieldSortService preferences;
-
-    /** 保存顺序、显隐、宽度与固定侧，字段身份使用当前保存字段主键。 */
-    public record Preference(Long fieldId,int sortNo,Integer widthPx,boolean hidden,String fixedSide) {}
 
     /** 注入生成的表头基础 Service 和模块权限入口。 */
     public ModuleColumnService(ModulePermissionService permissions,ModuleConfigService modules,

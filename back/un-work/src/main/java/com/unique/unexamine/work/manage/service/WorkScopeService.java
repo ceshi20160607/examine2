@@ -27,6 +27,7 @@ public class WorkScopeService {
 
     /** 当前操作者及其明确选择的工作作用域。 */
     public record Scope(Long actorId,String type,Long systemId,Long tenantId) {}
+
     /** 目标账号及其在当前系统中展示的名称。 */
     public record Assignee(UnPlatAccount account,String displayName) {}
 

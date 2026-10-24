@@ -22,7 +22,7 @@ public final class BaseCodeGenerator {
     private BaseCodeGenerator() {
     }
 
-    /** 先验证表归属及实际数据库，再调用模板生成 Entity、Mapper 和五方法 Service。 */
+    /** 先验证表归属及实际数据库，再生成 Entity、Mapper 和基础 CRUD Service。 */
     public static void main(String[] args) throws Exception {
         if (args.length < 1 || args.length > 2) {
             throw new IllegalArgumentException("用法: BaseCodeGenerator <back/base-codegen.json> [本批表名,以逗号分隔]");

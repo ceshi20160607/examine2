@@ -2,24 +2,26 @@ package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.core.bo.SearchBO;
 import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
-import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
-import com.unique.unexamine.sys.base.entity.UnSysTenant;
-import com.unique.unexamine.sys.base.entity.UnSysMember;
-import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
+import com.unique.unexamine.sys.base.entity.UnSysMember;
+import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
+import com.unique.unexamine.sys.base.entity.UnSysTenant;
+import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.service.IUnSysMemberService;
-import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemConfigService;
+import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantService;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
-import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
+import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleShare;
 import com.unique.unexamine.sys.module.base.entity.UnModuleTenant;
@@ -27,11 +29,15 @@ import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleShareService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleTenantService;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleShareDto.RangeScope;
+import com.unique.unexamine.sys.module.manage.dto.ModuleShareDto.SaveRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleShareDto.ShareView;
 import com.unique.unexamine.sys.module.manage.util.ModuleRecordFilter;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,19 +66,6 @@ public class ModuleShareService {
     private final IUnModuleLogService logs;
     private final ObjectMapper json;
 
-    /** 单条记录与范围二选一；范围至少含负责人或当前保存字段筛选条件。 */
-    public record SaveRequest(@NotNull Long targetTenantId,Long recordId,List<Long> ownerAccountIds,
-                              List<ModuleSceneService.Condition> filters,List<Long> actionMenuIds,
-                              LocalDateTime effectiveTime,LocalDateTime expireTime) {}
-    /** 范围配置使用稳定账号和字段主键，运行时按来源租户数据重新求值。 */
-    public record RangeScope(List<Long> ownerAccountIds,List<ModuleSceneService.Condition> filters) {}
-    /** 共享配置和撤销结果保留原始记录所属租户。 */
-    public record ShareView(Long id,Long sourceTenantId,Long targetTenantId,Long moduleId,
-                            Long recordId,RangeScope scope,List<Long> actionMenuIds,
-                            String status,LocalDateTime effectiveTime,LocalDateTime expireTime) {}
-    /** 来源租户后台按创建顺序查看当前及已撤销的共享配置。 */
-    public record SharePage(long total,long current,long size,List<ShareView> records) {}
-
     /** 所有表读写均通过生成的基础 Service，业务检查集中在本层。 */
     public ModuleShareService(SystemManageService systems,ModuleConfigService modules,ModuleMenuService menus,
             ModulePermissionService permissions,ModuleSceneService scenes,ModuleFieldService fieldRules,
@@ -95,7 +88,7 @@ public class ModuleShareService {
         if (request.targetTenantId()==null || request.targetTenantId()<1 || source.tenantId().equals(request.targetTenantId()))
             throw new IllegalArgumentException("目标租户无效");
         List<Long> ownerIds=request.ownerAccountIds()==null?List.of():request.ownerAccountIds();
-        List<ModuleSceneService.Condition> filters=request.filters()==null?List.of():request.filters();
+        List<ModuleSceneDto.Condition> filters=request.filters()==null?List.of():request.filters();
         boolean range=!ownerIds.isEmpty() || !filters.isEmpty();
         if ((request.recordId()==null)==!range || request.recordId()!=null && request.recordId()<1)
             throw new IllegalArgumentException("共享记录与共享范围必须且只能配置一种");
@@ -116,7 +109,7 @@ public class ModuleShareService {
             if (!activeOwners.containsAll(ownerIds)) throw new IllegalArgumentException("共享负责人不是来源租户有效成员");
             var sourceAccess=permissions.require(token,systemId,source.tenantId(),moduleId,"LIST");
             scenes.check(systemId,source.tenantId(),moduleId,
-                    new ModuleSceneService.Settings(filters,List.of(),null,true),sourceAccess);
+                    new ModuleSceneDto.Settings(filters,List.of(),null,true),sourceAccess);
             scope=new RangeScope(ownerIds.stream().sorted().toList(),List.copyOf(filters));
         }
         UnSysTenant target=tenants.queryById(request.targetTenantId());
@@ -183,14 +176,14 @@ public class ModuleShareService {
     }
 
     /** 授权列表走生成的基础分页服务，租户与模块边界由本层固定。 */
-    public SharePage list(String token,Long systemId,Long sourceTenantId,Long moduleId,long page,long size) {
+    public Page<ShareView> list(String token,Long systemId,Long sourceTenantId,Long moduleId,SearchBO search) {
         var source=systems.requireAdminContext(token,systemId,sourceTenantId);
         modules.activeModule(systemId,moduleId,source.tenantId());
-        if (page<1 || size<1 || size>100) throw new IllegalArgumentException("分页范围无效");
-        var filters=Map.<String,Object>of("systemId",systemId,"sourceTenantId",source.tenantId(),"moduleId",moduleId);
-        var result=shares.queryPageList(new IUnModuleShareService.PageQuery(page,size,filters,"id",true));
-        return new SharePage(result.getTotal(),result.getCurrent(),result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        var where=new LambdaQueryWrapper<UnModuleShare>().eq(UnModuleShare::getSystemId,systemId)
+                .eq(UnModuleShare::getSourceTenantId,source.tenantId()).eq(UnModuleShare::getModuleId,moduleId)
+                .orderByDesc(UnModuleShare::getId);
+        var result=shares.page(search.parse(),where);
+        return new Page<ShareView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 本租户负责人范围与有效共享范围在数据库条件中求并集，再由调用方分页。 */
@@ -214,11 +207,6 @@ public class ModuleShareService {
             }
         });
         return true;
-    }
-
-    /** 无共享时基础列表可直接委托生成的同租户分页 CRUD。 */
-    public boolean hasActiveShares(ModulePermissionService.Access access) {
-        return multiTenant(access.context().systemId()) && !active(access).isEmpty();
     }
 
     /** 读取外租户记录时再查当前授权，撤销后不能靠旧缓存继续访问。 */
@@ -349,7 +337,7 @@ public class ModuleShareService {
         String subject=share.getRecordId()==null?"记录范围":"记录";
         String message="RECORD_SHARE".equals(action)?subject+"共享给租户 "+share.getTargetTenantId()
                 :"撤销对租户 "+share.getTargetTenantId()+" 的"+subject+"共享";
-        log.setDetailJson(write(new ModuleRecordService.AuditDetail(message,null,List.of(),null,null,message)));
+        log.setDetailJson(write(new ModuleRecordDto.AuditDetail(message,null,List.of(),null,null,message)));
         log.setPermissionJson(write(Map.of("sourceTenantId",share.getSourceTenantId(),
                 "targetTenantId",share.getTargetTenantId(),"menuIds",menuIds(share),
                 "scope",share.getScopeJson()==null?Map.of():scope(share))));

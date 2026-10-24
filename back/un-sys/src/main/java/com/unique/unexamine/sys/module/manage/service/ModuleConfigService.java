@@ -11,10 +11,22 @@ import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
 import com.unique.unexamine.sys.base.service.IUnSysLogOptService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemConfigService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemService;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService.FieldConfig;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.CreateGroupRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.CreateModuleRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.FieldConfig;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.FieldDefinitionView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.FormView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.ModuleView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.NavigationGroup;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.NavigationModule;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.SaveFieldRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.UpdateModuleRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -41,29 +53,6 @@ public class ModuleConfigService {
     private final ModulePermissionService permissions;
     private final ModuleMenuService menuService;
     private final ModuleFieldMigrationService migrations;
-
-    /** 创建运行态导航模块组。 */
-    public record CreateGroupRequest(@NotBlank @Size(max=80) String code,@NotBlank @Size(max=100) String name) {}
-    /** 模块必须归属主租户已配置的模块组。 */
-    public record CreateModuleRequest(@NotNull Long groupId,@NotBlank @Size(max=80) String code,
-                                      @NotBlank @Size(max=100) String name) {}
-    /** 字段保存同时携带必要的旧选项到新选项映射，不另存一份待发布草稿。 */
-    public record SaveFieldRequest(@NotBlank @Size(max=80) String fieldCode,
-            @NotBlank @Size(max=100) String fieldName,@NotBlank String fieldType,
-            boolean required,int sortNo,@NotNull Map<String,Object> layout,
-            @NotNull Map<String,Object> config,Map<Long,Long> optionMappings) {}
-    /** 编辑名称、说明与启停状态不改变模块归属或稳定编码。 */
-    public record UpdateModuleRequest(@NotBlank @Size(max=100) String name,
-                                      @Size(max=500) String description,boolean enabled) {}
-    /** 当前有效模块信息，不暴露产品配置版本。 */
-    public record ModuleView(Long id,String code,String name,String status) {}
-    /** 新建、编辑和详情读取同一份当前保存布局。 */
-    public record FormView(Long moduleId,List<FieldConfig> fields) {}
-    /** 菜单与角色字段授权引用稳定字段 ID。 */
-    public record FieldDefinitionView(Long fieldId,String fieldCode,Map<String,Object> configuration) {}
-    /** 导航只返回当前登录人具有列表动作权限的模块。 */
-    public record NavigationModule(Long id,String code,String name,Long ownerTenantId,boolean inherited) {}
-    public record NavigationGroup(Long id,String code,String name,List<NavigationModule> modules) {}
 
     /** 注入生成的基础服务及已复用的权限、校验和提交后缓存失效能力。 */
     public ModuleConfigService(SystemManageService systems,IUnSysSystemService systemRows,
@@ -144,7 +133,7 @@ public class ModuleConfigService {
     }
 
     /** 预览尚未保存的新配置对旧值的影响，不持久化任何草稿。 */
-    public ModuleFieldMigrationService.Preview previewMigration(String token,Long systemId,Long tenantId,
+    public ModuleFieldMigrationDto.Preview previewMigration(String token,Long systemId,Long tenantId,
             Long moduleId,Long fieldId,SaveFieldRequest proposed) {
         var context=systems.requireAdminContext(token,systemId,tenantId); ownedModule(systemId,moduleId,context.tenantId());
         var field=fields.queryById(fieldId);
@@ -165,7 +154,7 @@ public class ModuleConfigService {
     }
 
     /** 字段类型目录供设计器使用，未具备完整业务能力的类型不能保存使用。 */
-    public List<ModuleFieldService.TypeView> fieldTypes(String token,Long systemId,Long tenantId) {
+    public List<ModuleFieldDto.TypeView> fieldTypes(String token,Long systemId,Long tenantId) {
         systems.requireAdminContext(token,systemId,tenantId); return fieldRules.types();
     }
 
@@ -237,7 +226,7 @@ public class ModuleConfigService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"模块不存在");
     }
 
-    private Long saveFieldInTransaction(String token,SystemManageService.SystemContext context,
+    private Long saveFieldInTransaction(String token,SystemManageDto.SystemContext context,
             UnModule module,SaveFieldRequest request) {
         String fieldCode=code(request.fieldCode()); String type=request.fieldType().trim().toUpperCase(Locale.ROOT);
         if (!"name".equals(fieldCode) && Set.of("id","num","status","moduleid","tenantid","systemid",
@@ -281,12 +270,12 @@ public class ModuleConfigService {
         if (!result.matches("[a-z][a-z0-9_]{1,79}")) throw new IllegalArgumentException("配置编码须以字母开头并只包含字母、数字和下划线");
         return result;
     }
-    private void audit(String token,SystemManageService.SystemContext context,String action,String objectType,Long id,Object detail) {
+    private void audit(String token,SystemManageDto.SystemContext context,String action,String objectType,Long id,Object detail) {
         var log=new UnSysLogOpt(); log.setSystemId(context.systemId()); log.setTenantId(context.tenantId());
         log.setAccountId(systems.accountId(token,context.systemId())); log.setActionCode(action); log.setObjectType(objectType);
         log.setObjectId(id); log.setDetailJson(writeJson(detail)); logs.addOrUpdate(log);
     }
-    private void changed(SystemManageService.SystemContext context) {
+    private void changed(SystemManageDto.SystemContext context) {
         systemConfigs.update(new LambdaUpdateWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getSystemId,context.systemId())
                 .setSql("permission_revision=permission_revision+1"));
         cache.invalidateAfterCommit("permission:"+context.systemId()+":"+context.tenantId());

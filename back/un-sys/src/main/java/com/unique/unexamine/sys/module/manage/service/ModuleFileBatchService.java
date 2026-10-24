@@ -2,9 +2,9 @@ package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.unique.unexamine.core.field.FileBatchId;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
-import com.unique.unexamine.core.field.FileBatchId;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import java.util.HashSet;

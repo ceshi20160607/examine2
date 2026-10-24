@@ -1,5 +1,7 @@
 package com.unique.unexamine.work.manage.service;
 
+import com.unique.unexamine.work.manage.dto.WorkProjectDto;
+
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkProjectMember;
@@ -45,7 +47,7 @@ class WorkProjectServiceTest {
         when(groups.getOne(any(),eq(false))).thenReturn(group);
         when(members.exists(any())).thenReturn(true);
         var result=service.editGroup("token",null,null,20L,30L,
-                new WorkProjectService.GroupEditRequest("测试阶段",11L,"PAUSED",2,null));
+                new WorkProjectDto.GroupEditRequest("测试阶段",11L,"PAUSED",2,null));
         assertEquals(20L,result.projectId());
         assertEquals(11L,result.ownerAccountId());
         assertEquals("PAUSED",result.status());

@@ -1,5 +1,12 @@
 package com.unique.unexamine.sys.module.manage.service;
 
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
+import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -37,17 +44,17 @@ class ModuleRecordExportPermissionTest {
     }
 
     private void setup() {
-        var context=new SystemManageService.SystemContext(1L,2L,10L,11L,12L,false,false);
+        var context=new SystemManageDto.SystemContext(1L,2L,10L,11L,12L,false,false);
         var policy=new PermissionPolicy(true,true,Set.of(),true,Set.of(),false,Set.of(),false,Set.of("name"));
         var module=new UnModule(); module.setId(3L);
-        var settings=new ModuleMenuService.Settings("导出","EXPORT","LIST_TOOLBAR",List.of(),List.of(),null,List.of());
-        var definition=new ModuleMenuService.Definition(module,null,null,null,settings);
+        var settings=new ModuleMenuDto.Settings("导出","EXPORT","LIST_TOOLBAR",List.of(),List.of(),null,List.of());
+        var definition=new ModuleMenuDto.Definition(module,null,null,null,settings);
         when(permissions.require("token",1L,2L,3L,"EXPORT"))
                 .thenReturn(new ModulePermissionService.Access(context,10L,policy,definition));
         when(modules.activeModule(1L,3L,2L)).thenReturn(module);
         when(modules.currentFields(3L)).thenReturn(List.of(field(11L,"name"),field(12L,"secret")));
         when(scenes.resolve(eq(3L),isNull(),any())).thenReturn(
-                new ModuleSceneService.Settings(List.of(),List.of(),null,true));
+                new ModuleSceneDto.Settings(List.of(),List.of(),null,true));
         when(columns.effective(eq(3L),any())).thenReturn(Map.of());
         when(shares.applyRecordScope(any(QueryWrapper.class),any(),eq("ALL"))).thenReturn(true);
         when(records.page(any(Page.class),any(QueryWrapper.class))).thenReturn(new Page<UnModuleRecord>(1,500));
@@ -55,18 +62,18 @@ class ModuleRecordExportPermissionTest {
 
     @Test void defaultExportOmitsFieldsWithoutExportPermission() {
         setup();
-        var query=new ModuleRecordListService.Query(null,null,List.of(),null,null,null,1,500,"ALL");
+        var query=new ModuleRecordSearchBO(); query.setLimit(500);
 
         var result=service.export("token",1L,2L,3L,query);
 
-        assertEquals(List.of("name"),result.columns().stream().map(ModuleRecordListService.Column::code).toList());
+        assertEquals(List.of("name"),result.columns().stream().map(ModuleRecordListDto.Column::code).toList());
         verify(permissions).require("token",1L,2L,3L,"EXPORT");
         verify(permissions,never()).require("token",1L,2L,3L,"LIST");
     }
 
     @Test void explicitForbiddenColumnFailsBeforeRecordQuery() {
         setup();
-        var query=new ModuleRecordListService.Query(null,null,List.of(),null,null,List.of(12L),1,500,"ALL");
+        var query=new ModuleRecordSearchBO(); query.setLimit(500); query.setColumnFieldIds(List.of(12L));
 
         assertThrows(ResponseStatusException.class,()->service.export("token",1L,2L,3L,query));
         verify(records,never()).page(any(Page.class),any(QueryWrapper.class));

@@ -1,7 +1,9 @@
 package com.unique.unexamine.sys.module.manage.controller;
 
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto.SaveRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto.SceneView;
 import com.unique.unexamine.sys.module.manage.service.ModuleSceneService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,19 +29,19 @@ public class ModuleSceneController {
     /** 保存本人视图或管理员维护的公共场景。 */
     @PostMapping
     @Operation(summary="保存模块列表场景")
-    public ModuleSceneService.SceneView save(@RequestHeader(value="Authorization",required=false) String token,
+    public Result<SceneView> save(@RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @PathVariable Long systemId,@PathVariable Long moduleId,
-            @Valid @RequestBody ModuleSceneService.SaveRequest request) {
-        return service.save(token,systemId,tenantId,moduleId,request);
+            @Valid @RequestBody SaveRequest request) {
+        return Result.ok(service.save(token,systemId,tenantId,moduleId,request));
     }
 
     /** 只列出当前账号能够执行的公共及个人场景。 */
     @GetMapping
     @Operation(summary="查询可用模块列表场景")
-    public List<ModuleSceneService.SceneView> list(@RequestHeader(value="Authorization",required=false) String token,
+    public Result<List<SceneView>> list(@RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @PathVariable Long systemId,@PathVariable Long moduleId) {
-        return service.list(token,systemId,tenantId,moduleId);
+        return Result.ok(service.list(token,systemId,tenantId,moduleId));
     }
 }

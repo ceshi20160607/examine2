@@ -6,46 +6,56 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unique.unexamine.sys.module.base.entity.UnModule;
-import com.unique.unexamine.sys.module.base.entity.UnModuleField;
-import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
-import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
-import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
-import com.unique.unexamine.sys.module.base.entity.UnModuleShare;
-import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService.FieldView;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService.PageQuery;
+import com.unique.unexamine.core.bo.SearchBO;
+import com.unique.unexamine.core.field.FieldDefinition;
+import com.unique.unexamine.core.field.FieldType;
+import com.unique.unexamine.core.permission.PermissionPolicy;
+import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.service.IUnSysMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
-import com.unique.unexamine.core.field.FieldDefinition;
-import com.unique.unexamine.core.field.FieldType;
-import com.unique.unexamine.core.permission.PermissionPolicy;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotEmpty;
-import java.time.LocalDateTime;
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Objects;
-import java.math.BigDecimal;
-import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
+import com.unique.unexamine.sys.module.base.entity.UnModule;
+import com.unique.unexamine.sys.module.base.entity.UnModuleField;
+import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
+import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
+import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRelation;
+import com.unique.unexamine.sys.module.base.entity.UnModuleShare;
+import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
+import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
+import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRelationService;
+import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.FieldConfig;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.ActionResult;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.AuditDetail;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.DeleteRecordsRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.ExecuteRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.FieldChange;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.FieldView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.OperationView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordInformation;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RuntimeAction;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.SaveRecordRequest;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 /** 有效模块的记录保存与读取；主记录、自定义字段和日志在同一事务中完成。 */
@@ -67,24 +77,6 @@ public class ModuleRecordService {
     private final IUnPlatAccountService accounts;
     private final ModuleShareService shares;
     private final ModuleFileBatchService fileBatches;
-
-    /** 表单提交主键为空时新增，传主键时更新同模块记录。 */
-    public record SaveRecordRequest(Long id, Long ownerAccountId,
-                                    @NotNull Map<String, Object> values) {}
-
-    /** `queryById` 只展示基础记录，不拼接表单布局。 */
-    public record RecordView(Long id, String name, String status, Long ownerAccountId,
-                             Long createAccountId, LocalDateTime createTime,
-                             Long sourceTenantId,boolean shared) {}
-
-    /** 模块列表的实际分页结果。 */
-    public record RecordPage(long total, long current, long size, List<RecordView> records) {}
-
-    /** 批量删除的记录标识；每条记录仍逐条检查当前动作的数据权限。 */
-    public record DeleteRecordsRequest(@NotEmpty List<@NotNull Long> ids) {}
-
-    /** `information` 复用当前保存的表单配置并填入基础及扩展值。 */
-    public record RecordInformation(Long id,Long sourceTenantId,boolean shared,List<FieldView> fields) {}
 
     /** 注入已生成基础 Service 和系统成员关系服务。 */
     public ModuleRecordService(SystemManageService systems, ModuleConfigService config,
@@ -111,23 +103,6 @@ public class ModuleRecordService {
         this.shares = shares;
         this.fileBatches = fileBatches;
     }
-
-    /** 输入字段只允许动作指定的业务字段；归属转移使用单独的负责人参数。 */
-    public record ExecuteRequest(Map<String,Object> values,Long ownerAccountId) {}
-    /** 成功结果仅返回关联标识，后续跳转仍校验目标记录读取权限。 */
-    public record ActionResult(Long recordId,Long targetModuleId,Long targetRecordId) {}
-    /** 运行态按钮与页面共用菜单身份。 */
-    public record RuntimeAction(Long menuId,String name,String type,String position) {}
-    /** 日志保留操作发生时的字段名称、业务值和字典名称。 */
-    public record FieldChange(Long fieldId,String fieldCode,String fieldName,Object before,Object after,
-                               Map<String,String> beforeDisplay,Map<String,String> afterDisplay) {}
-    /** 配置迁移与普通字段更新使用不同 actionCode，此处保存执行上下文。 */
-    public record AuditDetail(String actionName,String operatorName,List<FieldChange> changes,
-                               Long relatedModuleId,Long relatedRecordId,String message) {}
-    /** 返回的字段变化已经按当前字段读取许可过滤。 */
-    public record OperationView(Long id,String operationType,Long operatorAccountId,LocalDateTime createTime,AuditDetail detail) {}
-    /** 操作历史分页复用生成的基础日志服务。 */
-    public record OperationPage(long total,long current,long size,List<OperationView> records) {}
 
     /** 普通表单新增和编辑各自使用明确菜单，不允许通过编辑接口绕过负责人转移权限。 */
     @Transactional(rollbackFor=Exception.class,isolation=Isolation.READ_COMMITTED)
@@ -228,7 +203,7 @@ public class ModuleRecordService {
             values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,values.get(field.getFieldCode())));
         }
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(access.context().tenantId()),
-                records.information(recordId,form,values));
+                bind(form,values));
     }
 
     /** 动作执行统一检查菜单、条件、数据范围及字段许可，再进入同一业务保存事务。 */
@@ -331,7 +306,7 @@ public class ModuleRecordService {
             if (!matched) throw new ResponseStatusException(HttpStatus.CONFLICT,"当前记录不满足动作执行条件");
         }
     }
-    private Map<String,UnModuleField> actionFields(ModuleMenuService.Definition definition) {
+    private Map<String,UnModuleField> actionFields(ModuleMenuDto.Definition definition) {
         Map<String,UnModuleField> result=new LinkedHashMap<>(); var ids=definition.settings().fieldIds();
         for (var field:config.currentFields(definition.module().getId())) if (ids.contains(field.getId())) result.put(field.getFieldCode(),field);
         if (result.size()!=ids.size()) throw new ResponseStatusException(HttpStatus.CONFLICT,"动作字段已失效"); return result;
@@ -385,7 +360,7 @@ public class ModuleRecordService {
             Object raw=fieldRules.stored(stored.get(field.getFieldCode()),definition.type());
             values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,raw));
         }
-        List<IUnModuleRecordService.FieldConfig> form = access.policy().filterReadable(currentFields, UnModuleField::getFieldCode).stream()
+        List<FieldConfig> form = access.policy().filterReadable(currentFields, UnModuleField::getFieldCode).stream()
                 .map(field -> {
                     boolean editable=shared?effectiveEdit!=null && effectiveEdit.policy().writable(field.getFieldCode())
                             :access.policy().writable(field.getFieldCode());
@@ -396,34 +371,24 @@ public class ModuleRecordService {
                     return item;
                 }).toList();
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(context.tenantId()),
-                records.information(recordId, form, values));
+                bind(form,values));
     }
 
-    /** 列表分页委托生成的基础 Service，软删除字段由 IS NULL 筛选。 */
-    public RecordPage queryPageList(String token, Long systemId, Long tenantId, Long moduleId,
-                                    String scope,long page, long size) {
+    /** 业务列表在授权后的记录范围内分页，逻辑删除由 MyBatis-Plus 处理。 */
+    public Page<RecordView> queryPageList(String token, Long systemId, Long tenantId, Long moduleId,
+                                    ModuleRecordSearchBO search) {
         var access = permissions.require(token, systemId, tenantId, moduleId, "LIST");
         var context = access.context();
         config.activeModule(systemId, moduleId, context.tenantId());
-        Map<String, Object> filters = new HashMap<>();
-        filters.put("systemId", systemId);
-        filters.put("tenantId", context.tenantId());
-        filters.put("moduleId", moduleId);
-        filters.put("deletedTime", null);
-        if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页范围无效");
+        String scope=search.getScope();
+        Page<UnModuleRecord> requestPage=search.parse();
         if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
-        Page<UnModuleRecord> result;
-        if (access.policy().allData() && ("MINE".equals(scope)
-                || "ALL".equals(scope) && !shares.hasActiveShares(access)))
-            result=records.queryPageList(new PageQuery(page,size,filters,"id",true));
-        else {
-            QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
-                    .eq("system_id",systemId).eq("module_id",moduleId).isNull("deleted_time");
-            if (!shares.applyRecordScope(where,access,scope)) return new RecordPage(0,page,size,List.of());
-            result=records.page(Page.of(page,size),where.orderByDesc("id"));
-        }
-        return new RecordPage(result.getTotal(), result.getCurrent(), result.getSize(),
-                result.getRecords().stream().map(record -> view(record,access.policy(),context.tenantId())).toList());
+        QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
+                .eq("system_id",systemId).eq("module_id",moduleId);
+        if (!shares.applyRecordScope(where,access,scope))
+            return new Page<RecordView>(requestPage.getCurrent(),requestPage.getSize(),0).setRecords(List.of());
+        Page<UnModuleRecord> result=records.page(requestPage,where.orderByDesc("id"));
+        return new Page<RecordView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(record -> view(record,access.policy(),context.tenantId())).toList());
     }
 
     /** 业务记录默认逻辑删除，保留字段值和操作历史。 */
@@ -588,12 +553,14 @@ public class ModuleRecordService {
     }
 
     /** 操作历史与详情使用相同记录授权，并在服务端过滤无权读取的字段变化。 */
-    public OperationPage operations(String token,Long systemId,Long tenantId,Long moduleId,Long recordId,long page,long size) {
+    public Page<OperationView> operations(String token,Long systemId,Long tenantId,Long moduleId,Long recordId,SearchBO search) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"DETAIL");
         var record=readableRecord(access,recordId,true);
-        var filters=Map.<String,Object>of("systemId",systemId,"tenantId",record.getTenantId(),"moduleId",moduleId,"recordId",recordId);
-        var result=logs.queryPageList(new IUnModuleLogService.PageQuery(page,size,filters,"id",true));
-        return new OperationPage(result.getTotal(),result.getCurrent(),result.getSize(),result.getRecords().stream().map(log->{
+        var where=new LambdaQueryWrapper<UnModuleLog>().eq(UnModuleLog::getSystemId,systemId)
+                .eq(UnModuleLog::getTenantId,record.getTenantId()).eq(UnModuleLog::getModuleId,moduleId)
+                .eq(UnModuleLog::getRecordId,recordId).orderByDesc(UnModuleLog::getId);
+        var result=logs.page(search.parse(),where);
+        return new Page<OperationView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(log->{
             AuditDetail detail;
             try { detail=log.getDetailJson()==null?new AuditDetail(log.getActionCode(),null,List.of(),null,null,null):json.readValue(log.getDetailJson(),AuditDetail.class); }
             catch (JsonProcessingException ex) { throw new IllegalStateException("业务操作日志损坏",ex); }
@@ -603,6 +570,13 @@ public class ModuleRecordService {
                     new AuditDetail(detail.actionName(),detail.operatorName(),visible,detail.relatedModuleId(),detail.relatedRecordId(),
                             visible.isEmpty() && detail.changes()!=null && !detail.changes().isEmpty()?null:detail.message()));
         }).toList());
+    }
+
+    /** 仅在有权读取的字段配置上绑定业务值，保持原位置和宽度。 */
+    private List<FieldView> bind(List<FieldConfig> form,Map<String,Object> values) {
+        return form.stream().map(field->new FieldView(field.fieldName(),
+                java.util.Collections.unmodifiableMap(new LinkedHashMap<>(field.configuration())),
+                values.get(field.fieldName()))).toList();
     }
 
     /** 基础记录响应不包含字段扩展和布局。 */

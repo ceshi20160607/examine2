@@ -27,4 +27,4 @@ python template_base/tools/tb.py execution-verify --workspace workspace.json --t
 - `execution-context` 展示原始资料边界、当前最终需求理解及工程流程，帮助执行者接续工作。
 - `project-status` 检查当前源码中实际存在的基础文件和业务代码，不读取进度档案，不输出产品完成率。
 - `execution-verify` 实际执行目标工程的 Maven 编译/测试并返回真实退出码，不接受文档证据或写入验收状态。业务入口验证仍由本批执行者完成。
-- `mybatis-plus-generator/` 在配置中的整套固定业务表均已落入目标库且通过结构检查后，才从真实业务表生成 Entity、Mapper、IService、ServiceImpl 及五个基础方法；即使本次只生成一批表也要先满足这个前置条件。生成归属使用业务工程的代码生成配置；具体业务只写在对应模块 manage，不手工修补生成代码替代模板修正。
+- `mybatis-plus-generator/` 在配置中的整套固定业务表均已落入目标库且通过结构检查后，才从真实业务表生成 Entity、Mapper、IService、ServiceImpl 及简单主表 CRUD 方法；即使本次只生成一批表也要先满足这个前置条件。基础分页接收 core 的 `SearchBO`，业务查询对象按需扩展；core 的 `Result`、响应码和业务异常构成统一接口契约。生成归属使用业务工程的代码生成配置；具体业务只写在对应模块 manage，不手工修补生成代码替代模板修正。

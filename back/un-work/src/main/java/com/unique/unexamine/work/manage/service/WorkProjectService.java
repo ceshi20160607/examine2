@@ -3,26 +3,33 @@ package com.unique.unexamine.work.manage.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.core.bo.SearchBO;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkProjectMember;
-import com.unique.unexamine.work.base.entity.UnWorkTaskGroup;
 import com.unique.unexamine.work.base.entity.UnWorkTask;
+import com.unique.unexamine.work.base.entity.UnWorkTaskGroup;
 import com.unique.unexamine.work.base.service.IUnWorkProjectMemberService;
 import com.unique.unexamine.work.base.service.IUnWorkProjectService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskGroupService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskService;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.CreateRequest;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.EditRequest;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.GroupEditRequest;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.GroupRequest;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.GroupView;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.MemberRequest;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.MemberView;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.ProjectView;
+import com.unique.unexamine.work.manage.dto.WorkProjectDto.TaskSummary;
 import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.http.HttpStatus;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,40 +45,6 @@ public class WorkProjectService {
     private final IUnWorkProjectMemberService members;
     private final IUnWorkTaskGroupService groups;
     private final IUnWorkTaskService tasks;
-
-    /** 项目编号及名称属于当前作用域，负责人默认创建者。 */
-    public record CreateRequest(@NotBlank @Size(max=80) String code,
-                                @NotBlank @Size(max=160) String name,
-                                @Size(max=10000) String description,
-                                LocalDateTime startTime,LocalDateTime dueTime) {}
-    /** 项目编号保持稳定，基础资料和期限由负责人维护。 */
-    public record EditRequest(@NotBlank @Size(max=160) String name,
-                              @Size(max=10000) String description,
-                              LocalDateTime startTime,LocalDateTime dueTime) {}
-    /** 项目列表及详情使用同一基础数据。 */
-    public record ProjectView(Long id,String scopeType,Long systemId,Long tenantId,
-                              String code,String name,String description,Long ownerAccountId,
-                              Long createAccountId,String status,BigDecimal progressPercent,
-                              LocalDateTime startTime,LocalDateTime dueTime,LocalDateTime createTime) {}
-    /** 项目分页结果。 */
-    public record ProjectPage(long total,long current,long size,List<ProjectView> records) {}
-    /** 项目任务统计直接来自当前未归档任务，预警不改变任务状态。 */
-    public record TaskSummary(Long projectId,BigDecimal progressPercent,long total,long completed,
-                              long blocked,long overdue,long dueSoon,long unassigned) {}
-    /** 项目协作和观察成员由负责人维护。 */
-    public record MemberRequest(@NotNull Long accountId,@NotBlank String memberType) {}
-    /** 项目参与人的有效身份及展示名称。 */
-    public record MemberView(Long id,Long accountId,String displayName,String memberType) {}
-    /** 任务组可指定已有项目成员为负责人；顺序留空时追加到末尾。 */
-    public record GroupRequest(@NotBlank @Size(max=120) String name,Long ownerAccountId,
-                               Integer sortNo,LocalDateTime dueTime) {}
-    /** 项目负责人维护任务组名称、负责人、顺序、状态和期限。 */
-    public record GroupEditRequest(@NotBlank @Size(max=120) String name,Long ownerAccountId,
-                                   @NotBlank String status,@NotNull Integer sortNo,
-                                   LocalDateTime dueTime) {}
-    /** 项目任务组当前数据。 */
-    public record GroupView(Long id,Long projectId,String name,Long ownerAccountId,
-                            String status,BigDecimal progressPercent,int sortNo,LocalDateTime dueTime) {}
 
     /** 注入作用域校验及已生成基础服务。 */
     public WorkProjectService(WorkScopeService scopes,IUnWorkProjectService projects,
@@ -105,17 +78,15 @@ public class WorkProjectService {
     }
 
     /** 只返回当前账号拥有或参与的本作用域项目。 */
-    public ProjectPage queryPageList(String token,Long systemId,Long tenantId,long page,long size) {
+    public Page<ProjectView> queryPageList(String token,Long systemId,Long tenantId,SearchBO search) {
         Scope scope=scopes.scope(token,systemId,tenantId);
-        if (page<1 || size<1 || size>100) throw new IllegalArgumentException("项目分页范围无效");
         var where=baseScope(scope).ne(UnWorkProject::getStatus,"ARCHIVED")
                 .and(q->q.eq(UnWorkProject::getOwnerAccountId,scope.actorId())
                         .or().eq(UnWorkProject::getCreateAccountId,scope.actorId())
                         .or().apply(MEMBER_EXISTS_SQL,scope.actorId()))
                 .orderByDesc(UnWorkProject::getId);
-        var result=projects.page(Page.of(page,size),where);
-        return new ProjectPage(result.getTotal(),result.getCurrent(),result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        var result=projects.page(search.parse(),where);
+        return new Page<ProjectView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 项目详情按作用域和有效参与关系授权。 */

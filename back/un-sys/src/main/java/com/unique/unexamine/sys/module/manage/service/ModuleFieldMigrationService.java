@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldDefinition;
+import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
@@ -12,7 +13,9 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
-import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto.Impact;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto.Preview;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -40,9 +43,6 @@ public class ModuleFieldMigrationService {
     private final ModulePermissionService permissions;
     private final ObjectMapper json;
 
-    /** 预览列出受新配置影响的真实记录和旧值，执行时会重新扫描。 */
-    public record Impact(Long recordId, Long tenantId, Object before, Map<String,String> beforeDisplay, String reason) {}
-    public record Preview(long total, List<Impact> records) {}
     private record Current(UnModuleRecord record, UnModuleRecordData data, Object value) {}
 
     /** 注入生成的基础 Service；配置鉴权和模块行锁由调用方完成。 */
@@ -117,9 +117,9 @@ public class ModuleFieldMigrationService {
             String message="模块字段变更："+operatorName+"于"+LOG_TIME.format(operationTime)
                     +"将「"+field.getFieldName()+"」从「"+String.join("、",beforeNames.values())
                     +"」迁移到「"+String.join("、",afterNames.values())+"」。";
-            var change=new ModuleRecordService.FieldChange(field.getId(),field.getFieldCode(),field.getFieldName(),
+            var change=new ModuleRecordDto.FieldChange(field.getId(),field.getFieldCode(),field.getFieldName(),
                     current.value(),after,beforeNames,afterNames);
-            var detail=new ModuleRecordService.AuditDetail("模块字段变更",operatorName,List.of(change),null,null,message);
+            var detail=new ModuleRecordDto.AuditDetail("模块字段变更",operatorName,List.of(change),null,null,message);
             UnModuleLog log=new UnModuleLog();
             log.setSystemId(systemId); log.setTenantId(recordTenantId); log.setModuleId(moduleId);
             log.setRecordId(current.record().getId()); log.setOperatorAccountId(operatorId);

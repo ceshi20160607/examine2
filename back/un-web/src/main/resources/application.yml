@@ -10,6 +10,15 @@ mybatis-plus:
       logic-delete-value: 'now(3)'
 
 spring:
+  # HTTP 日期参数与 JSON 时间采用 ISO 8601；MySQL 连接及带时区的值按同一业务时区处理。
+  mvc:
+    format:
+      date: yyyy-MM-dd
+      date-time: yyyy-MM-dd'T'HH:mm:ss
+  jackson:
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
   servlet:
     multipart:
       max-file-size: 20MB

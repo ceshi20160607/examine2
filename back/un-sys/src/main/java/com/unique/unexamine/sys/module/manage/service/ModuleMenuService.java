@@ -1,19 +1,23 @@
 package com.unique.unexamine.sys.module.manage.service;
 
-import com.unique.unexamine.sys.module.manage.enums.DefaultModuleAction;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.cache.ConfigurationCache;
-import com.unique.unexamine.sys.base.entity.UnSysMenu;
 import com.unique.unexamine.sys.base.entity.UnSysLogOpt;
+import com.unique.unexamine.sys.base.entity.UnSysMenu;
 import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
 import com.unique.unexamine.sys.base.service.*;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto.ActionView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto.Definition;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto.SaveRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto.Settings;
+import com.unique.unexamine.sys.module.manage.enums.DefaultModuleAction;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -38,22 +42,6 @@ public class ModuleMenuService {
     private final ModuleFieldService fieldRules;
     private final ConfigurationCache cache;
     private final ObjectMapper json;
-
-    /** 条件字段使用稳定 ID，条件均满足才允许执行。 */
-    public record Condition(@NotNull Long fieldId,@NotBlank String operator,Object value) {}
-    /** 转化字段映射使用两端稳定字段 ID，不接受数据库列名。 */
-    public record Mapping(@NotNull Long sourceFieldId,@NotNull Long targetFieldId) {}
-    /** 执行配置的保存载荷；名称同时更新统一菜单。 */
-    public record Settings(String name,String type,String position,List<Long> fieldIds,List<Condition> conditions,
-                           Long targetModuleId,List<Mapping> mappings) {}
-    /** menuId 为空时新建自定义菜单，默认菜单不能更换执行类型。 */
-    public record SaveRequest(Long menuId,@NotBlank @Size(max=100) String name,@NotBlank String type,
-                              @NotBlank String position,boolean enabled,List<Long> fieldIds,List<Condition> conditions,
-                              Long targetModuleId,List<Mapping> mappings) {}
-    /** 配置态和运行态共用当前保存的菜单内容。 */
-    public record ActionView(Long menuId,String code,String name,boolean enabled,Settings settings) {}
-    /** 同一次解析得到的菜单、绑定和动作，避免混用不同模块或租户身份。 */
-    public record Definition(UnModule module,UnSysMenu menu,UnModuleMenu binding,UnModuleAction action,Settings settings) {}
 
     /** 注入生成的基础服务，菜单和动作的业务关联在本服务完成。 */
     public ModuleMenuService(SystemManageService systems,IUnSysSystemService systemRows,IUnSysSystemConfigService systemConfigs,
@@ -117,7 +105,7 @@ public class ModuleMenuService {
     }
 
     /** 基础接口解析自己对应的菜单，具体授权仍以菜单 ID 完成。 */
-    public Definition defaultDefinition(SystemManageService.SystemContext context,Long moduleId,String operation) {
+    public Definition defaultDefinition(SystemManageDto.SystemContext context,Long moduleId,String operation) {
         var module=module(context,moduleId,true);
         var menu=menus.getOne(new LambdaQueryWrapper<UnSysMenu>().eq(UnSysMenu::getTenantId,module.getTenantId())
                 .eq(UnSysMenu::getCode,"MODULE_"+moduleId+"_"+operation));
@@ -126,7 +114,7 @@ public class ModuleMenuService {
     }
 
     /** 解析菜单所属模块和租户，当前配置与启停每次检查，不从权限缓存猜测。 */
-    public Definition definition(SystemManageService.SystemContext context,Long moduleId,Long menuId,boolean runtime) {
+    public Definition definition(SystemManageDto.SystemContext context,Long moduleId,Long menuId,boolean runtime) {
         var module=module(context,moduleId,runtime); var menu=menus.queryById(menuId);
         var binding=bindings.getOne(new LambdaQueryWrapper<UnModuleMenu>().eq(UnModuleMenu::getModuleId,moduleId).eq(UnModuleMenu::getMenuId,menuId));
         var action=actions.getOne(new LambdaQueryWrapper<UnModuleAction>().eq(UnModuleAction::getModuleId,moduleId).eq(UnModuleAction::getMenuId,menuId));
@@ -142,7 +130,7 @@ public class ModuleMenuService {
     }
 
     /** 模块内候选操作仍需由调用方逐个鉴权后返回给登录人。 */
-    public List<Definition> definitions(SystemManageService.SystemContext context,Long moduleId) {
+    public List<Definition> definitions(SystemManageDto.SystemContext context,Long moduleId) {
         var module=module(context,moduleId,false);
         return bindings.list(new LambdaQueryWrapper<UnModuleMenu>().eq(UnModuleMenu::getModuleId,moduleId)
                 .in(UnModuleMenu::getTenantId,new HashSet<>(List.of(context.tenantId(),module.getTenantId()))).orderByAsc(UnModuleMenu::getSortNo)).stream()
@@ -150,7 +138,7 @@ public class ModuleMenuService {
     }
 
     /** 字段和映射按当前字段 ID 查验，不随字段名称修改漂移。 */
-    private void validate(SystemManageService.SystemContext context,Long moduleId,Settings settings) {
+    private void validate(SystemManageDto.SystemContext context,Long moduleId,Settings settings) {
         if (settings.name().isBlank() || settings.name().length()>100 || !POSITIONS.contains(settings.position())) throw new IllegalArgumentException("动作名称或展示位置无效");
         Set<String> known=new HashSet<>(EXECUTABLE); known.addAll(Set.of("IMPORT","PRINT"));
         if (!known.contains(settings.type())) throw new IllegalArgumentException("动作执行类型无效");
@@ -207,7 +195,7 @@ public class ModuleMenuService {
         Map<Long,UnModuleField> result=new LinkedHashMap<>(); fields.list(new LambdaQueryWrapper<UnModuleField>()
                 .eq(UnModuleField::getModuleId,moduleId).eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->result.put(f.getId(),f)); return result;
     }
-    private UnModule module(SystemManageService.SystemContext context,Long moduleId,boolean runtime) {
+    private UnModule module(SystemManageDto.SystemContext context,Long moduleId,boolean runtime) {
         var module=modules.queryById(moduleId); Long root=systemRows.queryById(context.systemId()).getRootTenantId();
         if (!context.systemId().equals(module.getSystemId()) || !List.of(root,context.tenantId()).contains(module.getTenantId())) forbidden("模块不属于当前系统租户");
         if (runtime && !"ACTIVE".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块已停用"); return module;

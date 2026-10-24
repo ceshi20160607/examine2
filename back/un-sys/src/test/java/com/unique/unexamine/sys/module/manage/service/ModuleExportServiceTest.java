@@ -1,5 +1,10 @@
 package com.unique.unexamine.sys.module.manage.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.sys.module.manage.dto.ModuleExportDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto;
+import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -23,12 +28,14 @@ class ModuleExportServiceTest {
     private final ModuleExportService exports=new ModuleExportService(lists,new ObjectMapper());
 
     @Test void downloadsCurrentFilteredColumnsAsCsv() throws Exception {
-        var result=new ModuleRecordListService.Result(1,1,500,
-                List.of(new ModuleRecordListService.Column(11L,"name","客户","TEXT",null,null),
-                        new ModuleRecordListService.Column(12L,"level","等级","SELECT",null,null),
-                        new ModuleRecordListService.Column(13L,"balance","余额","NUMBER",null,null)),
-                List.of(new ModuleRecordListService.Row(21L,"=SUM(1)","ACTIVE",1L,2L,false,
-                        Map.of("name","=SUM(1)","level",101L,"balance",-12),Map.of("level",Map.of("101","重点客户")))));
+        var result=new ModuleRecordListDto.ListView(
+                List.of(new ModuleRecordListDto.Column(11L,"name","客户","TEXT",null,null),
+                        new ModuleRecordListDto.Column(12L,"level","等级","SELECT",null,null),
+                        new ModuleRecordListDto.Column(13L,"balance","余额","NUMBER",null,null)),
+                new Page<ModuleRecordListDto.Row>(1,500,1).setRecords(List.of(
+                        new ModuleRecordListDto.Row(21L,"=SUM(1)","ACTIVE",1L,2L,false,
+                                Map.of("name","=SUM(1)","level",101L,"balance",-12),
+                                Map.of("level",Map.of("101","重点客户"))))));
         when(lists.export(eq("token"),eq(1L),eq(2L),eq(3L),any())).thenReturn(result);
         var controller=new ModuleActionController(mock(ModuleMenuService.class),mock(ModuleRecordService.class),exports);
 
@@ -43,14 +50,14 @@ class ModuleExportServiceTest {
         assertEquals("\uFEFF\"客户\",\"等级\",\"余额\"\r\n\"'=SUM(1)\",\"重点客户\",\"-12\"\r\n",csv);
         assertTrue(response.getHeader("Content-Disposition").contains("module-3-export.csv"));
         verify(lists).export(eq("token"),eq(1L),eq(2L),eq(3L),argThat(query->
-                query.page()==1 && query.size()==500 && query.columnFieldIds().equals(List.of(11L,12L,13L))));
+                query.getPage()==1 && query.getLimit()==500
+                        && query.getColumnFieldIds().equals(List.of(11L,12L,13L))));
     }
 
     @Test void rejectsOverLimitInsteadOfReturningPartialFile() {
         when(lists.export(any(),any(),any(),any(),any())).thenReturn(
-                new ModuleRecordListService.Result(501,1,500,List.of(),List.of()));
-        var request=new ModuleExportService.ExportRequest(new ModuleRecordListService.Query(
-                null,null,List.of(),null,null,null,1,20,"ALL"),false);
+                new ModuleRecordListDto.ListView(List.of(),new Page<ModuleRecordListDto.Row>(1,500,501)));
+        var request=new ModuleExportDto.ExportRequest(new ModuleRecordSearchBO(),false);
 
         var failure=assertThrows(ResponseStatusException.class,
                 ()->exports.export("token",1L,2L,3L,request));

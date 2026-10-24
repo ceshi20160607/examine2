@@ -7,8 +7,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.work.base.entity.UnWorkDaily;
 import com.unique.unexamine.work.base.service.IUnWorkDailyService;
+import com.unique.unexamine.work.manage.bo.WorkDailySearchBO;
+import com.unique.unexamine.work.manage.dto.WorkDailyDto.DailyRequest;
+import com.unique.unexamine.work.manage.dto.WorkDailyDto.DailyView;
+import com.unique.unexamine.work.manage.dto.WorkDailyDto.Relations;
 import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,21 +28,6 @@ public class WorkDailyService {
     private final WorkProjectService projects;
     private final WorkTaskService tasks;
     private final ObjectMapper json;
-
-    /** 项目和任务由用户主动选取，写入前核对当前作用域的可见性。 */
-    public record DailyRequest(@NotNull LocalDate logDate,String completedText,
-                               String ongoingText,String nextText,String riskText,String helpText,
-                               List<Long> projectIds,List<Long> taskIds) {}
-    /** 日志只保存稳定业务主键，任务状态变化不会重写日志版本。 */
-    public record Relations(List<Long> projectIds,List<Long> taskIds) {}
-    /** 当前版本及历史版本使用同一种可展示结构。 */
-    public record DailyView(Long id,Long rootId,int versionNo,String scopeType,
-                            Long systemId,Long tenantId,Long accountId,LocalDate logDate,
-                            String completedText,String ongoingText,String nextText,
-                            String riskText,String helpText,Relations relations,String status,
-                            LocalDateTime submitTime,LocalDateTime createTime) {}
-    /** 我的日志分页结果只返回当前有效版本。 */
-    public record DailyPage(long total,long current,long size,List<DailyView> records) {}
 
     /** 注入作用域和已生成的日志基础服务。 */
     public WorkDailyService(WorkScopeService scopes,IUnWorkDailyService dailies,
@@ -62,11 +50,11 @@ public class WorkDailyService {
     }
 
     /** 当前账号按日期和状态查看自己的日志，不混入任务操作历史。 */
-    public DailyPage queryPageList(String token,Long systemId,Long tenantId,
-                                   LocalDate from,LocalDate to,String status,Long projectId,Long taskId,
-                                   long page,long size) {
+    public Page<DailyView> queryPageList(String token,Long systemId,Long tenantId,WorkDailySearchBO search) {
         Scope scope=scopes.scope(token,systemId,tenantId);
-        if (page<1 || size<1 || size>100) throw new IllegalArgumentException("日志分页范围无效");
+        LocalDate from=search.getFrom(),to=search.getTo();
+        String status=search.getStatus();
+        Long projectId=search.getProjectId(),taskId=search.getTaskId();
         if (projectId!=null) projects.queryById(token,systemId,tenantId,projectId);
         if (taskId!=null) tasks.queryById(token,systemId,tenantId,taskId);
         var where=ownerScope(scope).eq(UnWorkDaily::getIsCurrent,true);
@@ -77,10 +65,9 @@ public class WorkDailyService {
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('projectIds', JSON_ARRAY({0})))",projectId);
         if (taskId!=null) where.apply(
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('taskIds', JSON_ARRAY({0})))",taskId);
-        var result=dailies.page(Page.of(page,size),where.orderByDesc(UnWorkDaily::getLogDate)
+        var result=dailies.page(search.parse(),where.orderByDesc(UnWorkDaily::getLogDate)
                 .orderByDesc(UnWorkDaily::getId));
-        return new DailyPage(result.getTotal(),result.getCurrent(),result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        return new Page<DailyView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 主键使用首版日志 ID，读取当前版本。 */

@@ -1,7 +1,11 @@
 package com.unique.unexamine.plat.manage.controller;
 
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.plat.manage.dto.AuthManageDto.AccountView;
+import com.unique.unexamine.plat.manage.dto.AuthManageDto.LoginRequest;
+import com.unique.unexamine.plat.manage.dto.AuthManageDto.LoginView;
+import com.unique.unexamine.plat.manage.dto.AuthManageDto.RegisterRequest;
 import com.unique.unexamine.plat.manage.service.AuthManageService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,28 +31,29 @@ public class AuthController {
     /** 注册统一平台账号。 */
     @PostMapping("/register")
     @Operation(summary = "注册平台账号")
-    public AuthManageService.AccountView register(@Valid @RequestBody AuthManageService.RegisterRequest request) {
-        return service.register(request);
+    public Result<AccountView> register(@Valid @RequestBody RegisterRequest request) {
+        return Result.ok(service.register(request));
     }
 
     /** 登录并取得会话凭据。 */
     @PostMapping("/login")
     @Operation(summary = "登录平台")
-    public AuthManageService.LoginView login(@Valid @RequestBody AuthManageService.LoginRequest request) {
-        return service.login(request);
+    public Result<LoginView> login(@Valid @RequestBody LoginRequest request) {
+        return Result.ok(service.login(request));
     }
 
     /** 获取当前账号信息。 */
     @GetMapping("/me")
     @Operation(summary = "当前账号")
-    public AuthManageService.AccountView current(@RequestHeader(value = "Authorization", required = false) String token) {
-        return service.current(token);
+    public Result<AccountView> current(@RequestHeader(value = "Authorization", required = false) String token) {
+        return Result.ok(service.current(token));
     }
 
     /** 撤销当前登录会话。 */
     @PostMapping("/logout")
     @Operation(summary = "退出登录")
-    public void logout(@RequestHeader(value = "Authorization", required = false) String token) {
+    public Result<Void> logout(@RequestHeader(value = "Authorization", required = false) String token) {
         service.logout(token);
+        return Result.ok();
     }
 }

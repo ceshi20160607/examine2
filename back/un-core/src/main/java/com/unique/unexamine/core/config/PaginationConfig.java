@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 /** 为所有业务模块的基础列表启用真实 SQL 分页。 */
 @Configuration
 public class PaginationConfig {
-    /** 单页最多一百条，与生成 Service 的参数校验保持一致。 */
+    /** 普通接口由 SearchBO 限制为一百条；受控导出单次可读取五百条。 */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         PaginationInnerInterceptor pagination = new PaginationInnerInterceptor(DbType.MYSQL);
-        pagination.setMaxLimit(100L);
+        pagination.setMaxLimit(500L);
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         interceptor.addInnerInterceptor(pagination);
         return interceptor;

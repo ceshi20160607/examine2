@@ -1,20 +1,23 @@
 package com.unique.unexamine.sys.module.manage.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.*;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
-import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
-import com.unique.unexamine.sys.module.base.entity.UnModuleField;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
-import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.service.IUnSysMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
-import java.util.*;
+import com.unique.unexamine.sys.module.base.entity.UnModuleField;
+import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
+import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
+import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
+import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
+import com.unique.unexamine.sys.module.manage.dto.DictionaryDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto.MemberView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto.TypeView;
 import java.math.BigDecimal;
+import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,10 +32,7 @@ public class ModuleFieldService {
     private final IUnModuleRecordDataService values;
     private final IUnSysMemberService members;
     private final IUnSysTenantMemberService tenantMembers;
-    /** 类型目录在服务中统一提供，Controller 不另维护枚举。 */
-    public record TypeView(String code,String name,String valueColumn,boolean available) {}
-    /** 人员值对外展示当前成员资料，业务表中始终只保存成员主键。 */
-    public record MemberView(Long id,Long accountId,String displayName,String employeeNo,Long departmentId) {}
+
     /** 注入共用校验与模块范围数据服务。 */
     public ModuleFieldService(FieldValidationService validation,DictionaryService dictionaries,ObjectMapper json,
             IUnModuleRecordService records,IUnModuleRecordDataService values,
@@ -209,7 +209,7 @@ public class ModuleFieldService {
             reference.put("id",id); references.add(reference);
         }
         var items=dictionaries.items(systemId,tenantId,ids); List<Map<String,Object>> options=new ArrayList<>();
-        if (items.values().stream().map(DictionaryService.Item::dictCode).distinct().count()!=1)
+        if (items.values().stream().map(DictionaryDto.Item::dictCode).distinct().count()!=1)
             throw new IllegalArgumentException("同一字段的选项必须来自同一字典分类");
         for (var reference:references) {
             var item=items.get((Long)reference.get("id")); Map<String,Object> option=new LinkedHashMap<>(reference);

@@ -25,9 +25,12 @@ import com.unique.unexamine.sys.base.service.IUnSysSystemConfigService;
 import com.unique.unexamine.sys.base.service.IUnSysSystemService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantService;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.CreateSystemRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.CreateTenantRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.SystemContext;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.SystemView;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.TenantModeRequest;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto.TenantView;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.http.HttpStatus;
@@ -50,29 +53,6 @@ public class SystemManageService {
     private final IUnSysMenuService menus;
     private final IUnSysRoleMenuService roleMenus;
     private final IUnSysLogOptService logs;
-
-    /** 创建系统所需的用户可见资料。 */
-    public record CreateSystemRequest(@NotBlank @Size(max = 80) String code,
-                                      @NotBlank @Size(max = 100) String name,
-                                      @Size(max = 500) String description) {}
-
-    /** 多租户模式配置，false 只暂停非主租户访问。 */
-    public record TenantModeRequest(@NotNull Boolean enabled) {}
-
-    /** 创建租户所需的基本资料。 */
-    public record CreateTenantRequest(@NotBlank @Size(max = 80) String code,
-                                      @NotBlank @Size(max = 100) String name) {}
-
-    /** 系统列表与创建结果。 */
-    public record SystemView(Long id, String code, String name, Long rootTenantId,
-                             boolean multiTenantEnabled, boolean owner) {}
-
-    /** 可进入的租户展示信息。 */
-    public record TenantView(Long id, String code, String name, boolean root) {}
-
-    /** 进入系统后重建的系统、租户和成员上下文。 */
-    public record SystemContext(Long systemId, Long tenantId, Long accountId, Long memberId,
-                                Long tenantMemberId, boolean owner, boolean tenantAdmin) {}
 
     /** 注入本业务链使用的已生成基础服务。 */
     public SystemManageService(AuthManageService auth, IUnPlatAccountService accounts,

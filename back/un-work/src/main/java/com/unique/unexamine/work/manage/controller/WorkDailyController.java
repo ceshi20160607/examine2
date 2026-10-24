@@ -1,12 +1,17 @@
 package com.unique.unexamine.work.manage.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.work.manage.bo.WorkDailySearchBO;
+import com.unique.unexamine.work.manage.dto.WorkDailyDto.DailyRequest;
+import com.unique.unexamine.work.manage.dto.WorkDailyDto.DailyView;
 import com.unique.unexamine.work.manage.service.WorkDailyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.LocalDate;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,88 +34,83 @@ public class WorkDailyController {
     /** 用户主动建立今天或补写日期的工作日志草稿。 */
     @PostMapping
     @Operation(summary="手动新建工作日志")
-    public WorkDailyService.DailyView create(
+    public Result<DailyView> create(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,
-            @Valid @RequestBody WorkDailyService.DailyRequest request) {
-        return service.create(token,systemId,tenantId,request);
+            @Valid @RequestBody DailyRequest request) {
+        return Result.ok(service.create(token,systemId,tenantId,request));
     }
 
     /** 本人当前日志按日期和状态筛选。 */
     @GetMapping
     @Operation(summary="我的工作日志")
-    public WorkDailyService.DailyPage list(
+    public Result<Page<DailyView>> list(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,
-            @RequestParam(required=false) LocalDate from,
-            @RequestParam(required=false) LocalDate to,
-            @RequestParam(required=false) String status,
-            @RequestParam(required=false) Long projectId,
-            @RequestParam(required=false) Long taskId,
-            @RequestParam(defaultValue="1") long page,@RequestParam(defaultValue="20") long size) {
-        return service.queryPageList(token,systemId,tenantId,from,to,status,projectId,taskId,page,size);
+            @ModelAttribute WorkDailySearchBO search) {
+        return Result.ok(service.queryPageList(token,systemId,tenantId,search));
     }
 
     /** 以首版 ID 查询当前有效版本。 */
     @GetMapping("/{rootId}")
     @Operation(summary="工作日志详情")
-    public WorkDailyService.DailyView detail(
+    public Result<DailyView> detail(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId) {
-        return service.queryById(token,systemId,tenantId,rootId);
+        return Result.ok(service.queryById(token,systemId,tenantId,rootId));
     }
 
     /** 本人编辑当前草稿。 */
     @PutMapping("/{rootId}")
     @Operation(summary="编辑工作日志草稿")
-    public WorkDailyService.DailyView edit(
+    public Result<DailyView> edit(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId,
-            @Valid @RequestBody WorkDailyService.DailyRequest request) {
-        return service.edit(token,systemId,tenantId,rootId,request);
+            @Valid @RequestBody DailyRequest request) {
+        return Result.ok(service.edit(token,systemId,tenantId,rootId,request));
     }
 
     /** 本人明确提交草稿，形成新版本。 */
     @PostMapping("/{rootId}/submit")
     @Operation(summary="提交工作日志")
-    public WorkDailyService.DailyView submit(
+    public Result<DailyView> submit(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId) {
-        return service.submit(token,systemId,tenantId,rootId);
+        return Result.ok(service.submit(token,systemId,tenantId,rootId));
     }
 
     /** 本人撤回已提交版本，旧版本仍可追溯。 */
     @PostMapping("/{rootId}/withdraw")
     @Operation(summary="撤回工作日志")
-    public WorkDailyService.DailyView withdraw(
+    public Result<DailyView> withdraw(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId) {
-        return service.withdraw(token,systemId,tenantId,rootId);
+        return Result.ok(service.withdraw(token,systemId,tenantId,rootId));
     }
 
     /** 用户在撤回后主动恢复可编辑草稿。 */
     @PostMapping("/{rootId}/reopen")
     @Operation(summary="恢复工作日志草稿")
-    public WorkDailyService.DailyView reopen(
+    public Result<DailyView> reopen(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId) {
-        return service.reopen(token,systemId,tenantId,rootId);
+        return Result.ok(service.reopen(token,systemId,tenantId,rootId));
     }
 
     /** 本人查看提交、撤回及恢复记录。 */
     @GetMapping("/{rootId}/versions")
     @Operation(summary="工作日志版本历史")
-    public List<WorkDailyService.DailyView> versions(
+    public Result<List<DailyView>> versions(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long rootId) {
-        return service.versions(token,systemId,tenantId,rootId);
+        return Result.ok(service.versions(token,systemId,tenantId,rootId));
     }
 }

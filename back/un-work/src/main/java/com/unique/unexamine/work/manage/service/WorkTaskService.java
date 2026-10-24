@@ -5,22 +5,33 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unique.unexamine.work.manage.service.WorkScopeService.Assignee;
-import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
+import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkTask;
 import com.unique.unexamine.work.base.entity.UnWorkTaskHistory;
 import com.unique.unexamine.work.base.entity.UnWorkTaskMember;
-import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.service.IUnWorkTaskHistoryService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskMemberService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskService;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.unique.unexamine.work.manage.bo.WorkTaskSearchBO;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.CommentRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.CreateRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.DeferDecision;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.DeferRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.DeferView;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.EditRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.HistoryView;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.MemberRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.MemberView;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.ProjectCreateRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.StatusRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.TaskView;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.TransferRequest;
+import com.unique.unexamine.work.manage.service.WorkScopeService.Assignee;
+import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,47 +52,6 @@ public class WorkTaskService {
     private final IUnWorkTaskHistoryService histories;
     private final IUnWorkTaskMemberService taskMembers;
     private final ObjectMapper json;
-
-    /** 普通任务可先只填一句标题，描述和截止时间可后续补充。 */
-    public record CreateRequest(@NotBlank @Size(max=200) String title,
-                                @Size(max=10000) String description, LocalDateTime dueTime) {}
-    /** 项目任务可指定所属任务组及已有项目成员作为负责人。 */
-    public record ProjectCreateRequest(@NotBlank @Size(max=200) String title,
-            @Size(max=10000) String description,LocalDateTime dueTime,
-            Long taskGroupId,Long ownerAccountId) {}
-    /** 状态变更须给出目标状态；阻塞和取消原因保存在操作历史中。 */
-    public record StatusRequest(@NotBlank String status, @Size(max=2000) String reason) {}
-    /** 编辑普通任务的基础内容；截止时间为空表示清除。 */
-    public record EditRequest(@NotBlank @Size(max=200) String title,
-                              @Size(max=10000) String description, LocalDateTime dueTime) {}
-    /** 指派和转交的目标必须是当前作用域内可用的账号。 */
-    public record TransferRequest(@NotNull Long ownerAccountId, @Size(max=2000) String reason) {}
-    /** 任务评论保存在同一操作历史中，不另建重复的评论表。 */
-    public record CommentRequest(@NotBlank @Size(max=10000) String content) {}
-    /** 负责人提交晚于当前截止时间的新日期及延期原因。 */
-    public record DeferRequest(@NotNull LocalDateTime dueTime,
-                               @NotBlank @Size(max=2000) String reason) {}
-    /** 创建人按当前待处理申请的历史 ID 审批，避免处理过期申请。 */
-    public record DeferDecision(@NotNull Long requestId, @NotNull Boolean approved,
-                                @Size(max=2000) String comment) {}
-    /** 延期申请记录提交人、原截止时间和申请时间。 */
-    public record DeferView(Long requestId,Long applicantAccountId,LocalDateTime beforeDueTime,
-                            LocalDateTime requestedDueTime,String reason,LocalDateTime requestTime) {}
-    /** 参与人身份分为协作、关注与验收。 */
-    public record MemberRequest(@NotNull Long accountId,@NotBlank String memberType) {}
-    /** 任务参与人展示平台账号或所属系统的成员名称。 */
-    public record MemberView(Long id,Long accountId,String displayName,String memberType) {}
-    /** 逾期是截止时间计算结果，不覆盖任务本身的处理状态。 */
-    public record TaskView(Long id, String scopeType, Long systemId, Long tenantId,
-                           Long projectId,Long taskGroupId,String title,
-                           String description, Long ownerAccountId, Long createAccountId, String status,
-                           boolean overdue, BigDecimal progressPercent, LocalDateTime dueTime,
-                           LocalDateTime completeTime, LocalDateTime createTime) {}
-    /** 本人可见任务的分页结果，供列表、看板和日历复用同一数据源。 */
-    public record TaskPage(long total, long current, long size, List<TaskView> records) {}
-    /** 操作历史记录真实执行者及变更前后的状态。 */
-    public record HistoryView(Long id, Long operatorAccountId, String operationCode,
-                              String beforeJson, String afterJson, String content, LocalDateTime createTime) {}
 
     private enum Status { NOT_STARTED, IN_PROGRESS, BLOCKED, PENDING_CONFIRMATION, DONE, CANCELLED }
     private enum MemberType { COLLABORATOR, FOLLOWER, ACCEPTOR }
@@ -137,22 +107,21 @@ public class WorkTaskService {
     }
 
     /** 项目成员分页查看本项目任务，供列表、看板和日历使用同一数据。 */
-    public TaskPage projectTasks(String token,Long systemId,Long tenantId,Long projectId,
-                                 Long groupId,String status,long page,long size) {
+    public Page<TaskView> projectTasks(String token,Long systemId,Long tenantId,Long projectId,
+                                 WorkTaskSearchBO search) {
         Scope scope=scope(token,systemId,tenantId);
         projects.visible(scope,projectId,false);
-        if (page<1 || size<1 || size>100) throw new IllegalArgumentException("任务分页范围无效");
         var where=baseScope(scope).eq(UnWorkTask::getProjectId,projectId);
-        if (groupId!=null) where.eq(UnWorkTask::getTaskGroupId,groupId);
+        if (search.getGroupId()!=null) where.eq(UnWorkTask::getTaskGroupId,search.getGroupId());
+        String status=search.getStatus();
         if (status!=null && !status.isBlank()) {
             if ("OVERDUE".equals(status)) where.lt(UnWorkTask::getDueTime,LocalDateTime.now())
                     .notIn(UnWorkTask::getStatus,Status.DONE.name(),Status.CANCELLED.name());
             else where.eq(UnWorkTask::getStatus,status(status).name());
         }
-        var result=tasks.page(Page.of(page,size),where.orderByDesc(UnWorkTask::getCreateTime)
+        var result=tasks.page(search.parse(),where.orderByDesc(UnWorkTask::getCreateTime)
                 .orderByDesc(UnWorkTask::getId));
-        return new TaskPage(result.getTotal(),result.getCurrent(),result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        return new Page<TaskView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 创建人或负责人可编辑基础内容；只有创建人能直接调整截止时间。 */
@@ -205,22 +174,21 @@ public class WorkTaskService {
     }
 
     /** 只查询本人创建或负责的普通任务，平台与系统租户各自隔离。 */
-    public TaskPage queryPageList(String token, Long systemId, Long tenantId, String status, long page, long size) {
+    public Page<TaskView> queryPageList(String token, Long systemId, Long tenantId, WorkTaskSearchBO search) {
         Scope scope=scope(token,systemId,tenantId);
-        if (page<1 || size<1 || size>100) throw new IllegalArgumentException("任务分页范围无效");
         var where=baseScope(scope).isNull(UnWorkTask::getProjectId)
                 .and(q->q.eq(UnWorkTask::getOwnerAccountId,scope.actorId())
                         .or().eq(UnWorkTask::getCreateAccountId,scope.actorId())
                         .or().apply(MEMBER_EXISTS_SQL,scope.actorId()));
+        String status=search.getStatus();
         if (status!=null && !status.isBlank()) {
             if ("OVERDUE".equals(status)) where.lt(UnWorkTask::getDueTime,LocalDateTime.now())
                     .notIn(UnWorkTask::getStatus,Status.DONE.name(),Status.CANCELLED.name());
             else where.eq(UnWorkTask::getStatus,status(status).name());
         }
-        var result=tasks.page(Page.of(page,size),where.orderByDesc(UnWorkTask::getCreateTime)
+        var result=tasks.page(search.parse(),where.orderByDesc(UnWorkTask::getCreateTime)
                 .orderByDesc(UnWorkTask::getId));
-        return new TaskPage(result.getTotal(),result.getCurrent(),result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        return new Page<TaskView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 详情仅对创建人或负责人开放，错误作用域与无权统一按不存在返回。 */

@@ -1,5 +1,7 @@
 package com.unique.unexamine.sys.module.manage.util;
 
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +17,7 @@ public final class ModuleRecordFilter {
 
     /** 字段标识和操作符须在调用前由业务服务按当前租户权限校验。 */
     public static void apply(QueryWrapper<UnModuleRecord> where, UnModuleField field,
-                             ModuleSceneService.Condition condition, ObjectMapper json) {
+                             ModuleSceneDto.Condition condition, ObjectMapper json) {
         String code=field.getFieldCode();
         if ("name".equals(code)) {
             if ("EQ".equals(condition.operator())) where.eq("name",condition.value());

@@ -1,5 +1,9 @@
 package com.unique.unexamine.sys.module.manage.service;
 
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -38,7 +42,7 @@ class ModuleDeletionServiceTest {
     private final IUnCommonFileService files=mock(IUnCommonFileService.class);
     private final FileStorage storage=mock(FileStorage.class);
     private final ObjectMapper json=new ObjectMapper();
-    private final SystemManageService.SystemContext context=new SystemManageService.SystemContext(1L,2L,10L,11L,12L,true,true);
+    private final SystemManageDto.SystemContext context=new SystemManageDto.SystemContext(1L,2L,10L,11L,12L,true,true);
     private final UnModule module=new UnModule();
     private final UnModuleRecord record=new UnModuleRecord();
     private final ModuleDeletionService service=new ModuleDeletionService(systems,config,permissions,modules,records,
@@ -98,7 +102,7 @@ class ModuleDeletionServiceTest {
             assertEquals("原商机",json.readTree(backupBytes[0]).path("records").get(0).path("record").path("name").asText());
             record.setName("导出后的新商机");
             var failure=assertThrows(ResponseStatusException.class,()->service.delete("token",1L,2L,3L,
-                    new ModuleDeletionService.DeleteRequest(ModuleDeletionService.Choice.EXPORTED,51L)));
+                    new ModuleDeletionDto.DeleteRequest(ModuleDeletionDto.Choice.EXPORTED,51L)));
             assertEquals(409,failure.getStatusCode().value());
             verify(modules,never()).removeById(anyLong()); verify(values,never()).remove(any(Wrapper.class));
         } finally { TransactionSynchronizationManager.clearSynchronization(); }

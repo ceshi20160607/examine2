@@ -10,7 +10,7 @@
 - `back/` 是后端 Maven 根目录，使用 `un-plat`、`un-sys`、`un-work`、`un-dashboard`、`un-app`、`un-examine`、`un-core`、`un-file`、`un-web`。只有 `un-web` 是 Boot 入口，模块间直接调用本地 Service；`font_web/` 是唯一前端，后端经用户验收后开发前端。
 - `un-sys` 包含系统、模块定义及相关 Flow，域内分包；模块动作就是模块菜单，导入、导出、打印与详情、转移、转化同属模块默认基础动作，不拆成独立产品中心或 Maven 模块。`un-examine` 负责审批，`un-core` 负责共用能力，`un-file` 提供可复用上传存储接入。
 - 每个业务包下 `base` 与 `manage` 平级。生成器提供 Entity、Mapper、IService、ServiceImpl 及真实基础 CRUD；`manage/controller` 接口只调用 `manage/service` 业务服务，枚举、工具类等按实际职责分包。业务 Service 实现授权、主数据与自定义数据保存、关联检查和编排。
-- 基础方法参考 `70a3979a` 的 Controller → Service 调用和 `simple` 模板结构：`queryPageList`、`addOrUpdate`、`queryById`、`information`、`deleteByIds`。不复制旧业务依赖。
+- 生成的 base Service 以 core 的 `SearchBO` 接收 `queryPageList` 查询，另提供 `addOrUpdate`、`queryById`、`deleteByIds` 等简单主表 CRUD；按需增加简单 Mapper 查询。core 统一提供 `Result`、响应码和业务异常。租户、人员、模块、时间等业务筛选和表单 `information` 在 manage 实现，不在生成器枚举所有字段。Controller 只调用 manage Service。
 - 字段配置已确定行、位置和宽度；单独占一行的 30% 字段仍只占该行 30%。新建、编辑、详情复用原配置并叠加登录人角色和租户字段权限；权限过滤不补位或拉伸。information 绑定有权读取的值，queryById 只读基础记录。
 - 模块、字段、菜单/动作、页面和表单配置保存即生效，不设置草稿、发布、版本和回滚。管理员可配置系统预置菜单动作和自定义菜单动作；转化按来源与目标模块的字段映射执行，校验两端动作、字段、数据权限和目标当前有效规则，事务保存记录、关系与日志。
 - 模块 Flow 配置动作、关联业务变化与审批结果下的后续线路；合同审核通过推进关联商机阶段、提交后发起 examine 等均由配置决定，合同撤回或作废后的线路也须可配置。详情页展示顶部重要数据、标签、功能菜单及关联 Flow；手动节点操作由配置的管理人员按允许操作执行。Flow/审批修改保存后新流程启用、旧流程停用，已关联数据继续旧流程，新关联使用新流程；平台内 Flow、examine 对外提供服务须经应用授权。

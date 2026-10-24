@@ -1,5 +1,10 @@
 package com.unique.unexamine.sys.module.manage.service;
 
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -44,11 +49,11 @@ class ModuleRecordBatchDeleteTest {
             accounts,mock(ModuleShareService.class),mock(ModuleFileBatchService.class));
 
     private void access(boolean allData) {
-        var context=new SystemManageService.SystemContext(1L,2L,10L,11L,12L,false,false);
+        var context=new SystemManageDto.SystemContext(1L,2L,10L,11L,12L,false,false);
         var policy=new PermissionPolicy(true,allData,Set.of(101L),true,Set.of(),true,Set.of(),true,Set.of());
         var module=new UnModule(); module.setId(3L);
         var menu=new UnSysMenu(); menu.setId(4L); menu.setName("删除");
-        var definition=new ModuleMenuService.Definition(module,menu,null,null,null);
+        var definition=new ModuleMenuDto.Definition(module,menu,null,null,null);
         when(permissions.require("token",1L,2L,3L,"DELETE"))
                 .thenReturn(new ModulePermissionService.Access(context,10L,policy,definition));
         when(config.activeModule(1L,3L,2L)).thenReturn(module);
@@ -65,7 +70,7 @@ class ModuleRecordBatchDeleteTest {
         access(false); record(21L,101L); record(22L,102L);
 
         assertThrows(ResponseStatusException.class,()->service.deleteByIds("token",1L,2L,3L,
-                new ModuleRecordService.DeleteRecordsRequest(List.of(21L,22L))));
+                new ModuleRecordDto.DeleteRecordsRequest(List.of(21L,22L))));
 
         verify(records,never()).update(any(LambdaUpdateWrapper.class));
         verify(logs,never()).addOrUpdate(any());

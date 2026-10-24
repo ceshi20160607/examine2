@@ -9,10 +9,18 @@ import com.unique.unexamine.core.permission.PermissionPolicy;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.*;
 import com.unique.unexamine.sys.base.service.*;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
-import jakarta.validation.Valid;
+import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.AssignRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.FieldAccess;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.FieldGrant;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.FieldsRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.GrantRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.MemberRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.RoleRequest;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -44,28 +52,16 @@ public class ModulePermissionService {
     private final ConfigurationCache cache;
     private final ObjectMapper json;
 
-    /** 租户字段上限，null 集合表示不额外限制，普通角色许可逐字段存储。 */
-    public record FieldAccess(Set<String> readable,Set<String> writable,Set<String> exportable) {}
-    /** 菜单功能授权与负责人范围，字段许可在独立接口配置。 */
-    public record GrantRequest(boolean allowed,@NotBlank String scope,Set<Long> accountIds,Set<Long> departmentIds) {}
-    /** 每个稳定字段 ID 的正向许可，不授权的标记不否决其他角色。 */
-    public record FieldGrant(@NotNull Long fieldId,boolean readable,boolean writable,boolean exportable) {}
-    /** 替换指定角色在当前模块的全部字段许可。 */
-    public record FieldsRequest(@NotNull List<@Valid FieldGrant> fields) {}
     /** 数据范围规则不包含字段权限。 */
     public record Grant(String scope,Set<Long> accountIds,Set<Long> departmentIds) {}
+
     /** 可缓存的授权规则；人员当前部门不进入缓存。 */
     public record Rules(boolean menuAllowed,List<Grant> grants,Set<String> readable,Set<String> writable,
-                         Set<String> exportable,FieldAccess tenantFields) {}
+                        Set<String> exportable,FieldAccess tenantFields) {}
+
     /** 一次鉴权得到的菜单身份与数据、字段检查结果。 */
-    public record Access(SystemManageService.SystemContext context,Long accountId,PermissionPolicy policy,
-                          ModuleMenuService.Definition definition) {}
-    /** 管理员添加或调整租户成员，不能提升管理身份。 */
-    public record MemberRequest(@NotNull Long accountId,Long departmentId) {}
-    /** 普通角色资料，代码不是系统管理身份。 */
-    public record RoleRequest(@NotBlank @Size(max=80) String code,@NotBlank @Size(max=100) String name) {}
-    /** 显式设置成员角色关系，撤销不删除其他角色。 */
-    public record AssignRequest(@NotNull Long tenantMemberId,@NotNull Long roleId,boolean assigned) {}
+    public record Access(SystemManageDto.SystemContext context,Long accountId,PermissionPolicy policy,
+                         ModuleMenuDto.Definition definition) {}
 
     /** 所有读写均通过生成的基础 Service，Controller 不接触表查询。 */
     public ModulePermissionService(SystemManageService systems,IUnSysSystemService systemRows,
@@ -92,7 +88,7 @@ public class ModulePermissionService {
         return resolve(token,context,moduleMenus.definition(context,moduleId,menuId,true));
     }
 
-    private Access resolve(String token,SystemManageService.SystemContext context,ModuleMenuService.Definition definition) {
+    private Access resolve(String token,SystemManageDto.SystemContext context,ModuleMenuDto.Definition definition) {
         Long actor=systems.accountId(token,context.systemId());
         // 租户模块绑定属于实时共享边界，必须在读取权限缓存前核对。
         var activeModule=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
@@ -227,7 +223,7 @@ public class ModulePermissionService {
         cache.invalidateAfterCommit(namespace(systemId,targetTenantId));
     }
 
-    private Rules load(SystemManageService.SystemContext context,Long moduleId,Long menuId) {
+    private Rules load(SystemManageDto.SystemContext context,Long moduleId,Long menuId) {
         var tenant=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>().eq(UnModuleTenant::getTenantId,context.tenantId()).eq(UnModuleTenant::getModuleId,moduleId));
         // 租户未显式启用的模块不能凭角色菜单授权绕过模块共享边界。
         if (tenant==null || !"ACTIVE".equals(tenant.getStatus())) forbidden();
@@ -262,7 +258,7 @@ public class ModulePermissionService {
     }
 
     /** 当前成员部门实时求值；调岗后无需等待授权缓存过期。 */
-    private Set<Long> ownerIds(SystemManageService.SystemContext context,Long actor,Grant grant) {
+    private Set<Long> ownerIds(SystemManageDto.SystemContext context,Long actor,Grant grant) {
         switch (grant.scope()) {
             case "ALL": return Set.of();
             case "SELF": return Set.of(actor);
@@ -285,7 +281,7 @@ public class ModulePermissionService {
         }
     }
 
-    private Set<Long> activeOwners(SystemManageService.SystemContext context,Set<Long> departmentIds) {
+    private Set<Long> activeOwners(SystemManageDto.SystemContext context,Set<Long> departmentIds) {
         Set<Long> result=new HashSet<>();
         for (var link:tenantMembers.list(new LambdaQueryWrapper<UnSysTenantMember>().eq(UnSysTenantMember::getTenantId,context.tenantId())
                 .eq(UnSysTenantMember::getStatus,"ACTIVE").in(departmentIds!=null,UnSysTenantMember::getDepartmentId,departmentIds))) {
@@ -304,27 +300,27 @@ public class ModulePermissionService {
                 || access.exportable()!=null && !codes.containsAll(access.exportable()))
             throw new IllegalArgumentException("字段权限超出当前字段或写入超出可读范围");
     }
-    private UnModule module(SystemManageService.SystemContext context,Long id) {
+    private UnModule module(SystemManageDto.SystemContext context,Long id) {
         var module=modules.queryById(id); Long root=systemRows.queryById(context.systemId()).getRootTenantId();
         if (!context.systemId().equals(module.getSystemId()) || !List.of(context.tenantId(),root).contains(module.getTenantId())) forbidden();
         if (!"ACTIVE".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块尚未配置");
         return module;
     }
-    private void role(SystemManageService.SystemContext context,Long id) {
+    private void role(SystemManageDto.SystemContext context,Long id) {
         var role=roles.queryById(id); if (!context.systemId().equals(role.getSystemId()) || !context.tenantId().equals(role.getTenantId())) forbidden();
     }
-    private void department(SystemManageService.SystemContext context,Long id) {
+    private void department(SystemManageDto.SystemContext context,Long id) {
         var dept=departments.queryById(id);
         if (!context.systemId().equals(dept.getSystemId()) || !context.tenantId().equals(dept.getTenantId()) || !"ACTIVE".equals(dept.getStatus()))
             throw new IllegalArgumentException("部门不是当前租户的有效部门");
     }
     /** 授权配置与系统操作日志同事务，不能只更新缓存版本而缺少实际操作者。 */
-    private void audit(String token,SystemManageService.SystemContext context,String operation,String objectType,Long objectId,Object detail) {
+    private void audit(String token,SystemManageDto.SystemContext context,String operation,String objectType,Long objectId,Object detail) {
         var log=new UnSysLogOpt(); log.setSystemId(context.systemId()); log.setTenantId(context.tenantId());
         log.setAccountId(systems.accountId(token,context.systemId())); log.setActionCode(operation); log.setObjectType(objectType);
         log.setObjectId(objectId); log.setDetailJson(write(detail)); auditLogs.addOrUpdate(log);
     }
-    private void changed(SystemManageService.SystemContext context) {
+    private void changed(SystemManageDto.SystemContext context) {
         configs.update(new LambdaUpdateWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getSystemId,context.systemId())
                 .setSql("permission_revision = permission_revision + 1"));
         cache.invalidateAfterCommit(namespace(context.systemId(),context.tenantId()));

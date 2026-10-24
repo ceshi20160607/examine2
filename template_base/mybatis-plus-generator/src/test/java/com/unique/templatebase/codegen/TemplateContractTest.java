@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-/** 模拟一张含敏感字段的业务表，核对五方法模板能生成并编译。 */
+/** 模拟一张含敏感字段的业务表，核对基础 CRUD模板能生成并编译。 */
 class TemplateContractTest {
     @TempDir
     Path temporary;
@@ -62,18 +62,19 @@ class TemplateContractTest {
         }
     }
 
-    /** 基础方法可生成编译，详情保留已保存配置并填值，不能自行重新排版。 */
+    /** 基础方法可生成编译，字段布局和业务筛选不进入生成结果。 */
     @Test
-    void generatedServiceCompilesWithFiveMethodsAndSafeInformation() throws Exception {
+    void generatedServiceCompilesWithBasicMethods() throws Exception {
         String service = render("service.java.ftl");
         String implementation = render("serviceImpl.java.ftl");
-        for (String method : List.of("queryPageList", "addOrUpdate", "queryById", "information", "deleteByIds")) {
+        for (String method : List.of("queryPageList", "addOrUpdate", "queryById", "deleteByIds")) {
             assertTrue(service.contains(method + "("), "接口缺少 " + method);
             assertTrue(implementation.contains(method + "("), "实现缺少 " + method);
         }
-        assertTrue(implementation.contains("values.put(\"name\""));
-        assertFalse(implementation.contains("values.put(\"passwordHash\""), "敏感字段不进入基础详情");
-        assertFalse(implementation.contains("case \"passwordHash\""), "敏感字段不能作为基础筛选和排序条件");
+        assertTrue(service.contains("queryPageList(SearchBO search)"), "基础分页须接收可扩展的查询对象");
+        assertTrue(implementation.contains("search.parse()"), "基础分页须复用公共分页解析");
+        assertFalse(implementation.contains("case \"name\""), "基础 CRUD 不枚举字段");
+        assertFalse(implementation.contains("information("), "表单绑定应由 manage 完成");
 
         Path source = temporary.resolve("src");
         write(source, "com/unique/unexamine/sys/action/print/base/entity/UnPrint.java", """
@@ -97,55 +98,12 @@ class TemplateContractTest {
                 """);
         write(source, "com/unique/unexamine/sys/action/print/base/service/IUnPrintService.java", service);
         write(source, "com/unique/unexamine/sys/action/print/base/service/impl/UnPrintServiceImpl.java", implementation);
-        write(source, "com/unique/unexamine/sys/action/print/base/service/impl/FixtureService.java", """
-                package com.unique.unexamine.sys.action.print.base.service.impl;
-                import com.unique.unexamine.sys.action.print.base.entity.UnPrint;
-                public class FixtureService extends UnPrintServiceImpl {
-                    @Override
-                    public UnPrint queryById(Long id) { return new UnPrint(id, "示例"); }
-                }
-                """);
-
         compile(source);
-        try (URLClassLoader loader = new URLClassLoader(new URL[]{temporary.toUri().toURL()},
-                getClass().getClassLoader())) {
-            String servicePackage = "com.unique.unexamine.sys.action.print.base.service.IUnPrintService";
-            Class<?> configClass = loader.loadClass(servicePackage + "$FieldConfig");
-            var configConstructor = configClass.getDeclaredConstructor(String.class, Map.class);
-            // 单独一行的 30% 字段仍保留该行及宽度，不能把下一行字段移入剩余位置。
-            Map<String, Object> savedCustom = Map.of("label", "自定义字段", "type", "text",
-                    "layout", Map.of("row", "独立行", "position", "设计器保存的位置B", "width", "30%"));
-            Map<String, Object> savedName = Map.of("label", "名称",
-                    "layout", Map.of("row", "后续行", "position", "设计器保存的位置A", "width", "50%"));
-            List<Object> configurations = List.of(
-                    configConstructor.newInstance("customField", savedCustom),
-                    configConstructor.newInstance("name", savedName),
-                    configConstructor.newInstance("emptyField", Map.of("label", "未填字段")));
-            Object serviceInstance = loader.loadClass(
-                    "com.unique.unexamine.sys.action.print.base.service.impl.FixtureService")
-                    .getDeclaredConstructor().newInstance();
-            var information = serviceInstance.getClass().getMethod(
-                    "information", Long.class, List.class, Map.class);
-            @SuppressWarnings("unchecked")
-            List<Object> views = (List<Object>) information.invoke(serviceInstance, 1L,
-                    configurations, Map.of("customField", "自定义值"));
-            assertEquals(3, views.size());
-            var fieldName = views.get(0).getClass().getMethod("fieldName");
-            var configuration = views.get(0).getClass().getMethod("configuration");
-            var value = views.get(0).getClass().getMethod("value");
-            assertEquals("customField", fieldName.invoke(views.get(0)));
-            assertEquals("name", fieldName.invoke(views.get(1)));
-            assertEquals(savedCustom, configuration.invoke(views.get(0)));
-            assertEquals(savedName, configuration.invoke(views.get(1)));
-            assertEquals("自定义值", value.invoke(views.get(0)));
-            assertEquals("示例", value.invoke(views.get(1)));
-            assertEquals(null, value.invoke(views.get(2)));
-        }
     }
 
     /** 用独立内存样表运行真正的 MyBatis-Plus 生成流程，验证模板接线和输出编译。 */
     @Test
-    void generatorProducesCompilableFiveMethodService() throws Exception {
+    void generatorProducesCompilableBasicMethodService() throws Exception {
         String url = "jdbc:h2:mem:codegen_" + UUID.randomUUID().toString().replace("-", "")
                 + ";MODE=MySQL;DB_CLOSE_DELAY=-1";
         try (var connection = DriverManager.getConnection(url, "sa", "");
@@ -181,7 +139,7 @@ class TemplateContractTest {
         Path implementation = source.resolve("com/unique/unexamine/sys/action/print/base/service/impl/UnPrintServiceImpl.java");
         assertTrue(Files.isRegularFile(service), "生成器未输出 Service 接口");
         assertTrue(Files.isRegularFile(implementation), "生成器未输出 ServiceImpl");
-        for (String method : List.of("queryPageList", "addOrUpdate", "queryById", "information", "deleteByIds")) {
+        for (String method : List.of("queryPageList", "addOrUpdate", "queryById", "deleteByIds")) {
             assertTrue(Files.readString(implementation).contains(method + "("), "生成实现缺少 " + method);
         }
         write(source, "com/unique/unexamine/sys/action/print/base/service/impl/FixtureService.java", """
@@ -196,8 +154,7 @@ class TemplateContractTest {
                 getClass().getClassLoader())) {
             Class<?> entityClass = loader.loadClass("com.unique.unexamine.sys.action.print.base.entity.UnPrint");
             Class<?> mapperClass = loader.loadClass("com.unique.unexamine.sys.action.print.base.mapper.UnPrintMapper");
-            Class<?> pageQueryClass = loader.loadClass(
-                    "com.unique.unexamine.sys.action.print.base.service.IUnPrintService$PageQuery");
+            Class<?> searchClass = loader.loadClass("com.unique.unexamine.core.bo.SearchBO");
             MybatisConfiguration configuration = new MybatisConfiguration();
             var global = new com.baomidou.mybatisplus.core.config.GlobalConfig();
             global.setDbConfig(new com.baomidou.mybatisplus.core.config.GlobalConfig.DbConfig()
@@ -225,21 +182,12 @@ class TemplateContractTest {
                 Object second = entityClass.getDeclaredConstructor().newInstance();
                 entityClass.getMethod("setName", String.class).invoke(second, "模板一");
                 fixture.getClass().getMethod("addOrUpdate", entityClass).invoke(fixture, second);
-                Object query = pageQueryClass.getDeclaredConstructor(long.class, long.class,
-                        Map.class, String.class, boolean.class)
-                        .newInstance(1L, 1L, Map.of("name", "模板一"), "id", false);
-                Page<?> page = (Page<?>) fixture.getClass().getMethod("queryPageList", pageQueryClass)
-                        .invoke(fixture, query);
-                assertEquals(1, page.getRecords().size());
-                assertEquals(2, page.getTotal());
-                Map<String, Object> emptyRemark = new HashMap<>();
-                emptyRemark.put("remark", null);
-                Object nullQuery = pageQueryClass.getDeclaredConstructor(long.class, long.class,
-                        Map.class, String.class, boolean.class)
-                        .newInstance(1L, 10L, emptyRemark, "id", false);
-                Page<?> nullPage = (Page<?>) fixture.getClass()
-                        .getMethod("queryPageList", pageQueryClass).invoke(fixture, nullQuery);
-                assertEquals(2, nullPage.getTotal(), "空字段筛选应生成 IS NULL");
+                Object search = searchClass.getDeclaredConstructor().newInstance();
+                searchClass.getMethod("setLimit", Integer.class).invoke(search, 1);
+                Page<?> page = (Page<?>) fixture.getClass().getMethod("queryPageList",searchClass)
+                        .invoke(fixture,search);
+                assertEquals(1,page.getRecords().size());
+                assertEquals(2,page.getTotal());
                 assertEquals("模板一", entityClass.getMethod("getName").invoke(
                         fixture.getClass().getMethod("queryById", Long.class).invoke(fixture, id)));
                 entityClass.getMethod("setName", String.class).invoke(entity, "模板二");
@@ -248,7 +196,9 @@ class TemplateContractTest {
                         fixture.getClass().getMethod("queryById", Long.class).invoke(fixture, id)));
                 assertEquals(true, fixture.getClass().getMethod("deleteByIds", List.class)
                         .invoke(fixture, List.of(id)));
-                assertEquals(0, pageQueryResultSize(fixture, pageQueryClass));
+                searchClass.getMethod("setLimit", Integer.class).invoke(search, 10);
+                assertEquals(1, ((Page<?>) fixture.getClass().getMethod("queryPageList",searchClass)
+                        .invoke(fixture,search)).getRecords().size());
                 // ORM 查询过滤已删除记录，但原行和删除时间必须真实留在数据库中。
                 try (var connection = DriverManager.getConnection(url, "sa", "");
                      var statement = connection.prepareStatement("SELECT deleted_time FROM un_print WHERE id=?")) {
@@ -262,17 +212,28 @@ class TemplateContractTest {
         }
     }
 
-    /** 删除后再次按同一筛选条件查询，应已无持久化记录。 */
-    private static int pageQueryResultSize(Object fixture, Class<?> pageQueryClass) throws Exception {
-        Object query = pageQueryClass.getDeclaredConstructor(long.class, long.class,
-                Map.class, String.class, boolean.class)
-                .newInstance(1L, 10L, Map.of("name", "模板二"), "id", false);
-        Page<?> page = (Page<?>) fixture.getClass().getMethod("queryPageList", pageQueryClass)
-                .invoke(fixture, query);
-        return page.getRecords().size();
-    }
-
     private void compile(Path source) throws IOException {
+        write(source, "com/unique/unexamine/core/bo/SearchBO.java", """
+                package com.unique.unexamine.core.bo;
+                import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+                public class SearchBO {
+                    private Integer page = 1;
+                    private Integer limit = 15;
+                    public void setLimit(Integer limit) { this.limit = limit; }
+                    public <T> Page<T> parse() { return Page.of(page, limit); }
+                }
+                """);
+        write(source, "com/unique/unexamine/core/enums/SystemCodeEnum.java", """
+                package com.unique.unexamine.core.enums;
+                public enum SystemCodeEnum { SYSTEM_NO_FOUND }
+                """);
+        write(source, "com/unique/unexamine/core/exception/BaseException.java", """
+                package com.unique.unexamine.core.exception;
+                import com.unique.unexamine.core.enums.SystemCodeEnum;
+                public class BaseException extends RuntimeException {
+                    public BaseException(SystemCodeEnum code, String message) { super(message); }
+                }
+                """);
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler, "模板检查需要 JDK 21");
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();

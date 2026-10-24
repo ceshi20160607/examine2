@@ -3,7 +3,6 @@ package com.unique.unexamine.sys.module.manage.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
@@ -12,6 +11,12 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
+import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+import com.unique.unexamine.sys.module.manage.dto.ModuleColumnDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.Column;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ListView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.Row;
+import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
 import com.unique.unexamine.sys.module.manage.util.ModuleRecordFilter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,17 +41,6 @@ public class ModuleRecordListService {
     private final ObjectMapper json;
     private final ModuleShareService shares;
 
-    /** 临时筛选与已保存场景同时生效，分页范围由服务端限定。 */
-    public record Query(Long sceneId,String search,List<ModuleSceneService.Condition> filters,
-                        Long sortFieldId,Boolean descending,List<Long> columnFieldIds,long page,long size,String scope) {}
-    /** 列标识、字段名称和类型来自当前当前定义。 */
-    public record Column(Long fieldId,String code,String name,String type,Integer widthPx,String fixedSide) {}
-    /** 列表行含基础记录及当前有权读取的自定义字段值。 */
-    public record Row(Long id,String name,String status,Long ownerAccountId,
-                      Long sourceTenantId,boolean shared,
-                      Map<String,Object> values,Map<String,Object> valueDisplay) {}
-    public record Result(long total,long current,long size,List<Column> columns,List<Row> records) {}
-
     /** 注入生成的基础 Service；动态查询仍复用基础持久化入口。 */
     public ModuleRecordListService(ModulePermissionService permissions,ModuleConfigService modules,
             ModuleSceneService scenes,ModuleColumnService columnPreferences,ModuleFieldService fieldRules,IUnModuleRecordService records,
@@ -57,44 +51,44 @@ public class ModuleRecordListService {
     }
 
     /** 列表场景与请求条件求交集，权限在条件、排序和返回列三处分别执行。 */
-    public Result query(String token,Long systemId,Long tenantId,Long moduleId,Query request) {
+    public ListView query(String token,Long systemId,Long tenantId,Long moduleId,ModuleRecordSearchBO request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
         return queryWithAccess(access,systemId,moduleId,request,false);
     }
 
     /** 导出复用列表场景和筛选，但使用独立导出菜单及字段导出许可。 */
-    public Result export(String token,Long systemId,Long tenantId,Long moduleId,Query request) {
+    public ListView export(String token,Long systemId,Long tenantId,Long moduleId,ModuleRecordSearchBO request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"EXPORT");
         return queryWithAccess(access,systemId,moduleId,request,true);
     }
 
-    private Result queryWithAccess(ModulePermissionService.Access access,Long systemId,Long moduleId,
-                                   Query request,boolean exporting) {
+    private ListView queryWithAccess(ModulePermissionService.Access access,Long systemId,Long moduleId,
+                                   ModuleRecordSearchBO request,boolean exporting) {
         var context=access.context(); modules.activeModule(systemId,moduleId,context.tenantId());
-        if (request==null || request.page()<1 || request.size()<1 || request.size()>(exporting?500:100))
-            throw new IllegalArgumentException("分页范围无效");
-        String scope=request.scope()==null?"ALL":request.scope();
+        if (request==null) throw new IllegalArgumentException("查询条件不能为空");
+        Page<UnModuleRecord> requestedPage=request.parse(exporting?500:100);
+        String scope=request.getScope()==null?"ALL":request.getScope();
         if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
-        if (request.search()!=null && request.search().length()>100)
+        if (request.getKeyword()!=null && request.getKeyword().length()>100)
             throw new IllegalArgumentException("搜索文本过长");
-        if (request.search()!=null && !request.search().isBlank() && !access.policy().readable("name"))
+        if (request.getKeyword()!=null && !request.getKeyword().isBlank() && !access.policy().readable("name"))
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
                     "没有标题字段的查询权限");
-        var saved=scenes.resolve(moduleId,request.sceneId(),access);
-        List<ModuleSceneService.Condition> conditions=new ArrayList<>(saved.filters());
-        if (request.filters()!=null) conditions.addAll(request.filters());
-        var settings=new ModuleSceneService.Settings(conditions,
-                request.columnFieldIds()==null?saved.columnFieldIds():request.columnFieldIds(),
-                request.sortFieldId()==null?saved.sortFieldId():request.sortFieldId(),
-                request.descending()==null?saved.descending():request.descending());
+        var saved=scenes.resolve(moduleId,request.getSceneId(),access);
+        List<ModuleSceneDto.Condition> conditions=new ArrayList<>(saved.filters());
+        if (request.getFilters()!=null) conditions.addAll(request.getFilters());
+        var settings=new ModuleSceneDto.Settings(conditions,
+                request.getColumnFieldIds()==null?saved.columnFieldIds():request.getColumnFieldIds(),
+                request.getSortFieldId()==null?saved.sortFieldId():request.getSortFieldId(),
+                request.getDescending()==null?saved.descending():request.getDescending());
         scenes.check(systemId,context.tenantId(),moduleId,settings,access);
         List<UnModuleField> currentFields=modules.currentFields(moduleId);
         Map<Long,UnModuleField> fields=currentFields.stream().collect(Collectors.toMap(UnModuleField::getId,field->field));
-        Map<Long,ModuleColumnService.Preference> personal=columnPreferences.effective(moduleId,access);
+        Map<Long,ModuleColumnDto.Preference> personal=columnPreferences.effective(moduleId,access);
         List<UnModuleField> selected=settings.columnFieldIds().isEmpty()?currentFields:settings.columnFieldIds()
                 .stream().map(fields::get).toList();
         Set<Long> actionFields=exporting?Set.copyOf(access.definition().settings().fieldIds()):Set.of();
-        if (exporting && request.columnFieldIds()!=null && !request.columnFieldIds().isEmpty()
+        if (exporting && request.getColumnFieldIds()!=null && !request.getColumnFieldIds().isEmpty()
                 && selected.stream().anyMatch(field->
                 !access.policy().exportable(field.getFieldCode())
                         || !actionFields.isEmpty() && !actionFields.contains(field.getId())))
@@ -118,14 +112,16 @@ public class ModuleRecordListService {
                 .eq("system_id",systemId).eq("module_id",moduleId)
                 .isNull("deleted_time");
         if (!shares.applyRecordScope(where,access,scope))
-            return new Result(0,request.page(),request.size(),headers,List.of());
-        if (request.search()!=null && !request.search().isBlank())
-            where.apply("LOCATE({0}, name) > 0",request.search().trim());
+            return new ListView(headers,new Page<Row>(requestedPage.getCurrent(),requestedPage.getSize(),0)
+                    .setRecords(List.of()));
+        if (request.getKeyword()!=null && !request.getKeyword().isBlank())
+            where.apply("LOCATE({0}, name) > 0",request.getKeyword().trim());
         for (var condition:conditions) ModuleRecordFilter.apply(where,fields.get(condition.fieldId()),condition,json);
         if (settings.sortFieldId()==null) where.orderByDesc("id");
         else sort(where,fields.get(settings.sortFieldId()),settings.descending());
-        Page<UnModuleRecord> page=records.page(Page.of(request.page(),request.size()),where);
-        if (page.getRecords().isEmpty()) return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,List.of());
+        Page<UnModuleRecord> page=records.page(requestedPage,where);
+        if (page.getRecords().isEmpty())
+            return new ListView(headers,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(List.of()));
         List<Long> recordIds=page.getRecords().stream().map(UnModuleRecord::getId).toList();
         List<Long> extensionIds=columns.stream().filter(field->!"name".equals(field.getFieldCode()))
                 .map(UnModuleField::getId).toList();
@@ -156,7 +152,7 @@ public class ModuleRecordListService {
                     access.policy().readable("ownerUserId")?record.getOwnerUserId():null,
                     record.getTenantId(),!record.getTenantId().equals(context.tenantId()),cellValues,display));
         }
-        return new Result(page.getTotal(),page.getCurrent(),page.getSize(),headers,rows);
+        return new ListView(headers,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(rows));
     }
 
     /** 字段 ID 已从当前定义校验；相关子查询仅用于已授权的动态列排序。 */

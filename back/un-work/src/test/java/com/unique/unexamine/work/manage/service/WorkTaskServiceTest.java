@@ -1,5 +1,7 @@
 package com.unique.unexamine.work.manage.service;
 
+import com.unique.unexamine.work.manage.dto.WorkTaskDto;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkTask;
@@ -41,7 +43,7 @@ class WorkTaskServiceTest {
             UnWorkTask row=invocation.getArgument(0);row.setId(40L);return row;
         });
         var result=service.createProjectTask("token",null,null,20L,
-                new WorkTaskService.ProjectCreateRequest("交付测试",null,null,30L,null));
+                new WorkTaskDto.ProjectCreateRequest("交付测试",null,null,30L,null));
         assertEquals(20L,result.projectId());
         assertEquals(30L,result.taskGroupId());
         assertEquals(10L,result.ownerAccountId());

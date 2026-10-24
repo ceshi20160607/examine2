@@ -2,6 +2,10 @@ package com.unique.unexamine.sys.module.manage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+import com.unique.unexamine.sys.module.manage.dto.ModuleExportDto.ExportFile;
+import com.unique.unexamine.sys.module.manage.dto.ModuleExportDto.ExportRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
@@ -17,11 +21,6 @@ public class ModuleExportService {
     private final ModuleRecordListService lists;
     private final ObjectMapper json;
 
-    /** 当前筛选和显式导出列与列表查询保持同一格式。 */
-    public record ExportRequest(ModuleRecordListService.Query query,boolean displayValues) {}
-    /** CSV 内容由 Controller 作为下载响应发送。 */
-    public record ExportFile(String name,byte[] content) {}
-
     /** 使用现有列表查询及字段展示规则，不建立平行的数据筛选实现。 */
     public ModuleExportService(ModuleRecordListService lists,ObjectMapper json) {
         this.lists=lists; this.json=json;
@@ -31,10 +30,13 @@ public class ModuleExportService {
     public ExportFile export(String token,Long systemId,Long tenantId,Long moduleId,ExportRequest request) {
         if (request==null || request.query()==null) throw new IllegalArgumentException("导出查询不能为空");
         var input=request.query();
-        var query=new ModuleRecordListService.Query(input.sceneId(),input.search(),input.filters(),
-                input.sortFieldId(),input.descending(),input.columnFieldIds(),1,SYNCHRONOUS_LIMIT,input.scope());
+        var query=new ModuleRecordSearchBO();
+        query.setSceneId(input.getSceneId()); query.setKeyword(input.getKeyword());
+        query.setFilters(input.getFilters()); query.setSortFieldId(input.getSortFieldId());
+        query.setDescending(input.getDescending()); query.setColumnFieldIds(input.getColumnFieldIds());
+        query.setScope(input.getScope()); query.setPage(1); query.setLimit(SYNCHRONOUS_LIMIT);
         var result=lists.export(token,systemId,tenantId,moduleId,query);
-        if (result.total()>SYNCHRONOUS_LIMIT)
+        if (result.page().getTotal()>SYNCHRONOUS_LIMIT)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"当前筛选超过500条，暂不支持同步导出");
         StringBuilder csv=new StringBuilder("\uFEFF");
         for (int index=0;index<result.columns().size();index++) {
@@ -42,7 +44,7 @@ public class ModuleExportService {
             csv.append(cell(result.columns().get(index).name(),true));
         }
         csv.append("\r\n");
-        for (var row:result.records()) {
+        for (var row:result.page().getRecords()) {
             for (int index=0;index<result.columns().size();index++) {
                 if (index>0) csv.append(',');
                 String code=result.columns().get(index).code();
@@ -58,9 +60,9 @@ public class ModuleExportService {
     /** 字典及人员展示值转成人可读文本，结构化原值保留 JSON 形态。 */
     private String format(Object value) {
         if (value==null) return "";
-        if (value instanceof ModuleFieldService.MemberView member) return member.displayName();
-        if (value instanceof Collection<?> members && members.stream().allMatch(item->item instanceof ModuleFieldService.MemberView))
-            return members.stream().map(item->((ModuleFieldService.MemberView)item).displayName())
+        if (value instanceof ModuleFieldDto.MemberView member) return member.displayName();
+        if (value instanceof Collection<?> members && members.stream().allMatch(item->item instanceof ModuleFieldDto.MemberView))
+            return members.stream().map(item->((ModuleFieldDto.MemberView)item).displayName())
                     .collect(Collectors.joining("、"));
         if (value instanceof Map<?,?> map) {
             if (map.containsKey("displayName")) return String.valueOf(map.get("displayName"));

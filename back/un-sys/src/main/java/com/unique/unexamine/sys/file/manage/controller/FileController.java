@@ -1,5 +1,9 @@
 package com.unique.unexamine.sys.file.manage.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.core.bo.SearchBO;
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.sys.file.manage.dto.FileManageDto.FileView;
 import com.unique.unexamine.sys.file.manage.service.FileManageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,40 +38,39 @@ public class FileController {
     /** 上传字节并登记文件元数据。 */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "上传文件")
-    public FileManageService.FileView upload(@RequestHeader(value="Authorization", required=false) String token,
+    public Result<FileView> upload(@RequestHeader(value="Authorization", required=false) String token,
             @RequestHeader(value="X-Tenant-Id", required=false) Long tenantId,
             @PathVariable Long systemId, @RequestParam(required=false) String batchId,
             @RequestPart("file") MultipartFile file) throws IOException {
-        return service.upload(token, systemId, tenantId, batchId, file);
+        return Result.ok(service.upload(token, systemId, tenantId, batchId, file));
     }
 
     /** 查看本租户本人上传的可用文件。 */
     @GetMapping
     @Operation(summary = "文件列表")
-    public FileManageService.FilePage list(@RequestHeader(value="Authorization", required=false) String token,
+    public Result<Page<FileView>> list(@RequestHeader(value="Authorization", required=false) String token,
             @RequestHeader(value="X-Tenant-Id", required=false) Long tenantId,
-            @PathVariable Long systemId, @RequestParam(defaultValue="1") long page,
-            @RequestParam(defaultValue="20") long size) {
-        return service.queryPageList(token, systemId, tenantId, page, size);
+            @PathVariable Long systemId, @ModelAttribute SearchBO search) {
+        return Result.ok(service.queryPageList(token, systemId, tenantId, search));
     }
 
     /** 按详情表单中的批次 UUID 查询当前有权读取的同批文件。 */
     @GetMapping("/batches/{batchId}")
     @Operation(summary = "查询附件字段文件批次")
-    public java.util.List<FileManageService.FileView> batch(
+    public Result<java.util.List<FileView>> batch(
             @RequestHeader(value="Authorization", required=false) String token,
             @RequestHeader(value="X-Tenant-Id", required=false) Long tenantId,
             @PathVariable Long systemId, @PathVariable String batchId) {
-        return service.batch(token, systemId, tenantId, batchId);
+        return Result.ok(service.batch(token, systemId, tenantId, batchId));
     }
 
     /** 查询文件元数据，不公开对象存储键。 */
     @GetMapping("/{fileId}")
     @Operation(summary = "文件详情")
-    public FileManageService.FileView detail(@RequestHeader(value="Authorization", required=false) String token,
+    public Result<FileView> detail(@RequestHeader(value="Authorization", required=false) String token,
             @RequestHeader(value="X-Tenant-Id", required=false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long fileId) {
-        return service.queryById(token, systemId, tenantId, fileId);
+        return Result.ok(service.queryById(token, systemId, tenantId, fileId));
     }
 
     /** 内容由已授权的私有存储对象流式返回。 */
@@ -101,9 +105,10 @@ public class FileController {
     /** 引用中的文件会由业务层拒绝删除。 */
     @DeleteMapping("/{fileId}")
     @Operation(summary = "删除未引用文件")
-    public void delete(@RequestHeader(value="Authorization", required=false) String token,
+    public Result<Void> delete(@RequestHeader(value="Authorization", required=false) String token,
             @RequestHeader(value="X-Tenant-Id", required=false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long fileId) throws IOException {
         service.delete(token, systemId, tenantId, fileId);
+        return Result.ok();
     }
 }

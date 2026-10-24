@@ -11,9 +11,15 @@ import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
 import com.unique.unexamine.file.FileStorage;
 import com.unique.unexamine.sys.base.entity.*;
 import com.unique.unexamine.sys.base.service.*;
+import com.unique.unexamine.sys.manage.dto.SystemManageDto;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto.Backup;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto.Check;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto.Choice;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto.DeleteRequest;
+import com.unique.unexamine.sys.module.manage.dto.ModuleDeletionDto.Deleted;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,12 +56,6 @@ public class ModuleDeletionService {
     private final FileStorage storage;
     private final ObjectMapper json;
 
-    /** 有数据时必须明确选择直接删除或使用已下载的完整备份；空模块允许直接删除。 */
-    public enum Choice { EMPTY, DIRECT, EXPORTED }
-    public record DeleteRequest(Choice choice,Long exportJobId) {}
-    public record Check(Long moduleId,long recordCount,boolean choiceRequired) {}
-    public record Backup(Long jobId,Long fileId,long recordCount) {}
-    public record Deleted(Long moduleId,long recordCount) {}
     private record Snapshot(String sha256,long count) {}
 
     /** 所有数据查询和变更复用生成的基础服务，字节存储沿用公共文件接入。 */
@@ -154,7 +154,7 @@ public class ModuleDeletionService {
     }
 
     /** 备份仅供同一管理员删除同一模块；内容、当前数据或文件缺失均拒绝继续。 */
-    private void verifyBackup(SystemManageService.SystemContext context,Long actor,UnModule module,Long jobId) throws IOException {
+    private void verifyBackup(SystemManageDto.SystemContext context,Long actor,UnModule module,Long jobId) throws IOException {
         var job=jobId==null?null:jobs.getById(jobId);
         if (job==null || !context.systemId().equals(job.getSystemId()) || !context.tenantId().equals(job.getTenantId())
                 || !actor.equals(job.getOperatorAccountId()) || !module.getId().equals(job.getModuleId())
@@ -204,7 +204,7 @@ public class ModuleDeletionService {
         return new Snapshot(HexFormat.of().formatHex(digest.digest()),count);
     }
 
-    private UnModule owned(SystemManageService.SystemContext context,Long moduleId) {
+    private UnModule owned(SystemManageDto.SystemContext context,Long moduleId) {
         var module=modules.queryById(moduleId);
         if (!context.systemId().equals(module.getSystemId()) || !context.tenantId().equals(module.getTenantId()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"只能删除当前租户拥有的模块");
@@ -217,7 +217,7 @@ public class ModuleDeletionService {
         try { return MessageDigest.getInstance("SHA-256"); }
         catch (java.security.NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
     }
-    private void audit(SystemManageService.SystemContext context,Long actor,Long moduleId,String action,Object detail) throws IOException {
+    private void audit(SystemManageDto.SystemContext context,Long actor,Long moduleId,String action,Object detail) throws IOException {
         var log=new UnSysLogOpt(); log.setSystemId(context.systemId()); log.setTenantId(context.tenantId());
         log.setAccountId(actor); log.setActionCode(action); log.setObjectType("MODULE"); log.setObjectId(moduleId);
         log.setDetailJson(json.writeValueAsString(detail)); logs.addOrUpdate(log);

@@ -1,7 +1,8 @@
 package com.unique.unexamine.sys.module.manage.controller;
 
+import com.unique.unexamine.core.common.Result;
+import com.unique.unexamine.sys.module.manage.dto.ModuleColumnDto.Preference;
 import com.unique.unexamine.sys.module.manage.service.ModuleColumnService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -26,21 +27,21 @@ public class ModuleColumnController {
     /** 替换当前账号的列顺序、宽度、显隐及固定配置。 */
     @PutMapping
     @Operation(summary="保存个人列表表头")
-    public List<ModuleColumnService.Preference> save(
+    public Result<List<Preference>> save(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @PathVariable Long systemId,@PathVariable Long moduleId,
-            @RequestBody List<ModuleColumnService.Preference> request) {
-        return service.save(token,systemId,tenantId,moduleId,request);
+            @RequestBody List<Preference> request) {
+        return Result.ok(service.save(token,systemId,tenantId,moduleId,request));
     }
 
     /** 只读取当前账号仍有权限查看的表头配置。 */
     @GetMapping
     @Operation(summary="读取个人列表表头")
-    public List<ModuleColumnService.Preference> list(
+    public Result<List<Preference>> list(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @PathVariable Long systemId,@PathVariable Long moduleId) {
-        return service.list(token,systemId,tenantId,moduleId);
+        return Result.ok(service.list(token,systemId,tenantId,moduleId));
     }
 }

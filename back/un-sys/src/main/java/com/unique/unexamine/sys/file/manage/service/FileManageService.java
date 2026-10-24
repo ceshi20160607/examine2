@@ -1,22 +1,24 @@
 package com.unique.unexamine.sys.file.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.core.bo.SearchBO;
+import com.unique.unexamine.core.field.FileBatchId;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
-import com.unique.unexamine.core.field.FileBatchId;
 import com.unique.unexamine.file.FileStorage;
+import com.unique.unexamine.sys.file.manage.dto.FileManageDto.FileContent;
+import com.unique.unexamine.sys.file.manage.dto.FileManageDto.FileView;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.manage.service.ModuleRecordService;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,14 +30,6 @@ public class FileManageService {
     private final FileStorage storage;
     private final IUnModuleRecordService records;
     private final ModuleRecordService recordBusiness;
-
-    /** 对外只展示文件业务属性，不泄露存储对象键。 */
-    public record FileView(Long id, String batchId, String originalName, String contentType, long sizeBytes,
-                           String sha256, String status) {}
-    /** 文件列表使用生成的基础分页 Service。 */
-    public record FilePage(long total, long current, long size, List<FileView> records) {}
-    /** 已授权下载的内容流由 HTTP 层负责关闭。 */
-    public record FileContent(FileView file, InputStream stream) {}
 
     /** 基础元数据服务和存储接口由容器注入。 */
     public FileManageService(SystemManageService systems, IUnCommonFileService files,
@@ -88,14 +82,15 @@ public class FileManageService {
     }
 
     /** 只列当前租户本人上传的可用文件。 */
-    public FilePage queryPageList(String token, Long systemId, Long tenantId, long page, long size) {
+    public Page<FileView> queryPageList(String token, Long systemId, Long tenantId, SearchBO search) {
         var context = systems.context(token, systemId, tenantId);
         Long accountId = systems.accountId(token, systemId);
-        var result = files.queryPageList(new IUnCommonFileService.PageQuery(page, size,
-                Map.of("scopeType", "SYSTEM", "systemId", systemId, "tenantId", context.tenantId(),
-                       "uploaderAccountId", accountId, "status", "ACTIVE"), "createTime", true));
-        return new FilePage(result.getTotal(), result.getCurrent(), result.getSize(),
-                result.getRecords().stream().map(this::view).toList());
+        var where = new LambdaQueryWrapper<UnCommonFile>().eq(UnCommonFile::getScopeType,"SYSTEM")
+                .eq(UnCommonFile::getSystemId,systemId).eq(UnCommonFile::getTenantId,context.tenantId())
+                .eq(UnCommonFile::getUploaderAccountId,accountId).eq(UnCommonFile::getStatus,"ACTIVE")
+                .orderByDesc(UnCommonFile::getCreateTime);
+        var result = files.page(search.parse(),where);
+        return new Page<FileView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 上传者读取本租户文件；业务记录共享访问由记录所属模块另行授权。 */
