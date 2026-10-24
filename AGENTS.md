@@ -24,4 +24,5 @@
 
 - 表及所有字段必须有中文备注；复杂 SQL、修复和迁移说明用途。时间列使用 `*_time`，Java 属性使用 `*Time`；已有数据变更提供迁移，不删表重建。
 - Java 类、方法、业务字段和关键逻辑有适当中文业务注释，HTTP 接口使用 `@Tag`、`@Operation`。简单 CRUD 不添加无用层，不用 JdbcTemplate 绕开 base Service。
+- 全工程的 `Page<T>`、`SearchBO`、显式 `Result<T>`、统一异常入口、接口 DTO 与系统级配置遵守 `template_base/rules/README.md`；新增入口先核对公共约定，不在业务模块另造分页、响应包装或重复拦截逻辑。
 - 使用 `python template_base/tools/tb.py execution-verify --workspace workspace.json --target generator` 或 `--target backend` 执行相关真实编译测试；工具不保存验收标记。随后按功能检查真实入口、持久化、授权和失败结果，在回复中如实说明。
