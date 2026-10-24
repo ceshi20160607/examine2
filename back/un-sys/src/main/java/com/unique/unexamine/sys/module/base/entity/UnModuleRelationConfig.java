@@ -53,13 +53,13 @@ public class UnModuleRelationConfig implements Serializable {
     private Long targetModuleId;
 
     /**
-     * 关联或子表来源字段主键
+     * 普通关联来源字段主键
      */
     @TableField("source_field_id")
     private Long sourceFieldId;
 
     /**
-     * 单选多选子表或上下游关系类型
+     * 关联或上下游业务关系类型
      */
     @TableField("relation_type")
     private String relationType;

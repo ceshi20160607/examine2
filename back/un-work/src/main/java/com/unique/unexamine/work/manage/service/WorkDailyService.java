@@ -58,14 +58,14 @@ public class WorkDailyService {
         if (projectId!=null) projects.queryById(token,systemId,tenantId,projectId);
         if (taskId!=null) tasks.queryById(token,systemId,tenantId,taskId);
         var where=ownerScope(scope).eq(UnWorkDaily::getIsCurrent,true);
-        if (from!=null) where.ge(UnWorkDaily::getLogDate,from);
-        if (to!=null) where.le(UnWorkDaily::getLogDate,to);
+        if (from!=null) where.ge(UnWorkDaily::getLogTime,from.atStartOfDay());
+        if (to!=null) where.lt(UnWorkDaily::getLogTime,to.plusDays(1).atStartOfDay());
         if (status!=null && !status.isBlank()) where.eq(UnWorkDaily::getStatus,status);
         if (projectId!=null) where.apply(
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('projectIds', JSON_ARRAY({0})))",projectId);
         if (taskId!=null) where.apply(
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('taskIds', JSON_ARRAY({0})))",taskId);
-        var result=dailies.page(search.parse(),where.orderByDesc(UnWorkDaily::getLogDate)
+        var result=dailies.page(search.parse(),where.orderByDesc(UnWorkDaily::getLogTime)
                 .orderByDesc(UnWorkDaily::getId));
         return new Page<DailyView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
@@ -83,7 +83,7 @@ public class WorkDailyService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,"只有草稿可以编辑");
         content(row,request,token,systemId,tenantId);
         dailies.update(new LambdaUpdateWrapper<UnWorkDaily>().eq(UnWorkDaily::getId,row.getId())
-                .set(UnWorkDaily::getLogDate,row.getLogDate())
+                .set(UnWorkDaily::getLogTime,row.getLogTime())
                 .set(UnWorkDaily::getCompletedText,row.getCompletedText())
                 .set(UnWorkDaily::getOngoingText,row.getOngoingText())
                 .set(UnWorkDaily::getNextText,row.getNextText())
@@ -137,7 +137,7 @@ public class WorkDailyService {
         List<Long> taskIds=request.taskIds()==null?List.of():request.taskIds().stream().distinct().toList();
         projectIds.forEach(id->projects.queryById(token,systemId,tenantId,id));
         taskIds.forEach(id->tasks.queryById(token,systemId,tenantId,id));
-        row.setLogDate(request.logDate());row.setCompletedText(request.completedText());
+        row.setLogTime(request.logDate().atStartOfDay());row.setCompletedText(request.completedText());
         row.setOngoingText(request.ongoingText());row.setNextText(request.nextText());
         row.setRiskText(request.riskText());row.setHelpText(request.helpText());
         row.setRelationJson(writeRelations(new Relations(projectIds,taskIds)));
@@ -163,7 +163,7 @@ public class WorkDailyService {
         next.setRootId(rootId);next.setVersionNo(current.getVersionNo()+1);
         next.setScopeType(current.getScopeType());next.setSystemId(current.getSystemId());
         next.setTenantId(current.getTenantId());next.setAccountId(current.getAccountId());
-        next.setLogDate(current.getLogDate());next.setCompletedText(current.getCompletedText());
+        next.setLogTime(current.getLogTime());next.setCompletedText(current.getCompletedText());
         next.setOngoingText(current.getOngoingText());next.setNextText(current.getNextText());
         next.setRiskText(current.getRiskText());next.setHelpText(current.getHelpText());
         next.setRelationJson(current.getRelationJson());
@@ -197,7 +197,7 @@ public class WorkDailyService {
     private DailyView view(UnWorkDaily row) {
         return new DailyView(row.getId(),row.getRootId()==null?row.getId():row.getRootId(),
                 row.getVersionNo(),row.getScopeType(),row.getSystemId(),row.getTenantId(),
-                row.getAccountId(),row.getLogDate(),row.getCompletedText(),row.getOngoingText(),
+                row.getAccountId(),row.getLogTime().toLocalDate(),row.getCompletedText(),row.getOngoingText(),
                 row.getNextText(),row.getRiskText(),row.getHelpText(),
                 readRelations(row.getRelationJson()),row.getStatus(),
                 row.getSubmitTime(),row.getCreateTime());

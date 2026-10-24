@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-10-24
  */
 @TableName("un_module_record_data")
 public class UnModuleRecordData implements Serializable {
@@ -42,10 +42,10 @@ public class UnModuleRecordData implements Serializable {
     private Long fieldId;
 
     /**
-     * 保存时的字段编码快照
+     * 保存时的字段英文键快照
      */
-    @TableField("field_code")
-    private String fieldCode;
+    @TableField("field_key")
+    private String fieldKey;
 
     /**
      * 短字符串及附件批次UUID业务值
@@ -66,7 +66,7 @@ public class UnModuleRecordData implements Serializable {
     private BigDecimal valueNumber;
 
     /**
-     * 日期和日期时间业务值
+     * 日期时间业务值，日期样式按零时保存
      */
     @TableField("value_time")
     private LocalDateTime valueTime;
@@ -120,12 +120,12 @@ public class UnModuleRecordData implements Serializable {
         this.fieldId = fieldId;
     }
 
-    public String getFieldCode() {
-        return fieldCode;
+    public String getFieldKey() {
+        return fieldKey;
     }
 
-    public void setFieldCode(String fieldCode) {
-        this.fieldCode = fieldCode;
+    public void setFieldKey(String fieldKey) {
+        this.fieldKey = fieldKey;
     }
 
     public String getValueVarchar() {

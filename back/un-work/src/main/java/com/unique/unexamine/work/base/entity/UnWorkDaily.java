@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-10-24
  */
 @TableName("un_work_daily")
 public class UnWorkDaily implements Serializable {
@@ -66,10 +65,10 @@ public class UnWorkDaily implements Serializable {
     private Long accountId;
 
     /**
-     * 用户选择的工作日期
+     * 用户选择的工作日期，零时保存并按日期样式展示
      */
-    @TableField("log_date")
-    private LocalDate logDate;
+    @TableField("log_time")
+    private LocalDateTime logTime;
 
     /**
      * 今日已完成内容
@@ -212,12 +211,12 @@ public class UnWorkDaily implements Serializable {
         this.accountId = accountId;
     }
 
-    public LocalDate getLogDate() {
-        return logDate;
+    public LocalDateTime getLogTime() {
+        return logTime;
     }
 
-    public void setLogDate(LocalDate logDate) {
-        this.logDate = logDate;
+    public void setLogTime(LocalDateTime logTime) {
+        this.logTime = logTime;
     }
 
     public String getCompletedText() {

@@ -3,6 +3,7 @@ package com.unique.unexamine.sys.module.manage.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,7 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordInformat
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RuntimeAction;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.SaveRecordRequest;
+import com.unique.unexamine.sys.module.manage.util.ModuleRecordStorage;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -77,6 +79,7 @@ public class ModuleRecordService {
     private final IUnPlatAccountService accounts;
     private final ModuleShareService shares;
     private final ModuleFileBatchService fileBatches;
+    private final ModuleRelationFieldService relationFields;
 
     /** 注入已生成基础 Service 和系统成员关系服务。 */
     public ModuleRecordService(SystemManageService systems, ModuleConfigService config,
@@ -85,7 +88,7 @@ public class ModuleRecordService {
             IUnModuleRecordDataService data, IUnModuleLogService logs, ObjectMapper json,
             ModulePermissionService permissions, ModuleFieldService fieldRules, ModuleMenuService menus,
             IUnModuleRelationService relations, IUnPlatAccountService accounts,ModuleShareService shares,
-            ModuleFileBatchService fileBatches) {
+            ModuleFileBatchService fileBatches,ModuleRelationFieldService relationFields) {
         this.systems = systems;
         this.config = config;
         this.systemRows = systemRows;
@@ -102,6 +105,7 @@ public class ModuleRecordService {
         this.accounts = accounts;
         this.shares = shares;
         this.fileBatches = fileBatches;
+        this.relationFields = relationFields;
     }
 
     /** 普通表单新增和编辑各自使用明确菜单，不允许通过编辑接口绕过负责人转移权限。 */
@@ -109,18 +113,18 @@ public class ModuleRecordService {
     public RecordView save(String token,Long systemId,Long tenantId,Long moduleId,SaveRecordRequest request) {
         systems.context(token,systemId,tenantId); config.lockModule(systemId,moduleId);
         var access=permissions.require(token,systemId,tenantId,moduleId,request.id()==null?"CREATE":"EDIT");
-        return saveWithAccess(access,moduleId,request,request.id()==null?"RECORD_CREATE":"RECORD_UPDATE",access.definition().menu().getName(),null,null);
+        return saveWithAccess(token,access,moduleId,request,request.id()==null?"RECORD_CREATE":"RECORD_UPDATE",access.definition().menu().getName(),null,null);
     }
 
     /** 表单、自定义字段更新和转化创建都调用本保存链；不是复制一套 CRUD。 */
-    private RecordView saveWithAccess(ModulePermissionService.Access access,Long moduleId,SaveRecordRequest request,
+    private RecordView saveWithAccess(String token,ModulePermissionService.Access access,Long moduleId,SaveRecordRequest request,
                                       String operation,String actionName,Long relatedModuleId,Long relatedRecordId) {
         var context=access.context(); Long systemId=context.systemId();
         if (request.values()==null) throw new IllegalArgumentException("字段值不能为空");
         access.policy().requireWritable(request.values().keySet());
         UnModule module=config.activeModule(systemId,moduleId,context.tenantId());
         List<UnModuleField> fields=config.currentFields(moduleId);
-        Set<String> allowed=fields.stream().map(UnModuleField::getFieldCode).collect(java.util.stream.Collectors.toSet());
+        Set<String> allowed=fields.stream().map(UnModuleField::getFieldKey).collect(java.util.stream.Collectors.toSet());
         if (!allowed.containsAll(request.values().keySet())) throw new IllegalArgumentException("提交包含未配置字段");
         ActionRecord selected=request.id()==null?null:actionRecord(access,request.id());
         UnModuleRecord record=selected==null?new UnModuleRecord():selected.record();
@@ -133,13 +137,15 @@ public class ModuleRecordService {
         Map<String,UnModuleRecordData> existing=request.id()==null?Map.of():dataByCode(record.getId());
         Map<String,Object> effective=new LinkedHashMap<>(); List<FieldChange> changes=new ArrayList<>();
         for (UnModuleField field:fields) {
-            String code=field.getFieldCode();
+            String code=field.getFieldKey();
             FieldDefinition definition=fieldRules.configured(code,config.fieldConfig(field).configuration());
-            Object previous="name".equals(code)?record.getName():fieldRules.stored(existing.get(code),definition.type());
+            Object previous=storedValue(record,field,definition,existing);
             Object value=request.values().containsKey(code)?request.values().get(code):previous;
             if (request.id()==null && !request.values().containsKey(code)) value=definition.rules().get("defaultValue");
             if ("name".equals(code) && value instanceof String text) value=text.trim();
+            value=fieldRules.normalize(definition,value);
             fieldRules.validate(systemId,dataTenantId,definition,value,previous);
+            relationFields.validate(token,systemId,context.tenantId(),definition,value);
             fieldRules.validateUnique(systemId,dataTenantId,moduleId,request.id(),definition,value);
             effective.put(code,value);
             if (!same(previous,value)) changes.add(new FieldChange(field.getId(),code,definition.label(),previous,value,
@@ -159,13 +165,19 @@ public class ModuleRecordService {
         }
         record.setName(name); record.setOwnerUserId(ownerId); record.setOwnerDeptId(owner.getDepartmentId());
         record.setActualOperatorId(access.accountId()); record.setUpdateUserId(access.accountId());
-        persistRecord(record);
         for (UnModuleField field:fields) {
-            String code=field.getFieldCode(); if ("name".equals(code)) continue;
+            if ("name".equals(field.getFieldKey())) continue;
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+            ModuleRecordStorage.write(record,definition,effective.get(field.getFieldKey()));
+        }
+        persistRecord(record,fields);
+        for (UnModuleField field:fields) {
+            String code=field.getFieldKey(); if ("name".equals(code)) continue;
             var item=existing.getOrDefault(code,new UnModuleRecordData());
             FieldDefinition definition=fieldRules.configured(code,config.fieldConfig(field).configuration());
+            if (ModuleRecordStorage.isMain(definition)) continue;
             if (item.getId()!=null && same(fieldRules.stored(item,definition.type()),effective.get(code))) continue;
-            item.setRecordId(record.getId()); item.setFieldId(field.getId()); item.setFieldCode(code);
+            item.setRecordId(record.getId()); item.setFieldId(field.getId()); item.setFieldKey(code);
             fieldRules.store(item,definition,effective.get(code));
             persistDataValue(item);
         }
@@ -198,9 +210,9 @@ public class ModuleRecordService {
         var values=recordValues(record); conditions(access,values);
         var fields=actionFields(access.definition()); access.policy().requireWritable(fields.keySet());
         var form=fields.values().stream().map(field->config.runtimeFieldConfig(systemId,record.getTenantId(),field,true)).toList();
-        for (UnModuleField field:fields.values()) if (values.containsKey(field.getFieldCode())) {
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),config.fieldConfig(field).configuration());
-            values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,values.get(field.getFieldCode())));
+        for (UnModuleField field:fields.values()) if (values.containsKey(field.getFieldKey())) {
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+            values.put(field.getFieldKey(),fieldRules.present(systemId,record.getTenantId(),definition,values.get(field.getFieldKey())));
         }
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(access.context().tenantId()),
                 bind(form,values));
@@ -226,7 +238,7 @@ public class ModuleRecordService {
                 if (request.ownerAccountId()!=null) throw new IllegalArgumentException("字段动作不能变更负责人");
                 var fields=actionFields(access.definition());
                 if (submitted.isEmpty() || !fields.keySet().containsAll(submitted.keySet())) throw new IllegalArgumentException("只能提交动作指定字段");
-                saveWithAccess(access,moduleId,new SaveRecordRequest(recordId,null,submitted),"ACTION_FIELD_UPDATE",access.definition().menu().getName(),null,null);
+                saveWithAccess(token,access,moduleId,new SaveRecordRequest(recordId,null,submitted),"ACTION_FIELD_UPDATE",access.definition().menu().getName(),null,null);
             }
             case "TRANSFER" -> {
                 if (!submitted.isEmpty() || request.ownerAccountId()==null) throw new IllegalArgumentException("转移动作仅接受目标负责人");
@@ -264,14 +276,14 @@ public class ModuleRecordService {
         for (var mapping:settings.mappings()) {
             var from=sourceFields.get(mapping.sourceFieldId()); var to=targetFields.get(mapping.targetFieldId());
             if (from==null || to==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"字段映射已失效，请重新配置");
-            if (!access.policy().readable(from.getFieldCode())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"没有来源字段读取权限");
-            var fromDefinition=fieldRules.configured(from.getFieldCode(),config.fieldConfig(from).configuration());
-            var toDefinition=fieldRules.configured(to.getFieldCode(),config.fieldConfig(to).configuration());
+            if (!access.policy().readable(from.getFieldKey())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"没有来源字段读取权限");
+            var fromDefinition=fieldRules.configured(from.getFieldKey(),config.fieldConfig(from).configuration());
+            var toDefinition=fieldRules.configured(to.getFieldKey(),config.fieldConfig(to).configuration());
             fieldRules.validateMapping(fromDefinition,toDefinition);
-            if (mapped.containsKey(to.getFieldCode())) throw new IllegalArgumentException("目标字段映射重复");
-            mapped.put(to.getFieldCode(),values.get(from.getFieldCode()));
+            if (mapped.containsKey(to.getFieldKey())) throw new IllegalArgumentException("目标字段映射重复");
+            mapped.put(to.getFieldKey(),values.get(from.getFieldKey()));
         }
-        var created=saveWithAccess(targetAccess,targetModule,new SaveRecordRequest(null,null,mapped),"RECORD_CONVERT_CREATE",
+        var created=saveWithAccess(token,targetAccess,targetModule,new SaveRecordRequest(null,null,mapped),"RECORD_CONVERT_CREATE",
                 access.definition().menu().getName(),source.getModuleId(),source.getId());
         var relation=new UnModuleRelation(); relation.setSourceRecordId(source.getId()); relation.setTargetRecordId(created.id());
         relation.setTargetModuleId(targetModule); relation.setActionMenuId(access.definition().menu().getId()); relation.setRelationType("CONVERSION");
@@ -286,8 +298,8 @@ public class ModuleRecordService {
         for (var condition:access.definition().settings().conditions()) {
             var field=definitions.get(condition.fieldId());
             if (field==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"动作条件字段已失效");
-            if (!access.policy().readable(field.getFieldCode())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"没有条件字段读取权限");
-            Object value=values.get(field.getFieldCode()); boolean matched;
+            if (!access.policy().readable(field.getFieldKey())) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"没有条件字段读取权限");
+            Object value=values.get(field.getFieldKey()); boolean matched;
             boolean empty=value==null || value instanceof String text && text.isBlank() || value instanceof java.util.Collection<?> list && list.isEmpty();
             switch (condition.operator()) {
                 case "EMPTY" -> matched=empty;
@@ -308,16 +320,21 @@ public class ModuleRecordService {
     }
     private Map<String,UnModuleField> actionFields(ModuleMenuDto.Definition definition) {
         Map<String,UnModuleField> result=new LinkedHashMap<>(); var ids=definition.settings().fieldIds();
-        for (var field:config.currentFields(definition.module().getId())) if (ids.contains(field.getId())) result.put(field.getFieldCode(),field);
+        for (var field:config.currentFields(definition.module().getId())) if (ids.contains(field.getId())) result.put(field.getFieldKey(),field);
         if (result.size()!=ids.size()) throw new ResponseStatusException(HttpStatus.CONFLICT,"动作字段已失效"); return result;
     }
     private Map<String,Object> recordValues(UnModuleRecord record) {
+        List<UnModuleField> fields=config.currentFields(record.getModuleId());
+        Map<String,UnModuleRecordData> rows=dataByCode(record.getId());
         Map<String,Object> result=new LinkedHashMap<>(); result.put("name",record.getName());
-        Map<String,FieldType> types=new HashMap<>();
-        config.currentFields(record.getModuleId()).forEach(field->types.put(field.getFieldCode(),FieldType.parse(field.getFieldType())));
-        dataByCode(record.getId()).forEach((code,row)->{
-            if (types.containsKey(code)) result.put(code,fieldRules.stored(row,types.get(code)));
-        }); return result;
+        for (UnModuleField field:fields) {
+            if ("name".equals(field.getFieldKey())) continue;
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+            Object value=ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
+                    :fieldRules.stored(rows.get(field.getFieldKey()),definition);
+            if (value!=null) result.put(field.getFieldKey(),value);
+        }
+        return result;
     }
     private boolean same(Object left,Object right) {
         if (left instanceof Number && right instanceof Number) return new BigDecimal(left.toString()).compareTo(new BigDecimal(right.toString()))==0;
@@ -355,19 +372,25 @@ public class ModuleRecordService {
         Map<String, Object> values = new LinkedHashMap<>();
         var stored = dataByCode(record.getId());
         List<UnModuleField> currentFields=config.currentFields(moduleId);
-        for (UnModuleField field:currentFields) if (access.policy().readable(field.getFieldCode()) && stored.containsKey(field.getFieldCode())) {
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),config.fieldConfig(field).configuration());
-            Object raw=fieldRules.stored(stored.get(field.getFieldCode()),definition.type());
-            values.put(field.getFieldCode(),fieldRules.present(systemId,record.getTenantId(),definition,raw));
+        for (UnModuleField field:currentFields) if (access.policy().readable(field.getFieldKey())) {
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+            Object raw=ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
+                    :fieldRules.stored(stored.get(field.getFieldKey()),definition);
+            if (raw!=null) values.put(field.getFieldKey(),fieldRules.present(systemId,record.getTenantId(),definition,raw));
         }
-        List<FieldConfig> form = access.policy().filterReadable(currentFields, UnModuleField::getFieldCode).stream()
+        List<FieldConfig> form = access.policy().filterReadable(currentFields, UnModuleField::getFieldKey).stream()
                 .map(field -> {
-                    boolean editable=shared?effectiveEdit!=null && effectiveEdit.policy().writable(field.getFieldCode())
-                            :access.policy().writable(field.getFieldCode());
+                    boolean editable=shared?effectiveEdit!=null && effectiveEdit.policy().writable(field.getFieldKey())
+                            :access.policy().writable(field.getFieldKey());
                     var item = config.runtimeFieldConfig(systemId, record.getTenantId(), field, editable);
-                    if (stored.containsKey(field.getFieldCode())) item.configuration().put("valueDisplay", fieldRules.display(systemId, record.getTenantId(),
-                            fieldRules.configured(field.getFieldCode(), config.fieldConfig(field).configuration()),
-                            fieldRules.stored(stored.get(field.getFieldCode()),FieldType.parse(field.getFieldType()))));
+                    FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+                    Object raw=ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
+                            :fieldRules.stored(stored.get(field.getFieldKey()),definition);
+                    if (raw!=null) {
+                        item.configuration().put("valueDisplay",definition.type()==FieldType.RELATION
+                                ?relationFields.display(token,systemId,context.tenantId(),definition,raw)
+                                :fieldRules.display(systemId,record.getTenantId(),definition,raw));
+                    }
                     return item;
                 }).toList();
         return new RecordInformation(recordId,record.getTenantId(),!record.getTenantId().equals(context.tenantId()),
@@ -476,13 +499,18 @@ public class ModuleRecordService {
         Map<String, UnModuleRecordData> result = new LinkedHashMap<>();
         for (UnModuleRecordData item : data.list(new LambdaQueryWrapper<UnModuleRecordData>()
                 .eq(UnModuleRecordData::getRecordId, recordId))) {
-            result.put(item.getFieldCode(), item);
+            result.put(item.getFieldKey(), item);
         }
         return result;
     }
 
     /** 主记录的并发版本在业务 Service 中检查，负责人、部门及软删除允许显式清空旧值。 */
     private void persistRecord(UnModuleRecord record) {
+        persistRecord(record,List.of());
+    }
+
+    /** 固定字段与当前字段的主表槽位共同参与乐观锁更新。 */
+    private void persistRecord(UnModuleRecord record,List<UnModuleField> fields) {
         if (record.getId()==null) {
             record.setLockVersion(0L);
             records.addOrUpdate(record);
@@ -490,21 +518,35 @@ public class ModuleRecordService {
         }
         long before=record.getLockVersion();
         long next=before+1;
-        boolean updated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
-                .eq(UnModuleRecord::getId,record.getId()).eq(UnModuleRecord::getLockVersion,before)
-                .eq(UnModuleRecord::getSystemId,record.getSystemId())
-                .eq(UnModuleRecord::getTenantId,record.getTenantId())
-                .set(UnModuleRecord::getName,record.getName())
-                .set(UnModuleRecord::getStatus,record.getStatus())
-                .set(UnModuleRecord::getOwnerUserId,record.getOwnerUserId())
-                .set(UnModuleRecord::getOwnerDeptId,record.getOwnerDeptId())
-                .set(UnModuleRecord::getActualOperatorId,record.getActualOperatorId())
-                .set(UnModuleRecord::getUpdateUserId,record.getUpdateUserId())
-                .set(UnModuleRecord::getArchivedTime,record.getArchivedTime())
-                .set(UnModuleRecord::getDeletedTime,record.getDeletedTime())
-                .set(UnModuleRecord::getLockVersion,next));
+        UpdateWrapper<UnModuleRecord> update=new UpdateWrapper<UnModuleRecord>()
+                .eq("id",record.getId()).eq("lock_version",before)
+                .eq("system_id",record.getSystemId())
+                .eq("tenant_id",record.getTenantId())
+                .set("name",record.getName())
+                .set("status",record.getStatus())
+                .set("owner_user_id",record.getOwnerUserId())
+                .set("owner_dept_id",record.getOwnerDeptId())
+                .set("actual_operator_id",record.getActualOperatorId())
+                .set("update_user_id",record.getUpdateUserId())
+                .set("archived_time",record.getArchivedTime())
+                .set("deleted_time",record.getDeletedTime())
+                .set("lock_version",next);
+        for (UnModuleField field:fields) {
+            if ("name".equals(field.getFieldKey())) continue;
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),config.fieldConfig(field).configuration());
+            ModuleRecordStorage.apply(update,definition,ModuleRecordStorage.read(record,definition));
+        }
+        boolean updated=records.update(update);
         if (!updated) throw new ResponseStatusException(HttpStatus.CONFLICT,"业务记录已被他人修改，请刷新后重试");
         record.setLockVersion(next);
+    }
+
+    /** 按字段键从主表槽位或扩展值读取当前业务值。 */
+    private Object storedValue(UnModuleRecord record,UnModuleField field,FieldDefinition definition,
+                               Map<String,UnModuleRecordData> rows) {
+        if ("name".equals(field.getFieldKey())) return record.getName();
+        return ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
+                :fieldRules.stored(rows.get(field.getFieldKey()),definition);
     }
 
     /** 明确写入所有值列，防止清除或变更字段类型后旧值残留。 */
@@ -565,7 +607,7 @@ public class ModuleRecordService {
             try { detail=log.getDetailJson()==null?new AuditDetail(log.getActionCode(),null,List.of(),null,null,null):json.readValue(log.getDetailJson(),AuditDetail.class); }
             catch (JsonProcessingException ex) { throw new IllegalStateException("业务操作日志损坏",ex); }
             var visible=detail.changes()==null?List.<FieldChange>of():detail.changes().stream()
-                    .filter(change->change.fieldId()==null || access.policy().readable(change.fieldCode())).toList();
+                    .filter(change->change.fieldId()==null || access.policy().readable(change.fieldKey())).toList();
             return new OperationView(log.getId(),log.getActionCode(),log.getOperatorAccountId(),log.getCreateTime(),
                     new AuditDetail(detail.actionName(),detail.operatorName(),visible,detail.relatedModuleId(),detail.relatedRecordId(),
                             visible.isEmpty() && detail.changes()!=null && !detail.changes().isEmpty()?null:detail.message()));

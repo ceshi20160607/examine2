@@ -139,8 +139,12 @@ public final class BaseCodeGenerator {
                     String column = rows.getString(2);
                     if (!hasChinese(rows.getString(3))) issues.add(table + "." + column + " 缺少中文字段备注");
                     String type = rows.getString(4).toLowerCase(Locale.ROOT);
-                    if (column.endsWith("_at") || Set.of("datetime", "timestamp", "time").contains(type)
-                            && !column.endsWith("_time")) issues.add(table + "." + column + " 时间字段命名无效");
+                    // 固定槽位是产品明确要求的主表列，保留 item_time01..10 的历史命名；其他时间列仍必须以 _time 结尾。
+                    boolean reservedRecordTimeSlot = "un_module_record".equals(table)
+                            && column.matches("item_time(0[1-9]|10)");
+                    if (column.endsWith("_at") || (Set.of("datetime", "timestamp", "time").contains(type)
+                            && !column.endsWith("_time") && !reservedRecordTimeSlot))
+                        issues.add(table + "." + column + " 时间字段命名无效");
                 }
             }
         }

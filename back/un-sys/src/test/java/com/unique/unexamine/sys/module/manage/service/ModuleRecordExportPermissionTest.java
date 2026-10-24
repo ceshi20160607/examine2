@@ -36,11 +36,12 @@ class ModuleRecordExportPermissionTest {
     private final IUnModuleRecordService records=mock(IUnModuleRecordService.class);
     private final ModuleShareService shares=mock(ModuleShareService.class);
     private final ModuleRecordListService service=new ModuleRecordListService(permissions,modules,scenes,columns,
-            mock(ModuleFieldService.class),records,mock(IUnModuleRecordDataService.class),new ObjectMapper(),shares);
+            mock(ModuleFieldService.class),records,mock(IUnModuleRecordDataService.class),new ObjectMapper(),shares,
+            mock(ModuleRelationFieldService.class));
 
     private UnModuleField field(long id,String code) {
-        var row=new UnModuleField(); row.setId(id); row.setFieldCode(code); row.setFieldName(code);
-        row.setFieldType("TEXT"); return row;
+        var row=new UnModuleField(); row.setId(id); row.setFieldKey(code); row.setFieldName(code);
+        row.setFieldType((short)1); return row;
     }
 
     private void setup() {

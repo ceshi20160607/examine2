@@ -41,7 +41,7 @@ public class ModuleColumnService {
                     || item.fixedSide()!=null && !Set.of("LEFT","RIGHT").contains(item.fixedSide()))
                 throw new IllegalArgumentException("表头列标识、顺序、宽度或固定位置无效");
             UnModuleField field=fields.get(item.fieldId());
-            if (field==null || !access.policy().readable(field.getFieldCode()))
+            if (field==null || !access.policy().readable(field.getFieldKey()))
                 throw new IllegalArgumentException("表头包含未配置或无权读取的字段");
         }
         List<UnModuleFieldSort> existing=rows(moduleId,access.context().tenantId(),access.accountId());
@@ -77,7 +77,7 @@ public class ModuleColumnService {
         Map<Long,Preference> result=new HashMap<>();
         for (var row:rows(moduleId,access.context().tenantId(),access.accountId())) {
             UnModuleField field=fields.get(row.getFieldId());
-            if (field!=null && access.policy().readable(field.getFieldCode()))
+            if (field!=null && access.policy().readable(field.getFieldKey()))
                 result.put(field.getId(),new Preference(field.getId(),row.getSortNo(),row.getWidthPx(),
                         Boolean.TRUE.equals(row.getHiddenFlag()),row.getFixedSide()));
         }

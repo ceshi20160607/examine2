@@ -34,7 +34,7 @@ class WorkDailyServiceTest {
         UnWorkDaily draft=new UnWorkDaily();
         draft.setId(7L);draft.setVersionNo(1);draft.setAccountId(10L);
         draft.setScopeType("PLATFORM");draft.setIsCurrent(true);
-        draft.setLogDate(LocalDate.of(2026,10,23));
+        draft.setLogTime(LocalDate.of(2026,10,23).atStartOfDay());
         draft.setCompletedText("完成测试");draft.setStatus("DRAFT");
         when(dailies.getOne(any(),eq(false))).thenReturn(draft);
         when(dailies.addOrUpdate(any(UnWorkDaily.class))).thenAnswer(invocation->{

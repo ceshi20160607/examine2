@@ -117,7 +117,7 @@ public class ModuleFieldMigrationService {
             String message="模块字段变更："+operatorName+"于"+LOG_TIME.format(operationTime)
                     +"将「"+field.getFieldName()+"」从「"+String.join("、",beforeNames.values())
                     +"」迁移到「"+String.join("、",afterNames.values())+"」。";
-            var change=new ModuleRecordDto.FieldChange(field.getId(),field.getFieldCode(),field.getFieldName(),
+            var change=new ModuleRecordDto.FieldChange(field.getId(),field.getFieldKey(),field.getFieldName(),
                     current.value(),after,beforeNames,afterNames);
             var detail=new ModuleRecordDto.AuditDetail("模块字段变更",operatorName,List.of(change),null,null,message);
             UnModuleLog log=new UnModuleLog();
@@ -133,7 +133,7 @@ public class ModuleFieldMigrationService {
     /** 迁移修改业务值，也必须具备对应租户的编辑动作、字段和记录数据范围。 */
     private void requireMigrationAccess(String token,Long systemId,Long moduleId,UnModuleField field,UnModuleRecord record) {
         var access=permissions.require(token,systemId,record.getTenantId(),moduleId,"EDIT");
-        access.policy().requireWritable(Set.of(field.getFieldCode()));
+        access.policy().requireWritable(Set.of(field.getFieldKey()));
         access.policy().requireOwner(record.getOwnerUserId());
     }
 
@@ -144,7 +144,7 @@ public class ModuleFieldMigrationService {
                 .isNull(UnModuleRecord::getDeletedTime).orderByAsc(UnModuleRecord::getId));
         if (existing.isEmpty()) return List.of();
         Map<Long,UnModuleRecordData> stored=new HashMap<>();
-        if (!"name".equals(field.getFieldCode())) for (var row:values.list(new LambdaQueryWrapper<UnModuleRecordData>()
+        if (!"name".equals(field.getFieldKey())) for (var row:values.list(new LambdaQueryWrapper<UnModuleRecordData>()
                 .eq(UnModuleRecordData::getFieldId,field.getId())
                 .in(UnModuleRecordData::getRecordId,existing.stream().map(UnModuleRecord::getId).toList()))) {
             stored.put(row.getRecordId(),row);
@@ -152,7 +152,7 @@ public class ModuleFieldMigrationService {
         List<Current> result=new ArrayList<>(existing.size());
         for (var record:existing) {
             UnModuleRecordData row=stored.get(record.getId());
-            result.add(new Current(record,row,"name".equals(field.getFieldCode())?record.getName()
+            result.add(new Current(record,row,"name".equals(field.getFieldKey())?record.getName()
                     :fieldRules.stored(row,fieldRules.storedType(field))));
         }
         return result;

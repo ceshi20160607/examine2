@@ -121,7 +121,7 @@ public class ModuleSceneService {
             if (condition==null || condition.fieldId()==null || condition.operator()==null)
                 throw new IllegalArgumentException("场景筛选条件不完整");
             UnModuleField field=readable(fields,condition.fieldId(),access);
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
             if ("EQ".equals(condition.operator()))
                 fieldRules.validate(systemId,tenantId,definition,condition.value(),null);
             else if ("CONTAINS".equals(condition.operator())) {
@@ -138,11 +138,12 @@ public class ModuleSceneService {
         }
         if (settings.sortFieldId()!=null) {
             UnModuleField field=readable(fields,settings.sortFieldId(),access);
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
             FieldType.Kind kind=definition.type().kind();
-            if (List.of(FieldType.Kind.OPTIONS,FieldType.Kind.OBJECT,FieldType.Kind.ROWS,
+            if (List.of(FieldType.Kind.OPTIONS,
                     FieldType.Kind.REFERENCES).contains(kind) || definition.type().valueColumn()==FieldType.ValueColumn.JSON
-                    || kind==FieldType.Kind.REFERENCE && Boolean.TRUE.equals(definition.rules().get("multiple")))
+                    || (kind==FieldType.Kind.REFERENCE || definition.type()==FieldType.SELECT)
+                    && Boolean.TRUE.equals(definition.rules().get("multiple")))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");
         }
     }
@@ -160,7 +161,7 @@ public class ModuleSceneService {
         Map<Long,UnModuleField> fields=modules.currentFields(moduleId).stream()
                 .collect(Collectors.toMap(UnModuleField::getId,field->field));
         List<Long> visible=settings.columnFieldIds().stream()
-                .filter(id->fields.containsKey(id) && access.policy().readable(fields.get(id).getFieldCode())).toList();
+                .filter(id->fields.containsKey(id) && access.policy().readable(fields.get(id).getFieldKey())).toList();
         if (!settings.columnFieldIds().isEmpty() && visible.isEmpty())
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"场景已无可读取的展示列");
         return new Settings(settings.filters(),visible,settings.sortFieldId(),settings.descending());
@@ -169,7 +170,7 @@ public class ModuleSceneService {
     private UnModuleField readable(Map<Long,UnModuleField> fields,Long fieldId,ModulePermissionService.Access access) {
         UnModuleField field=fields.get(fieldId);
         if (field==null) throw new IllegalArgumentException("场景引用了未保存字段");
-        if (!access.policy().readable(field.getFieldCode()))
+        if (!access.policy().readable(field.getFieldKey()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"场景引用了无权读取的字段");
         return field;
     }

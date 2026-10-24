@@ -59,7 +59,7 @@ class ModuleDeletionServiceTest {
         when(systems.accountId("token",1L)).thenReturn(10L);
         when(modules.queryById(3L)).thenReturn(module);
         when(records.count(any(Wrapper.class))).thenReturn(1L);
-        var field=new UnModuleField(); field.setId(31L); field.setFieldCode("name");
+        var field=new UnModuleField(); field.setId(31L); field.setFieldKey("name");
         when(fields.list(any(Wrapper.class))).thenReturn(List.of(field));
         var policy=new PermissionPolicy(true,true,Set.of(),true,Set.of(),true,Set.of(),true,Set.of());
         when(permissions.require("token",1L,2L,3L,"EXPORT"))

@@ -285,7 +285,7 @@ public class ModuleShareService {
         for (var condition:scope.filters()) {
             UnModuleField field=fields.get(condition.fieldId());
             if (field==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"共享范围引用了失效字段");
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
             if ("EQ".equals(condition.operator()))
                 fieldRules.validate(share.getSystemId(),share.getSourceTenantId(),definition,condition.value(),null);
             else if (!"CONTAINS".equals(condition.operator()) || definition.type().kind()!=FieldType.Kind.TEXT

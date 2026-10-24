@@ -18,10 +18,15 @@ public final class ModuleRecordFilter {
     /** 字段标识和操作符须在调用前由业务服务按当前租户权限校验。 */
     public static void apply(QueryWrapper<UnModuleRecord> where, UnModuleField field,
                              ModuleSceneDto.Condition condition, ObjectMapper json) {
-        String code=field.getFieldCode();
+        String code=field.getFieldKey();
         if ("name".equals(code)) {
             if ("EQ".equals(condition.operator())) where.eq("name",condition.value());
             else where.apply("LOCATE({0}, name) > 0",condition.value());
+            return;
+        }
+        if (ModuleRecordStorage.isReservedKey(code)) {
+            if ("EQ".equals(condition.operator())) where.eq(code,mainValue(type(field),condition.value(),json));
+            else where.apply("LOCATE({0}, "+ModuleRecordStorage.column(code)+") > 0",condition.value());
             return;
         }
         FieldType type=FieldType.parse(field.getFieldType());
@@ -43,6 +48,19 @@ public final class ModuleRecordFilter {
         } else where.apply("EXISTS (SELECT 1 FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = un_module_record.id "
                 +"AND d.field_id = {0} AND LOCATE({1}, d."+type.valueColumn().sqlName()+") > 0)",
                 field.getId(),condition.value());
+    }
+
+    private static FieldType type(UnModuleField field) {
+        return FieldType.parse(field.getFieldType());
+    }
+
+    private static Object mainValue(FieldType type,Object value,ObjectMapper json) {
+        if (type==FieldType.SELECT || type==FieldType.TEXT || type==FieldType.RICH_TEXT
+                || type==FieldType.ATTACHMENT) return value==null?null:value.toString();
+        var cells=FieldValueCodec.encode(type,value,json);
+        if (cells.number()!=null) return cells.number();
+        if (cells.time()!=null) return cells.time();
+        return value;
     }
 
 }

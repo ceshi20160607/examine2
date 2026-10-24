@@ -18,6 +18,7 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ListView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.Row;
 import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
 import com.unique.unexamine.sys.module.manage.util.ModuleRecordFilter;
+import com.unique.unexamine.sys.module.manage.util.ModuleRecordStorage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -40,29 +41,31 @@ public class ModuleRecordListService {
     private final IUnModuleRecordDataService data;
     private final ObjectMapper json;
     private final ModuleShareService shares;
+    private final ModuleRelationFieldService relationFields;
 
     /** 注入生成的基础 Service；动态查询仍复用基础持久化入口。 */
     public ModuleRecordListService(ModulePermissionService permissions,ModuleConfigService modules,
             ModuleSceneService scenes,ModuleColumnService columnPreferences,ModuleFieldService fieldRules,IUnModuleRecordService records,
-            IUnModuleRecordDataService data,ObjectMapper json,ModuleShareService shares) {
+            IUnModuleRecordDataService data,ObjectMapper json,ModuleShareService shares,
+            ModuleRelationFieldService relationFields) {
         this.permissions=permissions; this.modules=modules; this.scenes=scenes;
         this.columnPreferences=columnPreferences; this.fieldRules=fieldRules;
-        this.records=records; this.data=data; this.json=json; this.shares=shares;
+        this.records=records; this.data=data; this.json=json; this.shares=shares; this.relationFields=relationFields;
     }
 
     /** 列表场景与请求条件求交集，权限在条件、排序和返回列三处分别执行。 */
     public ListView query(String token,Long systemId,Long tenantId,Long moduleId,ModuleRecordSearchBO request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
-        return queryWithAccess(access,systemId,moduleId,request,false);
+        return queryWithAccess(token,access,systemId,moduleId,request,false);
     }
 
     /** 导出复用列表场景和筛选，但使用独立导出菜单及字段导出许可。 */
     public ListView export(String token,Long systemId,Long tenantId,Long moduleId,ModuleRecordSearchBO request) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"EXPORT");
-        return queryWithAccess(access,systemId,moduleId,request,true);
+        return queryWithAccess(token,access,systemId,moduleId,request,true);
     }
 
-    private ListView queryWithAccess(ModulePermissionService.Access access,Long systemId,Long moduleId,
+    private ListView queryWithAccess(String token,ModulePermissionService.Access access,Long systemId,Long moduleId,
                                    ModuleRecordSearchBO request,boolean exporting) {
         var context=access.context(); modules.activeModule(systemId,moduleId,context.tenantId());
         if (request==null) throw new IllegalArgumentException("查询条件不能为空");
@@ -90,21 +93,21 @@ public class ModuleRecordListService {
         Set<Long> actionFields=exporting?Set.copyOf(access.definition().settings().fieldIds()):Set.of();
         if (exporting && request.getColumnFieldIds()!=null && !request.getColumnFieldIds().isEmpty()
                 && selected.stream().anyMatch(field->
-                !access.policy().exportable(field.getFieldCode())
+                !access.policy().exportable(field.getFieldKey())
                         || !actionFields.isEmpty() && !actionFields.contains(field.getId())))
             throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
                     "导出列超出动作或字段权限");
         Map<Long,Integer> defaultPositions=new HashMap<>();
         for (int position=0;position<selected.size();position++) defaultPositions.put(selected.get(position).getId(),position);
         List<UnModuleField> columns=selected.stream()
-                .filter(field->exporting?access.policy().exportable(field.getFieldCode())
+                .filter(field->exporting?access.policy().exportable(field.getFieldKey())
                         && (actionFields.isEmpty() || actionFields.contains(field.getId()))
-                        :access.policy().readable(field.getFieldCode()))
+                        :access.policy().readable(field.getFieldKey()))
                 .filter(field->exporting || !personal.containsKey(field.getId()) || !personal.get(field.getId()).hidden())
                 .sorted(Comparator.comparingInt(field->personal.containsKey(field.getId())
                         ?personal.get(field.getId()).sortNo():1000+defaultPositions.get(field.getId())))
                 .toList();
-        List<Column> headers=columns.stream().map(field->new Column(field.getId(),field.getFieldCode(),
+        List<Column> headers=columns.stream().map(field->new Column(field.getId(),field.getFieldKey(),
                 field.getFieldName(),field.getFieldType(),personal.containsKey(field.getId())
                 ?personal.get(field.getId()).widthPx():null,personal.containsKey(field.getId())
                 ?personal.get(field.getId()).fixedSide():null)).toList();
@@ -123,8 +126,10 @@ public class ModuleRecordListService {
         if (page.getRecords().isEmpty())
             return new ListView(headers,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(List.of()));
         List<Long> recordIds=page.getRecords().stream().map(UnModuleRecord::getId).toList();
-        List<Long> extensionIds=columns.stream().filter(field->!"name".equals(field.getFieldCode()))
-                .map(UnModuleField::getId).toList();
+        List<UnModuleField> extensionFields=columns.stream().filter(field->!"name".equals(field.getFieldKey()))
+                .filter(field->!ModuleRecordStorage.isMain(fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration())))
+                .toList();
+        List<Long> extensionIds=extensionFields.stream().map(UnModuleField::getId).toList();
         Map<Long,Map<Long,Object>> values=new HashMap<>();
         if (!extensionIds.isEmpty()) for (var row:data.list(new LambdaQueryWrapper<UnModuleRecordData>()
                 .in(UnModuleRecordData::getRecordId,recordIds).in(UnModuleRecordData::getFieldId,extensionIds))) {
@@ -136,15 +141,20 @@ public class ModuleRecordListService {
         for (UnModuleRecord record:page.getRecords()) {
             Map<String,Object> cellValues=new LinkedHashMap<>(); Map<String,Object> display=new LinkedHashMap<>();
             for (UnModuleField field:columns) {
-                Object value="name".equals(field.getFieldCode())?record.getName()
+                FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
+                Object value="name".equals(field.getFieldKey())?record.getName()
+                        :ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
                         :values.getOrDefault(record.getId(),Map.of()).get(field.getId());
-                cellValues.put(field.getFieldCode(),value);
+                cellValues.put(field.getFieldKey(),value);
                 if (value!=null) {
-                    FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
-                    if (definition.type().options()) display.put(field.getFieldCode(),
+                    if (definition.type().options()) display.put(field.getFieldKey(),
                             fieldRules.display(systemId,record.getTenantId(),definition,value));
-                    else if (definition.type()==FieldType.USER) display.put(field.getFieldCode(),
+                    else if (definition.type()==FieldType.USER) display.put(field.getFieldKey(),
                             fieldRules.present(systemId,record.getTenantId(),definition,value));
+                    else if (definition.type()==FieldType.DATE_TIME) display.put(field.getFieldKey(),
+                            fieldRules.present(systemId,record.getTenantId(),definition,value));
+                    else if (definition.type()==FieldType.RELATION) display.put(field.getFieldKey(),
+                            relationFields.display(token,systemId,context.tenantId(),definition,value));
                 }
             }
             rows.add(new Row(record.getId(),access.policy().readable("name")?record.getName():null,
@@ -157,15 +167,20 @@ public class ModuleRecordListService {
 
     /** 字段 ID 已从当前定义校验；相关子查询仅用于已授权的动态列排序。 */
     private void sort(QueryWrapper<UnModuleRecord> where,UnModuleField field,boolean descending) {
-        if ("name".equals(field.getFieldCode())) where.orderBy(true,!descending,"name");
+        if ("name".equals(field.getFieldKey())) where.orderBy(true,!descending,"name");
         else {
             FieldType type=FieldType.parse(field.getFieldType());
-            if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.OBJECT,FieldType.Kind.ROWS,
-                    FieldType.Kind.REFERENCES).contains(type.kind()))
+            if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.REFERENCES).contains(type.kind()))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");
-            FieldDefinition definition=fieldRules.configured(field.getFieldCode(),modules.fieldConfig(field).configuration());
-            if (type.kind()==FieldType.Kind.REFERENCE && Boolean.TRUE.equals(definition.rules().get("multiple")))
-                throw new IllegalArgumentException("多选人员字段暂不支持列表排序");
+            FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
+            if ((type.kind()==FieldType.Kind.REFERENCE || type==FieldType.SELECT)
+                    && Boolean.TRUE.equals(definition.rules().get("multiple")))
+                throw new IllegalArgumentException("多选字段暂不支持列表排序");
+            if (ModuleRecordStorage.isMain(definition)) {
+                where.orderBy(true,!descending,ModuleRecordStorage.column(field.getFieldKey()));
+                where.orderByDesc("id");
+                return;
+            }
             String indexed=type.valueColumn().sqlName();
             if (indexed==null || "value_json".equals(indexed))
                 throw new IllegalArgumentException("该字段类型暂不支持列表排序");

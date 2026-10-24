@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-10-24
  */
 @TableName("un_work_task_field")
 public class UnWorkTaskField implements Serializable {
@@ -53,10 +53,10 @@ public class UnWorkTaskField implements Serializable {
     private String taskKind;
 
     /**
-     * 任务类型内稳定字段编码
+     * 任务类型内稳定字段英文键
      */
-    @TableField("field_code")
-    private String fieldCode;
+    @TableField("field_key")
+    private String fieldKey;
 
     /**
      * 任务字段展示名称
@@ -65,10 +65,10 @@ public class UnWorkTaskField implements Serializable {
     private String fieldName;
 
     /**
-     * 复用公共固定字段类型
+     * 复用公共固定字段类型编号
      */
     @TableField("field_type")
-    private String fieldType;
+    private Short fieldType;
 
     /**
      * 草稿校验字典卡片和看板配置
@@ -159,12 +159,12 @@ public class UnWorkTaskField implements Serializable {
         this.taskKind = taskKind;
     }
 
-    public String getFieldCode() {
-        return fieldCode;
+    public String getFieldKey() {
+        return fieldKey;
     }
 
-    public void setFieldCode(String fieldCode) {
-        this.fieldCode = fieldCode;
+    public void setFieldKey(String fieldKey) {
+        this.fieldKey = fieldKey;
     }
 
     public String getFieldName() {
@@ -175,11 +175,11 @@ public class UnWorkTaskField implements Serializable {
         this.fieldName = fieldName;
     }
 
-    public String getFieldType() {
+    public Short getFieldType() {
         return fieldType;
     }
 
-    public void setFieldType(String fieldType) {
+    public void setFieldType(Short fieldType) {
         this.fieldType = fieldType;
     }
 

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-10-24
  */
 @TableName("un_work_daily_field")
 public class UnWorkDailyField implements Serializable {
@@ -47,10 +47,10 @@ public class UnWorkDailyField implements Serializable {
     private Long tenantId;
 
     /**
-     * 作用域内稳定字段编码
+     * 作用域内稳定字段英文键
      */
-    @TableField("field_code")
-    private String fieldCode;
+    @TableField("field_key")
+    private String fieldKey;
 
     /**
      * 工作日志字段展示名称
@@ -59,10 +59,10 @@ public class UnWorkDailyField implements Serializable {
     private String fieldName;
 
     /**
-     * 复用公共固定字段类型
+     * 复用公共固定字段类型编号
      */
     @TableField("field_type")
-    private String fieldType;
+    private Short fieldType;
 
     /**
      * 草稿校验权限布局和字典配置
@@ -145,12 +145,12 @@ public class UnWorkDailyField implements Serializable {
         this.tenantId = tenantId;
     }
 
-    public String getFieldCode() {
-        return fieldCode;
+    public String getFieldKey() {
+        return fieldKey;
     }
 
-    public void setFieldCode(String fieldCode) {
-        this.fieldCode = fieldCode;
+    public void setFieldKey(String fieldKey) {
+        this.fieldKey = fieldKey;
     }
 
     public String getFieldName() {
@@ -161,11 +161,11 @@ public class UnWorkDailyField implements Serializable {
         this.fieldName = fieldName;
     }
 
-    public String getFieldType() {
+    public Short getFieldType() {
         return fieldType;
     }
 
-    public void setFieldType(String fieldType) {
+    public void setFieldType(Short fieldType) {
         this.fieldType = fieldType;
     }
 

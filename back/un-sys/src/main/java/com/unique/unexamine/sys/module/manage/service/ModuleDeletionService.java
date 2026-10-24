@@ -187,7 +187,7 @@ public class ModuleDeletionService {
                     if (authorize) {
                         var granted=access.computeIfAbsent(row.getTenantId(),tenant->permissions.require(token,module.getSystemId(),tenant,module.getId(),"EXPORT"));
                         granted.policy().requireOwner(row.getOwnerUserId());
-                        if (definitions.stream().anyMatch(field->!granted.policy().exportable(field.getFieldCode())))
+                        if (definitions.stream().anyMatch(field->!granted.policy().exportable(field.getFieldKey())))
                             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"完整备份需要全部业务字段的导出权限");
                     }
                     writer.writeStartObject(); writer.writeObjectField("record",row);

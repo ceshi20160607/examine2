@@ -21,9 +21,7 @@ public final class FieldValueCodec {
             throw new IllegalArgumentException("计算字段不能直接保存业务值");
         return switch (column) {
             case NUMBER -> {
-                BigDecimal number = type.kind() == FieldType.Kind.BOOLEAN
-                        ? (Boolean.TRUE.equals(value) ? BigDecimal.ONE : BigDecimal.ZERO)
-                        : new BigDecimal(value.toString());
+                BigDecimal number = new BigDecimal(value.toString());
                 if (type.kind() == FieldType.Kind.OPTION || type.kind() == FieldType.Kind.REFERENCE)
                     number = BigDecimal.valueOf(number.longValueExact());
                 BigDecimal normalized = number.stripTrailingZeros();
@@ -31,7 +29,7 @@ public final class FieldValueCodec {
                     throw new IllegalArgumentException("数值超出数据库可保存范围");
                 yield new Cells(null, null, number, null, null);
             }
-            case TIME -> new Cells(null, null, null, type == FieldType.DATE
+            case TIME -> new Cells(null, null, null, value.toString().length()==10
                     ? LocalDate.parse(value.toString()).atStartOfDay() : LocalDateTime.parse(value.toString()), null);
             case VARCHAR -> {
                 String text = value.toString();
@@ -55,18 +53,16 @@ public final class FieldValueCodec {
 
     /** 按发布字段类型还原原始值，展示对象在业务层另行解析。 */
     public static Object decode(FieldType type, Cells cells, ObjectMapper mapper) {
-        if (type.kind() == FieldType.Kind.REFERENCE && cells.json() != null)
+        if ((type==FieldType.SELECT || type.kind() == FieldType.Kind.REFERENCE) && cells.json() != null)
             return readStructured(cells.json(), mapper);
         return switch (type.valueColumn()) {
             case NUMBER -> {
                 if (cells.number() == null) yield null;
-                if (type.kind() == FieldType.Kind.BOOLEAN) yield cells.number().signum() != 0;
                 if (type.kind() == FieldType.Kind.OPTION || type.kind() == FieldType.Kind.REFERENCE)
                     yield cells.number().longValueExact();
                 yield cells.number().stripTrailingZeros();
             }
-            case TIME -> cells.time() == null ? null : type == FieldType.DATE
-                    ? cells.time().toLocalDate().toString() : cells.time().toString();
+            case TIME -> cells.time() == null ? null : cells.time().toString();
             case VARCHAR -> cells.varchar();
             case TEXT -> cells.text();
             case JSON -> cells.json() == null ? null : readStructured(cells.json(), mapper);

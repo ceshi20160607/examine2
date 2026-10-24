@@ -29,9 +29,9 @@ class ModuleExportServiceTest {
 
     @Test void downloadsCurrentFilteredColumnsAsCsv() throws Exception {
         var result=new ModuleRecordListDto.ListView(
-                List.of(new ModuleRecordListDto.Column(11L,"name","客户","TEXT",null,null),
-                        new ModuleRecordListDto.Column(12L,"level","等级","SELECT",null,null),
-                        new ModuleRecordListDto.Column(13L,"balance","余额","NUMBER",null,null)),
+                List.of(new ModuleRecordListDto.Column(11L,"name","客户",1,null,null),
+                        new ModuleRecordListDto.Column(12L,"level","等级",5,null,null),
+                        new ModuleRecordListDto.Column(13L,"balance","余额",3,null,null)),
                 new Page<ModuleRecordListDto.Row>(1,500,1).setRecords(List.of(
                         new ModuleRecordListDto.Row(21L,"=SUM(1)","ACTIVE",1L,2L,false,
                                 Map.of("name","=SUM(1)","level",101L,"balance",-12),

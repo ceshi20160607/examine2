@@ -19,4 +19,7 @@ public interface IUnModuleFieldService extends IService<UnModuleField> {
 
     /** 按主键批量逻辑删除记录。 */
     boolean deleteByIds(List<Long> ids);
+
+    /** 读取当前模块全部历史字段键，供预留主表槽位分配使用。 */
+    List<String> allFieldKeysForStorage(Long moduleId);
 }

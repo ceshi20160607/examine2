@@ -159,15 +159,11 @@ public class ModuleMenuService {
                     || !target.containsKey(mapping.targetFieldId()) || !mapped.add(mapping.targetFieldId())) throw new IllegalArgumentException("转化映射无效或目标字段重复");
             for (var mapping:settings.mappings()) {
                 var from=source.get(mapping.sourceFieldId()); var to=target.get(mapping.targetFieldId());
-                fieldRules.validateMapping(fieldRules.configured(from.getFieldCode(),readField(from)),fieldRules.configured(to.getFieldCode(),readField(to)));
+                fieldRules.validateMapping(fieldRules.configured(from.getFieldKey(),readField(from)),fieldRules.configured(to.getFieldKey(),readField(to)));
             }
-            for (var field:target.values()) {
-                try {
-                    var config=json.readTree(field.getConfigJson());
-                    if (Boolean.TRUE.equals(field.getRequiredFlag()) && !mapped.contains(field.getId())
-                            && !config.hasNonNull("defaultValue")) throw new IllegalArgumentException("目标必填字段没有映射或默认值："+field.getFieldName());
-                } catch (JsonProcessingException ex) { throw new IllegalStateException("目标字段配置损坏",ex); }
-            }
+            for (var field:target.values()) if (Boolean.TRUE.equals(field.getRequiredFlag())
+                    && !mapped.contains(field.getId()) && field.getDefaultValue()==null)
+                throw new IllegalArgumentException("目标必填字段没有映射或默认值："+field.getFieldName());
         }
     }
 
@@ -214,11 +210,9 @@ public class ModuleMenuService {
         cache.invalidateAfterCommit("permission:"+systemId+":"+tenantId);
     }
     private Map<String,Object> readField(UnModuleField field) {
-        try {
-            Map<String,Object> value=new LinkedHashMap<>(); value.put("fieldName",field.getFieldName());
-            value.put("fieldType",field.getFieldType()); value.put("required",field.getRequiredFlag());
-            value.put("config",field.getConfigJson()==null?Map.of():json.readValue(field.getConfigJson(),Map.class)); return value;
-        } catch (JsonProcessingException ex) { throw new IllegalStateException("字段配置损坏",ex); }
+        Map<String,Object> value=new LinkedHashMap<>(); value.put("fieldName",field.getFieldName());
+        value.put("fieldType",field.getFieldType()); value.put("required",field.getRequiredFlag());
+        value.put("config",fieldRules.rules(field)); return value;
     }
     private ActionView view(Definition definition) {
         return new ActionView(definition.menu().getId(),definition.menu().getCode(),definition.menu().getName(),

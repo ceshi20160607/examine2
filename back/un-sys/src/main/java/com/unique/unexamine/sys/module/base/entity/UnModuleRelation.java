@@ -65,7 +65,7 @@ public class UnModuleRelation implements Serializable {
     private Long actionMenuId;
 
     /**
-     * 子表明细或关联展示顺序
+     * 多条关联记录的展示顺序
      */
     @TableField("sort_no")
     private Integer sortNo;

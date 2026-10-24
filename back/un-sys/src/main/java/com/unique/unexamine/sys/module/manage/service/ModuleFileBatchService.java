@@ -3,6 +3,7 @@ package com.unique.unexamine.sys.module.manage.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unique.unexamine.core.field.FileBatchId;
+import com.unique.unexamine.core.field.FieldType;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
@@ -27,7 +28,7 @@ public class ModuleFileBatchService {
         Set<String> used = new HashSet<>();
         for (UnModuleField field : fields) {
             if (!fileField(field)) continue;
-            String batchId = batchId(values.get(field.getFieldCode()));
+            String batchId = batchId(values.get(field.getFieldKey()));
             if (batchId == null) continue;
             if (!used.add(batchId)) throw new IllegalArgumentException("同一文件批次不能配置到多个字段");
             List<UnCommonFile> batch = files.list(new LambdaQueryWrapper<UnCommonFile>()
@@ -41,7 +42,7 @@ public class ModuleFileBatchService {
                     throw new IllegalArgumentException(field.getFieldName() + "：文件批次不属于当前记录或不可用");
                 if (file.getDataId() == null && !accountId.equals(file.getUploaderAccountId()))
                     throw new IllegalArgumentException(field.getFieldName() + "：不能关联他人未归属的文件");
-                if ("IMAGE".equals(field.getFieldType()) && !file.getContentType().startsWith("image/"))
+                if ("IMAGE".equals(field.getDisplayStyle()) && !file.getContentType().startsWith("image/"))
                     throw new IllegalArgumentException(field.getFieldName() + "：仅允许图片文件");
             }
         }
@@ -51,7 +52,7 @@ public class ModuleFileBatchService {
     public void sync(UnModuleRecord record, List<UnModuleField> fields, Map<String, Object> values) {
         Set<String> selected = new HashSet<>();
         for (UnModuleField field : fields) if (fileField(field)) {
-            String batchId = batchId(values.get(field.getFieldCode()));
+            String batchId = batchId(values.get(field.getFieldKey()));
             if (batchId != null) selected.add(batchId);
         }
         List<UnCommonFile> linked = files.list(new LambdaQueryWrapper<UnCommonFile>()
@@ -68,7 +69,7 @@ public class ModuleFileBatchService {
     }
 
     private boolean fileField(UnModuleField field) {
-        return Set.of("ATTACHMENT", "IMAGE", "FILE_GROUP").contains(field.getFieldType());
+        return field.getFieldType()!=null && field.getFieldType().intValue()==FieldType.ATTACHMENT.code();
     }
 
     private String batchId(Object raw) {

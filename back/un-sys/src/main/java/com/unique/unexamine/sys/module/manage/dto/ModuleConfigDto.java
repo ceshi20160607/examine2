@@ -14,11 +14,12 @@ public final class ModuleConfigDto {
     public record CreateModuleRequest(@NotNull Long groupId,@NotBlank @Size(max=80) String code,
                                       @NotBlank @Size(max=100) String name) {}
 
-    /** 字段保存同时携带必要的旧选项到新选项映射，不另存一份待发布草稿。 */
-    public record SaveFieldRequest(@NotBlank @Size(max=80) String fieldCode,
-            @NotBlank @Size(max=100) String fieldName,@NotBlank String fieldType,
-            boolean required,int sortNo,@NotNull Map<String,Object> layout,
-            @NotNull Map<String,Object> config,Map<Long,Long> optionMappings) {}
+    /** 字段布局直接保存行号、列号和占位宽度；旧选项映射随字段保存提交。 */
+    public record SaveFieldRequest(@Size(max=80) String fieldKey,
+            @NotBlank @Size(max=100) String fieldName,@NotNull Integer fieldType,
+            boolean required,int sortNo,int rowNo,int columnNo,@Min(1) @Max(100) int widthPercent,
+            @NotNull Map<String,Object> config,Map<Long,Long> optionMappings,
+            boolean hidden,boolean readonly) {}
 
     /** 编辑名称、说明与启停状态不改变模块归属或稳定编码。 */
     public record UpdateModuleRequest(@NotBlank @Size(max=100) String name,
@@ -34,7 +35,7 @@ public final class ModuleConfigDto {
     public record FormView(Long moduleId,List<FieldConfig> fields) {}
 
     /** 菜单与角色字段授权引用稳定字段 ID。 */
-    public record FieldDefinitionView(Long fieldId,String fieldCode,Map<String,Object> configuration) {}
+    public record FieldDefinitionView(Long fieldId,String fieldKey,Map<String,Object> configuration) {}
 
     /** 导航只返回当前登录人具有列表动作权限的模块。 */
     public record NavigationModule(Long id,String code,String name,Long ownerTenantId,boolean inherited) {}

@@ -46,7 +46,7 @@ class ModuleRecordBatchDeleteTest {
             mock(IUnSysSystemService.class),mock(IUnSysMemberService.class),mock(IUnSysTenantMemberService.class),
             records,mock(IUnModuleRecordDataService.class),logs,new ObjectMapper(),permissions,
             mock(ModuleFieldService.class),mock(ModuleMenuService.class),mock(IUnModuleRelationService.class),
-            accounts,mock(ModuleShareService.class),mock(ModuleFileBatchService.class));
+            accounts,mock(ModuleShareService.class),mock(ModuleFileBatchService.class),mock(ModuleRelationFieldService.class));
 
     private void access(boolean allData) {
         var context=new SystemManageDto.SystemContext(1L,2L,10L,11L,12L,false,false);
@@ -84,7 +84,8 @@ class ModuleRecordBatchDeleteTest {
         var actor=new UnPlatAccount(); actor.setDisplayName("操作人");
         when(accounts.queryById(10L)).thenReturn(actor);
 
-        MockMvcBuilders.standaloneSetup(new ModuleRecordController(service,mock(ModuleRecordListService.class)))
+        MockMvcBuilders.standaloneSetup(new ModuleRecordController(service,mock(ModuleRecordListService.class),
+                mock(ModuleRelationFieldService.class)))
                 .build().perform(post("/api/systems/1/modules/3/records/batch-delete")
                         .header("Authorization","token").header("X-Tenant-Id","2")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"ids\":[21,22]}"))

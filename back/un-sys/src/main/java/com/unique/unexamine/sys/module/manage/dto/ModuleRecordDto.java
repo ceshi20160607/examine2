@@ -38,7 +38,7 @@ public final class ModuleRecordDto {
     public record RuntimeAction(Long menuId,String name,String type,String position) {}
 
     /** 日志保留操作发生时的字段名称、业务值和字典名称。 */
-    public record FieldChange(Long fieldId,String fieldCode,String fieldName,Object before,Object after,
+    public record FieldChange(Long fieldId,String fieldKey,String fieldName,Object before,Object after,
                                Map<String,String> beforeDisplay,Map<String,String> afterDisplay) {}
 
     /** 配置迁移与普通字段更新使用不同 actionCode，此处保存执行上下文。 */

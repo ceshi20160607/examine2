@@ -12,6 +12,8 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.SaveRecordRequ
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ListView;
 import com.unique.unexamine.sys.module.manage.service.ModuleRecordListService;
 import com.unique.unexamine.sys.module.manage.service.ModuleRecordService;
+import com.unique.unexamine.sys.module.manage.service.ModuleRelationFieldService;
+import com.unique.unexamine.sys.module.manage.service.ModuleRelationFieldService.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 通用模块记录接口，主记录和自定义值都交由业务 Service 编排。 */
@@ -32,11 +35,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class ModuleRecordController {
     private final ModuleRecordService service;
     private final ModuleRecordListService listService;
+    private final ModuleRelationFieldService relationFields;
 
     /** 注入模块记录业务服务。 */
-    public ModuleRecordController(ModuleRecordService service,ModuleRecordListService listService) {
+    public ModuleRecordController(ModuleRecordService service,ModuleRecordListService listService,
+            ModuleRelationFieldService relationFields) {
         this.service = service;
         this.listService = listService;
+        this.relationFields = relationFields;
+    }
+
+    /** 关联字段的选择弹窗只返回目标模块当前有权读取的记录和配置展示列。 */
+    @GetMapping("/relation-fields/{fieldKey}/options")
+    @Operation(summary = "查询关联模块字段的可选记录")
+    public Result<Page<Option>> relationOptions(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId,@PathVariable Long moduleId,@PathVariable String fieldKey,
+            @RequestParam String operation,@ModelAttribute SearchBO search) {
+        return Result.ok(relationFields.options(token,systemId,tenantId,moduleId,fieldKey,operation,search));
     }
 
     /** 新增或编辑主记录和当前字段值。 */

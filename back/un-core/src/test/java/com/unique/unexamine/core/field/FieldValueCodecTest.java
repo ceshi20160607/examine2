@@ -15,6 +15,8 @@ class FieldValueCodecTest {
         assertEquals("value_number", FieldType.USER.valueColumn().sqlName());
         assertEquals("value_varchar", FieldType.ATTACHMENT.valueColumn().sqlName());
         assertEquals("value_json", FieldType.CASCADE.valueColumn().sqlName());
+        assertEquals("value_varchar", FieldType.SELECT.valueColumn().sqlName());
+        assertEquals("value_json", FieldType.SELECT.valueColumn(true).sqlName());
         assertEquals("value_json", FieldType.USER.valueColumn(true).sqlName());
 
         var number = FieldValueCodec.encode(FieldType.NUMBER, 123, json);
@@ -34,8 +36,10 @@ class FieldValueCodecTest {
         assertNull(attachment.number());
         assertNull(attachment.text());
 
-        var multi = FieldValueCodec.encode(FieldType.MULTI_SELECT, List.of(1L, 2L), json);
-        assertEquals(List.of(1, 2), FieldValueCodec.decode(FieldType.MULTI_SELECT, multi, json));
+        var single = FieldValueCodec.encode(FieldType.SELECT, "enabled", json);
+        assertEquals("enabled", FieldValueCodec.decode(FieldType.SELECT, single, json));
+        var multi = FieldValueCodec.encode(FieldType.SELECT, List.of("enabled", "disabled"), json);
+        assertEquals(List.of("enabled", "disabled"), FieldValueCodec.decode(FieldType.SELECT, multi, json));
         assertNull(multi.number());
 
         var cascade = FieldValueCodec.encode(FieldType.CASCADE, Map.of("path", List.of(1L, 2L)), json);

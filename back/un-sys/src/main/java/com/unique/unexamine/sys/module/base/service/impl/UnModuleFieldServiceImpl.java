@@ -42,4 +42,10 @@ public class UnModuleFieldServiceImpl extends ServiceImpl<UnModuleFieldMapper, U
     public boolean deleteByIds(List<Long> ids) {
         return removeByIds(ids);
     }
+
+    /** 槽位一旦分配即保留，逻辑删除字段也不能让新字段覆盖旧记录的主表值。 */
+    @Override
+    public List<String> allFieldKeysForStorage(Long moduleId) {
+        return getBaseMapper().selectAllFieldKeysForStorage(moduleId);
+    }
 }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.*;
 import com.unique.unexamine.sys.base.service.IUnSysMemberService;
+import com.unique.unexamine.sys.base.service.IUnSysDepartmentService;
 import com.unique.unexamine.sys.base.service.IUnSysTenantMemberService;
 import com.unique.unexamine.sys.module.base.service.*;
 import java.util.*;
@@ -17,7 +18,7 @@ class ModuleFieldServiceTest {
     private final DictionaryService dictionaries=mock(DictionaryService.class);
     private final ModuleFieldService service=new ModuleFieldService(new FieldValidationService(),dictionaries,
             new ObjectMapper(),mock(IUnModuleRecordService.class),mock(IUnModuleRecordDataService.class),
-            mock(IUnSysMemberService.class),mock(IUnSysTenantMemberService.class));
+            mock(IUnSysMemberService.class),mock(IUnSysTenantMemberService.class),mock(IUnSysDepartmentService.class));
     private final Map<Long,DictionaryDto.Item> items=new HashMap<>(Map.of(
             101L,item(101L,"1","是",null),
             102L,item(102L,"0","否",null),
@@ -35,36 +36,36 @@ class ModuleFieldServiceTest {
         });
     }
     private FieldDefinition definition(FieldType type,List<Map<String,Object>> options) {
-        return service.definition(1L,1L,"choice","是否有效",type.name(),false,Map.of("options",options));
+        return service.definition(1L,1L,"choice","是否有效",type.code(),false,Map.of("options",options));
     }
 
     @Test void referencesAreSeparateFromBasicValueAndCurrentName() {
         resolve();
-        var field=definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",102L),Map.of("id",101L)));
+        var field=definition(FieldType.SELECT,List.of(Map.of("id",102L),Map.of("id",101L)));
         assertEquals(Map.of("options",List.of(Map.of("id",102L),Map.of("id",101L))),field.rules());
-        assertDoesNotThrow(()->service.validate(1L,1L,field,102L,null));
-        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,0,null));
+        assertDoesNotThrow(()->service.validate(1L,1L,field,"0",null));
+        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,"",null));
         assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,"102",null));
-        assertEquals(Map.of("102","否"),service.display(1L,1L,field,102L));
+        assertEquals(Map.of("0","否"),service.display(1L,1L,field,"0"));
         items.put(102L,item(102L,"0","不是",null));
-        assertEquals(Map.of("102","不是"),service.display(1L,1L,field,102L));
+        assertEquals(Map.of("0","不是"),service.display(1L,1L,field,"0"));
     }
 
     @Test void fieldSelectionDoesNotGrowWhenBasicItemsAreAdded() {
         resolve();
-        var field=definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",101L)));
-        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,103L,null));
-        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",101L,"label","复制名称"))));
-        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",101L),Map.of("id",101L))));
-        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",1.5))));
+        var field=definition(FieldType.SELECT,List.of(Map.of("id",101L)));
+        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,"other",null));
+        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SELECT,List.of(Map.of("id",101L,"label","复制名称"))));
+        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SELECT,List.of(Map.of("id",101L),Map.of("id",101L))));
+        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SELECT,List.of(Map.of("id",1.5))));
     }
 
     @Test void fieldDisableOnlyAllowsRetainingExistingSelection() {
         resolve();
-        var field=definition(FieldType.SINGLE_SELECT,List.of(Map.of("id",101L,"enabled",false),Map.of("id",102L)));
-        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,101L,null));
-        assertDoesNotThrow(()->service.validate(1L,1L,field,101L,101L));
-        assertDoesNotThrow(()->service.validate(1L,1L,field,102L,101L));
+        var field=definition(FieldType.SELECT,List.of(Map.of("id",101L,"enabled",false),Map.of("id",102L)));
+        assertThrows(IllegalArgumentException.class,()->service.validate(1L,1L,field,"1",null));
+        assertDoesNotThrow(()->service.validate(1L,1L,field,"1","1"));
+        assertDoesNotThrow(()->service.validate(1L,1L,field,"0","1"));
     }
 
     @Test void cascadeUsesBasicParentIdsAndRejectsBrokenPaths() {
@@ -79,7 +80,7 @@ class ModuleFieldServiceTest {
 
     @Test void oneFieldCannotMixUnrelatedDictionaryCategories() {
         resolve(); items.put(103L,new DictionaryDto.Item(103L,"AREA","other","其他",null,0,0,null,null,false));
-        assertThrows(IllegalArgumentException.class,()->definition(FieldType.MULTI_SELECT,
+        assertThrows(IllegalArgumentException.class,()->definition(FieldType.SELECT,
                 List.of(Map.of("id",101L),Map.of("id",103L))));
     }
 }

@@ -27,6 +27,7 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.SaveFieldReque
 import com.unique.unexamine.sys.module.manage.dto.ModuleConfigDto.UpdateModuleRequest;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto;
+import com.unique.unexamine.sys.module.manage.util.ModuleRecordStorage;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -100,8 +101,8 @@ public class ModuleConfigService {
         module.setStatus("ACTIVE"); module.setCreateAccountId(systems.accountId(token,systemId)); modules.addOrUpdate(module);
         var relation=new UnModuleTenant(); relation.setSystemId(systemId); relation.setTenantId(context.tenantId());
         relation.setModuleId(module.getId()); relation.setStatus("ACTIVE"); tenantModules.addOrUpdate(relation);
-        saveFieldInTransaction(token,context,module,new SaveFieldRequest("name","标题","TEXT",true,0,
-                Map.of("position",0,"widthPercent",100),Map.of(),Map.of()));
+        saveFieldInTransaction(token,context,module,new SaveFieldRequest("name","标题",1,true,0,
+                0,0,100,Map.of(),Map.of(),false,false));
         menuService.initialize(module);
         audit(token,context,"MODULE_CREATE","MODULE",module.getId(),request); changed(context);
         return view(module);
@@ -137,9 +138,9 @@ public class ModuleConfigService {
             Long moduleId,Long fieldId,SaveFieldRequest proposed) {
         var context=systems.requireAdminContext(token,systemId,tenantId); ownedModule(systemId,moduleId,context.tenantId());
         var field=fields.queryById(fieldId);
-        if (!moduleId.equals(field.getModuleId()) || !field.getFieldCode().equals(code(proposed.fieldCode())))
+        if (!moduleId.equals(field.getModuleId()) || !field.getFieldKey().equals(code(proposed.fieldKey())))
             forbidden("字段不属于当前模块或编码不一致");
-        var definition=fieldRules.definition(systemId,context.tenantId(),field.getFieldCode(),proposed.fieldName(),
+        var definition=fieldRules.definition(systemId,context.tenantId(),field.getFieldKey(),proposed.fieldName(),
                 proposed.fieldType(),proposed.required(),proposed.config());
         return migrations.preview(token,systemId,moduleId,field,definition);
     }
@@ -148,9 +149,9 @@ public class ModuleConfigService {
     public FormView newForm(String token,Long systemId,Long tenantId,Long moduleId) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"CREATE");
         var context=access.context(); activeModule(systemId,moduleId,context.tenantId());
-        return new FormView(moduleId,access.policy().filterReadable(currentFields(moduleId),UnModuleField::getFieldCode)
+        return new FormView(moduleId,access.policy().filterReadable(currentFields(moduleId),UnModuleField::getFieldKey)
                 .stream().map(field->runtimeFieldConfig(systemId,context.tenantId(),field,
-                        access.policy().writable(field.getFieldCode()))).toList());
+                        access.policy().writable(field.getFieldKey()))).toList());
     }
 
     /** 字段类型目录供设计器使用，未具备完整业务能力的类型不能保存使用。 */
@@ -161,7 +162,7 @@ public class ModuleConfigService {
     /** 管理员直接读取当前已保存字段，稳定 ID 用于菜单与角色授权。 */
     public List<FieldDefinitionView> fieldViews(String token,Long systemId,Long tenantId,Long moduleId) {
         var context=systems.requireAdminContext(token,systemId,tenantId); activeModule(systemId,moduleId,context.tenantId());
-        return currentFields(moduleId).stream().map(field->new FieldDefinitionView(field.getId(),field.getFieldCode(),
+        return currentFields(moduleId).stream().map(field->new FieldDefinitionView(field.getId(),field.getFieldKey(),
                 fieldConfig(field).configuration())).toList();
     }
 
@@ -192,8 +193,8 @@ public class ModuleConfigService {
 
     /** 展示选项名称与可编辑许可；不更改原布局。 */
     public FieldConfig runtimeFieldConfig(Long systemId,Long tenantId,UnModuleField field,boolean writable) {
-        var configuration=fieldRules.configuration(systemId,tenantId,field.getFieldCode(),fieldConfig(field).configuration());
-        configuration.put("writable",writable); return new FieldConfig(field.getFieldCode(),configuration);
+        var configuration=fieldRules.configuration(systemId,tenantId,field.getFieldKey(),fieldConfig(field).configuration());
+        configuration.put("writable",writable); return new FieldConfig(field.getFieldKey(),configuration);
     }
 
     /** 所有业务入口读取同一份当前字段及保存顺序。 */
@@ -206,8 +207,12 @@ public class ModuleConfigService {
     public FieldConfig fieldConfig(UnModuleField field) {
         Map<String,Object> configuration=new LinkedHashMap<>();
         configuration.put("fieldName",field.getFieldName()); configuration.put("fieldType",field.getFieldType());
-        configuration.put("required",field.getRequiredFlag()); configuration.put("config",readMap(field.getConfigJson()));
-        configuration.put("layout",readMap(field.getLayoutJson())); return new FieldConfig(field.getFieldCode(),configuration);
+        configuration.put("required",field.getRequiredFlag());
+        configuration.put("hidden",field.getHiddenFlag()); configuration.put("readonly",field.getReadonlyFlag());
+        configuration.put("config",fieldRules.rules(field));
+        configuration.put("rowNo",field.getRowNo()); configuration.put("columnNo",field.getColumnNo());
+        configuration.put("widthPercent",field.getWidthPercent());
+        return new FieldConfig(field.getFieldKey(),configuration);
     }
 
     /** 模块必须仍存在、已启用并属于当前系统和允许继承的租户。 */
@@ -228,35 +233,73 @@ public class ModuleConfigService {
 
     private Long saveFieldInTransaction(String token,SystemManageDto.SystemContext context,
             UnModule module,SaveFieldRequest request) {
-        String fieldCode=code(request.fieldCode()); String type=request.fieldType().trim().toUpperCase(Locale.ROOT);
-        if (!"name".equals(fieldCode) && Set.of("id","num","status","moduleid","tenantid","systemid",
-                "owneruserid","createuserid","deletedtime").contains(fieldCode)) throw new IllegalArgumentException("字段编码与系统字段冲突");
-        if ("name".equals(fieldCode) && !"TEXT".equals(type)) throw new IllegalArgumentException("标题必须使用文本类型");
-        if (request.sortNo()<0 || request.layout().isEmpty()) throw new IllegalArgumentException("字段布局和顺序无效");
-        var definition=fieldRules.definition(module.getSystemId(),module.getTenantId(),fieldCode,request.fieldName(),
-                type,request.required(),request.config());
-        var field=fields.getOne(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,module.getId())
-                .eq(UnModuleField::getTenantId,module.getTenantId()).eq(UnModuleField::getFieldCode,fieldCode),false);
+        String requestedKey=code(request.fieldKey());
+        String fieldKey=requestedKey;
+        var type=com.unique.unexamine.core.field.FieldType.parse(request.fieldType());
+        if (fieldKey!=null && !"name".equals(fieldKey) && Set.of("id","num","status","moduleid","tenantid","systemid",
+                "owneruserid","createuserid","deletedtime").contains(fieldKey)) throw new IllegalArgumentException("字段编码与系统字段冲突");
+        if ("name".equals(fieldKey) && type!=com.unique.unexamine.core.field.FieldType.TEXT) throw new IllegalArgumentException("标题必须使用文本类型");
+        if (request.sortNo()<0) throw new IllegalArgumentException("字段顺序无效");
+        validateLayout(request.rowNo(),request.columnNo(),request.widthPercent());
+        String definitionCode=fieldKey==null?"field_pending":fieldKey;
+        var definition=fieldRules.definition(module.getSystemId(),module.getTenantId(),definitionCode,request.fieldName(),
+                type.code(),request.required(),request.config());
+        var field=fieldKey==null?null:fields.getOne(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,module.getId())
+                .eq(UnModuleField::getTenantId,module.getTenantId()).eq(UnModuleField::getFieldKey,fieldKey),false);
         boolean existing=field!=null;
+        if (!existing && (fieldKey==null || (!"name".equals(fieldKey) && !fieldKey.startsWith("item_") && !fieldKey.startsWith("field_")))) {
+            fieldKey=ModuleRecordStorage.allocate(definition,new java.util.HashSet<>(fields.allFieldKeysForStorage(module.getId())));
+            definition=fieldRules.definition(module.getSystemId(),module.getTenantId(),fieldKey,request.fieldName(),
+                    type.code(),request.required(),request.config());
+        }
+        if (fieldKey.startsWith("item_") && !ModuleRecordStorage.isMain(definition))
+            throw new IllegalArgumentException("字段类型与主表预留槽位不匹配");
+        if (fieldKey.startsWith("field_") && ModuleRecordStorage.isMain(definition))
+            throw new IllegalArgumentException("可用主表槽位不能手工指定为 field_* 扩展字段");
+        validateRelationDefinition(module,definition);
         Map<String,Object> before=existing?fieldConfig(field).configuration():Map.of();
-        if (existing && !type.equals(field.getFieldType()) && records.count(new LambdaQueryWrapper<UnModuleRecord>()
+        if (existing && type.code()!=field.getFieldType().intValue() && records.count(new LambdaQueryWrapper<UnModuleRecord>()
                 .eq(UnModuleRecord::getModuleId,module.getId()))>0)
             throw new ResponseStatusException(HttpStatus.CONFLICT,"字段类型变更涉及已有记录，须先确定旧值迁移办法");
         if (!existing) {
             field=new UnModuleField(); field.setSystemId(module.getSystemId()); field.setTenantId(module.getTenantId());
-            field.setModuleId(module.getId()); field.setFieldCode(fieldCode);
+            field.setModuleId(module.getId()); field.setFieldKey(fieldKey);
             if (request.optionMappings()!=null && !request.optionMappings().isEmpty())
                 throw new IllegalArgumentException("新字段不能指定旧值迁移映射");
         } else migrations.apply(module.getSystemId(),module.getId(),field,definition,request.optionMappings(),
                 systems.accountId(token,module.getSystemId()),token);
         fieldRules.validateExisting(module.getSystemId(),module.getId(),field,definition);
-        field.setFieldName(request.fieldName().trim()); field.setFieldType(type); field.setRequiredFlag(request.required());
-        field.setReadonlyFlag(false); field.setHiddenFlag(false); field.setSortNo(request.sortNo());
-        field.setLayoutJson(writeJson(request.layout())); field.setConfigJson(writeJson(request.config())); field.setStatus("ACTIVE");
+        field.setFieldName(request.fieldName().trim()); field.setFieldType((short)type.code()); field.setRequiredFlag(request.required());
+        field.setReadonlyFlag(request.readonly()); field.setHiddenFlag(request.hidden()); field.setSortNo(request.sortNo());
+        field.setRowNo(request.rowNo()); field.setColumnNo(request.columnNo()); field.setWidthPercent((byte)request.widthPercent());
+        fieldRules.writeRules(field,definition); field.setStatus("ACTIVE");
         fields.addOrUpdate(field);
         audit(token,context,existing?"MODULE_FIELD_UPDATE":"MODULE_FIELD_CREATE","MODULE_FIELD",field.getId(),
                 Map.of("moduleId",module.getId(),"before",before,"after",fieldConfig(field).configuration()));
         return field.getId();
+    }
+
+    /** 关联字段只能指向当前系统已存在的模块，并引用其当前有效字段。 */
+    private void validateRelationDefinition(UnModule source,com.unique.unexamine.core.field.FieldDefinition definition) {
+        if (definition.type()!=com.unique.unexamine.core.field.FieldType.RELATION) return;
+        Long targetId=((Number)definition.rules().get("relationModuleId")).longValue();
+        UnModule target=modules.getById(targetId);
+        Long root=systemRows.queryById(source.getSystemId()).getRootTenantId();
+        if (target==null || !source.getSystemId().equals(target.getSystemId())
+                || !List.of(source.getTenantId(),root).contains(target.getTenantId())
+                || !"ACTIVE".equals(target.getStatus()))
+            throw new IllegalArgumentException("关联目标模块不存在或不属于当前系统租户");
+        Map<?,?> relation=(Map<?,?>)definition.rules().get("relationConfig");
+        List<String> keys=((List<?>)relation.get("displayFieldKeys")).stream().map(String.class::cast).toList();
+        long matched=fields.count(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,targetId)
+                .eq(UnModuleField::getStatus,"ACTIVE").in(UnModuleField::getFieldKey,keys));
+        if (matched!=keys.size()) throw new IllegalArgumentException("关联展示字段必须全部属于当前有效目标模块");
+    }
+
+    /** 所在行、行内位置和占位宽度由设计器明确保存，避免缺失行时把后续字段拼入同一行。 */
+    private void validateLayout(int row,int column,int width) {
+        if (row<0 || column<0 || width<1 || width>100)
+            throw new IllegalArgumentException("字段布局须包含有效的所在行、行内位置和占位宽度");
     }
 
     /** 配置维护只允许修改当前租户自己的模块。 */
@@ -266,6 +309,7 @@ public class ModuleConfigService {
         return module;
     }
     private String code(String value) {
+        if (value==null || value.isBlank()) return null;
         String result=value.trim().toLowerCase(Locale.ROOT);
         if (!result.matches("[a-z][a-z0-9_]{1,79}")) throw new IllegalArgumentException("配置编码须以字母开头并只包含字母、数字和下划线");
         return result;
