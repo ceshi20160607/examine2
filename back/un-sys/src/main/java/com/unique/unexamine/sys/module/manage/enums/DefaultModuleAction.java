@@ -6,6 +6,7 @@ public enum DefaultModuleAction {
     LIST("列表","MODULE_ENTRY",true), DETAIL("详情","ROW",true),
     IMPORT("导入","LIST_TOOLBAR",false), EXPORT("导出","LIST_TOOLBAR",false),
     DELETE("删除","ROW",true), TRANSFER("转移","DETAIL_HEADER",true),
+    TEAM_MEMBERS("团队成员","DETAIL_HEADER",true),
     PRINT("打印","DETAIL_HEADER",false), CONVERT("转化","DETAIL_HEADER",true);
     private final String label;
     private final String position;

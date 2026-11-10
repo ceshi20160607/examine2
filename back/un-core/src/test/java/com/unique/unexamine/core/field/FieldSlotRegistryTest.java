@@ -38,4 +38,19 @@ class FieldSlotRegistryTest {
         assertFalse(FieldSlotRegistry.isMain(new FieldDefinition("item_select01", "状态", FieldType.SELECT, false,
                 Map.of("multiple", true))));
     }
+
+    @Test
+    void multilineTextUsesLongTextReservation() {
+        FieldDefinition text = new FieldDefinition("pending", "说明", FieldType.TEXT, false,
+                Map.of("displayStyle", "MULTI_LINE"));
+        assertEquals("item_long_text01", FieldSlotRegistry.allocate(text, Set.of()));
+    }
+
+    @Test
+    void attachmentUsesExtensionStorageInsteadOfTextSlot() {
+        FieldDefinition attachment = new FieldDefinition("pending", "附件", FieldType.ATTACHMENT, false, Map.of());
+        assertTrue(FieldSlotRegistry.allocate(attachment, Set.of()).startsWith("field_"));
+        assertFalse(FieldSlotRegistry.isMain(new FieldDefinition("item_text01", "附件", FieldType.ATTACHMENT,
+                false, Map.of())));
+    }
 }

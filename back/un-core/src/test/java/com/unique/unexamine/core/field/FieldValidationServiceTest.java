@@ -19,6 +19,8 @@ class FieldValidationServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,"12.30"));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,new BigDecimal("12.301")));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,101));
+        assertThrows(IllegalArgumentException.class,()->service.validateValue(
+                field(FieldType.NUMBER,false,Map.of("precision",3)),new BigDecimal("1000")));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,100000));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field(FieldType.NUMBER,false,Map.of("precision",5)),100000));
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.NUMBER,false,Map.of("precision",2,"scale",3))));
@@ -27,6 +29,15 @@ class FieldValidationServiceTest {
     @Test void oneNumberTypeAcceptsIntegersAndDecimals() {
         assertDoesNotThrow(()->service.validateValue(field(FieldType.NUMBER,false,Map.of()),2));
         assertDoesNotThrow(()->service.validateValue(field(FieldType.NUMBER,false,Map.of()),new BigDecimal("1.5")));
+    }
+    @Test void singleLineTextDoesNotOverflowReservedShortTextColumn() {
+        String longText = "x".repeat(256);
+        assertThrows(IllegalArgumentException.class, () -> service.validateValue(
+                field(FieldType.TEXT, false, Map.of("displayStyle", "SINGLE_LINE")), longText));
+        assertDoesNotThrow(() -> service.validateValue(field(FieldType.TEXT, false,
+                Map.of("displayStyle", "MULTI_LINE", "maxLength", 300)), longText));
+        assertDoesNotThrow(() -> service.validateValue(field(FieldType.TEXT, false,
+                Map.of("displayStyle", "SINGLE_LINE", "maxLength", 300)), longText));
     }
     @Test void zeroSatisfiesRequiredButEmptyCollectionsDoNot() {
         assertDoesNotThrow(()->service.validateValue(field(FieldType.NUMBER,true,Map.of()),0));
@@ -50,6 +61,17 @@ class FieldValidationServiceTest {
         assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,Map.of("path",List.of(2L))));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(cascade,Map.of("path",List.of(2L,1L))));
     }
+    @Test void optionDisplayRulesMustReferenceExistingOptionsAndUniqueTargets() {
+        var options=List.of(Map.of("id",1L,"value","a","label","甲"),
+                Map.of("id",2L,"value","b","label","乙"));
+        assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.SELECT,false,
+                Map.of("options",options,"optionDisplayRules",List.of(Map.of(
+                        "when",Map.of("optionValue","missing"),"targetFieldKeys",List.of("remark"),"visible",true))))));
+        assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.SELECT,false,
+                Map.of("options",options,"optionDisplayRules",List.of(Map.of(
+                        "when",Map.of("optionValue","a"),"targetFieldKeys",List.of("remark","remark"),"visible",true))))));
+    }
+
     @Test void invalidRulesAndOldTypeCodesCannotBeStored() {
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("unsupportedRule",true))));
         assertThrows(IllegalArgumentException.class,()->service.validateDefinition(field(FieldType.TEXT,false,Map.of("pattern","["))));
@@ -71,5 +93,32 @@ class FieldValidationServiceTest {
         assertDoesNotThrow(()->service.validateValue(field,FileBatchId.create()));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,123L));
         assertThrows(IllegalArgumentException.class,()->service.validateValue(field,"not-a-uuid"));
+    }
+
+    /** 字段配置的默认值按文本落库，但新建时要先还原成统一业务类型。 */
+    @Test void defaultTextIsParsedByFieldType() {
+        assertEquals(new BigDecimal("12.50"), service.defaultValue(field(FieldType.NUMBER, false,
+                Map.of("defaultValue", "12.50"))));
+        assertEquals(12L, service.defaultValue(field(FieldType.USER, false,
+                Map.of("defaultValue", "12"))));
+        assertEquals(List.of(12L, 13L), service.defaultValue(field(FieldType.USER, false,
+                Map.of("defaultValue", "12,13", "multiple", true))));
+        assertEquals(Map.of("path", List.of(1L, 2L)), service.defaultValue(field(FieldType.CASCADE, false,
+                Map.of("defaultValue", "1,2"))));
+        assertThrows(IllegalArgumentException.class, () -> service.defaultValue(field(FieldType.NUMBER, false,
+                Map.of("defaultValue", "12x"))));
+    }
+
+    /** CSV 导入只在核心边界把文本解析为字段值，随后仍由统一校验处理。 */
+    @Test void importTextIsParsedByFieldType() {
+        assertEquals(new BigDecimal("12.50"), service.parseTextValue(field(FieldType.NUMBER, false, Map.of()), "12.50"));
+        assertEquals("2026-10-29", service.parseTextValue(field(FieldType.DATE_TIME, false,
+                Map.of("displayStyle", "DATE")), "2026-10-29"));
+        assertEquals(List.of(3L, 4L), service.parseTextValue(field(FieldType.USER, false,
+                Map.of("multiple", true)), "3,4"));
+        assertEquals(List.of("a", "b"), service.parseTextValue(field(FieldType.SELECT, false,
+                Map.of("multiple", true)), "a,b"));
+        assertThrows(IllegalArgumentException.class, () -> service.parseTextValue(field(FieldType.FORMULA, false,
+                Map.of()), "1+1"));
     }
 }

@@ -30,7 +30,19 @@ public class UnKpiResult implements Serializable {
     private Long id;
 
     /**
-     * 所属人员或组织周期目标主键
+     * 所属关键指标主键，包含无目标的全租户计算
+     */
+    @TableField("kpi_id")
+    private Long kpiId;
+
+    /**
+     * 本次计算的月份季度或年度周期编码
+     */
+    @TableField("period_key")
+    private String periodKey;
+
+    /**
+     * 人员或组织周期目标主键，空表示全租户实际值
      */
     @TableField("kpi_user_id")
     private Long kpiUserId;
@@ -72,6 +84,22 @@ public class UnKpiResult implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getKpiId() {
+        return kpiId;
+    }
+
+    public void setKpiId(Long kpiId) {
+        this.kpiId = kpiId;
+    }
+
+    public String getPeriodKey() {
+        return periodKey;
+    }
+
+    public void setPeriodKey(String periodKey) {
+        this.periodKey = periodKey;
     }
 
     public Long getKpiUserId() {

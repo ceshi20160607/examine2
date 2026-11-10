@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.*;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.sys.base.entity.UnSysDepartment;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
@@ -16,14 +18,13 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.manage.dto.DictionaryDto;
+import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto.DepartmentView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto.MemberView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldDto.TypeView;
 import com.unique.unexamine.sys.module.manage.util.ModuleRecordStorage;
 import java.math.BigDecimal;
 import java.util.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 模块只补充字典作用域等业务规则，类型与值校验复用 core，供保存和后续导入转化调用。 */
 @Service
@@ -54,11 +55,28 @@ public class ModuleFieldService {
     /** 配置保存共用同一条定义校验链，并验证绑定字典的租户边界。 */
     public FieldDefinition definition(Long systemId,Long tenantId,String code,String label,Integer type,
                                        boolean required,Map<String,Object> rules) {
-        FieldType fieldType=FieldType.parse(type);
-        if (!supported(fieldType)) throw new IllegalArgumentException(fieldType.label()+"尚未具备完整的业务执行能力");
-        FieldDefinition definition=FieldDefinitionParser.parse(code,label,fieldType.code(),required,rules);
+        FieldType fieldType;
+        try {
+            fieldType=FieldType.parse(type);
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, ex.getMessage(), ex);
+        }
+        if (!supported(fieldType)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,fieldType.label()+"尚未具备完整的业务执行能力");
+        Map<String,Object> effectiveRules=new LinkedHashMap<>(rules==null?Map.of():rules);
+        // 自动编号的序列分配天然要求唯一，不能让表单配置把这一约束关闭。
+        if (fieldType==FieldType.AUTO_NUMBER) effectiveRules.put("unique",true);
+        FieldDefinition definition;
+        try {
+            definition=FieldDefinitionParser.parse(code,label,fieldType.code(),required,effectiveRules);
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, ex.getMessage(), ex);
+        }
         FieldDefinition resolved=withOptions(systemId,tenantId,definition);
-        validation.validateDefinition(resolved);
+        try {
+            validation.validateDefinition(resolved);
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, ex.getMessage(), ex);
+        }
         return definition;
     }
 
@@ -80,7 +98,6 @@ public class ModuleFieldService {
             if (structured instanceof Map<?,?> config) {
                 if (config.get("options") instanceof List<?> items) rules.put("options",items);
                 if (config.get("optionDisplayRules")!=null) rules.put("optionDisplayRules",config.get("optionDisplayRules"));
-                if (config.get("relationConfig")!=null) rules.put("relationConfig",config.get("relationConfig"));
                 if (config.get("autoNumberConfig")!=null) rules.put("autoNumberConfig",config.get("autoNumberConfig"));
                 if (config.get("formulaConfig")!=null) rules.put("formulaConfig",config.get("formulaConfig"));
             }
@@ -111,7 +128,6 @@ public class ModuleFieldService {
         Map<String,Object> structuredConfig=new LinkedHashMap<>();
         if (rules.containsKey("options")) structuredConfig.put("options",rules.get("options"));
         if (rules.containsKey("optionDisplayRules")) structuredConfig.put("optionDisplayRules",rules.get("optionDisplayRules"));
-        if (rules.containsKey("relationConfig")) structuredConfig.put("relationConfig",rules.get("relationConfig"));
         if (rules.containsKey("autoNumberConfig")) structuredConfig.put("autoNumberConfig",rules.get("autoNumberConfig"));
         if (rules.containsKey("formulaConfig")) structuredConfig.put("formulaConfig",rules.get("formulaConfig"));
         field.setConfigJson(structuredConfig.isEmpty()?null:writeJson(structuredConfig));
@@ -133,15 +149,20 @@ public class ModuleFieldService {
     }
     private Object readJson(String source) {
         try { return json.readValue(source,Object.class); }
-        catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new IllegalStateException("字段配置损坏",ex); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"字段配置损坏",ex); }
     }
     private String writeJson(Object value) {
         try { return json.writeValueAsString(value); }
-        catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new IllegalArgumentException("字段配置无法保存",ex); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段配置无法保存",ex); }
     }
 
     /** 当前字段校验；旧停用选项仅可原样保留，新增选择仍然拒绝。 */
     public void validate(Long systemId,Long tenantId,FieldDefinition field,Object value,Object previous) {
+        validate(systemId,tenantId,field,value,previous,false);
+    }
+
+    /** 草稿暂免必填，但已有输入仍按类型、选项和成员范围校验。 */
+    public void validate(Long systemId,Long tenantId,FieldDefinition field,Object value,Object previous,boolean draft) {
         if (field.type()==FieldType.CASCADE && !validation.empty(value)) {
             if (value instanceof Map<?,?> object && object.get("path") instanceof List<?> path)
                 path.forEach(this::optionId);
@@ -162,7 +183,7 @@ public class ModuleFieldService {
             Map<String,Object> rules=new LinkedHashMap<>(resolved.rules()); rules.put("options",effective);
             resolved=new FieldDefinition(field.code(),field.label(),field.type(),field.required(),rules);
         }
-        validation.validateValue(resolved,value);
+        validateCoreValue(draft?new FieldDefinition(resolved.code(),resolved.label(),resolved.type(),false,resolved.rules()):resolved,value);
         validateMember(systemId,tenantId,field,value);
     }
 
@@ -175,10 +196,38 @@ public class ModuleFieldService {
         return value;
     }
 
+    /** 新建记录使用字段配置中的默认文本，并由 core 按字段类型解析。 */
+    public Object defaultValue(FieldDefinition field) {
+        return validation.defaultValue(field);
+    }
+
+    /** 外部导入文本使用与核心字段框架一致的类型解析，再进入正常保存校验链。 */
+    public Object parseImportValue(FieldDefinition field, String raw) {
+        return validation.parseTextValue(field, raw);
+    }
+
     /** 字段配置保存和迁移使用严格的新配置范围，不允许沿用普通编辑的旧值保留规则。 */
     public void validateConfiguredValue(Long systemId,Long tenantId,FieldDefinition field,Object value) {
-        validation.validateValue(withOptions(systemId,tenantId,field),value);
+        validateCoreValue(withOptions(systemId,tenantId,field),value);
         validateMember(systemId,tenantId,field,value);
+    }
+
+    /** core 的类型校验面向通用解析场景使用参数异常；进入模块业务边界后统一转换为项目业务异常。 */
+    private void validateCoreValue(FieldDefinition field,Object value) {
+        try {
+            validation.validateValue(field,value);
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,ex.getMessage(),ex);
+        }
+    }
+
+    /** 校验自动编号和公式引擎生成的结果，禁止外部请求绕过计算字段规则。 */
+    public void validateComputedValue(FieldDefinition field,Object value) {
+        try {
+            validation.validateComputedValue(field,value);
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, ex.getMessage(), ex);
+        }
     }
 
     /** 人员和部门字段必须引用当前系统、当前数据租户的有效主数据。 */
@@ -193,12 +242,12 @@ public class ModuleFieldService {
                         || tenantMembers.count(new LambdaQueryWrapper<UnSysTenantMember>()
                         .eq(UnSysTenantMember::getSystemId,systemId).eq(UnSysTenantMember::getTenantId,tenantId)
                         .eq(UnSysTenantMember::getMemberId,id).eq(UnSysTenantMember::getStatus,"ACTIVE"))==0)
-                    throw new IllegalArgumentException(field.label()+"：所选人员不是当前租户的有效成员");
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,field.label()+"：所选人员不是当前租户的有效成员");
             } else {
                 UnSysDepartment department=departments.queryById(id);
                 if (department==null || !systemId.equals(department.getSystemId())
                         || !tenantId.equals(department.getTenantId()) || !"ACTIVE".equals(department.getStatus()))
-                    throw new IllegalArgumentException(field.label()+"：所选部门不是当前租户的有效部门");
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,field.label()+"：所选部门不是当前租户的有效部门");
             }
         }
     }
@@ -208,20 +257,36 @@ public class ModuleFieldService {
         if (field.type()==FieldType.DATE_TIME && value instanceof String raw
                 && "DATE".equals(field.rules().get("displayStyle")))
             return raw.length()>=10?raw.substring(0,10):raw;
-        if (field.type()!=FieldType.USER || value==null) return value;
-        if (value instanceof List<?> list) return list.stream().map(id->memberView(systemId,tenantId,id)).toList();
-        return memberView(systemId,tenantId,value);
+        if (value == null) return null;
+        if (field.type()==FieldType.USER) {
+            if (value instanceof List<?> list) return list.stream().map(id->memberView(systemId,tenantId,id)).toList();
+            return memberView(systemId,tenantId,value);
+        }
+        if (field.type()==FieldType.DEPARTMENT) {
+            if (value instanceof List<?> list) return list.stream().map(id->departmentView(systemId,tenantId,id)).toList();
+            return departmentView(systemId,tenantId,value);
+        }
+        return value;
     }
 
     private MemberView memberView(Long systemId,Long tenantId,Object raw) {
         Long id=new BigDecimal(raw.toString()).longValueExact();
         UnSysMember member=members.getById(id);
-        if (member==null || !systemId.equals(member.getSystemId())) return null;
+        if (member==null || !systemId.equals(member.getSystemId()) || !"ACTIVE".equals(member.getStatus())) return null;
         UnSysTenantMember link=tenantMembers.getOne(new LambdaQueryWrapper<UnSysTenantMember>()
                 .eq(UnSysTenantMember::getSystemId,systemId).eq(UnSysTenantMember::getTenantId,tenantId)
-                .eq(UnSysTenantMember::getMemberId,id),false);
+                .eq(UnSysTenantMember::getMemberId,id).eq(UnSysTenantMember::getStatus,"ACTIVE"),false);
         if (link==null) return null;
         return new MemberView(id,member.getAccountId(),member.getDisplayName(),member.getEmployeeNo(),link.getDepartmentId());
+    }
+
+    /** 部门展示只读取当前系统租户的有效组织资料，停用或越界值不回显名称。 */
+    private DepartmentView departmentView(Long systemId,Long tenantId,Object raw) {
+        Long id=new BigDecimal(raw.toString()).longValueExact();
+        UnSysDepartment department=departments.queryById(id);
+        if (department==null || !systemId.equals(department.getSystemId())
+                || !tenantId.equals(department.getTenantId()) || !"ACTIVE".equals(department.getStatus())) return null;
+        return new DepartmentView(id,department.getParentId(),department.getCode(),department.getName());
     }
 
     /** 按稳定 ID 查询当前字典名称；调用方仅在操作日志中保存当时结果。 */
@@ -239,7 +304,7 @@ public class ModuleFieldService {
 
     /** 写入已校验值，只占用与字段类型对应的物理值列。 */
     public void store(UnModuleRecordData row, FieldDefinition definition, Object value) {
-        var cells=FieldValueCodec.encode(definition.type(),value,json);
+        var cells=FieldValueCodec.encode(definition,value,json);
         row.setValueVarchar(cells.varchar()); row.setValueText(cells.text()); row.setValueNumber(cells.number());
         row.setValueTime(cells.time()); row.setValueJson(cells.json());
     }
@@ -247,20 +312,44 @@ public class ModuleFieldService {
     /** 按保存的字段类型还原原始值，不能从 SQL 列内容猜类型。 */
     public Object stored(UnModuleRecordData row,FieldType type) {
         if (row==null) return null;
-        return FieldValueCodec.decode(type,new FieldValueCodec.Cells(row.getValueVarchar(),row.getValueText(),
-                row.getValueNumber(),row.getValueTime(),row.getValueJson()),json);
+        return decodeStored(type,new FieldValueCodec.Cells(row.getValueVarchar(),row.getValueText(),
+                row.getValueNumber(),row.getValueTime(),row.getValueJson()));
     }
 
     /** 日期样式的业务值按配置还原，数据库时间列始终保存完整 DATETIME。 */
     public Object stored(UnModuleRecordData row,FieldDefinition field) {
-        Object value=stored(row,field.type());
+        if (row==null) return null;
+        Object value=decodeStored(field,new FieldValueCodec.Cells(row.getValueVarchar(),row.getValueText(),
+                row.getValueNumber(),row.getValueTime(),row.getValueJson()));
         if (field.type()!=FieldType.DATE_TIME) return value;
         return present(null,null,field,value);
     }
 
+    /** 扩展值损坏属于持久化冲突，统一转换为业务异常，不能把 JSON 解析栈泄露为接口 500。 */
+    private Object decodeStored(Object definition,FieldValueCodec.Cells cells) {
+        try {
+            return definition instanceof FieldDefinition field
+                    ? FieldValueCodec.decode(field,cells,json)
+                    : FieldValueCodec.decode((FieldType)definition,cells,json);
+        } catch (RuntimeException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"业务字段存储值损坏",ex);
+        }
+    }
+
     /** 配置即时生效，按当前保存类型解释已验证的数据。 */
     public FieldType storedType(UnModuleField field) {
-        return FieldType.parse(field.getFieldType());
+        try {
+            return FieldType.parse(field.getFieldType());
+        } catch (IllegalArgumentException ex) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT, "字段类型配置损坏", ex);
+        }
+    }
+
+    /** 字段只读是服务端业务约束；普通表单、导入和自定义动作都不能绕过。 */
+    public void requireEditable(UnModuleField field) {
+        if (field != null && Boolean.TRUE.equals(field.getReadonlyFlag())) {
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "字段“" + field.getFieldName() + "”已设为只读");
+        }
     }
 
     /** 转化配置和执行共用值形态检查；选项共用基础项 ID，实际值仍须通过目标范围校验。 */
@@ -268,7 +357,7 @@ public class ModuleFieldService {
         boolean textTarget=target.type().kind()==FieldType.Kind.TEXT
                 && source.type().kind()==FieldType.Kind.DATE_TIME;
         if (source.type().kind()!=target.type().kind() && !textTarget)
-            throw new IllegalArgumentException("转化字段值形态不兼容："+source.label()+"到"+target.label());
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"转化字段值形态不兼容："+source.label()+"到"+target.label());
     }
 
     /** 当前保存的配置转换为类型定义。 */
@@ -281,6 +370,16 @@ public class ModuleFieldService {
         return FieldDefinitionParser.parse(field.getFieldKey(),field.getFieldName(),field.getFieldType(),
                 Boolean.TRUE.equals(field.getRequiredFlag()),rules(field));
     }
+
+    /** 在指定系统租户范围内解析字典和选项展示资料，供迁移及详情处理复用。 */
+    public FieldDefinition resolved(Long systemId,Long tenantId,FieldDefinition field) {
+        return withOptions(systemId,tenantId,field);
+    }
+
+    /** 从持久化字段读取包含当前字典选项名称和值的运行定义。 */
+    public FieldDefinition resolved(Long systemId,Long tenantId,UnModuleField field) {
+        return resolved(systemId,tenantId,configured(field));
+    }
     /** 调用方持有模块行锁后检查唯一值，范围仅限当前系统租户的未删除记录。 */
     public void validateUnique(Long systemId,Long tenantId,Long moduleId,Long recordId,FieldDefinition field,Object value) {
         if (!Boolean.TRUE.equals(field.rules().get("unique")) || validation.empty(value)) return;
@@ -291,7 +390,7 @@ public class ModuleFieldService {
         else if (ModuleRecordStorage.isMain(field)) query.apply("`"+ModuleRecordStorage.column(field.code())+"` = {0}",
                 ModuleRecordStorage.sqlValue(field,value));
         else {
-            var cells=FieldValueCodec.encode(field.type(),value,json);
+            var cells=FieldValueCodec.encode(field,value,json);
             var duplicateQuery=new LambdaQueryWrapper<UnModuleRecordData>().eq(UnModuleRecordData::getFieldKey,field.code());
             if (cells.number()!=null) duplicateQuery.eq(UnModuleRecordData::getValueNumber,cells.number());
             else if (cells.time()!=null) duplicateQuery.eq(UnModuleRecordData::getValueTime,cells.time());
@@ -303,7 +402,7 @@ public class ModuleFieldService {
             if (duplicates.isEmpty()) return;
             query.in(UnModuleRecord::getId,duplicates);
         }
-        if (records.count(query)>0) throw new IllegalArgumentException(field.label()+"：值已存在");
+        if (records.count(query)>0) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,field.label()+"：值已存在");
     }
 
     /** 保持原布局，额外补入当前可选择的选项。 */
@@ -316,26 +415,26 @@ public class ModuleFieldService {
     private FieldDefinition withOptions(Long systemId,Long tenantId,FieldDefinition field) {
         if (!field.type().options()) return field;
         if (!(field.rules().get("options") instanceof List<?> selected) || selected.isEmpty())
-            throw new IllegalArgumentException(field.label()+"：选项字段至少选择一个字典基础项");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,field.label()+"：选项字段至少选择一个字典基础项");
         List<Map<String,Object>> references=new ArrayList<>(); Set<Long> ids=new LinkedHashSet<>();
         for (Object raw:selected) {
             if (!(raw instanceof Map<?,?> option) || !Set.of("id","enabled","color","icon").containsAll(option.keySet()))
-                throw new IllegalArgumentException("字段选项只保存字典项 ID 和字段展示设置，不复制基础名称和值");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段选项只保存字典项 ID 和字段展示设置，不复制基础名称和值");
             Long id=optionId(option.get("id"));
-            if (!ids.add(id)) throw new IllegalArgumentException("字段重复选择了相同字典项");
-            if (option.containsKey("enabled") && !(option.get("enabled") instanceof Boolean)) throw new IllegalArgumentException("字段选项启用标记必须是开关值");
+            if (!ids.add(id)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段重复选择了相同字典项");
+            if (option.containsKey("enabled") && !(option.get("enabled") instanceof Boolean)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段选项启用标记必须是开关值");
             Map<String,Object> reference=new LinkedHashMap<>(); option.forEach((key,value)->reference.put((String)key,value));
             reference.put("id",id); references.add(reference);
         }
         var items=dictionaries.items(systemId,tenantId,ids); List<Map<String,Object>> options=new ArrayList<>();
         if (items.values().stream().map(DictionaryDto.Item::dictCode).distinct().count()!=1)
-            throw new IllegalArgumentException("同一字段的选项必须来自同一字典分类");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"同一字段的选项必须来自同一字典分类");
         for (var reference:references) {
             var item=items.get((Long)reference.get("id")); Map<String,Object> option=new LinkedHashMap<>(reference);
             option.put("label",item.name());
             option.put("value",item.value());
             if (item.parentId()!=null) {
-                if (field.type()==FieldType.CASCADE && !ids.contains(item.parentId())) throw new IllegalArgumentException("级联选项必须包含完整父级引用");
+                if (field.type()==FieldType.CASCADE && !ids.contains(item.parentId())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"级联选项必须包含完整父级引用");
                 option.put("parentId",item.parentId());
             }
             options.add(option);
@@ -346,11 +445,11 @@ public class ModuleFieldService {
     /** 禁止把字典基础值或字符串标识当成基础项主键保存。 */
     private Long optionId(Object value) {
         try {
-            if (!(value instanceof Number)) throw new IllegalArgumentException("字典项 ID 必须是正整数");
+            if (!(value instanceof Number)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字典项 ID 必须是正整数");
             long id=new BigDecimal(value.toString()).longValueExact();
-            if (id<1) throw new IllegalArgumentException("字典项 ID 必须是正整数");
+            if (id<1) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字典项 ID 必须是正整数");
             return id;
-        } catch (ArithmeticException ex) { throw new IllegalArgumentException("字典项 ID 必须是正整数",ex); }
+        } catch (ArithmeticException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字典项 ID 必须是正整数",ex); }
     }
 
     /** 保存前核对全部租户的现有记录，禁止缩小范围后留下无法解释的旧值。 */
@@ -370,11 +469,12 @@ public class ModuleFieldService {
             if (definition.type()==FieldType.DATE_TIME)
                 value=present(systemId,record.getTenantId(),definition,value);
             try {
-                validateConfiguredValue(systemId,record.getTenantId(),definition,value);
+                if (definition.type().computed()) validation.validateComputedValue(definition,value);
+                else validateConfiguredValue(systemId,record.getTenantId(),definition,value);
                 validateUnique(systemId,record.getTenantId(),moduleId,record.getId(),definition,value);
-            } catch (IllegalArgumentException ex) { impacted.add(record.getId()); }
+            } catch (RuntimeException ex) { impacted.add(record.getId()); }
         }
-        if (!impacted.isEmpty()) throw new ResponseStatusException(HttpStatus.CONFLICT,
+        if (!impacted.isEmpty()) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
                 "字段变更影响 "+impacted.size()+" 条现有记录，须先查看字段迁移预览并确定数据迁移");
     }
     private Set<String> selected(Object value) {
@@ -389,6 +489,7 @@ public class ModuleFieldService {
             case TEXT,NUMBER,DATE_TIME,OPTION,OPTIONS -> true;
             case REFERENCES -> type==FieldType.ATTACHMENT;
             case REFERENCE -> type==FieldType.USER || type==FieldType.DEPARTMENT || type==FieldType.RELATION;
+            case COMPUTED -> type==FieldType.AUTO_NUMBER || type==FieldType.FORMULA;
             default -> false;
         };
     }

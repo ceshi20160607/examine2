@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-24
+ * @since 2026-11-10
  */
 @TableName("un_module_record")
 public class UnModuleRecord implements Serializable {
@@ -60,10 +60,16 @@ public class UnModuleRecord implements Serializable {
     private String num;
 
     /**
-     * 业务状态
+     * 模块业务状态编码，草稿正常和删除为系统预置状态
      */
     @TableField("status")
     private String status;
+
+    /**
+     * 当前审批状态，0表示审批未提交
+     */
+    @TableField("check_status")
+    private Integer checkStatus;
 
     /**
      * 动态数字字段预留值一
@@ -474,12 +480,6 @@ public class UnModuleRecord implements Serializable {
     private Long lockVersion;
 
     /**
-     * 业务记录归档时间
-     */
-    @TableField("archived_time")
-    private LocalDateTime archivedTime;
-
-    /**
      * 逻辑删除时间
      */
     @TableLogic
@@ -552,6 +552,14 @@ public class UnModuleRecord implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getCheckStatus() {
+        return checkStatus;
+    }
+
+    public void setCheckStatus(Integer checkStatus) {
+        this.checkStatus = checkStatus;
     }
 
     public BigDecimal getItemNumber01() {
@@ -1096,14 +1104,6 @@ public class UnModuleRecord implements Serializable {
 
     public void setLockVersion(Long lockVersion) {
         this.lockVersion = lockVersion;
-    }
-
-    public LocalDateTime getArchivedTime() {
-        return archivedTime;
-    }
-
-    public void setArchivedTime(LocalDateTime archivedTime) {
-        this.archivedTime = archivedTime;
     }
 
     public LocalDateTime getDeletedTime() {

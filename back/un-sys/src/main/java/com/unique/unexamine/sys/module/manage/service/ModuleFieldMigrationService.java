@@ -2,9 +2,13 @@ package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.core.field.FieldDefinition;
+import com.unique.unexamine.core.field.FieldType;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleLog;
@@ -13,6 +17,7 @@ import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
 import com.unique.unexamine.sys.module.base.service.IUnModuleLogService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordDataService;
 import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
+import com.unique.unexamine.sys.module.manage.util.ModuleRecordStorage;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto.Impact;
 import com.unique.unexamine.sys.module.manage.dto.ModuleFieldMigrationDto.Preview;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto;
@@ -26,9 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 字段选项保存前检查旧记录，并在模块保存事务中执行显式映射及逐条审计。 */
 @Service
@@ -43,7 +46,8 @@ public class ModuleFieldMigrationService {
     private final ModulePermissionService permissions;
     private final ObjectMapper json;
 
-    private record Current(UnModuleRecord record, UnModuleRecordData data, Object value) {}
+    private record Current(UnModuleRecord record, UnModuleRecordData data, Object value,
+                           FieldDefinition definition) {}
 
     /** 注入生成的基础 Service；配置鉴权和模块行锁由调用方完成。 */
     public ModuleFieldMigrationService(IUnModuleRecordService records, IUnModuleRecordDataService values,
@@ -51,6 +55,115 @@ public class ModuleFieldMigrationService {
             ModuleFieldService fieldRules, ModulePermissionService permissions, ObjectMapper json) {
         this.records=records; this.values=values; this.logs=logs; this.accounts=accounts;
         this.dictionaries=dictionaries; this.fieldRules=fieldRules; this.permissions=permissions; this.json=json;
+    }
+
+    /**
+     * 字段配置改变单值/多值后，按新路由迁移已有业务值。
+     * 主表槽位和扩展行在同一事务中只保留一个有效存储位置，并复用逻辑删除行避免再次切回时撞唯一键。
+     */
+    public void migrateStorage(Long systemId, Long moduleId, UnModuleField field,
+            FieldDefinition previous, FieldDefinition proposed, Long operatorId) {
+        boolean previousMain = ModuleRecordStorage.isMain(previous);
+        boolean proposedMain = ModuleRecordStorage.isMain(proposed);
+        if (previousMain == proposedMain) return;
+        List<UnModuleRecord> existing = records.list(new LambdaQueryWrapper<UnModuleRecord>()
+                .eq(UnModuleRecord::getSystemId, systemId)
+                .eq(UnModuleRecord::getModuleId, moduleId)
+                .isNull(UnModuleRecord::getDeletedTime)
+                .orderByAsc(UnModuleRecord::getId));
+        for (UnModuleRecord record : existing) {
+            UnModuleRecordData active = values.getOne(new LambdaQueryWrapper<UnModuleRecordData>()
+                    .eq(UnModuleRecordData::getRecordId, record.getId())
+                    .eq(UnModuleRecordData::getFieldId, field.getId()), false);
+            Object before = previousMain ? ModuleRecordStorage.read(record, previous)
+                    : fieldRules.stored(active, previous);
+            Object after = convertMultiplicity(before, previous, proposed, field.getFieldName());
+            if (after != null) {
+                try {
+                    fieldRules.validateConfiguredValue(systemId, record.getTenantId(), proposed, after);
+                } catch (IllegalArgumentException ex) {
+                    throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
+                            "记录 " + record.getId() + " 的字段值无法迁移到新存储规则：" + ex.getMessage(), ex);
+                }
+            }
+            long version = record.getLockVersion() == null ? 0 : record.getLockVersion();
+            UpdateWrapper<UnModuleRecord> update = new UpdateWrapper<UnModuleRecord>()
+                    .eq("id", record.getId()).eq("lock_version", version)
+                    .set("lock_version", version + 1)
+                    .set("update_user_id", operatorId).set("actual_operator_id", operatorId);
+            if (proposedMain) {
+                update.set(ModuleRecordStorage.column(proposed.code()),
+                        ModuleRecordStorage.sqlValue(proposed, after));
+                boolean updated = records.update(update);
+                if (!updated) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
+                        "记录 " + record.getId() + " 在字段迁移期间已被修改");
+                // 扩展行保留为清空的逻辑记录，避免以后切回扩展存储时违反唯一键；当前字段路由已只读主表值。
+                if (active != null) values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
+                        .eq(UnModuleRecordData::getId, active.getId())
+                        .set(UnModuleRecordData::getValueVarchar, null)
+                        .set(UnModuleRecordData::getValueText, null)
+                        .set(UnModuleRecordData::getValueNumber, null)
+                        .set(UnModuleRecordData::getValueTime, null)
+                        .set(UnModuleRecordData::getValueJson, null));
+            } else {
+                update.set(ModuleRecordStorage.column(previous.code()), null);
+                boolean updated = records.update(update);
+                if (!updated) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
+                        "记录 " + record.getId() + " 在字段迁移期间已被修改");
+                UnModuleRecordData target = active;
+                if (after == null && target == null) continue;
+                if (target == null) target = new UnModuleRecordData();
+                target.setRecordId(record.getId());
+                target.setFieldId(field.getId());
+                target.setFieldKey(field.getFieldKey());
+                fieldRules.store(target, proposed, after);
+                target.setDeletedTime(null);
+                if (target.getId() == null) values.addOrUpdate(target);
+                else values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
+                        .eq(UnModuleRecordData::getId, target.getId())
+                        .set(UnModuleRecordData::getRecordId, target.getRecordId())
+                        .set(UnModuleRecordData::getFieldId, target.getFieldId())
+                        .set(UnModuleRecordData::getFieldKey, target.getFieldKey())
+                        .set(UnModuleRecordData::getValueVarchar, target.getValueVarchar())
+                        .set(UnModuleRecordData::getValueText, target.getValueText())
+                        .set(UnModuleRecordData::getValueNumber, target.getValueNumber())
+                        .set(UnModuleRecordData::getValueTime, target.getValueTime())
+                        .set(UnModuleRecordData::getValueJson, target.getValueJson())
+                        .set(UnModuleRecordData::getDeletedTime, null));
+            }
+            record.setLockVersion(version + 1);
+            logStorageMigration(systemId, record, field, before, after, operatorId,
+                    previousMain ? "MAIN_TO_DATA" : "DATA_TO_MAIN");
+        }
+    }
+
+    /** 单值与多值切换只允许无损转换；多个旧值不能静默选一个。 */
+    private Object convertMultiplicity(Object value, FieldDefinition previous,
+                                       FieldDefinition proposed, String label) {
+        if (value == null) return null;
+        boolean beforeMultiple = Boolean.TRUE.equals(previous.rules().get("multiple"));
+        boolean afterMultiple = Boolean.TRUE.equals(proposed.rules().get("multiple"));
+        if (beforeMultiple == afterMultiple) return value;
+        if (afterMultiple) return value instanceof List<?> ? value : List.of(value);
+        if (!(value instanceof List<?> list)) return value;
+        if (list.isEmpty()) return null;
+        if (list.size() > 1) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
+                label + "包含多个值，不能自动改为单值，请先完成字段值迁移");
+        return list.getFirst();
+    }
+
+    /** 字段存储迁移按记录留下可追溯操作历史。 */
+    private void logStorageMigration(Long systemId, UnModuleRecord record, UnModuleField field,
+                                     Object before, Object after, Long operatorId, String route) {
+        UnModuleLog log = new UnModuleLog();
+        log.setSystemId(systemId); log.setTenantId(record.getTenantId());
+        log.setModuleId(record.getModuleId()); log.setRecordId(record.getId());
+        log.setOperatorAccountId(operatorId); log.setActionCode("MODULE_FIELD_STORAGE_MIGRATE");
+        Map<String, Object> detail = new LinkedHashMap<>();
+        detail.put("fieldId", field.getId()); detail.put("fieldKey", field.getFieldKey());
+        detail.put("route", route); detail.put("before", before); detail.put("after", after);
+        log.setDetailJson(write(detail)); log.setCreateTime(LocalDateTime.now());
+        logs.addOrUpdate(log);
     }
 
     /** 按拟保存配置的有效选项和规则检查记录；只读预览不更改保存快照。 */
@@ -61,7 +174,7 @@ public class ModuleFieldMigrationService {
             if (reason!=null) {
                 requireMigrationAccess(token,systemId,moduleId,field,current.record());
                 impacted.add(new Impact(current.record().getId(),current.record().getTenantId(),
-                        current.value(),proposed.type().options()?display(systemId,current.record().getTenantId(),current.value()):Map.of(),reason));
+                        current.value(),proposed.type().options()?display(systemId,current.record().getTenantId(),current.definition(),current.value()):Map.of(),reason));
             }
         }
         return new Preview(impacted.size(),impacted);
@@ -72,47 +185,62 @@ public class ModuleFieldMigrationService {
             Map<Long,Long> mappings, Long operatorId, String token) {
         if (mappings==null || mappings.isEmpty()) return;
         if (!proposed.type().options() || field.getId()==null)
-            throw new IllegalArgumentException("只有已保存选项字段才能指定旧值迁移");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"只有已保存选项字段才能指定旧值迁移");
         if (mappings.entrySet().stream().anyMatch(entry -> entry.getKey()==null || entry.getValue()==null
                 || entry.getKey()<1 || entry.getValue()<1 || entry.getKey().equals(entry.getValue())))
-            throw new IllegalArgumentException("旧值与新值必须是不同的有效字典项 ID");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"旧值与新值必须是不同的有效字典项 ID");
         String operatorName=accounts.queryById(operatorId).getDisplayName();
         Set<Long> used=new LinkedHashSet<>();
         for (Current current:currentValues(systemId,moduleId,field)) {
             if (invalidReason(systemId,moduleId,proposed,current)==null) continue;
             requireMigrationAccess(token,systemId,moduleId,field,current.record());
-            if (current.data()==null) throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "记录 "+current.record().getId()+" 没有可迁移的旧字段值");
-            Object after=replace(current.value(),mappings,used);
+            Object after=replace(current.value(),mappings,used,current.definition());
             try {
                 fieldRules.validateConfiguredValue(systemId,current.record().getTenantId(),proposed,after);
                 fieldRules.validateUnique(systemId,current.record().getTenantId(),moduleId,current.record().getId(),proposed,after);
             } catch (IllegalArgumentException ex) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
                         "记录 "+current.record().getId()+" 的迁移目标不符合新字段规则："+ex.getMessage(),ex);
             }
-            if (after.equals(current.value())) throw new ResponseStatusException(HttpStatus.CONFLICT,
+            if (java.util.Objects.equals(after,current.value())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
                     "记录 "+current.record().getId()+" 未指定完整的旧值映射");
             Long recordTenantId=current.record().getTenantId();
-            Map<String,String> beforeNames=display(systemId,recordTenantId,current.value());
-            Map<String,String> afterNames=display(systemId,recordTenantId,after);
-            fieldRules.store(current.data(),proposed,after);
-            boolean updated=values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
-                    .eq(UnModuleRecordData::getId,current.data().getId())
-                    .set(UnModuleRecordData::getValueVarchar,current.data().getValueVarchar())
-                    .set(UnModuleRecordData::getValueText,current.data().getValueText())
-                    .set(UnModuleRecordData::getValueNumber,current.data().getValueNumber())
-                    .set(UnModuleRecordData::getValueTime,current.data().getValueTime())
-                    .set(UnModuleRecordData::getValueJson,current.data().getValueJson()));
-            if (!updated) throw new ResponseStatusException(HttpStatus.CONFLICT,"待迁移字段值已变化，请重新预览");
-            long version=current.record().getLockVersion()==null?0:current.record().getLockVersion();
-            boolean recordUpdated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
-                    .eq(UnModuleRecord::getId,current.record().getId())
-                    .eq(UnModuleRecord::getLockVersion,version)
-                    .set(UnModuleRecord::getLockVersion,version+1)
-                    .set(UnModuleRecord::getUpdateUserId,operatorId)
-                    .set(UnModuleRecord::getActualOperatorId,operatorId));
-            if (!recordUpdated) throw new ResponseStatusException(HttpStatus.CONFLICT,"业务记录已变化，请重新预览迁移");
+            FieldDefinition currentDefinition=fieldRules.resolved(systemId,recordTenantId,current.definition());
+            FieldDefinition proposedDefinition=fieldRules.resolved(systemId,recordTenantId,proposed);
+            Map<String,String> beforeNames=display(systemId,recordTenantId,currentDefinition,current.value());
+            Map<String,String> afterNames=display(systemId,recordTenantId,proposedDefinition,after);
+            boolean targetMain=ModuleRecordStorage.isMain(proposedDefinition);
+            boolean updated;
+            if (targetMain) {
+                ModuleRecordStorage.write(current.record(),proposedDefinition,after);
+                UpdateWrapper<UnModuleRecord> update=new UpdateWrapper<UnModuleRecord>()
+                        .eq("id",current.record().getId())
+                        .eq("lock_version",current.record().getLockVersion()==null?0:current.record().getLockVersion())
+                        .set("lock_version",(current.record().getLockVersion()==null?0:current.record().getLockVersion())+1)
+                        .set("update_user_id",operatorId).set("actual_operator_id",operatorId);
+                update.set(ModuleRecordStorage.column(proposedDefinition.code()),ModuleRecordStorage.sqlValue(proposedDefinition,after));
+                updated=records.update(update);
+                if (updated && current.data()!=null) values.deleteByIds(List.of(current.data().getId()));
+            } else {
+                UnModuleRecordData target=current.data()==null?new UnModuleRecordData():current.data();
+                fieldRules.store(target,proposedDefinition,after); target.setRecordId(current.record().getId());
+                target.setFieldId(field.getId()); target.setFieldKey(field.getFieldKey());
+                updated=target.getId()==null?values.addOrUpdate(target)!=null:values.update(new LambdaUpdateWrapper<UnModuleRecordData>()
+                        .eq(UnModuleRecordData::getId,target.getId())
+                        .set(UnModuleRecordData::getValueVarchar,target.getValueVarchar())
+                        .set(UnModuleRecordData::getValueText,target.getValueText())
+                        .set(UnModuleRecordData::getValueNumber,target.getValueNumber())
+                        .set(UnModuleRecordData::getValueTime,target.getValueTime())
+                        .set(UnModuleRecordData::getValueJson,target.getValueJson()));
+                if (updated) {
+                    long version=current.record().getLockVersion()==null?0:current.record().getLockVersion();
+                    updated=records.update(new LambdaUpdateWrapper<UnModuleRecord>()
+                            .eq(UnModuleRecord::getId,current.record().getId()).eq(UnModuleRecord::getLockVersion,version)
+                            .set(UnModuleRecord::getLockVersion,version+1)
+                            .set(UnModuleRecord::getUpdateUserId,operatorId).set(UnModuleRecord::getActualOperatorId,operatorId));
+                }
+            }
+            if (!updated) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"待迁移字段值已变化，请重新预览");
             LocalDateTime operationTime=LocalDateTime.now();
             String message="模块字段变更："+operatorName+"于"+LOG_TIME.format(operationTime)
                     +"将「"+field.getFieldName()+"」从「"+String.join("、",beforeNames.values())
@@ -126,7 +254,7 @@ public class ModuleFieldMigrationService {
             log.setActionCode("MODULE_FIELD_CHANGE"); log.setDetailJson(write(detail)); log.setCreateTime(operationTime);
             logs.addOrUpdate(log);
         }
-        if (!used.equals(mappings.keySet())) throw new ResponseStatusException(HttpStatus.CONFLICT,
+        if (!used.equals(mappings.keySet())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,
                 "映射包含未受本次变更影响的旧值："+mappings.keySet().stream().filter(id->!used.contains(id)).toList());
     }
 
@@ -152,8 +280,10 @@ public class ModuleFieldMigrationService {
         List<Current> result=new ArrayList<>(existing.size());
         for (var record:existing) {
             UnModuleRecordData row=stored.get(record.getId());
+            FieldDefinition definition=fieldRules.resolved(systemId,record.getTenantId(),field);
             result.add(new Current(record,row,"name".equals(field.getFieldKey())?record.getName()
-                    :fieldRules.stored(row,fieldRules.storedType(field))));
+                    :ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
+                    :fieldRules.stored(row,definition),definition));
         }
         return result;
     }
@@ -168,7 +298,17 @@ public class ModuleFieldMigrationService {
     }
 
     /** 选项基础项 ID 由字典统一解析，旧名称和目标名称在日志写入时冻结。 */
-    private Map<String,String> display(Long systemId,Long tenantId,Object value) {
+    private Map<String,String> display(Long systemId,Long tenantId,FieldDefinition field,Object value) {
+        if (field.type()==FieldType.SELECT) {
+            Map<String,String> names=new LinkedHashMap<>();
+            Set<String> selected=value instanceof List<?> list?list.stream().map(String::valueOf).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new))
+                    :value==null?Set.of():Set.of(String.valueOf(value));
+            if (field.rules().get("options") instanceof List<?> options) for (Object item:options) if (item instanceof Map<?,?> option) {
+                String optionValue=String.valueOf(option.get("value"));
+                if (selected.contains(optionValue)) names.put(optionValue,String.valueOf(option.get("label")));
+            }
+            return names;
+        }
         Set<Long> ids=new LinkedHashSet<>();
         if (value instanceof Map<?,?> object && object.get("path") instanceof List<?> path)
             path.forEach(item->ids.add(optionId(item)));
@@ -183,7 +323,25 @@ public class ModuleFieldMigrationService {
     }
 
     /** 单选、多选及级联路径均按管理员明确给出的 ID 映射替换。 */
-    private Object replace(Object before,Map<Long,Long> mappings,Set<Long> used) {
+    private Object replace(Object before,Map<Long,Long> mappings,Set<Long> used,FieldDefinition definition) {
+        if (definition.type()==FieldType.SELECT) {
+            Set<String> values=new LinkedHashSet<>();
+            if (before instanceof List<?> list) list.forEach(item->values.add(String.valueOf(item)));
+            else if (before!=null) values.add(String.valueOf(before));
+            Map<String,String> mapping=new HashMap<>();
+            if (definition.rules().get("options") instanceof List<?> options) for (Object item:options) if (item instanceof Map<?,?> option) {
+                if (option.get("value")!=null && option.get("id")!=null) mapping.put(String.valueOf(option.get("id")),String.valueOf(option.get("value")));
+            }
+            List<String> after=new ArrayList<>();
+            for (String value:values) {
+                Long oldId=mapping.entrySet().stream().filter(entry->entry.getValue().equals(value)).map(Map.Entry::getKey)
+                        .map(Long::valueOf).findFirst().orElse(null);
+                Long target=oldId==null?null:mappings.get(oldId);
+                if (target!=null) { used.add(oldId); after.add(target.toString()); }
+                else after.add(value);
+            }
+            return Boolean.TRUE.equals(definition.rules().get("multiple"))?after:(after.isEmpty()?null:after.getFirst());
+        }
         if (before instanceof Map<?,?> object && object.get("path") instanceof List<?> path) {
             List<Long> after=new ArrayList<>(path.size());
             for (Object item:path) after.add(mapped(item,mappings,used));
@@ -195,7 +353,7 @@ public class ModuleFieldMigrationService {
             return after;
         }
         if (before instanceof Number) return mapped(before,mappings,used);
-        throw new ResponseStatusException(HttpStatus.CONFLICT,"旧字段值不是可迁移的字典项 ID");
+        throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"旧字段值不是可迁移的字典项 ID");
     }
 
     private Long mapped(Object before,Map<Long,Long> mappings,Set<Long> used) {
@@ -205,19 +363,19 @@ public class ModuleFieldMigrationService {
     }
 
     private Long optionId(Object value) {
-        if (!(value instanceof Number)) throw new ResponseStatusException(HttpStatus.CONFLICT,"旧字典项 ID 无效");
+        if (!(value instanceof Number)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"旧字典项 ID 无效");
         try { return new BigDecimal(value.toString()).longValueExact(); }
-        catch (ArithmeticException ex) { throw new ResponseStatusException(HttpStatus.CONFLICT,"旧字典项 ID 无效",ex); }
+        catch (ArithmeticException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"旧字典项 ID 无效",ex); }
     }
 
     private Object read(String source) {
         if (source==null) return null;
         try { return json.readValue(source,Object.class); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("已有字段值无法读取",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"已有字段值无法读取",ex); }
     }
 
     private String write(Object value) {
         try { return json.writeValueAsString(value); }
-        catch (JsonProcessingException ex) { throw new IllegalArgumentException("字段迁移结果无法保存",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_ERROR,"字段迁移结果无法保存",ex); }
     }
 }

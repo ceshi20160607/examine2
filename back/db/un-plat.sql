@@ -72,7 +72,10 @@ CREATE TABLE IF NOT EXISTS un_plat_member_role (
   role_id BIGINT NOT NULL COMMENT '平台角色主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_member_role (member_id, role_id), KEY ix_plat_member_role_role (role_id)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史关系，只约束当前有效关系唯一
+  UNIQUE KEY uk_plat_member_role (member_id, role_id, (IF(deleted_time IS NULL, 1, NULL))),
+  KEY ix_plat_member_role_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台成员角色关系';
 
 CREATE TABLE IF NOT EXISTS un_plat_menu (
@@ -96,7 +99,9 @@ CREATE TABLE IF NOT EXISTS un_plat_role_menu (
   action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '菜单内操作编码',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_role_menu_action (role_id, menu_id, action_code)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史授权，只约束当前有效菜单动作唯一
+  UNIQUE KEY uk_plat_role_menu_action (role_id, menu_id, action_code, (IF(deleted_time IS NULL, 1, NULL)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色菜单授权';
 
 CREATE TABLE IF NOT EXISTS un_plat_role_data (
@@ -108,7 +113,9 @@ CREATE TABLE IF NOT EXISTS un_plat_role_data (
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_role_data_resource (role_id, resource_code)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史范围，只约束当前有效资源配置唯一
+  UNIQUE KEY uk_plat_role_data_resource (role_id, resource_code, (IF(deleted_time IS NULL, 1, NULL)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色数据权限';
 
 CREATE TABLE IF NOT EXISTS un_plat_log_login (
@@ -151,3 +158,60 @@ CREATE TABLE IF NOT EXISTS un_plat_message (
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_plat_message_recipient (recipient_account_id, status, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台消息';
+
+CREATE TABLE IF NOT EXISTS un_plat_message_template (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '平台消息模板主键',
+  template_code VARCHAR(80) NOT NULL COMMENT '平台唯一模板编码',
+  title_template VARCHAR(200) NOT NULL COMMENT '消息标题模板',
+  content_template TEXT NOT NULL COMMENT '消息正文模板',
+  variable_keys_json JSON NOT NULL COMMENT '允许填充的变量名数组',
+  channel VARCHAR(30) NOT NULL COMMENT '发送渠道，目前为站内消息 IN_APP',
+  target_type VARCHAR(80) DEFAULT NULL COMMENT '平台业务跳转类型，不允许直接跳系统详情',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿、已发布或停用状态',
+  create_account_id BIGINT NOT NULL COMMENT '模板创建账号主键',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_plat_message_template_code (template_code),
+  KEY ix_plat_message_template_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台消息模板';
+
+CREATE TABLE IF NOT EXISTS un_plat_message_delivery_log (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '平台消息投递记录主键',
+  template_id BIGINT NOT NULL COMMENT '使用的平台消息模板主键',
+  recipient_account_id BIGINT NOT NULL COMMENT '接收平台账号主键',
+  dedupe_key VARCHAR(120) DEFAULT NULL COMMENT '同一接收人业务事件的去重键，空表示不去重',
+  channel VARCHAR(30) NOT NULL COMMENT '实际投递渠道',
+  status VARCHAR(20) NOT NULL COMMENT '投递结果状态',
+  message_id BIGINT DEFAULT NULL COMMENT '成功投递的平台消息主键',
+  rendered_title VARCHAR(200) NOT NULL COMMENT '发送时渲染的标题快照',
+  rendered_content TEXT NOT NULL COMMENT '发送时渲染的正文快照',
+  target_type VARCHAR(80) DEFAULT NULL COMMENT '发送时的平台业务跳转类型快照',
+  target_id BIGINT DEFAULT NULL COMMENT '发送时的平台业务跳转主键快照',
+  attempt_count INT NOT NULL DEFAULT 1 COMMENT '投递尝试次数',
+  error_text VARCHAR(500) DEFAULT NULL COMMENT '失败原因摘要',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '首次投递时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最近投递时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_plat_message_dedupe (recipient_account_id, dedupe_key),
+  KEY ix_plat_message_delivery_template (template_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台消息投递记录';
+
+-- 运维备份的元数据和实际产物分离；产物以服务端随机键定位，不能向普通业务接口暴露路径。
+CREATE TABLE IF NOT EXISTS un_plat_ops_backup (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '运维备份主键',
+  scope_type VARCHAR(20) NOT NULL COMMENT '平台整库或单个业务系统作用域',
+  system_id BIGINT DEFAULT NULL COMMENT '系统备份所属业务系统主键，平台整库时为空',
+  backup_kind VARCHAR(30) NOT NULL COMMENT '平台整库SQL或系统数据SQL备份类型',
+  status VARCHAR(20) NOT NULL DEFAULT 'CREATING' COMMENT '创建中可用或失败状态',
+  artifact_key CHAR(36) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '服务端随机备份文件键',
+  size_bytes BIGINT DEFAULT NULL COMMENT 'SQL备份文件字节数',
+  sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT 'SQL备份文件SHA256摘要',
+  error_text VARCHAR(300) DEFAULT NULL COMMENT '失败原因摘要，不记录数据库连接串',
+  create_account_id BIGINT NOT NULL COMMENT '发起备份的平台账号主键',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '备份发起时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '备份状态更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_plat_ops_backup_artifact (artifact_key),
+  KEY ix_plat_ops_backup_scope (scope_type, system_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运维备份元数据';

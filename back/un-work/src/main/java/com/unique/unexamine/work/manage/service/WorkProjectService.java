@@ -3,6 +3,8 @@ package com.unique.unexamine.work.manage.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.core.bo.SearchBO;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
 import com.unique.unexamine.work.base.entity.UnWorkProjectMember;
@@ -29,10 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 平台或系统租户内的项目、参与人和任务组业务入口。 */
 @Service
@@ -55,10 +55,13 @@ public class WorkProjectService {
     /** 创建项目时同步建立负责人成员关系。 */
     @Transactional(rollbackFor=Exception.class)
     public ProjectView create(String token,Long systemId,Long tenantId,CreateRequest request) {
+        validateProjectName(request == null ? null : request.name());
+        if (request == null || request.code() == null || request.code().isBlank() || request.code().length() > 80)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"项目编号无效");
         Scope scope=scopes.scope(token,systemId,tenantId);
         if (request.startTime()!=null && request.dueTime()!=null
                 && request.dueTime().isBefore(request.startTime()))
-            throw new IllegalArgumentException("项目截止时间不能早于开始时间");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"项目截止时间不能早于开始时间");
         String code=request.code().trim(),name=request.name().trim();
         UnWorkProject row=new UnWorkProject();
         row.setScopeType(scope.type());row.setSystemId(scope.systemId());row.setTenantId(scope.tenantId());
@@ -69,7 +72,7 @@ public class WorkProjectService {
         row.setCreateTime(LocalDateTime.now());
         try { projects.addOrUpdate(row); }
         catch (DuplicateKeyException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"当前作用域项目编号已存在",ex);
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"当前作用域项目编号已存在",ex);
         }
         UnWorkProjectMember owner=new UnWorkProjectMember();owner.setProjectId(row.getId());
         owner.setAccountId(scope.actorId());owner.setMemberType("OWNER");owner.setStatus("ACTIVE");
@@ -80,12 +83,20 @@ public class WorkProjectService {
     /** 只返回当前账号拥有或参与的本作用域项目。 */
     public Page<ProjectView> queryPageList(String token,Long systemId,Long tenantId,SearchBO search) {
         Scope scope=scopes.scope(token,systemId,tenantId);
+        SearchBO criteria=search==null?new SearchBO():search;
         var where=baseScope(scope).ne(UnWorkProject::getStatus,"ARCHIVED")
                 .and(q->q.eq(UnWorkProject::getOwnerAccountId,scope.actorId())
                         .or().eq(UnWorkProject::getCreateAccountId,scope.actorId())
-                        .or().apply(MEMBER_EXISTS_SQL,scope.actorId()))
-                .orderByDesc(UnWorkProject::getId);
-        var result=projects.page(search.parse(),where);
+                        .or().apply(MEMBER_EXISTS_SQL,scope.actorId()));
+        if (criteria.getKeyword()!=null) {
+            if (criteria.getKeyword().length()>100)
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"搜索文本过长");
+            String keyword=criteria.getKeyword().trim();
+            if (!keyword.isBlank()) where.and(q->q.like(UnWorkProject::getCode,keyword)
+                    .or().like(UnWorkProject::getName,keyword)
+                    .or().like(UnWorkProject::getDescription,keyword));
+        }
+        var result=projects.page(criteria.parse(),where.orderByDesc(UnWorkProject::getId));
         return new Page<ProjectView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
@@ -123,12 +134,13 @@ public class WorkProjectService {
     /** 负责人更新项目基础资料，项目编号及已有任务关系不变。 */
     @Transactional(rollbackFor=Exception.class)
     public ProjectView edit(String token,Long systemId,Long tenantId,Long projectId,EditRequest request) {
+        validateProjectName(request == null ? null : request.name());
         Scope scope=scopes.scope(token,systemId,tenantId);
         UnWorkProject row=visible(scope,projectId,true);
         requireOwner(scope,row);
         if (request.startTime()!=null && request.dueTime()!=null
                 && request.dueTime().isBefore(request.startTime()))
-            throw new IllegalArgumentException("项目截止时间不能早于开始时间");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"项目截止时间不能早于开始时间");
         String name=request.name().trim();
         projects.update(new LambdaUpdateWrapper<UnWorkProject>().eq(UnWorkProject::getId,projectId)
                 .set(UnWorkProject::getName,name)
@@ -153,6 +165,9 @@ public class WorkProjectService {
     /** 项目负责人添加同作用域协作或观察成员。 */
     @Transactional(rollbackFor=Exception.class)
     public MemberView addMember(String token,Long systemId,Long tenantId,Long projectId,MemberRequest request) {
+        if (request == null || request.accountId() == null || request.accountId() < 1
+                || request.memberType() == null || request.memberType().isBlank())
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"项目成员参数无效");
         Scope scope=scopes.scope(token,systemId,tenantId);
         UnWorkProject project=visible(scope,projectId,true);
         requireOwner(scope,project);
@@ -197,9 +212,9 @@ public class WorkProjectService {
                 .eq(UnWorkProjectMember::getId,memberId)
                 .eq(UnWorkProjectMember::getProjectId,projectId)
                 .eq(UnWorkProjectMember::getStatus,"ACTIVE"),false);
-        if (member==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"项目成员不存在");
+        if (member==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"项目成员不存在");
         if ("OWNER".equals(member.getMemberType()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"项目负责人关系不能移除");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"项目负责人关系不能移除");
         boolean last=members.count(new LambdaQueryWrapper<UnWorkProjectMember>()
                 .eq(UnWorkProjectMember::getProjectId,projectId)
                 .eq(UnWorkProjectMember::getAccountId,member.getAccountId())
@@ -210,7 +225,7 @@ public class WorkProjectService {
                 .eq(UnWorkTask::getOwnerAccountId,member.getAccountId())
                 .isNull(UnWorkTask::getArchivedTime)
                 .notIn(UnWorkTask::getStatus,"DONE","CANCELLED")))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"该成员仍负责未结束任务，请先转交");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"该成员仍负责未结束任务，请先转交");
         members.update(new LambdaUpdateWrapper<UnWorkProjectMember>()
                 .eq(UnWorkProjectMember::getId,memberId).set(UnWorkProjectMember::getStatus,"INACTIVE"));
     }
@@ -218,6 +233,9 @@ public class WorkProjectService {
     /** 项目负责人创建任务组，顺序取当前项目中下一个位置。 */
     @Transactional(rollbackFor=Exception.class)
     public GroupView createGroup(String token,Long systemId,Long tenantId,Long projectId,GroupRequest request) {
+        validateGroupName(request == null ? null : request.name());
+        if (request != null && request.sortNo() != null && request.sortNo() < 1)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"任务组顺序无效");
         Scope scope=scopes.scope(token,systemId,tenantId);
         UnWorkProject project=visible(scope,projectId,true);
         requireOwner(scope,project);
@@ -251,14 +269,18 @@ public class WorkProjectService {
     @Transactional(rollbackFor=Exception.class)
     public GroupView editGroup(String token,Long systemId,Long tenantId,Long projectId,
                                Long groupId,GroupEditRequest request) {
+        validateGroupName(request == null ? null : request.name());
+        if (request == null || request.status() == null || request.status().isBlank()
+                || request.sortNo() == null || request.sortNo() < 1)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"任务组参数无效");
         Scope scope=scopes.scope(token,systemId,tenantId);
         UnWorkProject project=visible(scope,projectId,true);
         requireOwner(scope,project);
         UnWorkTaskGroup group=groups.getOne(new LambdaQueryWrapper<UnWorkTaskGroup>()
                 .eq(UnWorkTaskGroup::getId,groupId).eq(UnWorkTaskGroup::getProjectId,projectId),false);
-        if (group==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"项目任务组不存在");
+        if (group==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"项目任务组不存在");
         if (!Set.of("ACTIVE","PAUSED","DONE").contains(request.status()))
-            throw new IllegalArgumentException("未知任务组状态");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"未知任务组状态");
         if (request.ownerAccountId()!=null) {
             scopes.assignee(scope,request.ownerAccountId());
             requireMember(project,request.ownerAccountId());
@@ -283,8 +305,17 @@ public class WorkProjectService {
         return where;
     }
 
+    /** 本人任务列表、看板和日历在分页前限定有效且有权查看的项目。 */
+    List<Long> visibleProjectIds(Scope scope) {
+        return projects.list(baseScope(scope).ne(UnWorkProject::getStatus,"ARCHIVED")
+                .and(q->q.eq(UnWorkProject::getOwnerAccountId,scope.actorId())
+                        .or().eq(UnWorkProject::getCreateAccountId,scope.actorId())
+                        .or().apply(MEMBER_EXISTS_SQL,scope.actorId())))
+                .stream().map(UnWorkProject::getId).toList();
+    }
+
     UnWorkProject visible(Scope scope,Long projectId,boolean lock) {
-        if (projectId==null || projectId<1) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"项目不存在");
+        if (projectId==null || projectId<1) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"项目不存在");
         var where=baseScope(scope).eq(UnWorkProject::getId,projectId)
                 .ne(UnWorkProject::getStatus,"ARCHIVED")
                 .and(q->q.eq(UnWorkProject::getOwnerAccountId,scope.actorId())
@@ -292,13 +323,13 @@ public class WorkProjectService {
                         .or().apply(MEMBER_EXISTS_SQL,scope.actorId()));
         if (lock) where.last("FOR UPDATE");
         UnWorkProject row=projects.getOne(where,false);
-        if (row==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"项目不存在");
+        if (row==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"项目不存在");
         return row;
     }
 
     void requireOwner(Scope scope,UnWorkProject project) {
         if (!scope.actorId().equals(project.getOwnerAccountId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"只有项目负责人可维护项目");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"只有项目负责人可维护项目");
     }
 
     /** 任务归属只接受本项目仍有效的任务组。 */
@@ -306,7 +337,7 @@ public class WorkProjectService {
         if (groupId!=null && !groups.exists(new LambdaQueryWrapper<UnWorkTaskGroup>()
                 .eq(UnWorkTaskGroup::getId,groupId).eq(UnWorkTaskGroup::getProjectId,projectId)
                 .eq(UnWorkTaskGroup::getStatus,"ACTIVE")))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"项目任务组不存在");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"项目任务组不存在");
     }
 
     /** 项目任务负责人须已加入项目，避免派发后无法参与项目。 */
@@ -316,7 +347,7 @@ public class WorkProjectService {
                 .eq(UnWorkProjectMember::getProjectId,project.getId())
                 .eq(UnWorkProjectMember::getAccountId,accountId)
                 .eq(UnWorkProjectMember::getStatus,"ACTIVE")))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"任务负责人不是项目成员");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"任务负责人不是项目成员");
     }
 
     /** 按未归档且未取消的任务计算项目及所属任务组完成比例。 */
@@ -348,7 +379,18 @@ public class WorkProjectService {
 
     private String memberType(String value) {
         if ("COLLABORATOR".equals(value) || "OBSERVER".equals(value)) return value;
-        throw new IllegalArgumentException("未知项目成员身份："+value);
+        throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"未知项目成员身份："+value);
+    }
+
+    /** 项目服务被内部模块直接调用时也执行名称边界校验。 */
+    private void validateProjectName(String name) {
+        if (name == null || name.isBlank() || name.length() > 160)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"项目名称无效");
+    }
+
+    private void validateGroupName(String name) {
+        if (name == null || name.isBlank() || name.length() > 120)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"任务组名称无效");
     }
 
     private ProjectView view(UnWorkProject row) {

@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -73,6 +74,16 @@ public class ModuleConfigController {
             @PathVariable Long systemId, @PathVariable Long moduleId,
             @Valid @RequestBody SaveFieldRequest request) {
         return Result.ok(service.saveField(token, systemId, tenantId, moduleId, request));
+    }
+
+    /** 删除模块自定义字段；服务端执行逻辑删除并保留历史记录。 */
+    @DeleteMapping("/modules/{moduleId}/fields/{fieldId}")
+    @Operation(summary = "逻辑删除模块字段")
+    public Result<Void> deleteField(@RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long fieldId) {
+        service.deleteField(token, systemId, tenantId, moduleId, fieldId);
+        return Result.ok();
     }
 
     /** 设计器只使用固定类型目录，不接受任意类型名称。 */

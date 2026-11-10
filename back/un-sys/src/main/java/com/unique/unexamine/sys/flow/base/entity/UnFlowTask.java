@@ -47,7 +47,7 @@ public class UnFlowTask implements Serializable {
     private Integer roundNo;
 
     /**
-     * 审批抄送填写或自动任务类型
+     * Flow 节点、自动任务或等待 examine 的任务类型
      */
     @TableField("task_type")
     private String taskType;

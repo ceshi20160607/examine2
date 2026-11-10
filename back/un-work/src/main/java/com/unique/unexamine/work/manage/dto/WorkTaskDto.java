@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /** WorkTask 的请求与返回模型。 */
 public final class WorkTaskDto {
@@ -56,6 +58,15 @@ public final class WorkTaskDto {
                            String description, Long ownerAccountId, Long createAccountId, String status,
                            boolean overdue, BigDecimal progressPercent, LocalDateTime dueTime,
                            LocalDateTime completeTime, LocalDateTime createTime) {}
+
+    /** 看板列固定对应任务状态，保证前端拖拽和空列展示使用稳定顺序。 */
+    public record BoardColumn(String status, List<TaskView> records) {}
+
+    /** 看板与本人列表使用同一可见任务数据集，避免两个入口出现授权差异。 */
+    public record BoardView(List<BoardColumn> columns) {}
+
+    /** 日历只返回选定日期范围内有截止时间的可见任务。 */
+    public record CalendarView(LocalDate from, LocalDate to, List<TaskView> records) {}
 
     /** 操作历史记录真实执行者及变更前后的状态。 */
     public record HistoryView(Long id, Long operatorAccountId, String operationCode,

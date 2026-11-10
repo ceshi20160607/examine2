@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-24
+ * @since 2026-11-07
  */
 @TableName("un_module_field")
 public class UnModuleField implements Serializable {
@@ -208,30 +208,6 @@ public class UnModuleField implements Serializable {
      */
     @TableField("relation_module_id")
     private Long relationModuleId;
-
-    /**
-     * 设计器保存的字段顺序
-     */
-    @TableField("sort_no")
-    private Integer sortNo;
-
-    /**
-     * 字段所在表单行号
-     */
-    @TableField("row_no")
-    private Integer rowNo;
-
-    /**
-     * 字段所在行的列号
-     */
-    @TableField("column_no")
-    private Integer columnNo;
-
-    /**
-     * 字段在所在行的占位宽度百分比
-     */
-    @TableField("width_percent")
-    private Byte widthPercent;
 
     /**
      * 字段启停状态，保存即生效
@@ -504,38 +480,6 @@ public class UnModuleField implements Serializable {
 
     public void setRelationModuleId(Long relationModuleId) {
         this.relationModuleId = relationModuleId;
-    }
-
-    public Integer getSortNo() {
-        return sortNo;
-    }
-
-    public void setSortNo(Integer sortNo) {
-        this.sortNo = sortNo;
-    }
-
-    public Integer getRowNo() {
-        return rowNo;
-    }
-
-    public void setRowNo(Integer rowNo) {
-        this.rowNo = rowNo;
-    }
-
-    public Integer getColumnNo() {
-        return columnNo;
-    }
-
-    public void setColumnNo(Integer columnNo) {
-        this.columnNo = columnNo;
-    }
-
-    public Byte getWidthPercent() {
-        return widthPercent;
-    }
-
-    public void setWidthPercent(Byte widthPercent) {
-        this.widthPercent = widthPercent;
     }
 
     public String getStatus() {

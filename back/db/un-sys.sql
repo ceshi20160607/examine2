@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS un_sys_tenant_member (
   tenant_id BIGINT NOT NULL COMMENT '所属租户主键',
   member_id BIGINT NOT NULL COMMENT '系统成员主键',
   department_id BIGINT DEFAULT NULL COMMENT '当前租户部门主键',
+  supervisor_account_id BIGINT DEFAULT NULL COMMENT '当前租户成员的直系上级平台账号主键',
   is_admin TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否租户管理员',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '租户成员状态',
   join_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入租户时间',
@@ -92,7 +93,8 @@ CREATE TABLE IF NOT EXISTS un_sys_tenant_member (
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_sys_tenant_member (tenant_id, member_id),
-  KEY ix_sys_tenant_member_member (member_id), KEY ix_sys_tenant_member_department (department_id)
+  KEY ix_sys_tenant_member_member (member_id), KEY ix_sys_tenant_member_department (department_id),
+  KEY ix_sys_tenant_member_supervisor (tenant_id, supervisor_account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户成员';
 
 CREATE TABLE IF NOT EXISTS un_sys_menu (
@@ -215,6 +217,48 @@ CREATE TABLE IF NOT EXISTS un_sys_message (
   PRIMARY KEY (id), KEY ix_sys_message_recipient (recipient_member_id, status, create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统消息';
 
+CREATE TABLE IF NOT EXISTS un_sys_message_template (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统消息模板主键',
+  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
+  tenant_id BIGINT NOT NULL COMMENT '所属租户主键',
+  template_code VARCHAR(80) NOT NULL COMMENT '租户内唯一模板编码',
+  title_template VARCHAR(200) NOT NULL COMMENT '消息标题模板',
+  content_template TEXT NOT NULL COMMENT '消息正文模板',
+  variable_keys_json JSON NOT NULL COMMENT '允许填充的变量名数组',
+  channel VARCHAR(30) NOT NULL COMMENT '发送渠道，目前为站内消息 IN_APP',
+  target_type VARCHAR(80) DEFAULT NULL COMMENT '消息跳转的系统业务类型',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿、已发布或停用状态',
+  create_account_id BIGINT NOT NULL COMMENT '模板创建账号主键',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_message_template_code (system_id, tenant_id, template_code),
+  KEY ix_sys_message_template_status (system_id, tenant_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统消息模板';
+
+CREATE TABLE IF NOT EXISTS un_sys_message_delivery_log (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '系统消息投递记录主键',
+  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
+  tenant_id BIGINT NOT NULL COMMENT '所属租户主键',
+  template_id BIGINT NOT NULL COMMENT '使用的系统消息模板主键',
+  recipient_member_id BIGINT NOT NULL COMMENT '接收系统成员主键',
+  dedupe_key VARCHAR(120) DEFAULT NULL COMMENT '同一接收人业务事件的去重键，空表示不去重',
+  channel VARCHAR(30) NOT NULL COMMENT '实际投递渠道',
+  status VARCHAR(20) NOT NULL COMMENT '投递结果状态',
+  message_id BIGINT DEFAULT NULL COMMENT '成功投递的系统消息主键',
+  rendered_title VARCHAR(200) NOT NULL COMMENT '发送时渲染的标题快照',
+  rendered_content TEXT NOT NULL COMMENT '发送时渲染的正文快照',
+  target_type VARCHAR(80) DEFAULT NULL COMMENT '发送时的系统业务跳转类型快照',
+  target_id BIGINT DEFAULT NULL COMMENT '发送时的系统业务跳转主键快照',
+  attempt_count INT NOT NULL DEFAULT 1 COMMENT '投递尝试次数',
+  error_text VARCHAR(500) DEFAULT NULL COMMENT '失败原因摘要',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '首次投递时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最近投递时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_sys_message_dedupe (system_id, tenant_id, recipient_member_id, dedupe_key),
+  KEY ix_sys_message_delivery_template (template_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统消息投递记录';
+
 -- 模块配置与运行数据。配置发布和记录授权由模块业务 Service 校验。
 CREATE TABLE IF NOT EXISTS un_module_group (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块组主键',
@@ -302,20 +346,68 @@ CREATE TABLE IF NOT EXISTS un_module_field (
   max_items INT DEFAULT NULL COMMENT '多值字段最多选取项数',
   multiple_flag TINYINT(1) NOT NULL DEFAULT 0 COMMENT '选项、人员、部门或关联模块是否可多选',
   dict_code VARCHAR(80) DEFAULT NULL COMMENT '选项或级联使用的字典编码',
-  config_json JSON DEFAULT NULL COMMENT '字段结构化配置：选项联动、关联方式及目标字段、自动编号和公式规则',
+  config_json JSON DEFAULT NULL COMMENT '字段结构化配置：选项联动、自动编号和公式规则；关联展示字段由页面配置',
   relation_module_id BIGINT DEFAULT NULL COMMENT '关联字段指向的已存在目标模块主键',
-  sort_no INT NOT NULL DEFAULT 0 COMMENT '设计器保存的字段顺序',
-  row_no INT NOT NULL DEFAULT 0 COMMENT '字段所在表单行号',
-  column_no INT NOT NULL DEFAULT 0 COMMENT '字段所在行的列号',
-  width_percent TINYINT UNSIGNED NOT NULL DEFAULT 100 COMMENT '字段在所在行的占位宽度百分比',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '字段启停状态，保存即生效',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_module_field_key (module_id, tenant_id, field_key),
-  KEY ix_module_field_form (module_id, status, sort_no),
+  KEY ix_module_field_form (module_id, status, id),
   KEY ix_module_field_relation (relation_module_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块字段';
+
+-- 页面按用途分别保存同一字段的展示位置；关联页面以来源关联字段区分目标字段配置。
+CREATE TABLE IF NOT EXISTS un_module_page (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块页面配置主键',
+  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
+  tenant_id BIGINT NOT NULL COMMENT '配置所属租户主键',
+  module_id BIGINT NOT NULL COMMENT '所属业务模块主键',
+  page_kind VARCHAR(20) NOT NULL COMMENT '页面用途：CREATE、EDIT、DETAIL、LIST、RELATION',
+  relation_field_id BIGINT NOT NULL DEFAULT 0 COMMENT '关联页面对应来源关联字段主键，普通页面为0',
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '页面配置启停状态',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_module_page (module_id, tenant_id, page_kind, relation_field_id),
+  KEY ix_module_page_relation (relation_field_id),
+  CONSTRAINT chk_module_page_kind CHECK (page_kind IN ('CREATE','EDIT','DETAIL','LIST','RELATION'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块页面及关联场景配置';
+
+CREATE TABLE IF NOT EXISTS un_module_page_field (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块页面字段配置主键',
+  page_id BIGINT NOT NULL COMMENT '所属模块页面主键',
+  field_id BIGINT NOT NULL COMMENT '页面展示的稳定模块字段主键',
+  sort_no INT NOT NULL DEFAULT 0 COMMENT '当前页面内的字段顺序',
+  row_no INT NOT NULL DEFAULT 0 COMMENT '字段在当前页面的行号',
+  column_no INT NOT NULL DEFAULT 0 COMMENT '字段在当前页面所在行的列号',
+  width_percent TINYINT UNSIGNED NOT NULL DEFAULT 100 COMMENT '字段在当前页面所在行的占位宽度百分比',
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '页面字段启停状态',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_module_page_field (page_id, field_id),
+  KEY ix_module_page_field_order (page_id, status, sort_no),
+  KEY ix_module_page_field_reference (field_id),
+  CONSTRAINT chk_module_page_width CHECK (width_percent BETWEEN 1 AND 100)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块页面字段布局';
+
+-- 同一模块的多个审批绑定可按页面配置共用或分开显示状态字段。
+CREATE TABLE IF NOT EXISTS un_module_page_status (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块页面审批状态组主键',
+  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
+  tenant_id BIGINT NOT NULL COMMENT '配置所属租户主键',
+  module_id BIGINT NOT NULL COMMENT '所属业务模块主键',
+  status_code VARCHAR(80) NOT NULL COMMENT '列表、详情和关联筛选共用的状态字段编码',
+  status_name VARCHAR(100) NOT NULL COMMENT '审批状态字段展示名称',
+  sort_no INT NOT NULL DEFAULT 0 COMMENT '列表页面中状态字段的展示顺序',
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态字段启停状态',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_module_page_status (module_id, tenant_id, status_code),
+  KEY ix_module_page_status_order (module_id, tenant_id, status, sort_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块页面审批状态展示组';
 
 CREATE TABLE IF NOT EXISTS un_module_menu (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块菜单关系主键',
@@ -424,7 +516,8 @@ CREATE TABLE IF NOT EXISTS un_module_record (
   module_id BIGINT NOT NULL COMMENT '所属业务模块主键',
   name VARCHAR(255) DEFAULT NULL COMMENT '业务记录标题',
   num VARCHAR(100) DEFAULT NULL COMMENT '业务记录编号',
-  status VARCHAR(40) NOT NULL DEFAULT 'ACTIVE' COMMENT '业务状态',
+  status VARCHAR(40) NOT NULL DEFAULT 'NORMAL' COMMENT '模块业务状态编码，草稿正常和删除为系统预置状态',
+  check_status INT NOT NULL DEFAULT 0 COMMENT '当前审批状态，0表示审批未提交',
   item_number01 DECIMAL(65,30) DEFAULT NULL COMMENT '动态数字字段预留值一',
   item_number02 DECIMAL(65,30) DEFAULT NULL COMMENT '动态数字字段预留值二',
   item_number03 DECIMAL(65,30) DEFAULT NULL COMMENT '动态数字字段预留值三',
@@ -493,7 +586,6 @@ CREATE TABLE IF NOT EXISTS un_module_record (
   actual_operator_id BIGINT NOT NULL COMMENT '实际提交操作的账号主键',
   update_user_id BIGINT DEFAULT NULL COMMENT '最近一次修改业务记录的平台账号主键',
   lock_version BIGINT NOT NULL DEFAULT 0 COMMENT '业务记录并发写入乐观锁版本',
-  archived_time DATETIME(3) DEFAULT NULL COMMENT '业务记录归档时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
@@ -553,13 +645,17 @@ CREATE TABLE IF NOT EXISTS un_module_scence_config (
 CREATE TABLE IF NOT EXISTS un_module_teamer (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '记录团队成员主键',
   record_id BIGINT NOT NULL COMMENT '业务主记录主键',
-  account_id BIGINT NOT NULL COMMENT '团队平台账号主键',
-  member_type VARCHAR(30) NOT NULL COMMENT '负责协作只读或关注身份',
+  account_id BIGINT NOT NULL COMMENT '获得记录查看或编辑权限的平台账号主键',
+  access_level VARCHAR(10) NOT NULL COMMENT '记录团队权限：VIEW查看、EDIT编辑并查看',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '团队关系状态',
+  create_user_id BIGINT NOT NULL COMMENT '添加团队成员的操作账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入时间',
+  update_user_id BIGINT NOT NULL COMMENT '最近修改团队权限的操作账号主键',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_module_teamer (record_id, account_id, member_type),
-  KEY ix_module_teamer_account (account_id, status)
+  PRIMARY KEY (id), UNIQUE KEY uk_module_teamer (record_id, account_id),
+  KEY ix_module_teamer_account (account_id, status),
+  CONSTRAINT chk_module_teamer_access CHECK (access_level IN ('VIEW', 'EDIT'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模块团队成员';
 
 CREATE TABLE IF NOT EXISTS un_module_relation (
@@ -698,7 +794,7 @@ CREATE TABLE IF NOT EXISTS un_module_flow (
   tenant_id BIGINT NOT NULL COMMENT '发布流程关系的租户主键',
   module_id BIGINT NOT NULL COMMENT '关联业务模块主键',
   flow_id BIGINT NOT NULL COMMENT '可用于该模块的流程定义主键',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前配置的启停状态',
   published_version INT NOT NULL DEFAULT 0 COMMENT '模块流程关系发布版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
@@ -715,8 +811,8 @@ CREATE TABLE IF NOT EXISTS un_flow (
   code VARCHAR(80) NOT NULL COMMENT '作用域内稳定流程编码',
   name VARCHAR(120) NOT NULL COMMENT '流程名称',
   description VARCHAR(500) DEFAULT NULL COMMENT '流程用途说明',
-  settings_json JSON DEFAULT NULL COMMENT '草稿超时撤回拒绝重审等高级配置',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿已发布停用或归档状态',
+  settings_json JSON DEFAULT NULL COMMENT '超时撤回拒绝重审等高级配置',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前配置的启停状态',
   latest_version INT NOT NULL DEFAULT 0 COMMENT '最近发布的不可变流程版本号',
   create_account_id BIGINT NOT NULL COMMENT '创建流程的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
@@ -726,22 +822,22 @@ CREATE TABLE IF NOT EXISTS un_flow (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台或系统流程定义';
 
 CREATE TABLE IF NOT EXISTS un_flow_node (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程草稿节点主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程节点配置主键',
   flow_id BIGINT NOT NULL COMMENT '所属流程定义主键',
   node_code VARCHAR(80) NOT NULL COMMENT '流程内稳定节点编码',
   node_type VARCHAR(40) NOT NULL COMMENT '审批条件网关自动等待外部等节点类型',
   name VARCHAR(120) NOT NULL COMMENT '节点展示名称',
   position_json JSON DEFAULT NULL COMMENT '设计器节点位置和尺寸',
-  config_json JSON NOT NULL COMMENT '草稿审批人员字段权限超时和执行配置',
+  config_json JSON NOT NULL COMMENT '审批人员字段权限超时和执行配置',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '设计器稳定节点顺序',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_flow_node_code (flow_id, node_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布草稿节点';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布节点配置';
 
 CREATE TABLE IF NOT EXISTS un_flow_edge (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程草稿连线主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程连线配置主键',
   flow_id BIGINT NOT NULL COMMENT '所属流程定义主键',
   source_node_id BIGINT NOT NULL COMMENT '连线起点节点主键',
   target_node_id BIGINT NOT NULL COMMENT '连线终点节点主键',
@@ -752,7 +848,7 @@ CREATE TABLE IF NOT EXISTS un_flow_edge (
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_flow_edge_source (flow_id, source_node_id, priority_no),
   KEY ix_flow_edge_target (target_node_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布草稿连线';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布连线配置';
 
 CREATE TABLE IF NOT EXISTS un_flow_version (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '不可变流程版本主键',
@@ -780,7 +876,7 @@ CREATE TABLE IF NOT EXISTS un_flow_binding (
   priority_no INT NOT NULL DEFAULT 0 COMMENT '同事件绑定优先级',
   exclusive_flag TINYINT(1) NOT NULL DEFAULT 1 COMMENT '命中后是否排斥后续绑定',
   condition_json JSON DEFAULT NULL COMMENT '结构化触发条件',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前绑定的启停状态',
   published_version INT NOT NULL DEFAULT 0 COMMENT '绑定自身发布版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',

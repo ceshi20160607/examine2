@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-11-07
  */
 @Mapper
 public interface UnExamineExampleMapper extends BaseMapper<UnExamineExample> {

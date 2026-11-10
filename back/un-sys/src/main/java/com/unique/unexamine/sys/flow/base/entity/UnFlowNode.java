@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 流程画布草稿节点
+ * 流程画布节点配置
  * </p>
  *
  * @author Template Base
@@ -23,7 +23,7 @@ public class UnFlowNode implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 流程草稿节点主键
+     * 流程节点配置主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -59,7 +59,7 @@ public class UnFlowNode implements Serializable {
     private String positionJson;
 
     /**
-     * 草稿审批人员字段权限超时和执行配置
+     * 审批人员字段权限超时和执行配置
      */
     @TableField("config_json")
     private String configJson;

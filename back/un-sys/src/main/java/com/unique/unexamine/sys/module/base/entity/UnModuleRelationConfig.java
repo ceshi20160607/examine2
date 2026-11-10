@@ -70,9 +70,7 @@ public class UnModuleRelationConfig implements Serializable {
     @TableField("config_json")
     private String configJson;
 
-    /**
-     * ??????????ͣ״̬?????漴?
-     */
+    /** 模块关联配置当前启用、停用或逻辑删除前的业务状态。 */
     @TableField("status")
     private String status;
 

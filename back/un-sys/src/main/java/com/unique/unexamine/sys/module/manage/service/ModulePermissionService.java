@@ -1,10 +1,13 @@
 package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.cache.ConfigurationCache;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.core.permission.PermissionPolicy;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.*;
@@ -22,11 +25,10 @@ import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.GrantReque
 import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.MemberRequest;
 import com.unique.unexamine.sys.module.manage.dto.ModulePermissionDto.RoleRequest;
 import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 import java.util.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 系统模块授权统一入口；缓存角色规则，实时按负责人当前组织归属求数据范围。 */
 @Service
@@ -49,6 +51,7 @@ public class ModulePermissionService {
     private final IUnModuleService modules;
     private final IUnModuleFieldService fields;
     private final IUnModuleTenantService tenantModules;
+    private final IUnModuleTeamerService teamers;
     private final ConfigurationCache cache;
     private final ObjectMapper json;
 
@@ -69,11 +72,12 @@ public class ModulePermissionService {
             IUnSysTenantMemberService tenantMembers,IUnSysDepartmentService departments,IUnSysRoleService roles,
             IUnSysMemberRoleService memberRoles,IUnSysRoleMenuService roleMenus,
             IUnSysRoleDataService roleData,IUnSysRoleFieldService roleFields,ModuleMenuService moduleMenus,IUnSysLogOptService auditLogs,IUnModuleService modules,IUnModuleFieldService fields,
-            IUnModuleTenantService tenantModules,ConfigurationCache cache,ObjectMapper json) {
+            IUnModuleTenantService tenantModules,IUnModuleTeamerService teamers,ConfigurationCache cache,ObjectMapper json) {
         this.systems=systems; this.systemRows=systemRows; this.configs=configs; this.accounts=accounts;
         this.members=members; this.tenantMembers=tenantMembers; this.departments=departments; this.roles=roles;
         this.memberRoles=memberRoles; this.roleMenus=roleMenus; this.roleData=roleData; this.roleFields=roleFields; this.moduleMenus=moduleMenus; this.auditLogs=auditLogs;
-        this.modules=modules; this.fields=fields; this.tenantModules=tenantModules; this.cache=cache; this.json=json;
+        this.modules=modules; this.fields=fields; this.tenantModules=tenantModules; this.teamers=teamers;
+        this.cache=cache; this.json=json;
     }
 
     /** 基础接口先解析实际默认菜单，列表和详情使用不同身份。 */
@@ -92,10 +96,12 @@ public class ModulePermissionService {
         Long actor=systems.accountId(token,context.systemId());
         // 租户模块绑定属于实时共享边界，必须在读取权限缓存前核对。
         var activeModule=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
+                .eq(UnModuleTenant::getSystemId,context.systemId())
                 .eq(UnModuleTenant::getTenantId,context.tenantId())
                 .eq(UnModuleTenant::getModuleId,definition.module().getId()),false);
         if (activeModule==null || !"ACTIVE".equals(activeModule.getStatus())) forbidden();
         var config=configs.getOne(new LambdaQueryWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getSystemId,context.systemId()));
+        if (config==null) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"系统权限配置不存在");
         String key=config.getPermissionRevision()+":"+context.tenantMemberId()+":"+definition.menu().getId();
         Rules rules=cache.get(namespace(context.systemId(),context.tenantId()),key,Rules.class,
                 ()->load(context,definition.module().getId(),definition.menu().getId()));
@@ -113,26 +119,110 @@ public class ModulePermissionService {
         if (rules.tenantFields().exportable()!=null) {
             if (allExport) { exportable.clear(); exportable.addAll(rules.tenantFields().exportable()); } else exportable.retainAll(rules.tenantFields().exportable()); allExport=false;
         }
-        var policy=new PermissionPolicy(admin || rules.menuAllowed(),allData,owners,allRead,readable,allWrite,writable,allExport,exportable);
+        boolean teamMenu=teamMenu(definition.settings().type());
+        QueryWrapper<UnModuleTeamer> teamQuery=new QueryWrapper<UnModuleTeamer>()
+                .eq("account_id",actor).eq("status","ACTIVE")
+                .inSql("record_id","SELECT id FROM un_module_record WHERE system_id="+context.systemId()
+                        +" AND tenant_id="+context.tenantId()+" AND module_id="+definition.module().getId()
+                        +" AND deleted_time IS NULL");
+        if ("EDIT".equals(definition.settings().type())) teamQuery.eq("access_level","EDIT");
+        boolean hasTeam=teamMenu && actor!=null && teamers.count(teamQuery)>0;
+        var policy=new PermissionPolicy(admin || rules.menuAllowed() || hasTeam,allData,owners,allRead,readable,allWrite,writable,allExport,exportable);
         policy.requireAction(); return new Access(context,actor,policy,definition);
     }
+
+    /** 团队授权仅补充当前租户指定记录的列表、详情或编辑，不扩大其他动作。 */
+    public boolean teamAllows(Access access,UnModuleRecord record) {
+        if (access.accountId()==null || !teamMenu(access.definition().settings().type())
+                || !access.context().systemId().equals(record.getSystemId())
+                || !access.context().tenantId().equals(record.getTenantId())
+                || !access.definition().module().getId().equals(record.getModuleId())
+                || record.getDeletedTime()!=null) return false;
+        String level=teamLevel(access,record);
+        return "EDIT".equals(level) || "VIEW".equals(level)
+                && !"EDIT".equals(access.definition().settings().type());
+    }
+
+    private String teamLevel(Access access,UnModuleRecord record) {
+        UnModuleTeamer row=teamers.getOne(new LambdaQueryWrapper<UnModuleTeamer>()
+                .eq(UnModuleTeamer::getRecordId,record.getId())
+                .eq(UnModuleTeamer::getAccountId,access.accountId())
+                .eq(UnModuleTeamer::getStatus,"ACTIVE"),false);
+        return row==null?null:row.getAccessLevel();
+    }
+
+    /** 团队记录的字段权限受租户上限约束，只对这一条记录补充，不扩大普通角色数据范围。 */
+    public PermissionPolicy recordPolicy(Access access,UnModuleRecord record) {
+        if (!teamAllows(access,record)) return access.policy();
+        return teamFields(access,"EDIT".equals(teamLevel(access,record)));
+    }
+
+    /** 列表列取角色和团队字段的并集；实际每行仍按 recordPolicy 判断。 */
+    public PermissionPolicy listFieldsPolicy(Access access) {
+        if (!"LIST".equals(access.definition().settings().type()) || access.accountId()==null) return access.policy();
+        boolean any=teamers.count(new QueryWrapper<UnModuleTeamer>()
+                .eq("account_id",access.accountId()).eq("status","ACTIVE")
+                .inSql("record_id","SELECT id FROM un_module_record WHERE system_id="+access.context().systemId()
+                        +" AND tenant_id="+access.context().tenantId()+" AND module_id="+access.definition().module().getId()
+                        +" AND deleted_time IS NULL"))>0;
+        return any?teamFields(access,false):access.policy();
+    }
+
+    private PermissionPolicy teamFields(Access access,boolean editing) {
+        UnModuleTenant binding=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
+                .eq(UnModuleTenant::getSystemId,access.context().systemId())
+                .eq(UnModuleTenant::getTenantId,access.context().tenantId())
+                .eq(UnModuleTenant::getModuleId,access.definition().module().getId()),false);
+        if (binding==null || !"ACTIVE".equals(binding.getStatus())) forbidden();
+        Object configured=readMap(binding.getConfigJson()).get("fieldPolicy");
+        FieldAccess cap=configured==null?new FieldAccess(null,null,null):json.convertValue(configured,FieldAccess.class);
+        PermissionPolicy base=access.policy();
+        Set<String> read=new HashSet<>(base.readableFields()),write=new HashSet<>(base.writableFields());
+        if (cap.readable()!=null) read.addAll(cap.readable());
+        if (editing && cap.writable()!=null) write.addAll(cap.writable());
+        return new PermissionPolicy(base.actionAllowed(),base.allData(),base.ownerAccountIds(),
+                base.allReadableFields() || cap.readable()==null,read,
+                base.allWritableFields() || editing && cap.writable()==null,write,
+                base.allExportableFields(),base.exportableFields());
+    }
+
+    /** 列表在数据库分页前把当前账号的有效团队记录加入本租户范围。 */
+    public String teamRecordIdsSql(Access access) {
+        if (access.accountId()==null || !"LIST".equals(access.definition().settings().type())) return null;
+        return "SELECT record_id FROM un_module_teamer WHERE account_id="+access.accountId()
+                +" AND status='ACTIVE' AND deleted_time IS NULL";
+    }
+
+    private boolean teamMenu(String type) { return Set.of("LIST","DETAIL","EDIT").contains(type); }
 
     /** 添加已注册平台账号到系统当前租户，不授予管理员或任何默认业务角色。 */
     @Transactional(rollbackFor=Exception.class)
     public Long addMember(String token,Long systemId,Long tenantId,MemberRequest request) {
         var context=systems.requireAdminContext(token,systemId,tenantId);
-        if (!"ACTIVE".equals(accounts.queryById(request.accountId()).getStatus())) throw new IllegalArgumentException("账号已停用");
+        if (request == null || request.accountId() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"成员资料不能为空");
+        var account=accounts.queryById(request.accountId());
+        if (account==null || !"ACTIVE".equals(account.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"账号不存在或已停用");
         if (request.departmentId()!=null) department(context,request.departmentId());
         UnSysMember member=members.getOne(new LambdaQueryWrapper<UnSysMember>().eq(UnSysMember::getSystemId,systemId)
                 .eq(UnSysMember::getAccountId,request.accountId()));
         if (member==null) { member=new UnSysMember(); member.setSystemId(systemId); member.setAccountId(request.accountId());
+            member.setDisplayName(account.getDisplayName());
+            member.setJoinTime(LocalDateTime.now());
             member.setStatus("ACTIVE"); members.addOrUpdate(member); }
-        if (!"ACTIVE".equals(member.getStatus())) throw new IllegalArgumentException("系统成员已停用");
+        else if (member.getDisplayName() == null || member.getDisplayName().isBlank()) {
+            member.setDisplayName(account.getDisplayName());
+            members.update(new LambdaUpdateWrapper<UnSysMember>().eq(UnSysMember::getId, member.getId())
+                    .set(UnSysMember::getDisplayName, member.getDisplayName()));
+        }
+        if (!"ACTIVE".equals(member.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"系统成员已停用");
         UnSysTenantMember link=tenantMembers.getOne(new LambdaQueryWrapper<UnSysTenantMember>()
+                .eq(UnSysTenantMember::getSystemId,systemId)
                 .eq(UnSysTenantMember::getTenantId,context.tenantId()).eq(UnSysTenantMember::getMemberId,member.getId()));
         if (link==null) { link=new UnSysTenantMember(); link.setSystemId(systemId); link.setTenantId(context.tenantId());
-            link.setMemberId(member.getId()); link.setIsAdmin(false); link.setStatus("ACTIVE"); }
-        if (!"ACTIVE".equals(link.getStatus())) throw new IllegalArgumentException("租户成员已停用");
+            link.setMemberId(member.getId()); link.setIsAdmin(false); link.setStatus("ACTIVE");
+            link.setJoinTime(LocalDateTime.now()); }
+        if (!"ACTIVE".equals(link.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"租户成员已停用");
         link.setDepartmentId(request.departmentId()); tenantMembers.addOrUpdate(link);
         tenantMembers.update(new LambdaUpdateWrapper<UnSysTenantMember>().eq(UnSysTenantMember::getId,link.getId())
                 .set(UnSysTenantMember::getDepartmentId,request.departmentId()));
@@ -144,7 +234,9 @@ public class ModulePermissionService {
     @Transactional(rollbackFor=Exception.class)
     public Long createRole(String token,Long systemId,Long tenantId,RoleRequest request) {
         var context=systems.requireAdminContext(token,systemId,tenantId);
-        if (!request.code().matches("[a-zA-Z][a-zA-Z0-9_]{1,79}")) throw new IllegalArgumentException("角色编码无效");
+        if (request == null || request.code() == null || request.name() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"角色资料不能为空");
+        if (!request.code().matches("[a-zA-Z][a-zA-Z0-9_]{1,79}")) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"角色编码无效");
         UnSysRole role=new UnSysRole(); role.setSystemId(systemId); role.setTenantId(context.tenantId());
         role.setCode(request.code()); role.setName(request.name().trim()); role.setStatus("ACTIVE");
         roles.addOrUpdate(role); audit(token,context,"ROLE_CREATE","ROLE",role.getId(),request); changed(context); return role.getId();
@@ -153,9 +245,16 @@ public class ModulePermissionService {
     /** 人员角色赋予/撤销在同一事务中递增权限版本。 */
     @Transactional(rollbackFor=Exception.class)
     public void assign(String token,Long systemId,Long tenantId,AssignRequest request) {
-        var context=systems.requireAdminContext(token,systemId,tenantId); role(context,request.roleId());
+        var context=systems.requireAdminContext(token,systemId,tenantId);
+        if (request == null || request.roleId() == null || request.tenantMemberId() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"角色分配资料不能为空");
+        role(context,request.roleId());
         var member=tenantMembers.queryById(request.tenantMemberId());
-        if (!systemId.equals(member.getSystemId()) || !context.tenantId().equals(member.getTenantId())) forbidden();
+        if (member==null || !systemId.equals(member.getSystemId()) || !context.tenantId().equals(member.getTenantId())
+                || !"ACTIVE".equals(member.getStatus())) forbidden();
+        var assignedMember=members.getById(member.getMemberId());
+        if (assignedMember==null || !systemId.equals(assignedMember.getSystemId()) || !"ACTIVE".equals(assignedMember.getStatus()))
+            forbidden();
         var query=new LambdaQueryWrapper<UnSysMemberRole>().eq(UnSysMemberRole::getTenantMemberId,member.getId())
                 .eq(UnSysMemberRole::getRoleId,request.roleId());
         if (!request.assigned()) memberRoles.remove(query);
@@ -167,11 +266,14 @@ public class ModulePermissionService {
     /** 菜单授权只定义执行许可和负责人范围，不在此写入字段配置。 */
     @Transactional(rollbackFor=Exception.class)
     public void grant(String token,Long systemId,Long tenantId,Long roleId,Long moduleId,Long menuId,GrantRequest request) {
-        var context=systems.requireAdminContext(token,systemId,tenantId); role(context,roleId);
+        var context=systems.requireAdminContext(token,systemId,tenantId);
+        if (request == null || request.scope() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"菜单授权资料不能为空");
+        role(context,roleId);
         moduleMenus.definition(context,moduleId,menuId,false);
-        if (!SCOPES.contains(request.scope())) throw new IllegalArgumentException("数据范围无效");
+        if (!SCOPES.contains(request.scope())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"数据范围无效");
         for (Long id:safe(request.departmentIds())) department(context,id);
-        if (!activeOwners(context,null).containsAll(safe(request.accountIds()))) throw new IllegalArgumentException("指定人员不是当前有效租户成员");
+        if (!activeOwners(context,null).containsAll(safe(request.accountIds()))) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"指定人员不是当前有效租户成员");
         var dataQuery=new LambdaQueryWrapper<UnSysRoleData>().eq(UnSysRoleData::getRoleId,roleId).eq(UnSysRoleData::getMenuId,menuId);
         var menuQuery=new LambdaQueryWrapper<UnSysRoleMenu>().eq(UnSysRoleMenu::getRoleId,roleId).eq(UnSysRoleMenu::getMenuId,menuId);
         if (!request.allowed()) { roleData.remove(dataQuery); roleMenus.remove(menuQuery); }
@@ -187,12 +289,15 @@ public class ModulePermissionService {
     /** 独立配置角色字段；稳定字段主键和模块归属必须同时匹配。 */
     @Transactional(rollbackFor=Exception.class)
     public void saveFields(String token,Long systemId,Long tenantId,Long roleId,Long moduleId,FieldsRequest request) {
-        var context=systems.requireAdminContext(token,systemId,tenantId); role(context,roleId); module(context,moduleId);
+        var context=systems.requireAdminContext(token,systemId,tenantId);
+        if (request == null || request.fields() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段权限资料不能为空");
+        role(context,roleId); module(context,moduleId);
         Set<Long> allowed=new HashSet<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)
                 .eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->allowed.add(f.getId()));
         Set<Long> seen=new HashSet<>();
         for (var grant:request.fields()) if (grant==null || !allowed.contains(grant.fieldId()) || !seen.add(grant.fieldId())
-                || (!grant.readable() && (grant.writable() || grant.exportable()))) throw new IllegalArgumentException("字段许可无效、重复或超出可读范围");
+                || (!grant.readable() && (grant.writable() || grant.exportable()))) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段许可无效、重复或超出可读范围");
         roleFields.remove(new LambdaQueryWrapper<UnSysRoleField>().eq(UnSysRoleField::getRoleId,roleId).eq(UnSysRoleField::getModuleId,moduleId));
         for (var grant:request.fields()) {
             var row=new UnSysRoleField(); row.setRoleId(roleId); row.setModuleId(moduleId); row.setFieldId(grant.fieldId());
@@ -214,7 +319,8 @@ public class ModulePermissionService {
         Long root=systemRows.queryById(systemId).getRootTenantId();
         var context=systems.requireAdminContext(token,systemId,root);
         var target=systems.context(token,systemId,targetTenantId); module(target,moduleId); validateFields(moduleId,access);
-        var row=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>().eq(UnModuleTenant::getTenantId,targetTenantId)
+        var row=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
+                .eq(UnModuleTenant::getSystemId,systemId).eq(UnModuleTenant::getTenantId,targetTenantId)
                 .eq(UnModuleTenant::getModuleId,moduleId));
         if (row==null) { row=new UnModuleTenant(); row.setSystemId(systemId); row.setTenantId(targetTenantId);
             row.setModuleId(moduleId); row.setStatus("ACTIVE"); }
@@ -224,7 +330,9 @@ public class ModulePermissionService {
     }
 
     private Rules load(SystemManageDto.SystemContext context,Long moduleId,Long menuId) {
-        var tenant=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>().eq(UnModuleTenant::getTenantId,context.tenantId()).eq(UnModuleTenant::getModuleId,moduleId));
+        var tenant=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
+                .eq(UnModuleTenant::getSystemId,context.systemId())
+                .eq(UnModuleTenant::getTenantId,context.tenantId()).eq(UnModuleTenant::getModuleId,moduleId));
         // 租户未显式启用的模块不能凭角色菜单授权绕过模块共享边界。
         if (tenant==null || !"ACTIVE".equals(tenant.getStatus())) forbidden();
         Object configured=readMap(tenant.getConfigJson()).get("fieldPolicy");
@@ -266,10 +374,12 @@ public class ModulePermissionService {
             case "DEPARTMENT", "DEPARTMENT_SUBTREE", "SELECTED_DEPARTMENTS": {
                 Set<Long> selected=new HashSet<>(grant.departmentIds());
                 if (!"SELECTED_DEPARTMENTS".equals(grant.scope())) {
-                    Long dept=tenantMembers.queryById(context.tenantMemberId()).getDepartmentId();
+                    var current=tenantMembers.queryById(context.tenantMemberId());
+                    Long dept=current==null?null:current.getDepartmentId();
                     selected.clear(); if (dept!=null) selected.add(dept);
                 }
                 List<UnSysDepartment> active=departments.list(new LambdaQueryWrapper<UnSysDepartment>()
+                        .eq(UnSysDepartment::getSystemId,context.systemId())
                         .eq(UnSysDepartment::getTenantId,context.tenantId()).eq(UnSysDepartment::getStatus,"ACTIVE"));
                 Set<Long> available=new HashSet<>(); active.forEach(d->available.add(d.getId())); selected.retainAll(available);
                 if ("DEPARTMENT_SUBTREE".equals(grant.scope())) {
@@ -277,13 +387,15 @@ public class ModulePermissionService {
                 }
                 return selected.isEmpty()?Set.of():activeOwners(context,selected);
             }
-            default: throw new IllegalStateException("数据范围配置无效");
+            default: throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"数据范围配置无效");
         }
     }
 
     private Set<Long> activeOwners(SystemManageDto.SystemContext context,Set<Long> departmentIds) {
         Set<Long> result=new HashSet<>();
-        for (var link:tenantMembers.list(new LambdaQueryWrapper<UnSysTenantMember>().eq(UnSysTenantMember::getTenantId,context.tenantId())
+        for (var link:tenantMembers.list(new LambdaQueryWrapper<UnSysTenantMember>()
+                .eq(UnSysTenantMember::getSystemId,context.systemId())
+                .eq(UnSysTenantMember::getTenantId,context.tenantId())
                 .eq(UnSysTenantMember::getStatus,"ACTIVE").in(departmentIds!=null,UnSysTenantMember::getDepartmentId,departmentIds))) {
             var member=members.getById(link.getMemberId());
             if (member!=null && context.systemId().equals(member.getSystemId()) && "ACTIVE".equals(member.getStatus())) {
@@ -293,26 +405,29 @@ public class ModulePermissionService {
         return result;
     }
     private void validateFields(Long moduleId,FieldAccess access) {
-        if (access==null) throw new IllegalArgumentException("字段权限不能为空");
+        if (access==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段权限不能为空");
         Set<String> codes=new HashSet<>(); fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,moduleId)
                 .eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->codes.add(f.getFieldKey()));
         if (access.readable()!=null && !codes.containsAll(access.readable()) || access.writable()!=null && !codes.containsAll(access.writable())
                 || access.exportable()!=null && !codes.containsAll(access.exportable()))
-            throw new IllegalArgumentException("字段权限超出当前字段或写入超出可读范围");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段权限超出当前字段或写入超出可读范围");
     }
     private UnModule module(SystemManageDto.SystemContext context,Long id) {
-        var module=modules.queryById(id); Long root=systemRows.queryById(context.systemId()).getRootTenantId();
+        var module=modules.queryById(id); var system=systemRows.queryById(context.systemId());
+        if (module==null || system==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"模块不存在");
+        Long root=system.getRootTenantId();
         if (!context.systemId().equals(module.getSystemId()) || !List.of(context.tenantId(),root).contains(module.getTenantId())) forbidden();
-        if (!"ACTIVE".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块尚未配置");
+        if (!"ACTIVE".equals(module.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"模块尚未配置");
         return module;
     }
     private void role(SystemManageDto.SystemContext context,Long id) {
-        var role=roles.queryById(id); if (!context.systemId().equals(role.getSystemId()) || !context.tenantId().equals(role.getTenantId())) forbidden();
+        var role=roles.queryById(id); if (role==null || !context.systemId().equals(role.getSystemId())
+                || !context.tenantId().equals(role.getTenantId()) || !"ACTIVE".equals(role.getStatus())) forbidden();
     }
     private void department(SystemManageDto.SystemContext context,Long id) {
         var dept=departments.queryById(id);
-        if (!context.systemId().equals(dept.getSystemId()) || !context.tenantId().equals(dept.getTenantId()) || !"ACTIVE".equals(dept.getStatus()))
-            throw new IllegalArgumentException("部门不是当前租户的有效部门");
+        if (dept==null || !context.systemId().equals(dept.getSystemId()) || !context.tenantId().equals(dept.getTenantId()) || !"ACTIVE".equals(dept.getStatus()))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"部门不是当前租户的有效部门");
     }
     /** 授权配置与系统操作日志同事务，不能只更新缓存版本而缺少实际操作者。 */
     private void audit(String token,SystemManageDto.SystemContext context,String operation,String objectType,Long objectId,Object detail) {
@@ -327,11 +442,11 @@ public class ModulePermissionService {
     }
     private String namespace(Long systemId,Long tenantId) { return "permission:"+systemId+":"+tenantId; }
     private <T> Set<T> safe(Set<T> values) { return values==null?Set.of():values; }
-    private void forbidden() { throw new ResponseStatusException(HttpStatus.FORBIDDEN,"缺少当前系统租户的管理权限"); }
+    private void forbidden() { throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"缺少当前系统租户的管理权限"); }
     private String write(Object value) { try { return json.writeValueAsString(value); }
-        catch (JsonProcessingException ex) { throw new IllegalArgumentException("权限配置无法保存",ex); } }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"权限配置无法保存",ex); } }
     private <T> T read(String value,Class<T> type) { try { return json.readValue(value,type); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("权限配置损坏",ex); } }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"权限配置损坏",ex); } }
     @SuppressWarnings("unchecked")
     private Map<String,Object> readMap(String value) { return value==null?new LinkedHashMap<>():read(value,LinkedHashMap.class); }
 }

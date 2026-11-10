@@ -58,9 +58,7 @@ public class UnModuleGroup implements Serializable {
     @TableField("sort_no")
     private Integer sortNo;
 
-    /**
-     * ģ??????ͣ״̬?????漴?
-     */
+    /** 模块分组当前启用、停用或逻辑删除前的业务状态。 */
     @TableField("status")
     private String status;
 

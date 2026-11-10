@@ -10,9 +10,25 @@
   </parent>
   <artifactId>un-examine</artifactId>
   <dependencies>
+    <!-- 审批异常处理规则使用真实单元测试核对快照兜底行为。 -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.unique</groupId>
       <artifactId>un-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.unique</groupId>
+      <artifactId>un-plat</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.unique</groupId>
+      <artifactId>un-sys</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

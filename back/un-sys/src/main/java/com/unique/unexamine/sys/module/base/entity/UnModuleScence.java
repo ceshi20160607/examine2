@@ -58,9 +58,7 @@ public class UnModuleScence implements Serializable {
     @TableField("name")
     private String name;
 
-    /**
-     * ??????ͣ״̬?????漴?
-     */
+    /** 列表场景当前启用、停用或逻辑删除前的业务状态。 */
     @TableField("status")
     private String status;
 

@@ -101,7 +101,7 @@ public class UnFlowBinding implements Serializable {
     private String conditionJson;
 
     /**
-     * 草稿发布或停用状态
+     * 当前绑定的启停状态
      */
     @TableField("status")
     private String status;

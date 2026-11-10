@@ -1,6 +1,8 @@
 package com.unique.unexamine.work.manage.service;
 
 import com.unique.unexamine.work.manage.dto.WorkTaskDto;
+import com.unique.unexamine.plat.manage.service.PlatformMessageTemplateService;
+import com.unique.unexamine.sys.manage.service.SystemMessageTemplateService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.work.base.entity.UnWorkProject;
@@ -29,8 +31,10 @@ class WorkTaskServiceTest {
     private final IUnWorkTaskService tasks=mock(IUnWorkTaskService.class);
     private final IUnWorkTaskHistoryService histories=mock(IUnWorkTaskHistoryService.class);
     private final IUnWorkTaskMemberService members=mock(IUnWorkTaskMemberService.class);
+    private final PlatformMessageTemplateService platformMessages=mock(PlatformMessageTemplateService.class);
+    private final SystemMessageTemplateService systemMessages=mock(SystemMessageTemplateService.class);
     private final WorkTaskService service=new WorkTaskService(scopes,projects,tasks,histories,
-            members,new ObjectMapper());
+            members,platformMessages,systemMessages,new ObjectMapper());
 
     @Test
     void projectTaskKeepsItsProjectGroupAndHistory() {
@@ -51,6 +55,25 @@ class WorkTaskServiceTest {
         verify(projects).requireGroup(20L,30L);
         verify(histories).addOrUpdate(any(UnWorkTaskHistory.class));
         verify(projects).refreshProgress(20L,30L);
+    }
+
+    @Test
+    void assignedProjectTaskNotifiesNewOwnerAfterHistoryIsSaved() {
+        Scope scope=new Scope(10L,"PLATFORM",null,null);
+        when(scopes.scope("token",null,null)).thenReturn(scope);
+        UnWorkProject project=new UnWorkProject();
+        project.setId(20L);project.setOwnerAccountId(10L);
+        when(projects.visible(scope,20L,true)).thenReturn(project);
+        when(tasks.addOrUpdate(any(UnWorkTask.class))).thenAnswer(invocation->{
+            UnWorkTask row=invocation.getArgument(0);row.setId(40L);return row;
+        });
+        when(histories.addOrUpdate(any(UnWorkTaskHistory.class))).thenAnswer(invocation->{
+            UnWorkTaskHistory row=invocation.getArgument(0);row.setId(50L);return row;
+        });
+        service.createProjectTask("token",null,null,20L,
+                new WorkTaskDto.ProjectCreateRequest("指定负责人",null,null,30L,12L));
+        verify(projects).requireMember(project,12L);
+        verify(platformMessages).taskAssigned("token",12L,40L,50L,"指定负责人");
     }
 
     @Test

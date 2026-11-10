@@ -144,7 +144,10 @@ CREATE TABLE IF NOT EXISTS un_plat_member_role (
   role_id BIGINT NOT NULL COMMENT '平台角色主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_member_role (member_id, role_id), KEY ix_plat_member_role_role (role_id)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史关系，只约束当前有效关系唯一
+  UNIQUE KEY uk_plat_member_role (member_id, role_id, (IF(deleted_time IS NULL, 1, NULL))),
+  KEY ix_plat_member_role_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台成员角色关系';
 
 CREATE TABLE IF NOT EXISTS un_plat_menu (
@@ -168,7 +171,9 @@ CREATE TABLE IF NOT EXISTS un_plat_role_menu (
   action_code VARCHAR(80) NOT NULL DEFAULT 'VIEW' COMMENT '菜单内操作编码',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '授权时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_role_menu_action (role_id, menu_id, action_code)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史授权，只约束当前有效菜单动作唯一
+  UNIQUE KEY uk_plat_role_menu_action (role_id, menu_id, action_code, (IF(deleted_time IS NULL, 1, NULL)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色菜单授权';
 
 CREATE TABLE IF NOT EXISTS un_plat_role_data (
@@ -180,7 +185,9 @@ CREATE TABLE IF NOT EXISTS un_plat_role_data (
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_plat_role_data_resource (role_id, resource_code)
+  PRIMARY KEY (id),
+  -- 逻辑删除后保留历史范围，只约束当前有效资源配置唯一
+  UNIQUE KEY uk_plat_role_data_resource (role_id, resource_code, (IF(deleted_time IS NULL, 1, NULL)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台角色数据权限';
 
 CREATE TABLE IF NOT EXISTS un_plat_log_login (
@@ -312,6 +319,7 @@ CREATE TABLE IF NOT EXISTS un_sys_tenant_member (
   tenant_id BIGINT NOT NULL COMMENT '所属租户主键',
   member_id BIGINT NOT NULL COMMENT '系统成员主键',
   department_id BIGINT DEFAULT NULL COMMENT '当前租户部门主键',
+  supervisor_account_id BIGINT DEFAULT NULL COMMENT '当前租户成员的直系上级平台账号主键',
   is_admin TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否租户管理员',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '租户成员状态',
   join_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '加入租户时间',
@@ -319,7 +327,8 @@ CREATE TABLE IF NOT EXISTS un_sys_tenant_member (
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_sys_tenant_member (tenant_id, member_id),
-  KEY ix_sys_tenant_member_member (member_id), KEY ix_sys_tenant_member_department (department_id)
+  KEY ix_sys_tenant_member_member (member_id), KEY ix_sys_tenant_member_department (department_id),
+  KEY ix_sys_tenant_member_supervisor (tenant_id, supervisor_account_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户成员';
 
 CREATE TABLE IF NOT EXISTS un_sys_menu (
@@ -925,7 +934,7 @@ CREATE TABLE IF NOT EXISTS un_module_flow (
   tenant_id BIGINT NOT NULL COMMENT '发布流程关系的租户主键',
   module_id BIGINT NOT NULL COMMENT '关联业务模块主键',
   flow_id BIGINT NOT NULL COMMENT '可用于该模块的流程定义主键',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前配置的启停状态',
   published_version INT NOT NULL DEFAULT 0 COMMENT '模块流程关系发布版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
@@ -942,8 +951,8 @@ CREATE TABLE IF NOT EXISTS un_flow (
   code VARCHAR(80) NOT NULL COMMENT '作用域内稳定流程编码',
   name VARCHAR(120) NOT NULL COMMENT '流程名称',
   description VARCHAR(500) DEFAULT NULL COMMENT '流程用途说明',
-  settings_json JSON DEFAULT NULL COMMENT '草稿超时撤回拒绝重审等高级配置',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿已发布停用或归档状态',
+  settings_json JSON DEFAULT NULL COMMENT '超时撤回拒绝重审等高级配置',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前配置的启停状态',
   latest_version INT NOT NULL DEFAULT 0 COMMENT '最近发布的不可变流程版本号',
   create_account_id BIGINT NOT NULL COMMENT '创建流程的平台账号主键',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
@@ -953,22 +962,22 @@ CREATE TABLE IF NOT EXISTS un_flow (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台或系统流程定义';
 
 CREATE TABLE IF NOT EXISTS un_flow_node (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程草稿节点主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程节点配置主键',
   flow_id BIGINT NOT NULL COMMENT '所属流程定义主键',
   node_code VARCHAR(80) NOT NULL COMMENT '流程内稳定节点编码',
   node_type VARCHAR(40) NOT NULL COMMENT '审批条件网关自动等待外部等节点类型',
   name VARCHAR(120) NOT NULL COMMENT '节点展示名称',
   position_json JSON DEFAULT NULL COMMENT '设计器节点位置和尺寸',
-  config_json JSON NOT NULL COMMENT '草稿审批人员字段权限超时和执行配置',
+  config_json JSON NOT NULL COMMENT '审批人员字段权限超时和执行配置',
   sort_no INT NOT NULL DEFAULT 0 COMMENT '设计器稳定节点顺序',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), UNIQUE KEY uk_flow_node_code (flow_id, node_code)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布草稿节点';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布节点配置';
 
 CREATE TABLE IF NOT EXISTS un_flow_edge (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程草稿连线主键',
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '流程连线配置主键',
   flow_id BIGINT NOT NULL COMMENT '所属流程定义主键',
   source_node_id BIGINT NOT NULL COMMENT '连线起点节点主键',
   target_node_id BIGINT NOT NULL COMMENT '连线终点节点主键',
@@ -979,7 +988,7 @@ CREATE TABLE IF NOT EXISTS un_flow_edge (
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_flow_edge_source (flow_id, source_node_id, priority_no),
   KEY ix_flow_edge_target (target_node_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布草稿连线';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='流程画布连线配置';
 
 CREATE TABLE IF NOT EXISTS un_flow_version (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '不可变流程版本主键',
@@ -1007,7 +1016,7 @@ CREATE TABLE IF NOT EXISTS un_flow_binding (
   priority_no INT NOT NULL DEFAULT 0 COMMENT '同事件绑定优先级',
   exclusive_flag TINYINT(1) NOT NULL DEFAULT 1 COMMENT '命中后是否排斥后续绑定',
   condition_json JSON DEFAULT NULL COMMENT '结构化触发条件',
-  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '草稿发布或停用状态',
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '当前绑定的启停状态',
   published_version INT NOT NULL DEFAULT 0 COMMENT '绑定自身发布版本',
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
@@ -1165,7 +1174,7 @@ CREATE TABLE IF NOT EXISTS un_print (
 CREATE TABLE IF NOT EXISTS un_module_examine (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块审批配置主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '审批绑定定义租户主键',
+  tenant_id BIGINT DEFAULT NULL COMMENT '审批绑定定义租户主键，空表示系统级绑定并可被租户继承',
   module_id BIGINT NOT NULL COMMENT '关联业务模块主键',
   examine_id BIGINT NOT NULL COMMENT '关联审批定义主键',
   action_menu_id BIGINT DEFAULT NULL COMMENT '手动发起审批操作菜单主键',
@@ -1195,8 +1204,8 @@ CREATE TABLE IF NOT EXISTS un_examine_group (
 
 CREATE TABLE IF NOT EXISTS un_examine (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批定义主键',
-  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '定义审批的租户主键',
+  system_id BIGINT DEFAULT NULL COMMENT '所属业务系统主键，平台审批为空',
+  tenant_id BIGINT DEFAULT NULL COMMENT '定义审批的租户主键，平台审批为空',
   group_id BIGINT DEFAULT NULL COMMENT '所属审批分组主键',
   module_id BIGINT DEFAULT NULL COMMENT '审批业务表单所属模块主键',
   code VARCHAR(80) NOT NULL COMMENT '租户内稳定审批编码',
@@ -1211,7 +1220,8 @@ CREATE TABLE IF NOT EXISTS un_examine (
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_examine_code (tenant_id, code),
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_examine_scope_code ((COALESCE(system_id, 0)), (COALESCE(tenant_id, 0)), code),
   KEY ix_examine_group (group_id, status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批定义';
 
@@ -1285,8 +1295,8 @@ CREATE TABLE IF NOT EXISTS un_examine_example (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批实例主键',
   examine_id BIGINT NOT NULL COMMENT '来源审批定义主键',
   published_version INT NOT NULL COMMENT '发起时审批定义发布版本',
-  system_id BIGINT NOT NULL COMMENT '审批业务所属系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '审批业务所属租户主键',
+  system_id BIGINT DEFAULT NULL COMMENT '审批业务所属系统主键，平台审批为空',
+  tenant_id BIGINT DEFAULT NULL COMMENT '审批业务所属租户主键，平台审批为空',
   module_id BIGINT DEFAULT NULL COMMENT '被审批业务模块主键',
   record_id BIGINT DEFAULT NULL COMMENT '被审批业务记录主键',
   application_id BIGINT DEFAULT NULL COMMENT '外部发起所用受控应用主键',
@@ -1333,6 +1343,19 @@ CREATE TABLE IF NOT EXISTS un_examine_example_node_user (
   KEY ix_examine_example_user_account (account_id, status),
   KEY ix_examine_example_user_external (application_id, external_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例节点实际处理人员';
+
+CREATE TABLE IF NOT EXISTS un_examine_example_log (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批实例日志主键',
+  example_id BIGINT NOT NULL COMMENT '所属审批实例主键',
+  example_node_id BIGINT DEFAULT NULL COMMENT '关联审批实例节点主键',
+  account_id BIGINT DEFAULT NULL COMMENT '实际操作平台账号主键',
+  event_code VARCHAR(50) NOT NULL COMMENT '审批实例事件编码',
+  detail_json JSON DEFAULT NULL COMMENT '审批意见字段变更转交回退和外部调用结果快照',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '日志创建时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), KEY ix_examine_log_example (example_id, id),
+  KEY ix_examine_log_node (example_node_id, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例操作与状态日志';
 
 CREATE TABLE IF NOT EXISTS un_examine_exception (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批异常主键',

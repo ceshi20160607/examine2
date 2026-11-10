@@ -17,6 +17,12 @@ public class BaseException extends RuntimeException implements ResultBaseCode {
         this.code = code.getCode();
     }
 
+    /** 保留底层原因，供配置解析或并发写入失败在统一入口记录链路。 */
+    public BaseException(ResultBaseCode code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code.getCode();
+    }
+
     @Override
     public int getCode() {
         return code;

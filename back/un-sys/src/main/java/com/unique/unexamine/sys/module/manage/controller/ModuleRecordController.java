@@ -10,10 +10,10 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordInformat
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.RecordView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordDto.SaveRecordRequest;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ListView;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRelationFieldDto.Option;
 import com.unique.unexamine.sys.module.manage.service.ModuleRecordListService;
 import com.unique.unexamine.sys.module.manage.service.ModuleRecordService;
 import com.unique.unexamine.sys.module.manage.service.ModuleRelationFieldService;
-import com.unique.unexamine.sys.module.manage.service.ModuleRelationFieldService.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,8 +52,9 @@ public class ModuleRecordController {
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId,@PathVariable Long moduleId,@PathVariable String fieldKey,
-            @RequestParam String operation,@ModelAttribute SearchBO search) {
-        return Result.ok(relationFields.options(token,systemId,tenantId,moduleId,fieldKey,operation,search));
+            @RequestParam String operation,@RequestParam(required=false) Long sourceRecordId,
+            @ModelAttribute ModuleRecordSearchBO search) {
+        return Result.ok(relationFields.options(token,systemId,tenantId,moduleId,fieldKey,operation,sourceRecordId,search));
     }
 
     /** 新增或编辑主记录和当前字段值。 */
@@ -107,6 +108,16 @@ public class ModuleRecordController {
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long recordId) {
         return Result.ok(service.information(token, systemId, tenantId, moduleId, recordId));
+    }
+
+    /** 编辑使用独立保存的页面字段布局和当前编辑权限。 */
+    @GetMapping("/{recordId}/edit-form")
+    @Operation(summary = "业务记录编辑表单")
+    public Result<RecordInformation> editForm(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @PathVariable Long systemId, @PathVariable Long moduleId, @PathVariable Long recordId) {
+        return Result.ok(service.editInformation(token, systemId, tenantId, moduleId, recordId));
     }
 
     /** 按记录和字段读取权限查询操作历史。 */

@@ -65,13 +65,13 @@ public class UnFlow implements Serializable {
     private String description;
 
     /**
-     * 草稿超时撤回拒绝重审等高级配置
+     * 超时撤回拒绝重审等高级配置
      */
     @TableField("settings_json")
     private String settingsJson;
 
     /**
-     * 草稿已发布停用或归档状态
+     * 当前配置的启停状态
      */
     @TableField("status")
     private String status;

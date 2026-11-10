@@ -6,6 +6,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.cache.ConfigurationCache;
 import com.unique.unexamine.core.field.FileBatchId;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
 import com.unique.unexamine.file.FileStorage;
@@ -27,13 +29,11 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 模块删除检查、完整数据备份与逻辑删除；不改动关联流程、审批和历史日志。 */
 @Service
@@ -122,7 +122,8 @@ public class ModuleDeletionService {
         Long actor=systems.accountId(token,systemId); long count=records.count(recordQuery(systemId,moduleId));
         Choice choice=request==null || request.choice()==null?Choice.EMPTY:request.choice();
         if (count>0 && choice==Choice.EMPTY) conflict("模块存在业务数据，请选择导出数据后删除或直接删除");
-        if (choice==Choice.EXPORTED) verifyBackup(context,actor,module,request.exportJobId());
+        // 空模块没有需要保护的业务快照，直接删除；只有实际存在数据时才核对完整备份。
+        if (count>0 && choice==Choice.EXPORTED) verifyBackup(context,actor,module,request.exportJobId());
         long afterId=0;
         while (true) {
             var batch=records.list(recordQuery(systemId,moduleId).gt(UnModuleRecord::getId,afterId)
@@ -135,7 +136,14 @@ public class ModuleDeletionService {
                 log.setActionCode("MODULE_DELETE"); log.setDetailJson(json.writeValueAsString(Map.of("choice",choice.name(),"name",row.getName())));
                 recordLogs.addOrUpdate(log);
             }
+            // 附件元数据与所属业务记录一起逻辑删除，保留行和存储对象供审计但过滤普通文件查询。
+            files.remove(new LambdaQueryWrapper<UnCommonFile>()
+                    .eq(UnCommonFile::getModuleId, moduleId)
+                    .in(UnCommonFile::getDataId, ids));
             values.remove(new LambdaQueryWrapper<UnModuleRecordData>().in(UnModuleRecordData::getRecordId,ids));
+            // 逻辑删除标记是查询依据，同时写入固定业务状态以供审计快照读取。
+            records.update(new LambdaUpdateWrapper<UnModuleRecord>().in(UnModuleRecord::getId,ids)
+                    .set(UnModuleRecord::getStatus,ModuleRecordStatusService.DELETED));
             records.remove(new LambdaQueryWrapper<UnModuleRecord>().in(UnModuleRecord::getId,ids));
             afterId=batch.get(batch.size()-1).getId();
         }
@@ -174,7 +182,9 @@ public class ModuleDeletionService {
     /** 稳定顺序流式写出字段及原始存储值，既用于备份也用于删除前摘要核对。 */
     private Snapshot snapshot(UnModule module,OutputStream output,String token,boolean authorize) throws IOException {
         var digest=digest(); long count=0; long afterId=0;
-        var definitions=fields.list(new LambdaQueryWrapper<UnModuleField>().eq(UnModuleField::getModuleId,module.getId()).orderByAsc(UnModuleField::getId));
+        // 备份只包含当前有效字段，和模块详情、记录读写使用同一套字段生效规则；
+        // 已停用字段及其历史配置不应改变删除前完整业务数据的摘要。
+        var definitions=configurations.currentFields(module.getId());
         Map<Long,ModulePermissionService.Access> access=new HashMap<>();
         try (var hashed=new DigestOutputStream(output,digest); JsonGenerator writer=json.getFactory().createGenerator(hashed)) {
             writer.writeStartObject(); writer.writeObjectField("module",module); writer.writeObjectField("fields",definitions);
@@ -188,7 +198,7 @@ public class ModuleDeletionService {
                         var granted=access.computeIfAbsent(row.getTenantId(),tenant->permissions.require(token,module.getSystemId(),tenant,module.getId(),"EXPORT"));
                         granted.policy().requireOwner(row.getOwnerUserId());
                         if (definitions.stream().anyMatch(field->!granted.policy().exportable(field.getFieldKey())))
-                            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"完整备份需要全部业务字段的导出权限");
+                            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"完整备份需要全部业务字段的导出权限");
                     }
                     writer.writeStartObject(); writer.writeObjectField("record",row);
                     writer.writeObjectField("values",definitions.isEmpty()?List.of():values.list(new LambdaQueryWrapper<UnModuleRecordData>()
@@ -206,21 +216,23 @@ public class ModuleDeletionService {
 
     private UnModule owned(SystemManageDto.SystemContext context,Long moduleId) {
         var module=modules.queryById(moduleId);
-        if (!context.systemId().equals(module.getSystemId()) || !context.tenantId().equals(module.getTenantId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"只能删除当前租户拥有的模块");
+        if (module==null || !context.systemId().equals(module.getSystemId()) || !context.tenantId().equals(module.getTenantId()))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"只能删除当前租户拥有的模块");
         return module;
     }
     private LambdaQueryWrapper<UnModuleRecord> recordQuery(Long systemId,Long moduleId) {
-        return new LambdaQueryWrapper<UnModuleRecord>().eq(UnModuleRecord::getSystemId,systemId).eq(UnModuleRecord::getModuleId,moduleId);
+        // 模块删除只针对仍有效的业务数据；历史逻辑删除记录保留供审计，不应阻止模块清理或重复写删除日志。
+        return new LambdaQueryWrapper<UnModuleRecord>().eq(UnModuleRecord::getSystemId,systemId)
+                .eq(UnModuleRecord::getModuleId,moduleId).isNull(UnModuleRecord::getDeletedTime);
     }
     private MessageDigest digest() {
         try { return MessageDigest.getInstance("SHA-256"); }
-        catch (java.security.NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
+        catch (java.security.NoSuchAlgorithmException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_ERROR,"系统不支持 SHA-256",ex); }
     }
     private void audit(SystemManageDto.SystemContext context,Long actor,Long moduleId,String action,Object detail) throws IOException {
         var log=new UnSysLogOpt(); log.setSystemId(context.systemId()); log.setTenantId(context.tenantId());
         log.setAccountId(actor); log.setActionCode(action); log.setObjectType("MODULE"); log.setObjectId(moduleId);
         log.setDetailJson(json.writeValueAsString(detail)); logs.addOrUpdate(log);
     }
-    private void conflict(String message) { throw new ResponseStatusException(HttpStatus.CONFLICT,message); }
+    private void conflict(String message) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,message); }
 }

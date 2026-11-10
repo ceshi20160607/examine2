@@ -14,10 +14,10 @@ public final class ModuleConfigDto {
     public record CreateModuleRequest(@NotNull Long groupId,@NotBlank @Size(max=80) String code,
                                       @NotBlank @Size(max=100) String name) {}
 
-    /** 字段布局直接保存行号、列号和占位宽度；旧选项映射随字段保存提交。 */
+    /** 字段只保存业务定义；展示位置由各模块页面分别保存。 */
     public record SaveFieldRequest(@Size(max=80) String fieldKey,
             @NotBlank @Size(max=100) String fieldName,@NotNull Integer fieldType,
-            boolean required,int sortNo,int rowNo,int columnNo,@Min(1) @Max(100) int widthPercent,
+            boolean required,
             @NotNull Map<String,Object> config,Map<Long,Long> optionMappings,
             boolean hidden,boolean readonly) {}
 
@@ -31,7 +31,7 @@ public final class ModuleConfigDto {
     /** 页面字段携带原有布局配置。 */
     public record FieldConfig(String fieldName,Map<String,Object> configuration) {}
 
-    /** 新建、编辑和详情读取同一份当前保存布局。 */
+    /** 新建、编辑和详情分别读取对应页面当前保存的字段布局。 */
     public record FormView(Long moduleId,List<FieldConfig> fields) {}
 
     /** 菜单与角色字段授权引用稳定字段 ID。 */

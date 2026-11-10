@@ -17,7 +17,10 @@
         "un_plat_role_data",
         "un_plat_log_login",
         "un_plat_log_opt",
-        "un_plat_message"
+        "un_plat_message",
+        "un_plat_message_template",
+        "un_plat_message_delivery_log",
+        "un_plat_ops_backup"
       ]
     },
     {
@@ -38,7 +41,9 @@
         "un_sys_role_field",
         "un_sys_log_login",
         "un_sys_log_opt",
-        "un_sys_message"
+        "un_sys_message",
+        "un_sys_message_template",
+        "un_sys_message_delivery_log"
       ]
     },
     {
@@ -53,7 +58,8 @@
       "basePackage": "com.unique.unexamine.core.common.base",
       "tables": [
         "un_common_notice",
-        "un_common_ai"
+        "un_common_ai",
+        "un_common_ai_conversation"
       ]
     },
     {
@@ -64,6 +70,9 @@
         "un_module",
         "un_module_dict",
         "un_module_field",
+        "un_module_page",
+        "un_module_page_field",
+        "un_module_page_status",
         "un_module_menu",
         "un_module_action",
         "un_module_rule",
@@ -119,7 +128,8 @@
         "un_examine_node_user",
         "un_examine_example",
         "un_examine_example_node",
-        "un_examine_example_node_user"
+        "un_examine_example_node_user",
+        "un_examine_example_log"
       ]
     },
     {

@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.bo.SearchBO;
 import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
@@ -41,10 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 指定记录或按来源租户负责人及字段条件划定范围的跨租户共享；写动作逐项授权。 */
 @Service
@@ -84,46 +84,48 @@ public class ModuleShareService {
     @Transactional(rollbackFor=Exception.class)
     public ShareView create(String token,Long systemId,Long sourceTenantId,Long moduleId,SaveRequest request) {
         var source=systems.requireAdminContext(token,systemId,sourceTenantId);
+        if (request == null || request.targetTenantId() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享目标租户不能为空");
         requireMultiTenant(systemId);
         if (request.targetTenantId()==null || request.targetTenantId()<1 || source.tenantId().equals(request.targetTenantId()))
-            throw new IllegalArgumentException("目标租户无效");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"目标租户无效");
         List<Long> ownerIds=request.ownerAccountIds()==null?List.of():request.ownerAccountIds();
         List<ModuleSceneDto.Condition> filters=request.filters()==null?List.of():request.filters();
         boolean range=!ownerIds.isEmpty() || !filters.isEmpty();
         if ((request.recordId()==null)==!range || request.recordId()!=null && request.recordId()<1)
-            throw new IllegalArgumentException("共享记录与共享范围必须且只能配置一种");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享记录与共享范围必须且只能配置一种");
         modules.lockModule(systemId,moduleId);
         modules.activeModule(systemId,moduleId,source.tenantId());
         UnModuleRecord record=null;
         RangeScope scope=null;
         if (request.recordId()!=null) {
             record=records.queryById(request.recordId());
-            if (!systemId.equals(record.getSystemId()) || !source.tenantId().equals(record.getTenantId())
+            if (record==null || !systemId.equals(record.getSystemId()) || !source.tenantId().equals(record.getTenantId())
                     || !moduleId.equals(record.getModuleId()) || record.getDeletedTime()!=null)
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"来源租户记录不存在");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"来源租户记录不存在");
         } else {
             if (ownerIds.size()>100 || ownerIds.stream().anyMatch(id->id==null || id<1)
                     || ownerIds.stream().distinct().count()!=ownerIds.size())
-                throw new IllegalArgumentException("共享负责人范围无效");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享负责人范围无效");
             Set<Long> activeOwners=sourceOwners(systemId,source.tenantId());
-            if (!activeOwners.containsAll(ownerIds)) throw new IllegalArgumentException("共享负责人不是来源租户有效成员");
+            if (!activeOwners.containsAll(ownerIds)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"共享负责人不是来源租户有效成员");
             var sourceAccess=permissions.require(token,systemId,source.tenantId(),moduleId,"LIST");
             scenes.check(systemId,source.tenantId(),moduleId,
                     new ModuleSceneDto.Settings(filters,List.of(),null,true),sourceAccess);
             scope=new RangeScope(ownerIds.stream().sorted().toList(),List.copyOf(filters));
         }
         UnSysTenant target=tenants.queryById(request.targetTenantId());
-        if (!systemId.equals(target.getSystemId()) || !"ACTIVE".equals(target.getStatus()))
-            throw new IllegalArgumentException("目标租户不属于当前系统或已停用");
+        if (target==null || !systemId.equals(target.getSystemId()) || !"ACTIVE".equals(target.getStatus()))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"目标租户不属于当前系统或已停用");
         UnModuleTenant binding=tenantModules.getOne(new LambdaQueryWrapper<UnModuleTenant>()
                 .eq(UnModuleTenant::getSystemId,systemId).eq(UnModuleTenant::getTenantId,target.getId())
                 .eq(UnModuleTenant::getModuleId,moduleId));
         if (binding==null || !"ACTIVE".equals(binding.getStatus()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"目标租户尚未启用该模块");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"目标租户尚未启用该模块");
         LocalDateTime now=LocalDateTime.now();
         LocalDateTime start=request.effectiveTime()==null?now:request.effectiveTime();
         if (request.expireTime()!=null && !request.expireTime().isAfter(start))
-            throw new IllegalArgumentException("共享失效时间必须晚于生效时间");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享失效时间必须晚于生效时间");
         final UnModuleRecord direct=record;
         final String scopeJson=scope==null?null:write(scope);
         boolean duplicate=shares.list(new LambdaQueryWrapper<UnModuleShare>()
@@ -134,18 +136,18 @@ public class ModuleShareService {
                         && java.util.Objects.equals(row.getScopeJson(),scopeJson)
                         && (row.getExpireTime()==null || row.getExpireTime().isAfter(start))
                         && (request.expireTime()==null || row.getEffectiveTime().isBefore(request.expireTime())));
-        if (duplicate) throw new ResponseStatusException(HttpStatus.CONFLICT,"该记录或范围已共享给目标租户");
+        if (duplicate) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"该记录或范围已共享给目标租户");
         long listMenu=menus.defaultDefinition(source,moduleId,"LIST").menu().getId();
         long detailMenu=menus.defaultDefinition(source,moduleId,"DETAIL").menu().getId();
         Set<Long> granted=new HashSet<>(Set.of(listMenu,detailMenu));
         List<Long> extras=request.actionMenuIds()==null?List.of():request.actionMenuIds();
         if (extras.size()>20 || extras.stream().anyMatch(id->id==null || id<1)
                 || extras.stream().distinct().count()!=extras.size())
-            throw new IllegalArgumentException("共享动作菜单无效或重复");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享动作菜单无效或重复");
         for (Long id:extras) {
             var definition=menus.definition(source,moduleId,id,true);
-            if (!Set.of("EDIT","DELETE","TRANSFER","UPDATE_FIELDS").contains(definition.settings().type()))
-                throw new IllegalArgumentException("该动作不允许授予跨租户共享");
+            if (!Set.of("EDIT","DELETE","TRANSFER","UPDATE_FIELDS","UPDATE_STATUS").contains(definition.settings().type()))
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"该动作不允许授予跨租户共享");
             granted.add(id);
         }
         UnModuleShare share=new UnModuleShare();
@@ -166,8 +168,8 @@ public class ModuleShareService {
                 .eq(UnModuleShare::getId,shareId).last("FOR UPDATE"));
         if (share==null || !systemId.equals(share.getSystemId()) || !source.tenantId().equals(share.getSourceTenantId())
                 || !moduleId.equals(share.getModuleId()))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"共享授权不存在");
-        if (!"ACTIVE".equals(share.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"共享授权已经撤销");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"共享授权不存在");
+        if (!"ACTIVE".equals(share.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享授权已经撤销");
         Long actor=systems.accountId(token,systemId);
         share.setStatus("REVOKED"); share.setRevokeAccountId(actor); share.setRevokeTime(LocalDateTime.now());
         shares.addOrUpdate(share);
@@ -179,10 +181,11 @@ public class ModuleShareService {
     public Page<ShareView> list(String token,Long systemId,Long sourceTenantId,Long moduleId,SearchBO search) {
         var source=systems.requireAdminContext(token,systemId,sourceTenantId);
         modules.activeModule(systemId,moduleId,source.tenantId());
+        SearchBO criteria = search == null ? new SearchBO() : search;
         var where=new LambdaQueryWrapper<UnModuleShare>().eq(UnModuleShare::getSystemId,systemId)
                 .eq(UnModuleShare::getSourceTenantId,source.tenantId()).eq(UnModuleShare::getModuleId,moduleId)
                 .orderByDesc(UnModuleShare::getId);
-        var result=shares.page(search.parse(),where);
+        var result=shares.page(criteria.parse(),where);
         return new Page<ShareView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
@@ -193,13 +196,19 @@ public class ModuleShareService {
         Set<Long> ownerIds=includeOwn?access.policy().ownerAccountIds():Set.of();
         List<UnModuleShare> allowed="MINE".equals(scope) || !multiTenant(access.context().systemId())
                 ?List.of():active(access);
-        if (!ownAll && ownerIds.isEmpty() && allowed.isEmpty()) return false;
+        String teamIds="ALL".equals(scope)?permissions.teamRecordIdsSql(access):null;
+        if (!ownAll && ownerIds.isEmpty() && allowed.isEmpty() && teamIds==null) return false;
         where.and(combined->{
             boolean hasOwn=ownAll || !ownerIds.isEmpty();
             if (hasOwn) combined.nested(own->{
                 own.eq("tenant_id",access.context().tenantId());
                 if (!ownAll) own.in("owner_user_id",ownerIds);
             });
+            if (teamIds!=null) {
+                if (hasOwn) combined.or();
+                combined.nested(team->team.eq("tenant_id",access.context().tenantId()).inSql("id",teamIds));
+                hasOwn=true;
+            }
             for (UnModuleShare share:allowed) {
                 if (hasOwn) combined.or();
                 combined.nested(shared->applyGrant(shared,share));
@@ -221,7 +230,7 @@ public class ModuleShareService {
 
     private UnModuleShare requireSharedGrant(ModulePermissionService.Access access,UnModuleRecord record,boolean lock) {
         if (!multiTenant(access.context().systemId()))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"业务记录不存在");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"业务记录不存在");
         for (UnModuleShare candidate:active(access)) {
             if (!record.getTenantId().equals(candidate.getSourceTenantId())) continue;
             UnModuleShare share=lock?shares.getOne(new LambdaQueryWrapper<UnModuleShare>()
@@ -232,7 +241,7 @@ public class ModuleShareService {
                     || !menuIds(share).contains(access.definition().menu().getId())) continue;
             if (records.count(shareQuery(share).eq("id",record.getId()))>0) return share;
         }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND,"业务记录不存在");
+        throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"业务记录不存在");
     }
 
     /** 指定菜单、来源租户及时间窗同时有效；撤销后不读取旧缓存。 */
@@ -278,33 +287,34 @@ public class ModuleShareService {
         if (share.getRecordId()!=null) { query.eq("id",share.getRecordId()); return; }
         RangeScope scope=scope(share);
         if (scope.ownerAccountIds().isEmpty() && scope.filters().isEmpty())
-            throw new IllegalStateException("共享范围配置为空");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享范围配置为空");
         if (!scope.ownerAccountIds().isEmpty()) query.in("owner_user_id",scope.ownerAccountIds());
         Map<Long,UnModuleField> fields=modules.currentFields(share.getModuleId()).stream()
                 .collect(Collectors.toMap(UnModuleField::getId,row->row));
         for (var condition:scope.filters()) {
             UnModuleField field=fields.get(condition.fieldId());
-            if (field==null) throw new ResponseStatusException(HttpStatus.CONFLICT,"共享范围引用了失效字段");
+            if (field==null) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享范围引用了失效字段");
             FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
             if ("EQ".equals(condition.operator()))
                 fieldRules.validate(share.getSystemId(),share.getSourceTenantId(),definition,condition.value(),null);
             else if (!"CONTAINS".equals(condition.operator()) || definition.type().kind()!=FieldType.Kind.TEXT
                     || !(condition.value() instanceof String text) || text.isBlank() || text.length()>100)
-                throw new ResponseStatusException(HttpStatus.CONFLICT,"共享范围字段条件已失效");
-            ModuleRecordFilter.apply(query,field,condition,json);
+                throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享范围字段条件已失效");
+            ModuleRecordFilter.apply(query,field,definition,condition,json);
         }
     }
 
     private RangeScope scope(UnModuleShare share) {
-        if (share.getScopeJson()==null) throw new IllegalStateException("共享范围配置缺失");
+        if (share.getScopeJson()==null) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享范围配置缺失");
         try { return json.readValue(share.getScopeJson(),RangeScope.class); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("共享范围配置损坏",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享范围配置损坏",ex); }
     }
 
     /** 配置负责人范围时，只允许来源租户当前有效的系统成员。 */
     private Set<Long> sourceOwners(Long systemId,Long tenantId) {
         Set<Long> result=new HashSet<>();
         for (UnSysTenantMember link:tenantMembers.list(new LambdaQueryWrapper<UnSysTenantMember>()
+                .eq(UnSysTenantMember::getSystemId,systemId)
                 .eq(UnSysTenantMember::getTenantId,tenantId).eq(UnSysTenantMember::getStatus,"ACTIVE"))) {
             UnSysMember member=members.getById(link.getMemberId());
             if (member==null || !systemId.equals(member.getSystemId()) || !"ACTIVE".equals(member.getStatus())) continue;
@@ -316,11 +326,11 @@ public class ModuleShareService {
 
     private Set<Long> menuIds(UnModuleShare share) {
         try { return Set.copyOf(json.readValue(share.getActionMenuIdsJson(),new TypeReference<List<Long>>(){})); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("共享动作配置损坏",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"共享动作配置损坏",ex); }
     }
 
     private void requireMultiTenant(Long systemId) {
-        if (!multiTenant(systemId)) throw new ResponseStatusException(HttpStatus.CONFLICT,"请先开启多租户模式");
+        if (!multiTenant(systemId)) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"请先开启多租户模式");
     }
 
     private boolean multiTenant(Long systemId) {
@@ -352,6 +362,6 @@ public class ModuleShareService {
 
     private String write(Object value) {
         try { return json.writeValueAsString(value); }
-        catch (JsonProcessingException ex) { throw new IllegalArgumentException("共享配置无法保存",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"共享配置无法保存",ex); }
     }
 }

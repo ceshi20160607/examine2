@@ -2,9 +2,10 @@
 CREATE TABLE IF NOT EXISTS un_module_examine (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '模块审批配置主键',
   system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '审批绑定定义租户主键',
+  tenant_id BIGINT DEFAULT NULL COMMENT '审批绑定定义租户主键，空表示系统级绑定并可被租户继承',
   module_id BIGINT NOT NULL COMMENT '关联业务模块主键',
   examine_id BIGINT NOT NULL COMMENT '关联审批定义主键',
+  status_group_id BIGINT DEFAULT NULL COMMENT '模块页面审批状态组主键，空表示不展示独立状态字段',
   action_menu_id BIGINT DEFAULT NULL COMMENT '手动发起审批操作菜单主键',
   trigger_code VARCHAR(80) DEFAULT NULL COMMENT '新建编辑状态变动等触发事件编码',
   condition_json JSON DEFAULT NULL COMMENT '结构化审批触发条件',
@@ -13,7 +14,7 @@ CREATE TABLE IF NOT EXISTS un_module_examine (
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_module_examine_trigger (module_id, tenant_id, trigger_code, status),
-  KEY ix_module_examine_examine (examine_id)
+  KEY ix_module_examine_examine (examine_id), KEY ix_module_examine_status_group (status_group_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='业务模块审批关联配置';
 
 CREATE TABLE IF NOT EXISTS un_examine_group (
@@ -32,8 +33,8 @@ CREATE TABLE IF NOT EXISTS un_examine_group (
 
 CREATE TABLE IF NOT EXISTS un_examine (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批定义主键',
-  system_id BIGINT NOT NULL COMMENT '所属业务系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '定义审批的租户主键',
+  system_id BIGINT DEFAULT NULL COMMENT '所属业务系统主键，平台审批为空',
+  tenant_id BIGINT DEFAULT NULL COMMENT '定义审批的租户主键，平台审批为空',
   group_id BIGINT DEFAULT NULL COMMENT '所属审批分组主键',
   module_id BIGINT DEFAULT NULL COMMENT '审批业务表单所属模块主键',
   code VARCHAR(80) NOT NULL COMMENT '租户内稳定审批编码',
@@ -48,7 +49,8 @@ CREATE TABLE IF NOT EXISTS un_examine (
   create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), UNIQUE KEY uk_examine_code (tenant_id, code),
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_examine_scope_code ((COALESCE(system_id, 0)), (COALESCE(tenant_id, 0)), code),
   KEY ix_examine_group (group_id, status, sort_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批定义';
 
@@ -121,9 +123,10 @@ CREATE TABLE IF NOT EXISTS un_examine_node_user (
 CREATE TABLE IF NOT EXISTS un_examine_example (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批实例主键',
   examine_id BIGINT NOT NULL COMMENT '来源审批定义主键',
+  module_examine_id BIGINT DEFAULT NULL COMMENT '发起本实例的模块审批绑定主键，Flow等其他来源为空',
   published_version INT NOT NULL COMMENT '发起时审批定义发布版本',
-  system_id BIGINT NOT NULL COMMENT '审批业务所属系统主键',
-  tenant_id BIGINT NOT NULL COMMENT '审批业务所属租户主键',
+  system_id BIGINT DEFAULT NULL COMMENT '审批业务所属系统主键，平台审批为空',
+  tenant_id BIGINT DEFAULT NULL COMMENT '审批业务所属租户主键，平台审批为空',
   module_id BIGINT DEFAULT NULL COMMENT '被审批业务模块主键',
   record_id BIGINT DEFAULT NULL COMMENT '被审批业务记录主键',
   application_id BIGINT DEFAULT NULL COMMENT '外部发起所用受控应用主键',
@@ -136,6 +139,7 @@ CREATE TABLE IF NOT EXISTS un_examine_example (
   update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '实例更新时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_examine_example_record (system_id, tenant_id, module_id, record_id),
+  KEY ix_examine_example_binding (module_examine_id, record_id, start_time),
   KEY ix_examine_example_status (examine_id, status, start_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='保存发起快照的审批实例';
 
@@ -170,6 +174,19 @@ CREATE TABLE IF NOT EXISTS un_examine_example_node_user (
   KEY ix_examine_example_user_account (account_id, status),
   KEY ix_examine_example_user_external (application_id, external_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例节点实际处理人员';
+
+CREATE TABLE IF NOT EXISTS un_examine_example_log (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批实例日志主键',
+  example_id BIGINT NOT NULL COMMENT '所属审批实例主键',
+  example_node_id BIGINT DEFAULT NULL COMMENT '关联审批实例节点主键',
+  account_id BIGINT DEFAULT NULL COMMENT '实际操作平台账号主键',
+  event_code VARCHAR(50) NOT NULL COMMENT '审批实例事件编码',
+  detail_json JSON DEFAULT NULL COMMENT '审批意见字段变更转交回退和外部调用结果快照',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '日志创建时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), KEY ix_examine_log_example (example_id, id),
+  KEY ix_examine_log_node (example_node_id, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='审批实例操作与状态日志';
 
 CREATE TABLE IF NOT EXISTS un_examine_exception (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '审批异常主键',

@@ -3,6 +3,7 @@ package com.unique.unexamine.core.config;
 import com.unique.unexamine.core.common.Result;
 import com.unique.unexamine.core.enums.SystemCodeEnum;
 import com.unique.unexamine.core.exception.BaseException;
+import com.unique.unexamine.core.ops.RecentErrorRegistry;
 import java.util.NoSuchElementException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -18,11 +19,20 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** 对业务失败返回可理解的状态和原因，避免把不存在与无权错误伪装成服务异常。 */
 @RestControllerAdvice
 public class ApiExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
+    private final RecentErrorRegistry recentErrors;
+
+    /** 测试隔离构造器；Spring 使用注入构造器接入运维异常摘要。 */
+    public ApiExceptionHandler() { this.recentErrors=null; }
+
+    @Autowired
+    public ApiExceptionHandler(RecentErrorRegistry recentErrors) { this.recentErrors=recentErrors; }
 
     /** 显式业务异常的响应码由业务定义，HTTP 状态按对应失败类型返回。 */
     @ExceptionHandler(BaseException.class)
@@ -54,6 +64,13 @@ public class ApiExceptionHandler {
                 .body(Result.error(SystemCodeEnum.SYSTEM_NO_FOUND, ex.getMessage()));
     }
 
+    /** 未匹配到接口或静态资源时返回不存在，不将错误路径误报为服务故障。 */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> missingResource(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.error(SystemCodeEnum.SYSTEM_NO_FOUND, "接口或资源不存在"));
+    }
+
     /** 唯一键等数据约束失败属于业务冲突。 */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Result<Void>> conflict(DataIntegrityViolationException ex) {
@@ -81,6 +98,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> unexpected(Exception ex) {
         LOG.error("接口处理失败", ex);
+        if (recentErrors!=null) recentErrors.record(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Result.error(SystemCodeEnum.SYSTEM_ERROR));
     }

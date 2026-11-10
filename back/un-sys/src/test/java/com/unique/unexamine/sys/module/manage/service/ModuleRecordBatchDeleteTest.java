@@ -9,10 +9,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.permission.PermissionPolicy;
+import com.unique.unexamine.core.exception.BaseException;
+import com.unique.unexamine.core.module.ExamineCompletionContext;
+import com.unique.unexamine.core.module.ModuleDeleteApprovalStarter;
+import com.unique.unexamine.core.module.ModuleRecordProcessContext;
+import com.unique.unexamine.core.module.ModuleRecordProcessHandler;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.sys.base.entity.UnSysMenu;
@@ -23,11 +28,14 @@ import com.unique.unexamine.sys.module.base.service.*;
 import com.unique.unexamine.sys.module.manage.controller.ModuleRecordController;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -46,7 +54,8 @@ class ModuleRecordBatchDeleteTest {
             mock(IUnSysSystemService.class),mock(IUnSysMemberService.class),mock(IUnSysTenantMemberService.class),
             records,mock(IUnModuleRecordDataService.class),logs,new ObjectMapper(),permissions,
             mock(ModuleFieldService.class),mock(ModuleMenuService.class),mock(IUnModuleRelationService.class),
-            accounts,mock(ModuleShareService.class),mock(ModuleFileBatchService.class),mock(ModuleRelationFieldService.class));
+            accounts,mock(ModuleShareService.class),mock(ModuleFileBatchService.class),mock(ModuleRelationFieldService.class),
+            mock(IUnModuleSequenceService.class));
 
     private void access(boolean allData) {
         var context=new SystemManageDto.SystemContext(1L,2L,10L,11L,12L,false,false);
@@ -69,10 +78,10 @@ class ModuleRecordBatchDeleteTest {
     @Test void rejectsWholeSelectionBeforeWritingWhenOneRecordIsOutsideOwnerScope() {
         access(false); record(21L,101L); record(22L,102L);
 
-        assertThrows(ResponseStatusException.class,()->service.deleteByIds("token",1L,2L,3L,
+        assertThrows(BaseException.class,()->service.deleteByIds("token",1L,2L,3L,
                 new ModuleRecordDto.DeleteRecordsRequest(List.of(21L,22L))));
 
-        verify(records,never()).update(any(LambdaUpdateWrapper.class));
+        verify(records,never()).update(any(UpdateWrapper.class));
         verify(logs,never()).addOrUpdate(any());
     }
 
@@ -80,7 +89,7 @@ class ModuleRecordBatchDeleteTest {
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new Configuration(),""),UnModuleRecord.class);
         access(true);
         var first=record(21L,101L); var second=record(22L,102L);
-        when(records.update(any(LambdaUpdateWrapper.class))).thenReturn(true);
+        when(records.update(any(UpdateWrapper.class))).thenReturn(true);
         var actor=new UnPlatAccount(); actor.setDisplayName("操作人");
         when(accounts.queryById(10L)).thenReturn(actor);
 
@@ -93,11 +102,48 @@ class ModuleRecordBatchDeleteTest {
 
         assertNotNull(first.getDeletedTime());
         assertEquals(first.getDeletedTime(),second.getDeletedTime());
-        verify(records,times(2)).update(any(LambdaUpdateWrapper.class));
+        verify(records,times(2)).update(any(UpdateWrapper.class));
         var history=ArgumentCaptor.forClass(UnModuleLog.class);
         verify(logs,times(2)).addOrUpdate(history.capture());
         assertEquals(Set.of(21L,22L),history.getAllValues().stream().map(UnModuleLog::getRecordId)
                 .collect(java.util.stream.Collectors.toSet()));
         assertTrue(history.getAllValues().stream().allMatch(log->"RECORD_DELETE".equals(log.getActionCode())));
+    }
+
+    @Test void approvalKeepsRecordUntilCompletedAndThenDeletesOnce() {
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new Configuration(),""),UnModuleRecord.class);
+        access(true);
+        var row=record(21L,101L); row.setName("待删除记录");
+        when(config.currentFields(3L)).thenReturn(List.of());
+        when(records.getOne(any(),eq(false))).thenReturn(row);
+        when(records.update(any(UpdateWrapper.class))).thenReturn(true);
+        var actor=new UnPlatAccount(); actor.setDisplayName("申请人");
+        when(accounts.queryById(10L)).thenReturn(actor);
+        AtomicReference<Map<String,Object>> requested=new AtomicReference<>();
+        class Starter implements ModuleRecordProcessHandler, ModuleDeleteApprovalStarter {
+            @Override public void afterSave(ModuleRecordProcessContext context) {}
+            @Override public boolean startDeleteApproval(ModuleRecordProcessContext context,Map<String,Object> metadata) {
+                requested.set(new HashMap<>(metadata)); return true;
+            }
+        }
+        ReflectionTestUtils.setField(service,"processHandlers",List.<ModuleRecordProcessHandler>of(new Starter()));
+
+        service.deleteByIds("token",1L,2L,3L,new ModuleRecordDto.DeleteRecordsRequest(List.of(21L)));
+        assertNull(row.getDeletedTime());
+        verify(records,never()).update(any(UpdateWrapper.class));
+        assertEquals(10L,requested.get().get("deleteRequesterAccountId"));
+
+        Map<String,Object> metadata=new HashMap<>(requested.get()); metadata.put("deleteRequest",true);
+        var rejected=new ExamineCompletionContext(1L,2L,3L,21L,12L,30L,41L,"REJECTED",Map.of(),metadata);
+        new ModuleDeleteAfterExamineHandler(service).afterCompletion(rejected);
+        assertNull(row.getDeletedTime());
+        var approved=new ExamineCompletionContext(1L,2L,3L,21L,12L,30L,42L,"COMPLETED",Map.of(),metadata);
+        new ModuleDeleteAfterExamineHandler(service).afterCompletion(approved);
+        assertNotNull(row.getDeletedTime());
+        verify(records,times(1)).update(any(UpdateWrapper.class));
+        var history=ArgumentCaptor.forClass(UnModuleLog.class);
+        verify(logs,times(2)).addOrUpdate(history.capture());
+        assertEquals(List.of("RECORD_DELETE_REQUEST","RECORD_DELETE"),
+                history.getAllValues().stream().map(UnModuleLog::getActionCode).toList());
     }
 }

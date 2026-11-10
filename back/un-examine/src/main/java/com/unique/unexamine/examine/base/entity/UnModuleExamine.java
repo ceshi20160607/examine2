@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-11-07
  */
 @TableName("un_module_examine")
 public class UnModuleExamine implements Serializable {
@@ -35,7 +35,7 @@ public class UnModuleExamine implements Serializable {
     private Long systemId;
 
     /**
-     * 审批绑定定义租户主键
+     * 审批绑定定义租户主键，空表示系统级绑定并可被租户继承
      */
     @TableField("tenant_id")
     private Long tenantId;
@@ -51,6 +51,12 @@ public class UnModuleExamine implements Serializable {
      */
     @TableField("examine_id")
     private Long examineId;
+
+    /**
+     * 模块页面审批状态组主键，空表示不展示独立状态字段
+     */
+    @TableField("status_group_id")
+    private Long statusGroupId;
 
     /**
      * 手动发起审批操作菜单主键
@@ -133,6 +139,14 @@ public class UnModuleExamine implements Serializable {
 
     public void setExamineId(Long examineId) {
         this.examineId = examineId;
+    }
+
+    public Long getStatusGroupId() {
+        return statusGroupId;
+    }
+
+    public void setStatusGroupId(Long statusGroupId) {
+        this.statusGroupId = statusGroupId;
     }
 
     public Long getActionMenuId() {

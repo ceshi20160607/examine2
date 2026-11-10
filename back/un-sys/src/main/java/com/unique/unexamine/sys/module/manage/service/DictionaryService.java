@@ -41,6 +41,7 @@ public class DictionaryService {
     /** 新建基础项时确定不可改变的分类、值和父级；保存成功后立即生效。 */
     @Transactional(rollbackFor=Exception.class)
     public Item create(String token,Long systemId,Long tenantId,CreateRequest request) {
+        validateCreate(request);
         var context=systems.requireAdminContext(token,systemId,tenantId);
         String code=request.dictCode().trim(),value=request.value().trim(),name=request.name().trim();
         UnModuleDict parent=null;
@@ -64,6 +65,8 @@ public class DictionaryService {
     /** 现有基础项只修改展示资料，不接受基础值、分类或父级作为更新参数。 */
     @Transactional(rollbackFor=Exception.class)
     public Item update(String token,Long systemId,Long tenantId,Long id,UpdateRequest request) {
+        requirePositive(id, "字典基础项主键无效");
+        validateUpdate(request);
         var context=systems.requireAdminContext(token,systemId,tenantId);
         var row=dictionaries.getOne(new LambdaQueryWrapper<UnModuleDict>()
                 .eq(UnModuleDict::getId,id).last("FOR UPDATE"));
@@ -90,28 +93,30 @@ public class DictionaryService {
         log.setObjectType("DICTIONARY_ITEM"); log.setObjectId(row.getId());
         Map<String,Object> detail=new LinkedHashMap<>(); detail.put("before",before); detail.put("after",view(row));
         try { log.setDetailJson(json.writeValueAsString(detail)); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("字典资料无法记录", ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_ERROR,"字典资料无法记录", ex); }
         logs.addOrUpdate(log); cache.invalidateAfterCommit(namespace(systemId,row.getTenantId())); return view(row);
     }
 
     /** 普通成员可查询作用域内基础项，角色字段授权仍在业务表单入口检查。 */
     public Page<Item> list(String token,Long systemId,Long tenantId,DictionarySearchBO search) {
         var context=systems.context(token,systemId,tenantId);
+        DictionarySearchBO criteria = search == null ? new DictionarySearchBO() : search;
         Long root=systemRows.queryById(systemId).getRootTenantId();
         var query=new LambdaQueryWrapper<UnModuleDict>().eq(UnModuleDict::getSystemId,systemId)
                 .in(UnModuleDict::getTenantId,new HashSet<>(List.of(root,context.tenantId())))
-                .eq(search.getDictCode()!=null && !search.getDictCode().isBlank(),UnModuleDict::getDictCode,search.getDictCode())
-                .like(search.getName()!=null && !search.getName().isBlank(),UnModuleDict::getName,search.getName())
-                .eq(search.getValue()!=null,UnModuleDict::getDictValue,search.getValue())
-                .eq(search.getParentId()!=null,UnModuleDict::getParentId,search.getParentId())
+                .eq(criteria.getDictCode()!=null && !criteria.getDictCode().isBlank(),UnModuleDict::getDictCode,criteria.getDictCode())
+                .like(criteria.getName()!=null && !criteria.getName().isBlank(),UnModuleDict::getName,criteria.getName())
+                .eq(criteria.getValue()!=null,UnModuleDict::getDictValue,criteria.getValue())
+                .eq(criteria.getParentId()!=null,UnModuleDict::getParentId,criteria.getParentId())
                 .orderByAsc(UnModuleDict::getSortNo).orderByAsc(UnModuleDict::getId);
-        var result=dictionaries.page(search.parse(),query);
+        var result=dictionaries.page(criteria.parse(),query);
         return new Page<Item>(result.getCurrent(), result.getSize(), result.getTotal())
                 .setRecords(result.getRecords().stream().map(this::view).toList());
     }
 
     /** 查询基础项不依赖发布状态，名称修改后所有引用读取当前名称。 */
     public Item get(String token,Long systemId,Long tenantId,Long id) {
+        requirePositive(id, "字典基础项主键无效");
         var context=systems.context(token,systemId,tenantId);
         return items(systemId,context.tenantId(),List.of(id)).get(id);
     }
@@ -119,7 +124,8 @@ public class DictionaryService {
     /** 业务服务已建立上下文后，批量解析选中的稳定 ID；新基础项不会自动加入字段。 */
     public Map<Long,Item> items(Long systemId,Long tenantId,Collection<Long> ids) {
         if (ids.isEmpty()) return Map.of();
-        if (ids.stream().anyMatch(id->id==null || id<1)) throw new IllegalArgumentException("字典基础项 ID 无效");
+        if (ids.stream().anyMatch(id->id==null || id<1))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字典基础项 ID 无效");
         Long root=systemRows.queryById(systemId).getRootTenantId(); Map<Long,Item> result=new LinkedHashMap<>();
         for (var row:dictionaries.listByIds(ids)) {
             if (!systemId.equals(row.getSystemId()) || !List.of(root,tenantId).contains(row.getTenantId())) forbidden();
@@ -127,13 +133,39 @@ public class DictionaryService {
             result.put(row.getId(),cache.get(namespace(systemId,row.getTenantId()),row.getId()+":"+row.getRevision(),
                     Item.class,()->view(row)));
         }
-        if (result.size()!=new HashSet<>(ids).size()) throw new IllegalArgumentException("选用的字典基础项不存在");
+        if (result.size()!=new HashSet<>(ids).size())
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"选用的字典基础项不存在");
         return result;
     }
 
     private Item view(UnModuleDict row) { return new Item(row.getId(),row.getDictCode(),row.getDictValue(),row.getName(),
             row.getParentId(),row.getDepthLevel(),row.getSortNo(),row.getColor(),row.getIcon(),
             Boolean.TRUE.equals(row.getDefaultFlag())); }
+
+    /** 字典服务会被内部模块直接调用，因此不能只依赖 Controller 的 Bean Validation。 */
+    private void validateCreate(CreateRequest request) {
+        if (request == null || blankOrTooLong(request.dictCode(), 80)
+                || !request.dictCode().trim().matches("[A-Za-z0-9_]+")
+                || blankOrTooLong(request.value(), 100) || blankOrTooLong(request.name(), 100))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "字典基础项资料无效");
+        if (request.parentId() != null && request.parentId() < 1)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "字典父项主键无效");
+    }
+
+    private void validateUpdate(UpdateRequest request) {
+        if (request == null || blankOrTooLong(request.name(), 100))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "字典基础项资料无效");
+    }
+
+    private boolean blankOrTooLong(String value, int maxLength) {
+        return value == null || value.isBlank() || value.length() > maxLength;
+    }
+
+    private void requirePositive(Long value, String message) {
+        if (value == null || value < 1)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, message);
+    }
+
     private String namespace(Long systemId,Long tenantId) { return "dictionary-item:"+systemId+":"+tenantId; }
     private void forbidden() { throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"字典基础项不属于当前系统租户"); }
 }

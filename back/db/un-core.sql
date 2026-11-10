@@ -63,3 +63,33 @@ CREATE TABLE IF NOT EXISTS un_common_ai (
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
   PRIMARY KEY (id), KEY ix_common_ai_scope (scope_type, system_id, tenant_id, code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公共智能能力配置';
+
+-- 保存 Agent 原始对话与预览，供本人从写入结果追溯；操作日志只保留脱敏摘要。
+CREATE TABLE IF NOT EXISTS un_common_ai_conversation (
+  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '智能对话记录主键',
+  trace_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '跨预览确认和业务日志的追踪标识',
+  scope_type VARCHAR(20) NOT NULL COMMENT '平台或系统智能对话作用域',
+  system_id BIGINT DEFAULT NULL COMMENT '系统作用域的业务系统主键',
+  tenant_id BIGINT DEFAULT NULL COMMENT '系统作用域的租户主键',
+  account_id BIGINT NOT NULL COMMENT '发起对话的平台账号主键',
+  config_id BIGINT NOT NULL COMMENT '所使用的系统或平台智能配置主键',
+  platform_model_id BIGINT NOT NULL COMMENT '实际调用的平台模型配置主键',
+  system_policy_version INT DEFAULT NULL COMMENT '系统 Agent 发布策略版本，平台对话为空',
+  platform_model_version INT NOT NULL COMMENT '平台模型发布版本',
+  prompt_version VARCHAR(80) DEFAULT NULL COMMENT '系统提示词版本，平台对话为空',
+  intent_code VARCHAR(40) NOT NULL COMMENT '模型识别的业务意图编码',
+  request_text TEXT NOT NULL COMMENT '用户原始对话内容，仅本人经授权接口读取',
+  proposal_json JSON DEFAULT NULL COMMENT '模型生成且展示给用户的结构化预览',
+  status VARCHAR(20) NOT NULL COMMENT '待补充待确认已确认或失败状态',
+  target_type VARCHAR(40) DEFAULT NULL COMMENT '确认后生成的业务对象类型',
+  target_id BIGINT DEFAULT NULL COMMENT '确认后生成的业务对象主键',
+  confirm_account_id BIGINT DEFAULT NULL COMMENT '实际确认的平台账号主键',
+  confirm_time DATETIME(3) DEFAULT NULL COMMENT '用户确认时间',
+  expire_time DATETIME(3) NOT NULL COMMENT '原始对话保留到期时间',
+  create_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '原始对话创建时间',
+  update_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '最近状态更新时间',
+  deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
+  PRIMARY KEY (id), UNIQUE KEY uk_ai_conversation_trace (trace_id),
+  KEY ix_ai_conversation_actor_time (account_id, create_time),
+  KEY ix_ai_conversation_system (system_id, tenant_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能对话追溯记录';

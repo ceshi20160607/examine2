@@ -19,4 +19,7 @@ public interface IUnPlatRoleMenuService extends IService<UnPlatRoleMenu> {
 
     /** 按主键批量逻辑删除记录。 */
     boolean deleteByIds(List<Long> ids);
+
+    /** 恢复已逻辑删除的同一菜单动作授权，供授权替换使用。 */
+    boolean restoreByGrant(Long roleId, Long menuId, String actionCode);
 }

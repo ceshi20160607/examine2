@@ -42,4 +42,10 @@ public class UnPlatRoleMenuServiceImpl extends ServiceImpl<UnPlatRoleMenuMapper,
     public boolean deleteByIds(List<Long> ids) {
         return removeByIds(ids);
     }
+
+    /** 菜单动作再次授权时恢复逻辑删除标记。 */
+    @Override
+    public boolean restoreByGrant(Long roleId, Long menuId, String actionCode) {
+        return getBaseMapper().restoreByGrant(roleId, menuId, actionCode) > 0;
+    }
 }

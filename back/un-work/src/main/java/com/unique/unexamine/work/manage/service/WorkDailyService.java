@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.work.base.entity.UnWorkDaily;
 import com.unique.unexamine.work.base.service.IUnWorkDailyService;
 import com.unique.unexamine.work.manage.bo.WorkDailySearchBO;
@@ -15,10 +17,9 @@ import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 工作日志只由用户显式创建，提交与撤回保留各自版本。 */
 @Service
@@ -52,9 +53,17 @@ public class WorkDailyService {
     /** 当前账号按日期和状态查看自己的日志，不混入任务操作历史。 */
     public Page<DailyView> queryPageList(String token,Long systemId,Long tenantId,WorkDailySearchBO search) {
         Scope scope=scopes.scope(token,systemId,tenantId);
-        LocalDate from=search.getFrom(),to=search.getTo();
-        String status=search.getStatus();
-        Long projectId=search.getProjectId(),taskId=search.getTaskId();
+        WorkDailySearchBO criteria=search==null?new WorkDailySearchBO():search;
+        LocalDate from=criteria.getFrom(),to=criteria.getTo();
+        if (from!=null && to!=null && to.isBefore(from))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"工作日志起止日期无效");
+        String status=criteria.getStatus();
+        if (status!=null && !status.isBlank()) {
+            status=status.trim().toUpperCase();
+            if (!Set.of("DRAFT","SUBMITTED","WITHDRAWN").contains(status))
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"工作日志状态无效");
+        }
+        Long projectId=criteria.getProjectId(),taskId=criteria.getTaskId();
         if (projectId!=null) projects.queryById(token,systemId,tenantId,projectId);
         if (taskId!=null) tasks.queryById(token,systemId,tenantId,taskId);
         var where=ownerScope(scope).eq(UnWorkDaily::getIsCurrent,true);
@@ -65,7 +74,7 @@ public class WorkDailyService {
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('projectIds', JSON_ARRAY({0})))",projectId);
         if (taskId!=null) where.apply(
                 "JSON_CONTAINS(relation_json, JSON_OBJECT('taskIds', JSON_ARRAY({0})))",taskId);
-        var result=dailies.page(search.parse(),where.orderByDesc(UnWorkDaily::getLogTime)
+        var result=dailies.page(criteria.parse(),where.orderByDesc(UnWorkDaily::getLogTime)
                 .orderByDesc(UnWorkDaily::getId));
         return new Page<DailyView>(result.getCurrent(), result.getSize(), result.getTotal()).setRecords(result.getRecords().stream().map(this::view).toList());
     }
@@ -80,7 +89,7 @@ public class WorkDailyService {
     public DailyView edit(String token,Long systemId,Long tenantId,Long rootId,DailyRequest request) {
         UnWorkDaily row=current(scopes.scope(token,systemId,tenantId),rootId,true);
         if (!"DRAFT".equals(row.getStatus()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"只有草稿可以编辑");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"只有草稿可以编辑");
         content(row,request,token,systemId,tenantId);
         dailies.update(new LambdaUpdateWrapper<UnWorkDaily>().eq(UnWorkDaily::getId,row.getId())
                 .set(UnWorkDaily::getLogTime,row.getLogTime())
@@ -98,7 +107,7 @@ public class WorkDailyService {
     public DailyView submit(String token,Long systemId,Long tenantId,Long rootId) {
         UnWorkDaily current=current(scopes.scope(token,systemId,tenantId),rootId,true);
         if (!"DRAFT".equals(current.getStatus()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"只有草稿可以提交");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"只有草稿可以提交");
         return nextVersion(current,"SUBMITTED");
     }
 
@@ -107,7 +116,7 @@ public class WorkDailyService {
     public DailyView withdraw(String token,Long systemId,Long tenantId,Long rootId) {
         UnWorkDaily current=current(scopes.scope(token,systemId,tenantId),rootId,true);
         if (!"SUBMITTED".equals(current.getStatus()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"只有已提交日志可以撤回");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"只有已提交日志可以撤回");
         return nextVersion(current,"WITHDRAWN");
     }
 
@@ -116,7 +125,7 @@ public class WorkDailyService {
     public DailyView reopen(String token,Long systemId,Long tenantId,Long rootId) {
         UnWorkDaily current=current(scopes.scope(token,systemId,tenantId),rootId,true);
         if (!"WITHDRAWN".equals(current.getStatus()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"只有已撤回日志可以恢复草稿");
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"只有已撤回日志可以恢复草稿");
         return nextVersion(current,"DRAFT");
     }
 
@@ -131,8 +140,10 @@ public class WorkDailyService {
 
     private void content(UnWorkDaily row,DailyRequest request,
                          String token,Long systemId,Long tenantId) {
+        if (request == null || request.logDate() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"工作日志日期不能为空");
         if (request.logDate().isAfter(LocalDate.now()))
-            throw new IllegalArgumentException("工作日志日期只能是今天或过去日期");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"工作日志日期只能是今天或过去日期");
         List<Long> projectIds=request.projectIds()==null?List.of():request.projectIds().stream().distinct().toList();
         List<Long> taskIds=request.taskIds()==null?List.of():request.taskIds().stream().distinct().toList();
         projectIds.forEach(id->projects.queryById(token,systemId,tenantId,id));
@@ -145,13 +156,13 @@ public class WorkDailyService {
 
     private String writeRelations(Relations relations) {
         try { return json.writeValueAsString(relations); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("工作日志关联无法保存",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_ERROR,"工作日志关联无法保存",ex); }
     }
 
     private Relations readRelations(String value) {
         if (value==null) return new Relations(List.of(),List.of());
         try { return json.readValue(value,Relations.class); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("工作日志关联无法读取",ex); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"工作日志关联无法读取",ex); }
     }
 
     /** 持有当前版行锁的调用方串行推进版本号，旧版内容不被覆盖。 */
@@ -190,7 +201,7 @@ public class WorkDailyService {
                         .or().eq(UnWorkDaily::getRootId,rootId));
         if (lock) where.last("FOR UPDATE");
         UnWorkDaily row=dailies.getOne(where,false);
-        if (row==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"工作日志不存在");
+        if (row==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"工作日志不存在");
         return row;
     }
 

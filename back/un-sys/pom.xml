@@ -10,6 +10,12 @@
   </parent>
   <artifactId>un-sys</artifactId>
   <dependencies>
+    <!-- 模块打印动作在服务端生成可下载的 PDF。 -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.8</version>
+    </dependency>
     <!-- 模块接口测试经 MockMvc 验证实际 HTTP 映射和请求体。 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

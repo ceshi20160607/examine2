@@ -13,5 +13,6 @@ test-results/
 __pycache__/
 *.pyc
 /back/data/
+/back/un-web/data/
 /back/runtime/
 /data/

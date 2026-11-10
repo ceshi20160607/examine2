@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.unique.unexamine.core.field.FileBatchId;
 import com.unique.unexamine.core.field.FieldType;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
@@ -30,20 +32,20 @@ public class ModuleFileBatchService {
             if (!fileField(field)) continue;
             String batchId = batchId(values.get(field.getFieldKey()));
             if (batchId == null) continue;
-            if (!used.add(batchId)) throw new IllegalArgumentException("同一文件批次不能配置到多个字段");
+            if (!used.add(batchId)) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"同一文件批次不能配置到多个字段");
             List<UnCommonFile> batch = files.list(new LambdaQueryWrapper<UnCommonFile>()
                     .eq(UnCommonFile::getBatchId, batchId).orderByAsc(UnCommonFile::getId).last("FOR UPDATE"));
-            if (batch.isEmpty()) throw new IllegalArgumentException(field.getFieldName() + "：文件批次不存在");
+            if (batch.isEmpty()) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,field.getFieldName() + "：文件批次不存在");
             for (UnCommonFile file : batch) {
                 if (!"ACTIVE".equals(file.getStatus()) || !"SYSTEM".equals(file.getScopeType())
                         || !systemId.equals(file.getSystemId()) || !dataTenantId.equals(file.getTenantId())
                         || file.getModuleId() != null && !field.getModuleId().equals(file.getModuleId())
                         || file.getDataId() != null && !java.util.Objects.equals(recordId, file.getDataId()))
-                    throw new IllegalArgumentException(field.getFieldName() + "：文件批次不属于当前记录或不可用");
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,field.getFieldName() + "：文件批次不属于当前记录或不可用");
                 if (file.getDataId() == null && !accountId.equals(file.getUploaderAccountId()))
-                    throw new IllegalArgumentException(field.getFieldName() + "：不能关联他人未归属的文件");
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,field.getFieldName() + "：不能关联他人未归属的文件");
                 if ("IMAGE".equals(field.getDisplayStyle()) && !file.getContentType().startsWith("image/"))
-                    throw new IllegalArgumentException(field.getFieldName() + "：仅允许图片文件");
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,field.getFieldName() + "：仅允许图片文件");
             }
         }
     }
@@ -66,6 +68,22 @@ public class ModuleFileBatchService {
                     .eq(UnCommonFile::getTenantId, record.getTenantId()).eq(UnCommonFile::getBatchId, batchId)
                     .set(UnCommonFile::getModuleId, record.getModuleId()).set(UnCommonFile::getDataId, record.getId()));
         }
+    }
+
+    /** 业务记录逻辑删除时同步逻辑删除其附件元数据，保留文件行供审计但不再出现在普通文件入口。 */
+    public void deleteForRecord(Long moduleId, Long recordId) {
+        if (moduleId == null || recordId == null) return;
+        files.remove(new LambdaQueryWrapper<UnCommonFile>()
+                .eq(UnCommonFile::getModuleId, moduleId)
+                .eq(UnCommonFile::getDataId, recordId));
+    }
+
+    /** 模块批量删除记录时一次性处理附件，避免已删除业务数据的附件继续被上传者列表看到。 */
+    public void deleteForRecords(Long moduleId, List<Long> recordIds) {
+        if (moduleId == null || recordIds == null || recordIds.isEmpty()) return;
+        files.remove(new LambdaQueryWrapper<UnCommonFile>()
+                .eq(UnCommonFile::getModuleId, moduleId)
+                .in(UnCommonFile::getDataId, recordIds));
     }
 
     private boolean fileField(UnModuleField field) {

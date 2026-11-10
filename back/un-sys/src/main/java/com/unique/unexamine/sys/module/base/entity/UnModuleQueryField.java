@@ -70,9 +70,7 @@ public class UnModuleQueryField implements Serializable {
     @TableField("config_json")
     private String configJson;
 
-    /**
-     * ??ѯ??????ͣ״̬?????漴?
-     */
+    /** 查询字段配置当前启用、停用或逻辑删除前的业务状态。 */
     @TableField("status")
     private String status;
 

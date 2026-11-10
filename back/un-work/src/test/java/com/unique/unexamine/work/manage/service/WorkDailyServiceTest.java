@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.work.base.entity.UnWorkDaily;
 import com.unique.unexamine.work.base.service.IUnWorkDailyService;
 import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
+import com.unique.unexamine.work.manage.bo.WorkDailySearchBO;
+import com.unique.unexamine.core.exception.BaseException;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
@@ -14,6 +16,7 @@ import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,5 +69,22 @@ class WorkDailyServiceTest {
         assertEquals(List.of(40L),result.relations().taskIds());
         verify(projects).queryById("token",null,null,20L);
         verify(tasks).queryById("token",null,null,40L);
+    }
+
+    @Test
+    void listRejectsInvalidDateRangeAndStatusBeforeQueryingStorage() {
+        WorkScopeService scopes=mock(WorkScopeService.class);
+        IUnWorkDailyService dailies=mock(IUnWorkDailyService.class);
+        WorkDailyService service=new WorkDailyService(scopes,dailies,
+                mock(WorkProjectService.class),mock(WorkTaskService.class),new ObjectMapper());
+        when(scopes.scope("token",null,null)).thenReturn(new Scope(10L,"PLATFORM",null,null));
+        WorkDailySearchBO range=new WorkDailySearchBO();
+        range.setFrom(LocalDate.of(2026,10,24));
+        range.setTo(LocalDate.of(2026,10,23));
+        assertThrows(BaseException.class,()->service.queryPageList("token",null,null,range));
+        WorkDailySearchBO status=new WorkDailySearchBO();
+        status.setStatus("UNKNOWN");
+        assertThrows(BaseException.class,()->service.queryPageList("token",null,null,status));
+        verify(dailies,org.mockito.Mockito.never()).page(any(),any());
     }
 }

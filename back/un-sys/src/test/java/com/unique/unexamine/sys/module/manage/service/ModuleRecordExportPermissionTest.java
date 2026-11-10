@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.permission.PermissionPolicy;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.UnModule;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 导出使用独立菜单，并且显式请求无导出许可的列时明确拒绝。 */
 class ModuleRecordExportPermissionTest {
@@ -76,7 +76,7 @@ class ModuleRecordExportPermissionTest {
         setup();
         var query=new ModuleRecordSearchBO(); query.setLimit(500); query.setColumnFieldIds(List.of(12L));
 
-        assertThrows(ResponseStatusException.class,()->service.export("token",1L,2L,3L,query));
+        assertThrows(BaseException.class,()->service.export("token",1L,2L,3L,query));
         verify(records,never()).page(any(Page.class),any(QueryWrapper.class));
     }
 }

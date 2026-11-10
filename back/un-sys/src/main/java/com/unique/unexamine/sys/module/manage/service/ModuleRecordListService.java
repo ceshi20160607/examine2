@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.field.FieldDefinition;
 import com.unique.unexamine.core.field.FieldType;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
+import com.unique.unexamine.core.permission.PermissionPolicy;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecord;
 import com.unique.unexamine.sys.module.base.entity.UnModuleRecordData;
@@ -14,6 +17,7 @@ import com.unique.unexamine.sys.module.base.service.IUnModuleRecordService;
 import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
 import com.unique.unexamine.sys.module.manage.dto.ModuleColumnDto;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.Column;
+import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ApprovalStatusColumn;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.ListView;
 import com.unique.unexamine.sys.module.manage.dto.ModuleRecordListDto.Row;
 import com.unique.unexamine.sys.module.manage.dto.ModuleSceneDto;
@@ -68,17 +72,27 @@ public class ModuleRecordListService {
     private ListView queryWithAccess(String token,ModulePermissionService.Access access,Long systemId,Long moduleId,
                                    ModuleRecordSearchBO request,boolean exporting) {
         var context=access.context(); modules.activeModule(systemId,moduleId,context.tenantId());
-        if (request==null) throw new IllegalArgumentException("查询条件不能为空");
+        PermissionPolicy listFields=exporting?access.policy():permissions.listFieldsPolicy(access);
+        if (request==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "查询条件不能为空");
         Page<UnModuleRecord> requestedPage=request.parse(exporting?500:100);
         String scope=request.getScope()==null?"ALL":request.getScope();
-        if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new IllegalArgumentException("列表范围无效");
+        if (!Set.of("ALL","MINE","SHARED").contains(scope)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "列表范围无效");
         if (request.getKeyword()!=null && request.getKeyword().length()>100)
-            throw new IllegalArgumentException("搜索文本过长");
-        if (request.getKeyword()!=null && !request.getKeyword().isBlank() && !access.policy().readable("name"))
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
-                    "没有标题字段的查询权限");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "搜索文本过长");
+        if (request.getAdditionalKeyword()!=null && request.getAdditionalKeyword().length()>100)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "搜索文本过长");
+        if ((request.getKeyword()!=null && !request.getKeyword().isBlank()
+                || request.getAdditionalKeyword()!=null && !request.getAdditionalKeyword().isBlank())
+                && !listFields.readable("name"))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "没有标题字段的查询权限");
+        // 关联数据源只会分批回查主键；普通接口也必须拒绝无效或过大的主键集合，避免超大 IN 条件。
+        if (request.getRecordIds()!=null && (request.getRecordIds().size()>5000
+                || request.getRecordIds().stream().anyMatch(id -> id==null || id<1)))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "记录主键筛选无效或数量过多");
         var saved=scenes.resolve(moduleId,request.getSceneId(),access);
         List<ModuleSceneDto.Condition> conditions=new ArrayList<>(saved.filters());
+        if (request.getAdditionalSceneId()!=null && !request.getAdditionalSceneId().equals(request.getSceneId()))
+            conditions.addAll(scenes.resolve(moduleId,request.getAdditionalSceneId(),access).filters());
         if (request.getFilters()!=null) conditions.addAll(request.getFilters());
         var settings=new ModuleSceneDto.Settings(conditions,
                 request.getColumnFieldIds()==null?saved.columnFieldIds():request.getColumnFieldIds(),
@@ -88,21 +102,22 @@ public class ModuleRecordListService {
         List<UnModuleField> currentFields=modules.currentFields(moduleId);
         Map<Long,UnModuleField> fields=currentFields.stream().collect(Collectors.toMap(UnModuleField::getId,field->field));
         Map<Long,ModuleColumnDto.Preference> personal=columnPreferences.effective(moduleId,access);
-        List<UnModuleField> selected=settings.columnFieldIds().isEmpty()?currentFields:settings.columnFieldIds()
+        List<UnModuleField> pageColumns=exporting?currentFields:modules.pageFields(moduleId,"LIST").stream()
+                .map(slot->fields.get(slot.getFieldId())).filter(java.util.Objects::nonNull).toList();
+        List<UnModuleField> selected=settings.columnFieldIds().isEmpty()?pageColumns:settings.columnFieldIds()
                 .stream().map(fields::get).toList();
         Set<Long> actionFields=exporting?Set.copyOf(access.definition().settings().fieldIds()):Set.of();
         if (exporting && request.getColumnFieldIds()!=null && !request.getColumnFieldIds().isEmpty()
                 && selected.stream().anyMatch(field->
                 !access.policy().exportable(field.getFieldKey())
                         || !actionFields.isEmpty() && !actionFields.contains(field.getId())))
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN,
-                    "导出列超出动作或字段权限");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "导出列超出动作或字段权限");
         Map<Long,Integer> defaultPositions=new HashMap<>();
         for (int position=0;position<selected.size();position++) defaultPositions.put(selected.get(position).getId(),position);
         List<UnModuleField> columns=selected.stream()
                 .filter(field->exporting?access.policy().exportable(field.getFieldKey())
                         && (actionFields.isEmpty() || actionFields.contains(field.getId()))
-                        :access.policy().readable(field.getFieldKey()))
+                        :listFields.readable(field.getFieldKey()))
                 .filter(field->exporting || !personal.containsKey(field.getId()) || !personal.get(field.getId()).hidden())
                 .sorted(Comparator.comparingInt(field->personal.containsKey(field.getId())
                         ?personal.get(field.getId()).sortNo():1000+defaultPositions.get(field.getId())))
@@ -111,21 +126,56 @@ public class ModuleRecordListService {
                 field.getFieldName(),field.getFieldType(),personal.containsKey(field.getId())
                 ?personal.get(field.getId()).widthPx():null,personal.containsKey(field.getId())
                 ?personal.get(field.getId()).fixedSide():null)).toList();
+        List<ApprovalStatusColumn> statusHeaders=exporting?List.of():modules.approvalStatusFields(moduleId).stream()
+                .map(group->new ApprovalStatusColumn(group.id(),group.code(),group.name(),group.sortNo())).toList();
         QueryWrapper<UnModuleRecord> where=new QueryWrapper<UnModuleRecord>()
                 .eq("system_id",systemId).eq("module_id",moduleId)
                 .isNull("deleted_time");
+        if (request.getStatusCode()!=null || request.getCheckStatus()!=null) {
+            if (!listFields.readable("status")) throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"没有状态字段的查询权限");
+            if (request.getStatusCode()!=null) {
+                if (!request.getStatusCode().matches("[A-Z][A-Z0-9_]{0,39}"))
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"业务状态编码无效");
+                where.eq("status",request.getStatusCode());
+            }
+            if (request.getCheckStatus()!=null) {
+                if (request.getCheckStatus()<0 || request.getCheckStatus()>4)
+                    throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"审批状态值无效");
+                where.eq("check_status",request.getCheckStatus());
+            }
+        }
+        // 关联数据源只回查已知记录主键，但仍沿用当前模块的权限、租户和逻辑删除条件。
+        // 空主键集合表示两组条件没有交集，不能把它解释成不筛选。
+        if (request.getRecordIds()!=null) {
+            if (!request.getRecordIds().isEmpty()) where.in("id",request.getRecordIds());
+        }
+        modules.applyApprovalStatusFilters(where,systemId,moduleId,request.getApprovalStatusFilters());
+        if (request.getRecordIds()!=null && request.getRecordIds().isEmpty())
+            return new ListView(headers,statusHeaders,new Page<Row>(requestedPage.getCurrent(),requestedPage.getSize(),0)
+                    .setRecords(List.of()));
         if (!shares.applyRecordScope(where,access,scope))
-            return new ListView(headers,new Page<Row>(requestedPage.getCurrent(),requestedPage.getSize(),0)
+            return new ListView(headers,statusHeaders,new Page<Row>(requestedPage.getCurrent(),requestedPage.getSize(),0)
                     .setRecords(List.of()));
         if (request.getKeyword()!=null && !request.getKeyword().isBlank())
             where.apply("LOCATE({0}, name) > 0",request.getKeyword().trim());
-        for (var condition:conditions) ModuleRecordFilter.apply(where,fields.get(condition.fieldId()),condition,json);
+        if (request.getAdditionalKeyword()!=null && !request.getAdditionalKeyword().isBlank())
+            where.apply("LOCATE({0}, name) > 0",request.getAdditionalKeyword().trim());
+        for (var condition:conditions) {
+            UnModuleField field = fields.get(condition.fieldId());
+            FieldDefinition definition = fieldRules.configured(field.getFieldKey(), modules.fieldConfig(field).configuration());
+            ModuleRecordFilter.apply(where, field, definition, condition, json);
+        }
         if (settings.sortFieldId()==null) where.orderByDesc("id");
         else sort(where,fields.get(settings.sortFieldId()),settings.descending());
         Page<UnModuleRecord> page=records.page(requestedPage,where);
         if (page.getRecords().isEmpty())
-            return new ListView(headers,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(List.of()));
+            return new ListView(headers,statusHeaders,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(List.of()));
         List<Long> recordIds=page.getRecords().stream().map(UnModuleRecord::getId).toList();
+        Map<Long,Map<String,String>> approvalStatuses=new HashMap<>();
+        if (!statusHeaders.isEmpty()) page.getRecords().stream().collect(Collectors.groupingBy(
+                UnModuleRecord::getTenantId,Collectors.mapping(UnModuleRecord::getId,Collectors.toList())))
+                .forEach((sourceTenant,ids)->approvalStatuses.putAll(
+                        modules.approvalStatuses(systemId,sourceTenant,moduleId,ids)));
         List<UnModuleField> extensionFields=columns.stream().filter(field->!"name".equals(field.getFieldKey()))
                 .filter(field->!ModuleRecordStorage.isMain(fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration())))
                 .toList();
@@ -135,12 +185,16 @@ public class ModuleRecordListService {
                 .in(UnModuleRecordData::getRecordId,recordIds).in(UnModuleRecordData::getFieldId,extensionIds))) {
             UnModuleField field=fields.get(row.getFieldId());
             values.computeIfAbsent(row.getRecordId(),id->new HashMap<>())
-                    .put(row.getFieldId(),fieldRules.stored(row,FieldType.parse(field.getFieldType())));
+                    .put(row.getFieldId(),fieldRules.stored(row,
+                            fieldRules.configured(field.getFieldKey(), modules.fieldConfig(field).configuration())));
         }
         List<Row> rows=new ArrayList<>();
         for (UnModuleRecord record:page.getRecords()) {
+            PermissionPolicy rowPolicy=exporting?access.policy()
+                    :permissions.teamAllows(access,record)?listFields:access.policy();
             Map<String,Object> cellValues=new LinkedHashMap<>(); Map<String,Object> display=new LinkedHashMap<>();
             for (UnModuleField field:columns) {
+                if (!rowPolicy.readable(field.getFieldKey())) continue;
                 FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
                 Object value="name".equals(field.getFieldKey())?record.getName()
                         :ModuleRecordStorage.isMain(definition)?ModuleRecordStorage.read(record,definition)
@@ -149,41 +203,41 @@ public class ModuleRecordListService {
                 if (value!=null) {
                     if (definition.type().options()) display.put(field.getFieldKey(),
                             fieldRules.display(systemId,record.getTenantId(),definition,value));
-                    else if (definition.type()==FieldType.USER) display.put(field.getFieldKey(),
-                            fieldRules.present(systemId,record.getTenantId(),definition,value));
-                    else if (definition.type()==FieldType.DATE_TIME) display.put(field.getFieldKey(),
+                    else if (Set.of(FieldType.USER, FieldType.DEPARTMENT, FieldType.DATE_TIME).contains(definition.type())) display.put(field.getFieldKey(),
                             fieldRules.present(systemId,record.getTenantId(),definition,value));
                     else if (definition.type()==FieldType.RELATION) display.put(field.getFieldKey(),
-                            relationFields.display(token,systemId,context.tenantId(),definition,value));
+                            relationFields.display(token,systemId,context.tenantId(),field,definition,value));
                 }
             }
-            rows.add(new Row(record.getId(),access.policy().readable("name")?record.getName():null,
-                    access.policy().readable("status")?record.getStatus():null,
-                    access.policy().readable("ownerUserId")?record.getOwnerUserId():null,
-                    record.getTenantId(),!record.getTenantId().equals(context.tenantId()),cellValues,display));
+            rows.add(new Row(record.getId(),rowPolicy.readable("name")?record.getName():null,
+                    rowPolicy.readable("status")?record.getStatus():null,
+                    rowPolicy.readable("status")?record.getCheckStatus():null,
+                    rowPolicy.readable("ownerUserId")?record.getOwnerUserId():null,
+                    record.getTenantId(),!record.getTenantId().equals(context.tenantId()),cellValues,display,
+                    approvalStatuses.getOrDefault(record.getId(),Map.of())));
         }
-        return new ListView(headers,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(rows));
+        return new ListView(headers,statusHeaders,new Page<Row>(page.getCurrent(),page.getSize(),page.getTotal()).setRecords(rows));
     }
 
     /** 字段 ID 已从当前定义校验；相关子查询仅用于已授权的动态列排序。 */
     private void sort(QueryWrapper<UnModuleRecord> where,UnModuleField field,boolean descending) {
         if ("name".equals(field.getFieldKey())) where.orderBy(true,!descending,"name");
         else {
-            FieldType type=FieldType.parse(field.getFieldType());
-            if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.REFERENCES).contains(type.kind()))
-                throw new IllegalArgumentException("该字段类型暂不支持列表排序");
             FieldDefinition definition=fieldRules.configured(field.getFieldKey(),modules.fieldConfig(field).configuration());
+            FieldType type=definition.type();
+            if (Set.of(FieldType.Kind.OPTIONS,FieldType.Kind.REFERENCES).contains(type.kind()))
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "该字段类型暂不支持列表排序");
             if ((type.kind()==FieldType.Kind.REFERENCE || type==FieldType.SELECT)
                     && Boolean.TRUE.equals(definition.rules().get("multiple")))
-                throw new IllegalArgumentException("多选字段暂不支持列表排序");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "多选字段暂不支持列表排序");
             if (ModuleRecordStorage.isMain(definition)) {
                 where.orderBy(true,!descending,ModuleRecordStorage.column(field.getFieldKey()));
                 where.orderByDesc("id");
                 return;
             }
-            String indexed=type.valueColumn().sqlName();
+            String indexed=com.unique.unexamine.core.field.FieldValueCodec.valueColumn(definition).sqlName();
             if (indexed==null || "value_json".equals(indexed))
-                throw new IllegalArgumentException("该字段类型暂不支持列表排序");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID, "该字段类型暂不支持列表排序");
             String expression="d."+indexed;
             String value="(SELECT "+expression+" FROM un_module_record_data d WHERE d.deleted_time IS NULL AND d.record_id = "
                     +"un_module_record.id AND d.field_id = "+field.getId()+")";

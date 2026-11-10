@@ -15,8 +15,11 @@ import com.unique.unexamine.core.cache.ConfigurationCache;
 import com.unique.unexamine.core.file.base.entity.UnCommonFile;
 import com.unique.unexamine.core.file.base.service.IUnCommonFileService;
 import com.unique.unexamine.core.permission.PermissionPolicy;
+import com.unique.unexamine.core.exception.BaseException;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
 import com.unique.unexamine.file.FileStorage;
 import com.unique.unexamine.sys.base.service.*;
+import com.unique.unexamine.sys.base.entity.UnSysMenu;
 import com.unique.unexamine.sys.manage.service.SystemManageService;
 import com.unique.unexamine.sys.module.base.entity.*;
 import com.unique.unexamine.sys.module.base.service.*;
@@ -27,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 删除必须明确选择；完整备份受权限约束，导出后的数据变化不能被旧备份放行。 */
 class ModuleDeletionServiceTest {
@@ -52,6 +54,7 @@ class ModuleDeletionServiceTest {
 
     private void setup() {
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new Configuration(),""),UnModuleRecordData.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new Configuration(),""),UnSysMenu.class);
         module.setId(3L); module.setSystemId(1L); module.setTenantId(2L); module.setName("商机");
         record.setId(21L); record.setSystemId(1L); record.setModuleId(3L); record.setTenantId(2L);
         record.setOwnerUserId(10L); record.setName("原商机");
@@ -60,7 +63,8 @@ class ModuleDeletionServiceTest {
         when(modules.queryById(3L)).thenReturn(module);
         when(records.count(any(Wrapper.class))).thenReturn(1L);
         var field=new UnModuleField(); field.setId(31L); field.setFieldKey("name");
-        when(fields.list(any(Wrapper.class))).thenReturn(List.of(field));
+        // 删除备份与运行查询统一使用当前有效字段，测试夹具也按同一业务入口提供字段。
+        when(config.currentFields(3L)).thenReturn(List.of(field));
         var policy=new PermissionPolicy(true,true,Set.of(),true,Set.of(),true,Set.of(),true,Set.of());
         when(permissions.require("token",1L,2L,3L,"EXPORT"))
                 .thenReturn(new ModulePermissionService.Access(context,10L,policy,null));
@@ -68,15 +72,24 @@ class ModuleDeletionServiceTest {
 
     @Test void dataRequiresExplicitChoiceBeforeAnyDeletion() {
         setup();
-        var failure=assertThrows(ResponseStatusException.class,()->service.delete("token",1L,2L,3L,null));
-        assertEquals(409,failure.getStatusCode().value());
+        var failure=assertThrows(BaseException.class,()->service.delete("token",1L,2L,3L,null));
+        assertEquals(SystemCodeEnum.SYSTEM_CONFLICT.getCode(),failure.getCode());
         verify(modules,never()).removeById(anyLong()); verify(values,never()).remove(any(Wrapper.class));
+    }
+
+    @Test void emptyModuleDoesNotRequireBackupEvenWhenExportChoiceIsSent() throws Exception {
+        setup();
+        when(records.count(any(Wrapper.class))).thenReturn(0L);
+        service.delete("token",1L,2L,3L,
+                new ModuleDeletionDto.DeleteRequest(ModuleDeletionDto.Choice.EXPORTED,null));
+        verify(modules).removeById(3L);
+        verifyNoInteractions(storage);
     }
 
     @Test void inheritedModuleCannotBeDeletedFromAnotherTenant() {
         setup(); module.setTenantId(99L);
-        var failure=assertThrows(ResponseStatusException.class,()->service.check("token",1L,2L,3L));
-        assertEquals(403,failure.getStatusCode().value()); verifyNoInteractions(storage);
+        var failure=assertThrows(BaseException.class,()->service.check("token",1L,2L,3L));
+        assertEquals(SystemCodeEnum.SYSTEM_NO_AUTH.getCode(),failure.getCode()); verifyNoInteractions(storage);
     }
 
     @Test void changedDataAfterCompleteBackupBlocksDeletion() throws Exception {
@@ -101,9 +114,9 @@ class ModuleDeletionServiceTest {
             assertEquals(1,backup.recordCount());
             assertEquals("原商机",json.readTree(backupBytes[0]).path("records").get(0).path("record").path("name").asText());
             record.setName("导出后的新商机");
-            var failure=assertThrows(ResponseStatusException.class,()->service.delete("token",1L,2L,3L,
+            var failure=assertThrows(BaseException.class,()->service.delete("token",1L,2L,3L,
                     new ModuleDeletionDto.DeleteRequest(ModuleDeletionDto.Choice.EXPORTED,51L)));
-            assertEquals(409,failure.getStatusCode().value());
+            assertEquals(SystemCodeEnum.SYSTEM_CONFLICT.getCode(),failure.getCode());
             verify(modules,never()).removeById(anyLong()); verify(values,never()).remove(any(Wrapper.class));
         } finally { TransactionSynchronizationManager.clearSynchronization(); }
     }
@@ -114,7 +127,7 @@ class ModuleDeletionServiceTest {
         var denied=new PermissionPolicy(true,true,Set.of(),true,Set.of(),true,Set.of(),false,Set.of());
         when(permissions.require("token",1L,2L,3L,"EXPORT"))
                 .thenReturn(new ModulePermissionService.Access(context,10L,denied,null));
-        var failure=assertThrows(ResponseStatusException.class,()->service.export("token",1L,2L,3L));
-        assertEquals(403,failure.getStatusCode().value()); verifyNoInteractions(storage,files,jobs);
+        var failure=assertThrows(BaseException.class,()->service.export("token",1L,2L,3L));
+        assertEquals(SystemCodeEnum.SYSTEM_NO_AUTH.getCode(),failure.getCode()); verifyNoInteractions(storage,files,jobs);
     }
 }

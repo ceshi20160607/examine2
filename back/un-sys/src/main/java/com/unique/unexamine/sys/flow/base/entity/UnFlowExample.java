@@ -101,7 +101,7 @@ public class UnFlowExample implements Serializable {
     private String initiatorExternalId;
 
     /**
-     * 运行通过拒绝撤回终止或异常状态
+     * Flow 运行中、完成或异常状态；审批结果保存在 examine 实例并作为 Flow 事件使用
      */
     @TableField("status")
     private String status;

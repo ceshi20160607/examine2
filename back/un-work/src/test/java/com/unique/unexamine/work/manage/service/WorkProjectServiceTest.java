@@ -11,10 +11,11 @@ import com.unique.unexamine.work.base.service.IUnWorkProjectService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskGroupService;
 import com.unique.unexamine.work.base.service.IUnWorkTaskService;
 import com.unique.unexamine.work.manage.service.WorkScopeService.Scope;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.session.Configuration;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -73,8 +74,9 @@ class WorkProjectServiceTest {
         when(members.getOne(any(),eq(false))).thenReturn(member);
         when(members.count(any())).thenReturn(0L);
         when(tasks.exists(any())).thenReturn(true);
-        assertThrows(ResponseStatusException.class,
+        BaseException error = assertThrows(BaseException.class,
                 ()->service.removeMember("token",null,null,20L,30L));
+        assertEquals(SystemCodeEnum.SYSTEM_CONFLICT.getCode(), error.getCode());
         verify(members,never()).update(any());
     }
 }

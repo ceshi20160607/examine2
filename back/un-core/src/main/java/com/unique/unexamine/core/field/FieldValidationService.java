@@ -19,7 +19,7 @@ public class FieldValidationService {
             "pattern", "minItems", "maxItems", "unique", "multiple", "options", "defaultValue",
             "displayStyle", "hint", "placeholder", "round", "unitDictCode", "currencyCode", "dictCode",
             "optionDisplayRules",
-            "relationModuleId", "relationConfig", "autoNumberConfig", "formulaConfig");
+            "relationModuleId", "autoNumberConfig", "formulaConfig");
 
     /** 配置保存和发布前都核对规则自身，避免不可能满足的表单进入运行态。 */
     public void validateDefinition(FieldDefinition field) {
@@ -78,15 +78,10 @@ public class FieldValidationService {
         if (rules.containsKey("dictCode") && (!field.type().options()
                 || !(rules.get("dictCode") instanceof String value) || !value.matches("[A-Za-z0-9_]{1,80}")))
             fail(field,"选项字段必须使用有效字典编码");
-        if (rules.containsKey("relationModuleId") != (field.type()==FieldType.RELATION)
-                || rules.containsKey("relationConfig") != (field.type()==FieldType.RELATION))
-            fail(field,"关联模块及显示字段须成组配置");
+        if (rules.containsKey("relationModuleId") != (field.type()==FieldType.RELATION))
+            fail(field,"关联字段必须配置目标模块");
         if (field.type()==FieldType.RELATION) {
-            if (!positiveId(rules.get("relationModuleId")) || !(rules.get("relationConfig") instanceof Map<?,?> config)
-                    || !(config.get("displayFieldKeys") instanceof List<?> keys) || keys.isEmpty()
-                    || keys.stream().anyMatch(key->!(key instanceof String value) || !value.matches("[a-z][a-zA-Z0-9_]{0,79}"))
-                    || keys.stream().map(String::valueOf).distinct().count()!=keys.size())
-                fail(field,"关联目标与可显示字段无效");
+            if (!positiveId(rules.get("relationModuleId"))) fail(field,"关联目标模块无效");
         }
         if (rules.containsKey("multiple") && !Set.of(FieldType.SELECT,FieldType.USER,FieldType.DEPARTMENT,FieldType.RELATION).contains(field.type()))
             fail(field,"多选仅适用于选项、人员、部门和关联模块");
@@ -120,9 +115,7 @@ public class FieldValidationService {
                         || !ids.add(String.valueOf(option.get("id")))) fail(field, "选项必须有唯一标识和名称");
             }
         }
-        if (rules.containsKey("optionDisplayRules") && (!field.type().options()
-                || !(rules.get("optionDisplayRules") instanceof List<?>)))
-            fail(field,"选项联动显示规则无效");
+        if (rules.containsKey("optionDisplayRules")) validateOptionDisplayRules(field,rules.get("optionDisplayRules"));
         if (field.type()==FieldType.SELECT && "SWITCH".equals(style)) {
             if (Boolean.TRUE.equals(rules.get("multiple"))) fail(field,"开关样式不能启用多选");
             if (!(rules.get("options") instanceof List<?> options)
@@ -130,6 +123,79 @@ public class FieldValidationService {
                 fail(field,"开关样式必须恰好绑定两个启用的字典项");
         }
         if (rules.containsKey("defaultValue")) validateDefault(field,rules.get("defaultValue"));
+        // 计算字段的结构化规则必须在字段保存时完成校验，运行时只执行已确认的安全规则。
+        ComputedFieldService.validateDefinition(field);
+    }
+
+    /** 校验系统根据自动编号或公式生成的结果；外部请求仍不能直接提交计算字段。 */
+    public void validateComputedValue(FieldDefinition field, Object value) {
+        if (field.type() == FieldType.AUTO_NUMBER) {
+            validateValue(new FieldDefinition(field.code(), field.label(), FieldType.TEXT, field.required(), field.rules()), value);
+            return;
+        }
+        if (field.type() == FieldType.FORMULA) {
+            ComputedFieldService.FormulaRule rule = ComputedFieldService.formula(field);
+            FieldType resultType = "NUMBER".equals(rule.resultType()) ? FieldType.NUMBER : FieldType.TEXT;
+            validateValue(new FieldDefinition(field.code(), field.label(), resultType, field.required(), field.rules()), value);
+            return;
+        }
+        throw new IllegalArgumentException(field.label() + "不是计算字段");
+    }
+
+    /**
+     * 将字段表中按文本保存的默认值解析为运行时业务值。
+     *
+     * <p>普通请求仍由 {@link #validateValue(FieldDefinition, Object)} 严格校验，只有配置默认值
+     * 经过本方法解析，避免把用户提交的字符串数字误当作合法数字。</p>
+     */
+    public Object defaultValue(FieldDefinition field) {
+        Object raw = field.rules().get("defaultValue");
+        if (raw == null) return null;
+        if (!(raw instanceof String)) return raw;
+        String text = (String) raw;
+        if (text.isBlank()) return text;
+        try {
+            return switch (field.type()) {
+                case NUMBER -> new BigDecimal(text);
+                case USER, DEPARTMENT, RELATION -> Boolean.TRUE.equals(field.rules().get("multiple"))
+                        ? commaSeparatedIds(text) : Long.valueOf(text.trim());
+                case SELECT -> Boolean.TRUE.equals(field.rules().get("multiple"))
+                        ? List.of(text.split(",", -1)).stream().map(String::trim).toList() : text;
+                case CASCADE -> Map.of("path", commaSeparatedIds(text));
+                default -> text;
+            };
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException(field.label() + "的默认值无法按字段类型解析", ex);
+        }
+    }
+
+    /**
+     * 将 CSV 等外部文本按字段类型解析成保存链需要的值。
+     *
+     * <p>解析只服务于导入边界，解析后的值仍必须经过 {@link #validateValue(FieldDefinition, Object)}
+     * 以及业务关联、权限和唯一性校验，不能用它绕过普通表单的严格类型约束。</p>
+     */
+    public Object parseTextValue(FieldDefinition field, String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String text = raw.trim();
+        try {
+            return switch (field.type()) {
+                case NUMBER -> new BigDecimal(text);
+                case DATE_TIME -> "DATE".equals(field.rules().get("displayStyle"))
+                        ? LocalDate.parse(text).toString() : LocalDateTime.parse(text).toString();
+                case USER, DEPARTMENT, RELATION -> Boolean.TRUE.equals(field.rules().get("multiple"))
+                        ? commaSeparatedIds(text) : Long.valueOf(text);
+                case SELECT -> Boolean.TRUE.equals(field.rules().get("multiple"))
+                        ? java.util.Arrays.stream(text.split(",", -1)).map(String::trim).toList() : text;
+                case CASCADE -> Map.of("path", commaSeparatedIds(text));
+                case AUTO_NUMBER, FORMULA -> throw new IllegalArgumentException(field.label() + "是系统计算字段，不能导入");
+                default -> raw;
+            };
+        } catch (RuntimeException ex) {
+            if (ex instanceof IllegalArgumentException && ex.getMessage() != null
+                    && ex.getMessage().startsWith(field.label())) throw ex;
+            throw new IllegalArgumentException(field.label() + "的导入值无法按字段类型解析", ex);
+        }
     }
 
     /** 校验最终业务值；不会把文本数字或错误布尔值偷偷转换后保存。 */
@@ -185,8 +251,13 @@ public class FieldValidationService {
     private void text(FieldDefinition field, Object value) {
         String text = string(value);
         int length = text.codePointCount(0, text.length());
-        if (field.type().valueColumn()==FieldType.ValueColumn.VARCHAR && length>255)
-            fail(field,"长度不能超过255字符");
+        // 单行文本可能落到 item_text 或扩展短值列；未明确配置长文本时统一限制为 255 字符，避免保存阶段才由数据库截断。
+        Object maxLength = field.rules().get("maxLength");
+        boolean longText = field.type() == FieldType.RICH_TEXT
+                || "MULTI_LINE".equals(field.rules().get("displayStyle"))
+                || maxLength instanceof Number number && number.intValue() > 255;
+        if (field.type() == FieldType.TEXT && !longText && length > 255)
+            fail(field,"单行文本长度不能超过255字符");
         limit(field, length, "minLength", "maxLength", "文本长度");
         Object pattern = field.rules().get("pattern");
         if (pattern instanceof String expression && !Pattern.matches(expression, text)) fail(field, "不符合格式规则");
@@ -199,8 +270,10 @@ public class FieldValidationService {
         if (field.rules().containsKey("max") && number.compareTo(decimal(field.rules().get("max"))) > 0) fail(field, "高于最大值");
         if (field.rules().containsKey("scale") && Math.max(number.stripTrailingZeros().scale(),0)
                 > integer(field.rules().get("scale"),"scale")) fail(field,"小数位超过配置位数");
+        // 总位数按整数位与小数位计算；不能因 stripTrailingZeros 把 1000 误算成 1 位。
         BigDecimal normalized=number.stripTrailingZeros();
-        int digits=Math.max(normalized.precision()-normalized.scale(),0)+Math.max(normalized.scale(),0);
+        int integerDigits=Math.max(normalized.precision()-normalized.scale(),0);
+        int digits=integerDigits+Math.max(normalized.scale(),0);
         if (field.rules().containsKey("precision") && digits>integer(field.rules().get("precision"),"precision"))
             fail(field,"总位数超过配置位数");
     }
@@ -267,16 +340,50 @@ public class FieldValidationService {
     /** 默认值按文本保存，但仍校验它能被当前字段解释。 */
     private void validateDefault(FieldDefinition field,Object value) {
         if (!(value instanceof String) || ((String)value).length()>500) fail(field,"默认值必须是500字符以内的文本");
+        if (field.type().computed()) fail(field,"计算字段不能配置默认值");
         String text=(String)value;
         if (text.isBlank()) return;
         try {
-            switch (field.type()) {
-                case NUMBER -> new BigDecimal(text);
-                case DATE_TIME -> { if ("DATE".equals(field.rules().get("displayStyle"))) LocalDate.parse(text); else LocalDateTime.parse(text); }
-                case SELECT -> { if (text.isBlank()) fail(field,"默认选项值不能为空"); }
-                default -> { }
-            }
+            // 默认值仍以文本落库，但必须先按同一字段类型解析，避免新建记录时才暴露配置错误。
+            Object parsed = defaultValue(field);
+            validateValue(field, parsed);
         } catch (RuntimeException ex) { fail(field,"默认值不能按当前字段类型解释"); }
+    }
+
+    /** 校验选项联动规则的公共结构；具体目标字段是否属于模块由 manage 按模块配置核对。 */
+    private void validateOptionDisplayRules(FieldDefinition field,Object raw) {
+        if (!field.type().options() || !(raw instanceof List<?>)) fail(field,"选项联动显示规则无效");
+        Set<String> optionValues=new HashSet<>();
+        if (field.rules().get("options") instanceof List<?> options) for (Object item:options) {
+            if (item instanceof Map<?,?> option) {
+                Object value=field.type()==FieldType.SELECT?option.get("value"):option.get("id");
+                if (value!=null) optionValues.add(String.valueOf(value));
+            }
+        }
+        List<?> rules=(List<?>)raw;
+        for (Object item:rules) {
+            if (!(item instanceof Map<?,?>)) fail(field,"选项联动规则结构无效");
+            Map<?,?> rule=(Map<?,?>)item;
+            if (rule.keySet().stream().anyMatch(key->!Set.of("when","targetFieldKeys","visible","readonly").contains(key)))
+                fail(field,"选项联动规则结构无效");
+            if (!(rule.get("when") instanceof Map<?,?>)) fail(field,"选项联动条件必须包含 optionValue");
+            Map<?,?> when=(Map<?,?>)rule.get("when");
+            if (!(when.get("optionValue") instanceof String) || ((String)when.get("optionValue")).isBlank())
+                fail(field,"选项联动条件必须包含 optionValue");
+            if (!optionValues.isEmpty() && !optionValues.contains(String.valueOf(when.get("optionValue"))))
+                fail(field,"选项联动条件引用了不存在的选项");
+            if (!(rule.get("targetFieldKeys") instanceof List<?>)) fail(field,"选项联动目标字段无效");
+            List<?> targets=(List<?>)rule.get("targetFieldKeys");
+            Set<String> targetKeys=new HashSet<>();
+            if (targets.isEmpty() || targets.stream().anyMatch(target->!(target instanceof String)
+                    || !((String)target).matches("[a-z][a-zA-Z0-9_]{0,79}")
+                    || !targetKeys.add((String)target)))
+                fail(field,"选项联动目标字段无效");
+            if (rule.containsKey("visible") && !(rule.get("visible") instanceof Boolean)
+                    || rule.containsKey("readonly") && !(rule.get("readonly") instanceof Boolean))
+                fail(field,"选项联动效果必须是布尔值");
+            if (!rule.containsKey("visible") && !rule.containsKey("readonly")) fail(field,"选项联动缺少显示或只读效果");
+        }
     }
     private void limit(FieldDefinition field, int value, String min, String max, String label) {
         if (field.rules().containsKey(min) && value < integer(field.rules().get(min), min)) fail(field, label + "不足");
@@ -300,6 +407,17 @@ public class FieldValidationService {
     private boolean positiveId(Object value) {
         try { return value instanceof Number && new BigDecimal(value.toString()).longValueExact() > 0; }
         catch (RuntimeException ex) { return false; }
+    }
+
+    /** 默认的多值引用和级联路径使用逗号分隔的稳定主键文本。 */
+    private List<Long> commaSeparatedIds(String value) {
+        List<Long> result = new java.util.ArrayList<>();
+        for (String item : value.split(",", -1)) {
+            long id = Long.parseLong(item.trim());
+            if (id < 1) throw new IllegalArgumentException("默认值包含无效主键");
+            result.add(id);
+        }
+        return result;
     }
     private boolean validOptionId(Object value) {
         return value instanceof String s && !s.isBlank() || positiveId(value);

@@ -1,6 +1,7 @@
 package com.unique.unexamine.sys.module.manage.dto;
 
 import com.unique.unexamine.sys.module.manage.bo.ModuleRecordSearchBO;
+import java.time.LocalDateTime;
 
 /** ModuleExport 的请求与返回模型。 */
 public final class ModuleExportDto {
@@ -11,4 +12,8 @@ public final class ModuleExportDto {
 
     /** CSV 内容由 Controller 作为下载响应发送。 */
     public record ExportFile(String name,byte[] content) {}
+
+    /** 后台导出状态及可通过公共文件接口下载的结果文件。 */
+    public record ExportJobView(Long jobId,String status,Integer totalCount,Long resultFileId,
+                                String failureReason,LocalDateTime createTime,LocalDateTime finishTime) {}
 }

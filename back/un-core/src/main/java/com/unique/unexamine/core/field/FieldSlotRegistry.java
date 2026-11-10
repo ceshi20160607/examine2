@@ -75,6 +75,9 @@ public final class FieldSlotRegistry {
             case NUMBER -> new BigDecimal(value.toString());
             case DATE_TIME -> toDateTime(value);
             case USER, DEPARTMENT, RELATION -> new BigDecimal(value.toString()).longValueExact();
+            case FORMULA -> "NUMBER".equals(formulaResultType(definition))
+                    ? new BigDecimal(value.toString()) : value.toString();
+            case AUTO_NUMBER -> value.toString();
             case SELECT, TEXT, RICH_TEXT, ATTACHMENT -> value.toString();
             default -> value;
         };
@@ -91,15 +94,26 @@ public final class FieldSlotRegistry {
             case DEPARTMENT -> "item_dept";
             case RELATION -> "item_module";
             case SELECT -> "item_select";
-            case ATTACHMENT -> "item_text";
+            // 附件字段保存的是文件批次 UUID，按公共协议写入扩展表 value_varchar，
+            // 不占用业务短文本主表槽位，避免附件配置耗尽普通文本槽位。
+            case ATTACHMENT -> null;
+            case AUTO_NUMBER -> "item_text";
+            case FORMULA -> "NUMBER".equals(formulaResultType(definition))
+                    ? "item_number" : (longText(definition) ? "item_long_text" : "item_text");
             default -> null;
         };
+    }
+
+    private static String formulaResultType(FieldDefinition definition) {
+        Object config = definition.rules().get("formulaConfig");
+        if (config instanceof Map<?, ?> map && map.get("resultType") instanceof String type) return type;
+        return "TEXT";
     }
 
     private static boolean longText(FieldDefinition definition) {
         Object max = definition.rules().get("maxLength");
         return max instanceof Number number && number.intValue() > 255
-                || "MULTILINE".equals(definition.rules().get("displayStyle"));
+                || "MULTI_LINE".equals(definition.rules().get("displayStyle"));
     }
 
     private static LocalDateTime toDateTime(Object value) {

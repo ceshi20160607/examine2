@@ -59,7 +59,7 @@ public class UnFlowAction implements Serializable {
     private String actorExternalId;
 
     /**
-     * 同意拒绝转办加签撤回等操作编码
+     * Flow 节点执行、继续及 examine 结果回传等操作编码
      */
     @TableField("action_code")
     private String actionCode;

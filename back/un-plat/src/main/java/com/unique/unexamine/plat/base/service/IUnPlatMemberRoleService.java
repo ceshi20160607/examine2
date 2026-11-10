@@ -19,4 +19,7 @@ public interface IUnPlatMemberRoleService extends IService<UnPlatMemberRole> {
 
     /** 按主键批量逻辑删除记录。 */
     boolean deleteByIds(List<Long> ids);
+
+    /** 恢复已逻辑删除的同一成员角色关系，供授权替换使用。 */
+    boolean restoreByPair(Long memberId, Long roleId);
 }

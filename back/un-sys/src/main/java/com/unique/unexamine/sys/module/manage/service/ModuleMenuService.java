@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unique.unexamine.core.cache.ConfigurationCache;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.sys.base.entity.UnSysLogOpt;
 import com.unique.unexamine.sys.base.entity.UnSysMenu;
 import com.unique.unexamine.sys.base.entity.UnSysSystemConfig;
@@ -20,16 +22,14 @@ import com.unique.unexamine.sys.module.manage.dto.ModuleMenuDto.Settings;
 import com.unique.unexamine.sys.module.manage.enums.DefaultModuleAction;
 import jakarta.validation.constraints.*;
 import java.util.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 菜单是唯一权限身份，模块菜单负责展示，动作保存当前执行配置。 */
 @Service
 public class ModuleMenuService {
     private static final Set<String> POSITIONS=Set.of("MODULE_ENTRY","LIST_TOOLBAR","BATCH","ROW","DETAIL_HEADER");
-    private static final Set<String> EXECUTABLE=Set.of("CREATE","EDIT","LIST","DETAIL","DELETE","TRANSFER","CONVERT","UPDATE_FIELDS","EXPORT");
+    private static final Set<String> EXECUTABLE=Set.of("CREATE","EDIT","LIST","DETAIL","DELETE","TRANSFER","TEAM_MEMBERS","CONVERT","UPDATE_FIELDS","UPDATE_STATUS","IMPORT","EXPORT","PRINT");
     private final SystemManageService systems;
     private final IUnSysSystemService systemRows;
     private final IUnSysSystemConfigService systemConfigs;
@@ -40,18 +40,21 @@ public class ModuleMenuService {
     private final IUnModuleActionService actions;
     private final IUnModuleFieldService fields;
     private final ModuleFieldService fieldRules;
+    private final ModuleRecordStatusService recordStatuses;
     private final ConfigurationCache cache;
     private final ObjectMapper json;
 
     /** 注入生成的基础服务，菜单和动作的业务关联在本服务完成。 */
     public ModuleMenuService(SystemManageService systems,IUnSysSystemService systemRows,IUnSysSystemConfigService systemConfigs,
             IUnSysMenuService menus,IUnModuleService modules,IUnModuleMenuService bindings,IUnModuleActionService actions,
-            IUnModuleFieldService fields,ModuleFieldService fieldRules,ConfigurationCache cache,ObjectMapper json,IUnSysLogOptService logs) {
+            IUnModuleFieldService fields,ModuleFieldService fieldRules,ModuleRecordStatusService recordStatuses,
+            ConfigurationCache cache,ObjectMapper json,IUnSysLogOptService logs) {
         this.systems=systems; this.systemRows=systemRows; this.systemConfigs=systemConfigs; this.menus=menus;
-        this.modules=modules; this.bindings=bindings; this.actions=actions; this.fields=fields; this.fieldRules=fieldRules; this.cache=cache; this.json=json; this.logs=logs;
+        this.modules=modules; this.bindings=bindings; this.actions=actions; this.fields=fields; this.fieldRules=fieldRules;
+        this.recordStatuses=recordStatuses; this.cache=cache; this.json=json; this.logs=logs;
     }
 
-    /** 随模块创建事务初始化十个默认动作；已有配置原样保留。 */
+    /** 随模块创建事务初始化默认动作；已有配置原样保留。 */
     public void initialize(UnModule module) {
         UnSysMenu parent=menus.getOne(new LambdaQueryWrapper<UnSysMenu>().eq(UnSysMenu::getTenantId,module.getTenantId())
                 .eq(UnSysMenu::getCode,"MODULE_"+module.getId()));
@@ -79,19 +82,22 @@ public class ModuleMenuService {
     @Transactional(rollbackFor=Exception.class)
     public ActionView save(String token,Long systemId,Long tenantId,Long moduleId,SaveRequest request) {
         var context=systems.requireAdminContext(token,systemId,tenantId); var module=module(context,moduleId,false); lock(moduleId);
+        if (request == null || request.name() == null || request.type() == null || request.position() == null)
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"菜单动作配置不能为空");
         Settings settings=new Settings(request.name().trim(),request.type().trim().toUpperCase(Locale.ROOT),request.position(),
-                copy(request.fieldIds()),copy(request.conditions()),request.targetModuleId(),copy(request.mappings()));
+                copy(request.fieldIds()),copy(request.conditions()),request.targetModuleId(),copy(request.mappings()),
+                request.draftStatusCode(),request.submitStatusCode());
         validate(context,moduleId,settings);
-        if (request.enabled() && !EXECUTABLE.contains(settings.type())) throw new IllegalArgumentException("该动作执行能力尚未开放");
+        if (request.enabled() && !EXECUTABLE.contains(settings.type())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"该动作执行能力尚未开放");
         Definition saved;
         if (request.menuId()==null) {
-            if (!Set.of("UPDATE_FIELDS","TRANSFER","CONVERT").contains(settings.type())) throw new IllegalArgumentException("自定义动作执行类型无效");
+            if (!Set.of("UPDATE_FIELDS","UPDATE_STATUS","TRANSFER","CONVERT").contains(settings.type())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"自定义动作执行类型无效");
             var parent=menus.getOne(new LambdaQueryWrapper<UnSysMenu>().eq(UnSysMenu::getTenantId,module.getTenantId()).eq(UnSysMenu::getCode,"MODULE_"+moduleId));
             saved=create(module,context.tenantId(),parent.getId(),"MODULE_"+moduleId+"_CUSTOM_"+UUID.randomUUID().toString().replace("-",""),settings,request.enabled(),100);
         } else {
             var definition=definition(context,moduleId,request.menuId(),false);
             if (!context.tenantId().equals(definition.action().getTenantId())) forbidden("不能修改其他租户定义的菜单动作");
-            if (!definition.action().getExecutionType().equals(settings.type())) throw new IllegalArgumentException("已有菜单不能变更动作执行类型");
+            if (!definition.action().getExecutionType().equals(settings.type())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"已有菜单不能变更动作执行类型");
             var menu=definition.menu(); menu.setName(settings.name()); menus.addOrUpdate(menu);
             var binding=definition.binding(); binding.setDisplayPosition(settings.position()); binding.setStatus("ACTIVE"); bindings.addOrUpdate(binding);
             var action=definition.action(); action.setConfigJson(write(settings)); action.setEnabledFlag(request.enabled()); action.setStatus("ACTIVE");
@@ -116,6 +122,7 @@ public class ModuleMenuService {
     /** 解析菜单所属模块和租户，当前配置与启停每次检查，不从权限缓存猜测。 */
     public Definition definition(SystemManageDto.SystemContext context,Long moduleId,Long menuId,boolean runtime) {
         var module=module(context,moduleId,runtime); var menu=menus.queryById(menuId);
+        if (menu==null) forbidden("菜单不存在");
         var binding=bindings.getOne(new LambdaQueryWrapper<UnModuleMenu>().eq(UnModuleMenu::getModuleId,moduleId).eq(UnModuleMenu::getMenuId,menuId));
         var action=actions.getOne(new LambdaQueryWrapper<UnModuleAction>().eq(UnModuleAction::getModuleId,moduleId).eq(UnModuleAction::getMenuId,menuId));
         if (binding==null || action==null || !context.systemId().equals(menu.getSystemId())
@@ -139,31 +146,38 @@ public class ModuleMenuService {
 
     /** 字段和映射按当前字段 ID 查验，不随字段名称修改漂移。 */
     private void validate(SystemManageDto.SystemContext context,Long moduleId,Settings settings) {
-        if (settings.name().isBlank() || settings.name().length()>100 || !POSITIONS.contains(settings.position())) throw new IllegalArgumentException("动作名称或展示位置无效");
+        if (settings.name().isBlank() || settings.name().length()>100 || !POSITIONS.contains(settings.position())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作名称或展示位置无效");
         Set<String> known=new HashSet<>(EXECUTABLE); known.addAll(Set.of("IMPORT","PRINT"));
-        if (!known.contains(settings.type())) throw new IllegalArgumentException("动作执行类型无效");
+        if (!known.contains(settings.type())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作执行类型无效");
+        if (settings.draftStatusCode()!=null && !Set.of("CREATE","EDIT").contains(settings.type()))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"此动作不能配置草稿状态");
+        recordStatuses.requireTarget(moduleId,context.tenantId(),settings.draftStatusCode());
+        recordStatuses.requireTarget(moduleId,context.tenantId(),settings.submitStatusCode());
         var source=currentFields(moduleId);
-        if (settings.fieldIds().size()!=new HashSet<>(settings.fieldIds()).size() || !source.keySet().containsAll(settings.fieldIds())) throw new IllegalArgumentException("动作字段无效或重复");
-        if ("UPDATE_FIELDS".equals(settings.type()) && settings.fieldIds().isEmpty()) throw new IllegalArgumentException("字段更新动作至少配置一个字段");
-        for (var condition:settings.conditions()) if (condition==null || !source.containsKey(condition.fieldId())
-                || condition.operator()==null || !Set.of("EQ","NE","EMPTY","NOT_EMPTY","GT","GE","LT","LE","IN").contains(condition.operator())) throw new IllegalArgumentException("动作条件字段或操作符无效");
+        if (settings.fieldIds().size()!=new HashSet<>(settings.fieldIds()).size() || !source.keySet().containsAll(settings.fieldIds())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作字段无效或重复");
+        if ("UPDATE_FIELDS".equals(settings.type()) && settings.fieldIds().isEmpty()) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"字段更新动作至少配置一个字段");
+        if ("UPDATE_STATUS".equals(settings.type()) && (settings.submitStatusCode()==null || !settings.fieldIds().isEmpty()))
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"状态动作必须指定目标状态且不能提交普通字段");
+        for (var condition:settings.conditions()) if (condition==null || condition.fieldId()==null || !source.containsKey(condition.fieldId())
+                && !Set.of(0L,-1L).contains(condition.fieldId())
+                || condition.operator()==null || !Set.of("EQ","NE","EMPTY","NOT_EMPTY","GT","GE","LT","LE","IN").contains(condition.operator())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作条件字段或操作符无效");
         for (var condition:settings.conditions()) {
-            if (Set.of("GT","GE","LT","LE").contains(condition.operator()) && !(condition.value() instanceof Number)) throw new IllegalArgumentException("大小比较条件的目标必须是数值");
-            if ("IN".equals(condition.operator()) && !(condition.value() instanceof List<?>)) throw new IllegalArgumentException("范围条件的目标必须是集合");
+            if (Set.of("GT","GE","LT","LE").contains(condition.operator()) && !(condition.value() instanceof Number)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"大小比较条件的目标必须是数值");
+            if ("IN".equals(condition.operator()) && !(condition.value() instanceof List<?>)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"范围条件的目标必须是集合");
         }
         if ("CONVERT".equals(settings.type()) && settings.targetModuleId()!=null) {
-            if (moduleId.equals(settings.targetModuleId())) throw new IllegalArgumentException("转化目标不能是来源模块");
+            if (moduleId.equals(settings.targetModuleId())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"转化目标不能是来源模块");
             module(context,settings.targetModuleId(),true);
             var target=currentFields(settings.targetModuleId()); Set<Long> mapped=new HashSet<>();
             for (var mapping:settings.mappings()) if (mapping==null || !source.containsKey(mapping.sourceFieldId())
-                    || !target.containsKey(mapping.targetFieldId()) || !mapped.add(mapping.targetFieldId())) throw new IllegalArgumentException("转化映射无效或目标字段重复");
+                    || !target.containsKey(mapping.targetFieldId()) || !mapped.add(mapping.targetFieldId())) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"转化映射无效或目标字段重复");
             for (var mapping:settings.mappings()) {
                 var from=source.get(mapping.sourceFieldId()); var to=target.get(mapping.targetFieldId());
                 fieldRules.validateMapping(fieldRules.configured(from.getFieldKey(),readField(from)),fieldRules.configured(to.getFieldKey(),readField(to)));
             }
             for (var field:target.values()) if (Boolean.TRUE.equals(field.getRequiredFlag())
                     && !mapped.contains(field.getId()) && field.getDefaultValue()==null)
-                throw new IllegalArgumentException("目标必填字段没有映射或默认值："+field.getFieldName());
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"目标必填字段没有映射或默认值："+field.getFieldName());
         }
     }
 
@@ -192,9 +206,11 @@ public class ModuleMenuService {
                 .eq(UnModuleField::getModuleId,moduleId).eq(UnModuleField::getStatus,"ACTIVE")).forEach(f->result.put(f.getId(),f)); return result;
     }
     private UnModule module(SystemManageDto.SystemContext context,Long moduleId,boolean runtime) {
-        var module=modules.queryById(moduleId); Long root=systemRows.queryById(context.systemId()).getRootTenantId();
+        var module=modules.queryById(moduleId); var system=systemRows.queryById(context.systemId());
+        if (module==null || system==null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"模块不存在");
+        Long root=system.getRootTenantId();
         if (!context.systemId().equals(module.getSystemId()) || !List.of(root,context.tenantId()).contains(module.getTenantId())) forbidden("模块不属于当前系统租户");
-        if (runtime && !"ACTIVE".equals(module.getStatus())) throw new ResponseStatusException(HttpStatus.CONFLICT,"模块已停用"); return module;
+        if (runtime && !"ACTIVE".equals(module.getStatus())) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"模块已停用"); return module;
     }
     /** 模块资料改名同步导航目录，子动作名称仍保留管理员配置。 */
     public void renameDirectory(UnModule module) {
@@ -203,7 +219,7 @@ public class ModuleMenuService {
     }
     private void lock(Long moduleId) {
         if (modules.getOne(new LambdaQueryWrapper<UnModule>().eq(UnModule::getId,moduleId).last("FOR UPDATE"))==null)
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"模块不存在");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"模块不存在");
     }
     private void changed(Long systemId,Long tenantId) {
         systemConfigs.update(new LambdaUpdateWrapper<UnSysSystemConfig>().eq(UnSysSystemConfig::getSystemId,systemId).setSql("permission_revision=permission_revision+1"));
@@ -220,13 +236,13 @@ public class ModuleMenuService {
     }
     private <T> List<T> copy(List<T> value) {
         if (value==null) return List.of();
-        if (value.stream().anyMatch(Objects::isNull)) throw new IllegalArgumentException("动作配置列表不能包含空项");
+        if (value.stream().anyMatch(Objects::isNull)) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作配置列表不能包含空项");
         return List.copyOf(value);
     }
-    private String write(Settings value) { try { return json.writeValueAsString(value); } catch (JsonProcessingException ex) { throw new IllegalArgumentException("动作配置无法保存",ex); } }
+    private String write(Settings value) { try { return json.writeValueAsString(value); } catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"动作配置无法保存",ex); } }
     private Settings read(String value) {
-        try { var raw=json.readValue(value,Settings.class); return new Settings(raw.name(),raw.type(),raw.position(),copy(raw.fieldIds()),copy(raw.conditions()),raw.targetModuleId(),copy(raw.mappings())); }
-        catch (JsonProcessingException ex) { throw new IllegalStateException("动作配置损坏",ex); }
+        try { var raw=json.readValue(value,Settings.class); return new Settings(raw.name(),raw.type(),raw.position(),copy(raw.fieldIds()),copy(raw.conditions()),raw.targetModuleId(),copy(raw.mappings()),raw.draftStatusCode(),raw.submitStatusCode()); }
+        catch (JsonProcessingException ex) { throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT,"动作配置损坏",ex); }
     }
-    private void forbidden(String message) { throw new ResponseStatusException(HttpStatus.FORBIDDEN,message); }
+    private void forbidden(String message) { throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,message); }
 }

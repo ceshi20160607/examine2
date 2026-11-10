@@ -46,4 +46,23 @@ class FieldValueCodecTest {
         assertEquals(Map.of("path", List.of(1, 2)), FieldValueCodec.decode(FieldType.CASCADE, cascade, json));
         assertNull(cascade.number());
     }
+
+    /** 计算字段落到扩展值表时，列映射和读取必须遵循配置结果类型。 */
+    @Test void computedFieldUsesConfiguredStorageColumn() {
+        var autoNumber = new FieldDefinition("serial", "编号", FieldType.AUTO_NUMBER, false, Map.of());
+        var formulaNumber = new FieldDefinition("amount", "金额", FieldType.FORMULA, false,
+                Map.of("formulaConfig", Map.of("resultType", "NUMBER")));
+        var formulaText = new FieldDefinition("summary", "摘要", FieldType.FORMULA, false,
+                Map.of("formulaConfig", Map.of("resultType", "TEXT")));
+
+        assertEquals(FieldType.ValueColumn.VARCHAR, FieldValueCodec.valueColumn(autoNumber));
+        assertEquals(FieldType.ValueColumn.NUMBER, FieldValueCodec.valueColumn(formulaNumber));
+        assertEquals(FieldType.ValueColumn.TEXT, FieldValueCodec.valueColumn(formulaText));
+        assertEquals("202610280001", FieldValueCodec.decode(autoNumber,
+                new FieldValueCodec.Cells("202610280001", null, null, null, null), json));
+        assertEquals(0, new BigDecimal("12.50").compareTo((BigDecimal) FieldValueCodec.decode(formulaNumber,
+                new FieldValueCodec.Cells(null, null, new BigDecimal("12.50"), null, null), json)));
+        assertEquals("合计12.50", FieldValueCodec.decode(formulaText,
+                new FieldValueCodec.Cells(null, "合计12.50", null, null, null), json));
+    }
 }

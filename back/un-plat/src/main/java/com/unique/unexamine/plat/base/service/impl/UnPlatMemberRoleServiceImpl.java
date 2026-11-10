@@ -42,4 +42,10 @@ public class UnPlatMemberRoleServiceImpl extends ServiceImpl<UnPlatMemberRoleMap
     public boolean deleteByIds(List<Long> ids) {
         return removeByIds(ids);
     }
+
+    /** 关系再次授权时恢复逻辑删除标记。 */
+    @Override
+    public boolean restoreByPair(Long memberId, Long roleId) {
+        return getBaseMapper().restoreByPair(memberId, roleId) > 0;
+    }
 }

@@ -10,6 +10,7 @@ public enum SystemCodeEnum implements ResultBaseCode {
     SYSTEM_NO_AUTH(403, "无权操作"),
     SYSTEM_NO_FOUND(404, "资源不存在"),
     SYSTEM_CONFLICT(409, "数据冲突"),
+    SYSTEM_TOO_MANY(429, "请求过于频繁"),
     SYSTEM_ERROR(500, "服务处理失败");
 
     private final int code;

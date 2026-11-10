@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unique.unexamine.core.common.Result;
 import com.unique.unexamine.work.manage.bo.WorkTaskSearchBO;
 import com.unique.unexamine.work.manage.dto.WorkTaskDto.CommentRequest;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.BoardView;
+import com.unique.unexamine.work.manage.dto.WorkTaskDto.CalendarView;
 import com.unique.unexamine.work.manage.dto.WorkTaskDto.CreateRequest;
 import com.unique.unexamine.work.manage.dto.WorkTaskDto.DeferDecision;
 import com.unique.unexamine.work.manage.dto.WorkTaskDto.DeferRequest;
@@ -20,7 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import java.time.LocalDate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 工作任务 HTTP 入口；普通任务创建与列表独立，详情和操作复用同一业务服务。 */
@@ -57,13 +58,36 @@ public class WorkTaskController {
 
     /** 按当前作用域分页查询本人任务。 */
     @GetMapping
-    @Operation(summary = "我的普通任务")
+    @Operation(summary = "我的任务")
     public Result<Page<TaskView>> list(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @RequestParam(required = false) Long systemId,
             @ModelAttribute WorkTaskSearchBO search) {
         return Result.ok(service.queryPageList(token, systemId, tenantId, search));
+    }
+
+    /** 按任务状态展示当前账号可见的工作看板。 */
+    @GetMapping("/board")
+    @Operation(summary = "工作任务看板")
+    public Result<BoardView> board(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @RequestParam(required = false) Long systemId,
+            @ModelAttribute WorkTaskSearchBO search) {
+        return Result.ok(service.board(token, systemId, tenantId, search));
+    }
+
+    /** 按自然日范围展示当前账号可见任务的截止时间。 */
+    @GetMapping("/calendar")
+    @Operation(summary = "工作任务日历")
+    public Result<CalendarView> calendar(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
+            @RequestParam(required = false) Long systemId,
+            @RequestParam LocalDate from, @RequestParam LocalDate to,
+            @ModelAttribute WorkTaskSearchBO search) {
+        return Result.ok(service.calendar(token, systemId, tenantId, from, to, search));
     }
 
     /** 查询当前作用域本人可见的任务详情。 */
@@ -153,14 +177,14 @@ public class WorkTaskController {
 
     /** 停用一条参与关系。 */
     @DeleteMapping("/{taskId}/members/{memberId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "移除任务参与人")
-    public void removeMember(
+    public Result<Void> removeMember(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @RequestParam(required = false) Long systemId, @PathVariable Long taskId,
             @PathVariable Long memberId) {
         service.removeMember(token, systemId, tenantId, taskId, memberId);
+        return Result.ok();
     }
 
     /** 负责人申请延后任务截止时间。 */
@@ -197,12 +221,12 @@ public class WorkTaskController {
 
     /** 归档任务并保留操作历史。 */
     @DeleteMapping("/{taskId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "归档工作任务")
-    public void archive(
+    public Result<Void> archive(
             @RequestHeader(value = "Authorization", required = false) String token,
             @RequestHeader(value = "X-Tenant-Id", required = false) Long tenantId,
             @RequestParam(required = false) Long systemId, @PathVariable Long taskId) {
         service.archive(token, systemId, tenantId, taskId);
+        return Result.ok();
     }
 }

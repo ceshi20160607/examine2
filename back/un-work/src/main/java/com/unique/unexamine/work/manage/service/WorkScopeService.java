@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.unique.unexamine.plat.base.entity.UnPlatAccount;
 import com.unique.unexamine.plat.base.service.IUnPlatAccountService;
 import com.unique.unexamine.plat.manage.service.AuthManageService;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.sys.base.entity.UnSysMember;
 import com.unique.unexamine.sys.base.entity.UnSysTenantMember;
 import com.unique.unexamine.sys.base.service.IUnSysMemberService;
@@ -12,9 +14,7 @@ import com.unique.unexamine.sys.manage.service.SystemManageService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 项目与任务复用的平台、系统租户作用域及目标成员校验。 */
 @Service
@@ -42,7 +42,7 @@ public class WorkScopeService {
     /** 工作项目和任务始终显式区分平台与当前系统租户。 */
     public Scope scope(String token,Long systemId,Long tenantId) {
         if (systemId==null) {
-            if (tenantId!=null) throw new IllegalArgumentException("平台工作不能指定租户");
+            if (tenantId!=null) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"平台工作不能指定租户");
             return new Scope(auth.requireAccount(token).getId(),"PLATFORM",null,null);
         }
         var context=systems.context(token,systemId,tenantId);
@@ -51,10 +51,10 @@ public class WorkScopeService {
 
     /** 指派目标必须是有效账号，系统工作还要求有效系统及租户成员关系。 */
     public Assignee assignee(Scope scope,Long accountId) {
-        if (accountId==null || accountId<1) throw new IllegalArgumentException("目标账号无效");
+        if (accountId==null || accountId<1) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"目标账号无效");
         UnPlatAccount account=accounts.getById(accountId);
         if (account==null || !"ACTIVE".equals(account.getStatus()))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"目标账号不存在");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"目标账号不存在");
         if (scope.systemId()==null) return new Assignee(account,account.getDisplayName());
         UnSysMember member=members.getOne(new LambdaQueryWrapper<UnSysMember>()
                 .eq(UnSysMember::getSystemId,scope.systemId())
@@ -65,7 +65,7 @@ public class WorkScopeService {
                 .eq(UnSysTenantMember::getTenantId,scope.tenantId())
                 .eq(UnSysTenantMember::getMemberId,member.getId())
                 .eq(UnSysTenantMember::getStatus,"ACTIVE")))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"目标账号不属于当前租户");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_FOUND,"目标账号不属于当前租户");
         String name=member.getDisplayName();
         return new Assignee(account,name==null || name.isBlank()?account.getDisplayName():name);
     }

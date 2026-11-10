@@ -1,6 +1,8 @@
 package com.unique.unexamine.sys.module.manage.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import com.unique.unexamine.sys.module.base.entity.UnModuleField;
 import com.unique.unexamine.sys.module.base.entity.UnModuleFieldSort;
 import com.unique.unexamine.sys.module.base.service.IUnModuleFieldSortService;
@@ -31,18 +33,22 @@ public class ModuleColumnService {
     public List<Preference> save(String token,Long systemId,Long tenantId,Long moduleId,List<Preference> requested) {
         var access=permissions.require(token,systemId,tenantId,moduleId,"LIST");
         modules.activeModule(systemId,moduleId,access.context().tenantId());
-        if (requested==null || requested.size()>100) throw new IllegalArgumentException("表头配置数量无效");
+        if (requested==null || requested.size()>100) throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"表头配置数量无效");
         Map<Long,UnModuleField> fields=new HashMap<>();
         for (var field:modules.currentFields(moduleId)) fields.put(field.getId(),field);
+        Set<Long> pageIds=modules.pageFields(moduleId,"LIST").stream()
+                .map(com.unique.unexamine.sys.module.base.entity.UnModulePageField::getFieldId)
+                .collect(java.util.stream.Collectors.toSet());
+        var listPolicy=permissions.listFieldsPolicy(access);
         Set<Long> ids=new HashSet<>(); Set<Integer> positions=new HashSet<>();
         for (Preference item:requested) {
             if (item==null || item.fieldId()==null || !ids.add(item.fieldId()) || !positions.add(item.sortNo())
                     || item.sortNo()<0 || item.sortNo()>=100 || item.widthPx()!=null && (item.widthPx()<60 || item.widthPx()>1000)
                     || item.fixedSide()!=null && !Set.of("LEFT","RIGHT").contains(item.fixedSide()))
-                throw new IllegalArgumentException("表头列标识、顺序、宽度或固定位置无效");
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_VALID,"表头列标识、顺序、宽度或固定位置无效");
             UnModuleField field=fields.get(item.fieldId());
-            if (field==null || !access.policy().readable(field.getFieldKey()))
-                throw new IllegalArgumentException("表头包含未配置或无权读取的字段");
+            if (field==null || !pageIds.contains(field.getId()) || !listPolicy.readable(field.getFieldKey()))
+                throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH,"表头包含未配置或无权读取的字段");
         }
         List<UnModuleFieldSort> existing=rows(moduleId,access.context().tenantId(),access.accountId());
         Map<Long,UnModuleFieldSort> byField=new HashMap<>();
@@ -74,10 +80,14 @@ public class ModuleColumnService {
     public Map<Long,Preference> effective(Long moduleId,ModulePermissionService.Access access) {
         Map<Long,UnModuleField> fields=new HashMap<>();
         for (var field:modules.currentFields(moduleId)) fields.put(field.getId(),field);
+        Set<Long> pageIds=modules.pageFields(moduleId,"LIST").stream()
+                .map(com.unique.unexamine.sys.module.base.entity.UnModulePageField::getFieldId)
+                .collect(java.util.stream.Collectors.toSet());
+        var listPolicy=permissions.listFieldsPolicy(access);
         Map<Long,Preference> result=new HashMap<>();
         for (var row:rows(moduleId,access.context().tenantId(),access.accountId())) {
             UnModuleField field=fields.get(row.getFieldId());
-            if (field!=null && access.policy().readable(field.getFieldKey()))
+            if (field!=null && pageIds.contains(field.getId()) && listPolicy.readable(field.getFieldKey()))
                 result.put(field.getId(),new Preference(field.getId(),row.getSortNo(),row.getWidthPx(),
                         Boolean.TRUE.equals(row.getHiddenFlag()),row.getFixedSide()));
         }

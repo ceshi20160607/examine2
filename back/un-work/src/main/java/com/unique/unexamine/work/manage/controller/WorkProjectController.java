@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -32,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 工作项目 HTTP 入口；成员、作用域与任务组规则由业务 Service 执行。 */
@@ -103,13 +101,13 @@ public class WorkProjectController {
 
     /** 归档项目并保留所属任务与历史。 */
     @DeleteMapping("/{projectId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "归档工作项目")
-    public void archive(
+    public Result<Void> archive(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long projectId) {
         service.archive(token,systemId,tenantId,projectId);
+        return Result.ok();
     }
 
     /** 增加项目协作或观察成员。 */
@@ -135,14 +133,14 @@ public class WorkProjectController {
 
     /** 停用项目成员关系；待处理任务须先转交。 */
     @DeleteMapping("/{projectId}/members/{memberId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "移除项目成员")
-    public void removeMember(
+    public Result<Void> removeMember(
             @RequestHeader(value="Authorization",required=false) String token,
             @RequestHeader(value="X-Tenant-Id",required=false) Long tenantId,
             @RequestParam(required=false) Long systemId,@PathVariable Long projectId,
             @PathVariable Long memberId) {
         service.removeMember(token,systemId,tenantId,projectId,memberId);
+        return Result.ok();
     }
 
     /** 在项目下创建任务组。 */

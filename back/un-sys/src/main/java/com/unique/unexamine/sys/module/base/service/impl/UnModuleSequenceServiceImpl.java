@@ -29,6 +29,17 @@ public class UnModuleSequenceServiceImpl extends ServiceImpl<UnModuleSequenceMap
         return model;
     }
 
+    /** 业务自动编号使用数据库唯一键和行锁，不通过查询最大值推算序号。 */
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public long nextValue(Long moduleId,Long tenantId,String ruleCode,String periodKey,long start) {
+        if (baseMapper.increment(moduleId,tenantId,ruleCode,periodKey,start)<1)
+            throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT, "自动编号序列分配失败");
+        Long value=baseMapper.currentValue(moduleId,tenantId,ruleCode,periodKey);
+        if (value==null) throw new BaseException(SystemCodeEnum.SYSTEM_CONFLICT, "自动编号序列读取失败");
+        return value;
+    }
+
     /** 基础读取只负责主键定位；调用方决定业务可见范围。 */
     @Override
     public UnModuleSequence queryById(Long id) {

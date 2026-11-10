@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-11-07
  */
 @TableName("un_examine_example")
 public class UnExamineExample implements Serializable {
@@ -35,19 +35,25 @@ public class UnExamineExample implements Serializable {
     private Long examineId;
 
     /**
+     * 发起本实例的模块审批绑定主键，Flow等其他来源为空
+     */
+    @TableField("module_examine_id")
+    private Long moduleExamineId;
+
+    /**
      * 发起时审批定义发布版本
      */
     @TableField("published_version")
     private Integer publishedVersion;
 
     /**
-     * 审批业务所属系统主键
+     * 审批业务所属系统主键，平台审批为空
      */
     @TableField("system_id")
     private Long systemId;
 
     /**
-     * 审批业务所属租户主键
+     * 审批业务所属租户主键，平台审批为空
      */
     @TableField("tenant_id")
     private Long tenantId;
@@ -133,6 +139,14 @@ public class UnExamineExample implements Serializable {
 
     public void setExamineId(Long examineId) {
         this.examineId = examineId;
+    }
+
+    public Long getModuleExamineId() {
+        return moduleExamineId;
+    }
+
+    public void setModuleExamineId(Long moduleExamineId) {
+        this.moduleExamineId = moduleExamineId;
     }
 
     public Integer getPublishedVersion() {

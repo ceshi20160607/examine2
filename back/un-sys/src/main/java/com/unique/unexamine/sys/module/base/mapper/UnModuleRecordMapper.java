@@ -10,7 +10,7 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-24
+ * @since 2026-11-10
  */
 @Mapper
 public interface UnModuleRecordMapper extends BaseMapper<UnModuleRecord> {

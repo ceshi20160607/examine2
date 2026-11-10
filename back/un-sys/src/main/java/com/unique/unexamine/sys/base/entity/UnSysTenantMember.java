@@ -52,6 +52,10 @@ public class UnSysTenantMember implements Serializable {
     @TableField("department_id")
     private Long departmentId;
 
+    /** 当前租户成员的直系上级平台账号；为空时由审批节点配置提供固定上级。 */
+    @TableField("supervisor_account_id")
+    private Long supervisorAccountId;
+
     /**
      * 是否租户管理员
      */
@@ -127,6 +131,14 @@ public class UnSysTenantMember implements Serializable {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public Long getSupervisorAccountId() {
+        return supervisorAccountId;
+    }
+
+    public void setSupervisorAccountId(Long supervisorAccountId) {
+        this.supervisorAccountId = supervisorAccountId;
     }
 
     public Boolean getIsAdmin() {

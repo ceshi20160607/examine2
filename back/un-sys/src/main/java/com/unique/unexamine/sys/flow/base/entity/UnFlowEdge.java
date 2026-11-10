@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 流程画布草稿连线
+ * 流程画布连线配置
  * </p>
  *
  * @author Template Base
@@ -23,7 +23,7 @@ public class UnFlowEdge implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 流程草稿连线主键
+     * 流程连线配置主键
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

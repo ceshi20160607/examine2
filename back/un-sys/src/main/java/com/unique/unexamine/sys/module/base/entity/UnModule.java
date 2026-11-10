@@ -64,9 +64,7 @@ public class UnModule implements Serializable {
     @TableField("description")
     private String description;
 
-    /**
-     * ģ????ͣ״̬?????漴?
-     */
+    /** 模块当前启用、停用或逻辑删除前的业务状态。 */
     @TableField("status")
     private String status;
 

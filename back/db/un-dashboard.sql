@@ -138,11 +138,14 @@ CREATE TABLE IF NOT EXISTS un_kpi_user (
 
 CREATE TABLE IF NOT EXISTS un_kpi_result (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '指标计算历史主键',
-  kpi_user_id BIGINT NOT NULL COMMENT '所属人员或组织周期目标主键',
+  kpi_id BIGINT NOT NULL COMMENT '所属关键指标主键，包含无目标的全租户计算',
+  period_key VARCHAR(20) NOT NULL COMMENT '本次计算的月份季度或年度周期编码',
+  kpi_user_id BIGINT DEFAULT NULL COMMENT '人员或组织周期目标主键，空表示全租户实际值',
   kpi_version INT NOT NULL COMMENT '计算所用的已发布指标版本',
   actual_value DECIMAL(20,4) NOT NULL COMMENT '本次计算的实际指标值',
   source_json JSON NOT NULL COMMENT '来源模块数据源筛选口径与权限摘要',
   calculation_time DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '指标实际计算时间',
   deleted_time DATETIME(3) DEFAULT NULL COMMENT '逻辑删除时间，空表示未删除',
-  PRIMARY KEY (id), KEY ix_kpi_result_target (kpi_user_id, calculation_time)
+  PRIMARY KEY (id), KEY ix_kpi_result_kpi_period (kpi_id, period_key, calculation_time),
+  KEY ix_kpi_result_target (kpi_user_id, calculation_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='可解释的指标计算历史';

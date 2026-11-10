@@ -2,9 +2,9 @@ package com.unique.unexamine.core.permission;
 
 import java.util.List;
 import java.util.Set;
+import com.unique.unexamine.core.enums.SystemCodeEnum;
+import com.unique.unexamine.core.exception.BaseException;
 import java.util.function.Function;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 /** 业务域加载角色和租户授权后，统一使用本结果过滤字段并校验写入与负责人范围。 */
 public record PermissionPolicy(boolean actionAllowed, boolean allData, Set<Long> ownerAccountIds,
@@ -20,7 +20,7 @@ public record PermissionPolicy(boolean actionAllowed, boolean allData, Set<Long>
 
     /** 菜单或动作未正向授权时默认拒绝。 */
     public void requireAction() {
-        if (!actionAllowed) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "缺少当前模块动作权限");
+        if (!actionAllowed) throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "缺少当前模块动作权限");
     }
 
     /** 字段读取权限与租户硬限制已由加载方合并。 */
@@ -40,7 +40,7 @@ public record PermissionPolicy(boolean actionAllowed, boolean allData, Set<Long>
     public void requireWritable(Set<String> submitted) {
         requireAction();
         if (submitted.stream().anyMatch(field -> !writable(field))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "提交包含无权编辑的字段");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "提交包含无权编辑的字段");
         }
     }
 
@@ -48,7 +48,7 @@ public record PermissionPolicy(boolean actionAllowed, boolean allData, Set<Long>
     public void requireOwner(Long ownerAccountId) {
         requireAction();
         if (!allData && !ownerAccountIds.contains(ownerAccountId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "记录不在当前动作的数据范围内");
+            throw new BaseException(SystemCodeEnum.SYSTEM_NO_AUTH, "记录不在当前动作的数据范围内");
         }
     }
 }

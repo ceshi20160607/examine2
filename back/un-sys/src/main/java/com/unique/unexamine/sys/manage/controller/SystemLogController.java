@@ -2,8 +2,9 @@ package com.unique.unexamine.sys.manage.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.unique.unexamine.core.common.Result;
-import com.unique.unexamine.sys.base.entity.UnSysLogOpt;
 import com.unique.unexamine.sys.manage.bo.SystemLogSearchBO;
+import com.unique.unexamine.sys.manage.dto.SystemLogDto.LogView;
+import com.unique.unexamine.sys.manage.dto.SystemLogDto.LoginView;
 import com.unique.unexamine.sys.manage.service.SystemLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,8 +30,16 @@ public class SystemLogController {
     /** 查询系统管理范围内的操作日志。 */
     @GetMapping
     @Operation(summary = "筛选系统操作日志")
-    public Result<Page<UnSysLogOpt>> list(@RequestHeader(value = "Authorization", required = false) String token,
+    public Result<Page<LogView>> list(@RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long systemId, @ModelAttribute SystemLogSearchBO search) {
         return Result.ok(service.queryPageList(token, systemId, search));
+    }
+
+    /** 管理员按租户、账号和时间查看显式进入系统的记录。 */
+    @GetMapping("/login")
+    @Operation(summary = "查询系统登录日志")
+    public Result<Page<LoginView>> logins(@RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable Long systemId, @ModelAttribute SystemLogSearchBO search) {
+        return Result.ok(service.logins(token, systemId, search));
     }
 }

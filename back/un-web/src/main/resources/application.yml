@@ -1,6 +1,11 @@
 server:
   port: 9999
 
+# 首次启动创建 admin 时从环境变量读取，已有管理员不会被覆盖。
+app:
+  initial-admin:
+    password: ${APP_INITIAL_ADMIN_PASSWORD:}
+
 # 全部业务表以删除时间统一逻辑删除；关联查询及统计仍由业务入口核对过滤范围。
 mybatis-plus:
   global-config:
@@ -33,3 +38,8 @@ spring:
       host: ${APP_REDIS_HOST:127.0.0.1}
       port: ${APP_REDIS_PORT:6379}
       password: ${APP_REDIS_PASSWORD:}
+
+un:
+  print:
+    # 服务端 PDF 嵌入字体；生产环境可配置可用的中文 TTF 文件。
+    font-path: ${APP_PRINT_FONT_PATH:C:/Windows/Fonts/simhei.ttf}

@@ -57,7 +57,7 @@ public class SystemController {
     public Result<SystemContext> context(
             @RequestHeader(value = "Authorization", required = false) String token,
             @PathVariable Long systemId, @RequestParam(required = false) Long tenantId) {
-        return Result.ok(service.context(token, systemId, tenantId));
+        return Result.ok(service.enter(token, systemId, tenantId));
     }
 
     /** 根据租户模式列出当前成员可进入的租户。 */

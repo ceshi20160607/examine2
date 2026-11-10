@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * </p>
  *
  * @author Template Base
- * @since 2026-10-23
+ * @since 2026-11-07
  */
 @TableName("un_module_teamer")
 public class UnModuleTeamer implements Serializable {
@@ -35,16 +35,16 @@ public class UnModuleTeamer implements Serializable {
     private Long recordId;
 
     /**
-     * 团队平台账号主键
+     * 获得当前记录查看或编辑权限的平台账号主键
      */
     @TableField("account_id")
     private Long accountId;
 
     /**
-     * 负责协作只读或关注身份
+     * 记录团队权限：VIEW查看、EDIT编辑并查看
      */
-    @TableField("member_type")
-    private String memberType;
+    @TableField("access_level")
+    private String accessLevel;
 
     /**
      * 团队关系状态
@@ -53,10 +53,28 @@ public class UnModuleTeamer implements Serializable {
     private String status;
 
     /**
+     * 添加团队成员的操作账号主键
+     */
+    @TableField("create_user_id")
+    private Long createUserId;
+
+    /**
      * 加入时间
      */
     @TableField("create_time")
     private LocalDateTime createTime;
+
+    /**
+     * 最近修改团队权限的操作账号主键
+     */
+    @TableField("update_user_id")
+    private Long updateUserId;
+
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     /**
      * 逻辑删除时间，空表示未删除
@@ -89,12 +107,12 @@ public class UnModuleTeamer implements Serializable {
         this.accountId = accountId;
     }
 
-    public String getMemberType() {
-        return memberType;
+    public String getAccessLevel() {
+        return accessLevel;
     }
 
-    public void setMemberType(String memberType) {
-        this.memberType = memberType;
+    public void setAccessLevel(String accessLevel) {
+        this.accessLevel = accessLevel;
     }
 
     public String getStatus() {
@@ -105,12 +123,36 @@ public class UnModuleTeamer implements Serializable {
         this.status = status;
     }
 
+    public Long getCreateUserId() {
+        return createUserId;
+    }
+
+    public void setCreateUserId(Long createUserId) {
+        this.createUserId = createUserId;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getUpdateUserId() {
+        return updateUserId;
+    }
+
+    public void setUpdateUserId(Long updateUserId) {
+        this.updateUserId = updateUserId;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 
     public LocalDateTime getDeletedTime() {
